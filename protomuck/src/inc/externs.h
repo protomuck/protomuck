@@ -64,10 +64,27 @@ extern void check_archive_time();
 extern int auto_archive_now(void);	
 
 /* from timequeue.c */
+typedef struct timenode {
+    struct timenode *next;
+    int     typ;
+    int     subtyp;
+    time_t  when;
+    int     descr;
+    dbref   called_prog;
+    char   *called_data;
+    char   *command;
+    char   *str3;
+    dbref   uid;
+    dbref   loc;
+    dbref   trig;
+    struct frame *fr;
+    struct inst *where;
+    int     eventnum;
+}      *timequeue;
 extern stk_array *get_pids(dbref ref);
 extern stk_array *get_pidinfo(int pid);
 extern int scan_instances(dbref program);
-extern void handle_read_event(int descr, dbref player, const char *command);
+extern void handle_read_event(int descr, dbref player, const char *command, struct timenode *event);
 extern int add_muf_read_event(int descr, dbref player, dbref prog, struct frame *fr);
 extern int add_muf_tread_event(int descr, dbref player, dbref prog, struct frame *fr, int delay);
 extern int add_muf_queue_event(int descr, dbref player, dbref loc, dbref trig, dbref prog,

@@ -51,7 +51,7 @@ interactive(int descr, dbref player, const char *command)
          * process command, push onto stack, and return control to forth
          * program
          */
-        handle_read_event(descr, player, command);
+        handle_read_event(descr, player, command, NULL);
     } else {
         editor(descr, player, command);
     }

@@ -56,24 +56,7 @@
  *  tevmuf 0    5   when  user  loc    trig  prog  frame  mode  event   --
  */
 
-
-typedef struct timenode {
-    struct timenode *next;
-    int     typ;
-    int     subtyp;
-    time_t  when;
-    int     descr;
-    dbref   called_prog;
-    char   *called_data;
-    char   *command;
-    char   *str3;
-    dbref   uid;
-    dbref   loc;
-    dbref   trig;
-    struct frame *fr;
-    struct inst *where;
-    int     eventnum;
-}      *timequeue;
+/* definition for struct timenode moved to externs.h */
 
 static timequeue tqhead = NULL;
 
@@ -365,9 +348,16 @@ read_event_notify(int descr, dbref player)
 	}
 }
 
+/* I had to add the 'timequeue event' parameter to handle_read_event() in order
+ * to fix support for TREAD. Since handle_read_event() is called -after- the
+ * TREAD event is removed from the timequeue, the event itself has to be 
+ * passed in order to work with it at all. When this function is called from
+ * anywhere else, 'event' should always be passed as NULL. 
+ */
 
 void
-handle_read_event(int descr, dbref player, const char *command)
+handle_read_event(int descr, dbref player, const char *command,
+                  struct timenode *event)
 {
     struct frame *fr;
     timequeue ptr, lastevent;
@@ -376,12 +366,12 @@ handle_read_event(int descr, dbref player, const char *command)
     struct descriptor_data *curdescr = NULL;
     nothing_flag = 0;
     if (command == NULL) {
-	  nothing_flag = 1;
+          nothing_flag = 1;
     }
-    oldflags = FLAGS(player);
-    if ( player != NOTHING )
+    if ( player != NOTHING ) {
+        oldflags = FLAGS(player);
         FLAGS(player) &= ~(INTERACTIVE | READMODE);
-    else {
+    } else {
         curdescr = get_descr(descr, NOTHING);
         if (curdescr) {
             curdescr->interactive = 0;
@@ -390,150 +380,146 @@ handle_read_event(int descr, dbref player, const char *command)
     }
     ptr = tqhead;
     lastevent = NULL;
-    while (ptr) {
-	if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
+    while (ptr && !event) { //If event is not NULL, we don't want to do this part.
+        if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
             ptr->subtyp == TQ_MUF_TREAD) &&
             ( player != NOTHING ? ptr->uid == player : ptr->descr == descr)) {
-	    break;
-	}
-	lastevent = ptr;
-	ptr = ptr->next;
+            break;
+        }
+        lastevent = ptr;
+        ptr = ptr->next;
     }
 
-    /*
-     * When execution gets to here, either ptr will point to the
+    if (event)
+        ptr = event; //pointer now points to the passed TREAD event. 
+    /* When execution gets to here, either ptr will point to the
      * READ event for the player, or else ptr will be NULL.
      */
 
     if (ptr) {
-	/* remember our program, and our execution frame. */
-	fr = ptr->fr;
+        /* remember our program, and our execution frame. */
+        fr = ptr->fr;
         /* To allow read to catch blank lines */
-        if (!fr->brkpt.debugging || fr->brkpt.isread) 
-            if (!fr->wantsblanks && command && !*command) {
-                /* put flags back on player and return */ 
+        if (!fr->brkpt.debugging || fr->brkpt.isread)
+            if (!fr->wantsblanks && command && !*command && !event) {
+                /* put flags back on player and return */
                 if ( player != NOTHING )
                     FLAGS(player) = oldflags;
                 else {
                     curdescr = get_descr(descr, NOTHING);
                     if (curdescr) {
-                        curdescr->interactive = 2; 
+                        curdescr->interactive = 2;
                         DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
                     }
                 }
                 return;
             }
-	typ = ptr->subtyp;
-	prog = ptr->called_prog;
-      if (command) {
-  	  /* remove the READ timequeue node from the timequeue */
-	  process_count--;
-	  if (lastevent) {
-	      lastevent->next = ptr->next;
-	  } else {
-	      tqhead = ptr->next;
-	  }
-      }
-	/* remember next timequeue node, to check for more READs later */
-	lastevent = ptr;
-	ptr = ptr->next;
+        typ = ptr->subtyp;
+        prog = ptr->called_prog;
+        if (command) {
+            /* remove the READ timequeue node from the timequeue */
+            process_count--;
+            if (lastevent) {
+                lastevent->next = ptr->next;
+            } else {
+                tqhead = ptr->next;
+            }
+        }
+        /* remember next timequeue node, to check for more READs later */
+        if (!event) { //don't want these steps if it is a TREAD event.
+            lastevent = ptr;
+            ptr = ptr->next;
+                 
+            
+            /* Make SURE not to let the program frame get freed.  We need it. */
+            lastevent->fr = NULL;
+            if (command) { 
+                /* Free up the READ timequeue node
+                 * we just removed from the queue.
+                 */
+                free_timenode(lastevent);
+            }
+        }
+        if (fr->brkpt.debugging && !fr->brkpt.isread) {
+            /* We're in the MUF debugger!  Call it with the input line. */
+            if (command) {
+                if (muf_debugger(descr, player, prog, command, fr)) {
+                    /* MUF Debugger exited.  Free up the program frame & exit */
+                    prog_clean(fr);
+                    return;
+                }
+            } else {
+                if (muf_debugger(descr, player, prog, "", fr)) {
+                    /* MUF Debugger exited.  Free up the program frame & exit */
+                    prog_clean(fr);
+                    return;
+                }
+            }
+        } else if (command) {
+            /* This is a MUF READ event. */
+            if (!string_compare(command, BREAK_COMMAND) &&
+                       ( (MLevel(player) >= tp_min_progbreak_lev)||
+                       (Wiz(player))) ) {
+                    /* Whoops!  The user typed @Q.  Free the frame and exit. */
+                prog_clean(fr);
+                return;
+            }
+            if ((fr->argument.top >= STACK_SIZE) ||
+                    (nothing_flag && fr->argument.top >= STACK_SIZE - 1)) {
 
-	/* Make SURE not to let the program frame get freed.  We need it. */
-	lastevent->fr = NULL;
-      if (command) {
-	  /*
-	   * Free up the READ timequeue node
-	   * we just removed from the queue.
-	   */
-	  free_timenode(lastevent);
-      }
+                /* Uh oh! That MUF program's stack is full!
+                 * Print an error, free the frame, and exit.
+                 */
+                notify_nolisten(player, "Program stack overflow.", 1);
+                prog_clean(fr);
+                return;
+            }
 
-	if (fr->brkpt.debugging && !fr->brkpt.isread) {
-
-	    /* We're in the MUF debugger!  Call it with the input line. */
-	    if (command) {
-		if (muf_debugger(descr, player, prog, command, fr)) {
-			/* MUF Debugger exited.  Free up the program frame & exit */
-			prog_clean(fr);
-			return;
-		}
-	    } else {
-		if (muf_debugger(descr, player, prog, "", fr)) {
-			/* MUF Debugger exited.  Free up the program frame & exit */
-			prog_clean(fr);
-			return;
-		}
-	    }
-	} else {
-	    /* This is a MUF READ event. */
-          if (command) if (!string_compare(command, BREAK_COMMAND) &&
-                           ( (MLevel(player) >= tp_min_progbreak_lev)|| 
-                           (Wiz(player))) ) {
-
-		/* Whoops!  The user typed @Q.  Free the frame and exit. */
-		prog_clean(fr);
-		return;
-	    }
-
-	    if ((fr->argument.top >= STACK_SIZE) ||
-			(nothing_flag && fr->argument.top >= STACK_SIZE - 1)) {
-
-	        /*
-	         * Uh oh! That MUF program's stack is full!
-	         * Print an error, free the frame, and exit.
-		 */
-		notify_nolisten(player, "Program stack overflow.", 1);
-		prog_clean(fr);
-		return;
-	    }
-
-	    /*
-	     * Everything looks okay.  Lets stuff the input line
-	     * on the program's argument stack as a string item.
-	     */
-  	    fr->argument.st[fr->argument.top].type = PROG_STRING;
-  	    fr->argument.st[fr->argument.top++].data.string =
+            /* Everything looks okay.  Lets stuff the input line
+             * on the program's argument stack as a string item.
+             */
+            fr->argument.st[fr->argument.top].type = PROG_STRING;
+            fr->argument.st[fr->argument.top++].data.string =
                 alloc_prog_string(command ? command : "" );
-	    if (typ == TQ_MUF_TREAD) {
-		if (nothing_flag) {
-			fr->argument.st[fr->argument.top].type = PROG_INTEGER;
-			fr->argument.st[fr->argument.top++].data.number = 0;
-		} else {
-			fr->argument.st[fr->argument.top].type = PROG_INTEGER;
-			fr->argument.st[fr->argument.top++].data.number = 1;
-		}
-	    }
-	}
-
-	/*
-	 * When using the MUF Debugger, the debugger will set the
-	 * INTERACTIVE bit on the user, if it does NOT want the MUF
-	 * program to resume executing.
-	 */
+            if (typ == TQ_MUF_TREAD) {
+                if (nothing_flag) {
+                        fr->argument.st[fr->argument.top].type = PROG_INTEGER;
+                        fr->argument.st[fr->argument.top++].data.number = 0;
+                } else {
+                        fr->argument.st[fr->argument.top].type = PROG_INTEGER;
+                        fr->argument.st[fr->argument.top++].data.number = 1;
+                }
+            }
+        }
+        /*
+         * When using the MUF Debugger, the debugger will set the
+         * INTERACTIVE bit on the user, if it does NOT want the MUF
+         * program to resume executing.
+         */
         if ( player != NOTHING )
-    	    flag = (FLAGS(player) & INTERACTIVE);
-        else 
+            flag = (FLAGS(player) & INTERACTIVE);
+        else
             flag = 0;
-
-	if (!flag && fr) {
-	    interp_loop(player, prog, fr, 0);
-			/* WORK: if more input is pending, send the READ mufevent again. */
-			/* WORK: if no input is pending, clear READ mufevent from all of this player's programs. */
-	}
-
-	/*
-	 * Check for any other READ events for this player.
-	 * If there are any, set the READ related flags.
-	 */
-	while (ptr) {
-	    if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
-						   ptr->subtyp == TQ_MUF_TREAD)) {
-		if (ptr->uid == player && player != NOTHING) {
-		    FLAGS(player) |= (INTERACTIVE | READMODE);
-		}
-	    }
-	    ptr = ptr->next;
-	}
+        if (!flag && fr) {
+            interp_loop(player, prog, fr, 0);
+            /* WORK: if more input is pending, send the READ mufevent again. */
+            /* WORK: if no input is pending, clear READ mufevent from all 
+                     of this player's programs. */
+        }
+        /*
+         * Check for any other READ events for this player.
+         * If there are any, set the READ related flags.
+         */
+        ptr = tqhead;
+        while (ptr) {
+            if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
+                                               ptr->subtyp == TQ_MUF_TREAD)) {
+                if (ptr->uid == player && player != NOTHING) {
+                    FLAGS(player) |= (INTERACTIVE | READMODE);
+                }
+            }
+            ptr = ptr->next;
+        }
     }
 }
 
@@ -541,7 +527,7 @@ handle_read_event(int descr, dbref player, const char *command)
 void
 next_timequeue_event(void)
 {
-    struct frame *tmpfr;
+    struct frame *tmpfr, *fr;
     dbref   tmpcp;
     int     tmpbl, tmpfg;
     timequeue lastevent, event;
@@ -623,7 +609,7 @@ next_timequeue_event(void)
 		    event->fr->timercount--;
 		    muf_event_add(event->fr, event->called_data, &temp, 0);
 		} else if (event->subtyp == TQ_MUF_TREAD) {
-		    handle_read_event(event->descr, event->uid, NULL);
+		    handle_read_event(event->descr, event->uid, NULL, event);
 		} else {
 		    strcpy(match_args, event->called_data? event->called_data : "");
 		    strcpy(match_cmdname, event->command? event->command : "");

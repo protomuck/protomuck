@@ -104,6 +104,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     int sockval = 0;
     fd_set reads;
     struct timeval t_val;
+    int charCount = 0;
 
     CHECKOP(1);
     /* socket -- */
@@ -117,7 +118,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         abort_interp("NBSOCKRECV does not work with Listening SOCKETS.");
 
     mystring = (char *) malloc(3);
-    bigbuf = (char *) malloc(1024);
+    bigbuf = (char *) malloc(BUFFER_LEN);
     bufpoint = bigbuf;
 
     t_val.tv_sec = 0;
@@ -134,12 +135,13 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     if (FD_ISSET(oper1->data.sock->socknum, &reads))
     {
        readme = recv(oper1->data.sock->socknum,mystring,1,0);
-       while (readme > 0)
+       while (readme > 0 && charCount < BUFFER_LEN)
        {
            if ((*mystring == '\0') || (((*mystring == '\n') ||
                (*mystring == '\r'))))
                break;
            gotmessage = 1;
+	   ++charCount;
            *bufpoint++=*mystring;
            readme = recv(oper1->data.sock->socknum,mystring,1,0);
        }
