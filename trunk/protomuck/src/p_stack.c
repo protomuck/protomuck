@@ -1168,14 +1168,13 @@ prim_foriter(PRIM_PROTOTYPE)
         else
             tmp = !(cur < end);
         if (tmp) {
-            CHECKOFLOW(2);
+            CHECKOFLOW(1);
             result = cur;
             fr->fors.st->cur.data.number += fr->fors.st->step;
             PushInt(result);
-        } else {
-            CHECKOFLOW(1);
         }
     }
+    CHECKOFLOW(1);
     PushInt(tmp);
 }
 
