@@ -791,8 +791,12 @@ prim_match(PRIM_PROTOTYPE)
     oper1 = POP();
     if (oper1->type != PROG_STRING)
         abort_interp("Non-string argument");
-    if (!oper1->data.string)
-        abort_interp("Empty string argument");
+    if (!oper1->data.string) {
+        CLEAR(oper1);
+        ref = NOTHING;
+        PushObject(ref);
+        return;
+    }
     {
         char tmppp[BUFFER_LEN];
         struct match_data md;
