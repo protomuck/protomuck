@@ -1726,8 +1726,9 @@ new_connection(int port, int sock)
 	    closesocket(newsock);
 	    return 0;
 	}
-	if (ctype != 1)
-	log_status( "ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
+	if (ctype != 1) {
+            
+	show_status( "ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
 	    hostname, ntohs(addr.sin_port),
 	    host_as_hex(ntohl(addr.sin_addr.s_addr)),
 	    ++crt_connect_count, port,
@@ -1737,6 +1738,18 @@ new_connection(int port, int sock)
 	    ctype==CT_MUF?    "MUF"  : (
                             "UNKNOWN" ))))
 	);
+        if( tp_log_connects ) 
+           log2filetime(CONNECT_LOG, "ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
+            hostname, ntohs(addr.sin_port),
+            host_as_hex(ntohl(addr.sin_addr.s_addr)),
+            ++crt_connect_count, port,
+            ctype==CT_MUCK?   "TEXT"    : (
+            ctype==CT_HTML?   "WWW"    : (
+            ctype==CT_PUEBLO? "PUEBLO"  : (
+            ctype==CT_MUF?    "MUF"  : (
+                            "UNKNOWN" ))))
+           );
+        }
 	return initializesock( newsock,
 	    hostname, ntohs(addr.sin_port),
 	    ntohl(addr.sin_addr.s_addr), ctype, port
@@ -1936,15 +1949,24 @@ shutdownsock(struct descriptor_data * d)
 {
     if ((d->type != CT_HTML) || (d->http_login)) { /* Ignore HTTP */
       if (d->connected) {
-	log_status("DISC: %2d %s %s(%s) %s, %d cmds P#%d\n",
+        if ( tp_log_connects )
+           log2filetime(CONNECT_LOG, "DISC: %2d %s %s(%s) %s, %d cmds P#%d\n",
+                d->descriptor, unparse_object(d->player, d->player),
+                d->hostname, d->username,
+                host_as_hex(d->hostaddr), d->commands, d->cport); 
+	show_status("DISC: %2d %s %s(%s) %s, %d cmds P#%d\n",
 		d->descriptor, unparse_object(d->player, d->player),
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->commands, d->cport);
 	announce_disconnect(d);
       } else {
-	log_status("DISC: %2d %s(%s) %s, %d cmds P#%d (never connected)\n",
+	show_status("DISC: %2d %s(%s) %s, %d cmds P#%d (never connected)\n",
 		d->descriptor, d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->commands, d->cport);
+        if (tp_log_connects) 
+            log2filetime(CONNECT_LOG, "DISC: %2d %s(%s) %s, %d cmds P#%d (never connected)\n",
+                d->descriptor, d->hostname, d->username,
+                host_as_hex(d->hostaddr), d->commands, d->cport);
       }
     }
 
