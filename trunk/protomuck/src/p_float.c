@@ -26,15 +26,13 @@ static int result;
 static double fresult;
 static char buf[BUFFER_LEN];
 
-#define INF (9.9E999)
-#define NINF (-9.9E999)
-
 int
 no_good(double test)
 {
 	return (((test == INF) || (test == NINF)));
 }
 
+/*
 void
 prim_inf(PRIM_PROTOTYPE)
 {
@@ -43,6 +41,7 @@ prim_inf(PRIM_PROTOTYPE)
 	CHECKOFLOW(1);
 	PushFloat(fresult);
 }
+*/
 
 void
 prim_ceil(PRIM_PROTOTYPE)
