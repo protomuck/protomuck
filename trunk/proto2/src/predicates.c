@@ -275,11 +275,12 @@ can_see(dbref player, dbref thing, int can_see_loc)
 
 #ifdef CONTROLS_SUPPORT
 int
-controlsEx(dbref who, dbref what) {
- if (FLAG2(what) & F2CONTROLS)
-  return test_lock_false_default(-1, OWNER(who), what, "_/chlk");
- else
-  return 0;
+controlsEx(dbref who, dbref what)
+{
+    if (FLAG2(what) & F2CONTROLS)
+        return test_lock_false_default(-1, OWNER(who), what, "_/chlk");
+    else
+        return 0;
 }
 #endif
 
@@ -299,6 +300,11 @@ newcontrols(dbref who, dbref what, int true_c)
     /* Puppets are based on owner */
     if (Typeof(who) != TYPE_PLAYER)
         who = OWNER(who);
+
+    /* owners control their own stuff */
+    /* Makes stuff faster here. -Hinoserm */
+    if (who == OWNER(what))
+        return 1;
 
     /* CONTROL_ALL controls all objects */
     if ((POWERS(who) & POW_CONTROL_ALL) && !Protect(what))
@@ -326,46 +332,50 @@ newcontrols(dbref who, dbref what, int true_c)
      */
 
 #ifdef CONTROLS_SUPPORT
-  if (!true_c) {
-    if (controlsEx(who, what)) return 1;
+    if (!true_c) {
+        if (controlsEx(who, what))
+            return 1;
 
-    if (tp_realms_control) {
-     if (!tp_wiz_realms) {
-      if (Typeof(what) != TYPE_PLAYER)
-       for (index = what; index != NOTHING; index = getloc(index))
-        if ((controlsEx(who, index)) && (Typeof(index) == TYPE_ROOM
-           && ((FLAGS(index) & BUILDER) || Mage(index)))) 
-         return 1;
-     } else {
-      if (Typeof(what) != TYPE_PLAYER)
-       for (index = what; index != NOTHING; index = getloc(index))
-        if ((controlsEx(who, index)) && (Typeof(index) == TYPE_ROOM
-           && (Mage(index))))
-         return 1;
-     }
-    }
+        if (tp_realms_control) {
+            if (!tp_wiz_realms) {
+                if (Typeof(what) != TYPE_PLAYER)
+                    for (index = what; index != NOTHING; index = getloc(index))
+                        if ((controlsEx(who, index))
+                            && (Typeof(index) == TYPE_ROOM
+                                && ((FLAGS(index) & BUILDER) || Mage(index))))
+                            return 1;
+            } else {
+                if (Typeof(what) != TYPE_PLAYER)
+                    for (index = what; index != NOTHING; index = getloc(index))
+                        if ((controlsEx(who, index))
+                            && (Typeof(index) == TYPE_ROOM && (Mage(index))))
+                            return 1;
+            }
+        }
     } else {
 #endif
-    if (tp_realms_control && (Typeof(what) != TYPE_PLAYER))
-        for (index = what; index != NOTHING; index = getloc(index))
-            if ((OWNER(index) == who) && (Typeof(index) == TYPE_ROOM
-                                          && Mage(index)))
-                return 1;
+        if (tp_realms_control && (Typeof(what) != TYPE_PLAYER))
+            for (index = what; index != NOTHING; index = getloc(index))
+                if ((OWNER(index) == who) && (Typeof(index) == TYPE_ROOM
+                                              && Mage(index)))
+                    return 1;
 #ifdef CONTROLS_SUPPORT
     }
 #endif
-    /* owners control their own stuff */
-    return (who == OWNER(what));
+
+    return 0;
 }
 
 int
-controls(dbref who, dbref what) {
- return newcontrols(who, what, 0);
+controls(dbref who, dbref what)
+{
+    return newcontrols(who, what, 0);
 }
 
 int
-truecontrols(dbref who, dbref what) {
- return newcontrols(who, what, 1);
+truecontrols(dbref who, dbref what)
+{
+    return newcontrols(who, what, 1);
 }
 
 /* Indicates if a flag can or cannot be set.
@@ -416,16 +426,17 @@ restricted(dbref player, dbref thing, object_flag_type flag)
                     (Typeof(thing) == TYPE_PLAYER));
             break;
         case BUILDER:
-            if ((Typeof(thing) == TYPE_PLAYER) || (Typeof(thing) == TYPE_PROGRAM))
-             return (!Mage(OWNER(player)));
+            if ((Typeof(thing) == TYPE_PLAYER)
+                || (Typeof(thing) == TYPE_PROGRAM))
+                return (!Mage(OWNER(player)));
             else
-             return (!truecontrols(player, thing));
+                return (!truecontrols(player, thing));
             break;
         case CHOWN_OK:
             if (Typeof(thing) == TYPE_PLAYER)
-             return !((OWNER(thing) == player) || Mage(player));
+                return !((OWNER(thing) == player) || Mage(player));
             else
-             return !truecontrols(player, thing);
+                return !truecontrols(player, thing);
             break;
         case W1:               /* We use @set to make our own rules for these */
         case W2:
@@ -465,11 +476,11 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
         case F2CONTROLS:
             /* only by W4.  Not even by things they own. */
             if (Typeof(thing) == TYPE_PLAYER)
-                return (!Boy(player));        
+                return (!Boy(player));
             if (Typeof(thing) == TYPE_PROGRAM)
-                return (!Wizard(player)); 
+                return (!Wizard(player));
             /* anything else, if I truly control it. */
-            return !truecontrols(player, thing);       
+            return !truecontrols(player, thing);
             break;
 #endif
         default:
