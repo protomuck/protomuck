@@ -177,7 +177,9 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
 	    sprintf(buffer, "LV%d", theinst->data.number);
 	    break;
         case PROG_SOCKET:
-            sprintf(buffer, "(SOCKET[%d])", theinst->data.sock->socknum);
+            sprintf(buffer, "(%sSOCKET[%d])", 
+			    theinst->data.sock->listening ? "L" : "",
+			    theinst->data.sock->socknum);
             break;
 	case PROG_FUNCTION:
 		sprintf(buffer, "INIT FUNC: %s (%d arg%s)",
