@@ -147,6 +147,7 @@ EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)
 LOGWALL                 (!)     MUFCOUNT                (+)     
 PROTECT                 (*)     PARENT/PROG_DEBUG       (%)     
 HIDDEN                  (#)     MOBILE                  (?)               
+CONTROLS                (~)
 
 Type 'help <flag>' to get more help on a flag.
 
@@ -703,7 +704,11 @@ remove the @chlock. The current @chlock on any object can be seen on the
 examine screen as:
 Chown_OK Key: <Key>
 
-See: @CHOWN, KEYS
+This is now also used as a lock for the CONTROLS flag.  If CONTROLS is set
+on an object with a chown lock also set, those who pass the lock can control
+the object.
+
+See: @CHOWN, KEYS, CONTROLS
 ~
 @chown
 @chown <object> [=<player>]
@@ -782,7 +787,7 @@ Get a detailed list of credits for the muck server itself.
 --------
 
 Return the version of the muck.
-Eg. Proto1.50 (Muck2.2fb5.55 -- Neon2.17)
+Eg. ProtoMUCK 2.00b4 (Muck2.2fb6.01 -- Neon2.17)
 ~
 @tune
 @tune
@@ -1703,6 +1708,13 @@ multitasking mode that the process had before calling this program.  When
 the execution exits this program, the multitasking mode returns to what
 it was before the function was called.  This lets libraries of atomic
 functions be written.
+ 
+As of Proto 2.0, BUILDER can now be set by players on objects they control.
+This does nothing except on environment rooms.  If the wizards have
+realms_control tuned on, and wiz_realms tuned off, then any environment
+with a B bit gives realms control to the environment owner.  In addition,
+if the environment is set CONTROLS, BUILDER and PARENT, then anyone who
+passes the @chown lock will also get control of the environment.
 ~
 CHOWN_OK|COLOR_ANSI|COLOR_ON|COLOR_OK|COLOR|COLORS|C
 CHOWN_OK or COLOR_ANSI or COLOR_ON or COLOR_OK (C)
@@ -2026,6 +2038,7 @@ under '_prefs/idletime'.
 See: TRUEIDLE
 ~~
 TRUEIDLE
+--------
 This flag works like the IDLE flag, except that it cannot be @set either by the
 user or by programs. It is set only by the system when the player's idle time
 reaches that indicated by '@tune idletime'. This flag will always correspond to
@@ -2034,6 +2047,21 @@ This can be checked for via the flag? prim, but does not show up in the unparsed
 names of players.
 
 See: IDLE
+~~
+CONTROLS|~
+CONTROLS
+--------
+Setting CONTROLS on an item, then setting its @chown lock, gives control over
+the object to anyone who passes the chown lock.   The only things a person cannot
+do with the object is change its chown lock, set or remove it's CHOWN_OK flag, or 
+set or remove its CONTROLS flag.
+ 
+In addition, if realms_control is @tuned on, and the environment would fall under
+realms_control, and is also set CONTROLS, control over the objects in the 
+environment also fall under the people that pass the chown lock, allowing for
+multiple area builders.
+ 
+See: BUILDER 
 ~~
 ZOMBIE|PUPPET|Z
 ZOMBIE or PUPPET (Z)
@@ -3320,6 +3348,17 @@ via @login commands by using the DESCR_SETUSER prim.
 
 See: COMMAND PROPS
 ~~~~
+IGNORE|@/IGNORE|IGNORE SUPPORT
+Ignore props
+------------
+The wizard prop @/ignore is a special prop on each player.  As a list
+of dbrefs, it will drop notifies from the players in the property to
+the player on which the prop resides.  If it's compiled in, the usual
+max number of ignores is 16.  There's no user interface to this however
+MUF interfaces are available.  It is up to the admin how available to
+make this feature.  'man max_ignores' explains how to detect the 
+presence of ignore support.
+~~~~
 CONTAINERS|CONTAINER
 Containers
 ----------
@@ -3372,7 +3411,7 @@ ways of creating actions called from the login screen, and much more.
 
 The ProtoMUCK Developers are listed under @credits.
 The ProtoMUCK development site is located at:
-http://protomuck.sourceforge.net/
+http://www.protomuck.org/ -- Now powered BY ProtoMUCK itself!
 ~~~~
 PLAYER-LOCKOUTS
 Player Connetion Controls

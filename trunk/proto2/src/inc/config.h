@@ -60,7 +60,7 @@
    version should be in text, for the MAX_IGNORES MUF define.
  */
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#undef IGNORE_SUPPORT
+#define IGNORE_SUPPORT
 #define MAX_IGNORES 16
 #define MUF_MAX_IGNORES "16"
 
@@ -101,6 +101,8 @@
  * access to things like file primitives and other potential
  * compromises.  You might want to do this if you decided that
  * ProtoMUCK is a better webserver than Apache. 
+ *
+ * See http://www.protomuck.org/ for an example of this. :)
  */
 #undef PROTO_AS_ROOT
 

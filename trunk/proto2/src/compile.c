@@ -552,6 +552,12 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "array_intersect", "2 array_nintersect");
 #ifdef IGNORE_SUPPORT
     insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
+    insert_def(cstat, "SQUELCH", "\"/@/ignore\" swap reflist_add");
+    insert_def(cstat, "UNSQUELCH", "\"/@/ignore\" swap reflist_del");
+    insert_def(cstat, "SQUELCHED?", "\"/@/ignore\" swap reflist_find");
+    insert_def(cstat, "SQUELCH_ARRAY", "\"/@/ignore\" array_get_reflist");
+#else
+    insert_def(cstat, "MAX_IGNORES", "0");
 #endif
 
 #ifdef MCP_SUPPORT
