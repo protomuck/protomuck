@@ -33,7 +33,7 @@
 
 /* Defined elsewhere.  Used to send text to a connection */
 void SendText(McpFrame * mfr, const char *mesg);
-
+void FlushText(McpFrame * mfr);
 
 McpPkg *mcp_PackageList = NULL;
 
@@ -197,6 +197,34 @@ mcp_initialize(void)
 	mcp_package_register("dns-org-mud-moo-simpleedit", oneoh, oneoh, mcppkg_simpleedit, NULL, NULL);
 }
 
+  /***************************************************************** 
+    * 
+    * void mcp_negotiation_start(McpFrame* mfr); 
+    * 
+    *   Starts MCP negotiations, if any are to be had. 
+    * 
+    *****************************************************************/ 
+    
+void 
+mcp_negotiation_start(McpFrame * mfr, connection_t * con) 
+{ 
+    McpMesg reply; 
+
+        if ( ( (((struct descriptor_data *) con)->type == CT_MUCK  ) ||
+		   (((struct descriptor_data *) con)->type == CT_PUEBLO)   )
+                   && tp_enable_mcp) {
+     
+
+        mfr->enabled = 1; 
+        mcp_mesg_init(&reply, MCP_INIT_PKG, ""); 
+        mcp_mesg_arg_append(&reply, "version", "2.1"); 
+        mcp_mesg_arg_append(&reply, "to", "2.1"); 
+        mcp_frame_output_mesg(mfr, &reply); 
+        mcp_mesg_clear(&reply); 
+        mfr->enabled = 0; 
+    }
+} 
+
 
 
 
@@ -225,12 +253,9 @@ mcp_initialize(void)
 void
 mcp_frame_init(McpFrame * mfr, connection_t con)
 {
-	McpMesg reply;
 
-	/* McpVer twoone = {2,1}; */
 
 	mfr->descriptor = con;
-	mfr->enabled = 1;
 	mfr->version.verminor = 0;
 	mfr->version.vermajor = 0;
 	mfr->authkey = NULL;
@@ -241,11 +266,6 @@ mcp_frame_init(McpFrame * mfr, connection_t con)
         if ( ( (((struct descriptor_data *) con)->type == CT_MUCK  ) ||
 		   (((struct descriptor_data *) con)->type == CT_PUEBLO)   )
              && tp_enable_mcp) {
-    	    mcp_mesg_init(&reply, MCP_INIT_PKG, "");
-   	    mcp_mesg_arg_append(&reply, "version", "2.1");
-	    mcp_mesg_arg_append(&reply, "to", "2.1");
-	    mcp_frame_output_mesg(mfr, &reply);
-	    mcp_mesg_clear(&reply);
         }
 	mfr->enabled = 0;
 }
@@ -585,6 +605,7 @@ mcp_frame_output_mesg(McpFrame * mfr, McpMesg * msg)
 	int mlineflag = 0;
 	char *p;
 	char *out;
+        int flushcount = 8;
 
 	if (!mfr->enabled && strcmp_nocase(msg->package, MCP_INIT_PKG)) {
 		return EMCP_NOMCP;
@@ -720,6 +741,10 @@ mcp_frame_output_mesg(McpFrame * mfr, McpMesg * msg)
 					strcat(outbuf, ap->value);
 					strcat(outbuf, "\r\n");
 					SendText(mfr, outbuf);
+                                        if (!--flushcount) {
+                                            FlushText(mfr);
+                                            flushcount = 8;
+                                        }
 					ap = ap->next;
 				}
 			}
@@ -1606,6 +1631,17 @@ mcp_internal_parse(McpFrame * mfr, const char *in)
 
 /*
 * $Log: not supported by cvs2svn $
+* Revision 1.14  2001/02/13 16:37:29  akari
+* Disabled the HTML stripping for the HTML notifying functions,
+*     too buggy for now.
+* Removed the space -> &#32; substitution for Pueblo notifies.
+*     Pueblo is too hacky to allow this work around to its ANSI
+*     problems to work at this point.
+* Made it so that connections to the MUCK are only logged to the
+*     connects log now, and not connects and status like they were
+*     before.
+* Made some fixes to the WHO !! and WHO ! support.
+*
 * Revision 1.11  2001/02/02 05:03:44  revar
 * Added descr, trigger, player, and prog_uid datums to SEND_EVENT context.
 * Updated man.txt docs for SEND_EVENT changes and WATCHPID.

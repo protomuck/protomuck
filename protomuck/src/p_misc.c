@@ -280,6 +280,9 @@ prim_timestamps(PRIM_PROTOTYPE)
 }
 
 extern int top_pid;
+struct forvars *copy_fors(struct forvars *); 
+struct tryvars *copy_trys(struct tryvars *); 
+
 
 void 
 prim_fork(PRIM_PROTOTYPE)
@@ -311,6 +314,12 @@ prim_fork(PRIM_PROTOTYPE)
 	if (i > 0)
             DBFETCH(fr->caller.st[i])->sp.program.instances++;
     }
+    tmpfr->trys.top = fr->trys.top; 
+    tmpfr->trys.st = copy_trys(fr->trys.st); 
+    
+    tmpfr->fors.top = fr->fors.top; 
+    tmpfr->fors.st = copy_fors(fr->fors.st); 
+
 
     for (i = 0; i < MAX_VAR; i++)
 	copyinst(&fr->variables[i], &tmpfr->variables[i]);

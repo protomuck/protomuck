@@ -198,42 +198,18 @@ mcppkg_simpleedit(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 					add_property(obj, buf, "", lines);
 					for (line = 0; line < lines; line++) {
 						content = mcp_mesg_arg_getline(msg, "content", line);
+						if (!content || !*content) {
+							content = " ";
+						}
 						sprintf(buf, "%s#/%d", reference, line + 1);
 						add_property(obj, buf, content, 0);
 					}
 				}
-
-				buf[0] = '\0';
-				for (line = 0; line < lines; line++) {
-					content = mcp_mesg_arg_getline(msg, "content", line);
-					if (line > 0) {
-						if (left >= 1) {
-							strcat(buf, "\r");
-							left--;
-						} else {
-							break;
-						}
-					}
-					len = strlen(content);
-					if (len >= left - 1) {
-						strncat(buf, content, left);
-						left = 0;
-						break;
-					} else {
-						strcat(buf, content);
-						left -= len;
-					}
-				}
-				buf[BUFFER_LEN - 1] = '\0';
-				add_property(obj, reference, buf, 0);
-
-			}
-				else if (!string_compare(valtype, "string") ||
-						 !string_compare(valtype, "integer")) {
+			} else if (!string_compare(valtype, "string") ||
+					   !string_compare(valtype, "integer")) {
 				show_mcp_error(mfr, "simpleedit-set", "Bad value type for proplist.");
 				return;
 			}
-
 		} else if (!string_compare(category, "prog")) {
 			struct line *tmpline;
 			struct line *curr = NULL;

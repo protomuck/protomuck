@@ -2096,6 +2096,16 @@ SendText(McpFrame * mfr, const char *text)
 	queue_string((struct descriptor_data *) mfr->descriptor, text);
 }
 
+void 
+FlushText(McpFrame * mfr) 
+{ 
+    struct descriptor_data *d = (struct descriptor_data *)mfr->descriptor; 
+    if (d && !process_output(d)) { 
+        d->booted = 1; 
+    } 
+} 
+
+
 int
 mcpframe_to_descr(McpFrame * ptr)
 {
@@ -5087,7 +5097,7 @@ welcome_user(struct descriptor_data * d)
 	  queue_ansi(d, "</xch_mudtext><img xch_mode=html>");
        }
 	strcpy(buf, WELC_HTML);
-
+        mcp_negotiation_start(&d->mcpframe, d);
 	if ((f = fopen(buf, "r")) == NULL) {
 	    queue_unhtml(d, DEFAULT_WELCOME_MESSAGE);
 	    perror("spit_file: welcome.html");
@@ -5134,7 +5144,7 @@ welcome_user(struct descriptor_data * d)
 	} else {
 	    strcpy(buf, WELC_FILE);
 	}
-
+        mcp_negotiation_start(&d->mcpframe, d);
 	if ((f = fopen(buf, "r")) == NULL) {
 	    queue_unhtml(d, DEFAULT_WELCOME_MESSAGE);
 	    perror("spit_file: welcome.txt");

@@ -1954,7 +1954,110 @@ prim_array_extract(PRIM_PROTOTYPE)
 	PushArrayRaw(nw);
 }
 
+void 
+prim_array_cut(PRIM_PROTOTYPE) 
+{ 
+    stk_array *nu1 = NULL; 
+    stk_array *nu2 = NULL; 
+    struct inst temps; 
+    struct inst tempc; 
+    struct inst tempe; 
+    
+    CHECKOP(2); 
+    oper2 = POP();                          /* int  position */ 
+    oper1 = POP();                          /* arr  Array   */ 
+    if (oper2->type != PROG_INTEGER && oper2->type != PROG_STRING) 
+        abort_interp("Argument not an integer or string. (2)"); 
+    if (oper1->type != PROG_ARRAY) 
+        abort_interp("Argument not an array. (1)"); 
+    
+    temps.type = PROG_INTEGER; 
+    temps.data.number = 0; 
+    result = array_first(oper1->data.array, &temps); 
+    
+    if (result) { 
+        copyinst(oper2, &tempc); 
+        result = array_prev(oper1->data.array, &tempc); 
+        if (result) { 
+            nu1 = array_getrange(oper1->data.array, &temps, &tempc); 
+            CLEAR(&tempc); 
+        } 
+    
+        result = array_last(oper1->data.array, &tempe); 
+        if (result) { 
+            nu2 = array_getrange(oper1->data.array, oper2, &tempe); 
+            CLEAR(&tempe); 
+        } 
+    
+        CLEAR(&temps); 
+    } 
+    
+    if (!nu1) 
+        nu1 = new_array_packed(0); 
+    if (!nu2) 
+        nu2 = new_array_packed(0); 
+    
+    CLEAR(oper1); 
+    CLEAR(oper2); 
+    
+    PushArrayRaw(nu1); 
+    PushArrayRaw(nu2); 
+} 
 
-
-
+void 
+prim_array_compare(PRIM_PROTOTYPE) 
+{ 
+    struct inst *val1; 
+    struct inst *val2; 
+    stk_array *arr1; 
+    stk_array *arr2; 
+    int res1, res2; 
+    
+    CHECKOP(2); 
+    oper2 = POP();                          /* arr  Array */ 
+    oper1 = POP();                          /* arr  Array */ 
+    if (oper1->type != PROG_ARRAY) 
+        abort_interp("Argument not an array. (1)"); 
+    if (oper2->type != PROG_ARRAY) 
+        abort_interp("Argument not an array. (2)"); 
+    
+    arr1 = oper1->data.array; 
+    arr2 = oper2->data.array; 
+    res1 = array_first(arr1, &temp1); 
+    res2 = array_first(arr2, &temp2); 
+    
+    if (!res1 && !res2) { 
+        result = 0; 
+    } else if (!res1) { 
+        result = -1; 
+    } else if (!res2) { 
+        result = 1; 
+    } else { 
+        do { 
+            result = array_idxcmp(&temp1, &temp2); 
+            if (result) break; 
+    
+            val1 = array_getitem(arr1, &temp1); 
+            val2 = array_getitem(arr2, &temp2); 
+            result = array_idxcmp(val1, val2); 
+            if (result) break; 
+    
+            res1 = array_next(arr1, &temp1); 
+            res2 = array_next(arr2, &temp2); 
+        } while (res1 && res2); 
+    
+        if (!res1 && !res2) { 
+            result = 0; 
+        } else if (!res1) { 
+            result = -1; 
+        } else if (!res2) { 
+            result = 1; 
+        } 
+    } 
+    
+    CLEAR(oper2); 
+    CLEAR(oper1); 
+    
+    PushInt(result); 
+} 
 

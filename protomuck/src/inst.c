@@ -209,13 +209,13 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
 /* produce one line summary of current state.  Note that sp is the next
    space on the stack -- 0..sp-1 is the current contents. */
 char   *
-debug_inst(struct inst * pc, struct inst * stack, char *buffer, int buflen, int sp, dbref program)
+debug_inst(struct inst * pc, int pid, struct inst * stack, char *buffer, 
+           int buflen, int sp, dbref program)
 {
-/*    static char buffer[BUFFER_LEN]; */
     char buf2[BUFFER_LEN];
     int     count;
 
-    sprintf(buffer, "Debug> #%d %d (", program, pc->line);
+    sprintf(buffer, "Debug> Pid %d:#%d %d (", pid, program, pc->line);
     if (sp > 8)
 	strcat(buffer, "..., ");
     count = (sp > 8) ? sp - 8 : 0;
