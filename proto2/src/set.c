@@ -1461,6 +1461,10 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("CHOWN_OK", p) || string_prefix("COLOR_ANSI", p)
                || string_prefix("COLOR_ON", p)) {
         f = CHOWN_OK;
+#ifdef CONTROLS_SUPPORT
+    } else if (string_prefix("CONTROLS", p) || string_prefix("~", p)) {
+        f2 = F2CONTROLS;
+#endif
     } else if (string_prefix("JUMP_OK", p)) {
         f = JUMP_OK;
     } else if (string_prefix("HAVEN", p) || string_prefix("HARDUID", p)

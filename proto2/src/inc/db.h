@@ -185,45 +185,45 @@ typedef int dbref;		/* offset into db */
 #define DB_PARMSINFO    0x0001
 #define DB_COMPRESSED   0x0002
 
-#define TYPE_ROOM	   	    0x0
+#define TYPE_ROOM	    0x0
 #define TYPE_THING	    0x1
-#define TYPE_EXIT	   	    0x2
+#define TYPE_EXIT	    0x2
 #define TYPE_PLAYER	    0x3
 #define TYPE_PROGRAM	    0x4
 #define TYPE_GARBAGE	    0x6
 #define NOTYPE		    0x7	/* no particular type */
-#define TYPE_MASK	   	    0x7	/* room for expansion */
-#define ANTILOCK	   	    0x8	/* negates key (*OBSOLETE*) */
-#define W3		  	   0x10	/* gets automatic control */
+#define TYPE_MASK	    0x7	/* room for expansion */
+#define ANTILOCK	    0x8	/* negates key (*OBSOLETE*) */
+#define W3		   0x10	/* gets automatic control */
 #define LINK_OK		   0x20	/* anybody can link to this room */
 #define DARK		   0x40	/* contents of room are not printed */
-#define INTERNAL	  	   0x80	/* internal-use-only flag */
+#define INTERNAL	   0x80	/* internal-use-only flag */
 #define STICKY		  0x100	/* this object goes home when dropped */
 #define BUILDER		  0x200	/* this player can use construction commands */
-#define CHOWN_OK	 	  0x400	/* this player can be @chowned to */
+#define CHOWN_OK	  0x400	/* this player can be @chowned to */
 #define JUMP_OK		  0x800	/* A room which can be jumped from, or */
-                                    /* a player who can be jumped to */
+                                /* a player who can be jumped to */
 #define GENDER_MASK	 0x3000	/* 2 bits of gender */
 #define GENDER_SHIFT	     12	/* 0x1000 is 12 bits over (for shifting) */
 #define GENDER_UNASSIGNED   0x0	/* unassigned - the default */
 #define GENDER_NEUTER	    0x1	/* neuter */
 #define GENDER_FEMALE	    0x2	/* for women */
-#define GENDER_MALE 	    0x3     /* for men */
+#define GENDER_MALE 	    0x3 /* for men */
 
 #define UNDEF_FLAG_1	 0x4000	/* This used to be the KILL_OK flag. */
-#define W4               0x8000     /* W4 flag */
+#define W4               0x8000 /* W4 flag */
 
 #define HAVEN		0x10000	/* can't kill here */
 #define ABODE		0x20000	/* can set home here */
 
-#define W1			0x40000	/* W1 flag */
+#define W1		0x40000	/* W1 flag */
 
 #define QUELL		0x80000	/* When set, a wizard is considered to not be
-		            		 * a wizard. */
-#define W2	           0x100000	/* W2 flag */
+		    		 * a wizard. */
+#define W2	       0x100000	/* W2 flag */
 
 #define INTERACTIVE    0x200000     /* when this is set, player is either editing
-				             * a program or in a READ. */
+			             * a program or in a READ. */
 #define OBJECT_CHANGED 0x400000     /* when an object is dbdirty()ed, set this */
 #define SAVED_DELTA    0x800000     /* object last saved to delta file */
 
@@ -240,10 +240,10 @@ typedef int dbref;		/* offset into db */
 /* F2 flags */
 
 #define F2GUEST		    0x1     /* Guest character */
-#define F2LOGWALL	          0x2     /* Wizard sees logs walled */
+#define F2LOGWALL	    0x2     /* Wizard sees logs walled */
 #define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ 
 #define F2HIDDEN            0x8     /* The new HIDDEN flag */
-#define F2MOBILE	         0x10     /* Mobile object */ 
+#define F2MOBILE	   0x10     /* Mobile object */ 
 #define F2PUEBLO           0x20     /* Player has Pueblo multimedia support */
 #define F2HTML             0x40     /* Player has at least BASIC HTML, maybe Pueblo */
 #define F2MCP              0x80     /* Legacy. Was for Loki's MCP programs */ 
@@ -256,7 +256,9 @@ typedef int dbref;		/* offset into db */
 #define F2NO_COMMAND     0x4000     /* Set on an object to prevent command props from being ran */
 #define F2LIGHT          0x8000     /* The LIGHT flag to counteract against the DARK flag */
 #define F2TRUEIDLE      0x10000     /* To watch if someone is idle past the @tune'd idletime */
-
+#ifdef CONTROLS_SUPPORT
+#define F2CONTROLS      0x20000     /* CONTROLS support for multiple owners */
+#endif
 /* Proto @Powers */
 
 #define POW_ANNOUNCE          0x1   /* [a] Can use @wall and dwall commands */
@@ -278,13 +280,13 @@ typedef int dbref;		/* offset into db */
 #define POW_CONTROL_ALL   0x10000   /* [r] Ability to control all objects */
 #define POW_ALL_MUF_PRIMS 0x20000   /* [m] Gives full access to MUF prims */
 #define POW_STAFF         0x40000   /* [w] Special support for 'staff' bits in MUF */
-#define POW_PLAYER_PURGE      0x80000   /* [u] @purge and @toad power */
+#define POW_PLAYER_PURGE  0x80000   /* [u] @purge and @toad power */
 
 /* FREE POWER LETTERS: jkqvyz */
 
 /* what flags to NOT dump to disk. */
-#define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
-#define DUM2_MASK	(F2IDLE | F2COMMAND | F2TRUEIDLE)
+#define DUMP_MASK (INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
+#define DUM2_MASK (F2IDLE | F2COMMAND | F2TRUEIDLE)
 #define DUM3_MASK (0)
 #define DUM4_MASK (0)
 
@@ -299,18 +301,18 @@ typedef int object_power_type;
 #define Typeof(x) ((x == HOME) ? TYPE_ROOM : (FLAGS(x) & TYPE_MASK))
 
 #define MAN	(1)
-#define Man(x)   ((x) == MAN)
-#define GOD (1)
-#define God(x)   ((x) == GOD)
+#define Man(x)  ((x) == MAN)
+#define GOD 	(1)
+#define God(x)  ((x) == GOD)
 
 #define LMAN	(9)
-#define LBOY      (8)
+#define LBOY    (8)
 #define LARCH	(7)
 #define LWIZ	(6)
 #define LMAGE	(5)
-#define LM3	      (4)
-#define LM2	      (3)
-#define LM1	      (2)
+#define LM3	(4)
+#define LM2	(3)
+#define LM1	(2)
 #define LMUF	(2)
 #define LMPI	(1)
 

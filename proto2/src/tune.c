@@ -349,6 +349,9 @@ int tp_web_allow_htmuf = 1;     /* hinoserm */
 int tp_web_allow_vhosts = 1;    /* hinoserm */
 int tp_web_allow_files = 1;     /* hinoserm */
 int tp_web_allow_dirlist = 1;   /* hinoserm */
+#ifdef HTTP_MPI_SUPPORT
+int tp_web_allow_mpi = 1;   /* alynna */
+#endif
 #endif /* hinoserm */
 
 struct tune_bool_entry {
@@ -434,6 +437,9 @@ struct tune_bool_entry tune_bool_list[] = {
     {"HTTPD", "web_allow_vhosts", &tp_web_allow_vhosts, LARCH, LMUF},
     {"HTTPD", "web_allow_files", &tp_web_allow_files, LARCH, LMUF},
     {"HTTPD", "web_allow_dirlist", &tp_web_allow_dirlist, LARCH, LMUF},
+#ifdef HTTP_MPI_SUPPORT
+    {"HTTPD", "web_allow_mpi", &tp_web_allow_mpi, LARCH, LMUF},
+#endif
 #endif
     {NULL, NULL, NULL, 0, 0}
 };
