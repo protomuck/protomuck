@@ -1473,7 +1473,12 @@ process_command(int descr, dbref player, char *command)
             } else {
                 if (string_compare(command, "man"))
                     goto bad;
-                do_man(player, arg1, arg2);
+                /* Sure, using full_command here means that players won't be   */
+                /*  able to specifiy segments by line number, but I doubt many */
+                /*  do that anyhow.  Besides, it only works if the manual is   */
+                /*  broken into seperate files, and doing it this way lets =   */
+                /*  work.  -Hinoserm */
+                do_man(player, full_command, arg2);
             }
             break;
         case 'n':
