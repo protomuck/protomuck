@@ -451,7 +451,6 @@ main(int argc, char **argv)
 
 	if (restart_flag) {
 	    close_sockets(restart_message);
-/*		"\r\nServer restarting, be back in a few!\r\n."); */
 	} else {
 	    close_sockets(shutdown_message);
 	}
@@ -1345,6 +1344,10 @@ shovechars(void)
 
 	next_muckevent();
 	process_commands();
+#ifdef MUF_SOCKETS
+        if (tp_socket_events)
+            muf_socket_events(); /* in p_socket.c, checks for ready sockets */
+#endif /* MUF_SOCKETS */
 	muf_event_process();
 
 	for (d = descriptor_list; d; d = dnext) {

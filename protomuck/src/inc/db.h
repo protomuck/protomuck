@@ -450,6 +450,13 @@ struct muf_socket {             /* struct for MUF socket data */
    int usequeue;                /* toggles recieve buffer behavior */
    int usesmartqueue;          /* makes the socket completely telnet savy */
    int is_player;               /* means to not close the socket when clearing*/
+   int readWaiting;             /* to support socket events */
+};
+
+struct muf_socket_queue {
+    struct muf_socket *theSock;     /* points to the MUF socket item */
+    struct frame *fr;               /* the frame the socket belongs to */
+    struct muf_socket_queue *next;
 };
 
 #ifdef SQL_SUPPORT
