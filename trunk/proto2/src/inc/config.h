@@ -51,7 +51,11 @@
 /* Alynna - Define this for SSL support */
 /* Note: Use ./configure --with-ssl */
 /* Todo: Rename this to SSL_SUPPORT */
-#undef USE_SSL
+/* IMPORTANT:  This is now automatically controlled by the --with-ssl
+ * configure option, and will soon be removed from this file.
+*/
+
+/* #undef USE_SSL */
 
 /* Alynna - Define this to have support for the @/ignore prop, a reflist
    on a player which will drop notifies from the players in the prop to
@@ -84,7 +88,12 @@
  * location, then it will find it fine. Otherwise, type:
  * ./configure --with-mysql=<path to the mysql headers>
  */
-#undef SQL_SUPPORT
+/* IMPORTANT:  This is now automatically controlled by the
+ * --with-mysql configure option, and will soon be removed from this
+ * file.
+*/
+
+/* #undef SQL_SUPPORT */
 
 /* Define FILE_PRIMS to compile in a set of W4 level file-access
  * and control prims. The file prims are often a problem when

@@ -196,7 +196,7 @@ prim_socksend(PRIM_PROTOTYPE)
 
         sprintf(buf, "%s\n", oper2->data.string->data);
 
-        result = send(oper1->data.sock->socknum, buf, strlen(buf) + 1, 0);
+        result = writesocket(oper1->data.sock->socknum, buf, strlen(buf));
 
         if (tp_log_sockets)
             log2filetime("logs/sockets", "#%d by %s SOCKSEND:  %d\n", program,
@@ -259,7 +259,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 
     select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
-        readme = recv(oper1->data.sock->socknum, mystring, 1, 0);
+        readme = readsocket(oper1->data.sock->socknum, mystring, 1);
         conRead = readme;
         while (readme > 0 && charCount < BUFFER_LEN) {
             if ((*mystring == '\0') || (((*mystring == '\n') ||
@@ -269,7 +269,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
             ++charCount;
             /* if (isascii(*mystring)) -- Commented this out to test 8-bit support on the stack -Hinoserm */
             *bufpoint++ = *mystring;
-            readme = recv(oper1->data.sock->socknum, mystring, 1, 0);
+            readme = readsocket(oper1->data.sock->socknum, mystring, 1);
         }
         if (*mystring == '\n' && oper1->data.sock->usequeue) {
             gotmessage = 1;     /* needed to catch enter presses for sockqueue */
@@ -374,7 +374,7 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
     select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
 
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
-        readme = recv(oper1->data.sock->socknum, mystring, 1, 0);
+        readme = readsocket(oper1->data.sock->socknum, mystring, 1);
         if (readme > 0) {
             gotmessage = 1;
             aChar = mystring[0];
