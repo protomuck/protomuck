@@ -320,7 +320,11 @@ gui_dlog_alloc(int descr, Gui_CB callback, GuiErr_CB error_cb, void *context)
     DlogData *ptr;
 
     while (1) {
-        sprintf(tmpid, "%08lX", random());
+#ifdef __CYGWIN__
+        sprintf(tmpid, "%.08X", random() ^ random());
+#else
+        sprintf(tmpid, "%.08lX", random() ^ random());
+#endif
         if (!gui_dlog_find(tmpid)) {
             break;
         }

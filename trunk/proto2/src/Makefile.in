@@ -117,7 +117,8 @@ protomuck:        ${P} ${COBJ} interface.o mkversion.sh
 	sh mkversion.sh
 	${PRE} ${CC} ${CFLAGS} -c version.c
 	${MV} protomuck protomuck~
-	@if [ "${OSTYPE}" = "cygwin" ]; then \
+	@echo "`bash -c set | grep OSTYPE`"
+	@if [ "`bash -c set | grep OSTYPE`" = "OSTYPE=cygwin" ]; then \
          echo ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
 	 ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
 	else \
@@ -202,7 +203,7 @@ nuke:
 
 install: all
 	${MV} ${TARGETS} ${DEST}
-	echo "To prepare a database for use, use 'make setup'."
+	@echo "To prepare a database for use, use 'make setup'."
 
 setup:
 	./setup

@@ -353,7 +353,9 @@ main(int argc, char **argv)
     int resolver_myport = 0;
 
 #ifdef DETACH
+#ifndef __CYGWIN__
     int fd;
+#endif
 #endif
 
 #ifdef WIN_VC
