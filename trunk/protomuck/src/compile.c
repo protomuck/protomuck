@@ -618,9 +618,9 @@ do_proginfo(dbref player, const char *arg)
 	return;
     }
 
-    anotify_nolisten2(player, YELLOW "1 = cleanable, 0 = used recently");
-    sprintf( buf, "AI: %d Age: %d Instances: %d==0?",
-	!(FLAGS(thing) & (ABODE|INTERNAL)),
+    anotify_nolisten2(player, YELLOW "Age: 1 = cleanable, 0 = used recently");
+    sprintf( buf, "AI: %d Age: %d Instances: %d",
+	(FLAGS(thing) & (ABODE|INTERNAL)),
 	(now - DBFETCH(thing)->ts.lastused) > tp_clean_interval,
 	DBFETCH(thing)->sp.program.instances
     );

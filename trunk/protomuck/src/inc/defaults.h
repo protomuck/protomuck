@@ -169,6 +169,13 @@
 
 #define LOG_FILES 0 
 
+/* Log failed attempts to look something up using functions such
+ * as 'help', 'news', 'mpi', and 'man'. By checking this, doc
+ * writers can try to add entries for things that players are
+ * not finding when they're using help. 
+ */
+#define LOG_FAILEDHELP 0
+
 /* give a bit of warning before a database dump. */
 #define DBDUMP_WARNING 1
 

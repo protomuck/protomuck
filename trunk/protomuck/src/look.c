@@ -1991,7 +1991,7 @@ do_sweep(int descr, dbref player, const char *name)
 		}
 		break;
 	    case TYPE_THING:
-		if (FLAGS(ref) & (ZOMBIE | LISTENER)) {
+		if (FLAGS(ref) & (VEHICLE | ZOMBIE | LISTENER)) {
 		    tellflag = 0;
 		    sprintf(buf, "  %.255s" NORMAL " is a",
 			    ansi_unparse_object(player, ref));
@@ -2003,6 +2003,10 @@ do_sweep(int descr, dbref player, const char *name)
 			}
 			strcat(buf, " zombie");
 		    }
+                    if (FLAGS(ref) & VEHICLE) {
+                        tellflag = 1;
+                        strcat(buf, " vehicle");
+                    }
 		    if ((FLAGS(ref) & LISTENER) &&
 			    (get_property(ref, "_listen")   ||
 			     get_property(ref, "_olisten")  ||

@@ -111,6 +111,7 @@ extern int tp_log_programs;
 extern int tp_log_guests;
 extern int tp_log_files;
 extern int tp_log_sockets;
+extern int tp_log_failedhelp;
 extern int tp_dbdump_warning;
 extern int tp_deltadump_warning;
 extern int tp_periodic_program_purge;

@@ -270,6 +270,7 @@
 #define COMMAND_LOG "logs/commands"     /* Player commands */
 #define PROGRAM_LOG "logs/programs"     /* text of changed programs */
 #define CONNECT_LOG "logs/connects"	/* text of connection info */
+#define HELP_LOG    "logs/help"         /* text of failed help attemtps */
 
 #define MACRO_FILE  "muf/macros"
 #define PID_FILE    "protomuck.pid"      /* Write the server pid to ... */
