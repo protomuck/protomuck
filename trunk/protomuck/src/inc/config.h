@@ -36,6 +36,9 @@
  * After running ./configure, edit Makefile and change the line that
  * reads: CC=gcc to
  *        CC=cc -no-cpp-precomp
+ * Edit the restart script line that
+ * reads: #limit stacksize 16384 to
+ *         limit stacksize 16384
  */
 #undef APPLE
   

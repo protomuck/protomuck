@@ -1148,6 +1148,7 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
+#ifdef HTTPDELAY
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("HTTPDATA");
     temp2.type = PROG_STRING;
@@ -1155,6 +1156,7 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
+#endif
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("OUTPUTQUEUE");
     temp2.type = PROG_INTEGER;
