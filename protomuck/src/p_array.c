@@ -152,7 +152,6 @@ prim_array_vals(PRIM_PROTOTYPE)
                 } while (array_next(arr, &temp1));
         }
 
-        CLEAR(&temp1);
         CLEAR(&temp2);
         PushInt(result);
 }
