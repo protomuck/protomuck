@@ -349,6 +349,9 @@ RCLEAR(struct inst *oper, char *file, int line)
             if (oper->data.string && --oper->data.string->links == 0)
                 free((void *) oper->data.string);
             break;
+        case PROG_LABEL:
+            free((void *) oper->data.labelname);
+            break;
         case PROG_FUNCTION:
             if (oper->data.mufproc) {
                 free((void *) oper->data.mufproc->procname);
@@ -1056,6 +1059,9 @@ copyinst(struct inst *from, struct inst *to)
                 from->data.mysql->links++;
             }
             break;
+        case PROG_LABEL:
+            to->data.labelname = string_dup(from->data.labelname);
+            break;
 #endif
     }
 }
@@ -1156,9 +1162,9 @@ do_abort_loop(dbref player, dbref program, const char *msg,
                        msg, fr->pid);
             if (OkObj(player) && (controls(OWNER(player), program)
                                   || (FLAG2(OWNER(player)) & F2PARENT)))
-                muf_backtrace(player, program, STACK_SIZE, fr);
+                muf_backtrace(player, program, ADDR_SIZE, fr);
             else if (FLAG2(program) & F2PARENT && player != OWNER(program))
-                muf_backtrace(OWNER(program), program, STACK_SIZE, fr);
+                muf_backtrace(OWNER(program), program, ADDR_SIZE, fr);
         } else {
             if (OkObj(player))
                 notify_nolisten(player, msg, 1);
@@ -1576,7 +1582,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 break;
 
             case PROG_EXEC:
-                if (stop >= STACK_SIZE)
+                if (stop >= ADDR_SIZE)
                     abort_loop("System Stack Overflow", NULL, NULL);
                 sys[stop].progref = program;
                 sys[stop++].offset = pc + 1;
@@ -1660,7 +1666,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                 TYPE_PROGRAM))
                             abort_loop_hard("Internal error.  Invalid address.",
                                             temp1, NULL);
-                        if (stop >= STACK_SIZE)
+                        if (stop >= ADDR_SIZE)
                             abort_loop("System Stack Overflow", temp1, NULL);
                         sys[stop].progref = program;
                         sys[stop++].offset = pc + 1;
@@ -1728,7 +1734,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         if (mlev < LMAGE && OWNER(temp1->data.objref) != ProgUID
                             && !Linkable(temp1->data.objref))
                             abort_loop(tp_noperm_mesg, temp1, temp2);
-                        if (stop >= STACK_SIZE)
+                        if (stop >= ADDR_SIZE)
                             abort_loop("System Stack Overflow", temp1, temp2);
                         sys[stop].progref = program;
                         sys[stop++].offset = pc + 1;
@@ -2054,7 +2060,6 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         return NULL;
                         /* NOTREACHED */
                         break;
-
                     default:
                         nargs = 0;
                         reload(fr, atop, stop);
@@ -2066,6 +2071,9 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         break;
                 }               /* switch */
                 break;
+            case PROG_LABEL:
+                pc++;
+                break;
             case PROG_CLEARED:
                 fprintf(stderr,
                         "Attempt to execute instruction cleared by %s:%hd in program %d\n",
@@ -2074,7 +2082,6 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 abort_loop_hard
                     ("Program internal error. Program erroneously freed from memory.",
                      NULL, NULL);
-
             default:
                 pc = NULL;
                 abort_loop_hard
@@ -2434,10 +2441,10 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
                    insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program),
                    msg, fr->pid);
         if (OkObj(player) && controls(player, program))
-            muf_backtrace(player, program, STACK_SIZE, fr);
+            muf_backtrace(player, program, ADDR_SIZE, fr);
         /*    else */
         if (FLAG2(program) & F2PARENT && player != OWNER(program))
-            muf_backtrace(OWNER(program), program, STACK_SIZE, fr);
+            muf_backtrace(OWNER(program), program, ADDR_SIZE, fr);
     }
     switch (nargs) {
         case 6:

@@ -491,17 +491,19 @@ struct line {
 #define PROG_LVAR_AT_CLEAR 25   /* @ for local vars with var clear optim */
 #define PROG_LVAR_BANG     26   /* ! shortcut for local vars */
 #define PROG_MYSQL         27   /* A MySQL database connection */
+#define PROG_LABEL         28   /* An MUF label */
 
-#define MAX_VAR        104	/* maximum number of variables including the
-				 * basic ME and LOC                */
-#define RES_VAR          4	/* no of reserved variables */
+#define MAX_VAR        104	    /* maximum number of variables including the  */
+				                /* basic ME and LOC                           */
+#define RES_VAR          4	    /* no of reserved variables */
 
-#define STACK_SIZE      1024	/* maximum size of stack */
+#define STACK_SIZE      1024 	/* maximum size of stack */
+#define ADDR_SIZE       256     /* maximum size of the system and call stacks */
 
-struct shared_string {		/* for sharing strings in programs */
-    int     links;		/* number of pointers to this struct */
-    int     length;		/* length of string data */
-    char    data[1];		/* shared string data */
+struct shared_string {		    /* for sharing strings in programs */
+    int     links;		        /* number of pointers to this struct */
+    int     length;		        /* length of string data */
+    char    data[1];		    /* shared string data */
 };
 
 struct prog_addr {              /* for 'addres references */
@@ -571,20 +573,21 @@ struct inst {			/* instruction */
     short   type;
     short   line;
     union {
-        struct shared_string *string;  /* strings */
-        struct boolexp *lock;     /* boolean lock expression */
-        int     number;		  /* used for both primitives and integers */
-        double  fnumber;          /* used for float storage */
-        dbref   objref;		  /* object reference */
-        struct stk_array_t *array;/* FB6 style array */
-        struct inst *call;	  /* use in IF and JMPs */
-        struct prog_addr *addr;   /* the result of 'funcname */
-        struct muf_socket *sock;  /* a ProtoMUCK socket */
-#ifdef SQL_SUPPORT
-	struct muf_sql *mysql;    /* A MySQL connection */
-#endif
-        struct muf_proc_data *mufproc; /* Data specific to each procedure */
-    }       data;
+        struct shared_string *string;   /* strings                          */
+        struct boolexp *lock;           /* boolean lock expression          */
+        int     number;		            /* used for both primitives and integers */
+        double  fnumber;                /* used for float storage           */
+        dbref   objref;		            /* object reference                 */
+        struct stk_array_t *array;      /* FB6 style array                  */
+        struct inst *call;	            /* use in IF and JMPs               */
+        struct prog_addr *addr;         /* the result of 'funcname          */
+        struct muf_socket *sock;        /* A ProtoMUCK socket               */
+#ifdef SQL_SUPPORT                      /*----------------------------------*/
+	    struct muf_sql *mysql;          /* A MySQL connection               */
+#endif                                  /*----------------------------------*/
+        struct muf_proc_data *mufproc;  /* Data specific to each procedure  */
+        char *labelname;                /* The name of an MUF Label         */
+    } data;
 };
 
 #include "array.h"
@@ -614,12 +617,12 @@ struct stack {
 
 struct sysstack {
     int     top;
-    struct stack_addr st[STACK_SIZE];
+    struct stack_addr st[ADDR_SIZE];
 };
 
 struct callstack {
     int     top;
-    dbref   st[STACK_SIZE];
+    dbref   st[ADDR_SIZE];
 };
 
 struct localvars {
@@ -641,20 +644,18 @@ struct trystack {
 
 #define MAX_BREAKS 16
 struct debuggerdata {
-    unsigned debugging:1;   /* if set, this frame is being debugged */
-    unsigned force_debugging:1; /* if set, debugger active even without Z */
-    unsigned bypass:1;      /* if set, bypass breakpoint on starting instr */
-    unsigned isread:1;      /* if set, the prog is trying to do a read */
-    unsigned showstack:1;   /* if set, show stack debug line, each inst. */
-    unsigned dosyspop:1;    /* if set, fix system stack before returning */
-    int lastlisted;         /* last listed line */
-    char *lastcmd;          /* last executed debugger command */
-    short breaknum;         /* the breakpoint that was just caught on */
-
-    dbref lastproglisted;   /* What program's text was last loaded to list? */
-    struct line *proglines; /* The actual program text last loaded to list. */
-
-    short count;            /* how many breakpoints are currently set */
+    unsigned debugging:1;           /* if set, this frame is being debugged */
+    unsigned force_debugging:1;     /* if set, debugger active even without Z */
+    unsigned bypass:1;              /* if set, bypass breakpoint on starting instr */
+    unsigned isread:1;              /* if set, the prog is trying to do a read */
+    unsigned showstack:1;           /* if set, show stack debug line, each inst. */
+    unsigned dosyspop:1;            /* if set, fix system stack before returning */
+    int lastlisted;                 /* last listed line */
+    char *lastcmd;                  /* last executed debugger command */
+    short breaknum;                 /* the breakpoint that was just caught on */
+    dbref lastproglisted;           /* What program's text was last loaded to list? */
+    struct line *proglines;         /* The actual program text last loaded to list. */
+    short count;                    /* how many breakpoints are currently set */
     short temp[MAX_BREAKS];         /* is this a temp breakpoint? */
     short level[MAX_BREAKS];        /* level breakpnts.  If -1, no check. */
     struct inst *lastpc;            /* Last inst interped.  For inst changes. */
@@ -688,78 +689,78 @@ struct mufwatchpidlist {
 #define STD_HARDUID 2
 
 /* stuff for MUF "interrupts" */
-struct muf_interrupt { /* linked list of addresses and event ID names from ONEVENT */
-    struct inst  *addr;  /* the 'funcname address */
-    char         *event; /* event ID string to wait for */
-    char         *id;    /* this interrupt's ID name */
-    bool          keep;  /* leave event in queue or not */
-    struct muf_interrupt *next; /* next element */
-    struct muf_interrupt *prev; /* previous element */
+struct muf_interrupt {                  /* linked list of addresses and event ID names from ONEVENT */
+    struct inst  *addr;                 /* the 'funcname address */
+    char         *event;                /* event ID string to wait for */
+    char         *id;                   /* this interrupt's ID name */
+    bool          keep;                 /* leave event in queue or not */
+    struct muf_interrupt *next;         /* next element */
+    struct muf_interrupt *prev;         /* previous element */
 };
 
-struct muf_ainterrupt { /* active interrupts */
-    struct muf_interrupt *interrupt; /* the interrupt */
-    struct inst *ret;     /* where to return */
-    struct inst *data;    /* data from the event */
-    char        *eventid; /* event id */
+struct muf_ainterrupt {                 /* active interrupts */
+    struct muf_interrupt *interrupt;    /* the interrupt */
+    struct inst *ret;                   /* where to return */
+    struct inst *data;                  /* data from the event */
+    char        *eventid;               /* event id */
     struct muf_ainterrupt *next;
 };
 
 struct muf_qitem { /* queue item to put back later */
     char type; /* queue type. 1 = eq, 2 = tq */
     union {
-        struct mufevent_process *eq; /* any mufeventqueue item that was in place when this interrupt was thrown */
-        struct timenode         *tq; /* any timequeue item that was in place */
+        struct mufevent_process *eq;    /* any mufeventqueue item that was in place when this interrupt was thrown */
+        struct timenode         *tq;    /* any timequeue item that was in place */
     } t;
 };
 
 /* frame data structure necessary for executing programs */
 struct frame {
     struct frame *next;
-    struct muf_interrupt *interrupts; /* linked list of MUF interrupts */ 
-    struct muf_ainterrupt *ainttop; /* active interrupts, top of list */
-    struct muf_ainterrupt *aintbot; /* active interrupts, bottom of list */
-    struct muf_qitem      *qitem;   /* queue item, if any, to return later. */
-    struct sysstack system;         /* system stack */
-    struct stack argument;          /* argument stack */
-    struct callstack caller;        /* caller prog stack */
-    struct forstack fors;           /* for loop stack */
-    struct trystack trys;           /* try block stack */
-    struct localvars* lvars;        /* local variables */
-    short   use_interrupts;         /* ==1 if interrupts are enabled for this program */
-    vars    variables;              /* global variables */
-    struct inst *pc;                /* next executing instruction */ 
-    int     writeonly;              /* This program should not do reads */
-    int     multitask;              /* This program's multitasking mode */
-    int     perms;                  /* permissions restrictions on program */
-    int     level;                  /* prevent interp call loops */
-    int     preemptlimit;           /* cap preempt insts in _/instlimit prop */
-    int     interrupt_count;        /* number of interrupts thrown */
-    int     interrupted;            /* level of interrupts the program is currently in */
-    short   already_created;        /* this prog already created an object */
-    short   been_background;        /* this prog has run in the background */
-    short   skip_declare;           /* tells interp to skip next scoped var decl */
-    short   wantsblanks;            /* tells interps to accept blank reads */
-    dbref   trig;                   /* triggering object */
-    dbref   prog;                   /* program dbref */
-    dbref   player;                 /* person who ran the program */
-    time_t  started;                /* When this program started. */
-    int     instcnt;                /* How many instructions have run. */
-    int     timercount;             /* How many timers currently exist. */
-    int     pid;                    /* what is the process id? */
-    char    *errorstr;              /* the error string thrown */
-    char    *errorinst;             /* the instruction name that threw an error */
-    dbref   errorprog;              /* the program that threw an error */
-    int     errorline;              /* the program line that threw an error */
-    int     aborted;                /* indicates program aborted */
-    int     descr;                  /* Descriptor of running player */
-    void *rndbuf;                   /* buffer for seedable random */
-    struct scopedvar_t *svars;      /* Variables with function scoping. */
-    struct mufevent *events;        /* MUF event list. */
-    struct debuggerdata brkpt;      /* info the debugger needs */
-    struct timeval proftime;        /* profiling timing code */
-    struct timeval totaltime;       /* profiling timing code */
-    struct dlogidlist *dlogids;     /* List of dlogids this frame uses. */
+    struct muf_interrupt *interrupts;   /* linked list of MUF interrupts */ 
+    struct muf_ainterrupt *ainttop;     /* active interrupts, top of list */
+    struct muf_ainterrupt *aintbot;     /* active interrupts, bottom of list */
+    struct muf_qitem      *qitem;       /* queue item, if any, to return later. */
+    struct sysstack system;             /* system stack */
+    struct stack argument;              /* argument stack */
+    struct callstack caller;            /* caller prog stack */
+    struct forstack fors;               /* for loop stack */
+    struct trystack trys;               /* try block stack */
+    struct localvars* lvars;            /* local variables */
+    short   use_interrupts;             /* ==1 if interrupts are enabled for this program */
+    vars    variables;                  /* global variables */
+    struct inst *pc;                    /* next executing instruction */ 
+    int     writeonly;                  /* This program should not do reads */
+    int     multitask;                  /* This program's multitasking mode */
+    int     perms;                      /* permissions restrictions on program */
+    int     level;                      /* prevent interp call loops */
+    int     preemptlimit;               /* cap preempt insts in _/instlimit prop */
+    int     interrupt_count;            /* number of interrupts thrown */
+    int     interrupted;                /* level of interrupts the program is currently in */
+    short   already_created;            /* this prog already created an object */
+    short   been_background;            /* this prog has run in the background */
+    short   skip_declare;               /* tells interp to skip next scoped var decl */
+    short   wantsblanks;                /* tells interps to accept blank reads */
+    dbref   trig;                       /* triggering object */
+    dbref   prog;                       /* program dbref */
+    dbref   player;                     /* person who ran the program */
+    time_t  started;                    /* When this program started. */
+    int     instcnt;                    /* How many instructions have run. */
+    int     timercount;                 /* How many timers currently exist. */
+    int     pid;                        /* what is the process id? */
+    char    *errorstr;                  /* the error string thrown */
+    char    *errorinst;                 /* the instruction name that threw an error */
+    dbref   errorprog;                  /* the program that threw an error */
+    int     errorline;                  /* the program line that threw an error */
+    int     aborted;                    /* indicates program aborted */
+    int     descr;                      /* Descriptor of running player */
+    void *rndbuf;                       /* buffer for seedable random */
+    struct scopedvar_t *svars;          /* Variables with function scoping. */
+    struct mufevent *events;            /* MUF event list. */
+    struct debuggerdata brkpt;          /* info the debugger needs */
+    struct timeval proftime;            /* profiling timing code */
+    struct timeval totaltime;           /* profiling timing code */
+    struct dlogidlist *dlogids;         /* List of dlogids this frame uses. */
     struct mufwatchpidlist *waiters;
     struct mufwatchpidlist *waitees;
     union {
@@ -908,8 +909,8 @@ typedef struct t_hash_entry hash_entry;
 typedef hash_entry *hash_tab;
 
 #define PLAYER_HASH_SIZE   (1024)	/* Table for player lookups */
-#define COMP_HASH_SIZE     (256)/* Table for compiler keywords */
-#define DEFHASHSIZE        (256)/* Table for compiler $defines */
+#define COMP_HASH_SIZE     (256)    /* Table for compiler keywords */
+#define DEFHASHSIZE        (256)    /* Table for compiler $defines */
 
 extern struct object *db;
 extern struct macrotable *macrotop;

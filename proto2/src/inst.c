@@ -155,6 +155,14 @@ insttotext(struct frame *fr, int lev, struct inst *theinst, char *buffer,
                 else
                     sprintf(buffer, "'%s",
                             theinst->data.addr->data->data.mufproc->procname);
+            } else if (theinst->data.addr->data->type == PROG_LABEL) {
+                if (theinst->data.addr->progref != program)
+                    sprintf(buffer, "'#%d'LABEL->%s",
+                            theinst->data.addr->progref,
+                            theinst->data.addr->data->data.labelname);
+                else
+                    sprintf(buffer, "'LABEL->%s)",
+                            theinst->data.addr->data->data.labelname);
             } else {
                 if (theinst->data.addr->progref != program)
                     sprintf(buffer, "'#%d'line%d?", theinst->data.addr->progref,
@@ -181,6 +189,9 @@ insttotext(struct frame *fr, int lev, struct inst *theinst, char *buffer,
             if (theinst->data.call->type == PROG_FUNCTION) {
                 sprintf(buffer, "JMP->%s",
                         theinst->data.call->data.mufproc->procname);
+            } else if (theinst->data.call->type == PROG_LABEL) {
+                sprintf(buffer, "JMP->LABEL->%s",
+                        theinst->data.call->data.labelname);
             } else {
                 sprintf(buffer, "JMP->line%d", theinst->data.call->line);
             }
@@ -263,6 +274,9 @@ insttotext(struct frame *fr, int lev, struct inst *theinst, char *buffer,
             }
             sprintf(buffer, "[%1.*s]", (strmax - 1),
                     unparse_boolexp(0, theinst->data.lock, 0));
+            break;
+        case PROG_LABEL:
+            sprintf(buffer, "LABEL->%s", theinst->data.labelname);
             break;
         case PROG_CLEARED:
             sprintf(buffer, "?<%s:%d>", (char *) theinst->data.addr,

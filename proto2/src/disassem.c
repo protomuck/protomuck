@@ -69,22 +69,22 @@ disassemble(dbref player, dbref program)
                 break;
             case PROG_ADD:
                 sprintf(buf, "%d: (line %d) ADDRESS: %d", i, curr->line,
-                        (int)(curr->data.addr->data - codestart));
+                        (int) (curr->data.addr->data - codestart));
                 break;
             case PROG_TRY:
                 sprintf(buf, "%d: (line %d) TRY: %d", i, curr->line,
-                        (int)(curr->data.call - codestart));
+                        (int) (curr->data.call - codestart));
             case PROG_IF:
                 sprintf(buf, "%d: (line %d) IF: %d", i, curr->line,
-                        (int)(curr->data.call - codestart));
+                        (int) (curr->data.call - codestart));
                 break;
             case PROG_JMP:
                 sprintf(buf, "%d: (line %d) JMP: %d", i, curr->line,
-                        (int)(curr->data.call - codestart));
+                        (int) (curr->data.call - codestart));
                 break;
             case PROG_EXEC:
                 sprintf(buf, "%d: (line %d) EXEC: %d", i, curr->line,
-                        (int)(curr->data.call - codestart));
+                        (int) (curr->data.call - codestart));
                 break;
             case PROG_OBJECT:
                 sprintf(buf, "%d: (line %d) OBJECT REF: %d", i, curr->line,
@@ -109,6 +109,10 @@ disassemble(dbref player, dbref program)
             case PROG_LVAR:
                 sprintf(buf, "%d: (line %d) LOCALVAR: %d", i,
                         curr->line, curr->data.number);
+                break;
+            case PROG_LABEL:
+                sprintf(buf, "%d: (line %d) LABEL: %s", i, curr->line,
+                        curr->data.labelname);
                 break;
 #ifdef MUF_SOCKETS
             case PROG_SOCKET:
