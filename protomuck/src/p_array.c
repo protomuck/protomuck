@@ -998,7 +998,7 @@ prim_array_sort(PRIM_PROTOTYPE)
              temp1.data.number = i;
              array_setitem(&nw, &temp1, tmparr[i]);
      }
- 
+     free(tmparr); 
      CLEAR(oper1);
      CLEAR(oper2);
      PushArrayRaw(nw);
@@ -1697,61 +1697,62 @@ prim_array_excludeval(PRIM_PROTOTYPE)
 }
 
 void
-prim_explode_array(PRIM_PROTOTYPE)
-{
-    stk_array *nw;
-    char *tempPtr;
-    CHECKOP(2);
-    temp1 = *(oper1 = POP());
-    temp2 = *(oper2 = POP());
-    oper1 = &temp1;
-    oper2 = &temp2;
-    if (temp1.type != PROG_STRING)
-        abort_interp("Non-string argument (2)");
-    if (temp2.type != PROG_STRING)
-        abort_interp("Non-string argument (1)");
-    if (!temp1.data.string)
-        abort_interp("Empty string argument (2)");
-    {
-        int     i;
-        const char *delimit = temp1.data.string->data;
-        nw = new_array_packed(0);  
-        if (!temp2.data.string) {
-            result = 1;
-            CLEAR(&temp1);
-            CLEAR(&temp2);
-            temp3.type = PROG_STRING;
-            temp3.data.string = alloc_prog_string("");
-            array_appenditem(&nw, &temp3);
-            CLEAR(&temp3);
-            PushArrayRaw(nw);  
-            return;
-        } else {
-            result = 0;
-            bcopy(temp2.data.string->data, buf, temp2.data.string->length + 1);
-            for (i = temp2.data.string->length - 1; i >= 0; i--) {
-                if (!strncmp(buf + i, delimit, temp1.data.string->length)) {
-                    buf[i] = '\0';
-                    temp3.type = PROG_STRING;
-                    tempPtr = (buf + i + temp1.data.string->length);
-                    temp3.data.string = alloc_prog_string(tempPtr);
-                    array_appenditem(&nw, &temp3 ); 
-                    result++;
-                }
-            }
-            CHECKOFLOW(1);
-            tempPtr = buf;
-            temp3.type = PROG_STRING;
-            temp3.data.string = alloc_prog_string(tempPtr);
-            array_appenditem(&nw, &temp3);
-            PushArrayRaw(nw);
-            result++;
-        }
-    }
-    CLEAR(&temp1);
-    CLEAR(&temp2);
-    CLEAR(&temp3);
-} 
+prim_explode_array(PRIM_PROTOTYPE) 
+{ 
+        stk_array *nu; 
+        char *tempPtr; 
+        char *lastPtr; 
+        CHECKOP(2); 
+        temp1 = *(oper1 = POP()); 
+        temp2 = *(oper2 = POP()); 
+        oper1 = &temp1; 
+        oper2 = &temp2; 
+        if (temp1.type != PROG_STRING) 
+                abort_interp("Non-string argument (2)"); 
+        if (temp2.type != PROG_STRING) 
+                abort_interp("Non-string argument (1)"); 
+        if (!temp1.data.string) 
+                abort_interp("Empty string argument (2)"); 
+        CHECKOFLOW(1); 
+
+        { 
+                const char *delimit = temp1.data.string->data; 
+                int delimlen = temp1.data.string->length;
+
+                nu = new_array_packed(0); 
+                if (!temp2.data.string) { 
+                        lastPtr = "";
+                } else { 
+                        strcpy(buf, temp2.data.string->data);
+                        tempPtr = lastPtr = buf;
+                        while (*tempPtr) {
+                                if (!strncmp(tempPtr, delimit, delimlen)) {
+                                        *tempPtr = '\0';
+                                        tempPtr += delimlen;
+
+                                        temp3.type = PROG_STRING;
+                                        temp3.data.string = alloc_prog_string(lastPtr);
+                                        array_appenditem(&nu, &temp3);
+                                        CLEAR(&temp3);
+
+                                        lastPtr = tempPtr;
+                                } else {
+                                        tempPtr++;
+                                }
+                        }
+                } 
+        } 
+
+        temp3.type = PROG_STRING; 
+        temp3.data.string = alloc_prog_string(lastPtr); 
+        array_appenditem(&nu, &temp3); 
+
+        CLEAR(&temp1); 
+        CLEAR(&temp2); 
+        CLEAR(&temp3); 
+
+        PushArrayRaw(nu); 
+}
 
 void
 prim_array_join(PRIM_PROTOTYPE)
