@@ -96,7 +96,7 @@ COBJ=  array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
 	p_mcp.o p_misc.o p_muf.o p_mysql.o p_props.o p_socket.o p_stack.o \
         p_strings.o p_system.o p_regex.o \
       property.o propdirs.o props.o random.o rob.o rwho.o signal.o set.o \
-      send.o smatch.o speech.o strftime.o stringutil.o timequeue.o       \
+      smatch.o speech.o strftime.o stringutil.o timequeue.o       \
       timestamp.o tune.o unparse.o utils.o wiz.o reg.o netresolve.o sanity.o 
 
 LOBJ= copyright.o
