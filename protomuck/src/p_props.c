@@ -1459,7 +1459,7 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
 
     /* loop through all properties in the current propdir */ 
     propadr = first_prop(source, (char *)sourcedir, &pptr, propname); 
-    while (propadr) { 
+    while (propadr > 0) { 
         /* generate name for current property */
         snprintf(buf, sizeof(buf), "%s%c%s", sourcedir, PROPDIR_DELIMITER, propname);
         snprintf(buf2, sizeof(buf2), "%s%c%s", destdir, PROPDIR_DELIMITER, propname);
@@ -1470,7 +1470,7 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
 #ifdef DISKBASE 
         propfetch(source, currprop); 
 #endif
-        if(currprop) {
+        if(currprop > 0) {
             switch(PropType(currprop)) { 
                 case PROP_STRTYP:
                     str = PropDataStr(currprop);
