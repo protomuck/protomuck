@@ -592,19 +592,19 @@ prim_plusplus(PRIM_PROTOTYPE)
             result = oper1->data.number;
             CLEAR(oper1);
             PushInt(result);
-            break;
+            return;
          case PROG_OBJECT:
             oper1->data.objref++;
             result = oper1->data.objref;
             CLEAR(oper1);
             PushObject(result);
-            break;
+            return;
          case PROG_FLOAT:
             oper1->data.fnumber++;
             fresult = oper1->data.fnumber;
             CLEAR(oper1);
             PushFloat(fresult);
-            break;
+            return;
          default:
             abort_interp("Invalid datatype.");
       }
@@ -685,19 +685,19 @@ prim_minusminus(PRIM_PROTOTYPE)
             result = oper1->data.number;
             CLEAR(oper1);
             PushInt(result);
-            break;
+            return;
          case PROG_OBJECT:
             oper1->data.objref--;
             result = oper1->data.objref;
             CLEAR(oper1);
             PushObject(result);
-            break;
+            return;
          case PROG_FLOAT:
             oper1->data.fnumber--;
             fresult = oper1->data.fnumber;
             CLEAR(oper1);
             PushFloat(fresult);
-            break;
+            return;
          default:
             abort_interp("Invalid datatype.");
       }
