@@ -473,7 +473,8 @@ prim_moveto(PRIM_PROTOTYPE)
 			    abort_interp(tp_noperm_mesg);
 		    }
 		}
-		if (Typeof(victim)==TYPE_THING && (FLAGS(victim) & ZOMBIE)) {
+		if (Typeof(victim) == TYPE_THING && ( FLAGS(victim) & ZOMBIE 
+                     || FLAGS(victim) & VEHICLE )) {
 		    enter_room(fr->descr, victim, dest, program);
 		} else {
 		    moveto(victim, dest);
