@@ -66,6 +66,34 @@ log2filetime(char *myfilename, char *format, ...)
 }
 
 void
+log_status_nowall(char *format, ...)
+{
+    char wall[BUFFER_LEN];
+    va_list args;
+    FILE *fp;
+    time_t lt;
+    char buf[40];
+
+    lt = current_systime;
+    va_start(args, format);
+
+    *buf = '\0';
+    if ((fp = fopen(LOG_STATUS, "a")) == NULL) {
+        fprintf(stderr, "Unable to open %s!\n", LOG_STATUS);
+        fprintf(stderr, "%.16s: ", ctime(&lt));
+        vsprintf(wall, format, args);
+        fprintf(stderr, "%s", wall);
+    } else {
+        format_time(buf, 32, "%c\0", localtime(&lt));
+        fprintf(fp, "%.32s: ", buf);
+        vsprintf(wall, format, args);
+        fprintf(fp, "%s", wall);
+        fclose(fp);
+    }
+    va_end(args);
+}
+
+void
 log_status(char *format, ...)
 {
     char wall[BUFFER_LEN];

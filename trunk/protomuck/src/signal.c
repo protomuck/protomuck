@@ -8,7 +8,7 @@
  * compatible systems by Peter A. Torkelson, aka WhiteFire.
  */
 
-                                                                                              /* #define _POSIX_SOURCE *//* Solaris needs this */
+                                                                                                                         /* #define _POSIX_SOURCE *//* Solaris needs this */
 #ifdef SOLARIS
 #  ifndef _POSIX_SOURCE
 #    define _POSIX_SOURCE       /* Solaris needs this */
@@ -212,9 +212,10 @@ sig_reap_resolver(int i)
     extern void spawn_resolver(void);
     extern void log_status(char *format, ...);
     extern int resolverpid;
+
     if (resolverpid && status != 256 && resolverpid == pid) {
-       spawn_resolver();
-       log_status("RES: Resolver restarted.");
+        spawn_resolver();
+        log_status("RES: Resolver restarted.\n");
     }
 #endif
 

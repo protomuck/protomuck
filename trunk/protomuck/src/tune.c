@@ -477,30 +477,30 @@ tune_parms_array(const char *pattern, int mlev)
                 array_set_strkey_intval(&item, "readmlev", tref->readmlev);
                 array_set_strkey_intval(&item, "writemlev", tref->writemlev);
                 switch (tref->typ) {
-                    case NOTYPE:
-                        array_set_strkey_strval(&item, "objtype", "any");
-                        break;
-                    case TYPE_PLAYER:
-                        array_set_strkey_strval(&item, "objtype", "player");
-                        break;
-                    case TYPE_THING:
-                        array_set_strkey_strval(&item, "objtype", "thing");
-                        break;
-                    case TYPE_ROOM:
-                        array_set_strkey_strval(&item, "objtype", "room");
-                        break;
-                    case TYPE_EXIT:
-                        array_set_strkey_strval(&item, "objtype", "exit");
-                        break;
-                    case TYPE_PROGRAM:
-                        array_set_strkey_strval(&item, "objtype", "program");
-                        break;
-                    case TYPE_GARBAGE:
-                        array_set_strkey_strval(&item, "objtype", "garbage");
-                        break;
-                    default:
-                        array_set_strkey_strval(&item, "objtype", "unknown");
-                        break;
+                case NOTYPE:
+                    array_set_strkey_strval(&item, "objtype", "any");
+                    break;
+                case TYPE_PLAYER:
+                    array_set_strkey_strval(&item, "objtype", "player");
+                    break;
+                case TYPE_THING:
+                    array_set_strkey_strval(&item, "objtype", "thing");
+                    break;
+                case TYPE_ROOM:
+                    array_set_strkey_strval(&item, "objtype", "room");
+                    break;
+                case TYPE_EXIT:
+                    array_set_strkey_strval(&item, "objtype", "exit");
+                    break;
+                case TYPE_PROGRAM:
+                    array_set_strkey_strval(&item, "objtype", "program");
+                    break;
+                case TYPE_GARBAGE:
+                    array_set_strkey_strval(&item, "objtype", "garbage");
+                    break;
+                default:
+                    array_set_strkey_strval(&item, "objtype", "unknown");
+                    break;
                 }
                 temp1.type = PROG_ARRAY;
                 temp1.data.array = item;
@@ -842,7 +842,7 @@ tune_save_parmsfile()
 
     f = fopen(PARMFILE_NAME, "w");
     if (!f) {
-        log_status("TUNE: Couldn't open %s\n", PARMFILE_NAME);
+        log_status_nowall("TUNE: Couldn't open %s\n", PARMFILE_NAME);
         return;
     }
 
@@ -990,40 +990,40 @@ tune_setparm(const dbref player, const char *parmname, const char *val)
             days = hrs = mins = secs = 0;
             end = parmval + strlen(parmval) - 1;
             switch (*end) {
-                case 's':
-                case 'S':
-                    *end = '\0';
-                    if (!number(parmval))
-                        return 2;
-                    secs = atoi(parmval);
-                    break;
-                case 'm':
-                case 'M':
-                    *end = '\0';
-                    if (!number(parmval))
-                        return 2;
-                    mins = atoi(parmval);
-                    break;
-                case 'h':
-                case 'H':
-                    *end = '\0';
-                    if (!number(parmval))
-                        return 2;
-                    hrs = atoi(parmval);
-                    break;
-                case 'd':
-                case 'D':
-                    *end = '\0';
-                    if (!number(parmval))
-                        return 2;
-                    days = atoi(parmval);
-                    break;
-                default:
-                    result = sscanf(parmval, "%dd %2d:%2d:%2d",
-                                    &days, &hrs, &mins, &secs);
-                    if (result != 4)
-                        return 2;
-                    break;
+            case 's':
+            case 'S':
+                *end = '\0';
+                if (!number(parmval))
+                    return 2;
+                secs = atoi(parmval);
+                break;
+            case 'm':
+            case 'M':
+                *end = '\0';
+                if (!number(parmval))
+                    return 2;
+                mins = atoi(parmval);
+                break;
+            case 'h':
+            case 'H':
+                *end = '\0';
+                if (!number(parmval))
+                    return 2;
+                hrs = atoi(parmval);
+                break;
+            case 'd':
+            case 'D':
+                *end = '\0';
+                if (!number(parmval))
+                    return 2;
+                days = atoi(parmval);
+                break;
+            default:
+                result = sscanf(parmval, "%dd %2d:%2d:%2d",
+                                &days, &hrs, &mins, &secs);
+                if (result != 4)
+                    return 2;
+                break;
             }
             *ttim->tim = (days * 86400) + (3600 * hrs) + (60 * mins) + secs;
             return 0;
@@ -1118,18 +1118,18 @@ tune_load_parms_from_file(FILE * f, dbref player, int cnt)
                     result = tune_setparm(player, p, c);
                 }
                 switch (result) {
-                    case TUNESET_SUCCESS:
-                        strcat(p, ": Parameter set.");
-                        break;
-                    case TUNESET_UNKNOWN:
-                        strcat(p, ": Unknown parameter.");
-                        break;
-                    case TUNESET_SYNTAX:
-                        strcat(p, ": Bad parameter syntax.");
-                        break;
-                    case TUNESET_BADVAL:
-                        strcat(p, ": Bad parameter value.");
-                        break;
+                case TUNESET_SUCCESS:
+                    strcat(p, ": Parameter set.");
+                    break;
+                case TUNESET_UNKNOWN:
+                    strcat(p, ": Unknown parameter.");
+                    break;
+                case TUNESET_SYNTAX:
+                    strcat(p, ": Bad parameter syntax.");
+                    break;
+                case TUNESET_BADVAL:
+                    strcat(p, ": Bad parameter value.");
+                    break;
                 }
                 if (result && player != NOTHING)
                     notify(player, p);
@@ -1145,7 +1145,7 @@ tune_load_parmsfile(dbref player)
 
     f = fopen(PARMFILE_NAME, "r");
     if (!f) {
-        log_status("TUNE: Couldn't open %s\n", PARMFILE_NAME);
+        log_status_nowall("TUNE: Couldn't open %s\n", PARMFILE_NAME);
         return;
     }
 
@@ -1173,23 +1173,23 @@ do_tune(dbref player, char *parmname, char *parmval)
     if (*parmname && *parmval) {
         result = tune_setparm(player, parmname, parmval);
         switch (result) {
-            case TUNESET_SUCCESS:
-                log_status("TUNE: %s(%d) tuned %s to %s\n",
-                           NAME(player), player, parmname, parmval);
-                anotify_nolisten2(player, CSUCC "Parameter set.");
-                tune_display_parms(player, parmname);
-                break;
-            case TUNESET_UNKNOWN:
-                anotify_nolisten2(player, CINFO "Unknown parameter.");
-                break;
-            case TUNESET_SYNTAX:
-                anotify_nolisten2(player, CFAIL "Bad parameter syntax.");
-                break;
-            case TUNESET_BADVAL:
-                anotify_nolisten2(player, CFAIL "Bad parameter value.");
-                break;
-            case TUNESET_NOPERM:
-                anotify_nolisten2(player, CFAIL "Permission denied.");
+        case TUNESET_SUCCESS:
+            log_status("TUNE: %s(%d) tuned %s to %s\n",
+                       NAME(player), player, parmname, parmval);
+            anotify_nolisten2(player, CSUCC "Parameter set.");
+            tune_display_parms(player, parmname);
+            break;
+        case TUNESET_UNKNOWN:
+            anotify_nolisten2(player, CINFO "Unknown parameter.");
+            break;
+        case TUNESET_SYNTAX:
+            anotify_nolisten2(player, CFAIL "Bad parameter syntax.");
+            break;
+        case TUNESET_BADVAL:
+            anotify_nolisten2(player, CFAIL "Bad parameter value.");
+            break;
+        case TUNESET_NOPERM:
+            anotify_nolisten2(player, CFAIL "Permission denied.");
         }
         return;
     } else if (*parmname) {
