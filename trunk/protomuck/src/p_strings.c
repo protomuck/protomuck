@@ -1731,23 +1731,19 @@ prim_unparseobj(PRIM_PROTOTYPE)
 void 
 prim_smatch(PRIM_PROTOTYPE)
 {
+    char    xbuf[BUFFER_LEN];
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
     if (oper1->type != PROG_STRING || oper2->type != PROG_STRING)
 	abort_interp("Non-string argument.");
-    if (!oper1->data.string || !oper2->data.string)
-	abort_interp("Null string argument.");
-    {
-	char    xbuf[BUFFER_LEN];
-
-	strcpy(buf, oper1->data.string->data);
-	strcpy(xbuf, oper2->data.string->data);
-	CLEAR(oper1);
-	CLEAR(oper2);
-	result = equalstr(buf, xbuf);
-	PushInt(result);
-    }
+    
+    strcpy(buf, DoNullInd(oper1->data.string));
+    strcpy(xbuf, oper2->data.string);
+    result = equalstr(buf, xbuf);
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
 }
 
 void 

@@ -3762,6 +3762,8 @@ dump_users(struct descriptor_data *d, char *user)
 	if (OkObj(d->player) ? !Mage(d->player) : 1 ) {
 		wizwho = 0;
 	}
+	if (!(d->connected))
+		wizwho = 0;
 	if (OkObj(d->player) ? Arch(d->player) : 0 ) {
 		ArchPerms = 1;
 	}

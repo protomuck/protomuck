@@ -1069,9 +1069,11 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
                     ptr = uncompress(ptr);
 #endif /* COMPRESS */
                     strcpy(buf, ptr);
-                    if (equalstr(buf2, buf)) {
-                        array_appenditem(&nu, in);
-                    }
+                } else {
+                    strcpy(buf, "");
+                }
+                if (equalstr(buf2, buf)) {
+                    array_appenditem(&nu, in);
                 }
             }
         } while (array_next(arr, &temp1));
