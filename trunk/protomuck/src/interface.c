@@ -178,8 +178,7 @@ show_program_usage(char *prog)
             "       outfile           output db to save to. optional with -dbout.\n");
     fprintf(stderr,
             "       portnum           port num to listen for conns on. (16 ports max)\n");
-    fprintf(stderr, 
-            "   Options:\n");
+    fprintf(stderr, "   Options:\n");
     fprintf(stderr,
             "       -dbin INFILE      uses INFILE as the database to load at startup.\n");
     fprintf(stderr,
@@ -198,14 +197,11 @@ show_program_usage(char *prog)
             "       -insanity         load db, then enter interactive sanity editor.\n");
     fprintf(stderr,
             "       -sanfix           attempt to auto-fix a corrupt db after loading.\n");
-    fprintf(stderr, 
-            "       -wizonly          only allow wizards to login.\n");
+    fprintf(stderr, "       -wizonly          only allow wizards to login.\n");
     fprintf(stderr,
             "       -version          display this server's version.\n");
-    fprintf(stderr, 
-            "       -verboseload      show messages while loading.\n");
-    fprintf(stderr, 
-            "       -help             display this message.\n");
+    fprintf(stderr, "       -verboseload      show messages while loading.\n");
+    fprintf(stderr, "       -help             display this message.\n");
     exit(1);
 }
 
@@ -588,11 +584,12 @@ void
 notify_descriptor_raw(int descr, const char *msg, int length)
 {
     struct descriptor_data *d;
+
     if (!msg || !*msg)
         return;
     for (d = descriptor_list; d && (d->descriptor != descr); d = d->next) ;
     if (!d || d->descriptor != descr)
-       return;
+        return;
     add_to_queue(&d->output, msg, length);
     d->output_size += length;
 }
@@ -1389,6 +1386,11 @@ shovechars(void)
     int i;
     int haveSockEvent = 0;
 
+#ifdef MUF_SOCKETS
+    extern struct muf_socket_queue *socket_list;
+    struct muf_socket_queue *curr = socket_list;
+#endif
+
     for (i = 0; i < numsocks; i++) {
         sock[i] = make_socket(listener_port[i]);
         maxd = sock[i] + 1;
@@ -1406,10 +1408,6 @@ shovechars(void)
 
         next_muckevent();       /* Process things in event.c */
         process_commands();     /* Process player commands in game.c */
-#ifdef MUF_SOCKETS
-        if (tp_socket_events)   /* check MUF socket queue */
-            haveSockEvent = muf_socket_events(); /* in p_socket.c */
-#endif /* MUF_SOCKETS */
         muf_event_process();    /* Process MUF events in mufevents.c */
 
         for (d = descriptor_list; d; d = dnext) {
@@ -1467,13 +1465,18 @@ shovechars(void)
 #ifdef SPAWN_HOST_RESOLVER
         FD_SET(resolver_sock[1], &input_set);
 #endif
+#ifdef MUF_SOCKETS
+        for (curr = socket_list; curr; curr = curr->next) {
+            if (!curr->theSock->readWaiting) {
+                FD_SET(curr->theSock->socknum, &input_set);
+                if (curr->theSock->socknum >= maxd)
+                    maxd = curr->theSock->socknum + 1;
+            }
+        }
+#endif
         tmptq = next_muckevent_time();
         if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
             timeout.tv_sec = tmptq + (tp_pause_min / 1000);
-            timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
-        }
-        if (haveSockEvent) {    /* Don't pause in select if muf sockets */
-            timeout.tv_sec = tp_pause_min / 1000;
             timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
         }
         gettimeofday(&sel_in, NULL);
@@ -1525,6 +1528,13 @@ shovechars(void)
 #ifdef SPAWN_HOST_RESOLVER
             if (FD_ISSET(resolver_sock[1], &input_set)) {
                 resolve_hostnames();
+            }
+#endif
+#ifdef MUF_SOCKETS
+            for (curr = socket_list; curr; curr = curr->next) {
+                if (FD_ISSET(curr->theSock->socknum, &input_set)) {
+                    muf_socket_sendevent(curr);
+                }
             }
 #endif
             /* This is the loop that handles input */
@@ -3775,12 +3785,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                             /****/
+        if (d->next)                                                 /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                         /****/
+        if (d->hostname)                                             /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                         /****/
+        if (d->username)                                             /****/
             free((void *) d->username);
                                    /****/
         if (d->lastmidi)

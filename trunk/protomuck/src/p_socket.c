@@ -144,10 +144,31 @@ update_socket_frame(struct muf_socket *mufSock, struct frame *newfr)
     }
 }
 
+/* muf_socket_sendevent():                                          */
+/*  Used in shovechars() by the socket event stuff. -Hinoserm       */
+void
+muf_socket_sendevent(struct muf_socket_queue *curr)
+{
+    char littleBuf[50];
+    struct inst temp1;
+
+    if (!curr->theSock->readWaiting && curr->pid == curr->fr->pid) {
+        curr->theSock->readWaiting = 1;
+        temp1.type = PROG_SOCKET;
+        temp1.data.sock = curr->theSock;
+        if (curr->theSock->listening)
+            sprintf(littleBuf, "SOCKET.LISTEN.%d", curr->theSock->socknum);
+        else
+            sprintf(littleBuf, "SOCKET.READ.%d", curr->theSock->socknum);
+        muf_event_add(curr->fr, littleBuf, &temp1, 1);
+    }
+}
+
 /* checks all of the sockets in the queue to see if they
  * are in the 'readable' set. If so, passes an event
  * to that program frame. Returns true if an event was passed.
  */
+/* No longer used! Socket events are now handled in shovechars(). -Hinoserm */
 int
 muf_socket_events()
 {
