@@ -24,9 +24,7 @@ char *strstr(char *s1, char *s2);
 #endif
 int equalstr(char *s, char *t);
 
-extern const char *uppercase, *lowercase;
-
-#define DOWNCASE(x) (lowercase[x])
+#define DOWNCASE(x) (tolower(x))
 
 /* String handlers
  * Some of these are already present in most C libraries, but go by

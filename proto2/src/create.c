@@ -211,7 +211,8 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
  *
  */
 
-int _link_exit(int descr, dbref player, dbref exit, char *dest_name,
+int
+_link_exit(int descr, dbref player, dbref exit, char *dest_name,
            dbref *dest_list, int dryrun)
 {
     char *p, *q;
@@ -307,8 +308,8 @@ link_exit(int descr, dbref player, dbref exit, char *dest_name,
 {
     return _link_exit(descr, player, exit, dest_name, dest_list, 0);
 }
-            
-int         
+
+int
 link_exit_dry(int descr, dbref player, dbref exit, char *dest_name,
               dbref *dest_list)
 {
@@ -663,11 +664,11 @@ do_prog(int descr, dbref player, const char *name)
         DBFETCH(newprog)->sp.program.instances = 0;
         DBFETCH(player)->sp.player.curr_prog = newprog;
         /* Obsolete, using new find_mlev in interp.c
-        if (tp_compatible_muf_perms) { 
-            FLAGS(newprog) |= QUELL | HAVEN;
-            if (jj >= LM3)
-                SetMLevel(newprog, LM3);
-        } */
+           if (tp_compatible_muf_perms) { 
+           FLAGS(newprog) |= QUELL | HAVEN;
+           if (jj >= LM3)
+           SetMLevel(newprog, LM3);
+           } */
         PUSH(newprog, DBFETCH(player)->contents);
         DBDIRTY(newprog);
         DBDIRTY(player);
@@ -761,12 +762,14 @@ do_mcpedit(int descr, dbref player, const char *name)
 {
     dbref prog;
     struct match_data md;
-    char namestr[BUFFER_LEN];
-    char refstr[BUFFER_LEN];
-    struct line *curr;
-    McpMesg msg;
+
+//    char namestr[BUFFER_LEN];
+//    char refstr[BUFFER_LEN];
+//    struct line *curr;
+//    McpMesg msg;
     McpFrame *mfr;
-    McpVer supp;
+
+//    McpVer supp;
 
     mfr = descr_mcpframe(descr);
     if (!mfr) {
@@ -947,7 +950,7 @@ mcpedit_program(int descr, dbref player, dbref prog, const char *name)
     mcp_mesg_arg_append(&msg, "reference", refstr);
     mcp_mesg_arg_append(&msg, "type", "muf-code");
     mcp_mesg_arg_append(&msg, "name", namestr);
-    for (curr = DBFETCH(prog)->sp.program.first; curr; curr->next) {
+    for (curr = DBFETCH(prog)->sp.program.first; curr; curr = curr->next) {
         mcp_mesg_arg_append(&msg, "content", DoNull(curr->this_line));
     }
     mcp_frame_output_mesg(mfr, &msg);

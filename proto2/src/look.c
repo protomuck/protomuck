@@ -13,12 +13,12 @@
 #include "match.h"
 #include "externs.h"
 
-
-
 #ifdef COMPRESS
 extern const char *uncompress(const char *);
-
 #endif /* COMPRESS */
+
+#define UPCASE(x) (toupper(x))
+#define DOWNCASE(x) (tolower(x))
 
 #define EXEC_SIGNAL '@'         /* Symbol which tells us what we're looking at
                                  * is an execution order and not a message.    */
@@ -1203,12 +1203,6 @@ do_inventory(dbref player)
 
     do_score(player, 0);
 }
-
-extern const char *uppercase;
-extern const char *lowercase;
-
-#define UPCASE(x) (uppercase[x])
-#define DOWNCASE(x) (lowercase[x])
 
 int
 init_checkflags(dbref player, const char *flags, struct flgchkdat *check)

@@ -121,10 +121,10 @@ disassemble(dbref player, dbref program)
                 break;
 #endif
             case PROG_CLEARED:
-                sprintf(buf, "%d: (line ???) CLEARED INST AT %s:%d", i,
+                sprintf(buf, "%d: (line ?) CLEARED INST AT %s:%d", i,
                         (char *) curr->data.addr, curr->line);
             default:
-                sprintf(buf, "%d: (line ???) UNKNOWN INST", i);
+                sprintf(buf, "%d: (line ?) UNKNOWN INST", i);
         }
         notify(player, buf);
     }

@@ -353,7 +353,6 @@ add_muf_delay_event(int delay, int descr, dbref player, dbref loc, dbref trig,
 void
 read_event_notify(int descr, dbref player)
 {
-    struct frame *fr;
     timequeue ptr;
 
     if (muf_event_read_notify(descr, player)) {
@@ -389,7 +388,7 @@ handle_read_event(int descr, dbref player, const char *command,
 {
     struct frame *fr;
     timequeue ptr, lastevent;
-    int flag, typ, nothing_flag, oldflags;
+    int flag, typ, nothing_flag, oldflags = 0;
     dbref prog;
     struct descriptor_data *curdescr = NULL;
 
@@ -554,7 +553,7 @@ handle_read_event(int descr, dbref player, const char *command,
 void
 next_timequeue_event(void)
 {
-    struct frame *tmpfr, *fr;
+    struct frame *tmpfr;
     dbref tmpcp;
     int tmpbl, tmpfg;
     timequeue lastevent, event;

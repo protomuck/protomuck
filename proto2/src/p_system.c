@@ -105,8 +105,6 @@ prim_version(PRIM_PROTOTYPE)
 void
 prim_force(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
-
     /* d s -- */
     CHECKOP(2);
     oper1 = POP();              /* string to @force */

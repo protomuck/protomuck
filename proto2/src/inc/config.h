@@ -59,6 +59,7 @@
    Note: MUF_MAX_IGNORES and MAX_IGNORES should be the same, just the MUF
    version should be in text, for the MAX_IGNORES MUF define.
  */
+/* Be aware, this is slightly resource intensive. -Hinoserm */
 #undef IGNORE_SUPPORT
 #define MAX_IGNORES 16
 #define MUF_MAX_IGNORES "16"

@@ -16,9 +16,9 @@
 # -g			Generate debugging information, suggested, you can
 #			alwase "strip protomuck" if you want the space.
 #
-# Alynna -- prim_divide will now not support any optimizations
-# 03/20/2003 -- trying -O2 again.
-OPTIM= -O2 -g
+# ProtoMUCK will now compile 99.8% warning free with -Wall turned on.
+#   -Hinoserm, 7-31-2003. 
+OPTIM=-Wall -O2 -g
 
 #
 # Paths
@@ -28,7 +28,7 @@ OPTIM= -O2 -g
 ROOT= ..
 
 # Where the include files are
-INCLUDE= ./inc @INCL@ 
+INCLUDE= ./inc @INCL@
 
 # Destination for binaries
 DEST=${ROOT}/game
@@ -68,7 +68,7 @@ MKTAGS= ctags
 
 MISCSRC= Makefile ChangeLog COPYING mkversion.sh
 
-CSRC= array.c boolexp.c case.c cgi.c compile.c compress.c create.c db.c  \
+CSRC= array.c boolexp.c cgi.c compile.c compress.c create.c db.c  \
 	debugger.c disassem.c diskprop.c edit.c events.c game.c hashtab.c  \
 	help.c inst.c interp.c log.c look.c match.c mcp.c mcppkgs.c        \
 	mcpgui.c mfuns.c mfuns2.c mfuns3.c msgparse.c move.c mufevent.c    \
@@ -84,7 +84,7 @@ CSRC= array.c boolexp.c case.c cgi.c compile.c compress.c create.c db.c  \
 MSRC= olddecomp.c reconst.c interface.c
 SRC= ${MISCSRC} ${CSRC} ${MSRC}
 
-COBJ=  array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
+COBJ=  array.o boolexp.o cgi.o compile.o compress.o create.o db.o  \
 	debugger.o disassem.o diskprop.o edit.o events.o game.o hashtab.o  \
 	help.o inst.o interp.o log.o look.o match.o mcp.o mcppkgs.o        \
 	mcpgui.o mfuns.o mfuns2.o mfuns3.o msgparse.o move.o mufevent.o    \
@@ -99,7 +99,7 @@ COBJ=  array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
 LOBJ= copyright.o
 MOBJ= olddecomp.o reconst.o interface.o resolver.o topwords.o
 EOBJ= oldcompress.o diskprop.o property.o propdirs.o props.o stringutil.o \
-	unparse.o utils.o predicates.o db.o boolexp.o log.o case.o
+	unparse.o utils.o predicates.o db.o boolexp.o log.o
 
 OBJ= ${COBJ} ${ROBJ} ${MOBJ}
 TARGETS= protomuck resolver olddecompress topwords

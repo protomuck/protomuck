@@ -947,8 +947,6 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
 void
 prim_gui_ctrl_command(PRIM_PROTOTYPE)
 {
-    int vallines = 0;
-    char **vallist = NULL;
     char *dlogid = NULL;
     char *ctrlid = NULL;
     char *ctrlcmd = NULL;
@@ -956,7 +954,6 @@ prim_gui_ctrl_command(PRIM_PROTOTYPE)
     McpMesg msg;
     McpFrame *mfr;
     int descr;
-    int i;
 
     CHECKOP(4);
     oper4 = POP();              /* dict args */

@@ -305,7 +305,7 @@ prim_program_insertlines(PRIM_PROTOTYPE)
     dbref theprog;
     int i = 0;
     struct line *curr;
-    struct line *prev;
+    struct line *prev = NULL;
     struct line *new_line;
     int start = 0;
     stk_array *lines;

@@ -819,7 +819,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
     }
 
     if ((!DBFETCH(victim)->sp.player.password ||
-         check_password(victim,arg2)) &&
+         check_password(victim, arg2)) &&
         (strcmp(arg2, "yes") ||
          !(Arch(player) || POWERS(player) & POW_PLAYER_PURGE))
         ) {
@@ -882,7 +882,7 @@ do_newpassword(dbref player, const char *name, const char *password)
         }
 
         /* it's ok, do it */
-        set_password(victim,password);
+        set_password(victim, password);
         anotify_nolisten2(player, CSUCC "Password changed.");
         anotify_fmt(victim, CNOTE
                     "Your password has been changed by %s.", NAME(player));
@@ -1294,7 +1294,7 @@ do_muf_topprofs(dbref player, char *arg1)
     anotify_nolisten2(player, CINFO "     %CPU   TotalTime  UseCount  Program");
     while (tops) {
         curr = tops;
-        sprintf(buf, "%10.3f %10.3f %9d %s", curr->pcnt, curr->proftime,
+        sprintf(buf, "%10.3f %10.3f %9ld %s", curr->pcnt, curr->proftime,
                 curr->usecount, unparse_object(player, curr->prog));
         notify(player, buf);
         tops = tops->next;
@@ -1409,7 +1409,7 @@ do_mpi_topprofs(dbref player, char *arg1)
     anotify_nolisten2(player, CINFO "     %CPU   TotalTime  UseCount  Object");
     while (tops) {
         curr = tops;
-        sprintf(buf, "%10.3f %10.3f %9d %s", curr->pcnt, curr->proftime,
+        sprintf(buf, "%10.3f %10.3f %9ld %s", curr->pcnt, curr->proftime,
                 curr->usecount, unparse_object(player, curr->prog));
         notify(player, buf);
         tops = tops->next;
@@ -1591,7 +1591,7 @@ do_all_topprofs(dbref player, char *arg1)
                       CINFO "     %CPU   TotalTime  UseCount  Type  Object");
     while (tops) {
         curr = tops;
-        sprintf(buf, "%10.3f %10.3f %9d%5s   %s", curr->pcnt, curr->proftime,
+        sprintf(buf, "%10.3f %10.3f %9ld%5s   %s", curr->pcnt, curr->proftime,
                 curr->usecount, curr->type ? "MUF" : "MPI",
                 unparse_object(player, curr->prog));
         notify(player, buf);

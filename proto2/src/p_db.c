@@ -409,8 +409,6 @@ prim_addpennies(PRIM_PROTOTYPE)
 void
 prim_moveto(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
-
     CHECKOP(2);
     oper1 = POP();              /* destination */
     oper2 = POP();              /* victim */
@@ -435,100 +433,102 @@ prim_moveto(PRIM_PROTOTYPE)
             abort_interp("Object can't be moved");
         interp_set_depth(fr);
         switch (Typeof(victim)) {
-        case TYPE_PLAYER:
-            if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_PLAYER &&
-                Typeof(dest) != TYPE_THING)
-                abort_interp("Bad destination");
-            /* Check permissions */
-            if (parent_loop_check(victim, dest))
-                abort_interp("Things can't contain themselves");
-            if ((mlev < LM3)) {
-                if (!(FLAGS(dest) & VEHICLE)
-                    && (Typeof(dest) == TYPE_THING
-                        || Typeof(dest) == TYPE_PLAYER))
-                    abort_interp("Destination is not a vehicle");
-                if (!(FLAGS(DBFETCH(victim)->location) & JUMP_OK)
-                    && !permissions(mlev, ProgUID, DBFETCH(victim)->location))
-                    abort_interp("Source not JUMP_OK");
-                if (!is_home(oper1) && !(FLAGS(dest) & JUMP_OK)
-                    && !permissions(mlev, ProgUID, dest))
-                    abort_interp("Destination not JUMP_OK");
-                if (Typeof(dest) == TYPE_THING
-                    && getloc(victim) != getloc(dest))
-                    abort_interp("Not in same location as vehicle");
-            }
-            enter_room(fr->descr, victim, dest, program);
-            break;
-        case TYPE_THING:
-            if (parent_loop_check(victim, dest))
-                abort_interp("A thing cannot contain itself");
-            if (mlev < LM3 && (FLAGS(victim) & VEHICLE) &&
-                (FLAGS(dest) & VEHICLE) && Typeof(dest) != TYPE_THING)
-                abort_interp("Destination doesn't accept vehicles");
-            if (mlev < LM3 && (FLAGS(victim) & ZOMBIE) &&
-                (FLAGS(dest) & ZOMBIE) && Typeof(dest) != TYPE_THING)
-                abort_interp("Destination doesn't accept zombies");
-            ts_lastuseobject(victim);
-        case TYPE_PROGRAM:
-        {
-            dbref matchroom = NOTHING;
-
-            if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_PLAYER
-                && Typeof(dest) != TYPE_THING)
-                abort_interp("Bad destination");
-            if ((mlev < LM3)) {
-                if (permissions(mlev, ProgUID, dest))
-                    matchroom = dest;
-                if (permissions(mlev, ProgUID, DBFETCH(victim)->location))
-                    matchroom = DBFETCH(victim)->location;
-                if (matchroom != NOTHING && !(FLAGS(matchroom) & JUMP_OK)
-                    && !permissions(mlev, ProgUID, victim))
-                    abort_interp(tp_noperm_mesg);
-            }
-        }
-            if (Typeof(victim) == TYPE_THING && (FLAGS(victim) & ZOMBIE
-                                                 || FLAGS(victim) & VEHICLE)) {
+            case TYPE_PLAYER:
+                if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_PLAYER &&
+                    Typeof(dest) != TYPE_THING)
+                    abort_interp("Bad destination");
+                /* Check permissions */
+                if (parent_loop_check(victim, dest))
+                    abort_interp("Things can't contain themselves");
+                if ((mlev < LM3)) {
+                    if (!(FLAGS(dest) & VEHICLE)
+                        && (Typeof(dest) == TYPE_THING
+                            || Typeof(dest) == TYPE_PLAYER))
+                        abort_interp("Destination is not a vehicle");
+                    if (!(FLAGS(DBFETCH(victim)->location) & JUMP_OK)
+                        && !permissions(mlev, ProgUID,
+                                        DBFETCH(victim)->location))
+                        abort_interp("Source not JUMP_OK");
+                    if (!is_home(oper1) && !(FLAGS(dest) & JUMP_OK)
+                        && !permissions(mlev, ProgUID, dest))
+                        abort_interp("Destination not JUMP_OK");
+                    if (Typeof(dest) == TYPE_THING
+                        && getloc(victim) != getloc(dest))
+                        abort_interp("Not in same location as vehicle");
+                }
                 enter_room(fr->descr, victim, dest, program);
-            } else {
-                moveto(victim, dest);
-            }
-            break;
-        case TYPE_EXIT:
-            if (!permissions(mlev, ProgUID, victim)
-                || !permissions(mlev, ProgUID, dest))
-                abort_interp(tp_noperm_mesg);
-            if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_THING &&
-                Typeof(dest) != TYPE_PLAYER)
-                abort_interp("Bad destination object");
-            if (!unset_source(ProgUID, getloc(player), victim))
                 break;
-            set_source(ProgUID, victim, dest);
-            SetMLevel(victim, 0);
-            break;
-        case TYPE_ROOM:
-            if (Typeof(dest) != TYPE_ROOM)
-                abort_interp("Bad destination");
-            if (victim == GLOBAL_ENVIRONMENT)
-                abort_interp(tp_noperm_mesg);
-            if (dest == HOME) {
-                if ((mlev < 3) && (!permissions(mlev, ProgUID, victim)
-                                   && !permissions(mlev, ProgUID,
-                                                   getloc(victim))))
-                    abort_interp("Permission denied.");
-                dest = GLOBAL_ENVIRONMENT;
-            } else {
-                if (!permissions(mlev, ProgUID, victim)
-                    || !can_link_to(ProgUID, NOTYPE, dest))
-                    abort_interp(tp_noperm_mesg);
-                if (parent_loop_check(victim, dest)) {
-                    abort_interp("Parent room would create a loop");
+            case TYPE_THING:
+                if (parent_loop_check(victim, dest))
+                    abort_interp("A thing cannot contain itself");
+                if (mlev < LM3 && (FLAGS(victim) & VEHICLE) &&
+                    (FLAGS(dest) & VEHICLE) && Typeof(dest) != TYPE_THING)
+                    abort_interp("Destination doesn't accept vehicles");
+                if (mlev < LM3 && (FLAGS(victim) & ZOMBIE) &&
+                    (FLAGS(dest) & ZOMBIE) && Typeof(dest) != TYPE_THING)
+                    abort_interp("Destination doesn't accept zombies");
+                ts_lastuseobject(victim);
+            case TYPE_PROGRAM:
+            {
+                dbref matchroom = NOTHING;
+
+                if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_PLAYER
+                    && Typeof(dest) != TYPE_THING)
+                    abort_interp("Bad destination");
+                if ((mlev < LM3)) {
+                    if (permissions(mlev, ProgUID, dest))
+                        matchroom = dest;
+                    if (permissions(mlev, ProgUID, DBFETCH(victim)->location))
+                        matchroom = DBFETCH(victim)->location;
+                    if (matchroom != NOTHING && !(FLAGS(matchroom) & JUMP_OK)
+                        && !permissions(mlev, ProgUID, victim))
+                        abort_interp(tp_noperm_mesg);
                 }
             }
-            ts_lastuseobject(victim);
-            moveto(victim, dest);
-            break;
-        default:
-            abort_interp("Invalid object type (1)");
+                if (Typeof(victim) == TYPE_THING && (FLAGS(victim) & ZOMBIE
+                                                     || FLAGS(victim) &
+                                                     VEHICLE)) {
+                    enter_room(fr->descr, victim, dest, program);
+                } else {
+                    moveto(victim, dest);
+                }
+                break;
+            case TYPE_EXIT:
+                if (!permissions(mlev, ProgUID, victim)
+                    || !permissions(mlev, ProgUID, dest))
+                    abort_interp(tp_noperm_mesg);
+                if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_THING &&
+                    Typeof(dest) != TYPE_PLAYER)
+                    abort_interp("Bad destination object");
+                if (!unset_source(ProgUID, getloc(player), victim))
+                    break;
+                set_source(ProgUID, victim, dest);
+                SetMLevel(victim, 0);
+                break;
+            case TYPE_ROOM:
+                if (Typeof(dest) != TYPE_ROOM)
+                    abort_interp("Bad destination");
+                if (victim == GLOBAL_ENVIRONMENT)
+                    abort_interp(tp_noperm_mesg);
+                if (dest == HOME) {
+                    if ((mlev < 3) && (!permissions(mlev, ProgUID, victim)
+                                       && !permissions(mlev, ProgUID,
+                                                       getloc(victim))))
+                        abort_interp("Permission denied.");
+                    dest = GLOBAL_ENVIRONMENT;
+                } else {
+                    if (!permissions(mlev, ProgUID, victim)
+                        || !can_link_to(ProgUID, NOTYPE, dest))
+                        abort_interp(tp_noperm_mesg);
+                    if (parent_loop_check(victim, dest)) {
+                        abort_interp("Parent room would create a loop");
+                    }
+                }
+                ts_lastuseobject(victim);
+                moveto(victim, dest);
+                break;
+            default:
+                abort_interp("Invalid object type (1)");
         }
     }
     fr->level--;
@@ -546,14 +546,14 @@ prim_pennies(PRIM_PROTOTYPE)
         abort_interp("Invalid dbref argument");
     CHECKREMOTE(oper1->data.objref);
     switch (Typeof(oper1->data.objref)) {
-    case TYPE_PLAYER:
-        result = DBFETCH(oper1->data.objref)->sp.player.pennies;
-        break;
-    case TYPE_THING:
-        result = DBFETCH(oper1->data.objref)->sp.thing.value;
-        break;
-    default:
-        abort_interp("Invalid object type argument");
+        case TYPE_PLAYER:
+            result = DBFETCH(oper1->data.objref)->sp.player.pennies;
+            break;
+        case TYPE_THING:
+            result = DBFETCH(oper1->data.objref)->sp.thing.value;
+            break;
+        default:
+            abort_interp("Invalid object type argument");
     }
     CLEAR(oper1);
     PushInt(result);
@@ -617,14 +617,14 @@ prim_exits(PRIM_PROTOTYPE)
     if ((mlev < LM2) && !permissions(mlev, ProgUID, ref))
         abort_interp(tp_noperm_mesg);
     switch (Typeof(ref)) {
-    case TYPE_ROOM:
-    case TYPE_THING:
-        ts_lastuseobject(ref);
-    case TYPE_PLAYER:
-        ref = DBFETCH(ref)->exits;
-        break;
-    default:
-        abort_interp("Invalid object");
+        case TYPE_ROOM:
+        case TYPE_THING:
+            ts_lastuseobject(ref);
+        case TYPE_PLAYER:
+            ref = DBFETCH(ref)->exits;
+            break;
+        default:
+            abort_interp("Invalid object");
     }
     CLEAR(oper1);
     PushObject(ref);
@@ -1235,22 +1235,22 @@ prim_getlink(PRIM_PROTOTYPE)
     if (Typeof(oper1->data.objref) == TYPE_PROGRAM)
         abort_interp("Illegal object referenced");
     switch (Typeof(oper1->data.objref)) {
-    case TYPE_EXIT:
-        ref = (DBFETCH(oper1->data.objref)->sp.exit.ndest) ?
-            (DBFETCH(oper1->data.objref)->sp.exit.dest)[0] : NOTHING;
-        break;
-    case TYPE_PLAYER:
-        ref = DBFETCH(oper1->data.objref)->sp.player.home;
-        break;
-    case TYPE_THING:
-        ref = DBFETCH(oper1->data.objref)->sp.thing.home;
-        break;
-    case TYPE_ROOM:
-        ref = DBFETCH(oper1->data.objref)->sp.room.dropto;
-        break;
-    default:
-        ref = NOTHING;
-        break;
+        case TYPE_EXIT:
+            ref = (DBFETCH(oper1->data.objref)->sp.exit.ndest) ?
+                (DBFETCH(oper1->data.objref)->sp.exit.dest)[0] : NOTHING;
+            break;
+        case TYPE_PLAYER:
+            ref = DBFETCH(oper1->data.objref)->sp.player.home;
+            break;
+        case TYPE_THING:
+            ref = DBFETCH(oper1->data.objref)->sp.thing.home;
+            break;
+        case TYPE_ROOM:
+            ref = DBFETCH(oper1->data.objref)->sp.room.dropto;
+            break;
+        default:
+            ref = NOTHING;
+            break;
     }
     CLEAR(oper1);
     PushObject(ref);
@@ -1272,40 +1272,40 @@ prim_getlinks(PRIM_PROTOTYPE)
     ref2 = oper1->data.objref;
     CLEAR(oper1);
     switch (Typeof(ref2)) {
-    case TYPE_EXIT:
-        count = DBFETCH(ref2)->sp.exit.ndest;
-        for (i = 0; i < count; i++) {
-            PushObject((DBFETCH(ref2)->sp.exit.dest)[i]);
-        }
-        PushInt(count);
-        break;
-    case TYPE_PLAYER:
-        ref = DBFETCH(ref2)->sp.player.home;
-        count = 1;
-        PushObject(ref);
-        PushInt(count);
-        break;
-    case TYPE_THING:
-        ref = DBFETCH(ref2)->sp.thing.home;
-        count = 1;
-        PushObject(ref);
-        PushInt(count);
-        break;
-    case TYPE_ROOM:
-        ref = DBFETCH(ref2)->sp.room.dropto;
-        if (ref != NOTHING) {
-            count = 0;
+        case TYPE_EXIT:
+            count = DBFETCH(ref2)->sp.exit.ndest;
+            for (i = 0; i < count; i++) {
+                PushObject((DBFETCH(ref2)->sp.exit.dest)[i]);
+            }
             PushInt(count);
-        } else {
+            break;
+        case TYPE_PLAYER:
+            ref = DBFETCH(ref2)->sp.player.home;
             count = 1;
             PushObject(ref);
             PushInt(count);
-        }
-        break;
-    default:
-        count = 0;
-        PushInt(count);
-        break;
+            break;
+        case TYPE_THING:
+            ref = DBFETCH(ref2)->sp.thing.home;
+            count = 1;
+            PushObject(ref);
+            PushInt(count);
+            break;
+        case TYPE_ROOM:
+            ref = DBFETCH(ref2)->sp.room.dropto;
+            if (ref != NOTHING) {
+                count = 0;
+                PushInt(count);
+            } else {
+                count = 1;
+                PushObject(ref);
+                PushInt(count);
+            }
+            break;
+        default:
+            count = 0;
+            PushInt(count);
+            break;
     }
 }
 
@@ -1317,26 +1317,26 @@ prog_can_link_to(int mlev, dbref who, object_flag_type what_type, dbref where)
     if (where < 0 || where >= db_top)
         return 0;
     switch (what_type) {
-    case TYPE_EXIT:
-        return (permissions(mlev, who, where) || (FLAGS(where) & LINK_OK));
-        break;
-    case TYPE_PLAYER:
-        return (Typeof(where) == TYPE_ROOM && (permissions(mlev, who, where)
-                                               || Linkable(where)));
-        break;
-    case TYPE_ROOM:
-        return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_THING)
-                && (permissions(mlev, who, where) || Linkable(where)));
-        break;
-    case TYPE_THING:
-        return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_PLAYER
-                 || Typeof(where) == TYPE_THING)
-                && (permissions(mlev, who, where) || Linkable(where)));
-        break;
-    case NOTYPE:
-        return (permissions(mlev, who, where) || (FLAGS(where) & LINK_OK) ||
-                (Typeof(where) != TYPE_THING && (FLAGS(where) & ABODE)));
-        break;
+        case TYPE_EXIT:
+            return (permissions(mlev, who, where) || (FLAGS(where) & LINK_OK));
+            break;
+        case TYPE_PLAYER:
+            return (Typeof(where) == TYPE_ROOM && (permissions(mlev, who, where)
+                                                   || Linkable(where)));
+            break;
+        case TYPE_ROOM:
+            return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_THING)
+                    && (permissions(mlev, who, where) || Linkable(where)));
+            break;
+        case TYPE_THING:
+            return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_PLAYER
+                     || Typeof(where) == TYPE_THING)
+                    && (permissions(mlev, who, where) || Linkable(where)));
+            break;
+        case NOTYPE:
+            return (permissions(mlev, who, where) || (FLAGS(where) & LINK_OK) ||
+                    (Typeof(where) != TYPE_THING && (FLAGS(where) & ABODE)));
+            break;
     }
     return 0;
 }
@@ -1359,20 +1359,20 @@ prim_setlink(PRIM_PROTOTYPE)
         if (!permissions(mlev, ProgUID, ref))
             abort_interp(tp_noperm_mesg);
         switch (Typeof(ref)) {
-        case TYPE_EXIT:
-            DBSTORE(ref, sp.exit.ndest, 0);
-            if (DBFETCH(ref)->sp.exit.dest) {
-                free((void *) DBFETCH(ref)->sp.exit.dest);
-                DBSTORE(ref, sp.exit.dest, NULL);
-            }
-            if (MLevel(ref))
-                SetMLevel(ref, 0);
-            break;
-        case TYPE_ROOM:
-            DBSTORE(ref, sp.room.dropto, NOTHING);
-            break;
-        default:
-            abort_interp("Invalid object (1)");
+            case TYPE_EXIT:
+                DBSTORE(ref, sp.exit.ndest, 0);
+                if (DBFETCH(ref)->sp.exit.dest) {
+                    free((void *) DBFETCH(ref)->sp.exit.dest);
+                    DBSTORE(ref, sp.exit.dest, NULL);
+                }
+                if (MLevel(ref))
+                    SetMLevel(ref, 0);
+                break;
+            case TYPE_ROOM:
+                DBSTORE(ref, sp.room.dropto, NOTHING);
+                break;
+            default:
+                abort_interp("Invalid object (1)");
         }
     } else {
         if (!valid_object(oper1))
@@ -1382,35 +1382,35 @@ prim_setlink(PRIM_PROTOTYPE)
         if (!prog_can_link_to(mlev, ProgUID, Typeof(ref), oper1->data.objref))
             abort_interp("Can't link source to destination");
         switch (Typeof(ref)) {
-        case TYPE_EXIT:
-            if (DBFETCH(ref)->sp.exit.ndest != 0) {
+            case TYPE_EXIT:
+                if (DBFETCH(ref)->sp.exit.ndest != 0) {
+                    if (!permissions(mlev, ProgUID, ref))
+                        abort_interp(tp_noperm_mesg);
+                    abort_interp("Exit is already linked");
+                }
+                if (exit_loop_check(ref, oper1->data.objref))
+                    abort_interp("Link would cause a loop");
+                DBFETCH(ref)->sp.exit.ndest = 1;
+                DBFETCH(ref)->sp.exit.dest = (dbref *) malloc(sizeof(dbref));
+                (DBFETCH(ref)->sp.exit.dest)[0] = oper1->data.objref;
+                break;
+            case TYPE_PLAYER:
                 if (!permissions(mlev, ProgUID, ref))
                     abort_interp(tp_noperm_mesg);
-                abort_interp("Exit is already linked");
-            }
-            if (exit_loop_check(ref, oper1->data.objref))
-                abort_interp("Link would cause a loop");
-            DBFETCH(ref)->sp.exit.ndest = 1;
-            DBFETCH(ref)->sp.exit.dest = (dbref *) malloc(sizeof(dbref));
-            (DBFETCH(ref)->sp.exit.dest)[0] = oper1->data.objref;
-            break;
-        case TYPE_PLAYER:
-            if (!permissions(mlev, ProgUID, ref))
-                abort_interp(tp_noperm_mesg);
-            DBFETCH(ref)->sp.player.home = oper1->data.objref;
-            break;
-        case TYPE_THING:
-            if (!permissions(mlev, ProgUID, ref))
-                abort_interp(tp_noperm_mesg);
-            if (parent_loop_check(ref, oper1->data.objref))
-                abort_interp("That would cause a parent paradox");
-            DBFETCH(ref)->sp.thing.home = oper1->data.objref;
-            break;
-        case TYPE_ROOM:
-            if (!permissions(mlev, ProgUID, ref))
-                abort_interp(tp_noperm_mesg);
-            DBFETCH(ref)->sp.room.dropto = oper1->data.objref;
-            break;
+                DBFETCH(ref)->sp.player.home = oper1->data.objref;
+                break;
+            case TYPE_THING:
+                if (!permissions(mlev, ProgUID, ref))
+                    abort_interp(tp_noperm_mesg);
+                if (parent_loop_check(ref, oper1->data.objref))
+                    abort_interp("That would cause a parent paradox");
+                DBFETCH(ref)->sp.thing.home = oper1->data.objref;
+                break;
+            case TYPE_ROOM:
+                if (!permissions(mlev, ProgUID, ref))
+                    abort_interp(tp_noperm_mesg);
+                DBFETCH(ref)->sp.room.dropto = oper1->data.objref;
+                break;
         }
     }
     CLEAR(oper1);
@@ -1439,21 +1439,21 @@ prim_setown(PRIM_PROTOTYPE)
                           !test_lock(fr->descr, player, ref, "_/chlk")))
         abort_interp(tp_noperm_mesg);
     switch (Typeof(ref)) {
-    case TYPE_ROOM:
-        if ((mlev < LMAGE) && DBFETCH(player)->location != ref)
+        case TYPE_ROOM:
+            if ((mlev < LMAGE) && DBFETCH(player)->location != ref)
+                abort_interp(tp_noperm_mesg);
+            break;
+        case TYPE_THING:
+            if ((mlev < LMAGE) && DBFETCH(ref)->location != player)
+                abort_interp(tp_noperm_mesg);
+            break;
+        case TYPE_PLAYER:
             abort_interp(tp_noperm_mesg);
-        break;
-    case TYPE_THING:
-        if ((mlev < LMAGE) && DBFETCH(ref)->location != player)
-            abort_interp(tp_noperm_mesg);
-        break;
-    case TYPE_PLAYER:
-        abort_interp(tp_noperm_mesg);
-    case TYPE_EXIT:
-    case TYPE_PROGRAM:
-        break;
-    case TYPE_GARBAGE:
-        abort_interp("Can't chown garbage");
+        case TYPE_EXIT:
+        case TYPE_PROGRAM:
+            break;
+        case TYPE_GARBAGE:
+            abort_interp("Can't chown garbage");
     }
     OWNER(ref) = OWNER(oper1->data.objref);
     DBDIRTY(ref);
@@ -1727,7 +1727,7 @@ prim_checkpassword(PRIM_PROTOTYPE)
     if (oper2->type != PROG_STRING)
         abort_interp("Password string expected (2)");
     ptr = oper2->data.string ? oper2->data.string->data : pad_char;
-    result = check_password(ref,ptr);
+    result = check_password(ref, ptr);
 
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1812,25 +1812,25 @@ prim_nextentrance(PRIM_PROTOTYPE)
         oper2->data.objref = ref;
         if (valid_object(oper2)) {
             switch (Typeof(ref)) {
-            case TYPE_PLAYER:
-                if (DBFETCH(ref)->sp.player.home == linkref)
-                    foundref = 1;
-                break;
-            case TYPE_ROOM:
-                if (DBFETCH(ref)->sp.room.dropto == linkref)
-                    foundref = 1;
-                break;
-            case TYPE_THING:
-                if (DBFETCH(ref)->sp.thing.home == linkref)
-                    foundref = 1;
-                break;
-            case TYPE_EXIT:
-                count = DBFETCH(ref)->sp.exit.ndest;
-                for (i = 0; i < count; i++) {
-                    if (DBFETCH(ref)->sp.exit.dest[i] == linkref)
+                case TYPE_PLAYER:
+                    if (DBFETCH(ref)->sp.player.home == linkref)
                         foundref = 1;
-                }
-                break;
+                    break;
+                case TYPE_ROOM:
+                    if (DBFETCH(ref)->sp.room.dropto == linkref)
+                        foundref = 1;
+                    break;
+                case TYPE_THING:
+                    if (DBFETCH(ref)->sp.thing.home == linkref)
+                        foundref = 1;
+                    break;
+                case TYPE_EXIT:
+                    count = DBFETCH(ref)->sp.exit.ndest;
+                    for (i = 0; i < count; i++) {
+                        if (DBFETCH(ref)->sp.exit.dest[i] == linkref)
+                            foundref = 1;
+                    }
+                    break;
             }
             if (foundref)
                 break;
@@ -1911,7 +1911,7 @@ prim_newplayer(PRIM_PROTOTYPE)
     DBFETCH(newplayer)->sp.player.insert_mode = 0;
 
     /* Alynna's setpassword again */
-    set_password(newplayer,password);
+    set_password(newplayer, password);
 
     /* link him to tp_player_start */
     PUSH(newplayer, DBFETCH(tp_player_start)->contents);
@@ -2004,7 +2004,7 @@ prim_copyplayer(PRIM_PROTOTYPE)
     DBFETCH(newplayer)->sp.player.insert_mode = 0;
 
     /* Yet again, set_password */
-    set_password(newplayer,password);
+    set_password(newplayer, password);
 
     /* link him to player_start */
     PUSH(newplayer, DBFETCH(DBFETCH(ref)->sp.player.home)->contents);
@@ -2030,8 +2030,6 @@ prim_toadplayer(PRIM_PROTOTYPE)
     dbref recipient;
     dbref stuff;
     char buf[BUFFER_LEN];
-    struct inst *oper1;
-    struct inst *oper2;
 
     CHECKOP(2);
     oper1 = POP();
@@ -2070,16 +2068,16 @@ prim_toadplayer(PRIM_PROTOTYPE)
     for (stuff = 0; stuff < db_top; stuff++) {
         if (OWNER(stuff) == victim) {
             switch (Typeof(stuff)) {
-            case TYPE_PROGRAM:
-                dequeue_prog(stuff, 0); /* dequeue player's progs */
-                FLAGS(stuff) &= ~(ABODE | W1 | W2 | W3 | W4);
-                SetMLevel(stuff, 0);
-            case TYPE_ROOM:
-            case TYPE_THING:
-            case TYPE_EXIT:
-                OWNER(stuff) = recipient;
-                DBDIRTY(stuff);
-                break;
+                case TYPE_PROGRAM:
+                    dequeue_prog(stuff, 0); /* dequeue player's progs */
+                    FLAGS(stuff) &= ~(ABODE | W1 | W2 | W3 | W4);
+                    SetMLevel(stuff, 0);
+                case TYPE_ROOM:
+                case TYPE_THING:
+                case TYPE_EXIT:
+                    OWNER(stuff) = recipient;
+                    DBDIRTY(stuff);
+                    break;
             }
         }
         if (Typeof(stuff) == TYPE_THING &&
@@ -2295,9 +2293,9 @@ prim_setpassword(PRIM_PROTOTYPE)
 #endif
     ptr = oper2->data.string ? oper2->data.string->data : pad_char;
     ptr2 = oper1->data.string ? oper1->data.string->data : pad_char;
-    if (ref != NOTHING && check_password(ref,ptr))
+    if (ref != NOTHING && check_password(ref, ptr))
         abort_interp("Incorrect password");
-    set_password(ref,ptr2);
+    set_password(ref, ptr2);
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -2330,7 +2328,7 @@ prim_newpassword(PRIM_PROTOTYPE)
     CHECKREMOTE(ref);
     if (MLevel(ref) >= mlev || (MLevel(ref) >= LMAGE && mlev < LBOY))
         abort_interp(tp_noperm_mesg);
-    set_password(ref,ptr2);
+    set_password(ref, ptr2);
     CLEAR(oper1);
     CLEAR(oper3);
 }
@@ -2592,48 +2590,48 @@ array_getlinks(dbref obj)
     nw = new_array_packed(0);
     if ((obj >= NOTHING) && (obj < db_top)) {
         switch (Typeof(obj)) {
-        case TYPE_ROOM:{
-            temp1.type = PROG_INTEGER;
-            temp1.data.number = count++;
-            temp2.type = PROG_OBJECT;
-            temp2.data.objref = DBFETCH(obj)->sp.room.dropto;
-            array_setitem(&nw, &temp1, &temp2);
-            CLEAR(&temp1);
-            CLEAR(&temp2);
-            break;
-        }
-        case TYPE_THING:{
-            temp1.type = PROG_INTEGER;
-            temp1.data.number = count++;
-            temp2.type = PROG_OBJECT;
-            temp2.data.objref = DBFETCH(obj)->sp.thing.home;
-            array_setitem(&nw, &temp1, &temp2);
-            CLEAR(&temp1);
-            CLEAR(&temp2);
-            break;
-        }
-        case TYPE_PLAYER:{
-            temp1.type = PROG_INTEGER;
-            temp1.data.number = count++;
-            temp2.type = PROG_OBJECT;
-            temp2.data.objref = DBFETCH(obj)->sp.player.home;
-            array_setitem(&nw, &temp1, &temp2);
-            CLEAR(&temp1);
-            CLEAR(&temp2);
-            break;
-        }
-        case TYPE_EXIT:{
-            for (count = 0; count < (DBFETCH(obj)->sp.exit.ndest); count++) {
+            case TYPE_ROOM:{
                 temp1.type = PROG_INTEGER;
-                temp1.data.number = count;
+                temp1.data.number = count++;
                 temp2.type = PROG_OBJECT;
-                temp2.data.objref = (DBFETCH(obj)->sp.exit.dest)[count];
+                temp2.data.objref = DBFETCH(obj)->sp.room.dropto;
                 array_setitem(&nw, &temp1, &temp2);
+                CLEAR(&temp1);
+                CLEAR(&temp2);
+                break;
             }
-            CLEAR(&temp1);
-            CLEAR(&temp2);
-            break;
-        }
+            case TYPE_THING:{
+                temp1.type = PROG_INTEGER;
+                temp1.data.number = count++;
+                temp2.type = PROG_OBJECT;
+                temp2.data.objref = DBFETCH(obj)->sp.thing.home;
+                array_setitem(&nw, &temp1, &temp2);
+                CLEAR(&temp1);
+                CLEAR(&temp2);
+                break;
+            }
+            case TYPE_PLAYER:{
+                temp1.type = PROG_INTEGER;
+                temp1.data.number = count++;
+                temp2.type = PROG_OBJECT;
+                temp2.data.objref = DBFETCH(obj)->sp.player.home;
+                array_setitem(&nw, &temp1, &temp2);
+                CLEAR(&temp1);
+                CLEAR(&temp2);
+                break;
+            }
+            case TYPE_EXIT:{
+                for (count = 0; count < (DBFETCH(obj)->sp.exit.ndest); count++) {
+                    temp1.type = PROG_INTEGER;
+                    temp1.data.number = count;
+                    temp2.type = PROG_OBJECT;
+                    temp2.data.objref = (DBFETCH(obj)->sp.exit.dest)[count];
+                    array_setitem(&nw, &temp1, &temp2);
+                }
+                CLEAR(&temp1);
+                CLEAR(&temp2);
+                break;
+            }
         }
     }
     return nw;
@@ -2743,122 +2741,122 @@ prim_getobjinfo(PRIM_PROTOTYPE)
     CLEAR(&temp1);
     CLEAR(&temp2);
     switch (Typeof(ref)) {
-    case TYPE_ROOM:{
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("DROPTO");
-        temp2.type = PROG_OBJECT;
-        temp2.data.objref = DBFETCH(ref)->sp.room.dropto;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        break;
-    }
-    case TYPE_THING:{
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("HOME");
-        temp2.type = PROG_OBJECT;
-        temp2.data.objref = DBFETCH(ref)->sp.thing.home;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("VALUE");
-        temp2.type = PROG_INTEGER;
-        temp2.data.objref = DBFETCH(ref)->sp.thing.value;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        break;
-    }
-    case TYPE_EXIT:{
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("DEST");
-        temp2.type = PROG_ARRAY;
-        temp2.data.array = array_getlinks(ref);
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        break;
-    }
-    case TYPE_PLAYER:{
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("HOME");
-        temp2.type = PROG_OBJECT;
-        temp2.data.objref = DBFETCH(ref)->sp.player.home;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("PENNIES");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = DBFETCH(ref)->sp.player.pennies;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("CURR_PROG");
-        temp2.type = PROG_OBJECT;
-        temp2.data.objref = DBFETCH(ref)->sp.player.curr_prog;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("INSERT_MODE");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) (DBFETCH(ref)->sp.player.insert_mode);
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("BLOCK");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) (DBFETCH(ref)->sp.player.block);
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        break;
-    }
-    case TYPE_PROGRAM:{
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("INSTANCES");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) (DBFETCH(ref)->sp.program.instances);
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("SIZ");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) (DBFETCH(ref)->sp.program.siz);
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("PROFSTART");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) (DBFETCH(ref)->sp.program.profstart);
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("PROFUSES");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) (DBFETCH(ref)->sp.program.profuses);
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("PROFTIME");
-        temp2.type = PROG_FLOAT;
-        sprintf(buf, "%ld.%06ld", DBFETCH(ref)->sp.program.proftime.tv_sec,
-                DBFETCH(ref)->sp.program.proftime.tv_usec);
-        fresult = atof(buf);
-        temp2.data.fnumber = fresult;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        break;
-    }
+        case TYPE_ROOM:{
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("DROPTO");
+            temp2.type = PROG_OBJECT;
+            temp2.data.objref = DBFETCH(ref)->sp.room.dropto;
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            break;
+        }
+        case TYPE_THING:{
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("HOME");
+            temp2.type = PROG_OBJECT;
+            temp2.data.objref = DBFETCH(ref)->sp.thing.home;
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("VALUE");
+            temp2.type = PROG_INTEGER;
+            temp2.data.objref = DBFETCH(ref)->sp.thing.value;
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            break;
+        }
+        case TYPE_EXIT:{
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("DEST");
+            temp2.type = PROG_ARRAY;
+            temp2.data.array = array_getlinks(ref);
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            break;
+        }
+        case TYPE_PLAYER:{
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("HOME");
+            temp2.type = PROG_OBJECT;
+            temp2.data.objref = DBFETCH(ref)->sp.player.home;
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("PENNIES");
+            temp2.type = PROG_INTEGER;
+            temp2.data.number = DBFETCH(ref)->sp.player.pennies;
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("CURR_PROG");
+            temp2.type = PROG_OBJECT;
+            temp2.data.objref = DBFETCH(ref)->sp.player.curr_prog;
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("INSERT_MODE");
+            temp2.type = PROG_INTEGER;
+            temp2.data.number = (int) (DBFETCH(ref)->sp.player.insert_mode);
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("BLOCK");
+            temp2.type = PROG_INTEGER;
+            temp2.data.number = (int) (DBFETCH(ref)->sp.player.block);
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            break;
+        }
+        case TYPE_PROGRAM:{
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("INSTANCES");
+            temp2.type = PROG_INTEGER;
+            temp2.data.number = (int) (DBFETCH(ref)->sp.program.instances);
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("SIZ");
+            temp2.type = PROG_INTEGER;
+            temp2.data.number = (int) (DBFETCH(ref)->sp.program.siz);
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("PROFSTART");
+            temp2.type = PROG_INTEGER;
+            temp2.data.number = (int) (DBFETCH(ref)->sp.program.profstart);
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("PROFUSES");
+            temp2.type = PROG_INTEGER;
+            temp2.data.number = (int) (DBFETCH(ref)->sp.program.profuses);
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp1.type = PROG_STRING;
+            temp1.data.string = alloc_prog_string("PROFTIME");
+            temp2.type = PROG_FLOAT;
+            sprintf(buf, "%ld.%06ld", DBFETCH(ref)->sp.program.proftime.tv_sec,
+                    DBFETCH(ref)->sp.program.proftime.tv_usec);
+            fresult = atof(buf);
+            temp2.data.fnumber = fresult;
+            array_setitem(&nw, &temp1, &temp2);
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            break;
+        }
     }
     CLEAR(oper1);
     PushArrayRaw(nw);
@@ -2925,27 +2923,27 @@ prim_entrances_array(PRIM_PROTOTYPE)
 
     for (i = 0; i < db_top; i++) {
         switch (Typeof(i)) {
-        case TYPE_EXIT:
-            for (j = DBFETCH(i)->sp.exit.ndest; j--;) {
-                if (DBFETCH(i)->sp.exit.dest[j] == ref)
+            case TYPE_EXIT:
+                for (j = DBFETCH(i)->sp.exit.ndest; j--;) {
+                    if (DBFETCH(i)->sp.exit.dest[j] == ref)
+                        array_appendref(&nw, i);
+                }
+                break;
+            case TYPE_PLAYER:
+                if (DBFETCH(i)->sp.player.home == ref)
                     array_appendref(&nw, i);
-            }
-            break;
-        case TYPE_PLAYER:
-            if (DBFETCH(i)->sp.player.home == ref)
-                array_appendref(&nw, i);
-            break;
-        case TYPE_THING:
-            if (DBFETCH(i)->sp.thing.home == ref)
-                array_appendref(&nw, i);
-            break;
-        case TYPE_ROOM:
-            if (DBFETCH(i)->sp.room.dropto == ref)
-                array_appendref(&nw, i);
-            break;
-        case TYPE_PROGRAM:
-        case TYPE_GARBAGE:
-            break;
+                break;
+            case TYPE_THING:
+                if (DBFETCH(i)->sp.thing.home == ref)
+                    array_appendref(&nw, i);
+                break;
+            case TYPE_ROOM:
+                if (DBFETCH(i)->sp.room.dropto == ref)
+                    array_appendref(&nw, i);
+                break;
+            case TYPE_PROGRAM:
+            case TYPE_GARBAGE:
+                break;
         }
     }
 

@@ -132,6 +132,7 @@ extern int descr_running_queue(int descr);
 extern int dequeue_prog(dbref program, int sleeponly);
 extern int dequeue_process(int procnum);
 extern int dequeue_timers(int pid, char *id);
+extern void read_event_notify(int descr, dbref player);
 extern int control_process(dbref player, int procnum);
 extern void do_dequeue(int descr, dbref player, const char *arg1);
 extern void propqueue(int descr, dbref player, dbref where, dbref trigger,
@@ -169,6 +170,8 @@ extern void do_edit(int descr, dbref player, const char *name);
 extern int unset_source(dbref player, dbref loc, dbref action);
 extern int link_exit(int descr, dbref player, dbref exit, char *dest_name,
                      dbref *dest_list);
+extern int link_exit_dry(int descr, dbref player, dbref exit,
+                     char *dest_name, dbref *dest_list);
 extern void set_source(dbref player, dbref action, dbref source);
 extern int exit_loop_check(dbref source, dbref dest);
 
@@ -209,6 +212,7 @@ extern void dump_deltas(void);
 #endif
 
 /* From hashtab.c */
+extern unsigned hash(register const char *s, unsigned hash_size);
 extern hash_data *find_hash(const char *s, hash_tab *table, unsigned size);
 extern hash_entry *add_hash(const char *name, hash_data data, hash_tab *table,
                             unsigned size);
@@ -578,6 +582,7 @@ extern void host_shutdown(void);
 extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
 extern unsigned long rndn(void *buffer);
+extern void MD5base64(char *dest, const void *orig, int len);
 
 #ifdef MCP_SUPPORT
 
@@ -586,6 +591,10 @@ extern void show_mcp_error(McpFrame *mfr, char *topic, char *text);
 
 #endif
 
+/* from p_socket.c */
+#ifdef MUF_SOCKETS
+extern void muf_socket_sendevent(struct muf_socket_queue *curr);
+#endif /* MUF_SOCKETS */
 
 /* For MPI profiling */
 extern time_t mpi_prof_start_time;

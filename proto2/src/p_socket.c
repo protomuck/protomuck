@@ -287,6 +287,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     fd_set reads;
     struct timeval t_val;
     int charCount = 0;
+
 #ifdef WIN_VC
     int turnon = 1;
 #endif
@@ -553,6 +554,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     struct sockaddr_in name;
     int addr_len = 0;
     int validHost = 0;
+
 #ifdef WIN_VC
     int turnon = 1;
 #endif
@@ -980,10 +982,10 @@ prim_socket_setuser(PRIM_PROTOTYPE)
 {
     char *ptr;
     char pad_char[] = "";
-    struct inst *oper1, *oper2, *oper3;
     struct muf_socket *theSock;
     const char *password;
     struct descriptor_data *d;
+
 #ifdef WIN_VC
     int turnon = 1;
 #endif
@@ -1059,6 +1061,7 @@ prim_socktodescr(PRIM_PROTOTYPE)
 {
     struct muf_socket *theSock;
     struct descriptor_data *d;
+
 #ifdef WIN_VC
     int turnon = 1;
 #endif

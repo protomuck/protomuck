@@ -141,7 +141,6 @@ void
 prim_queue(PRIM_PROTOTYPE)
 {
     dbref temproom;
-    struct inst *oper1, *oper2, *oper3, *oper4;
 
     /* int dbref string -- */
     CHECKOP(3);
@@ -379,24 +378,24 @@ prim_stats(PRIM_PROTOTYPE)
         for (i = 0; i < db_top; i++) {
             if (ref == NOTHING || OWNER(i) == ref) {
                 switch (Typeof(i)) {
-                case TYPE_ROOM:
-                    rooms++;
-                    break;
-                case TYPE_EXIT:
-                    exits++;
-                    break;
-                case TYPE_THING:
-                    things++;
-                    break;
-                case TYPE_PLAYER:
-                    players++;
-                    break;
-                case TYPE_PROGRAM:
-                    programs++;
-                    break;
-                case TYPE_GARBAGE:
-                    garbage++;
-                    break;
+                    case TYPE_ROOM:
+                        rooms++;
+                        break;
+                    case TYPE_EXIT:
+                        exits++;
+                        break;
+                    case TYPE_THING:
+                        things++;
+                        break;
+                    case TYPE_PLAYER:
+                        players++;
+                        break;
+                    case TYPE_PROGRAM:
+                        programs++;
+                        break;
+                    case TYPE_GARBAGE:
+                        garbage++;
+                        break;
                 }
             }
         }

@@ -251,7 +251,7 @@ prim_regsub(PRIM_PROTOTYPE)
     int write_left = BUFFER_LEN - 1;
     muf_re *re;
     char *text;
-    int nosubs, err, len, i;
+    int nosubs, err, len;
 
     CHECKOP(4);
 

@@ -119,15 +119,12 @@ prim_sqlconnect(PRIM_PROTOTYPE)
 void
 prim_sqlquery(PRIM_PROTOTYPE)
 {
-    char buf[BUFFER_LEN];
-    struct inst temp1, temp2;
     MYSQL *tempsql = NULL;
     MYSQL_RES *res = NULL;
     MYSQL_ROW row = NULL;
     MYSQL_FIELD *fields = NULL;
     int num_rows, num_fields, counter, all_rows;
     char query[BUFFER_LEN];
-    unsigned long *lengths = NULL;
     unsigned long i = 0;
     stk_array *nw;
     stk_array *fieldsList;

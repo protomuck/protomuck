@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include "config.h"
-#include "cgidefs.h"
+#include "cgi.h"
 
 #ifdef BUFFER_LEN
 #undef BUFFER_LEN

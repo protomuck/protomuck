@@ -12,9 +12,7 @@
 #include "interface.h"
 #include "externs.h"
 
-extern const char *uppercase, *lowercase;
-
-#define DOWNCASE(x) (lowercase[x])
+#define DOWNCASE(x) (tolower(x))
 
 char match_cmdname[BUFFER_LEN]; /* triggering command */
 char match_args[BUFFER_LEN];    /* remaining text */

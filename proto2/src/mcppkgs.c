@@ -192,9 +192,6 @@ mcppkg_simpleedit(McpFrame *mfr, McpMesg *msg, McpVer ver, void *context)
                 }
             }
             if (!string_compare(valtype, "string-list")) {
-                int left = BUFFER_LEN - 1;
-                int len;
-
                 if (lines == 0) {
                     sprintf(buf, "%s#", reference);
                     remove_property(obj, buf);
