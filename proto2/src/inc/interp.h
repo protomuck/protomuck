@@ -87,18 +87,20 @@ extern void interp_set_depth(struct frame * fr);
   
 #define CHECKOP_READONLY(N) \
 { \
-	nargs = (N); \
-	if (*top < nargs) { \
-                nargs = 0; \
-		abort_interp("Stack underflow."); \
-        }\
+    nargs = (N); \
+    if (*top < nargs) { \
+        nargs = 0; \
+        abort_interp("Stack underflow."); \
+    }\
 }
 
 #define CHECKOP(N) \
 { \
-	CHECKOP_READONLY(N); \
-	if (fr->trys.top && *top - fr->trys.st->depth < nargs) \
-		abort_interp("Stack protection fault."); \
+    CHECKOP_READONLY(N); \
+    if (fr->trys.top && *top - fr->trys.st->depth < nargs) {\
+        nargs = 0;\
+        abort_interp("Stack protection fault."); \
+    }\
 }
 
 #define POP() (arg + --(*top))
