@@ -1963,7 +1963,7 @@ prim_array_interpret(PRIM_PROTOTYPE)
     char outbuf[BUFFER_LEN];
     char *ptr;
     const char *text;
-    char *delim;
+    /* char *delim; */
     int tmplen;
     int done;
 
@@ -1973,7 +1973,7 @@ prim_array_interpret(PRIM_PROTOTYPE)
         abort_interp("Argument not an array. (1)");
 
     arr = oper1->data.array;
-    delim = (char *) "";
+    /* delim = (char *) ""; */
     ptr = outbuf;
     *outbuf = '\0';
     done = !array_first(arr, &temp1);
@@ -2005,6 +2005,7 @@ prim_array_interpret(PRIM_PROTOTYPE)
                 text = "<UNSUPPORTED>";
                 break;
         }
+        /*
         if (ptr != outbuf) {
             tmplen = strlen(delim);
             if (tmplen > BUFFER_LEN - (ptr - outbuf) - 1) {
@@ -2016,6 +2017,7 @@ prim_array_interpret(PRIM_PROTOTYPE)
                 ptr += tmplen;
             }
         }
+        */
         tmplen = strlen(text);
         if (tmplen > BUFFER_LEN - (ptr - outbuf) - 1) {
             strncpy(ptr, text, BUFFER_LEN - (ptr - outbuf) - 1);
@@ -2028,7 +2030,6 @@ prim_array_interpret(PRIM_PROTOTYPE)
         done = !array_next(arr, &temp1);
     }
 
-    CLEAR(oper2);
     CLEAR(oper1);
 
     PushString(outbuf);
