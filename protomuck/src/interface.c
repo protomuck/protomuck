@@ -4109,7 +4109,7 @@ announce_unidle(struct descriptor_data *d)
     if (!(FLAG2(player) & F2TRUEIDLE))
       return;
 
-    FLAG2(player) &= !F2TRUEIDLE;
+    FLAG2(player) &= ~F2TRUEIDLE;
 
     if ((!Dark(player)) && (!Dark(loc)) && (tp_enable_idle_msgs)) {
 	sprintf(buf, CMOVE "%s has unidled.", PNAME(player));
@@ -4815,9 +4815,9 @@ plogin_user(struct descriptor_data *d, dbref who)
 int 
 pset_user2(int c, dbref who)
 {
+
    struct descriptor_data *d;
    int result;
-
    d = descrdata_by_descr(c);
    if(!d)
       return 0;
