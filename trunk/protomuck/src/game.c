@@ -1536,7 +1536,7 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
       }
       else {
          struct frame *tmpfr;
-         tmpfr = interp(descr, player, where, progRef, where, FOREGROUND, 
+         tmpfr = interp(descr, player, DBFETCH(player)->location, progRef, where, FOREGROUND, 
                         STD_HARDUID);
          if (tmpfr) {
             interp_loop(player, progRef, tmpfr, 0);
