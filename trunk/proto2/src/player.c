@@ -96,9 +96,12 @@ create_player(const char *name, const char *password)
     DBFETCH(player)->sp.player.home = tp_player_start;
     DBFETCH(player)->exits = NOTHING;
     DBFETCH(player)->sp.player.pennies = tp_start_pennies;
-    DBFETCH(player)->sp.player.password = alloc_string(password);
+    DBFETCH(player)->sp.player.password = alloc_string("");
     DBFETCH(player)->sp.player.curr_prog = NOTHING;
     DBFETCH(player)->sp.player.insert_mode = 0;
+
+    /* new set password */
+    set_password(player,password);
 
     /* link him to tp_player_start */
     PUSH(player, DBFETCH(tp_player_start)->contents);
@@ -129,8 +132,7 @@ do_password(dbref player, const char *old, const char *newobj)
     } else if (!ok_password(newobj)) {
         anotify_nolisten2(player, CFAIL "Bad new password.");
     } else {
-        free((void *) DBFETCH(player)->sp.player.password);
-        DBSTORE(player, sp.player.password, alloc_string(newobj));
+        set_password(player,newobj);
         anotify_nolisten2(player, CFAIL "Password changed.");
     }
 }

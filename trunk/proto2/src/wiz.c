@@ -819,7 +819,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
     }
 
     if ((!DBFETCH(victim)->sp.player.password ||
-         strcmp(arg2, DBFETCH(victim)->sp.player.password)) &&
+         check_password(victim,arg2)) &&
         (strcmp(arg2, "yes") ||
          !(Arch(player) || POWERS(player) & POW_PLAYER_PURGE))
         ) {
@@ -882,9 +882,7 @@ do_newpassword(dbref player, const char *name, const char *password)
         }
 
         /* it's ok, do it */
-        if (DBFETCH(victim)->sp.player.password)
-            free((void *) DBFETCH(victim)->sp.player.password);
-        DBSTORE(victim, sp.player.password, alloc_string(password));
+        set_password(victim,password);
         anotify_nolisten2(player, CSUCC "Password changed.");
         anotify_fmt(victim, CNOTE
                     "Your password has been changed by %s.", NAME(player));

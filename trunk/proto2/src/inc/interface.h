@@ -6,6 +6,20 @@
 # include "mcp.h"
 #endif
 
+#ifdef USE_SSL
+# if defined (HAVE_OPENSSL_SSL_H)
+#  include <openssl/ssl.h>
+# elif defined (HAVE_SSL_SSL_H)
+#  include <ssl/ssl.h>
+# elif defined (HAVE_SSL_H)
+#  include <ssl.h>
+# endif
+#endif
+
+#define SSL_CERT_FILE "data/server.pem"
+#define SSL_KEY_FILE "data/server.pem"
+
+
 /* structures */
 
 struct text_block {
@@ -106,6 +120,9 @@ struct descriptor_data {
     dbref                    mufprog;       /* If it is one of the MUF-type ports, then this points to the program. -- UNIMPLEMENTED */
     struct descriptor_data  *next;          /* Next descriptor information */
     struct descriptor_data **prev;          /* Previous descriptor information */
+#ifdef USE_SSL
+    SSL			    *ssl_session;
+#endif
 #ifdef MCP_SUPPORT
     McpFrame                 mcpframe;      /* Muck-To-Client protocal information */
 #endif
@@ -123,6 +140,9 @@ struct descriptor_data {
 #define DF_INTERACTIVE  0x20 /* If the player is in the MUF editor or the READ prim is used, etc. */
 #define DF_COLOR        0x40 /* Used in conjunction with ansi_notify_descriptor */
 #define DF_HALFCLOSE    0x80 /* Used by the webserver to tell if a descr is halfclosed. hinoserm */
+#ifdef USE_SSL
+#define DF_SSL         0x100 /* Indicates that this connection is SSL - Alynna */
+#endif
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
@@ -138,12 +158,14 @@ struct descriptor_data {
 
 #define CT_MUCK		0
 #define CT_HTTP         1 /* hinoserm */
-#define CT_PUEBLO	    2
+#define CT_PUEBLO	2
 #define CT_MUF          3
 #define CT_OUTBOUND     4
 #define CT_LISTEN       5
 #define CT_INBOUND      6
-
+#ifdef USE_SSL
+#define CT_SSL          7 /* alynna */
+#endif
 
 /* these symbols must be defined by the interface */
 
@@ -243,6 +265,10 @@ extern void pdump_who_users(int c, char *user);
 extern const char* host_as_hex( unsigned addr );
 extern int index_descr(int index);
 
+#ifdef IGNORE_SUPPORT
+extern int ignorance(dbref src, dbref tgt);
+#endif
+
 /* the following symbols are provided by game.c */
 
 extern void process_command(int descr, dbref player, char *command);
@@ -254,7 +280,8 @@ extern void do_look_around(int descr, dbref player);
 extern int init_game(const char *infile, const char *outfile);
 extern void dump_database(void);
 extern void panic(const char *);
-extern int check_password(dbref player, const char *pw);
+extern int check_password(dbref player, const char *check_pw);
+extern int set_password(dbref player, const char *set_pw);
 
 /* Ansi Colors */
 #define ANSINORMAL      "\033[0m"

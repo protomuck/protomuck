@@ -17,6 +17,8 @@
 
 #include "config.h"
 #include "interface.h"
+#include "externs.h"
+#include "tune.h"
 
 #include <signal.h>
 #include <sys/wait.h>
@@ -223,6 +225,9 @@ sig_reap_resolver(int i)
         extern void kill_resolver(void);
 	kill_resolver();
 #endif */
+
+/* Alynna - make the parent process any save done messages */
+if (dumper_pid && (dumper_pid == pid) && tp_dbdump_warning) wall_and_flush(tp_dumpdone_mesg);
 
 #if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN_VC)
     return 0;

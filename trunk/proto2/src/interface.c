@@ -76,6 +76,22 @@ static int ndescriptors = 0;
 static int maxd = 0;            /* Moved from shovechars since needed in p_socket.c */
 extern void fork_and_dump(void);
 
+#ifdef USE_SSL
+ssize_t socket_read(struct descriptor_data *d, char *buf, size_t count);
+ssize_t socket_write(struct descriptor_data *d, const char *buf, size_t count);
+#endif
+
+#ifdef USE_SSL
+# if defined (HAVE_OPENSSL_SSL_H)
+#  include <openssl/ssl.h>
+# elif defined (HAVE_SSL_SSL_H)
+#  include <ssl/ssl.h>
+# elif defined (HAVE_SSL_H)
+#  include <ssl.h>
+# endif
+#endif
+
+
 #ifdef COMPRESS
 extern const char *uncompress(const char *);
 #endif
@@ -158,10 +174,18 @@ extern FILE *delta_outfile;
 
 #define MAX_SOCKETS 800
 
+#ifdef USE_SSL
+static int ssl_listener_port;
+static int ssl_sock;
+static int ssl_numsocks;
+SSL_CTX *ssl_ctx;
+#endif
+
 short db_conversion_flag = 0;
 short db_decompression_flag = 0;
 short wizonly_mode = 0;
 short verboseload = 0;
+short dump_godpw = 0;
 
 time_t sel_prof_start_time;
 long sel_prof_idle_sec;
@@ -195,6 +219,30 @@ char md5buf[64];
     return 0; 
 }
 
+int
+set_password(dbref player, const char *set_pw)
+{
+/* Proto now sets passwords encrypted.
+ */
+char md5buf[64];
+
+    if (player != NOTHING) {
+     if (set_pw == NULL) {
+        free((void *) DBFETCH(player)->sp.player.password);
+        DBSTORE(player, sp.player.password, alloc_string(""));
+        return 1;
+     }
+     if (!ok_password(set_pw)) return 0;
+
+     MD5base64(md5buf, set_pw, strlen(set_pw));
+     free((void *) DBFETCH(player)->sp.player.password);
+     DBSTORE(player, sp.player.password, alloc_string(md5buf));
+     return 1;
+    }
+    return 0; 
+}
+
+
 void
 show_program_usage(char *prog)
 {
@@ -227,16 +275,31 @@ show_program_usage(char *prog)
             "       -insanity         load db, then enter interactive sanity editor.\n");
     fprintf(stderr,
             "       -sanfix           attempt to auto-fix a corrupt db after loading.\n");
-    fprintf(stderr, "       -wizonly          only allow wizards to login.\n");
+    fprintf(stderr, 
+            "       -wizonly          only allow wizards to login.\n");
     fprintf(stderr,
             "       -version          display this server's version.\n");
-    fprintf(stderr, "       -verboseload      show messages while loading.\n");
-    fprintf(stderr, "       -help             display this message.\n");
+    fprintf(stderr, 
+            "       -verboseload      show messages while loading.\n");
+    fprintf(stderr, 
+            "       -godpw            dump #1's password or MD5 hash (you can log in with it)\n");
+    fprintf(stderr, 
+            "       -help             display this message.\n");
     exit(1);
 }
 
 
 extern int sanity_violated;
+
+#ifdef USE_SSL
+int pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
+{
+        const char *pw = (const char*)userdata;
+        int pwlen = strlen(pw);
+        strncpy(buf, pw, size);
+        return ((pwlen > size)? size : pwlen);
+}
+#endif
 
 int
 main(int argc, char **argv)
@@ -290,6 +353,9 @@ main(int argc, char **argv)
                 sanity_interactive = 1;
             } else if (!strcmp(argv[i], "-wizonly")) {
                 wizonly_mode = 1;
+            } else if (!strcmp(argv[i], "-godpw")) {
+                db_conversion_flag = 1;
+                dump_godpw = 1;
             } else if (!strcmp(argv[i], "-sanfix")) {
                 sanity_autofix = 1;
             } else if (!strcmp(argv[i], "-version")) {
@@ -462,6 +528,12 @@ main(int argc, char **argv)
     if ((tp_puebloport > 1) && (tp_puebloport < 65536))
         listener_port[numsocks++] = tp_puebloport;
 
+#ifdef USE_SSL
+    if ((tp_sslport > 1) && (tp_sslport < 65536)) /* Alynna */
+        ssl_listener_port = tp_sslport;
+        ssl_numsocks = 1;
+#endif
+
     if (!numsocks)
         listener_port[numsocks++] = TINYPORT;
 
@@ -513,6 +585,8 @@ main(int argc, char **argv)
     } else {
         dump_database();
         tune_save_parmsfile();
+
+        if (dump_godpw) fprintf(stderr, "#1's password or MD5 hash: %s\n", DBFETCH(1)->sp.player.password);
 
 #ifdef SPAWN_HOST_RESOLVER
         kill_resolver();
@@ -1160,6 +1234,9 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 int
 notify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
+#ifdef IGNORE_SUPPORT
+if (!ignorance(from,player))
+#endif
     return notify_listeners(dbref_first_descr(from), from, NOTHING, player,
                             getloc(from), msg, isprivate);
 }
@@ -1167,6 +1244,9 @@ notify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 int
 notify_html_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
+#ifdef IGNORE_SUPPORT
+if (!ignorance(from,player))
+#endif
     return notify_html_listeners(dbref_first_descr(from), from, NOTHING, player,
                                  getloc(from), msg, isprivate);
 }
@@ -1174,12 +1254,18 @@ notify_html_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 int
 notify_from(dbref from, dbref player, const char *msg)
 {
+#ifdef IGNORE_SUPPORT
+if (!ignorance(from,player))
+#endif
     return notify_from_echo(from, player, msg, 1);
 }
 
 int
 notify_html_from(dbref from, dbref player, const char *msg)
 {
+#ifdef IGNORE_SUPPORT
+if (!ignorance(from,player))
+#endif
     return notify_html_from_echo(from, player, msg, 1);
 }
 
@@ -1218,6 +1304,9 @@ anotify_nolisten2(dbref player, const char *msg)
 int
 anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
+#ifdef IGNORE_SUPPORT
+if (!ignorance(from,player))
+#endif
     return ansi_notify_listeners(dbref_first_descr(from), from, NOTHING, player,
                                  getloc(from), msg, isprivate);
 }
@@ -1226,6 +1315,9 @@ anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 int
 anotify_from(dbref from, dbref player, const char *msg)
 {
+#ifdef IGNORE_SUPPORT
+if (!ignorance(from,player))
+#endif
     return anotify_from_echo(from, player, msg, 1);
 }
 
@@ -1357,18 +1449,42 @@ max_open_files(void)
 void
 goodbye_user(struct descriptor_data *d)
 {
+#ifdef USE_SSL
+if (d->ssl_session) {
+    SSL_write(d->ssl_session, "\r\n", 2);
+    SSL_write(d->ssl_session, tp_leave_message, strlen(tp_leave_message));
+    SSL_write(d->ssl_session, "\r\n\r\n", 4);
+} else {
     writesocket(d->descriptor, "\r\n", 2);
     writesocket(d->descriptor, tp_leave_message, strlen(tp_leave_message));
     writesocket(d->descriptor, "\r\n\r\n", 4);
+}
+#else
+    writesocket(d->descriptor, "\r\n", 2);
+    writesocket(d->descriptor, tp_leave_message, strlen(tp_leave_message));
+    writesocket(d->descriptor, "\r\n\r\n", 4);
+#endif
 }
 
 void
 idleboot_user(struct descriptor_data *d)
 {
+#ifdef USE_SSL
+if (d->ssl_session) {
+    SSL_write(d->ssl_session, "\r\n", 2);
+    SSL_write(d->ssl_session, tp_idleboot_msg, strlen(tp_idleboot_msg));
+    SSL_write(d->ssl_session, "\r\n\r\n", 4);
+} else {
+    writesocket(d->descriptor, "\r\n", 2);
+    writesocket(d->descriptor, tp_idleboot_msg, strlen(tp_idleboot_msg));
+    writesocket(d->descriptor, "\r\n\r\n", 4);
+}
+#else
     writesocket(d->descriptor, "\r\n", 2);
     writesocket(d->descriptor, tp_idleboot_msg, strlen(tp_idleboot_msg));
     writesocket(d->descriptor, "\r\n\r\n", 4);
     d->booted = 1;
+#endif
 }
 
 void
@@ -1399,6 +1515,45 @@ shovechars(void)
     struct timeval sel_in, sel_out;
     int openfiles_max;
     int i;
+#ifdef USE_SSL
+    int ssl_status_ok = 1;
+#endif
+
+#ifdef USE_SSL
+        SSL_load_error_strings ();
+        OpenSSL_add_ssl_algorithms ();
+        ssl_ctx = SSL_CTX_new (SSLv23_server_method ());
+
+        if (!SSL_CTX_use_certificate_file (ssl_ctx, SSL_CERT_FILE, SSL_FILETYPE_PEM)) {
+                log_status("SSLX: Could not load certificate file %s\n", SSL_CERT_FILE);
+                ssl_status_ok = 0;
+        }
+        if (ssl_status_ok) {
+                SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
+                SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, (void*)tp_ssl_keyfile_passwd);
+
+                if (!SSL_CTX_use_PrivateKey_file (ssl_ctx, SSL_KEY_FILE, SSL_FILETYPE_PEM)) {
+                        log_status("SSLX: Could not load private key file %s\n", SSL_KEY_FILE);
+                        ssl_status_ok = 0;
+                }
+        }
+        if (ssl_status_ok) {
+                if (!SSL_CTX_check_private_key (ssl_ctx)) {
+                        log_status("SSLX: Private key does not check out and appears to be invalid.\n");
+                        ssl_status_ok = 0;
+                }
+        }
+
+        if (ssl_status_ok) {
+                ssl_sock = make_socket(tp_sslport);
+                maxd = ssl_sock + 1;
+                log_status("SSLX: SSL initialized OK\n");    
+                ssl_numsocks = 1;
+        } else {
+                ssl_numsocks = 0;
+        }
+#endif
+
 
 #ifdef MUF_SOCKETS
     extern struct muf_socket_queue *socket_list;
@@ -1414,7 +1569,7 @@ shovechars(void)
     openfiles_max = max_open_files();
     printf("Max FDs = %d\n", openfiles_max);
 
-    avail_descriptors = max_open_files() - 5;
+    avail_descriptors = max_open_files() - 6;
 
     while (shutdown_flag == 0) { /* Game Loop */
         gettimeofday(&current_time, (struct timezone *) 0);
@@ -1489,6 +1644,10 @@ shovechars(void)
                 FD_SET(sock[i], &input_set);
             }
         }
+#ifdef USE_SSL
+        if (ssl_numsocks > 0) FD_SET(ssl_sock, &input_set);
+#endif
+
         for (d = descriptor_list; d; d = d->next) {
             if (d->input.lines > 100)
                 timeout = slice_timeout;
@@ -1496,7 +1655,23 @@ shovechars(void)
                 FD_SET(d->descriptor, &input_set);
             if (d->output.head) /* Prepare write pool */
                 FD_SET(d->descriptor, &output_set);
+#ifdef USE_SSL
+                        if (d->ssl_session) {
+                        /* SSL may want to write even if the output queue is empty */
+                                if ( ! SSL_is_init_finished(d->ssl_session) ) {
+                                        /* log_status("SSLX: Init not finished.\n", "version"); */
+                                        FD_CLR(d->descriptor, &output_set);
+                                        FD_SET(d->descriptor, &input_set);
+                                }
+                                if ( SSL_want_write(d->ssl_session) ) {
+                                        /* log_status("SSLX: Need write.\n", "version"); */
+                                        FD_SET(d->descriptor, &output_set);
+                                }
+                        }
+#endif
         }
+
+
 #ifdef SPAWN_HOST_RESOLVER
         FD_SET(resolver_sock[1], &input_set);
 #endif
@@ -1557,6 +1732,9 @@ shovechars(void)
                     } else {    /* no error in new connection */
                         if (newd->descriptor >= maxd)
                             maxd = newd->descriptor + 1;
+#ifdef USE_SSL
+                            newd->ssl_session = NULL;
+#endif
                     }
                 }               /* if FD_ISET... */
             }                   /* for i < numsocks... */
@@ -1565,6 +1743,39 @@ shovechars(void)
                 resolve_hostnames();
             }
 #endif
+
+#ifdef USE_SSL
+                                if (FD_ISSET(ssl_sock, &input_set)) {
+                                        if (!(newd = new_connection(ssl_listener_port,ssl_sock))) {
+#ifndef WIN32
+                                                if (errno
+                                                        && errno != EINTR
+                                                        && errno != EMFILE
+                                                        && errno != ENFILE
+                                                        ) {
+                                                        perror("new_connection");
+                                                        /* return; */
+                                                }
+#else
+                                                if (WSAGetLastError() != WSAEINTR && WSAGetLastError() != EMFILE) {
+                                                        perror("new_connection");
+                                                        /* return; */
+                                                }
+#endif
+                                        } else {
+                                                if (newd->descriptor >= maxd)
+                                                        maxd = newd->descriptor + 1;
+                                                newd->ssl_session = SSL_new (ssl_ctx);
+                                                SSL_set_fd(newd->ssl_session, newd->descriptor);
+                                                cnt = SSL_accept(newd->ssl_session);
+						newd->type = CT_SSL;
+						newd->flags += DF_SSL;
+                                                log_status("SSL accept: %i\n", cnt );
+                                        }
+                                }
+#endif
+
+
 #ifdef MUF_SOCKETS
             for (curr = socket_list; curr; curr = curr->next) {
                 if (FD_ISSET(curr->theSock->socknum, &input_set)) {
@@ -1928,6 +2139,9 @@ get_ctype(int port)
         case 3:
             ctype = CT_MUF;
             break;
+        case 4:
+            ctype = CT_SSL;
+            break;
         default:
             ctype = CT_MUCK;
             break;
@@ -1939,6 +2153,10 @@ get_ctype(int port)
         } else if (port == tp_wwwport) { /* hinoserm */
             ctype = CT_HTTP;    /* hinoserm */
 #endif
+#ifdef USE_SSL
+        } else if (port == tp_sslport) { /* alynna */
+            ctype = CT_SSL;   
+#endif
         } else
             ctype = CT_MUCK;
     }
@@ -1949,6 +2167,10 @@ get_ctype(int port)
 #ifdef NEWHTTPD
     case CT_HTTP:
         return CT_HTTP;
+#endif
+#ifdef USE_SSL
+    case CT_SSL:
+        return CT_SSL;
 #endif
     case CT_PUEBLO:
         return CT_PUEBLO;
@@ -1990,34 +2212,24 @@ new_connection(int port, int sock)
                         hostname, ntohs(addr.sin_port),
                         host_as_hex(ntohl(addr.sin_addr.s_addr)),
                         ++crt_connect_count, port,
-                        ctype == CT_MUCK ? "TEXT" : (ctype ==
-                                                     CT_HTTP ? "WWW" : (ctype ==
-                                                                        CT_PUEBLO
-                                                                        ?
-                                                                        "PUEBLO"
-                                                                        : (ctype
-                                                                           ==
-                                                                           CT_MUF
-                                                                           ?
-                                                                           "MUF"
-                                                                           :
-                                                                           ("UNKNOWN"))))
+                        ctype == CT_MUCK ? "TEXT" : 
+                         (ctype == CT_HTTP ? "WWW" : 
+                          (ctype == CT_PUEBLO ? "PUEBLO" :
+                           (ctype == CT_MUF ? "MUF" :
+                            (ctype == CT_SSL ? "SSL" :
+                             ("UNKNOWN")))))
                 );
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "ACPT: %2d %s(%d) %s C#%d P#%d %s\n",
                              newsock, hostname, ntohs(addr.sin_port),
                              host_as_hex(ntohl(addr.sin_addr.s_addr)),
                              ++crt_connect_count, port,
-                             ctype == CT_MUCK ? "TEXT" : (ctype ==
-                                                          CT_HTTP ? "WWW"
-                                                          : (ctype ==
-                                                             CT_PUEBLO ?
-                                                             "PUEBLO" : (ctype
-                                                                         ==
-                                                                         CT_MUF
-                                                                         ? "MUF"
-                                                                         :
-                                                                         ("UNKNOWN"))))
+                        ctype == CT_MUCK ? "TEXT" : 
+                         (ctype == CT_HTTP ? "WWW" : 
+                          (ctype == CT_PUEBLO ? "PUEBLO" :
+                           (ctype == CT_MUF ? "MUF" :
+                            (ctype == CT_SSL ? "SSL" :
+                             ("UNKNOWN")))))
                     );
         }
         result = get_property_value((dbref) 0, "~sys/concount");
@@ -2339,6 +2551,9 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     d->player = NOTHING;
     d->booted = 0;
     d->fails = 0;
+#ifdef USE_SSL
+    d->ssl_session = NULL;
+#endif
     d->con_number = 0;
     d->connected_at = current_systime;
     make_nonblocking(s);
@@ -2528,7 +2743,14 @@ process_output(struct descriptor_data *d)
     }
 
     for (qp = &d->output.head; (cur = *qp);) {
+#ifdef USE_SSL
+        if (d->ssl_session) 
+         cnt = SSL_write(d->ssl_session, cur->start, cur->nchars);
+        else
+         cnt = writesocket(d->descriptor, cur->start, cur->nchars);
+#else
         cnt = writesocket(d->descriptor, cur->start, cur->nchars);
+#endif
         if (cnt < 0) {
 #ifdef DEBUGPROCESS
             fprintf(stderr, "process_output: write failed errno %d %s\n", errno,
@@ -2671,9 +2893,28 @@ process_input(struct descriptor_data *d)
 
     if (d->type == CT_INBOUND)
         return -1;
-
+#ifdef USE_SSL
+    if (d->ssl_session) 
+     got = SSL_read(d->ssl_session, buf, sizeof buf);
+    else
+     got = readsocket(d->descriptor, buf, sizeof buf);
+#else
     got = readsocket(d->descriptor, buf, sizeof buf);
-    if (got <= 0) {
+#endif
+#ifndef WIN32
+# ifdef USE_SSL
+        if ( (got <= 0) && errno != EWOULDBLOCK )
+# else
+        if (got <= 0)
+# endif
+#else
+# ifdef USE_SSL
+        if ( (got <= 0) && WSAGetLastError() != EWOULDBLOCK )
+# else
+        if (got <= 0)
+# endif
+#endif
+    {
 #ifdef DEBUGPROCESS
         fprintf(stderr, "process_input: read failed errno %d %s\n", errno,
                 sys_errlist[errno]);
@@ -3336,7 +3577,14 @@ close_sockets(const char *msg)
     (void) pdescrflush(-1);
     for (d = descriptor_list; d; d = dnext) {
         dnext = d->next;
-        writesocket(d->descriptor, msg, strlen(msg));
+#ifdef USE_SSL
+    if (d->ssl_session)
+     SSL_write(d->ssl_session, msg, strlen(msg));
+    else
+     writesocket(d->descriptor, msg, strlen(msg));
+#else
+     writesocket(d->descriptor, msg, strlen(msg));
+#endif
         announce_disconnect(d);
         clearstrings(d);                 /** added to clean up **/
         if (shutdown(d->descriptor, 2) < 0)
@@ -3362,6 +3610,10 @@ close_sockets(const char *msg)
     for (i = 0; i < numsocks; i++) {
         closesocket(sock[i]);
     }
+#ifdef USE_SSL
+                close(ssl_sock);
+#endif
+
 }
 
 struct descriptor_data *
@@ -3399,6 +3651,8 @@ descr_flag_description(int descr)
         strcat(dbuf, " DF_INTERACTIVE");
     if (DR_RAW_FLAGS(d, DF_COLOR))
         strcat(dbuf, " DF_COLOR");
+    if (DR_RAW_FLAGS(d, DF_SSL))
+        strcat(dbuf, " DF_SSL");
     return dbuf;
 }
 
@@ -3438,6 +3692,9 @@ do_dinfo(dbref player, const char *arg)
         break;
     case CT_PUEBLO:
         ctype = "pueblo";
+        break;
+    case CT_SSL:
+        ctype = "ssl";
         break;
     default:
         ctype = "unknown";
@@ -3716,6 +3973,17 @@ dump_users(struct descriptor_data *d, char *user)
             strcpy(typbuf, "Text Port");
             break;
         }
+#ifdef USE_SSL
+        case CT_SSL:{
+            if (dlist->connected && OkObj(dlist->player)) {
+                strcpy(plyrbuf, NAME(dlist->player));
+            } else {
+                strcpy(plyrbuf, "[Connecting]");
+            }
+            strcpy(typbuf, "SSL Port");
+            break;
+        }
+#endif
         case CT_PUEBLO:{
             if (dlist->connected && OkObj(dlist->player)) {
                 strcpy(plyrbuf, NAME(dlist->player));
@@ -4769,6 +5037,22 @@ pset_idletime(dbref player, int idle_time)
     return dcount;
 }
 
+int
+pdescrsecure(int c)
+{
+#ifdef USE_SSL
+        struct descriptor_data *d;
+
+        d = descrdata_by_descr(c);
+
+        if (d && d->ssl_session)
+                return 1;
+        else
+                return 0;
+#else
+        return 0;
+#endif
+}
 
 int
 pdescrcon(int c)
@@ -5069,7 +5353,7 @@ welcome_user(struct descriptor_data *d)
             queue_unhtml(d, "\r\n");
         }
     }
-    if (d->type == CT_MUCK) {
+    if (d->type == CT_MUCK || d->type == CT_SSL) {
         fname = reg_site_welcome(d->hostaddr);
         if (fname && (*fname == '.')) {
             strcpy(buf, WELC_FILE);
@@ -5150,5 +5434,84 @@ gettimeofday(struct timeval *tval, void *tzone)
     tval->tv_sec = time(NULL);
     tval->tv_usec = 0;
 
+}
+#endif
+
+#ifdef IGNORE_SUPPORT
+/* Alynna: in-server ignore support */
+void
+init_ignore(dbref tgt)
+{
+    const char *rawstr;
+    int count;
+    struct object *pobj = DBFETCH(tgt);
+
+    rawstr = get_property_class(tgt, "/@/ignore");
+    if (rawstr) rawstr = get_uncompress(rawstr);
+
+    /* initialize the array */
+    count = 0;
+    while (count < MAX_IGNORES)
+      pobj->sp.player.ignore[count++] = -1;
+    count = 1;
+
+    /* extract dbrefs from the prop */
+    if (rawstr != NULL) {
+        while (*rawstr == ' ')
+            rawstr++;
+        while (*rawstr) {
+            if (*rawstr == '#')
+                rawstr++;
+            if (!((*rawstr >= '0') && (*rawstr <= '9')))
+                break;
+            pobj->sp.player.ignore[count] = atoi(rawstr);
+            count++;
+            if (count >= MAX_IGNORES) break;
+            while (*rawstr && (*rawstr != ' '))
+                rawstr++;
+            while (*rawstr && (*rawstr == ' '))
+                rawstr++;
+        }
+    }
+ /* and set the timestamp */
+ pobj->sp.player.ignoretime = current_systime;
+ return;
+}
+
+int
+ignorance(dbref src, dbref tgt)
+{
+    struct object *tobj = DBFETCH(tgt);
+    int count = 1;
+ 
+    /* We leave ignorance negatively if the dbref is invalid or the source is a wizard or theirselves. 
+       This catches 99.999% of the cases where the system calls something through a standard player
+       notify routine (with the src and target equal or the src being a random number), and wastes
+       little time returning in that case.  We catch this case first so we can back out fast.
+     */
+    if ( (src == tgt) ||
+         (src < 0) || (src >= db_top) ||
+         (tgt < 0) || (tgt >= db_top) ||
+         (Wizard(src))
+         ) return 0; 
+
+    /* Ignorance cache and initialization 
+     * Save time, only do the target, and only if it's been 10 secs from the last check or its not initialized.
+     */
+    if ( (tobj->sp.player.ignoretime + 10 <= current_systime) || (tobj->sp.player.ignore[0] != -1) ) {
+       init_ignore(tgt);
+       tobj = DBFETCH(tgt);
+    }
+
+    /* If ignore[1] is -1, its not even worth doing an ignore scan. */
+    if ( tobj->sp.player.ignore[1] == -1 ) return 0;
+
+    /* if we got this far, lets check it out, get out ASAP, BTW. */
+    while (count < MAX_IGNORES) {
+     if ( tobj->sp.player.ignore[count] == src ) return 1;
+     if ( tobj->sp.player.ignore[count] == -1 ) return 0;
+     count++;
+    }
+return 0;
 }
 #endif

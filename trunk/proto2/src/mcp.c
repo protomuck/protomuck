@@ -229,7 +229,11 @@ mcp_negotiation_start(McpFrame *mfr, connection_t con)
     McpMesg reply;
 
     if (((((struct descriptor_data *) con)->type == CT_MUCK) ||
-         (((struct descriptor_data *) con)->type == CT_PUEBLO))
+         (((struct descriptor_data *) con)->type == CT_PUEBLO) 
+#ifdef USE_SSL
+         || (((struct descriptor_data *) con)->type == CT_SSL)
+#endif
+        )
         && tp_enable_mcp) {
 
 
@@ -242,12 +246,6 @@ mcp_negotiation_start(McpFrame *mfr, connection_t con)
         mfr->enabled = 0;
     }
 }
-
-
-
-
-
-
 
 
 /*****************************************************************/

@@ -147,6 +147,26 @@ olddecompress: olddecomp.o oldcompress.o
 	${RM} olddecompress
 	${CC} ${CFLAGS} -o olddecompress olddecomp.o oldcompress.o
 
+cert game/server.pem:
+	@if grep "^#define USE_SSL" inc/autoconf.h > /dev/null; then \
+		echo; \
+		if [ -r ../game/data/server.pem ]; then \
+			echo "Will not overwrite game/data/server.pem"; \
+			echo "Remove that file and do 'make cert' again";\
+			echo "to create a new certificate."; \
+			echo; \
+		else \
+			if [ ! -r ${HOME}/.rnd ]; then \
+			    openssl rand -rand /etc/hosts:/etc/passwd 0; \
+			fi; \
+			echo "Creating secure certificate. Please answer all the questions."; \
+			echo "The key and certificate will be stored in the game/data/server.pem file."; \
+			echo; \
+			openssl req -x509 -nodes -out game/data/server.pem -keyout ../game/data/server.pem -config protomuck.cnf -new -days 730; \
+		fi; \
+	fi
+
+
 #############################################################
 # Funky stuff for debugging and coding work.
 #

@@ -41,6 +41,8 @@ check_descr_flag(char *dflag)
         return DF_COLOR;
     if (string_prefix("df_interactive", dflag))
         return DF_INTERACTIVE;
+    if (string_prefix("df_ssl", dflag))
+        return DF_SSL;
     return 0;
 }
 
@@ -54,7 +56,7 @@ descr_flag_set_perms(int dflag, int mlev, dbref prog)
 
     //Standard non-settables
     if (dflag == DF_HTML || dflag == DF_PUEBLO || dflag == DF_MUF
-        || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE)
+        || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE || dflag == DF_SSL)
         return 0;
 
     //Default is settable
@@ -693,6 +695,28 @@ prim_descr_pueblop(PRIM_PROTOTYPE)
     CLEAR(oper1);
     PushInt(result);
 }
+
+void
+prim_descr_sslp(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (mlev < 3)
+        abort_interp("Requires Mucker Level 3 or better.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Integer descriptor number expected.");
+
+    if (!pdescrp(oper1->data.number))
+        abort_interp("That is not a valid descriptor.");
+
+    result = (pdescrtype(oper1->data.number) == CT_SSL);
+
+    CHECKOFLOW(1);
+    CLEAR(oper1);
+    PushInt(result);
+}
+
 
 void
 prim_welcome_user(PRIM_PROTOTYPE)

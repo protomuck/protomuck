@@ -30,6 +30,10 @@ extern const char *tp_mysql_database;
 extern const char *tp_mysql_username;
 extern const char *tp_mysql_password;
 
+#ifdef USE_SSL
+extern const char *tp_ssl_keyfile_passwd;
+#endif
+
 /* times */
 
 extern time_t tp_dump_interval;
@@ -47,6 +51,9 @@ extern time_t tp_archive_interval;
 
 extern int tp_textport;
 extern int tp_puebloport;
+#ifdef USE_SSL
+extern int tp_sslport;
+#endif
 
 extern int tp_max_object_endowment;
 extern int tp_object_cost;

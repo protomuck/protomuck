@@ -1906,9 +1906,12 @@ prim_newplayer(PRIM_PROTOTYPE)
     DBFETCH(newplayer)->sp.player.home = tp_player_start;
     DBFETCH(newplayer)->exits = NOTHING;
     DBFETCH(newplayer)->sp.player.pennies = tp_start_pennies;
-    DBFETCH(newplayer)->sp.player.password = alloc_string(password);
+    DBFETCH(newplayer)->sp.player.password = alloc_string("");
     DBFETCH(newplayer)->sp.player.curr_prog = NOTHING;
     DBFETCH(newplayer)->sp.player.insert_mode = 0;
+
+    /* Alynna's setpassword again */
+    set_password(newplayer,password);
 
     /* link him to tp_player_start */
     PUSH(newplayer, DBFETCH(tp_player_start)->contents);
@@ -1996,9 +1999,12 @@ prim_copyplayer(PRIM_PROTOTYPE)
     DBFETCH(newplayer)->exits = NOTHING;
     DBFETCH(newplayer)->owner = newplayer;
     DBFETCH(newplayer)->sp.player.pennies = DBFETCH(ref)->sp.player.pennies;
-    DBFETCH(newplayer)->sp.player.password = alloc_string(password);
+    DBFETCH(newplayer)->sp.player.password = alloc_string("");
     DBFETCH(newplayer)->sp.player.curr_prog = NOTHING;
     DBFETCH(newplayer)->sp.player.insert_mode = 0;
+
+    /* Yet again, set_password */
+    set_password(newplayer,password);
 
     /* link him to player_start */
     PUSH(newplayer, DBFETCH(DBFETCH(ref)->sp.player.home)->contents);
@@ -2289,10 +2295,9 @@ prim_setpassword(PRIM_PROTOTYPE)
 #endif
     ptr = oper2->data.string ? oper2->data.string->data : pad_char;
     ptr2 = oper1->data.string ? oper1->data.string->data : pad_char;
-    if (ref != NOTHING && strcmp(ptr, DBFETCH(ref)->sp.player.password))
+    if (ref != NOTHING && check_password(ref,ptr))
         abort_interp("Incorrect password");
-    free((void *) DBFETCH(ref)->sp.player.password);
-    DBSTORE(ref, sp.player.password, alloc_string(ptr2));
+    set_password(ref,ptr2);
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -2325,8 +2330,7 @@ prim_newpassword(PRIM_PROTOTYPE)
     CHECKREMOTE(ref);
     if (MLevel(ref) >= mlev || (MLevel(ref) >= LMAGE && mlev < LBOY))
         abort_interp(tp_noperm_mesg);
-    free((void *) DBFETCH(ref)->sp.player.password);
-    DBSTORE(ref, sp.player.password, alloc_string(ptr2));
+    set_password(ref,ptr2);
     CLEAR(oper1);
     CLEAR(oper3);
 }

@@ -29,7 +29,8 @@ FILE *input_file;
 FILE *delta_infile;
 FILE *delta_outfile;
 char *in_filename = NULL;
-
+int dumper_pid;
+char dump_done;
 
 /* This is the command, @autoarchive. */
 void
@@ -161,9 +162,6 @@ dump_database_internal(void)
 
     tune_save_parmsfile();
 
-    if (tp_dbdump_warning)
-        wall_and_flush(tp_dumping_mesg);
-
     sprintf(tmpfile, "%s.#%d#", dumpfile, epoch);
 
     if ((f = fopen(tmpfile, "w")) != NULL) {
@@ -238,9 +236,10 @@ dump_database_internal(void)
         perror(tmpfile);
     }
 
+#ifdef DISKBASE
     if (tp_dbdump_warning)
         wall_and_flush(tp_dumpdone_mesg);
-#ifdef DISKBASE
+
     propcache_hits = 0L;
     propcache_misses = 1L;
 #endif
@@ -320,10 +319,17 @@ dump_database(void)
     epoch++;
 
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
+    if (tp_dump_propqueues)
+        propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
+    if (tp_dbdump_warning)
+        wall_and_flush(tp_dumping_mesg);
+
 #ifdef DISKBASE
     dump_database_internal();
 #else
-    if (!fork()) {
+    /* Alynna - saving the PID of the dumper so I can get around an SSL issue */
+    dumper_pid=fork();
+    if (!dumper_pid) {
         dump_database_internal();
         _exit(0);
     }
@@ -345,11 +351,17 @@ fork_and_dump(void)
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
     if (tp_dump_propqueues)
         propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
+    if (tp_dbdump_warning)
+        wall_and_flush(tp_dumping_mesg);
+
+
 
 #ifdef DISKBASE
     dump_database_internal();
 #else
-    if (!fork()) {
+    /* Alynna - saving the PID of the dumper so I can get around an SSL issue */
+    dumper_pid=fork();
+    if (!dumper_pid) {
         dump_database_internal();
         _exit(0);
     }
