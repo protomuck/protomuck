@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.13 2000-11-10 22:18:53 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.14 2000-11-12 08:37:12 akari Exp $
  * $Log: not supported by cvs2svn $
  *
  * Revision 1.3  2000/06/27 22:32:17  moose
@@ -130,6 +130,11 @@
  * ~arrive, ~depart, etc.
  */
 #define ALLOW_OLD_TRIGGERS
+
+/* Define this to turn off the 'exiting insert mode' message in the
+ * MUF editor for the picky programmer in you.
+ */
+#undef NO_EXITMSG
 
 /* Define this to keep backups of past dumps instead of deleting them.
  *

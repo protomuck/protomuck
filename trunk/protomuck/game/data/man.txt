@@ -6,7 +6,7 @@ the additions to MUF made in ProtoMUCK.
 See CREDITS.
 
 To get manual information on a topic, type MAN <topic>. 
-There are several topics on working with MUF. See: TOPIC LIST
+There are several topics on working with MUF. See: MAN TOPIC LIST
 
 To view lists of prims for different prim categories:
 PRIMS1 - Variables, Multitasking, Math and Logic
@@ -134,8 +134,8 @@ Data Base Prims:
   PNAME-OK?     NAME-OK?
         
 System Prims:
-  SYSPARM     SETSYSPARM     LOGSTATUS     VERSION     FORCE
-  MOTD_NOTIFY
+  SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
+  FORCE_LEVEL   MOTD_NOTIFY 
 
 Socket Prims:
   SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK
@@ -395,8 +395,8 @@ SYSTEM PRIMS|SYSTEMPRIMS
 
 These prims are used to make changes in the MUCK system:
 
-SYSPARM     SETSYSPARM     LOGSTATUS     VERSION     FORCE
-MOTD_NOTIFY
+SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
+FORCE_LEVEL   MOTD_NOTIFY 
 
 ~~~~~
 MULTITASKING PRIMS
@@ -7248,3 +7248,15 @@ Sets the value of a given control in a given dialog.
 
 See: MCP PRIMS
 ~~~~~~~~~~~
+FORCE_LEVEL|
+
+force_level ( -- i )
+--------------------
+Level: M1 Apprentice
+i = Integer representing a number of force levels.
+
+This prim can be used to determine if a program's call was due to 
+@force, {force:}, or the force prim. Any result higher than 0
+indicates that the program's call was the result of a forcing.
+A return of 0 indicates the player called the program without
+being forced.

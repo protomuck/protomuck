@@ -49,6 +49,8 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
     if (FLAG2(thing)) {
 	if (FLAG2(thing) & F2GUEST)
 	    *p++ = 'G';
+	if (FLAG2(thing) & F2IDLE)
+	    *p++ = 'I';
 	if (FLAG2(thing) & F2LOGWALL)
 	    *p++ = '!';
 	if (FLAG2(thing) & F2MUFCOUNT)
@@ -60,16 +62,16 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
       if (FLAG2(thing) & F2PROTECT)
           *p++ = '*';
       if (FLAG2(thing) & F2ANTIPROTECT)
-          *p++ = 'I';
+          *p++ = 'K';
       if (FLAG2(thing) & F2EXAMINE_OK)
           *p++ = '&';
       if (FLAG2(thing) & F2COMMAND)
           *p++ = 'N';
       if (FLAG2(thing) & F2HIDDEN)
           *p++ = '#';
-        if (FLAG2(thing) & F2PUEBLO)
-            *p++ = '$';
-        if (FLAG2(thing) & F2HTML)
+      if (FLAG2(thing) & F2PUEBLO)
+          *p++ = '$';
+      if (FLAG2(thing) & F2HTML)
 	    *p++ = '&';
     }
     if (thing == 1) {
@@ -276,6 +278,7 @@ unparse_boolexp(dbref player, struct boolexp * b, int fullname)
 
     return boolexp_buf;
 }
+
 
 
 

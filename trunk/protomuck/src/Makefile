@@ -17,7 +17,7 @@
 # -g			Generate debugging information, suggested, you can
 #			alwase "strip protomuck" if you want the space.
 #
-OPTIM= -O -g
+OPTIM= -O
 
 #
 # Paths
@@ -79,7 +79,7 @@ CSRC= array.c boolexp.c case.c cgi.c compile.c compress.c create.c db.c  \
 	crt_malloc.c oldcompress.c player.c predicates.c p_array.c         \
 	p_connects.c p_db.c p_error.c p_float.c p_file.c p_html.c p_math.c \
 	p_mcp.c p_misc.c p_props.c p_socket.c p_stack.c p_strings.c        \
-      property.c propdirs.c props.c random.c rob.c rwho.c send.c set.c   \
+      property.c propdirs.c props.c random.c rob.c rwho.c set.c          \
       signal.c smatch.c speech.c strftime.c stringutil.c timequeue.c     \
       timestamp.c	tune.c unparse.c utils.c wiz.c reg.c netresolve.c sanity.c
 
@@ -92,9 +92,9 @@ COBJ= array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
 	mcpgui.o mfuns.o mfuns2.o mfuns3.o msgparse.o move.o mufevent.o    \
 	crt_malloc.o oldcompress.o player.o predicates.o p_array.o         \
 	p_connects.o p_db.o p_error.o p_float.o p_file.o p_html.o p_math.o \
-	p_mcp.c p_misc.o p_props.o p_socket.o p_stack.o p_strings.o        \
+	p_mcp.o p_misc.o p_props.o p_socket.o p_stack.o p_strings.o        \
       property.o propdirs.o props.o random.o rob.o rwho.o signal.o set.o \
-      smatch.o send.o speech.o strftime.o stringutil.o timequeue.o       \
+      smatch.o speech.o strftime.o stringutil.o timequeue.o              \
       timestamp.o tune.o unparse.o utils.o wiz.o reg.o netresolve.o sanity.o
 
 LOBJ= copyright.o
@@ -197,5 +197,6 @@ install: all
 # #######################################################################
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+
 
 

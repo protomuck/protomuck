@@ -149,6 +149,7 @@ extern char *next_prop_name(dbref player, char *outbuf, char *name);
 extern int is_propdir(dbref player, const char *dir);
 extern const char *envpropstr(dbref *where, const char *propname);
 extern PropPtr envprop(dbref *where, const char *propname, int typ);
+extern PropPtr envprop_cmds(dbref *where, const char *propname, int typ);
 extern PropPtr regenvprop(dbref *where, const char *propname, int typ);
 extern void delete_proplist(PropPtr p);
 
@@ -186,4 +187,5 @@ extern void db_getprops(FILE *f, dbref obj);
 extern char *displayprop(dbref player, dbref obj, const char *name, char *buf);
 extern int size_properties(dbref player, int load);
 extern void untouchprops_incremental(int limit);
+extern int Prop_SysPerms(dbref obj, const char *type);
 

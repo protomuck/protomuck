@@ -722,6 +722,39 @@ envprop(dbref *where, const char *propname, int typ)
 }
 
 
+PropPtr
+envprop_cmds(dbref *where, const char *propname, int typ)
+{
+    PropPtr temp;
+    dbref where2;
+    while (*where != NOTHING) {
+      if (FLAG2(*where) & F2COMMAND) {
+	   temp = get_property(*where, propname);
+#ifdef DISKBASE
+	   if (temp) propfetch(*where, temp);
+#endif
+ 	   if (temp && (!typ || PropType(temp) == typ))
+	      return temp;
+      }
+/*      if (Typeof(*where) == TYPE_ROOM) {
+         where2 = where;
+         *where = DBFETCH(*where)->contents;
+         while ((Typeof(*where) == TYPE_ROOM) ||
+                (Typeof(*where) == TYPE_PROGRAM)) {
+            *where = DBFETCH(*where)->next;
+         }
+      } else {
+         *where = DBFETCH(*where)->next;
+      }
+      if (*where == NOTHING) {
+         *where = getparent(where2);
+      } */
+	*where = getparent(*where);
+    }
+    return NULL;
+}
+
+
 const char *
 envpropstr(dbref * where, const char *propname)
 {
@@ -1060,6 +1093,16 @@ untouchprops_incremental(int limit)
 	untouch_lastdone++;
     }
     untouch_lastdone = 0;
+}
+
+
+int
+Prop_SysPerms(dbref player, const char *type)
+{
+   if (get_property_flags(player, type) & PROP_SYSPERMS)
+      return 1;
+   else
+      return 0;
 }
 
 

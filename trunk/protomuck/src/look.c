@@ -28,22 +28,30 @@ static void
 print_owner(dbref player, dbref thing)
 {
     char    buf[BUFFER_LEN];
-
+    dbref   ref;
     switch (Typeof(thing)) {
-	case TYPE_PLAYER:
-	    sprintf(buf, "%s is a player.", NAME(thing));
-	    break;
-	case TYPE_ROOM:
-	case TYPE_THING:
-	case TYPE_EXIT:
-	case TYPE_PROGRAM:
-	    sprintf(buf, "Owner: %s", NAME(OWNER(thing)));
-	    break;
-	case TYPE_GARBAGE:
-	    sprintf(buf, "%s is garbage.", NAME(thing));
-	    break;
+        case TYPE_PLAYER:
+            anotify_fmt(player, YELLOW "%s is a player.", NAME(thing));
+            break;
+        case TYPE_ROOM:
+        case TYPE_THING:
+        case TYPE_PROGRAM:
+            anotify_fmt(player, YELLOW "Owner: %s", NAME(OWNER(thing)));
+            break;
+        case TYPE_EXIT:
+            anotify_fmt(player, YELLOW "Owner: %s", NAME(OWNER(thing)));
+            if (DBFETCH(thing)->sp.exit.ndest) {
+               ref = (DBFETCH(thing)->sp.exit.dest)[0];
+               if ( Typeof(ref) == TYPE_PROGRAM && FLAGS(ref) & VEHICLE ) {
+                  anotify_fmt(player, CYAN "And is linked to: %s", 
+                         ansi_unparse_object(MAN, ref));
+               }
+            }                   
+            break;
+        case TYPE_GARBAGE:
+            anotify_fmt(player, BLUE "%s is garbage.", NAME(thing));
+            break;
     }
-    notify(player, buf);
 }
 
 void 
@@ -583,6 +591,8 @@ flag_description(dbref thing)
                (Typeof(thing) != TYPE_EXIT ? " ABODE" : " ABATE") : " AUTOSTART");
 	if (FLAG2(thing) & F2GUEST)
 	    strcat(buf, " GUEST");
+	if (FLAG2(thing) & F2IDLE)
+	    strcat(buf, " IDLE");
 	if (FLAG2(thing) & F2LOGWALL)
 	    strcat(buf, " LOGWALL");
 	if (FLAG2(thing) & F2MUFCOUNT)
@@ -1429,23 +1439,41 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		else
 		    check->setflag2 |= F2PARENT;
 		break;
-	    case '*':
-		if (mode)
-		    check->clearflag2 |= F2PROTECT;
-		else
-		    check->setflag2 |= F2PROTECT;
-		break;
 	    case '#':
 		if (mode)
 		    check->clearflag2 |= F2HIDDEN;
 		else
 		    check->setflag2 |= F2HIDDEN;
 		break;
-	    case 'I':
+	    case 'O':
+		if (mode)
+		    check->clearflag2 |= F2MOBILE;
+		else
+		    check->setflag2 |= F2MOBILE;
+		break;
+	    case '*':
+		if (mode)
+		    check->clearflag2 |= F2PROTECT;
+		else
+		    check->setflag2 |= F2PROTECT;
+		break;
+	    case '+':
+		if (mode)
+		    check->clearflag2 |= F2MUFCOUNT;
+		else
+		    check->setflag2 |= F2MUFCOUNT;
+		break;
+	    case 'K':
 		if (mode)
 		    check->clearflag2 |= F2ANTIPROTECT;
 		else
 		    check->setflag2 |= F2ANTIPROTECT;
+		break;
+	    case 'I':
+		if (mode)
+		    check->clearflag2 |= F2IDLE;
+		else
+		    check->setflag2 |= F2IDLE;
 		break;
 	    case 'N':
 		if (mode)
@@ -2027,6 +2055,7 @@ do_sweep(int descr, dbref player, const char *name)
     }
     anotify_nolisten2(player, CINFO "**End of list**");
 }
+
 
 
 

@@ -16,8 +16,8 @@
 #include "interface.h"
 #include "externs.h"
 
-const char *generation = "621";
-const char *creation = "Fri Nov 10 2000 at 16:14:24 EST";
+const char *generation = "671";
+const char *creation = "Sun Nov 12 2000 at 03:24:07 EST";
 const char *version = PATCHLEVEL;
 
 const char *infotext[] =
@@ -38,7 +38,7 @@ const char *infotext[] =
     "of TinyMUCK.",
     " ",
     "And, here is the list of the programmers for ProtoMUCK:",
-    "  Moose/Van  : ashitaka@home.com    Akari : Nakoruru08@hotmail.com",
+    "  Moose/Van  : contikimoose@hotmail.com  Akari : Nakoruru08@hotmail.com",
     " ",
     "Thanks are also due towards the multiple people who had also",
     "contributed ideas for the MUCK as we worked on it, and even tried to",

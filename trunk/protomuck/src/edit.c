@@ -723,7 +723,9 @@ insert(dbref player, const char *line)
     program = DBFETCH(player)->sp.player.curr_prog;
     if (!string_compare(line, EXIT_INSERT)) {
         DBSTORE(player, sp.player.insert_mode, 0);      /* turn off insert mode */
+#ifndef NO_EXITMSG
         anotify_nolisten2(player, CSUCC "Exiting insert mode.");
+#endif
         return;
     }
     i = DBFETCH(program)->sp.program.curr_line - 1;

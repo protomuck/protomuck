@@ -121,6 +121,7 @@ const char *mfn_sublist(MFUNARGS);
 const char *mfn_subst(MFUNARGS);
 const char *mfn_subt(MFUNARGS);
 const char *mfn_tell(MFUNARGS);
+const char *mfn_telldescr(MFUNARGS);
 const char *mfn_testlock(MFUNARGS);
 const char *mfn_time(MFUNARGS);
 const char *mfn_timing(MFUNARGS);
@@ -145,6 +146,7 @@ const char *mfn_playmidi(MFUNARGS);
 const char *mfn_stopmidi(MFUNARGS);
 
 #endif /* MPI */
+
 
 
 

@@ -767,4 +767,12 @@ prim_nameokp(PRIM_PROTOTYPE)
 }
 
 
+void
+prim_force_level(PRIM_PROTOTYPE)
+{
+   PushInt(force_level);
+}
+
+
+
 

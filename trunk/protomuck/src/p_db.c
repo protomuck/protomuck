@@ -49,141 +49,211 @@ copyobj(dbref player, dbref old, dbref new)
     DBDIRTY(new);
 }
 
+int check_flag1(char *flag)
+{
+   if (string_prefix("dark", flag) || string_prefix("debugging", flag))
+      return DARK;
+   if (string_prefix("sticky", flag) || string_prefix("silent", flag) || string_prefix("setuid", flag))
+      return STICKY;
+   if (string_prefix("abode", flag) || string_prefix("autostart", flag) || string_prefix("abate", flag))
+      return ABODE;
+   if (string_prefix("chown_ok", flag) || string_prefix("color_on", flag) || string_prefix("ansi", flag))
+      return CHOWN_OK;
+   if (string_prefix("haven", flag) || string_prefix("harduid", flag) || string_prefix("hide", flag))
+      return HAVEN;
+   if (string_prefix("jump_ok", flag))
+      return JUMP_OK;
+   if (string_prefix("link_ok", flag) || string_prefix("light", flag))
+      return LINK_OK;
+   if (string_prefix("builder", flag) || string_prefix("bound", flag))
+      return BUILDER;
+   if (string_prefix("interactive", flag))
+      return INTERACTIVE;
+   if (string_prefix("zombie", flag) || string_prefix("puppet", flag))
+      return ZOMBIE;
+   if (string_prefix("xforcible", flag))
+      return XFORCIBLE;
+   if (string_prefix("vehicle", flag) || string_prefix("viewable", flag))
+      return VEHICLE;
+   if (string_prefix("quell", flag))
+      return QUELL;
+   return 0;
+}
+
+int check_flag2(char *flag, int *nbol)
+{
+   *nbol = 0;
+
+   if (string_prefix("idle", flag))
+      return F2IDLE;
+   if (string_prefix("guest", flag))
+      return F2GUEST;
+   if (string_prefix("logwall", flag))
+      return F2LOGWALL;
+   if (string_prefix("mufcount", flag))
+      return F2MUFCOUNT;
+   if (string_prefix("protect", flag))
+      return F2PROTECT;
+   if (string_prefix("antiprotect", flag))
+      return F2ANTIPROTECT;
+   if (string_prefix("parent", flag) || string_prefix("prog_debug", flag))
+      return F2PARENT;
+   if (string_prefix("hidden", flag))
+      return F2HIDDEN;
+   if (string_prefix("command", flag))
+      return F2COMMAND;
+   if (string_prefix("examine_ok", flag))
+      return F2EXAMINE_OK;
+   if (string_prefix("mobile", flag) || string_prefix("offer", flag))
+      return F2MOBILE;
+   if (string_prefix("pueblo", flag))
+      return F2PUEBLO;
+   if (string_prefix("nhtml", flag))
+      return F2HTML;
+   if (string_prefix("html", flag)) {
+      *nbol = F2HTML;
+      return F2PUEBLO;
+   }
+   return 0;
+}
+
+int check_mlev(char *flag, int *truewiz)
+{
+   *truewiz = 0;
+
+   if (string_prefix(flag, "true")) {
+      *truewiz = 1;
+      flag++; flag++; flag++; flag++;
+   }
+
+   if (string_prefix("meeper", flag) || string_prefix("mpi", flag))
+      return LMPI;
+   if (string_prefix("mucker", flag) || string_prefix("mucker1", flag) || string_prefix("m1", flag))
+      return LMUF;
+   if (string_prefix("nucker", flag) || string_prefix("mucker2", flag) || string_prefix("m2", flag))
+      return LM2;
+   if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) || string_prefix("m3", flag))
+      return LM3;
+   if (string_prefix("mage", flag) || string_prefix("W1", flag))
+      return LMAGE;
+   if (string_prefix("wizard", flag) || string_prefix("W2", flag))
+      return LWIZ;
+   if (string_prefix("archwizard", flag) || string_prefix("W3", flag))
+      return LARCH;
+   if (string_prefix("boy", flag) || string_prefix("W4", flag))
+      return LBOY;
+   if (string_prefix("man", flag) || string_prefix("W5", flag))
+      return LMAN;
+   return 0;
+}
+
+int
+flag_check_perms(dbref ref, int flag, int mlev)
+{
+   return 1;
+}
+
+int
+flag_check_perms2(dbref ref, int flag, int mlev)
+{
+   if(flag == F2HIDDEN && mlev < LWIZ)
+      return 0;
+   if(flag == F2LOGWALL && mlev < LWIZ)
+      return 0;
+
+   return 1;
+}
+
+int
+flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
+{
+   if((flag == DARK && mlev < LARCH) &&
+      ((Typeof(ref) == TYPE_PLAYER) ||
+       (!tp_exit_darking  && Typeof(ref) == TYPE_EXIT) ||
+       (!tp_thing_darking && Typeof(ref) == TYPE_THING) ) )
+      return 0;
+   if(flag == ABODE && Typeof(ref) == TYPE_PROGRAM)
+      return 0;
+   if(flag == XFORCIBLE)
+      return 0;
+   if(flag == QUELL)
+      return 0;
+   if(flag == BUILDER && mlev < LARCH)
+      return 0;
+   if(((flag == ZOMBIE && ( (Typeof(ref) == TYPE_THING &&
+     (FLAGS(prog) & ZOMBIE)) || Typeof(ref) == TYPE_PLAYER)) && mlev < LARCH))
+      return 0;
+   if(flag == INTERACTIVE)
+      return 0;
+
+   return 1;
+}
+
+int
+flag_set_perms2(dbref ref, int flag, int mlev)
+{
+   if(flag == F2HIDDEN && mlev < LARCH)
+      return 0;
+   if(flag == F2GUEST && mlev < LMAGE)
+      return 0;
+   if(flag == F2LOGWALL && mlev < LARCH)
+      return 0;
+   if(flag == F2PUEBLO && mlev < LMAGE)
+      return 0;
+   if(flag == F2HTML && mlev < LMAGE)
+      return 0;
+   if(flag == F2PROTECT && mlev < LBOY)
+      return 0;
+   if(flag == F2IDLE)
+      return 0;
+
+   return 1;
+}
+
 int
 has_flagp(dbref ref, char *flag, int mlev)
 {
-    int     truwiz = 0, tmp2 = 0, lev = 0, tmp3 = 0;
+   int     truwiz = 0, tmp1 = 0, tmp2 = 0, lev = 0, tmp3 = 0, rslt = 0;
 
-    tmp = 0;
-    result = 0;
-    {
-	while (*flag == '!') {
-	    flag++;
-	    result = (!result);
-	}
-	if (!*flag)
-	    return -1;
-
-	if (string_prefix("dark", flag)
-		|| string_prefix("debug", flag)) {
-	    tmp = DARK;
-	} else if (string_prefix("sticky", flag)
-		 || string_prefix("silent", flag)) {
-	    tmp = STICKY;
-	} else if (string_prefix("abode", flag)
-                || string_prefix("autostart", flag)
-                || string_prefix("abate", flag)) {
-	    tmp = ABODE;
-	} else if (string_prefix("chown_ok", flag) || string_prefix("color_on", flag) || string_prefix("ansi", flag)) {
-	    tmp = CHOWN_OK;
-	} else if (string_prefix("haven", flag)
-		 || string_prefix("harduid", flag) || string_prefix("hide", flag)) {
-	    tmp = HAVEN;
-	} else if (string_prefix("jump_ok", flag)) {
-	    tmp = JUMP_OK;
-	} else if (string_prefix("link_ok", flag) || string_prefix("light", flag)) {
-	    tmp = LINK_OK;
-	} else if (string_prefix("builder", flag)) {
-	    tmp = BUILDER;
-	} else if (string_prefix("meeper", flag) || string_prefix("mpi", flag)) {
-	    lev = LMPI;
-	} else if (string_prefix("mucker", flag) || string_prefix("mucker1", flag) || string_prefix("m1", flag)) {
-	    lev = LMUF;
-	} else if (string_prefix("nucker", flag) || string_prefix("mucker2", flag) || string_prefix("m2", flag)) {
-	    lev = LM2;
-	} else if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) || string_prefix("m3", flag)) {
-	    lev = LM3;
-	} else if (string_prefix("interactive", flag)) {
-	    tmp = INTERACTIVE;
-	} else if (string_prefix("mage", flag)) {
-	    lev = LMAGE;
-	} else if (string_prefix("truemage", flag)) {
-	    lev = LMAGE;
-	    truwiz = 1;
-	} else if (string_prefix("wizard", flag)) {
-	    lev = LWIZ;
-	} else if (string_prefix("truewizard", flag)) {
-	    lev = LWIZ;
-	    truwiz = 1;
-	} else if (string_prefix("archwizard", flag)) {
-	    lev = LARCH;
-	} else if (string_prefix("truearchwizard", flag)) {
-	    lev = LARCH;
-	    truwiz = 1;
-      } else if (string_prefix("boy", flag)) {
-          lev = LBOY;
-      } else if (string_prefix("trueboy", flag)) {
-          lev = LBOY;
-          truwiz = 1;
-      } else if (string_prefix("man", flag)) {
-          lev = LMAN;
-      } else if (string_prefix("trueman", flag)) {
-          lev = LMAN;
-          truwiz = 1;
-	} else if (string_prefix("zombie", flag) || string_prefix("puppet", flag)) {
-	    tmp = ZOMBIE;
-	} else if (string_prefix("xforcible", flag)) {
-	    tmp = XFORCIBLE;
-	} else if (string_prefix("vehicle", flag)
-		 || string_prefix("viewable", flag)) {
-	    tmp = VEHICLE;
-	} else if (string_prefix("quell", flag)) {
-	    tmp = QUELL;
-	} else if (string_prefix("guest", flag)) {
-	    tmp2 = F2GUEST;
-	} else if (string_prefix("logwall", flag) && (mlev >= LWIZ)) {
-	    tmp2 = F2LOGWALL;
-	} else if (string_prefix("mufcount", flag)) {
-	    tmp2 = F2MUFCOUNT;
-	} else if (string_prefix("parent", flag) || (string_prefix("prog_debug", flag) && !string_prefix("pro", flag))) {
-	    tmp2 = F2PARENT;
-	} else if (string_prefix("protect", flag)) {
-	    tmp2 = F2PROTECT;
-	} else if (string_prefix("hidden", flag) && (mlev >= LWIZ)) {
-	    tmp2 = F2HIDDEN;
-	} else if (string_prefix("command", flag)) {
-	    tmp2 = F2COMMAND;
-	} else if (string_prefix("antiprotect", flag)) {
-	    tmp2 = F2ANTIPROTECT;
-	} else if (string_prefix("examine_ok", flag)) {
-	    tmp2 = F2EXAMINE_OK;
-	} else if (string_prefix("mobile", flag)
-		|| string_prefix("offer", flag)
-	) {
-	    tmp2 = F2MOBILE;
-        } else if (string_prefix("pueblo", flag)) {
-            tmp2 = F2PUEBLO;
-	} else if (string_prefix("html", flag)) {
-	    tmp2 = F2HTML;  tmp3 = F2PUEBLO;
-        } else if (string_prefix("nhtml", flag)) {
-            tmp2 = F2HTML;
-	} else return -1;
-    }
-  if (Typeof(ref) == TYPE_PLAYER && tmp == DARK) {
-     if (result)
-        result = (tmp && (((FLAGS(ref) & tmp) == 0) || ((FLAG2(ref) & F2HIDDEN) == 0)));
-     else
-        result = (tmp && (((FLAGS(ref) & tmp) != 0) || ((FLAG2(ref) & F2HIDDEN) != 0)));
-  } else if (lev) {
-    if (result)
-	result = (lev >  ((truwiz) ? MLevel(ref) : QLevel(ref)));
-    else
-	result = (lev <= ((truwiz) ? MLevel(ref) : QLevel(ref)));
-  } else if (tmp2 && (tmp3 == 0)) {
-    if (result)
-	result = ((FLAG2(ref) & tmp2) == 0);
-    else
-	result = ((FLAG2(ref) & tmp2) != 0);
-  } else if (tmp3)
-  {
-    result = (((FLAG2(ref) & tmp3) != 0) || ((FLAG2(ref) & tmp2) != 0));
-  } else if (tmp) {
-    if (result)
-	result = (tmp && ((FLAGS(ref) & tmp) == 0));
-    else
-	result = (tmp && ((FLAGS(ref) & tmp) != 0));
-  } else return -1;
-  return result;
+   tmp = 0;
+   result = 0;
+   while (*flag == '!') {
+      flag++;
+      result = (!result);
+   }
+   if (!*flag)
+      return -2;
+   tmp1 = check_flag1(flag);
+   if(tmp1) {
+      if(!flag_check_perms(ref, tmp1, mlev))
+         return -2;
+      if(tmp1 == DARK)
+         rslt = ( (FLAGS(ref) & DARK) || (FLAG2(ref) & F2HIDDEN) );
+      else
+         rslt = (FLAGS(ref) & tmp1);
+   } else {
+      lev = check_mlev(flag, &truwiz);
+      if(lev) {
+         if(truwiz)
+            rslt = (QLevel(ref) >= lev);
+         else
+            rslt = (MLevel(ref) >= lev);
+      } else {
+         tmp2 = check_flag2(flag, &tmp3);
+         if(!tmp2)
+            return -1;
+         if(!flag_check_perms2(ref, tmp2, mlev))
+            return -2;
+         if(tmp3)
+            rslt = ((FLAG2(ref) & tmp2) && (FLAG2(ref) & tmp3));
+         else
+            rslt = (FLAG2(ref) & tmp2);
+      }
+   }
+   if(result)
+      return (!rslt);
+   else
+      return (rslt);
 }
 
 int
@@ -508,57 +578,41 @@ prim_next(PRIM_PROTOTYPE)
 void 
 prim_truename(PRIM_PROTOTYPE)
 {
-	CHECKOP(1);
-	oper1 = POP();
-	if (oper1->type != PROG_OBJECT)
-		abort_interp("Invalid argument type.");
-
-	ref = oper1->data.objref;
-	if (ref < 0 || ref >= db_top)
-		abort_interp("Invalid object.");
-
-	if (Typeof(ref) == TYPE_GARBAGE) {
-		strcpy(buf, "<garbage>");
-	} else {
-		CHECKREMOTE(ref);
-		if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-			ts_lastuseobject(ref);
-		if (NAME(ref)) {
-			strcpy(buf, NAME(ref));
-		} else {
-			buf[0] = '\0';
-		}
-	}
-	CLEAR(oper1);
-	PushString(buf);
+    CHECKOP(1);
+    oper1 = POP();
+    if (!valid_object(oper1))
+	abort_interp("Invalid argument type");
+    ref = oper1->data.objref;
+    CHECKREMOTE(ref);
+    if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
+	ts_lastuseobject(ref);
+    if (NAME(ref)) {
+	strcpy(buf, NAME(ref));
+    } else {
+	buf[0] = '\0';
+    }
+    CLEAR(oper1);
+    PushString(buf);
 }
 
 void 
 prim_name(PRIM_PROTOTYPE)
 {
-	CHECKOP(1);
-	oper1 = POP();
-	if (oper1->type != PROG_OBJECT)
-		abort_interp("Invalid argument type.");
-
-	ref = oper1->data.objref;
-	if (ref < 0 || ref >= db_top)
-		abort_interp("Invalid object.");
-
-	if (Typeof(ref) == TYPE_GARBAGE) {
-		strcpy(buf, "<garbage>");
-	} else {
-		CHECKREMOTE(ref);
-		if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-			ts_lastuseobject(ref);
-		if (NAME(ref)) {
-			strcpy(buf, PNAME(ref));
-		} else {
-			buf[0] = '\0';
-		}
-	}
-	CLEAR(oper1);
-	PushString(buf);
+    CHECKOP(1);
+    oper1 = POP();
+    if (!valid_object(oper1))
+	abort_interp("Invalid argument type");
+    ref = oper1->data.objref;
+    CHECKREMOTE(ref);
+    if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
+	ts_lastuseobject(ref);
+    if (NAME(ref)) {
+	strcpy(buf, PNAME(ref));
+    } else {
+	buf[0] = '\0';
+    }
+    CLEAR(oper1);
+    PushString(buf);
 }
 
 void 
@@ -730,12 +784,23 @@ prim_copyobj(PRIM_PROTOTYPE)
     }
 }
 
+void
+prim_isflagp(PRIM_PROTOTYPE)
+{
+   oper1 = POP();
+   if(oper1->type != PROG_STRING)
+      abort_interp("String expected.");
+   result = (check_flag1(oper1->data.string->data) || check_flag2(oper1->data.string->data, NULL) || check_mlev(oper1->data.string->data, NULL));
+   CLEAR(oper1);
+   PushInt(result);
+}
 
 void 
 prim_set(PRIM_PROTOTYPE)
 /* SET */
 {
     int tmp2 = 0;
+    char *flag;
 
     CHECKOP(2);
     oper1 = POP();
@@ -750,113 +815,55 @@ prim_set(PRIM_PROTOTYPE)
         abort_interp("Db is read-only");
     ref = oper2->data.objref;
     CHECKREMOTE(ref);
+    flag = oper1->data.string->data;
     tmp = 0;
-    result = (*oper1->data.string->data == '!');
-    {
-	char   *flag = oper1->data.string->data;
-
-	if (result)
-	    flag++;
-
-	if (!*flag)
-	    abort_interp("Empty flag");
-
-	if (string_prefix("dark", flag)
-		|| string_prefix("debug", flag))
-	    tmp = DARK;
-	else if (string_prefix("sticky", flag)
-		 || string_prefix("silent", flag))
-	    tmp = STICKY;
-	else if (string_prefix("abode", flag)
-                || string_prefix("autostart", flag)
-                || string_prefix("abate", flag))
-	    tmp = ABODE;
-	else if (string_prefix("chown_ok", flag) || string_prefix("color_on", flag) || string_prefix("ansi", flag))
-	    tmp = CHOWN_OK;
-	else if (string_prefix("haven", flag)
-		 || string_prefix("harduid", flag) || string_prefix("hide", flag))
-	    tmp = HAVEN;
-	else if (string_prefix("jump_ok", flag))
-	    tmp = JUMP_OK;
-	else if (string_prefix("link_ok", flag) || string_prefix("light", flag))
-	    tmp = LINK_OK;
-
-	else if (string_prefix("builder", flag))
-	    tmp = BUILDER;
-	else if (string_prefix("interactive", flag))
-	    tmp = INTERACTIVE;
-	else if (string_prefix("xforcible", flag))
-	    tmp = XFORCIBLE;
-	else if (string_prefix("zombie", flag) || string_prefix("puppet", flag))
-	    tmp = ZOMBIE;
-	else if (string_prefix("vehicle", flag) || string_prefix("viewable", flag))
-	    tmp = VEHICLE;
-	else if (string_prefix("quell", flag))
-	    tmp = QUELL;
-      else if (string_prefix("hidden", flag) && (mlev >= LARCH))
-          tmp2 = F2HIDDEN;
-      else if (string_prefix("guest", flag) && (mlev >= LMAGE))
-          tmp2 = F2GUEST;
-      else if (string_prefix("logwall", flag) && (mlev >= LARCH))
-          tmp2 = F2LOGWALL;
-      else if (string_prefix("pueblo", flag) && (mlev >= LMAGE))
-          tmp2 = F2PUEBLO;
-      else if (string_prefix("html", flag) && (mlev >= LMAGE))
-          tmp2 = F2HTML;
-      else if (string_prefix("parent", flag) || (string_prefix("prog_debug", flag) && !string_prefix("pro", flag)))
-          tmp2 = F2PARENT;
-      else if (string_prefix("examine_ok", flag))
-          tmp2 = F2EXAMINE_OK;
-      else if (string_prefix("protect", flag) && (mlev >= LBOY))
-          tmp2 = F2PROTECT;
-	else abort_interp("Unrecognized flag");
-
+    while (*flag == '!') {
+       flag++;
+       result = (!result);
     }
-    if( !tmp && !tmp2 )
-	abort_interp("Unrecognized flag (?!)");
+    if(!*flag)
+       abort_interp("Empty flag");
     if (!permissions(mlev, ProgUID, ref))
        abort_interp(tp_noperm_mesg);
-    if(tmp) {
-
-       if (((mlev < LARCH) && ((tmp == DARK && ((Typeof(ref) == TYPE_PLAYER)
-	  		      || (!tp_exit_darking && Typeof(ref) == TYPE_EXIT)
-			      || (!tp_thing_darking && Typeof(ref) == TYPE_THING)
-				 	   )
-		           )
-			   || ((tmp == ZOMBIE) && (Typeof(ref) == TYPE_THING)
-			       && (FLAGS(ProgUID) & ZOMBIE))
-			   || ((tmp == ZOMBIE) && (Typeof(ref) == TYPE_PLAYER))
-			   || (tmp == BUILDER)
-		       )
-	       )
-	       || (tmp == W1) || (tmp == W2) || (tmp == W3) || (tmp == W4)
-	       || (tmp == QUELL) || (tmp == INTERACTIVE)
-	       || ((tmp == ABODE) && (Typeof(ref) == TYPE_PROGRAM))
-	       || (tmp == XFORCIBLE)
-	       )
-	   abort_interp(tp_noperm_mesg);
-       if (result && Typeof(ref) == TYPE_THING) {
-	   dbref obj = DBFETCH(ref)->contents;
-	   for (; obj != NOTHING; obj = DBFETCH(obj)->next) {
-	       if (Typeof(obj) == TYPE_PLAYER) {
-		   abort_interp(tp_noperm_mesg);
-	       }
-	   }
+    if (result && Typeof(ref) == TYPE_THING) {
+       dbref obj = DBFETCH(ref)->contents;
+       for (; obj != NOTHING; obj = DBFETCH(obj)->next) {
+          if (Typeof(obj) == TYPE_PLAYER) {
+             abort_interp(tp_noperm_mesg);
+          }
        }
-       if (!result) {
-	   FLAGS(ref) |= tmp;
-	   DBDIRTY(ref);
+    }
+    tmp = check_flag1(flag);
+    if (tmp) {
+       tmp = check_mlev(flag, NULL);
+       if (tmp) {
+          abort_interp(tp_noperm_mesg);
        } else {
-	   FLAGS(ref) &= ~tmp;
-	   DBDIRTY(ref);
+          tmp = 0;
+          tmp2 = check_flag2(flag, NULL);
+          if (!tmp2)
+             abort_interp("Unrecognized flag");
+       }
+    }
+    if (tmp) {
+       if (!flag_set_perms(ref, tmp, mlev, ProgUID))
+          abort_interp(tp_noperm_mesg);
+       if (!result) {
+          FLAGS(ref) |= tmp;
+          DBDIRTY(ref);
+       } else {
+          FLAGS(ref) &= ~tmp;
+          DBDIRTY(ref);
        }
     } else {
+       if (!flag_set_perms2(ref, tmp2, mlev))
+          abort_interp(tp_noperm_mesg);
        if (!result) {
-	   FLAG2(ref) |= tmp2;
-	   DBDIRTY(ref);
+          FLAG2(ref) |= tmp2;
+          DBDIRTY(ref);
        } else {
-	   FLAG2(ref) &= ~tmp2;
-	   DBDIRTY(ref);
+          FLAG2(ref) &= ~tmp2;
+          DBDIRTY(ref);
        }
     }
     CLEAR(oper1);
@@ -899,157 +906,12 @@ prim_flagp(PRIM_PROTOTYPE)
       result = has_flagp(ref, flag, mlev);
       if(result == -1)
          abort_interp("Unknown flag");
+      if(result == -2)
+         abort_interp("Permission denied");
     }
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(result);
-/*    int     truwiz = 0, tmp2 = 0, lev = 0, tmp3 = 0;
-
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
-	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper2))
-	abort_interp("Invalid object");
-    ref = oper2->data.objref;
-    CHECKREMOTE(ref);
-    tmp = 0;
-    result = 0;
-    {
-
-	while (*flag == '!') {
-	    flag++;
-	    result = (!result);
-	}
-	if (!*flag)
-	    abort_interp("Empty flag string");
-
-	if (string_prefix("dark", flag)
-		|| string_prefix("debug", flag)) {
-	    tmp = DARK;
-	} else if (string_prefix("sticky", flag)
-		 || string_prefix("silent", flag)) {
-	    tmp = STICKY;
-	} else if (string_prefix("abode", flag)
-                || string_prefix("autostart", flag)
-                || string_prefix("abate", flag)) {
-	    tmp = ABODE;
-	} else if (string_prefix("chown_ok", flag) || string_prefix("color_on", flag) || string_prefix("ansi", flag)) {
-	    tmp = CHOWN_OK;
-	} else if (string_prefix("haven", flag)
-		 || string_prefix("harduid", flag) || string_prefix("hide", flag)) {
-	    tmp = HAVEN;
-	} else if (string_prefix("jump_ok", flag)) {
-	    tmp = JUMP_OK;
-	} else if (string_prefix("link_ok", flag) || string_prefix("light", flag)) {
-	    tmp = LINK_OK;
-	} else if (string_prefix("builder", flag)) {
-	    tmp = BUILDER;
-	} else if (string_prefix("meeper", flag) || string_prefix("mpi", flag)) {
-	    lev = LMPI;
-	} else if (string_prefix("mucker", flag) || string_prefix("mucker1", flag) || string_prefix("m1", flag)) {
-	    lev = LMUF;
-	} else if (string_prefix("nucker", flag) || string_prefix("mucker2", flag) || string_prefix("m2", flag)) {
-	    lev = LM2;
-	} else if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) || string_prefix("m3", flag)) {
-	    lev = LM3;
-	} else if (string_prefix("interactive", flag)) {
-	    tmp = INTERACTIVE;
-	} else if (string_prefix("mage", flag)) {
-	    lev = LMAGE;
-	} else if (string_prefix("truemage", flag)) {
-	    lev = LMAGE;
-	    truwiz = 1;
-	} else if (string_prefix("wizard", flag)) {
-	    lev = LWIZ;
-	} else if (string_prefix("truewizard", flag)) {
-	    lev = LWIZ;
-	    truwiz = 1;
-	} else if (string_prefix("archwizard", flag)) {
-	    lev = LARCH;
-	} else if (string_prefix("truearchwizard", flag)) {
-	    lev = LARCH;
-	    truwiz = 1;
-      } else if (string_prefix("boy", flag)) {
-          lev = LBOY;
-      } else if (string_prefix("trueboy", flag)) {
-          lev = LBOY;
-          truwiz = 1;
-      } else if (string_prefix("man", flag)) {
-          lev = LMAN;
-      } else if (string_prefix("trueman", flag)) {
-          lev = LMAN;
-          truwiz = 1;
-	} else if (string_prefix("zombie", flag) || string_prefix("puppet", flag)) {
-	    tmp = ZOMBIE;
-	} else if (string_prefix("xforcible", flag)) {
-	    tmp = XFORCIBLE;
-	} else if (string_prefix("vehicle", flag)
-		 || string_prefix("viewable", flag)) {
-	    tmp = VEHICLE;
-	} else if (string_prefix("quell", flag)) {
-	    tmp = QUELL;
-	} else if (string_prefix("guest", flag)) {
-	    tmp2 = F2GUEST;
-	} else if (string_prefix("logwall", flag) && (mlev >= LWIZ)) {
-	    tmp2 = F2LOGWALL;
-	} else if (string_prefix("mufcount", flag)) {
-	    tmp2 = F2MUFCOUNT;
-	} else if (string_prefix("parent", flag) || (string_prefix("prog_debug", flag) && !string_prefix("pro", flag))) {
-	    tmp2 = F2PARENT;
-	} else if (string_prefix("protect", flag)) {
-	    tmp2 = F2PROTECT;
-	} else if (string_prefix("hidden", flag) && (mlev >= LWIZ)) {
-	    tmp2 = F2HIDDEN;
-	} else if (string_prefix("command", flag)) {
-	    tmp2 = F2COMMAND;
-	} else if (string_prefix("antiprotect", flag)) {
-	    tmp2 = F2ANTIPROTECT;
-	} else if (string_prefix("examine_ok", flag)) {
-	    tmp2 = F2EXAMINE_OK;
-	} else if (string_prefix("mobile", flag)
-		|| string_prefix("offer", flag)
-	) {
-	    tmp2 = F2MOBILE;
-        } else if (string_prefix("pueblo", flag)) {
-            tmp2 = F2PUEBLO;
-	} else if (string_prefix("html", flag)) {
-	    tmp2 = F2HTML;  tmp3 = F2PUEBLO;
-        } else if (string_prefix("nhtml", flag)) {
-            tmp2 = F2HTML;
-	} else abort_interp("Unknown flag");
-    }
-  if (Typeof(ref) == TYPE_PLAYER && tmp == DARK) {
-     if (result)
-        result = (tmp && (((FLAGS(ref) & tmp) == 0) || ((FLAG2(ref) & F2HIDDEN) == 0)));
-     else
-        result = (tmp && (((FLAGS(ref) & tmp) != 0) || ((FLAG2(ref) & F2HIDDEN) != 0)));
-  } else if (lev) {
-    if (result)
-	result = (lev >  ((truwiz) ? MLevel(ref) : QLevel(ref)));
-    else
-	result = (lev <= ((truwiz) ? MLevel(ref) : QLevel(ref)));
-  } else if (tmp2 && (tmp3 == 0)) {
-    if (result)
-	result = ((FLAG2(ref) & tmp2) == 0);
-    else
-	result = ((FLAG2(ref) & tmp2) != 0);
-  } else if (tmp3)
-  {
-    result = (((FLAG2(ref) & tmp3) != 0) || ((FLAG2(ref) & tmp2) != 0));
-  } else if (tmp) {
-    if (result)
-	result = (tmp && ((FLAGS(ref) & tmp) == 0));
-    else
-	result = (tmp && ((FLAGS(ref) & tmp) != 0));
-  } else abort_interp("Unknown flag (?!)");
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    PushInt(result); */
 }
 
 void
@@ -1062,7 +924,7 @@ prim_powerp(PRIM_PROTOTYPE)
     oper1 = POP();
     oper2 = POP();
     if (oper1->type != PROG_STRING)
-	abort_interp("Arguement is not a string. (2)");
+	abort_interp("Invalid argument type (2)");
     if (!(oper1->data.string))
 	abort_interp("Empty string argument (2)");
     if (!valid_object(oper2))
@@ -1087,9 +949,9 @@ prim_ispowerp(PRIM_PROTOTYPE)
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
-	abort_interp("Arguement is not a string. (1)");
+	abort_interp("Invalid argument type (2)");
     if (!(oper1->data.string))
-	abort_interp("Empty string argument (1)");
+	abort_interp("Empty string argument (2)");
     pow = check_power(oper1->data.string->data);
     result = !(!pow);
     CLEAR(oper1);
@@ -1968,20 +1830,15 @@ prim_nextentrance(PRIM_PROTOTYPE)
 
 	CHECKOP(1);
 	oper1 = POP();
-	if (!valid_object(oper1))
-		abort_interp("Invalid object.");
+      oper2 = POP();
 	if (mlev < LMAGE)
 		abort_interp("Mage only prim.");
 	ref = oper1->data.objref;
+      lrom = oper1->data.objref;
+      if (ref  < 0 || ref >= db_top || lrom < -3 || lrom == -2 || lrom >= db_top)
+            abort_interp("Invalid reference object");
 	CHECKREMOTE(ref);
 
-	if (Typeof(ref) != TYPE_EXIT) {
-            lrom = ref;
-		ref = 0;
-	} else {
-            lrom = DBFETCH(ref)->sp.exit.dest[0];
-		ref++;
-	}
 	while (ref < db_top)
             if (Typeof(ref) == TYPE_EXIT)
                if (DBFETCH(ref)->sp.exit.dest[0] == lrom && ref != lrom)
@@ -1995,6 +1852,7 @@ prim_nextentrance(PRIM_PROTOTYPE)
 		ref = NOTHING;
 	}
 	CLEAR(oper1);
+      CLEAR(oper2);
 	PushObject(ref);
 }
 
@@ -2482,12 +2340,16 @@ prim_next_flag(PRIM_PROTOTYPE)
     result = has_flagp(ref, flag, mlev);
     if (result == -1)
        abort_interp("Unknown flag");
+    if (result == -2)
+       abort_interp("Permission denied");
     result = 0;
     ref++;
     for(; ref < db_top; ref++) {
        result = has_flagp(ref, flag, mlev);
        if (result == -1)
           abort_interp("Unknown flag");
+       if (result == -2)
+          abort_interp("Permission denied");
        if (result)
           break;
     }
@@ -2519,6 +2381,8 @@ prim_nextowned_flag(PRIM_PROTOTYPE)
     result = has_flagp(ref, flag, mlev);
     if (result == -1)
        abort_interp("Unknown flag");
+    if (result == -2)
+       abort_interp("Permission denied");
     result = 0;
     ownr = OWNER(ref);
     if (Typeof(ref) == TYPE_PLAYER) {
@@ -2530,6 +2394,8 @@ prim_nextowned_flag(PRIM_PROTOTYPE)
        result = has_flagp(ref, flag, mlev);
        if (result == -1)
           abort_interp("Unknown flag");
+       if (result == -2)
+          abort_interp("Permission denied");
        if (result && OWNER(ref) == ownr && ref != ownr)
           break;
     }
@@ -2560,12 +2426,16 @@ prim_nextplayer_flag(PRIM_PROTOTYPE)
     result = has_flagp(ref, flag, mlev);
     if (result == -1)
        abort_interp("Unknown flag");
+    if (result == -2)
+       abort_interp("Permission denied");
     result = 0;
     ref++;
     for(; ref < db_top; ref++) {
        result = has_flagp(ref, flag, mlev);
        if (result == -1)
           abort_interp("Unknown flag");
+       if (result == -2)
+          abort_interp("Permission denied");
        if (result && Typeof(ref) == TYPE_PLAYER)
           break;
     }
@@ -2640,12 +2510,16 @@ prim_nextthing_flag(PRIM_PROTOTYPE)
     result = has_flagp(ref, flag, mlev);
     if (result == -1)
        abort_interp("Unknown flag");
+    if (result == -2)
+       abort_interp("Permission denied");
     result = 0;
     ref++;
     for(; ref < db_top; ref++) {
        result = has_flagp(ref, flag, mlev);
        if (result == -1)
           abort_interp("Unknown flag");
+       if (result == -2)
+          abort_interp("Permission denied");
        if (result && Typeof(ref) == TYPE_THING)
           break;
     }

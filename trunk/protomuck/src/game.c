@@ -578,6 +578,12 @@ process_command(int descr, dbref player, char *command)
 	    *match_cmdname = 0; 
 	    return;
 	}
+      if (prop_command(descr, player, command, full_command, "@command", 1))
+         return;
+      if (prop_command(descr, player, command, full_command, "~command", 1))
+         return;
+      if (prop_command(descr, player, command, full_command, "_command", 1))
+         return;
     }
 
 	if (*command == OVERIDE_TOKEN && TMage(player))
@@ -829,18 +835,9 @@ process_command(int descr, dbref player, char *command)
 			break;
 		    case 'h':
 		    case 'H':
-                  switch (command[2]) {
-                     case 'T':
-                     case 't':
-                        Matched("@htmldescribe");
-                        do_htmldescribe(descr, player, arg1, arg2);
-                        break;
-                     default:
- 			      Matched("@hopper");
-			      do_hopper(player, arg1);
-                        break;
-                  }
-			break;
+                  Matched("@htmldescribe");
+                  do_htmldescribe(descr, player, arg1, arg2);
+                  break;
 		    case 'i':
 		    case 'I':
                   switch(command[2]) {
@@ -1341,13 +1338,8 @@ process_command(int descr, dbref player, char *command)
 		switch (command[1]) {
 		    case 'e':
 		    case 'E':
-			if(command[2] == 'q' || command[2] == 'Q'){
-			    Matched("request");
-			    request(player, NULL, commandline);
-			} else {
-			    Matched("read");    /* undocumented alias for look */
-			    do_look_at(descr, player, arg1, arg2);
-			}
+		      Matched("read");    /* undocumented alias for look */
+		      do_look_at(descr, player, arg1, arg2);
 			break;
 		    default:
 			goto bad;
@@ -1420,19 +1412,13 @@ process_command(int descr, dbref player, char *command)
 		break;
 	    default:
         bad:
-                
-                if ( prop_command(descr, player, command, "@command"))
-                  return;
-                else 
-                  goto bad2;
-	bad2:
  		if ( Typeof(tp_huh_command) == TYPE_PROGRAM && !(player == -1)) {
 			tmpfr = interp(descr, player, DBFETCH(player)->location, tp_huh_command, (dbref)-4, FOREGROUND, STD_REGUID);
 			if (!tmpfr)
 				goto bad2;
 			(void) interp_loop(player, tp_huh_command, tmpfr, 0);
             } else {
-   		   bad3:
+   		   bad2:
                   anotify_fmt(player, CINFO "%s",tp_huh_mesg);
 			if (tp_log_failed_commands && !controls(player, DBFETCH(player)->location)) {
 		    		log_status("HUH from %s(%d) in %s(%d)[%s]: %s %s\n", NAME(player), player,
@@ -1447,7 +1433,7 @@ process_command(int descr, dbref player, char *command)
 
 }
 
-int prop_command(int descr, dbref player, char *command, char *type)
+int prop_command(int descr, dbref player, char *command, char *arg, char *type, int mt)
 {
    PropPtr ptr;
    dbref progRef = AMBIGUOUS;
@@ -1456,7 +1442,7 @@ int prop_command(int descr, dbref player, char *command, char *type)
    char *workBuf;
    sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);        
             
-   ptr = envprop(&where, propName, 0);
+   ptr = envprop_cmds(&where, propName, 0);
    if (!ptr) return 0;
 #ifdef DISKBASE
    propfetch(what, ptr);
@@ -1472,6 +1458,9 @@ int prop_command(int descr, dbref player, char *command, char *type)
            return 0;
            break;
    }
+   strcpy(match_cmdname, command);
+   strcpy(match_args, arg);
+
    if (workBuf && *workBuf){
       if (*workBuf == '&')
          progRef = AMBIGUOUS;
@@ -1480,36 +1469,69 @@ int prop_command(int descr, dbref player, char *command, char *type)
       else if (*workBuf == '$')
          progRef = find_registered_obj(where, workBuf);
       else {
-         notify(player, workBuf);
+         if (player < 1)
+            notify_descriptor(descr, workBuf);
+         else
+            notify(player, workBuf);
          return 1;
       }
    }
    else 
       if ( progRef == AMBIGUOUS || progRef == NOTHING ) {
-         anotify_nolisten2(player, CINFO 
-                           "Invalid program call from a command prop.");
+         if (player < 1)
+            notify_descriptor(descr, "Invalid program call from a command prop.");
+         else
+            anotify_nolisten2(player, CINFO 
+                              "Invalid program call from a command prop.");
          return 1;
       }      
    if ( progRef == AMBIGUOUS ) {
       char cbuf[BUFFER_LEN];
       int ival;
       
-      ival = MPI_ISPRIVATE;
-      do_parse_mesg(descr, player, where, workBuf + 1, match_cmdname,
-                    cbuf, ival);
+      ival = (mt == 0)? MPI_ISPUBLIC : MPI_ISPRIVATE;
+      if (player < 1)
+         do_parse_mesg(descr, (dbref) -1, (dbref) 0, workBuf + 1, match_cmdname,
+                       cbuf, ival);
+      else
+         do_parse_mesg(descr, player, where, workBuf + 1, match_cmdname,
+                       cbuf, ival);
+
       if(*cbuf)
-        notify_nolisten(player, cbuf, 1);
+        if (player < 1)
+          notify_descriptor(descr, cbuf);
+        else
+          if (mt) {
+             notify_nolisten(player, cbuf, 1);
+          } else {
+             char bbuf[BUFFER_LEN];
+             dbref plyr;
+             sprintf(bbuf, ">> %.4000s",
+             pronoun_substitute(descr, player, cbuf));
+             plyr = DBFETCH(where)->contents;
+             while (plyr != NOTHING) {
+                if (Typeof(plyr)==TYPE_PLAYER && plyr!=player)
+                   notify_nolisten(plyr, bbuf, 0);
+                plyr = DBFETCH(plyr)->next;
+             }
+          }
       return 1;
    }
    else {
       if ( progRef < 0 || progRef >= db_top ) {
-         anotify_nolisten2(player, 
-                           CINFO "Invalid program call from a command prop.");
+         if (player < 1)
+            notify_descriptor(descr, "Invalid program call from a command prop.");
+         else
+            anotify_nolisten2(player, 
+                              CINFO "Invalid program call from a command prop.");
          return 1; 
       }
       else if ( Typeof(progRef) != TYPE_PROGRAM) {
-         anotify_nolisten2(player, 
-                           CINFO "Invalid program call from a command prop.");     
+         if (player < 1)
+            notify_descriptor(descr, "Invalid program call from a command prop.");
+         else
+            anotify_nolisten2(player, 
+                              CINFO "Invalid program call from a command prop.");     
          return 1;
       }
       else {
@@ -1525,4 +1547,5 @@ int prop_command(int descr, dbref player, char *command, char *type)
 }
 
 #undef Matched
+
 
