@@ -576,7 +576,7 @@ prim_setprop(PRIM_PROTOTYPE)
 	    set_property(oper3->data.objref, tname, PROP_INTTYP, (char *)result);
 	    break;
         case PROG_FLOAT:
-          sprintf(tbuf, "%.16hg", oper1->data.fnumber);
+          sprintf(tbuf, "%.15hg", oper1->data.fnumber);
           str = tbuf;
           set_property(oper3->data.objref, tname, PROP_FLTTYP, str);
           break;
@@ -1480,7 +1480,7 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
                     set_property(destination, buf2, PROP_INTTYP, (char *)PropDataVal(currprop));
                     break;
                 case PROP_FLTTYP:
-                    sprintf(tbuf, "%.16hg", PropDataFVal(currprop));
+                    sprintf(tbuf, "%.15hg", PropDataFVal(currprop));
                     str = tbuf;
                     set_property(destination, buf2, PROP_FLTTYP, str);
                     break;
