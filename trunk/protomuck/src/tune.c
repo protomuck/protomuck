@@ -288,6 +288,7 @@ int tp_who_hides_dark              = WHO_HIDES_DARK;
 int tp_compatible_priorities       = COMPATIBLE_PRIORITIES;
 int tp_do_mpi_parsing              = DO_MPI_PARSING;
 int tp_look_propqueues             = LOOK_PROPQUEUES;
+int tp_dump_propqueues             = 0;
 int tp_lock_envcheck               = LOCK_ENVCHECK;
 int tp_diskbase_propvals           = DISKBASE_PROPVALS;
 int tp_idleboot                    = IDLEBOOT;
@@ -314,7 +315,6 @@ int tp_allow_old_trigs		     = 1;
 int tp_multi_wizlevels             = 1;
 int tp_auto_archive                = 0;
 int tp_optimize_muf                = OPTIMIZE_MUF;
-
 struct tune_bool_entry {
     const char *group;
     const char *name;
@@ -362,6 +362,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"System",   "old_priorities",     &tp_compatible_priorities,LARCH, LMUF },
     {"MPI",      "do_mpi_parsing",      &tp_do_mpi_parsing,      LARCH, LMUF },
     {"Props",    "look_propqueues",     &tp_look_propqueues,     LARCH, LMUF },
+    {"Props",    "dump_propqueues",     &tp_dump_propqueues,     LARCH, LMUF },
     {"Props",    "lock_envcheck",       &tp_lock_envcheck,       LARCH, LMUF },
     {"Database", "diskbase_propvals",   &tp_diskbase_propvals,   WBOY , LMAGE},
     {"Idletime", "idleboot",            &tp_idleboot,            LARCH, LMUF },

@@ -57,29 +57,17 @@
 
 #define FILE_PRIMS
 
-/* Alynna - STAFF bit support
- * Defines a 'w' power that does nothing of note, but you can set it 
- * using @power, and test for it using:
- *   me @ "STAFF" power?  
- * in MUF.   Theres a define for it here, by default on, if you have 
- * any problems with it, undefine this, recompile, and tell me what 
- * happened.  This bit can be used to give staff people extra powers 
- * in your MUF programs without giving out a full W.  The support for 
- * this was very simple, and I forsee no problems. 
+/* Define MUF_SOCKETS to include the MUF socket prims.
+ * MUF socket support is necessary for any MUF programs
+ * that involve opening connections to other servers,
+ * or opening listening ports in MUF. However, this support
+ * will often prevent a clean compile on some systems, so
+ * if you are encountering compile time errors in p_socket.c
+ * you may want to undef this.
  */
-#define STAFF_POWER 
 
-/* Alynna - Dump Propqueues [EXPERIMENTAL]
- * This is an experimental feature I'm working on, but I have not found
- * any problems with it yet so I am enabling it by default.  If your
- * DB seems to crash just before a dump warning, or just before saving
- * Disable this and send me a bug report.
- * This establishes the propqueues _dump and _dumpwarn, that will run
- * programs just before a dump or dump warning occurs.  They are set
- * only on #0 (Sorry no per-user dumpqueues yet) and return descriptor
- * 0, and #0 as the trigger.
- */
-#define DUMP_PROPQUEUES
+#define MUF_SOCKETS
+
 	    
 /* Detaches the process as a daemon so that it don't cause problems
  * keeping a terminal line open and such. Logs normal output to a file

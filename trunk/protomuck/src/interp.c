@@ -66,7 +66,9 @@ void    (*prim_func[]) (PRIM_PROTOTYPE) =
 #endif
     PRIMS_ARRAY_FUNCS,
     PRIMS_MCP_FUNCS,
+#ifdef MUF_SOCKETS
     PRIMS_SOCKET_FUNCS,
+#endif
     PRIMS_SYSTEM_FUNCS, 
 #ifdef SQL_SUPPORT
     PRIMS_MYSQL_FUNCS,
@@ -348,6 +350,7 @@ RCLEAR(struct inst * oper, char *file, int line)
             if (oper->data.lock != TRUE_BOOLEXP)
                 free_boolexp(oper->data.lock);
             break;
+#ifdef MUF_SOCKETS
         case PROG_SOCKET:
             oper->data.sock->links = oper->data.sock->links - 1;
             if (oper->data.sock && oper->data.sock->links == 0) {
@@ -358,6 +361,7 @@ RCLEAR(struct inst * oper, char *file, int line)
                 free((void *) oper->data.sock);
             }
             break;
+#endif /* MUF_SOCKETS */
 #ifdef SQL_SUPPORT
         case PROG_MYSQL:
             oper->data.mysql->links = oper->data.mysql->links - 1;
@@ -368,7 +372,7 @@ RCLEAR(struct inst * oper, char *file, int line)
                 free((void *) oper->data.mysql);
             }
             break; 
-#endif
+#endif /* SQL_SUPPORT */
     } 
     oper->line = line;
     oper->data.addr = (struct prog_addr *) file;
@@ -948,11 +952,13 @@ copyinst(struct inst * from, struct inst * to)
 			to->data.lock = copy_bool(from->data.lock);
 		}
 		break;
+#ifdef MUF_SOCKETS
       case PROG_SOCKET:
 	    if (from->data.sock) {
 			from->data.sock->links++;
 	    }
             break;
+#endif
 #ifdef SQL_SUPPORT
       case PROG_MYSQL:
             if (from->data.mysql) {

@@ -343,10 +343,9 @@ void fork_and_dump(void)
 
     last_monolithic_time = current_systime;
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
-#ifdef DUMP_PROPQUEUES                	
-	    propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
-#endif
-
+    if (tp_dump_propqueues)
+        propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
+    
 #ifdef DISKBASE
     dump_database_internal();
 #else

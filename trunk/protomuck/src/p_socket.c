@@ -21,6 +21,7 @@
 #include "copyright.h"
 #include "config.h"
 
+#ifdef MUF_SOCKETS
 #include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
@@ -609,3 +610,5 @@ prim_sockaccept(PRIM_PROTOTYPE)
     copyinst(result, &arg[(*top)++]);
     CLEAR(result);
 }    
+
+#endif /* MUF_SOCKETS */

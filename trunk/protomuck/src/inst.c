@@ -30,7 +30,9 @@ const char *base_inst[] = {
 #endif
     PRIMS_ARRAY_NAMES,
     PRIMS_MCP_NAMES,
+#ifdef MUF_SOCKETS
     PRIMS_SOCKET_NAMES,
+#endif
     PRIMS_SYSTEM_NAMES,
 #ifdef SQL_SUPPORT
     PRIMS_MYSQL_NAMES,
@@ -209,11 +211,13 @@ insttotext(struct frame *fr, int lev, struct inst * theinst, char *buffer, int b
         case PROG_LVAR_BANG:
             sprintf(buffer, "LV%d !", theinst->data.number);
             break;
+#ifdef MUF_SOCKETS
         case PROG_SOCKET:
             sprintf(buffer, "(%sSOCKET[%d])", 
 			    theinst->data.sock->listening ? "L" : "",
 			    theinst->data.sock->socknum);
             break;
+#endif
 #ifdef SQL_SUPPORT
         case PROG_MYSQL:
             sprintf(buffer, "(MYSQL)");
