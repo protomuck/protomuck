@@ -420,6 +420,7 @@ struct stk_array_t;
 struct muf_socket {             /* struct for MUF socket data */
    int socknum;                 /* The descriptor number for the socket */
    int connected;               /* Set to 1 if ever connected */
+   int listening;               /* Set to 1 if successfully opened listening */
    int links;                   /* Number of instances of the socket. */
    char lastchar;
 };

@@ -58,118 +58,133 @@ extern char buf[BUFFER_LEN];
 void
 prim_socksend(PRIM_PROTOTYPE)
 {
-   char *outputbuf;
-   char bigbuffer[BUFFER_LEN];
-   int myresult;
+    char *outputbuf;
+    char bigbuffer[BUFFER_LEN];
+    int myresult;
 
-   CHECKOP(2);
-   oper2 = POP();
-   oper1 = POP();
-   if (mlev < LARCH)
-       abort_interp("Socket calls are ArchWiz-only primitives.");
-   if (oper2->type != PROG_STRING) abort_interp("String argument expected!");  
-   if (oper1->type != PROG_SOCKET) abort_interp("Socket argument expected!");
-   if (!oper2->data.string) abort_interp("Cannot send empty strings.");
-   outputbuf = bigbuffer;
-   sprintf(bigbuffer, "%s\n",oper2->data.string->data);
+    /* socket string<message> */
+    CHECKOP(2);
+    oper2 = POP(); /* string */
+    oper1 = POP(); /* socket */
 
-   myresult = send(oper1->data.sock->socknum, outputbuf,
-                   (int) strlen(outputbuf), (unsigned int) 0);
-   if(tp_log_sockets)
-      log2filetime( "logs/sockets", "#%d by %s SOCKSEND:  %d\n", program, 
-                     unparse_object(player, player), oper1->data.sock->socknum);
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper2->type != PROG_STRING) 
+        abort_interp("String argument expected!");  
+    if (oper1->type != PROG_SOCKET) 
+        abort_interp("Socket argument expected!");
+    if (oper1->data.sock->listening)
+        abort_interp("SOCKSEND does not accept listening sockets.");
+    if (!oper2->data.string) 
+        abort_interp("Cannot send empty strings.");
 
-   CLEAR(oper1);
-   CLEAR(oper2);
-   if (myresult < 1 )
-      myresult = 0;
-   PushInt(myresult);
+    outputbuf = bigbuffer;
+    sprintf(bigbuffer, "%s\n",oper2->data.string->data);
+
+    myresult = send(oper1->data.sock->socknum, outputbuf,
+                    (int) strlen(outputbuf), (unsigned int) 0);
+    if(tp_log_sockets)
+       log2filetime( "logs/sockets", "#%d by %s SOCKSEND:  %d\n", program, 
+                     unparse_object(player, player), 
+                     oper1->data.sock->socknum);
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+    if (myresult < 1 )
+        myresult = 0;
+    PushInt(myresult);
 }
 
 void
 prim_nbsockrecv(PRIM_PROTOTYPE)
 {
-   char *bigbuf, *bufpoint;
-   char *mystring;
-   int loop, readme, gotmessage = 0;
-   int sockval = 0;
-   fd_set reads;
-   struct timeval t_val;
+    char *bigbuf, *bufpoint;
+    char *mystring;
+    int loop, readme, gotmessage = 0;
+    int sockval = 0;
+    fd_set reads;
+    struct timeval t_val;
 
-   CHECKOP(1);
-   oper1 = POP();
+    CHECKOP(1);
+    /* socket -- */
+    oper1 = POP(); /* socket */
 
-   if (mlev < LARCH)
-       abort_interp("Socket calls are ArchWiz-only primitives.");
-   if (oper1->type != PROG_SOCKET) abort_interp("Socket argument expected!");
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper1->type != PROG_SOCKET) 
+        abort_interp("Socket argument expected!");
+    if (oper1->data.sock->listening)
+        abort_interp("NBSOCKRECV does not work with Listening SOCKETS.");
 
-   mystring = (char *) malloc(3);
-   bigbuf = (char *) malloc(1024);
-   bufpoint = bigbuf;
+    mystring = (char *) malloc(3);
+    bigbuf = (char *) malloc(1024);
+    bufpoint = bigbuf;
 
-   t_val.tv_sec = 0;
-   t_val.tv_usec = 0;
+    t_val.tv_sec = 0;
+    t_val.tv_usec = 0;
 
-   loop = 0;
-   sockval = oper1->data.sock->socknum;
-   *mystring = '\0';
-   FD_ZERO(&reads);                                                    
-   FD_SET(oper1->data.sock->socknum, &reads);
+    loop = 0;
+    sockval = oper1->data.sock->socknum;
+    *mystring = '\0';
+    FD_ZERO(&reads);                                                    
+    FD_SET(oper1->data.sock->socknum, &reads);
 
-   select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
+    select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
 
-   if (FD_ISSET(oper1->data.sock->socknum, &reads))
-   {
-      readme = recv(oper1->data.sock->socknum,mystring,1,0);
-      while (readme > 0)
-      {
-        if ((*mystring == '\0') || (((*mystring == '\n') ||
-            (*mystring == '\r'))))
-            break;
-        gotmessage = 1;
-        *bufpoint++=*mystring;
-        readme = recv(oper1->data.sock->socknum,mystring,1,0);
-      }
-      oper1->data.sock->lastchar = *mystring;
-   }
-   CLEAR(oper1);
-   if(tp_log_sockets)
-     if(gotmessage)
-       log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program, 
-                      unparse_object(player, player), sockval);
-   *bufpoint = '\0';
-   if (readme < 1)
-      readme = 0;
-   PushInt(readme);
-   PushString(bigbuf);
-   free((void *)mystring);
-   free((void *)bigbuf);
+    if (FD_ISSET(oper1->data.sock->socknum, &reads))
+    {
+       readme = recv(oper1->data.sock->socknum,mystring,1,0);
+       while (readme > 0)
+       {
+           if ((*mystring == '\0') || (((*mystring == '\n') ||
+               (*mystring == '\r'))))
+               break;
+           gotmessage = 1;
+           *bufpoint++=*mystring;
+           readme = recv(oper1->data.sock->socknum,mystring,1,0);
+       }
+       oper1->data.sock->lastchar = *mystring;
+    }
+    CLEAR(oper1);
+    if(tp_log_sockets)
+        if(gotmessage)
+            log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program, 
+                           unparse_object(player, player), sockval);
+    *bufpoint = '\0';
+    if (readme < 1)
+        readme = 0;
+    PushInt(readme);
+    PushString(bigbuf);
+    free((void *)mystring);
+    free((void *)bigbuf);
 }
 
 void
 prim_sockclose(PRIM_PROTOTYPE)
 {
-   int myresult;
+    int myresult;
 
-   CHECKOP(1);
+    CHECKOP(1);
+    /* socket */
+    oper1 = POP();
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper1->type != PROG_SOCKET) 
+        abort_interp("Socket argument expected!");
 
-   oper1 = POP();
-   if (mlev < LARCH)
-       abort_interp("Socket calls are ArchWiz-only primitives.");
-   if (oper1->type != PROG_SOCKET) abort_interp("Socket argument expected!");
-
-   if (shutdown(oper1->data.sock->socknum,2) == -1)
-   #if defined(BRAINDEAD_OS)
-      myresult = -1;                                              
-   #else
-      myresult = errnosocket;
-   #endif
-      else myresult = 0;
-   if(tp_log_sockets)
-      log2filetime( "logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program, 
-                     unparse_object(player, player), oper1->data.sock->socknum);
-   CLEAR(oper1);
-   PushInt(myresult);
+    if (shutdown(oper1->data.sock->socknum,2) == -1)
+    #if defined(BRAINDEAD_OS)
+       myresult = -1;                                              
+    #else
+       myresult = errnosocket;
+    #endif
+       else myresult = 0;
+    if(tp_log_sockets)
+        log2filetime( "logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program, 
+                       unparse_object(player, player), 
+                       oper1->data.sock->socknum);
+    CLEAR(oper1);
+    PushInt(myresult);
 }   
         
 void
@@ -218,6 +233,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 #endif
         else strcpy(myresult, "noerr");
     }
+
+    /* Socket was made, now initialize the muf_socket struc */
     result = (struct inst *) malloc(sizeof(struct inst));
     result->type = PROG_SOCKET;
     result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
@@ -225,17 +242,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     result->data.sock->connected = 0;
     result->data.sock->links = 1;
     result->data.sock->lastchar = '0';
+    result->data.sock->listening = 0;
 
-
-/*    mufsock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
-
-    result->type = PROG_SOCKET;
-    mufsock->socknum = mysock;
-    result->data.sock = mufsock;
-    result->data.sock->connected = 0;
-    result->data.sock->links = 0;
-    result->data.sock->lastchar = '0';
-*/
     if(tp_log_sockets)
       log2filetime( "logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n", 
                     program, unparse_object(player, player), 
@@ -252,44 +260,50 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 void
 prim_sockcheck(PRIM_PROTOTYPE)
 {
-   int connected = 0;
-   int sockval = 0;
-   int len = 10;
-   int optval = 0;
-   fd_set writes;
-   struct timeval t_val;
+    int connected = 0;
+    int sockval = 0;
+    int len = 10;
+    int optval = 0;
+    fd_set writes;
+    struct timeval t_val;
 
-   CHECKOP(1);
-   oper1 = POP();
+    /* socket -- i */
+    CHECKOP(1);
+    oper1 = POP(); /* socket */
 
-   if (mlev < LARCH)
-       abort_interp("Socket calls are ArchWiz-only primitives.");
-   if (oper1->type != PROG_SOCKET) abort_interp("Socket argument expected!");
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper1->type != PROG_SOCKET) 
+        abort_interp("Socket argument expected!");
+    if (oper1->data.sock->listening)
+        abort_interp("SOCKCHECK does not work with listening SOCKETS.");
 
-   t_val.tv_sec = 0;
-   t_val.tv_usec = 0;
+    t_val.tv_sec = 0;
+    t_val.tv_usec = 0;
 
-   sockval = oper1->data.sock->socknum;
-   FD_ZERO(&writes);
-   FD_SET(oper1->data.sock->socknum, &writes);
+    sockval = oper1->data.sock->socknum;
+    FD_ZERO(&writes);
+    FD_SET(oper1->data.sock->socknum, &writes);
 
-   select(oper1->data.sock->socknum + 1, NULL, &writes, NULL, &t_val);
+    select(oper1->data.sock->socknum + 1, NULL, &writes, NULL, &t_val);
 
-   if (FD_ISSET(oper1->data.sock->socknum, &writes)) { 
-      connected = 1;
-      fcntl(oper1->data.sock->socknum, F_SETFL, 0);
-   }
-   else {
-      connected = 0;
-   }
-   if (connected == 1) {
-      getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, (socklen_t *) &len);
-      if ( optval != 0 )
-         connected = -1;
-      else oper1->data.sock->connected = 1;
-   }
-   CLEAR(oper1);
-   PushInt(connected);
+    if (FD_ISSET(oper1->data.sock->socknum, &writes)) { 
+       connected = 1;
+       fcntl(oper1->data.sock->socknum, F_SETFL, 0);
+    }
+    else {
+       connected = 0;
+    }
+    if (connected == 1) {
+       getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, 
+                  (socklen_t *) &len);
+       if ( optval != 0 )
+           connected = -1;
+       else 
+           oper1->data.sock->connected = 1;
+    }
+    CLEAR(oper1);
+    PushInt(connected);
 }
 
 void
@@ -301,11 +315,168 @@ prim_sockdescr(PRIM_PROTOTYPE)
 
     if (mlev < LARCH)
         abort_interp("Socket prims are ArchWiz-only.");
-    if (oper1->type != PROG_SOCKET) abort_interp("Socket arguement expected.");
+    if (oper1->type != PROG_SOCKET) 
+        abort_interp("Socket arguement expected.");
     
     sockdescr = oper1->data.sock->socknum;
     PushInt(sockdescr);
     CLEAR(oper1);
 }
   
+void 
+prim_lsockopen(PRIM_PROTOTYPE)
+{
+    int sockdescr = 0;
+    struct inst *result;
+    struct muf_socket *mufsock;
+    struct sockaddr_in my_addr;
+    char myresult[255];
+    int addr_len;
+    int errors = 0;
+    int yes = 1;
 
+    CHECKOP(2);
+    /* int<queue size> int<port#> */
+    oper1 = POP(); /* port */
+    oper2 = POP(); /* queue size */
+
+    if (mlev < LBOY)
+        abort_interp("lsockopen is W4 or above.");
+    if (oper1->type != PROG_INTEGER || oper2->type != PROG_INTEGER)
+        abort_interp("LSOCKOPEN requires two integers.");
+    if ((oper1->data.number < 1) || (oper1->data.number > 65535))
+        abort_interp("Invalid port number for LSOCKOPEN.");
+    if (oper2->data.number < 1 || oper2->data.number > 20)
+        abort_interp("Invalid queue size (between 5 and 20).");
+
+    sockdescr = socket(AF_INET, SOCK_STREAM, 0); /* get the socket descr */
+    
+    my_addr.sin_family = AF_INET;
+    my_addr.sin_port = htons(oper1->data.number); /* set bind port # */
+    my_addr.sin_addr.s_addr = INADDR_ANY; /* get my own IP address */
+    memset(&(my_addr.sin_zero), '\0', 8); /* zero rest of struct */
+ 
+    /* Make sure is able to reuse the port */
+    setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+    
+    /* Bind to the port */
+    errors = bind(sockdescr, (struct sockaddr *)&my_addr, 
+                              sizeof(struct sockaddr));
+    
+    if (errors == -1 ) {
+        /* Error binding to port. */
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+        sprintf(myresult, "ERROR %d", errnosocket);
+#else
+        strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        errors = 0;
+        PushInt(errors);
+        PushString(myresult);
+        return;
+    }
+
+    /* activate listen port */
+    errors = listen(sockdescr, oper2->data.number);
+
+    if (errors == -1 ) {
+       /* Error setting listen mode. */
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+        sprintf(myresult, "ERROR %d", errnosocket);
+#else
+        strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        errors = 0;
+        PushInt(errors);
+        PushString(myresult);
+        return;
+    }   
+    /* No errors, make our listening socket */
+    strcpy(myresult, "noerr"); 
+    result = (struct inst *) malloc(sizeof(struct inst));
+    result->type = PROG_SOCKET;
+    result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    result->data.sock->socknum = sockdescr;
+    result->data.sock->connected = 1;
+    result->data.sock->links = 1;
+    result->data.sock->lastchar = '0';
+    result->data.sock->listening = 1;
+
+    if (tp_log_sockets)
+        log2filetime( "logs/sockets", "#%d by %s LSOCKOPEN: Port:%d -> %d\n",
+                      program, unparse_object(player, (dbref) 1),
+                      oper1->data.number, result->data.sock->socknum);
+    CLEAR(oper1);
+    CLEAR(oper2);
+    copyinst(result, &arg[(*top)++]);
+    PushString(myresult);
+    CLEAR(result);
+}
+
+void 
+prim_sockaccept(PRIM_PROTOTYPE)
+{
+    int newsock = 0;
+    int sockdescr = 0;
+    struct inst *result;
+    struct muf_socket *mufsock;
+    struct hostent *myhost;
+    char myresult[255];
+    struct sockaddr_in myaddr;
+    struct sockaddr_in remoteaddr; // client's address
+    int addr_len;
+    fd_set reads;
+    struct timeval t_val; 
+  
+    CHECKOP(1);
+    /* LSOCKET */
+    oper1 = POP(); /* LSOCKET */
+    
+    if (mlev < LBOY)
+        abort_interp("Listening sockets are for W4 or above.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("Listening SOCKET arguement expected.");
+    if (!(oper1->data.sock->listening))
+        abort_interp("Must pass listening SOCKET to SOCKACCEPT.");
+
+    t_val.tv_sec = 0;
+    t_val.tv_usec = 0; 
+
+    sockdescr = oper1->data.sock->socknum;
+    FD_ZERO(&reads);
+    FD_SET(sockdescr, &reads);
+    
+    select(sockdescr + 1, &reads, NULL, NULL, &t_val);
+
+    if (!(FD_ISSET(sockdescr, &reads))) { //No connection waiting
+        CLEAR(oper1);
+        PushInt(newsock);
+        return;
+    }
+    /* connection is waiting */
+    addr_len = sizeof(remoteaddr);
+    sockdescr = oper1->data.sock->socknum;
+    newsock = accept(sockdescr, (struct sockaddr *) &remoteaddr, 
+		     (socklen_t *) &addr_len);
+    if (newsock == -1) {//some kind of error
+        strcpy(myresult, sys_errlist[errnosocket]);
+        newsock = 0;
+        PushString(myresult);
+        return;
+    } 
+
+    /* We have the new socket, now initialize muf_socket struct */
+    CLEAR(oper1);
+    result = (struct inst *) malloc(sizeof(struct inst));
+    result->type = PROG_SOCKET;
+    result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    result->data.sock->socknum = newsock;
+    result->data.sock->connected = 1;
+    result->data.sock->links = 1;
+    result->data.sock->lastchar = '0';
+    result->data.sock->listening = 0;
+
+    //add in socket logging here
+    copyinst(result, &arg[(*top)++]);
+    CLEAR(result);
+}    

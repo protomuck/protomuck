@@ -261,7 +261,7 @@ RCLEAR(struct inst * oper, char *file, int line)
                 if (oper->data.sock && oper->data.sock->links == 0) {
 //			if (oper->data.sock->connected) {
 				shutdown(oper->data.sock->socknum,2);
-				closesocket(oper->data.sock->socknum);
+				close(oper->data.sock->socknum);
 //			}
 			free((void *) oper->data.sock);
 		}
