@@ -352,8 +352,8 @@ main(int argc, char **argv)
             fclose(ffd);
         }
 
-        log_status("INIT: ProtoMUCK %s starting as pid %d.\n", PROTOBASE,
-                   getpid());
+        log_status_nowall("INIT: ProtoMUCK %s starting as pid %d.\n", PROTOBASE,
+                          getpid());
 
 #ifdef WIN32
         fprintf(stderr, "ProtoMUCK-Win32 %s(%s-compat)\n", PROTOBASE, VERSION);
@@ -3749,12 +3749,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                     /****/
+        if (d->next)                                             /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                 /****/
+        if (d->hostname)                                         /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                 /****/
+        if (d->username)                                         /****/
             free((void *) d->username);
                                    /****/
         if (d->lastmidi)
