@@ -1403,6 +1403,7 @@ OPEN_ANYWHERE   - Can @open an exit from any location
 PLAYER_CREATE   - Can use @pcreate, @frob, and @toad
 SEARCH          - Can use @find, @entrances, @own, and @contents
 SEE_ALL         - Can examine any object, and @list any program
+STAFF           - No function, but useful for MUF checks
 SHUTDOWN        - Can run @shutdown or @restart
 TELEPORT        - Unrestricted use of @teleport
 
