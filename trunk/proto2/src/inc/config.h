@@ -113,7 +113,11 @@
  *
  * See http://www.protomuck.org/ for an example of this. :)
  */
-#define PROTO_AS_ROOT
+/* Made this into a configure option, available via:
+ *   ./configure --enable-asroot
+ * -Hinoserm
+ */
+/* #undef PROTO_AS_ROOT */
 
 /* Define MUF_SOCKETS to include the MUF socket prims.
  * MUF socket support is necessary for any MUF programs
