@@ -583,21 +583,19 @@ prim_pow(PRIM_PROTOTYPE)
           }
        if ( oper2->type == PROG_INTEGER ) 
           { oper2->type = PROG_FLOAT;
-            oper2->data.fnumber = oper1->data.number;
+            oper2->data.fnumber = oper2->data.number;
           }
 	if (oper2->type != PROG_FLOAT)
 		abort_interp("Non-float argument. (1)");
 	if (oper1->type != PROG_FLOAT)
 		abort_interp("Non-float argument. (2)");
 	if (!no_good(oper1->data.fnumber) && !no_good(oper2->data.fnumber)) {
-            if (fabs(oper2->data.fnumber) > DBL_EPSILON) {
-                fresult = 0.0;
-            } else if (oper2->data.fnumber < 0.0 &&
+        if (oper2->data.fnumber < 0.0 &&
                        oper1->data.fnumber != floor(oper1->data.fnumber)) {
                 fresult = 0.0;
                 fr->error.error_flags.imaginary = 1;
             } else {
-                fresult = pow(oper2->data.fnumber, oper1->data.fnumber);
+                fresult = (double) pow(oper2->data.fnumber, oper1->data.fnumber);
             }
 	} else {
 		fresult = 0.0;
@@ -611,11 +609,11 @@ prim_pow(PRIM_PROTOTYPE)
 void
 prim_frand(PRIM_PROTOTYPE)
 {
-	int tresult;
+	double tresult;
 
 	CHECKOP(0);
-	result = rand();
-	tresult = rand();
+	result = (double) rand();
+	tresult = (double) rand();
 	if ((result < tresult) && (result != tresult)) {
 		fresult = result / tresult;
 	} else {

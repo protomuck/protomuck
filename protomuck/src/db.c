@@ -789,56 +789,61 @@ ifloat (const char *s)
     int expFound = 0; /* bool to indicate if exponent is found yet */
 
     if (!s)
-        return 0; /* no string at all */
+  return 0; /* no string at all */
     while (isspace(*s))
-        s++; /* remove leading spaces */
+  s++; /* remove leading spaces */
     if (*s == '+' || *s == '-')
-        s++;  
+  s++;
+    // inf or nan
+   if (*s == 'i' || *s == 'n' || *s == 'I' || *s == 'N' ) {
+    s++; if (*s == 'n' || *s == 'a' || *s == 'N' || *s == 'A' ) {
+    s++; if (*s == 'f' || *s == 'n' || *s == 'F' || *s == 'N' ) {
+    s++; if (!*s) { return 1; } else { return 0; } } else
+    { return 0; } } else { return 0; } }
     if (*s == '.') {
-        decFound = 1;
-        s++;  /* valid format = .#e# and .# */
+  decFound = 1;
+  s++;  /* valid format = .#e# and .# */
     }
     hold = s;
     while ((*s) && (*s >= '0' && *s <= '9'))
-        s++;
+  s++;
     if (s == hold) /* Blank or non-numbers at start. Boo */
-        return 0;
+  return 0;
     if (!*s) /* means it was a # or a .# number */
-        return 1;
+  return 1;
     if (*s == '.' && decFound )
-        return 0; /* prevent 2 decimal marks */
+  return 0; /* prevent 2 decimal marks */
     if (*s == '.')
-        s++; /* skip valid decimal point */
+  s++; /* skip valid decimal point */
     if (*s == 'e' || *s == 'E' ) {
-        expFound = 1;
-        s++; /* could be #.#e# or .#e# */
+  expFound = 1;
+  s++; /* could be #.#e# or .#e# */
     }
     if (expFound && (*s == '+' || *s == '-'))
-        s++; /* skip + or - for exponent */
+  s++; /* skip + or - for exponent */
     hold = s;
     while ((*s) && (*s >= '0' && *s <= '9'))
-        s++; /* eat more numbers */
+  s++; /* eat more numbers */
     if (s == hold)
-        return 0; /* no numbers or non-numbers after token */
+  return 0; /* no numbers or non-numbers after token */
     if (!*s)
-        return 1; /* normal ending at this point */
+  return 1; /* normal ending at this point */
     if (expFound)
-        return 0; /* more characters following exponent already */
+  return 0; /* more characters following exponent already */
     if (*s != 'e' && *s != 'E')
-        return 0; /* Invalid token following numbers */
+  return 0; /* Invalid token following numbers */
     s++; /* skip 'e' or 'E' */
-    if (*s == '+' || *s == '-') 
-        s++; /* Alynna: skip + or - for this exponent */              
+    if (*s == '+' || *s == '-')
+  s++; /* Alynna: skip + or - for this exponent */
     hold = s;
     while ((*s) && (*s >= '0' && *s <= '9'))
-        s++; /* eat final numbers */
+  s++; /* eat final numbers */
     if (s == hold)
-        return 0; /* no numbers after token */
+  return 0; /* no numbers after token */
     if (*s)
-        return 0; /* more characters after numbers = bad */
+  return 0; /* more characters after numbers = bad */
     return 1;
 }
-
 /*** CHANGED:
 was: PropPtr getproperties(FILE *f)
 now: void getproperties(FILE *f, dbref obj)
