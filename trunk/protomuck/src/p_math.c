@@ -12,7 +12,7 @@
 #include "externs.h"
 #include "match.h"
 #include <float.h>
-#include <bits/nan.h>
+#include "nan.h"
 #include "interface.h"
 #include "params.h"
 #include "tune.h"
