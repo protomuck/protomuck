@@ -1,5 +1,6 @@
 #include "copyright.h"
 #include "config.h"
+#include "version.h"
 #include <sys/types.h>
 #include <fcntl.h>
 #include <ctype.h>
@@ -504,10 +505,10 @@ main(int argc, char **argv, char **envt)
                 daemon_mode++;
             } else if (!strcmp(argv[i], "-v")) {
                 if (!verbose_mode++)
-                    verb("Version " RESOLVER_VERSION " starting.");
+                    verb("Version " RESOLVER_VERSION " (" PROTOVER ") starting.");
                 verbose_mode++;
             } else if (!strcmp(argv[i], "-V")) {
-                printf("reslvd version: " RESOLVER_VERSION "\n");
+                printf("reslvd version: " RESOLVER_VERSION " (" PROTOVER ")\n");
                 exit(0);
             }
         }

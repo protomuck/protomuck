@@ -137,5 +137,9 @@
 /* Define this to allow file primitive support as root. */
 #undef PROTO_AS_ROOT
 
+/* Define this to enable shared resolver support */
+#undef SUPPORT_RESLVD
+
 #undef HAVE_SETPROCTITLE
+
 

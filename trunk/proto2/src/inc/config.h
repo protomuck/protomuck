@@ -67,7 +67,8 @@
  *  isn't set.  Note that these also affect the defaults when building
  *  the resolver daemon itself as well.
  */
-#define USE_RESLVD
+/* You can also control this using configure --enable-reslvd */
+#undef USE_RESLVD
 #define RESOLVER_HOST "127.0.0.1" /* I suggest using only an IP here. */
 #define RESOLVER_PORT 12111
 
@@ -578,6 +579,10 @@
 #else
 # define SRANDOM(seed)	srand((seed))
 # define RANDOM()	rand()
+#endif
+
+#if defined(SUPPORT_RESLVD) && !defined(USE_RESLVD)
+# define USE_RESLVD
 #endif
 
 #if defined(NO_COMPRESS) && defined(COMPRESS)
