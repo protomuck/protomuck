@@ -208,6 +208,7 @@ void prim_fwrite(PRIM_PROTOTYPE)
        if (*buf3 == '\r') {
           *buf3 = '\n';
        }
+       buf3++;
     }
     fputs(writestring, fh);
     fclose(fh);
@@ -255,6 +256,7 @@ void prim_fappend(PRIM_PROTOTYPE)
        if (*buf3 == '\r') {
           *buf3 = '\n';
        }
+       buf3++;
     }
     fputs(writestring, fh);
     fclose(fh);
@@ -395,6 +397,7 @@ void prim_freadn(PRIM_PROTOTYPE)
      if (*buf3 == '\n') {
         *buf3 = '\r';
      }
+     buf3++;
   }
   if( result )
      PushString(tempBuf);     
@@ -860,6 +863,7 @@ prim_freadto(PRIM_PROTOTYPE)
      if (*buf3 == '\n') {
         *buf3 = '\r';
      }
+     buf3++;
   }
   if ( result )
       PushString(tempBuf);
@@ -867,148 +871,3 @@ prim_freadto(PRIM_PROTOTYPE)
     PushNullStr;
 }
 
-void
-prim_array_get_file(PRIM_PROTOTYPE)
-{
-   FILE *fh;
-   char *filename, buf[BUFFER_LEN], *buf2 = NULL;
-   int count = 0, docontinue = 1;
-   stk_array *nw;
-   struct inst *oper1;
-   struct inst temp1, temp2;
-
-   oper1 = POP(); /* Filename */
-
-   if (getuid() == 0 )
-      abort_interp("Muck is running under root privs, file prims disabled.");
-   if (mlev < LBOY) abort_interp("FREADTO is BOY level prim only.");
-
-   if (oper1->type != PROG_STRING)
-      abort_interp("Arguement is not a string.");
-   if (!oper1->data.string)
-      abort_interp("Arguement is a null string.");
-   filename = oper1->data.string->data;
-#ifdef SECURE_FILE_PRIMS
-   if (!(valid_name(filename)))
-       abort_interp( "Invalid file name.");
-   if ( strchr( filename, '$' ) == NULL )
-       filename = set_directory(filename);
-   else
-       filename = parse_token( filename );
-   if ( filename == NULL )
-       abort_interp( "Invalid shortcut used." );
-#endif
-   nw = new_array_packed(0);
-   fh = fopen(filename, "r");
-   if (fh != NULL) {
-      while (docontinue) {
-         fgets(buf, BUFFER_LEN, fh);
-         buf2 = buf;
-         while (*buf2) {
-            if ((*buf2 == '\n') || (*buf2 == EOF)) {
-               if(*buf2 == EOF) {
-                  docontinue = 0;
-               }
-               *buf2 = '\0';
-               break;
-            }
-         }
-         temp2.type = PROG_STRING;
-         temp2.data.string = alloc_prog_string(buf);
-         temp1.type = PROG_INTEGER;
-         temp2.data.number = count++;
-         array_setitem(&nw, &temp1, &temp2);
-         CLEAR(&temp1);
-         CLEAR(&temp2);
-      }
-   }
-   fclose(fh);
-   if(tp_log_files)
-      log2filetime("logs/files", "#%d by %s ARRAY_GET_FILE: %s \n", program, unparse_object(player, player), oper1->data.string->data);  
-   PushArrayRaw(nw);
-   CLEAR(oper1);
-}
- 
-void
-prim_array_put_file(PRIM_PROTOTYPE)
-{
-   FILE *fh;
-   char *filename;
-   char *buf2 = NULL, *buf3 = NULL;
-   char buf[BUFFER_LEN], buf4[BUFFER_LEN];
-   struct inst *oper1, *oper2, *oper3 = NULL;
-   struct inst temp1;
-   stk_array *arr;
-
-   oper2 = POP(); /* The file array */
-   oper1 = POP(); /* The file name  */
-
-   if (getuid() == 0 )
-      abort_interp("Muck is running under root privs, file prims disabled.");
-   if (mlev < LBOY) abort_interp("FREADTO is BOY level prim only.");
-
-   if (oper2->type != PROG_ARRAY)
-      abort_interp("Arguement 2 is not an array.");
-   if (oper1->type != PROG_STRING)
-      abort_interp("Arguement 1 is not a string.");
-   if (!oper1->data.string)
-      abort_interp("Arguement 1 is a null string.");
-   if (oper3->data.array && oper3->data.array->type != ARRAY_PACKED)
-      abort_interp("Argument must be a list type array. (3)");
-   filename = oper1->data.string->data;
-#ifdef SECURE_FILE_PRIMS
-   if (!(valid_name(filename)))
-       abort_interp( "Invalid file name.");
-   if ( strchr( filename, '$' ) == NULL )
-       filename = set_directory(filename);
-   else
-       filename = parse_token( filename );
-   if ( filename == NULL )
-       abort_interp( "Invalid shortcut used." );
-#endif
-   arr = oper2->data.array;
-   unlink(filename);
-   fh = fopen(filename, "w");
-   if (array_first(arr, &temp1)) {
-      do {
-         oper3 = array_getitem(arr, &temp1);
-         buf[0] = '\0';
-         buf4[0] = '\0';
-         switch (oper3->type) {
-            case PROG_STRING:
-               sprintf(buf, "%s", oper4->data.string ? oper4->data.string->data : "0");
-               break;
-            case PROG_INTEGER:
-               sprintf(buf, "%d", oper4->data.number);
-               break;
-            case PROG_FLOAT:
-               sprintf(buf, "%h", oper4->data.fnumber);
-               break;
-            case PROG_OBJECT:
-               sprintf(buf, "%d", oper4->data.objref);
-               break;
-            case PROG_LOCK:
-               sprintf(buf, "%s", unparse_boolexp(player, copy_bool(oper4->data.lock), 1));
-               break;
-            default:
-               sprintf(buf, "%d", 0);
-         }
-         strcat(buf, "\n");
-         buf3 = buf;
-         while(*buf3) {
-            if (*buf3 == '\r') {
-               *buf3 = '\n';
-            }
-         }
-         buf2 = strcpy(buf4, buf);
-         fputs(buf2, fh);
-         CLEAR(oper3);
-      } while (array_next(arr, &temp1));
-   }
-   fclose(fh);
-   if(tp_log_files)
-      log2filetime("logs/files", "#%d by %s ARRAY_PUT_FILE: %s \n", program, unparse_object(player, player), oper1->data.string->data);  
-   CLEAR(&temp1);
-   CLEAR(oper1);
-   CLEAR(oper2);
-}
