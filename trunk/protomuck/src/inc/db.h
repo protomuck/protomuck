@@ -211,7 +211,7 @@ typedef int dbref;		/* offset into db */
 #define POW_LONG_FINGERS     0x80   /* [g] Can do anything from a long distance */
 #define POW_NO_PAY          0x100   /* [n] Infinite money */
 #define POW_OPEN_ANYWHERE   0x200   /* [o] @open an exit from any location */
-#define POW_PLAYER_CREATE   0x400   /* [p] Can use @pcreate, @frob, and @toad */
+#define POW_PLAYER_CREATE   0x400   /* [p] @pcreate, @newpassword, @name */
 #define POW_SEARCH          0x800   /* [s] Can use @find, @entrances, and @contents */
 #define POW_SEE_ALL        0x1000   /* [e] Can examine any object, and @list any program */
 #define POW_TELEPORT       0x2000   /* [t] Fee use of @teleport */
@@ -220,8 +220,9 @@ typedef int dbref;		/* offset into db */
 #define POW_CONTROL_ALL   0x10000   /* [r] Ability to control all objects */
 #define POW_ALL_MUF_PRIMS 0x20000   /* [m] Gives full access to MUF prims */
 #define POW_STAFF         0x40000   /* [w] Special support for 'staff' bits in MUF */
+#define POW_PLAYER_PURGE      0x80000   /* [u] @purge and @toad power */
 
-/* FREE POWER LETTERS: jkquvyz */
+/* FREE POWER LETTERS: jkqvyz */
 
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)

@@ -971,44 +971,51 @@ dequeue_prog(dbref program, int sleeponly)
     int     count = 0;
     timequeue tmp, ptr;
 
+    /* First remove any matching processes from front of the queue */
     while (tqhead && ((tqhead->called_prog==program) ||
-	    has_refs(program, tqhead) || (tqhead->uid==program))
-	    && ((tqhead->fr) ? (!((tqhead->fr->multitask == BACKGROUND) &&
-				  (sleeponly == 2))) : (!sleeponly))) {
-	ptr = tqhead;
-	tqhead = tqhead->next;
-	free_timenode(ptr);
-	process_count--;
-	count++;
+           has_refs(program, tqhead) || (tqhead->uid==program))
+           && ((tqhead->fr) ? (!((tqhead->fr->multitask == BACKGROUND) &&
+           (sleeponly == 2))) : (!sleeponly))) {
+notify_fmt(3166, "releasing tqhead.");
+        ptr = tqhead;
+        tqhead = tqhead->next;
+        free_timenode(ptr);
+        process_count--;
+        count++;
     }
 
+    /* then remove any matching processes from the rest of the queue */
     if (tqhead) {
-	tmp = tqhead;
-	ptr = tqhead->next;
-	while (ptr) {
-	    if ((ptr->called_prog == program) ||
-		    (has_refs(program, ptr)) || ((ptr->uid == program)
-		    && ((ptr->fr) ? (!((ptr->fr->multitask == BACKGROUND) &&
-				       (sleeponly == 2))) : (!sleeponly) ))) {
-		tmp->next = ptr->next;
-		free_timenode(ptr);
-		process_count--;
-		count++;
-		ptr = tmp;
-	    }
-	    tmp = ptr;
-	    ptr = ptr->next;
-	}
-    }
+        tmp = tqhead;
+        ptr = tqhead->next;
+        while (ptr) {
+            if ((ptr->called_prog == program) ||
+                 (has_refs(program, ptr)) || ((ptr->uid == program)
+                 && ((ptr->fr) ? (!((ptr->fr->multitask == BACKGROUND) &&
+                 (sleeponly == 2))) : (!sleeponly) ))) {
+                tmp->next = ptr->next;
+                free_timenode(ptr);
+                process_count--;
+                count++;
+                ptr = tmp;
+            } /* if */
+            tmp = ptr;
+            ptr = ptr->next;
+        } /* while ptr */
+    } /* if tqhead */
+
     if (sleeponly == 1 || sleeponly == 0) {
-	// treat MUF_EVENT processes as backgrounded.
-	count += muf_event_dequeue(program);
+    /* Treat MUF_EVENT processes as background processes */
+        count += muf_event_dequeue(program);
     }
+
+    /* Make sure to re-set any READ/INTERACTIVE flags needed */
     for (ptr = tqhead; ptr; ptr = ptr->next) {
-	if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
-						   ptr->subtyp == TQ_MUF_TREAD)) {
-	    FLAGS(ptr->uid) |= (INTERACTIVE | READMODE);
-	}
+        if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
+             ptr->subtyp == TQ_MUF_TREAD)) {
+notify(3166, "Re-setting READ flag.");
+            FLAGS(ptr->uid) |= (INTERACTIVE | READMODE);
+        }
     }
     return (count);
 }

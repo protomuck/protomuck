@@ -47,95 +47,125 @@ do_name(int descr, dbref player, const char *name, char *newname)
     char   *password;
     char oldName[BUFFER_LEN];
     char nName[BUFFER_LEN];
-    if(tp_db_readonly) return;
+    struct match_data md;
+    
+    if(tp_db_readonly) 
+        return;
 
     if(Guest(player)) {
-	anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
-	return;
+        anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
+        return;
     }
-    if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-      if (Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing)))) {
-	  anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-	  return;
-      }
-	/* check for bad name */
-	if (*newname == '\0') {
-	    anotify_nolisten2(player, CINFO "Give it what new name?");
-	    return;
-	}
-	/* check for renaming a player */
-	if (Typeof(thing) == TYPE_PLAYER) {
 
-	    if(tp_wiz_name && (!Mage(player)) ) {
-		    anotify_nolisten2(player, CINFO "Only wizards can change player names.");
-		    return;
-	    }
+    init_match(descr, player, name, NOTYPE, &md);
+    match_absolute(&md);
+    match_everything(&md);
 
-	    /* split off password */
-	    for (password = newname;
-		    *password && !isspace(*password);
-		    password++);
-	    /* eat whitespace */
-	    if (*password) {
-		*password++ = '\0';	/* terminate name */
-		while (*password && isspace(*password))
-		    password++;
-	    }
-	    /* check for null password */
-	    if (!*password) {
-		anotify_nolisten2(player, CINFO "You must specify a password to change a player name.");
-		anotify_nolisten2(player, CNOTE "E.g.: name player = newname password");
-		if( Wiz(OWNER(player)))
-		    anotify_nolisten2(player,
-			YELLOW "Wizards may use 'yes' for non-wizard players."
-		    );
-		return;
-	    }
-	    if(!Wiz(player)||TMage(thing)||strcmp(password,"yes")) {
-		if (strcmp(password, DoNull(DBFETCH(thing)->sp.player.password))) {
-		    anotify_nolisten2(player, CFAIL "Incorrect password.");
-		    return;
-		}
-	    }
-	    if (string_compare(newname, NAME(thing))
-		       && !ok_player_name(newname)) {
-		anotify_nolisten2(player, CFAIL "That name is either taken or invalid.");
-		return;
-	    }
-	    /* everything ok, notify */
-	    log_status("NAME: %s(%d) to %s by %s\n",
-		       NAME(thing), thing, newname, NAME(player));
+    thing = noisy_match_result(&md);
+
+    if (thing != NOTHING 
+        && !(controls(player, thing) 
+            || (Typeof(thing) == TYPE_PLAYER 
+                && POWERS(player) & POW_PLAYER_CREATE))) {
+        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        return;
+    } 
+
+    if (thing != NOTHING) {
+        if (Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing)))) {
+            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+            return;
+        }
+
+        /* check for bad name */
+        if (*newname == '\0') {
+            anotify_nolisten2(player, CINFO "Give it what new name?");
+            return;
+        }
+ 
+        /* check for renaming a player */
+        if (Typeof(thing) == TYPE_PLAYER) {
+            if (tp_wiz_name && (!Mage(player) 
+                && (!POWERS(player) & POW_PLAYER_CREATE)) ) {
+                anotify_nolisten2(player, 
+                CINFO "Only wizards can change player names.");
+                return;
+            }
+
+            /* split off password */
+            for (password = newname;
+                *password && !isspace(*password);
+                 password++);
+            /* eat whitespace */
+            if (*password) {
+                *password++ = '\0';	/* terminate name */
+                while (*password && isspace(*password))
+                    password++;
+            }
+
+            /* check for null password */
+            if (!*password) {
+                anotify_nolisten2(player, 
+                  CINFO "You must specify a password to change a player name.");
+                anotify_nolisten2(player, 
+                  CNOTE "E.g.: name player = newname password");
+                if( Wiz(OWNER(player)) || POWERS(player) & POW_PLAYER_CREATE)
+                    anotify_nolisten2(player,
+                        YELLOW "Wizards may use 'yes' for non-wizard players.");
+                return;
+            }
+            if(!(Wiz(player) || POWERS(player) & POW_PLAYER_CREATE)
+               ||TMage(thing)||strcmp(password,"yes")) {
+                if (strcmp(password, 
+                               DoNull(DBFETCH(thing)->sp.player.password))) {
+                    anotify_nolisten2(player, CFAIL "Incorrect password.");
+                    return;
+                }
+            }
+            if (string_compare(newname, NAME(thing))
+                  && !ok_player_name(newname)) {
+                anotify_nolisten2(player, 
+                    CFAIL "That name is either taken or invalid.");
+                return;
+            }
+            /* everything ok, notify */
+            log_status("NAME: %s(%d) to %s by %s\n",
+            NAME(thing), thing, newname, NAME(player));
             strcpy(oldName, uncompress(NAME(thing)));
             strcpy(nName, newname);
-	    delete_player(thing);
-	    if (NAME(thing))
-		free((void *) NAME(thing));
-	    ts_modifyobject(thing);
-	    NAME(thing) = alloc_string(newname);
-	    add_player(thing);
-	    anotify_fmt(player, CSUCC "Name changed from %s to %s.", oldName, nName);
-	    return;
-	} else {
-	    if (!ok_name(newname)) {
-		anotify_nolisten2(player, CFAIL "That is not a reasonable name.");
-		return;
-	    }
-	}
+            delete_player(thing);
+            if (NAME(thing))
+                free((void *) NAME(thing));
+            ts_modifyobject(thing);
+            NAME(thing) = alloc_string(newname);
+            add_player(thing);
+            anotify_fmt(player, 
+                        CSUCC "Name changed from %s to %s.", oldName, nName);
+            return;
+        } else {
+            if (!ok_name(newname)) {
+                anotify_nolisten2(player, 
+                    CFAIL "That is not a reasonable name.");
+                return;
+            }
+        }
 
-	/* everything ok, change the name */
+        /* everything ok, change the name */
         strcpy(oldName, uncompress(NAME(thing)));        
         strcpy(nName, newname);
-	if (NAME(thing)) {
-	    free((void *) NAME(thing));
-	}
-	ts_modifyobject(thing);
-	NAME(thing) = alloc_string(newname);
-	anotify_fmt(player, CSUCC "Name changed from %s to %s.", oldName, nName);
-	DBDIRTY(thing);
-	if (Typeof(thing) == TYPE_EXIT && MLevel(thing)) {
-	    SetMLevel(thing, 0);
-	    anotify_nolisten2(player, CINFO "Action priority Level reset to zero.");
-	}
+        if (NAME(thing)) {
+            free((void *) NAME(thing));
+        }
+        ts_modifyobject(thing);
+        NAME(thing) = alloc_string(newname);
+        anotify_fmt(player,
+                    CSUCC "Name changed from %s to %s.", oldName, nName);
+        DBDIRTY(thing);
+        if (Typeof(thing) == TYPE_EXIT && MLevel(thing)) {
+            SetMLevel(thing, 0);
+            anotify_nolisten2(player, 
+                CINFO "Action priority Level reset to zero.");
+        }
     }
 }
 

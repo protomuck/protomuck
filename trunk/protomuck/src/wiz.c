@@ -647,7 +647,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
     dbref   stuff;
     char    buf[BUFFER_LEN];
 
-    if (!(Typeof(player) == TYPE_PLAYER && (Arch(player) || (POWERS(player) & POW_PLAYER_CREATE)))) {
+    if (!(Typeof(player) == TYPE_PLAYER && (Arch(player) || (POWERS(player) & POW_PLAYER_PURGE)))) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
@@ -757,7 +757,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
 	return;
     }
     if (
-	!controls(player, victim) ||
+	(!controls(player, victim) && !(POWERS(player) & POW_PLAYER_PURGE))||
 	Typeof(player) != TYPE_PLAYER ||
     	Typeof(victim) != TYPE_PLAYER || 
 	TMage(victim)
@@ -775,7 +775,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
 	(!DBFETCH(victim)->sp.player.password ||
 	  strcmp(arg2, DBFETCH(victim)->sp.player.password) ) &&
 	( strcmp( arg2, "yes" ) ||
-	  !Arch(player) )
+	  !(Arch(player) || POWERS(player) & POW_PLAYER_PURGE) )
     ) {
 	anotify_nolisten2(player, CFAIL "Wrong password.");
 	return;
@@ -908,6 +908,8 @@ power_description(dbref thing)
           strcat(buf, "TELEPORT ");
       if (POWERS(thing) & POW_STAFF)
           strcat(buf, "STAFF ");
+      if (POWERS(thing) & POW_PLAYER_PURGE)
+          strcat(buf, "PLAYER_PURGE");
     return buf;
 }
 
@@ -951,7 +953,8 @@ do_powers(int descr, dbref player, const char *name, const char *power)
       anotify_nolisten2(player,       "LONG_FINGERS    - [g] Can do anything from a long distance");
       anotify_nolisten2(player,       "NO_PAY          - [n] Infinite money");
       anotify_nolisten2(player,       "OPEN_ANYWHERE   - [o] Can @open an exit from any location");
-      anotify_nolisten2(player,       "PLAYER_CREATE   - [p] Can use @pcreate, @frob, and @toad");
+      anotify_nolisten2(player,       "PLAYER_CREATE   - [p] @pcreate, @newpassword, @name");
+      anotify_nolisten2(player,       "PLAYER_PURGE    - [u] @toad and @purge power.");
       anotify_nolisten2(player,       "SEARCH          - [s] Can use @find, @entrances, @own, and @contents");
       anotify_nolisten2(player,       "SEE_ALL         - [e] Can examine any object, and @list any program");
       anotify_nolisten2(player,       "STAFF           - [w] Special staff bit for use in MUF");
@@ -1007,6 +1010,8 @@ do_powers(int descr, dbref player, const char *name, const char *power)
        pow = POW_OPEN_ANYWHERE;
     } else if ( string_prefix("PLAYER_CREATE", p) ) {
        pow = POW_PLAYER_CREATE;
+    } else if ( string_prefix("PLAYER_PURGE", p) ) {
+       pow = POW_PLAYER_PURGE;
     } else if ( string_prefix("SEARCH", p) ) {
        pow = POW_SEARCH;
     } else if ( string_prefix("SEE_ALL", p) ) {

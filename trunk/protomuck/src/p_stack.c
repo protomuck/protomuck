@@ -1155,19 +1155,19 @@ prim_foriter(PRIM_PROTOTYPE)
 void
 prim_forpop(PRIM_PROTOTYPE)
 {
-    CHECKOP(0);
+	CHECKOP(0);
 
-    if (!(fr->fors.top))
-        abort_interp("Internal error; FOR stack underflow.");
+	if (!(fr->fors.top))
+		abort_interp("Internal error; FOR stack underflow.");
 
-    CLEAR(&fr->fors.st->cur);
-    CLEAR(&fr->fors.st->end);
+	CLEAR(&fr->fors.st->cur);
+	CLEAR(&fr->fors.st->end);
 
-    if (fr->trys.st)
-        fr->trys.st->for_count--;
+	if (fr->trys.st)
+		fr->trys.st->for_count--;
 
-    fr->fors.top--;
-    fr->fors.st = pop_for(fr->fors.st);
+	fr->fors.top--;
+	fr->fors.st = pop_for(fr->fors.st);
 }
 
 
