@@ -34,9 +34,6 @@ arith_good(double test)
 	return (((test) <= ((double) (MAXINT))) && ((test) >= ((double) (MININT))));
 }
 
-#define INF (9.9E999)
-#define NINF (-9.9E999)
-
 extern int no_good(double test);
 
 int

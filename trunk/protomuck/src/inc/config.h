@@ -31,6 +31,13 @@
  * will be detected.  If not, define me.
  */
 #undef CYGWIN 
+
+/* If compiling for OS-X, #define this and follow these instructions:
+ * After running ./configure, edit Makefile and change the line that
+ * reads: CC=gcc to
+ *        CC=cc -no-cpp-precomp
+ */
+#undef APPLE
   
 /* Alynna - If you defined CYGWIN, set these to your timezone offset in 
  * hours.  -8 = PST, -5 = EST, 0 = GMT 
@@ -42,7 +49,7 @@
  * commands. Leave it undefined for traditional in-server ANSI 
  * in the MUCK's commands.
  */
-
+/* Not implemented yet */
 #undef NO_SYSCOLOR
 
 /* Define this to compile with MySQL support. MySQL must be installed
@@ -322,6 +329,10 @@
   You probably will not have to monkey with this unless the muck fails
  to compile for some reason.
  ************************************************************************/
+#ifdef APPLE
+#define __FreeBSD__
+#define BSD
+#endif
 
 /* If you get problems compiling strftime.c, define this. */
 #undef USE_STRFTIME

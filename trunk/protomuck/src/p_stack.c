@@ -464,7 +464,11 @@ void
 prim_trig(PRIM_PROTOTYPE)
 {
     CHECKOP(0);
-    ref = (dbref) fr->trig;
+    if ((fr->caller.top > 1) && (fr->prog != program)) {
+       ref = (dbref) fr->caller.st[fr->caller.top - 1];
+    } else {
+       ref = (dbref) fr->trig;
+    }
     CHECKOFLOW(1);
     PushObject(ref);
 }

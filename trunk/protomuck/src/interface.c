@@ -32,7 +32,7 @@
 #include "mufevent.h"
 #include "interp.h"
 
-#if defined(BRAINDEAD_OS) || defined(WIN32)
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(APPLE)
  typedef int socklen_t;
 #endif
 

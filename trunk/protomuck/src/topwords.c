@@ -1,8 +1,11 @@
+#include "config.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#else
 #include <malloc.h>
-#include "config.h"
+#endif
 #include "db.h"
 #include "externs.h"
 
