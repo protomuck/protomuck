@@ -296,6 +296,10 @@ newcontrols(register dbref who, register dbref what, register bool true_c)
     if (what < 0 || what >= db_top)
         return 0;
 
+    /* Garbage controls nothing. */
+    if (Typeof(who) == TYPE_GARBAGE)
+	return 0;
+
     /* No one controls garbage */
     if (Typeof(what) == TYPE_GARBAGE)
         return 0;

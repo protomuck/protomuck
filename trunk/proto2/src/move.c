@@ -918,7 +918,8 @@ do_recycle(int descr, dbref player, const char *name)
                     break;
             }
             recycle(descr, player, thing);
-            anotify_nolisten2(player, CINFO "Thank you for recycling.");
+            if (player != thing) /* Without this, @rec me for puppets caused a crash. -hino */
+                anotify_nolisten2(player, CINFO "Thank you for recycling.");
         }
     }
 }
