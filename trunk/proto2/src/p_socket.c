@@ -285,7 +285,11 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         if (oper1->data.sock->ssl_session)
-            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+            while (1) {
+                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+	        if (SSL_get_error(oper1->data.sock->ssl_session, readme) != SSL_ERROR_WANT_READ)
+    	            break;
+            }
         else
 #endif
             readme = readsocket(oper1->data.sock->socknum, mystring, 1);
@@ -301,7 +305,11 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
             *bufpoint++ = *mystring;
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
             if (oper1->data.sock->ssl_session)
-                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+                while (1) {
+        	    readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+        	    if (SSL_get_error(oper1->data.sock->ssl_session, readme) != SSL_ERROR_WANT_READ)
+            	        break;
+                }
             else
 #endif
                 readme = readsocket(oper1->data.sock->socknum, mystring, 1);
@@ -411,7 +419,11 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         if (oper1->data.sock->ssl_session)
-            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+            while (1) {
+    	        readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+	        if (SSL_get_error(oper1->data.sock->ssl_session, readme) != SSL_ERROR_WANT_READ)
+    	            break;
+            }
         else
 #endif
             readme = readsocket(oper1->data.sock->socknum, mystring, 1);
