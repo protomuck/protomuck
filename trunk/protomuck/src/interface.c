@@ -2585,6 +2585,12 @@ process_input(struct descriptor_data * d)
                 case '\365': /* Abort output */
                     d->inIAC = 0;
                     break;
+                case '\366': { /* AYT */
+                    char sendbuf[] = "[Yes]\r\n";
+                    writesocket(d->descriptor, sendbuf, strlen(sendbuf));
+                    d->inIAC = 0;
+                    break;
+                }
                 case '\367': /* Erase character */
                     if (p > d->raw_input)
                         --p;
@@ -2598,8 +2604,10 @@ process_input(struct descriptor_data * d)
                     d->inIAC = 0;
                     break;
                 case '\373': /* Will option offer */
-                case '\374': /* WON'T option offer */
                     d->inIAC = 2;
+                    break;
+                case '\374': /* won't option */
+                    d->inIAC = 4;
                     break;
                 case '\375': /* DO option request */
                 case '\376': /* DONT option request */
@@ -2631,6 +2639,9 @@ process_input(struct descriptor_data * d)
             sendbuf[3] = '\0';
             writesocket(d->descriptor, sendbuf, 3);
             d->inIAC = 0;
+        } else if (d->inIAC == 4) {
+            /* ignore WON'T option */
+            d->inIAC =0;
         } else if (*q == '\377') {
             /* Got TELNET IAC, store for next byte */
             d->inIAC = 1;                 
@@ -2697,7 +2708,7 @@ process_commands(void)
                     strcpy(match_args, "MUF");
                     strcpy(match_cmdname, "Queued Event.");
                     tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
-                                  (dbref) 0, FOREGROUND, STD_HARDUID);
+                                  (dbref) 0, FOREGROUND, STD_HARDUID, 0);
                     if (tmpfr) {
                         interp_loop(NOTHING, mufprog, tmpfr, 1);
                     }
@@ -2739,8 +2750,10 @@ process_commands(void)
 	                  if (*full_command)
 	                     full_command++;
 	                  strcpy(match_args, full_command);
-	                  tmpfr = interp(d->descriptor, d->player, DBFETCH(d->player)->location,
-	                                 tp_quit_prog, (dbref) -5, FOREGROUND, STD_REGUID);
+	                  tmpfr = interp(d->descriptor, d->player, 
+                                    DBFETCH(d->player)->location,
+	                            tp_quit_prog, (dbref) -5, FOREGROUND, 
+                                    STD_REGUID, 0);
 	                  if (tmpfr) {
 	                     interp_loop(d->player, tp_quit_prog, tmpfr, 0);
 	                  }
@@ -2817,7 +2830,8 @@ do_command(struct descriptor_data * d, char *command)
                if (*full_command)
                   full_command++;
                strcpy(match_args, full_command);
-               tmpfr = interp(d->descriptor, -1, -1, tp_login_who_prog, (dbref) -5, FOREGROUND, STD_REGUID);
+               tmpfr = interp(d->descriptor, -1, -1, tp_login_who_prog, 
+                              (dbref) -5, FOREGROUND, STD_REGUID, 0);
 		   if (tmpfr) {
 			interp_loop(-1, tp_login_who_prog, tmpfr, 0);
 		   }
@@ -3228,8 +3242,9 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		   d->descriptor, d->hostname, d->username, params);
 		strcpy(match_args, buf);
 		strcpy(match_cmdname, "(WWW)");
-		tmpfr = interp(d->descriptor, tp_www_surfer, what, PropDataRef(prpt),
-		       tp_www_root, BACKGROUND, STD_HARDUID);
+		tmpfr = interp(d->descriptor, tp_www_surfer, what, 
+                       PropDataRef(prpt), tp_www_root, BACKGROUND, 
+                       STD_HARDUID, 0);
 		if (tmpfr) {
 			interp_loop(tp_www_surfer, PropDataRef(prpt), tmpfr, 1);
 		}

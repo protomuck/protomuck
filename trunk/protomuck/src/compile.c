@@ -559,11 +559,15 @@ include_internal_defs(COMPSTATE * cstat)
 	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_tabbed", "d_tabbed swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_helper", "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
+        /* for SOCK_SETOPT */
         insert_def(cstat, "NOQUEUE", "0");
         insert_def(cstat, "SIMPLEQUEUE", "1");
         insert_def(cstat, "TELNETQUEUE", "2");
         insert_def(cstat, "HOMEINSTANCE", "5"); 
-	
+        /* For REG Expression support */
+        insert_def(cstat, "reg_icase", MUF_RE_ICASE_STR);
+        insert_def(cstat, "reg_all", MUF_RE_ALL_STR);	
+      
 }
 
 void
@@ -2075,10 +2079,14 @@ do_directive(COMPSTATE * cstat, char *direct)
                 holder = tmpname;
 		if (!tmpname)
 			abort_compile(cstat, "Unexpected end of file looking for $pubdef name.");
-		if (string_compare(tmpname, ":") ? index(tmpname, '/') || index(tmpname, ':') : 0)
+		if (string_compare(tmpname, ":") &&
+                       (index(tmpname, '/') || 
+                       index(tmpname, ':') ||
+                       Prop_SeeOnly(tmpname) ||
+                       Prop_Hidden(tmpname)))
 		{
 			free(tmpname);
-			abort_compile(cstat, "Invalid $pubdef name.  No / nor : are allowed.");
+			abort_compile(cstat, "Invalid $pubdef name.  No /, :, @, nor ~ are allowed.");
 		} else {
 	            if (!string_compare(tmpname, ":"))
 			{
@@ -2179,6 +2187,54 @@ do_directive(COMPSTATE * cstat, char *direct)
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
+        } else if (!string_compare(temp, "libdef")) {
+            char *holder = NULL;
+           
+            tmpname = (char *) next_token_raw(cstat);
+            holder = tmpname;
+            if (!tmpname)
+                v_abort_compile(cstat, "Unexpected end of file looking for $lib/def name.");
+           
+            if (index(tmpname, '/') ||
+                  index(tmpname, ':') ||
+                  Prop_SeeOnly(tmpname) ||
+                  Prop_Hidden(tmpname)) {
+                free(tmpname);
+                v_abort_compile(cstat, "Invalid $libdef name. No /, :, @, nor ~ allowed.");
+            } else { /* okay string */ 
+                char propname[BUFFER_LEN];
+                char defstr[BUFFER_LEN];
+                int doitset = 1;
+                
+                while(*cstat->next_char && isspace(*cstat->next_char))
+                    cstat->next_char++; /* eat leading space */
+                if (*tmpname == '\\') {
+                    char *temppropstr = NULL;
+                    
+                    (void) *tmpname++;
+                    sprintf(propname, "/_defs/%s", tmpname);
+                    temppropstr = (char *) get_property_class(cstat->program, propname);
+                    if (temppropstr)
+                        doitset = 0;
+                } else {
+                    sprintf(propname, "/_defs/%s", tmpname);
+                }
+
+                snprintf(defstr, sizeof(defstr), "#%i \"%s\" call", 
+                         cstat->program, tmpname);
+
+                if (doitset) {
+                    if (defstr && *defstr) {
+                        add_property(cstat->program, propname, defstr, 0);
+                    } else { 
+                        remove_property(cstat->program, propname);
+                    }
+                }
+            }
+            while (*cstat->next_char)
+                cstat->next_char++;
+            advance_line(cstat);
+            free(holder);
 	} else if (!string_compare(temp, "include")) {
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
@@ -3477,7 +3533,7 @@ quoted(COMPSTATE * cstat, const char *token)
 int
 object(const char *token)
 {
-	if (*token == '#' && number(token + 1))
+	if (*token == NUMBER_TOKEN && number(token + 1))
 		return 1;
 	else
 		return 0;

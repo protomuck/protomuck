@@ -125,8 +125,7 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp * b, dbref thing, int 
 			    Typeof(player) == TYPE_THING) {
 			struct inst *rv;
 			struct frame *tmpfr;
-/*			rv = interp(descr, player, DBFETCH(player)->location,	b->thing, thing, PREEMPT, STD_HARDUID, 0); */
-			tmpfr = interp(descr, player, DBFETCH(player)->location, b->thing, thing, PREEMPT, STD_HARDUID);
+			tmpfr = interp(descr, player, DBFETCH(player)->location, b->thing, thing, PREEMPT, STD_HARDUID, 0);
 			if (!tmpfr)
 				return (0);
 			rv = interp_loop(player, b->thing, tmpfr, 0);
@@ -289,7 +288,7 @@ parse_boolexp_F(int descr, const char **parsebuf, dbref player, int dbloadp)
 				return b;
 			}
 		} else {
-			if (*buf != '#' || !number(buf + 1)) {
+			if (*buf != NUMBER_TOKEN || !number(buf + 1)) {
 				free_boolnode(b);
 				return TRUE_BOOLEXP;
 			}

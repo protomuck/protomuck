@@ -441,7 +441,7 @@ mfn_select(MFUNARGS)
 		pname = next_prop_name(obj, propname, origprop);
 		while (pname && string_prefix(pname, origprop)) {
 			ptr = pname + baselen;
-			if (*ptr == '#') ptr++;
+			if (*ptr == NUMBER_TOKEN) ptr++;
 			if (!*ptr && is_propdir(obj, pname)) {
 				char propname2[BUFFER_LEN];
 				char *pname2;

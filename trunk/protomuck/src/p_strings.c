@@ -998,17 +998,13 @@ prim_notify(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-	strcpy(buf, oper1->data.string->data);
-	if (tp_m1_name_notify &&
-		mlev < LM2  && player != oper2->data.objref) {
-	    strcpy(buf2, PNAME(player));
-	    strcat(buf2, " ");
-	    if (!string_prefix(buf, buf2)) {
-		strcat(buf2, buf);
-		buf2[BUFFER_LEN-1] = '\0';
-		strcpy(buf, buf2);
-	    }
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN, 1);
+        } else {
+	    strcpy(buf, oper1->data.string->data);
+        }
 	notify_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(player), buf, 1);
     }
@@ -1038,17 +1034,13 @@ prim_notify_html(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-	strcpy(buf, oper1->data.string->data);
-	if (tp_m1_name_notify &&
-		mlev < LM2  && player != oper2->data.objref) {
-	    strcpy(buf2, PNAME(player));
-	    strcat(buf2, " ");
-	    if (!string_prefix(buf, buf2)) {
-		strcat(buf2, buf);
-		buf2[BUFFER_LEN-1] = '\0';
-		strcpy(buf, buf2);
-	    }
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN - 1, 1);
+        } else {
+            strcpy(buf, oper1->data.string->data);
+        }
         strcat(buf, "\r");
 	notify_html_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(player), buf, 1);
@@ -1079,17 +1071,13 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-	strcpy(buf, oper1->data.string->data);
-	if (tp_m1_name_notify &&
-		mlev < LM2  && player != oper2->data.objref) {
-	    strcpy(buf2, PNAME(player));
-	    strcat(buf2, " ");
-	    if (!string_prefix(buf, buf2)) {
-		strcat(buf2, buf);
-		buf2[BUFFER_LEN-1] = '\0';
-		strcpy(buf, buf2);
-	    }
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN, 1);
+        } else {
+            strcpy(buf, oper1->data.string->data);
+        }
 	notify_html_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(player), buf, 1);
     }
@@ -1112,17 +1100,13 @@ prim_ansi_notify(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-	strcpy(buf, oper1->data.string->data);
-	if (tp_m1_name_notify &&
-		mlev < LM2  && player != oper2->data.objref) {
-	    strcpy(buf2, PNAME(player));
-	    strcat(buf2, " ");
-	    if (!string_prefix(buf, buf2)) {
-		strcat(buf2, buf);
-		buf2[BUFFER_LEN-1] = '\0';
-		strcpy(buf, buf2);
-	    }
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN, 1);
+        } else {
+            strcpy(buf, oper1->data.string->data);
+        }
 	ansi_notify_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(player), buf, 1);
     }
@@ -1144,16 +1128,15 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 	abort_interp("non-integer count argument (top-1)");
     if (oper1->type != PROG_STRING)
 	abort_interp("Non-string message argument (top)");
-    strcpy(buf, DoNullInd(oper1->data.string));
 
     if (tp_m1_name_notify && mlev < LM2) {
-	strcpy(buf2, PNAME(player));
-	strcat(buf2, " ");
-	if (!string_prefix(buf, buf2)) {
-	    strcat(buf2, buf);
-	    buf2[BUFFER_LEN-1] = '\0';
-	    strcpy(buf, buf2);
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN, 1);
+        } else {
+            strcpy(buf, oper1->data.string->data);
+        }
     }
 
     result = oper2->data.number;
@@ -1228,16 +1211,15 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 	abort_interp("non-integer count argument (top-1)");
     if (oper1->type != PROG_STRING)
 	abort_interp("Non-string message argument (top)");
-    strcpy(buf, DoNullInd(oper1->data.string));
 
     if (tp_m1_name_notify && mlev < LM2) {
-	strcpy(buf2, PNAME(player));
-	strcat(buf2, " ");
-	if (!string_prefix(buf, buf2)) {
-	    strcat(buf2, buf);
-	    buf2[BUFFER_LEN-1] = '\0';
-	    strcpy(buf, buf2);
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN, 1);
+        } else {
+            strcpy(buf, oper1->data.string->data);
+        }
     }
 
     result = oper2->data.number;
@@ -1314,13 +1296,13 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
     strcpy(buf, DoNullInd(oper1->data.string));
 
     if (tp_m1_name_notify && mlev < LM2) {
-	strcpy(buf2, PNAME(player));
-	strcat(buf2, " ");
-	if (!string_prefix(buf, buf2)) {
-	    strcat(buf2, buf);
-	    buf2[BUFFER_LEN-1] = '\0';
-	    strcpy(buf, buf2);
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN, 1);
+        } else {
+            strcpy(buf, oper1->data.string->data);
+        }
     }
     strcat(buf, "\r");
 
@@ -1394,16 +1376,15 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 	abort_interp("non-integer count argument (top-1)");
     if (oper1->type != PROG_STRING)
 	abort_interp("Non-string message argument (top)");
-    strcpy(buf, DoNullInd(oper1->data.string));
 
     if (tp_m1_name_notify && mlev < LM2) {
-	strcpy(buf2, PNAME(player));
-	strcat(buf2, " ");
-	if (!string_prefix(buf, buf2)) {
-	    strcat(buf2, buf);
-	    buf2[BUFFER_LEN-1] = '\0';
-	    strcpy(buf, buf2);
-	}
+        if (tp_m1_name_notify &&
+                mlev < LM2  && player != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(player),
+                          BUFFER_LEN, 1);
+        } else {
+            strcpy(buf, oper1->data.string->data);
+        }
     }
 
     result = oper2->data.number;

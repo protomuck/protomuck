@@ -859,6 +859,8 @@ prim_copyobj(PRIM_PROTOTYPE)
 	abort_interp("Invalid object type");
     if ((mlev < LMAGE) && !permissions(mlev, ProgUID, ref))
 	abort_interp(tp_noperm_mesg);
+    if (!ok_name(NAME(oper1->data.objref)))
+        abort_interp("Invalid name.");
     fr->already_created++;
     {
 	dbref   newobj;
@@ -2086,12 +2088,16 @@ prim_toadplayer(PRIM_PROTOTYPE) {
 	}
 	dequeue_prog(victim, 0);  /* dequeue progs that player's running */
 
-	/* anotify(victim, BLUE "You have been frobbed!  Been nice knowing you.");
-	anotify_fmt(player, GREEN "You frob %s.", PNAME(victim)); */
 	log_status("FROB[MUF]: %s(%d) by %s(%d)\n", NAME(victim),
 		   victim, player != -1 ? NAME(player) : "(Login)", player);
 
 	boot_player_off(victim);
+
+        if (DBFETCH(victim)->sp.player.descrs) {
+            free(DBFETCH(victim)->sp.player.descrs);
+            DBFETCH(victim)->sp.player.descrs = NULL;
+            DBFETCH(victim)->sp.player.descr_count = 0;
+        }
 	delete_player(victim);
 	/* reset name */
 	sprintf(buf, "The soul of %s", PNAME(victim));
@@ -2426,6 +2432,7 @@ prim_newprogram(PRIM_PROTOTYPE)
 
 	OWNER(newprog) = OWNER(player);
 	DBFETCH(newprog)->sp.program.first = 0;
+        DBFETCH(newprog)->sp.program.instances = 0;
 	DBFETCH(newprog)->sp.program.curr_line = 0;
 	DBFETCH(newprog)->sp.program.siz = 0;
 	DBFETCH(newprog)->sp.program.code = 0;

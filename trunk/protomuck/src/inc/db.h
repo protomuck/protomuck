@@ -667,6 +667,7 @@ struct mcp_binding {
 	struct inst *addr;
 };
 
+
 /* union of type-specific fields */
 
 union specific {      /* I've been railroaded! */

@@ -715,6 +715,11 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
 		   victim, NAME(player), player);
       if (Typeof(victim) != TYPE_PLAYER) return;
 	boot_player_off(victim);
+        if (DBFETCH(victim)->sp.player.descrs) {
+            free(DBFETCH(victim)->sp.player.descrs);
+            DBFETCH(victim)->sp.player.descrs = NULL;
+            DBFETCH(victim)->sp.player.descr_count = 0;
+        }
 	delete_player(victim);
 	/* reset name */
 	sprintf(buf, "The soul of %s", PNAME(victim));

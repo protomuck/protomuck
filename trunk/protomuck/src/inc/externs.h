@@ -288,7 +288,8 @@ extern void do_mush_set(int descr, dbref player, char *name, char *setting, char
 extern void do_chlock(int descr, dbref player, const char *name, const char *keyname);
 extern void do_conlock(int descr, dbref player, const char *name, const char *keyname);
 extern void do_flock(int descr, dbref player, const char *name, const char *keyname);
-
+extern void do_relink(int, dbref, const char*, const char *);
+extern void do_unlink_quiet(int, dbref, const char*);
 /* From speech.c */
 extern void do_pose(int descr, dbref player, const char *message);
 extern void do_whisper(int descr, dbref player, const char *arg1, const char *arg2);
@@ -325,6 +326,10 @@ extern char *mush_tct( const char *in, char out[BUFFER_LEN] );
 extern char *parse_tilde_ansi( char *buf, char *from );
 extern char *unparse_tilde_ansi(char *buf, char *from );
 extern char *tilde_tct( const char *in, char out[BUFFER_LEN] );
+extern void prefix_message(char *, const char *, const char *, int, int);
+extern int is_prop_prefix(const char*, const char*);
+extern int has_suffix(const char *, const char *);
+extern int has_suffix_char(const char *, char);
 
 #if !defined(MALLOC_PROFILING)
 extern char *string_dup(const char *s);
@@ -401,9 +406,9 @@ extern void init_primitives(void);
 /* From interp.c */
 extern struct inst *interp_loop(dbref player, dbref program,
 				struct frame *fr, int rettyp);
-extern struct frame *interp(int descr, dbref player, dbref location, dbref program,
-			   dbref source, int nosleeping, int whichperms /* ,
-			   int rettyp */ );
+extern struct frame *interp(int descr, dbref player, dbref location, 
+                   dbref program, dbref source, int nosleeping, int whichperms, 
+                   int forced_pid );
 extern void prog_clean(struct frame * fr);
 
 /* From log.c */

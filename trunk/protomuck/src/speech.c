@@ -507,12 +507,9 @@ parse_omessage(int descr, dbref player, dbref dest, dbref exit, const char *msg,
 
     do_parse_mesg(descr, player, exit, msg, whatcalled, buf, MPI_ISPUBLIC);
     ptr = pronoun_substitute(descr, player, buf);
-    if (!*ptr) return;
-    if (*ptr == '\'' || *ptr == ' ' || *ptr == ',' || *ptr == '-') {
-	sprintf(buf, "%s%s", NAME(player), ptr);
-    } else {
-	sprintf(buf, "%s %s", NAME(player), ptr);
-    }
+    if (!*ptr) 
+        return;
+    prefix_message(buf, ptr, prefix, BUFFER_LEN, 1);
     notify_except(DBFETCH(dest)->contents, player, buf, player);
 }
 

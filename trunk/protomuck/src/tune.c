@@ -161,6 +161,7 @@ int tp_process_timer_limit      = 4;
 int tp_dump_copies		  = 10;
 int tp_min_progbreak_lev        = 0;
 int tp_mcp_muf_mlev             = MCP_MUF_MLEV;
+int tp_max_wiz_preempt_count    = 0;
 #ifdef SQL_SUPPORT
 int tp_mysql_result_limit       = 40;
 #endif
@@ -208,6 +209,7 @@ struct tune_val_entry tune_val_list[] =
     {"Database",  "dump_copies",       &tp_dump_copies,          WBOY,  LMUF },
     {"MUF",       "min_progbreak_lev", &tp_min_progbreak_lev,    LARCH, LMAGE},
     {"MUF",       "mcp_muf_mlev",      &tp_mcp_muf_mlev,         LARCH, LMAGE},
+    {"MUF",       "max_wiz_preempt_count", &tp_max_wiz_preempt_count, LARCH, LMAGE},
 #ifdef SQL_SUPPORT
     {"MUF",       "mysql_result_limit",&tp_mysql_result_limit,   LBOY , LARCH},
 #endif
@@ -1026,7 +1028,7 @@ tune_setparm(const dbref player, const char *parmname, const char *val)
 		obj = lookup_player( parmval + 1 );
 #endif
 	    else {
-		if (*parmval != '#') return 2;
+		if (*parmval != NUMBER_TOKEN) return 2;
 		if (!number(parmval+1)) return 2;
 		obj = (dbref) atoi(parmval+1);
 	    }
@@ -1066,7 +1068,7 @@ tune_load_parms_from_file(FILE *f, dbref player, int cnt)
 
     while (!feof(f) && (cnt<0 || cnt--)) {
 	fgets(buf, sizeof(buf), f);
-	if (*buf != '#') {
+	if (*buf != NUMBER_TOKEN) {
 	    p = c = index(buf, '=');
 	    if (c) {
 		*c++ = '\0';

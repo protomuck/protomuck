@@ -196,7 +196,7 @@ check_cron_time (void)
        if( Typeof(tp_cron_prog) == TYPE_PROGRAM )
       {   
          tempfr = interp( -1, (dbref)-1, (dbref)-1, tp_cron_prog, (dbref) -4, 
-                     BACKGROUND, STD_REGUID);
+                     BACKGROUND, STD_REGUID, 0);
          if(tempfr) {
             temp = interp_loop((dbref) -1, tp_cron_prog, tempfr, 0);
          }

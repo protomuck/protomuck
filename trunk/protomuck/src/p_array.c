@@ -738,14 +738,12 @@ prim_array_notify(PRIM_PROTOTYPE)
                         oper4 = array_getitem(strarr, &temp2);
                         strcpy(buf, DoNullInd(oper4->data.string));
                         if (tp_m1_name_notify && mlev < 2) {
-                                strcpy(buf2, PNAME(player));
-                                strcat(buf2, " ");
-                                if (!string_prefix(buf, buf2)) {
-                                        strcat(buf2, buf);
-                                        buf2[BUFFER_LEN - 1] = '\0';
-                                        strcpy(buf, buf2);
-                                }
+                            prefix_message(buf, DoNullInd(oper4->data.string),
+                                PNAME(player), BUFFER_LEN, 1);
+                        } else {
+                            strcpy(buf, DoNullInd(oper4->data.string));
                         }
+                        
                         if (array_first(refarr, &temp1)) {
                                 do {
                                         oper3 = array_getitem(refarr, &temp1);
