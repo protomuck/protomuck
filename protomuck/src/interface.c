@@ -651,9 +651,11 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 		if((d->linelen > 0) && !(FLAGS(player)&CHOWN_OK)) {
 		    lwp = buf;
 		    len = strlen(buf);
-		    queue_ansi(d, buf);
+                if(d)
+ 		       queue_ansi(d, buf);
 		} else
-		    queue_ansi(d, buf);
+                if(d)
+  		       queue_ansi(d, buf);
 
 		if (firstpass) retval++;
 	    }
@@ -694,8 +696,10 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
                         for (di = 0; di < dcount; di++) {
 			    d = descrdata_by_index(darr[di]);
 				    if (Html(OWNER(player)))
+                                     if (d)
                                        queue_ansi(d, html_escape(buf2)); else
-                            queue_ansi(d, buf2);
+                            if (d)
+                               queue_ansi(d, buf2);
                             if (firstpass) retval++;
                         }
 		    }
@@ -753,11 +757,13 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 		{
 		    lwp = buf;
 		    len = strlen(buf);
-		    queue_ansi(d, buf);
+                if(d)
+		       queue_ansi(d, buf);
 		} else if ((Html(d->player)) && (d->player == player))
 		{
-		    queue_ansi(d, buf);
-		    if (NHtml(d->player)) queue_ansi(d, "<BR>");
+                if(d)
+		       queue_ansi(d, buf);
+		    if (NHtml(d->player) && d) queue_ansi(d, "<BR>");
 		}
 		if (firstpass) retval++;
 	}
@@ -798,7 +804,8 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 
                         for (di = 0; di < dcount; di++) {
 				    d = descrdata_by_index(darr[di]);
-                            queue_ansi(d, buf2);
+                            if (d)
+                               queue_ansi(d, buf2);
                             if (firstpass) retval++;
                         }
 		    }
@@ -3889,16 +3896,19 @@ forget_player_descr(dbref player, int descr)
 {
     int  count = DBFETCH(player)->sp.player.descr_count;
     int* arr   = DBFETCH(player)->sp.player.descrs;
+    int index;
+    
+    index = descr_index(descr);
 
-    if (Typeof(player) != TYPE_PLAYER)
-       return;
+    if((index < 0) || (index >= MAX_SOCKETS))
+	return;
 
     if (!arr) {
         count = 0;
     } else if (count > 1) {
 	int src, dest;
         for (src = dest = 0; src < count; src++) {
-	    if (arr[src] != descr) {
+	    if (arr[src] != index) {
 		if (src != dest) {
 		    arr[dest] = arr[src];
 		}
@@ -3908,7 +3918,7 @@ forget_player_descr(dbref player, int descr)
 	if (dest != count) {
 	    count = dest;
 	    arr = (int*)realloc(arr,sizeof(int) * count);
-        }
+	}
     } else {
         free((void*)arr);
         arr = NULL;
