@@ -335,11 +335,11 @@ prim_dist3d(PRIM_PROTOTYPE)
     }
     if (oper2->type == PROG_INTEGER) {
         oper2->type = PROG_FLOAT;
-        oper2->data.fnumber = oper1->data.number;
+        oper2->data.fnumber = oper2->data.number;
     }
     if (oper3->type == PROG_INTEGER) {
         oper3->type = PROG_FLOAT;
-        oper3->data.fnumber = oper1->data.number;
+        oper3->data.fnumber = oper2->data.number;
     }
     if (oper1->type != PROG_FLOAT)
         abort_interp("Non-float argument. (1)");
