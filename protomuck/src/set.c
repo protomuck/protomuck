@@ -884,7 +884,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
 	!(FLAGS(thing) & CHOWN_OK)  ||
 	Typeof(thing) == TYPE_PROGRAM ||
 	!test_lock(descr, player, thing, "_/chlk") )) {
-        if (!POWERS(player) & POW_CHOWN_ANYTHING) {
+        if (!(POWERS(player) & POW_CHOWN_ANYTHING)) {
  	    anotify_nolisten2(player, CFAIL "You can't take possession of that.");
 	    return;
         }
