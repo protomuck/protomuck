@@ -1318,8 +1318,8 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
 
             if (prop_read_perms(ProgUID, ref, propname, mlev)) {
                 if (!prptr) {
-                    temp2.type = PROG_INTEGER;
-                    temp2.data.number = 0;
+                    temp2.type = PROG_STRING;
+                    temp2.data.string = NULL;
                 } else {
 #ifdef DISKBASE
                     propfetch(ref, prptr);
@@ -1351,8 +1351,8 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                             temp2.data.fnumber = PropDataFVal(prptr);
                             break;
                         default:
-                            temp2.type = PROG_INTEGER;
-                            temp2.data.number = 0;
+                            temp2.type = PROG_STRING;
+                            temp2.data.string = NULL;
                             break;
                     }
                 }
