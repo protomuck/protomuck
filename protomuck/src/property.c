@@ -1106,7 +1106,13 @@ db_putprop(FILE * f, const char *dir, PropPtr p)
             break;
     }
     while (*ptr2)
-        *ptr++ = *ptr2++;
+        if (*ptr2 != '\n')
+            *ptr++ = *ptr2++;
+        else {
+            *ptr++ = '\\';
+            *ptr++ = 'n';
+            ptr2++;
+        }
     *ptr++ = '\n';
     *ptr++ = '\0';
     if (fputs(buf, f) == EOF) {
