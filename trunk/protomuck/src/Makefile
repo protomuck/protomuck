@@ -81,7 +81,8 @@ CSRC= array.c boolexp.c case.c cgi.c compile.c compress.c create.c db.c  \
 	p_mcp.c p_misc.c p_props.c p_socket.c p_stack.c p_strings.c        \
       property.c propdirs.c props.c random.c rob.c rwho.c set.c          \
       signal.c smatch.c speech.c strftime.c stringutil.c timequeue.c     \
-      timestamp.c	tune.c unparse.c utils.c wiz.c reg.c netresolve.c sanity.c
+      timestamp.c	tune.c unparse.c utils.c wiz.c reg.c netresolve.c \
+      sanity.c
 
 MSRC= olddecomp.c reconst.c interface.c
 SRC= ${MISCSRC} ${CSRC} ${MSRC}

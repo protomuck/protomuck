@@ -162,24 +162,18 @@ reg_user_is_barred( int site, int user ) {
     default:
 	break;
     }
-
     if (!Guest(user) && get_property_class( user, REG_LOGIN ))
 	login = TRUE;
     else if (TMage(user)) return FALSE;
-
     if (guest && Guest(user)) return TRUE;
-
     if (barred) /* Check user for ability to log in from a site */
 	if (!TMage(user) && !( siteState(site, user) == REG_USER ))
 	    return TRUE;
-
     if (login) /* Check user for ability to log in from her login list */
 	if (!( loginState(site, user) == REG_USER ))
 	    return TRUE;
-
     /* Player is not barred if @/id property set */
     if (TMage(user) || get_property_class( user, "@/id" ))   return FALSE;
-
     return (!opensite);
 }
 

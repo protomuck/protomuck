@@ -130,6 +130,10 @@ protomuck:        ${P} ${COBJ} interface.o mkversion.sh
 resolver:	resolver.o
 	${PRE} ${CC} ${CFLAGS} -o resolver resolver.o ${LIBR}
 
+extract: ${P} extract.o ${EOBJ}
+	 ${RM} extract
+	 ${CC} ${CFLAGS} -o extract ${EOBJ} extract.o
+
 topwords: topwords.o hashtab.o
 	${RM} topwords
 	${CC} ${CFLAGS} -o topwords topwords.o hashtab.o

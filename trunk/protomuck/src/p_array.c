@@ -1661,9 +1661,10 @@ prim_array_findval(PRIM_PROTOTYPE)
                         if (!array_idxcmp(in, oper2)) {
                                 array_appenditem(&nw, &temp1);
                         }
+                        CLEAR(in);
                 } while (!found && array_next(arr, &temp1));
         }
-
+        CLEAR(&temp1);
         CLEAR(oper2);
         CLEAR(oper1);
 
