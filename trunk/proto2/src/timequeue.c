@@ -221,8 +221,7 @@ add_event(int event_typ, int subtyp, int dtime, int descr, dbref player,
     }
     if (!(event_typ == TQ_MUF_TYP && subtyp == TQ_MUF_TREAD)) {
         if (process_count > tp_max_process_limit ||
-            (mypids > tp_max_plyr_processes
-             && !Mage(OWNER(OkObj(player) ? player : program)))) {
+            (mypids > tp_max_plyr_processes && !Mage(OWNER(PSafe)))) {
             if (fr) {
                 if (fr->multitask != BACKGROUND) {
                     if (OkObj(player)) {
@@ -234,8 +233,10 @@ add_event(int event_typ, int subtyp, int dtime, int descr, dbref player,
                 }
                 prog_clean(fr);
             }
-            anotify_nolisten(player,
-                             CINFO "Event killed.  Timequeue table full.", 1);
+            if (OkObj(player))
+                anotify_nolisten(player,
+                                 CINFO "Event killed.  Timequeue table full.",
+                                 1);
             return 0;
         }
     }
@@ -315,8 +316,9 @@ add_muf_delayq_event(int delay, int descr, dbref player, dbref loc, dbref trig,
 int
 add_muf_read_event(int descr, dbref player, dbref prog, struct frame *fr)
 {
-    if (player != NOTHING)
+    if (OkObj(player))
         FLAGS(player) |= (INTERACTIVE | READMODE);
+
     return add_event(TQ_MUF_TYP, TQ_MUF_READ, -1, descr, player, -1, fr->trig,
                      prog, fr, "READ", NULL, NULL);
 }
@@ -325,7 +327,9 @@ int
 add_muf_tread_event(int descr, dbref player, dbref prog, struct frame *fr,
                     int delay)
 {
-    FLAGS(player) |= (INTERACTIVE | READMODE);
+    if (OkObj(player))
+        FLAGS(player) |= (INTERACTIVE | READMODE);
+
     return add_event(TQ_MUF_TYP, TQ_MUF_TREAD, delay, descr, player, -1,
                      fr->trig, prog, fr, "READ", NULL, NULL);
 }
@@ -390,20 +394,20 @@ handle_read_event(int descr, dbref player, const char *command,
 {
     struct frame *fr;
     timequeue ptr, lastevent;
-    int flag, typ, nothing_flag, oldflags = 0;
+    int typ, oldflags = 0;
+    short nothing_flag;
     dbref prog;
     struct descriptor_data *curdescr = NULL;
 
     nothing_flag = 0;
-    if (command == NULL) {
+    if (command == NULL)
         nothing_flag = 1;
-    }
-    if (player != NOTHING) {
+
+    if (OkObj(player)) {
         oldflags = FLAGS(player);
         FLAGS(player) &= ~(INTERACTIVE | READMODE);
     } else {
-        curdescr = get_descr(descr, NOTHING);
-        if (curdescr) {
+        if ((curdescr = get_descr(descr, NOTHING))) {
             curdescr->interactive = 0;
             DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
         }
@@ -413,7 +417,7 @@ handle_read_event(int descr, dbref player, const char *command,
     while (ptr && !event) {     //If event is not NULL, we don't want to do this part.
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                        ptr->subtyp == TQ_MUF_TREAD) &&
-            (player != NOTHING ? ptr->uid == player : ptr->descr == descr)) {
+            (OkObj(player) ? ptr->uid == player : ptr->descr == descr)) {
             break;
         }
         lastevent = ptr;
@@ -432,11 +436,10 @@ handle_read_event(int descr, dbref player, const char *command,
         if (!fr->brkpt.debugging || fr->brkpt.isread)
             if (!fr->wantsblanks && command && !*command && !event) {
                 /* put flags back on player and return */
-                if (player != NOTHING)
+                if (OkObj(player)) {
                     FLAGS(player) = oldflags;
-                else {
-                    curdescr = get_descr(descr, NOTHING);
-                    if (curdescr) {
+                } else {
+                    if ((curdescr = get_descr(descr, NOTHING))) {
                         curdescr->interactive = 2;
                         DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
                     }
@@ -487,7 +490,9 @@ handle_read_event(int descr, dbref player, const char *command,
         } else if (command || event) {
             /* This is a MUF READ event. */
             if (command && !string_compare(command, BREAK_COMMAND) &&
-                ((MLevel(player) >= tp_min_progbreak_lev) || (Wiz(player)))) {
+                (OkObj(player)
+                 && ((MLevel(player) >= tp_min_progbreak_lev)
+                     || (Wiz(player))))) {
                 /* Whoops!  The user typed @Q.  Free the frame and exit. */
                 prog_clean(fr);
                 return;
@@ -498,7 +503,9 @@ handle_read_event(int descr, dbref player, const char *command,
                 /* Uh oh! That MUF program's stack is full!
                  * Print an error, free the frame, and exit.
                  */
-                notify_nolisten(player, "Program stack overflow.", 1);
+                if (OkObj(player))
+                    notify_nolisten(player, "Program stack overflow.", 1);
+
                 prog_clean(fr);
                 return;
             }
@@ -524,11 +531,8 @@ handle_read_event(int descr, dbref player, const char *command,
          * INTERACTIVE bit on the user, if it does NOT want the MUF
          * program to resume executing.
          */
-        if (player != NOTHING)
-            flag = (FLAGS(player) & INTERACTIVE);
-        else
-            flag = 0;
-        if (!flag && fr) {
+
+        if (!(OkObj(player) ? (FLAGS(player) & INTERACTIVE) : 0) && fr) {
             interp_loop(player, prog, fr, 0);
             /* WORK: if more input is pending, send the READ mufevent again. */
             /* WORK: if no input is pending, clear READ mufevent from all 
@@ -542,7 +546,7 @@ handle_read_event(int descr, dbref player, const char *command,
         while (ptr) {
             if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                            ptr->subtyp == TQ_MUF_TREAD)) {
-                if (ptr->uid == player && player != NOTHING) {
+                if (OkObj(player) && ptr->uid == player) {
                     FLAGS(player) |= (INTERACTIVE | READMODE);
                 }
             }
@@ -799,7 +803,8 @@ list_events(dbref player)
             (void) sprintf(buf,
                            "%8d %4s   0s     0   -- #%-6d %-16s \"%.512s\"",
                            ptr->eventnum, buf2, ptr->called_prog,
-                           NAME(ptr->uid), ptr->called_data);
+                           (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
+                           ptr->called_data);
         }
         if (Mage(OWNER(player)) || ((ptr->called_prog != NOTHING) &&
                                     (OWNER(ptr->called_prog) == OWNER(player)))
@@ -1052,8 +1057,8 @@ dequeue_prog(dbref program, int sleeponly)
 
     /* Make sure to re-set any READ/INTERACTIVE flags needed */
     for (ptr = tqhead; ptr; ptr = ptr->next) {
-        if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
-                                       ptr->subtyp == TQ_MUF_TREAD)) {
+        if (OkObj(ptr->uid) && ptr->typ == TQ_MUF_TYP
+            && (ptr->subtyp == TQ_MUF_READ || ptr->subtyp == TQ_MUF_TREAD)) {
             FLAGS(ptr->uid) |= (INTERACTIVE | READMODE);
         }
     }
@@ -1108,23 +1113,18 @@ dequeue_prog_descr(int descr, int sleeponly)
     for (ptr = tqhead; ptr; ptr = ptr->next) {
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                        ptr->subtyp == TQ_MUF_TREAD)) {
-            curdescr = get_descr(descr, NOTHING);
-            if (curdescr)
+            if ((curdescr = get_descr(descr, NOTHING)))
                 curdescr->interactive = 0;
         }
     }
     return (count);
 }
 
-
-
-
-
 int
 dequeue_process(int pid)
 {
     timequeue tmp, ptr;
-    int deqflag = 0;
+    short deqflag = 0;
 
     if (!pid)
         return 0;
@@ -1154,16 +1154,16 @@ dequeue_process(int pid)
         }
     }
 
-    if (!deqflag) {
+    if (!deqflag)
         return 0;
-    }
 
     for (ptr = tqhead; ptr; ptr = ptr->next) {
-        if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
-                                       ptr->subtyp == TQ_MUF_TREAD)) {
+        if (OkObj(ptr->uid) && ptr->typ == TQ_MUF_TYP
+            && (ptr->subtyp == TQ_MUF_READ || ptr->subtyp == TQ_MUF_TREAD)) {
             FLAGS(ptr->uid) |= (INTERACTIVE | READMODE);
         }
     }
+
     return 1;
 }
 
