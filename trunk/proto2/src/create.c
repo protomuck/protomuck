@@ -15,9 +15,6 @@
 
 struct line *read_program(dbref i);
 
-int link_exit(int descr, dbref player, dbref exit, char *dest_name,
-              dbref *dest_list);
-
 /* parse_linkable_dest()
  *
  * A utility for open and link which checks whether a given destination
@@ -30,8 +27,8 @@ int link_exit(int descr, dbref player, dbref exit, char *dest_name,
 static dbref
 parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
 {
-    dbref dobj;                 /* destination room/player/thing/link */
-    static char buf[BUFFER_LEN];
+    register dbref dobj;               /* destination room/player/thing/link */
+    char buf[BUFFER_LEN];
     struct match_data md;
 
     init_match(descr, player, dest_name, NOTYPE, &md);
@@ -58,14 +55,14 @@ parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
         anotify_nolisten2(player, CFAIL "You can't link that.");
         return NOTHING;
     }
+
     if (!can_link_to(player, Typeof(exit), dobj)) {
         sprintf(buf, CFAIL "You can't link to %s.",
                 unparse_object(player, dobj));
         anotify_nolisten2(player, buf);
         return NOTHING;
-    } else {
+    } else
         return dobj;
-    }
 }
 
 /* exit_loop_check()
@@ -74,16 +71,18 @@ parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
  * if any circular references are present in the destination chain.
  * Returns 1 if circular reference found, 0 if not.
  */
-int
-exit_loop_check(dbref source, dbref dest)
+bool
+exit_loop_check(register dbref source, register dbref dest)
 {
 
-    int i;
+    register int i;
 
     if (source == dest)
         return 1;               /* That's an easy one! */
+
     if (Typeof(dest) != TYPE_EXIT)
         return 0;
+
     for (i = 0; i < DBFETCH(dest)->sp.exit.ndest; i++) {
         if ((DBFETCH(dest)->sp.exit.dest)[i] == source) {
             return 1;           /* Found a loop! */
@@ -94,6 +93,7 @@ exit_loop_check(dbref source, dbref dest)
             }
         }
     }
+
     return 0;                   /* No loops found */
 }
 
@@ -101,12 +101,9 @@ exit_loop_check(dbref source, dbref dest)
 void
 do_open(int descr, dbref player, const char *direction, const char *linkto)
 {
+    register char *rname, *qname;
     dbref loc, exit = NOTHING;
-    dbref good_dest[MAX_LINKS];
-    char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
-    char *rname, *qname;
-    int i, ndest;
 
     if (!Builder(player)) {
         anotify_nolisten2(player, CFAIL NOBBIT_MESG);
@@ -132,6 +129,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 
     if ((loc = getloc(player)) == NOTHING)
         return;
+
     if (!*direction) {
         anotify_nolisten2(player,
                           CINFO
@@ -141,6 +139,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
         anotify_nolisten2(player, CINFO "That's a strange name for an exit!");
         return;
     }
+
     if (!controls(player, loc) && !(POWERS(player) & POW_OPEN_ANYWHERE)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
@@ -149,6 +148,8 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
                     tp_pennies);
         return;
     } else {
+        char buf[BUFFER_LEN];
+
         /* create the exit */
         exit = new_object();
 
@@ -176,7 +177,9 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
                 anotify_fmt(player, CFAIL "You don't have enough %s to link.",
                             tp_pennies);
             } else {
-                ndest =
+                dbref good_dest[MAX_LINKS];
+                register int i;
+                register int ndest =
                     link_exit(descr, player, exit, (char *) qname, good_dest);
                 DBFETCH(exit)->sp.exit.ndest = ndest;
                 DBFETCH(exit)->sp.exit.dest =
@@ -190,6 +193,8 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
     }
 
     if (*rname && (exit != NOTHING)) {
+        char buf[BUFFER_LEN];
+
         sprintf(buf, CSUCC "Registered as $%s", rname);
         anotify_nolisten2(player, buf);
         sprintf(buf, "_reg/%s", rname);
@@ -213,26 +218,25 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 
 int
 _link_exit(int descr, dbref player, dbref exit, char *dest_name,
-           dbref *dest_list, int dryrun)
-{
-    char *p, *q;
-    int prdest;
-    dbref dest;
-    int ndest, error;
+           register dbref *dest_list, register bool dryrun)
+{   
     char buf[BUFFER_LEN], qbuf[BUFFER_LEN];
-
-    prdest = 0;
-    ndest = 0;
-    error = 0;
+    register bool error = 0;
+    register char *p, *q;
+    int prdest = 0;
+    int ndest = 0;
+    dbref dest;
 
     while (*dest_name) {
         while (isspace(*dest_name))
             dest_name++;        /* skip white space */
         p = dest_name;
+
         while (*dest_name && (*dest_name != EXIT_DELIMITER))
             dest_name++;
         q = (char *) strncpy(qbuf, p, BUFFER_LEN); /* copy word */
         q[(dest_name - p)] = '\0'; /* terminate it */
+
         if (*dest_name)
             for (dest_name++; *dest_name && isspace(*dest_name); dest_name++) ;
 
@@ -249,8 +253,7 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
                             "One non-thing link allowed. Destination %s ignored.",
                             unparse_object(player, dest));
                     anotify_nolisten2(player, buf);
-                    if (dryrun)
-                        error = 1;
+                    error = dryrun;
                     continue;
                 }
                 dest_list[ndest++] = dest;
@@ -266,8 +269,7 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
                             "Destination %s would create a loop, ignored.",
                             unparse_object(player, dest));
                     anotify_nolisten2(player, buf);
-                    if (dryrun)
-                        error = 1;
+                    error = dryrun;
                     continue;
                 }
                 dest_list[ndest++] = dest;
@@ -276,10 +278,10 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
                 anotify_nolisten2(player, CFAIL "Weird object type.");
                 log_status("*BUG: weird object: Typeof(%d) = %d\n",
                            dest, Typeof(dest));
-                if (dryrun)
-                    error = 1;
+                error = dryrun;
                 break;
         }
+
         if (!dryrun) {
             if (dest == HOME) {
                 anotify_nolisten2(player, CSUCC "Linked to HOME.");
@@ -289,31 +291,19 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
                 anotify_nolisten2(player, buf);
             }
         }
+
         if (ndest >= MAX_LINKS) {
             anotify_nolisten2(player,
                               CSUCC "Too many destinations, extra ignored.");
-            if (dryrun)
-                error = 1;
+            error = dryrun;
             break;
         }
     }
+
     if (dryrun && error)
         return 0;
+
     return ndest;
-}
-
-int
-link_exit(int descr, dbref player, dbref exit, char *dest_name,
-          dbref *dest_list)
-{
-    return _link_exit(descr, player, exit, dest_name, dest_list, 0);
-}
-
-int
-link_exit_dry(int descr, dbref player, dbref exit, char *dest_name,
-              dbref *dest_list)
-{
-    return _link_exit(descr, player, exit, dest_name, dest_list, 1);
 }
 
 /* do_link
@@ -328,13 +318,12 @@ link_exit_dry(int descr, dbref player, dbref exit, char *dest_name,
 void
 do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 {
-    dbref thing;
-    dbref dest;
     dbref good_dest[MAX_LINKS];
+    register int ndest, i;
     struct match_data md;
     char buf[BUFFER_LEN];
-    int ndest, i;
-
+    dbref thing, dest;
+    
     if (tp_db_readonly) {
         anotify_nolisten2(player, CFAIL DBRO_MESG);
         return;
@@ -353,9 +342,9 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
     match_here(&md);
     match_absolute(&md);
     match_registered(&md);
-    if (Mage(OWNER(player))) {
+    if (Mage(OWNER(player)))
         match_player(&md);
-    }
+
     if ((thing = noisy_match_result(&md)) == NOTHING)
         return;
 
@@ -403,23 +392,21 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 
             /* link has been validated and paid for; do it */
             OWNER(thing) = OWNER(player);
-            ndest =
-                link_exit(descr, player, thing, (char *) dest_name, good_dest);
-            if (ndest == 0) {
+            
+            if (!(ndest = link_exit(descr, player, thing, (char *) dest_name, good_dest))) {
                 anotify_nolisten2(player, CFAIL "No destinations linked.");
                 DBFETCH(player)->sp.player.pennies += tp_link_cost; /* Refund! */
                 DBDIRTY(player);
                 break;
             }
+
             DBFETCH(thing)->sp.exit.ndest = ndest;
-            if (DBFETCH(thing)->sp.exit.dest) {
+            if (DBFETCH(thing)->sp.exit.dest)
                 free(DBFETCH(thing)->sp.exit.dest);
-            }
-            DBFETCH(thing)->sp.exit.dest =
-                (dbref *) malloc(sizeof(dbref) * ndest);
-            for (i = 0; i < ndest; i++) {
+
+            DBFETCH(thing)->sp.exit.dest = (dbref *) malloc(sizeof(dbref) * ndest);
+            for (i = 0; i < ndest; i++)
                 (DBFETCH(thing)->sp.exit.dest)[i] = good_dest[i];
-            }
             break;
         case TYPE_THING:
         case TYPE_PLAYER:
@@ -461,6 +448,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             match_home(&md);
             if ((dest = noisy_match_result(&md)) == NOTHING)
                 break;
+
             if (!controls(player, thing)
                 || !can_link_to(player, Typeof(thing), dest)
                 || (thing == dest)) {
@@ -471,6 +459,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
                         NAME(thing), unparse_object(player, dest));
                 anotify_nolisten2(player, buf);
             }
+
             break;
         case TYPE_PROGRAM:
             anotify_nolisten2(player,
@@ -493,16 +482,15 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
  */
 void
 do_dig(int descr, dbref player, const char *name, const char *pname)
-{
-    dbref room;
-    dbref parent;
-    dbref newparent;
-    char buf[BUFFER_LEN];
+{  
+    register char *rname, *qname;
+    register dbref newparent;
     char rbuf[BUFFER_LEN];
     char qbuf[BUFFER_LEN];
-    char *rname;
-    char *qname;
+    char buf[BUFFER_LEN];
+    register dbref room;
     struct match_data md;
+    dbref parent;
 
     if (!Builder(player) && !tp_all_can_build_rooms) {
         anotify_nolisten2(player, CFAIL NOBBIT_MESG);
@@ -518,10 +506,12 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
         anotify_nolisten2(player, CINFO "You need name for the room.");
         return;
     }
+
     if (!ok_name(name)) {
         anotify_nolisten2(player, CINFO "That's a silly name for a room!");
         return;
     }
+
     if (!payfor(player, tp_room_cost)) {
         anotify_fmt(player, CFAIL "You don't have enough %s to dig a room.",
                     tp_pennies);
@@ -607,77 +597,35 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
 void
 do_prog(int descr, dbref player, const char *name)
 {
-    dbref i;
-    int jj;
-    dbref newprog;
-    char buf[BUFFER_LEN];
+    register dbref i;
     struct match_data md;
 
     if (Typeof(player) != TYPE_PLAYER) {
         anotify_nolisten2(player, CFAIL "Only players can edit programs.");
         return;
-    }
-    if (!Mucker(player)) {
+    } else if (!Mucker(player)) {
         anotify_nolisten2(player, CFAIL NOMBIT_MESG);
         return;
-    }
-    if (!tp_building || tp_db_readonly) {
+    } else if (!tp_building || tp_db_readonly) {
         anotify_nolisten2(player, CFAIL NOBUILD_MESG);
         return;
-    }
-    if (!*name) {
+    } else if (!*name) {
         anotify_nolisten2(player, CINFO "No program name given.");
         return;
     }
-    init_match(descr, player, name, TYPE_PROGRAM, &md);
 
+    init_match(descr, player, name, TYPE_PROGRAM, &md);
     match_possession(&md);
     match_neighbor(&md);
     match_registered(&md);
     match_absolute(&md);
 
     if ((i = match_result(&md)) == NOTHING) {
-        newprog = new_object();
+        i = new_program(OWNER(player), name);
+        FLAGS(i) |= INTERNAL;
+        DBFETCH(player)->sp.player.curr_prog = i;
 
-        NAME(newprog) = alloc_string(name);
-        sprintf(buf, "A scroll containing a spell called %s", name);
-        SETDESC(newprog, buf);
-        DBFETCH(newprog)->location = player;
-        FLAGS(newprog) = TYPE_PROGRAM;
-        jj = MLevel(player);
-        if (jj < 1)
-            jj = 2;
-        if (jj > 3)
-            jj = 3;
-        SetMLevel(newprog, jj);
-
-        OWNER(newprog) = OWNER(player);
-        DBFETCH(newprog)->sp.program.first = 0;
-        DBFETCH(newprog)->sp.program.curr_line = 0;
-        DBFETCH(newprog)->sp.program.siz = 0;
-        DBFETCH(newprog)->sp.program.code = 0;
-        DBFETCH(newprog)->sp.program.start = 0;
-        DBFETCH(newprog)->sp.program.pubs = 0;
-#ifdef MCP_SUPPORT
-        DBFETCH(newprog)->sp.program.mcpbinds = 0;
-#endif
-        DBFETCH(newprog)->sp.program.proftime.tv_sec = 0;
-        DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
-        DBFETCH(newprog)->sp.program.profstart = 0;
-        DBFETCH(newprog)->sp.program.profuses = 0;
-        DBFETCH(newprog)->sp.program.instances = 0;
-        DBFETCH(player)->sp.player.curr_prog = newprog;
-        /* Obsolete, using new find_mlev in interp.c
-           if (tp_compatible_muf_perms) { 
-           FLAGS(newprog) |= QUELL | HAVEN;
-           if (jj >= LM3)
-           SetMLevel(newprog, LM3);
-           } */
-        PUSH(newprog, DBFETCH(player)->contents);
-        DBDIRTY(newprog);
-        DBDIRTY(player);
-        sprintf(buf, CSUCC "Program %s created with number %d.", name, newprog);
-        anotify_nolisten2(player, buf);
+        anotify_fmt(player, CSUCC "Program %s created with number %d.", name, i);
         anotify_nolisten2(player, CINFO "Entering editor.");
     } else if (i == AMBIGUOUS) {
         anotify_nolisten2(player, CINFO "I don't know which one you mean!");
@@ -686,21 +634,20 @@ do_prog(int descr, dbref player, const char *name)
         if ((Typeof(i) != TYPE_PROGRAM) || !controls(player, i)) {
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
-        }
-        if (FLAGS(i) & INTERNAL) {
+        } else if (FLAGS(i) & INTERNAL) {
             anotify_nolisten2(player, CFAIL NOEDIT_MESG);
             return;
         }
+
         DBFETCH(i)->sp.program.first = read_program(i);
         FLAGS(i) |= INTERNAL;
         DBFETCH(player)->sp.player.curr_prog = i;
-        sprintf(buf, CINFO "Entering editor for %s.",
-                unparse_object(player, i));
-        anotify_nolisten2(player, buf);
+        anotify_fmt(player, CINFO "Entering editor for %s.", unparse_object(player, i));
         /* list current line */
         do_list(player, i, 0, 0, 0);
         DBDIRTY(i);
     }
+
     FLAGS(player) |= INTERACTIVE;
     DBDIRTY(player);
 }
@@ -708,29 +655,24 @@ do_prog(int descr, dbref player, const char *name)
 void
 do_edit(int descr, dbref player, const char *name)
 {
-    dbref i;
-    char buf[BUFFER_LEN];
+    register dbref i;
     struct match_data md;
 
     if (Typeof(player) != TYPE_PLAYER) {
         anotify_nolisten2(player, CFAIL "Only players can edit programs.");
         return;
-    }
-    if (!Mucker(player)) {
+    } else if (!Mucker(player)) {
         anotify_nolisten2(player, CFAIL NOMBIT_MESG);
         return;
-    }
-    if (tp_db_readonly) {
+    } else if (tp_db_readonly) {
         anotify_nolisten2(player, CFAIL DBRO_MESG);
         return;
-    }
-
-    if (!*name) {
+    } else if (!*name) {
         anotify_nolisten2(player, CINFO "No program name given.");
         return;
     }
-    init_match(descr, player, name, TYPE_PROGRAM, &md);
 
+    init_match(descr, player, name, TYPE_PROGRAM, &md);
     match_possession(&md);
     match_neighbor(&md);
     match_registered(&md);
@@ -742,16 +684,15 @@ do_edit(int descr, dbref player, const char *name)
     if ((Typeof(i) != TYPE_PROGRAM) || !controls(player, i)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
-    }
-    if (FLAGS(i) & INTERNAL) {
+    } else if (FLAGS(i) & INTERNAL) {
         anotify_nolisten2(player, CFAIL NOEDIT_MESG);
         return;
     }
+
     FLAGS(i) |= INTERNAL;
     DBFETCH(i)->sp.program.first = read_program(i);
     DBFETCH(player)->sp.player.curr_prog = i;
-    sprintf(buf, CINFO "Entering editor for %s.", unparse_object(player, i));
-    anotify_nolisten2(player, buf);
+    anotify_fmt(player, CINFO "Entering editor for %s.", unparse_object(player, i));
     /* list current line */
     do_list(player, i, 0, 0, 0);
     FLAGS(player) |= INTERACTIVE;
@@ -762,191 +703,22 @@ do_edit(int descr, dbref player, const char *name)
 #ifdef MCP_SUPPORT
 
 void
-do_mcpedit(int descr, dbref player, const char *name)
-{
-    dbref prog;
-    struct match_data md;
-
-//    char namestr[BUFFER_LEN];
-//    char refstr[BUFFER_LEN];
-//    struct line *curr;
-//    McpMesg msg;
-    McpFrame *mfr;
-
-//    McpVer supp;
-
-    mfr = descr_mcpframe(descr);
-    if (!mfr) {
-        do_edit(descr, player, name);
-        return;
-    }
-
-    if (!*name) {
-        anotify_nolisten(player, CINFO "No program name given.", 1);
-        return;
-    }
-
-    if (tp_db_readonly) {
-        anotify_nolisten2(player, CFAIL NOBUILD_MESG);
-        return;
-    }
-
-    init_match(descr, player, name, TYPE_PROGRAM, &md);
-    match_possession(&md);
-    match_neighbor(&md);
-    match_registered(&md);
-    match_absolute(&md);
-
-    prog = noisy_match_result(&md);
-    if (prog == NOTHING) {
-        anotify_nolisten(player, CFAIL "I don't see that here.", 1);
-        return;
-    }
-    if (prog == AMBIGUOUS) {
-        anotify_nolisten(player, CINFO "I don't know which one you mean.", 1);
-        return;
-    }
-
-    mcpedit_program(descr, player, prog, name);
-}
-
-void
-do_mcpprogram(int descr, dbref player, const char *name)
-{
-    dbref prog;
-    char buf[BUFFER_LEN];
-    struct match_data md;
-    int jj;
-
-    if (Typeof(player) != TYPE_PLAYER) {
-        anotify(player, CFAIL "Only players can edit programs.");
-        return;
-    }
-
-    if (!Mucker(player)) {
-        anotify(player, CFAIL NOMBIT_MESG);
-        return;
-    }
-
-    if (!*name) {
-        anotify(player, "No program name given.");
-        return;
-    }
-
-    if (tp_db_readonly) {
-        anotify_nolisten2(player, CFAIL DBRO_MESG);
-        return;
-    }
-
-    if (!tp_building || tp_db_readonly) {
-        anotify_nolisten2(player, CFAIL NOBUILD_MESG);
-        return;
-    }
-
-    init_match(descr, player, name, TYPE_PROGRAM, &md);
-
-    match_possession(&md);
-    match_neighbor(&md);
-    match_registered(&md);
-    match_absolute(&md);
-
-    prog = match_result(&md);
-
-    if (prog == NOTHING) {      /* make new program object */
-        prog = new_object();
-
-        NAME(prog) = alloc_string(name);
-        snprintf(buf, sizeof(buf), "A scroll containing a spell called %s",
-                 name);
-        SETDESC(prog, buf);
-        DBFETCH(prog)->location = player;
-        FLAGS(prog) = TYPE_PROGRAM;
-        jj = MLevel(player);
-        if (jj < 1)
-            jj = 2;
-        if (jj > 3)
-            jj = 3;
-        SetMLevel(prog, jj);
-
-        OWNER(prog) = OWNER(player);
-        DBFETCH(prog)->sp.program.first = 0;
-        DBFETCH(prog)->sp.program.curr_line = 0;
-        DBFETCH(prog)->sp.program.siz = 0;
-        DBFETCH(prog)->sp.program.code = 0;
-        DBFETCH(prog)->sp.program.start = 0;
-        DBFETCH(prog)->sp.program.pubs = 0;
-        DBFETCH(prog)->sp.program.mcpbinds = 0;
-        DBFETCH(prog)->sp.program.proftime.tv_sec = 0;
-        DBFETCH(prog)->sp.program.proftime.tv_usec = 0;
-        DBFETCH(prog)->sp.program.profstart = 0;
-        DBFETCH(prog)->sp.program.profuses = 0;
-        DBFETCH(prog)->sp.program.instances = 0;
-        DBFETCH(player)->sp.player.curr_prog = prog;
-
-        PUSH(prog, DBFETCH(player)->contents);
-        DBDIRTY(prog);
-        DBDIRTY(player);
-        snprintf(buf, sizeof(buf), CSUCC "Program %s created with number %d.",
-                 name, prog);
-        anotify(player, buf);
-    } else if (prog == AMBIGUOUS) {
-        anotify(player, CNOTE "I don't know which one you mean.");
-        return;
-    }
-
-    mcpedit_program(descr, player, prog, name);
-}
-
-void
-mcpedit_program(int descr, dbref player, dbref prog, const char *name)
+mcpedit_program(int descr, dbref player, dbref prog, const char *name, McpFrame *mfr)
 {
     char namestr[BUFFER_LEN];
     char refstr[BUFFER_LEN];
-    struct line *curr;
+    register struct line *curr;
     McpMesg msg;
-    McpFrame *mfr;
     McpVer supp;
-
-    mfr = descr_mcpframe(descr);
-    if (!mfr) {
-        do_edit(descr, player, name);
-        return;
-    }
 
     supp = mcp_frame_package_supported(mfr, "dns-org-mud-moo-simpleedit");
     if (supp.verminor == 0 && supp.vermajor == 0) {
-        do_edit(descr, player, name);
+        do_prog(descr, player, name);
         return;
     }
 
-    if (Typeof(player) != TYPE_PLAYER) {
-        show_mcp_error(mfr, "@mcpedit", "Only players can edit programs.");
-        return;
-    }
+    FLAGS(prog) |= INTERNAL;
 
-    if (!Mucker(player)) {
-        show_mcp_error(mfr, "@mcpedit", "You have no M-bit to program.");
-        return;
-    }
-
-    if (!*name) {
-        show_mcp_error(mfr, "@amcpedit", "No program name given.");
-        return;
-    }
-
-    if ((Typeof(prog) != TYPE_PROGRAM) || !controls(player, prog)) {
-        show_mcp_error(mfr, "@mcpedit", "Permission denied.");
-        return;
-    }
-
-    if (FLAGS(prog) & INTERNAL) {
-        show_mcp_error(mfr, "@mcpedit",
-                       "Sorry, this program is already being edited.");
-        return;
-    }
-
-    DBFETCH(prog)->sp.program.first = read_program(prog);
-    DBFETCH(player)->sp.player.curr_prog = prog;
     snprintf(refstr, sizeof(refstr), "%d.prog.", prog);
     snprintf(namestr, sizeof(namestr), "a program named %s(%d)", NAME(prog),
              prog);
@@ -954,14 +726,107 @@ mcpedit_program(int descr, dbref player, dbref prog, const char *name)
     mcp_mesg_arg_append(&msg, "reference", refstr);
     mcp_mesg_arg_append(&msg, "type", "muf-code");
     mcp_mesg_arg_append(&msg, "name", namestr);
-    for (curr = DBFETCH(prog)->sp.program.first; curr; curr = curr->next) {
+    for (curr = DBFETCH(prog)->sp.program.first; curr; curr = curr->next)
         mcp_mesg_arg_append(&msg, "content", DoNull(curr->this_line));
-    }
+
     mcp_frame_output_mesg(mfr, &msg);
     mcp_mesg_clear(&msg);
 
     free_prog_text(DBFETCH(prog)->sp.program.first);
     DBFETCH(prog)->sp.program.first = NULL;
+}
+
+void
+do_mcpedit(int descr, dbref player, const char *name)
+{
+    register dbref i;
+    struct match_data md;
+    McpFrame *mfr;
+
+    if (!(mfr = descr_mcpframe(descr))) {
+        do_edit(descr, player, name);
+        return;
+    } else if (Typeof(player) != TYPE_PLAYER) {
+        anotify_nolisten2(player, CFAIL "Only players can edit programs.");
+        return;
+    } else if (!Mucker(player)) {
+        anotify_nolisten2(player, CFAIL NOMBIT_MESG);
+        return;
+    } else if (tp_db_readonly) {
+        anotify_nolisten2(player, CFAIL DBRO_MESG);
+        return;
+    } else if (!*name) {
+        anotify_nolisten2(player, CINFO "No program name given.");
+        return;
+    }
+
+    init_match(descr, player, name, TYPE_PROGRAM, &md);
+    match_possession(&md);
+    match_neighbor(&md);
+    match_registered(&md);
+    match_absolute(&md);
+
+    if ((i = noisy_match_result(&md)) == NOTHING || i == AMBIGUOUS)
+        return;
+
+    mcpedit_program(descr, player, i, name, mfr);
+}
+
+void
+do_mcpprogram(int descr, dbref player, const char *name)
+{
+    register dbref i;
+    McpFrame *mfr;
+    struct match_data md;
+
+    if (!(mfr = descr_mcpframe(descr))) {
+        do_prog(descr, player, name);
+        return;
+    } else if (Typeof(player) != TYPE_PLAYER) {
+        anotify_nolisten2(player, CFAIL "Only players can edit programs.");
+        return;
+    } else if (!Mucker(player)) {
+        anotify_nolisten2(player, CFAIL NOMBIT_MESG);
+        return;
+    } else if (!tp_building || tp_db_readonly) {
+        anotify_nolisten2(player, CFAIL NOBUILD_MESG);
+        return;
+    } else if (!*name) {
+        anotify_nolisten2(player, CINFO "No program name given.");
+        return;
+    }
+
+    init_match(descr, player, name, TYPE_PROGRAM, &md);
+    match_possession(&md);
+    match_neighbor(&md);
+    match_registered(&md);
+    match_absolute(&md);
+
+    if ((i = match_result(&md)) == NOTHING) {
+        i = new_program(OWNER(player), name);
+        DBFETCH(player)->sp.player.curr_prog = i;
+
+        anotify_fmt(player, CSUCC "Program %s created with number %d.", name, i);
+    } else if (i == AMBIGUOUS) {
+        anotify_nolisten2(player, CINFO "I don't know which one you mean!");
+        return;
+    } else {
+        if ((Typeof(i) != TYPE_PROGRAM) || !controls(player, i)) {
+            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+            return;
+        } else if (FLAGS(i) & INTERNAL) {
+            anotify_nolisten2(player, CFAIL NOEDIT_MESG);
+            return;
+        }
+
+        DBFETCH(i)->sp.program.first = read_program(i);
+        DBFETCH(player)->sp.player.curr_prog = i;
+        anotify_fmt(player, CINFO "Entering editor for %s.", unparse_object(player, i));
+        DBDIRTY(i);
+    }
+
+    mcpedit_program(descr, player, i, name, mfr);
+    DBDIRTY(player);
 }
 
 #endif

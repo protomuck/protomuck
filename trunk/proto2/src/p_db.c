@@ -2458,10 +2458,6 @@ prim_findnext(PRIM_PROTOTYPE)
 void
 prim_newprogram(PRIM_PROTOTYPE)
 {
-    dbref newprog;
-    char buf[BUFFER_LEN];
-    int jj;
-
     CHECKOP(1);
     oper1 = POP();
 
@@ -2476,44 +2472,9 @@ prim_newprogram(PRIM_PROTOTYPE)
     if (!ok_name(oper1->data.string->data))
         abort_interp("Invalid name (2)");
 
-    newprog = new_object();
-
-    NAME(newprog) = alloc_string(oper1->data.string->data);
-    sprintf(buf, "A scroll containing a spell called %s",
-            oper1->data.string->data);
-    SETDESC(newprog, buf);
-    DBFETCH(newprog)->location = PSafe;
-    FLAGS(newprog) = TYPE_PROGRAM;
-    jj = MLevel(PSafe);
-    if (jj < 1)
-        jj = 1;
-    if (jj > 3)
-        jj = 3;
-    SetMLevel(newprog, jj);
-
-    OWNER(newprog) = OWNER(PSafe);
-    DBFETCH(newprog)->sp.program.first = 0;
-    DBFETCH(newprog)->sp.program.instances = 0;
-    DBFETCH(newprog)->sp.program.curr_line = 0;
-    DBFETCH(newprog)->sp.program.siz = 0;
-    DBFETCH(newprog)->sp.program.code = 0;
-    DBFETCH(newprog)->sp.program.start = 0;
-    DBFETCH(newprog)->sp.program.pubs = 0;
-#ifdef MCP_SUPPORT
-    DBFETCH(newprog)->sp.program.mcpbinds = 0;
-#endif
-    DBFETCH(newprog)->sp.program.proftime.tv_sec = 0;
-    DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
-    DBFETCH(newprog)->sp.program.profstart = 0;
-    DBFETCH(newprog)->sp.program.profuses = 0;
-
-    DBFETCH(player)->sp.player.curr_prog = newprog;
-
-    PUSH(newprog, DBFETCH(player)->contents);
-    DBDIRTY(newprog);
-    DBDIRTY(PSafe);
+    ref = new_program(PSafe, oper1->data.string->data);
     CLEAR(oper1);
-    PushObject(newprog);
+    PushObject(ref);
 }
 
 extern struct line *read_program(dbref prog);
