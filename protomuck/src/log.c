@@ -94,6 +94,18 @@ log_status(char *format,...)
     wall_logwizards(wall);
 }
 
+void
+show_status(char *format,...)
+{
+	char wall[BUFFER_LEN];
+	va_list args;
+
+	va_start(args, format);
+	vsprintf(wall, format, args);
+	va_end(args);
+	wall_logwizards(wall);
+}
+
 void 
 log_conc(char *format,...)
 {
@@ -200,4 +212,5 @@ anotify_fmt(dbref player, char *format,...)
     anotify(player, bufr);
     va_end(args);
 }
+
 

@@ -512,9 +512,11 @@ char *
 html_escape(const char *msg)
 {
 	char *tempstr;
-	static char buf[BUFFER_LEN * 5];
-
-	tempstr = buf;
+	static char buf[BUFFER_LEN];
+	char buff[BUFFER_LEN];
+	
+	buff[0] = '\0';
+	tempstr = buff;
 	while (*msg) {
 		switch (*msg) {
 			case '&': {
@@ -548,29 +550,26 @@ html_escape(const char *msg)
 				*tempstr++ = ';';
 				break;
 			}
-			case ' ': {
+/*			case ' ': {
 				*tempstr++ = '&';
 				*tempstr++ = '#';
 				*tempstr++ = '3';
 				*tempstr++ = '2';
 				*tempstr++ = ';';
 				break;
-			}
-			case '\r': {
-				*tempstr++ = '<';
-				*tempstr++ = 'B';
-				*tempstr++ = 'R';
-				*tempstr++ = '>';
+			} */
+			case '\n': {
 				break;
 			}
-			case '\n':
-				break;
 			default:
 				*tempstr++ = *msg;
 		}
 		(void) msg++;
 	}
 	*tempstr = '\0';
+/*	strcpy(buf, "<TT><PRE>"); */
+	strcpy(buf, buff);
+/*	strcat(buf, "</TT></PRE>"); */
 	return buf;
 }
 
@@ -583,9 +582,9 @@ html_escape2(char *msg, int addbr)
 	strcpy(buf2, msg);
 	if (strlen(buf2) >= (BUFFER_LEN-18))
 		buf2[BUFFER_LEN-18] = '\0';
-	strcpy(buff, "<code>");
-	strcat(buff, buf2);
-	strcat(buff, "</code>");
+	strcpy(buff, "<CODE>");
+	strcat(buff, html_escape(buf2));
+	strcat(buff, "</CODE>");
 	if (addbr) {
 		strcat(buff, "<BR>");
 	}
@@ -752,7 +751,7 @@ queue_ansi(struct descriptor_data *d, const char *msg)
       if (!msg || !*msg)
          return 0;
 	if (d->connected) {
-		if (FLAGS(d->player) & CHOWN_OK) {
+		if ((FLAGS(d->player) & CHOWN_OK) && !(d->http_login)) {
 			strip_bad_ansi(buf, msg);
 		} else {
 			strip_ansi(buf, msg);
@@ -768,7 +767,7 @@ int
 queue_html(struct descriptor_data *d, char *msg)
 {
       char buf[BUFFER_LEN];
-	if ((d->connected && OkObj(d->player)) ? (FLAG2(d->player) & F2PUEBLO) : ((d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
+	if ((d->connected && OkObj(d->player)) ? (Html(d->player)) : ((d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
 		strcpy(buf, msg);
 		return queue_ansi(d, buf);
 	} else {
@@ -781,12 +780,16 @@ int
 queue_unhtml(struct descriptor_data *d, char *msg)
 {
 	char buf[BUFFER_LEN];
-	if ((d->connected && OkObj(d->player)) ? (FLAG2(d->player) & F2PUEBLO) : ((d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
-		if(strlen(msg) >= (BUFFER_LEN/5)) {
+	if ((d->connected && OkObj(d->player)) ? (Html(d->player)) : ((d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
+/*		if(strlen(msg) >= (BUFFER_LEN/6)) { */
 			strcpy(buf, html_escape2(msg, (d->type == CT_HTML)));
-		} else {
+/*		} else {
 			strcpy(buf, html_escape(msg));
-		}
+			if (d->type == CT_HTML) {
+				strcat(buf, "<BR>");
+			}
+			strcpy(buf, html_escape2(msg, (d->type == CT_HTML)));
+		} */
 	} else {
 		strcpy(buf, msg);
 	}
@@ -1253,7 +1256,8 @@ shovechars(void)
 	for (d = descriptor_list; d; d = dnext) {
 	    dnext = d->next;
 	    if (d->booted) {
-            if (((d->type != CT_HTML) && (d->type != CT_MUF)) || (!descr_running_queue(d->descriptor)) || (d->booted != 3)) {
+		if (!(((d->type == CT_HTML) && !(d->http_login)) ||	(d->type == CT_MUF)) ||
+			(!descr_running_queue(d->descriptor)) || (d->booted != 3)) {
 #ifdef HTTPDELAY
 		   if((d->httpdata) && (d->booted == 3)) {
 		       queue_ansi(d, d->httpdata);
@@ -1469,14 +1473,7 @@ wall_logwizards(const char *msg)
     for (d = descriptor_list; d; d = dnext) {
 	dnext = d->next;
 	if ( d->connected && Arch(d->player) && (FLAG2(d->player)&F2LOGWALL)) {
-/*
-	    if (d->type == CT_PUEBLO)
-	    {
-		char *temp = html_escape(buf);
-		strcpy(buf,"<code>"); strcat (buf, temp); strcat(buf, "</code>");
-	    }
- */
-	    queue_ansi(d, buf);
+	    queue_unhtml(d, buf);
 	    if (!process_output(d))
 		d->booted = 1;
 	}
@@ -1934,7 +1931,7 @@ clearstrings(struct descriptor_data * d)
 void 
 shutdownsock(struct descriptor_data * d)
 {
-    if (d->type != CT_HTML) { /* Ignore HTTP */
+    if ((d->type != CT_HTML) || (d->http_login)) { /* Ignore HTTP */
       if (d->connected) {
 	log_status("DISC: %2d %s %s(%s) %s, %d cmds P#%d\n",
 		d->descriptor, unparse_object(d->player, d->player),
@@ -2774,12 +2771,15 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
     if (*name == '@') {
 	name++;
 	if( string_prefix("credits", name) ) {
+		char bufftemp[BUFFER_LEN];
 	    queue_string(d, "<HTML>\r\n<HEAD><TITLE>ProtoMuck Credits</TITLE></HEAD>\r\n");
 	    queue_string(d, "<H1>ProtoMuck Credits</H1>\r\n");
 	    queue_string(d, "<BODY><PRE>\r\n");
 	    while(*dit) {
-		queue_string(d, *dit++);
-		queue_string(d, "\r\n");
+		unparse_ansi(bufftemp, *dit);
+		(void) dit++;
+		queue_unhtml(d, bufftemp);
+/*		queue_unhtml(d, "\r\n"); */
 	    }
 	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
 	    queue_string(d, "</BODY></HTML>\r\n");
@@ -2976,7 +2976,11 @@ check_connect(struct descriptor_data * d, const char *msg)
     if (d->type == CT_HTML && (d->http_login == 0)) {
 	if (!strcmp(command, "get")) {
             if (!string_prefix(user, "/webinput")) 
-	    log_status(" GET: '%s' '%s' %s(%s) %s P#%d\n",
+	    if( tp_log_connects )
+		log2filetime(CONNECT_LOG, "GET: '%s' '%s' %s(%s) %s P#%d\n",
+		user, "<hidden>", d->hostname, d->username,
+		host_as_hex(d->hostaddr), d->cport);
+	    show_status(" GET: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<hidden>", d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
 	    name = user;
@@ -2985,7 +2989,11 @@ check_connect(struct descriptor_data * d, const char *msg)
 	} else if (index(msg, ':')) {
 		/* Ignore http request fields */
 	} else if (d->http_login == 0) {
-	    log_status("XWWW: '%s' '%s' %s(%s) %s P#%d\n",
+	    if( tp_log_connects )
+		log2filetime(CONNECT_LOG, "XWWW: '%s' '%s' %s(%s) %s P#%d\n",
+		user, "<HIDDEN>", d->hostname, d->username,
+		host_as_hex(d->hostaddr), d->cport);
+	    show_status("XWWW: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<HIDDEN>", d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
 	    queue_ansi(d,
@@ -3034,7 +3042,12 @@ check_connect(struct descriptor_data * d, const char *msg)
           }
 	    if (d->type == CT_HTML) queue_ansi(d, "<BR>");
 	    if( d->fails >= 3 ) d->booted = 1;
-	    log_status("FAIL: %2d %s pw '%s' %s(%s) %s P#%d\n",
+	    if( tp_log_connects )
+		log2filetime(CONNECT_LOG, "FAIL: %2d %s pw '%s' %s(%s) %s P#%d\n",
+		d->descriptor, user, "<hidden>",
+		d->hostname, d->username,
+		host_as_hex(d->hostaddr), d->cport);
+	    show_status("FAIL: %2d %s pw '%s' %s(%s) %s P#%d\n",
 		d->descriptor, user, "<hidden>",
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
@@ -3047,7 +3060,12 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    queue_ansi(d,"Please contact " );
 	    queue_ansi(d, tp_reg_email );
 	    queue_ansi(d," for assistance if needed.\r\n" );
-	    log_status("*LOK: %2d %s %s(%s) %s %s P#%d\n",
+	    if( tp_log_connects )
+		log2filetime(CONNECT_LOG, "*LOK: %2d %s %s(%s) %s %s P#%d\n",
+		d->descriptor, unparse_object(player, player),
+		d->hostname, d->username,
+		host_as_hex(d->hostaddr), why, d->cport);
+	    show_status("*LOK: %2d %s %s(%s) %s %s P#%d\n",
 		d->descriptor, unparse_object(player, player),
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr), why, d->cport);
@@ -3056,7 +3074,12 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    char buf[ 1024 ];
 	    sprintf( buf, CFG_REG_MSG2, tp_reg_email );
 	    queue_ansi( d, buf );
-	    log_status("*BAN: %2d %s %s(%s) %s P#%d\n",
+	    if( tp_log_connects )
+		log2filetime(CONNECT_LOG, "*BAN: %2d %s %s(%s) %s P#%d\n",
+		d->descriptor, unparse_object(player, player),
+		d->hostname, d->username,
+		host_as_hex(d->hostaddr), d->cport);
+	    show_status("*BAN: %2d %s %s(%s) %s P#%d\n",
 		d->descriptor, unparse_object(player, player),
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
@@ -3078,12 +3101,22 @@ check_connect(struct descriptor_data * d, const char *msg)
           {
                 queue_ansi(d, "Only wizards can connect hidden.\r\n") ;
                 d->fails++;
-	          log_status("FAIL[CH]: %2d %s pw '%s' %s(%s) %s P#%d\n",
+		    if( tp_log_connects )
+			log2filetime(CONNECT_LOG, "FAIL[CH]: %2d %s pw '%s' %s(%s) %s P#%d\n",
+		      d->descriptor, user, "<hidden>",
+		      d->hostname, d->username,
+     		      host_as_hex(d->hostaddr), d->cport);
+	          show_status("FAIL[CH]: %2d %s pw '%s' %s(%s) %s P#%d\n",
 		      d->descriptor, user, "<hidden>",
 		      d->hostname, d->username,
      		      host_as_hex(d->hostaddr), d->cport);
         } else {
-	    log_status("CONN: %2d %s %s(%s) %s P#%d\n",
+	    if( tp_log_connects )
+		log2filetime(CONNECT_LOG, "CONN: %2d %s %s(%s) %s P#%d\n",
+		d->descriptor, unparse_object(player, player),
+		d->hostname, d->username,
+		host_as_hex(d->hostaddr), d->cport);
+	    show_status("CONN: %2d %s %s(%s) %s P#%d\n",
 		d->descriptor, unparse_object(player, player),
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
@@ -3128,15 +3161,25 @@ check_connect(struct descriptor_data * d, const char *msg)
      }
     } else if (prop_command(d->descriptor, (dbref) 0, command, msgargs, "@logincommand", 1)) { /* Check for replaced login commands */
     } else if (string_prefix("help", command) ) { /* Connection Help */
-	log_status("HELP: %2d %s(%s) %s %d cmds P#%d\n",
+     if( tp_log_connects )
+	log2filetime(CONNECT_LOG, "HELP: %2d %s(%s) %s %d cmds P#%d\n",
+	    d->descriptor, d->hostname, d->username,
+	    host_as_hex(d->hostaddr), d->commands, d->cport);
+	show_status("HELP: %2d %s(%s) %s %d cmds P#%d\n",
 	    d->descriptor, d->hostname, d->username,
 	    host_as_hex(d->hostaddr), d->commands, d->cport);
 	help_user(d);
     } else {
-           log_status("TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
-             d->descriptor, d->hostname, d->username,
-             host_as_hex(d->hostaddr), command, d->commands, d->cport);
-           welcome_user(d);
+		if (d->type != CT_HTML) {
+		    if( tp_log_connects )
+		     log2filetime(CONNECT_LOG, "TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
+	             d->descriptor, d->hostname, d->username,
+	             host_as_hex(d->hostaddr), command, d->commands, d->cport);
+	           show_status("TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
+	             d->descriptor, d->hostname, d->username,
+	             host_as_hex(d->hostaddr), command, d->commands, d->cport);
+	           welcome_user(d);
+		}
     }
 }
 void 
@@ -3568,8 +3611,17 @@ dump_users(struct descriptor_data *d, char *user)
 				break;
 			}
 			case CT_HTML: {
-				strcpy(plyrbuf, "[WWW}");
-				strcpy(typbuf, "Webport");
+				if (dlist->http_login) {
+					if ((dlist->connected) && (OkObj(d->player))) {
+						strcpy(plyrbuf, NAME(dlist->player));
+					} else {
+						strcpy(plyrbuf, "[Connecting]");
+					}
+					strcpy(typbuf, "Http Login");
+				} else {
+					strcpy(plyrbuf, "[WWW]");
+					strcpy(typbuf, "Webport");
+				}
 				break;
 			}
 			case CT_MUF: {
@@ -4814,7 +4866,7 @@ welcome_user(struct descriptor_data * d)
 	strcpy(buf, WELC_HTML);
 
 	if ((f = fopen(buf, "r")) == NULL) {
-	    queue_ansi(d, DEFAULT_WELCOME_MESSAGE);
+	    queue_unhtml(d, DEFAULT_WELCOME_MESSAGE);
 	    perror("spit_file: welcome.html");
 	} else {
 	  while (fgets(buf, sizeof buf, f)) {
@@ -4824,16 +4876,16 @@ welcome_user(struct descriptor_data * d)
 		*ptr++ = '\n';
 		*ptr++ = '\0';
 	    }
-	    queue_ansi(d, buf);
+	    queue_html(d, buf);
 	  }
 	  fclose(f);
 	}
     }
     if (wizonly_mode) {
-	queue_ansi(d, MARK "<b>Due to maintenance, only wizards can connect now.</b>\r\n");
+	queue_unhtml(d, MARK "<b>Due to maintenance, only wizards can connect now.</b>\r\n");
     } else if (tp_playermax && con_players_curr >= tp_playermax_limit) {
-	queue_ansi(d, WARN_MESG);
-	queue_ansi(d, "\r\n");
+	queue_unhtml(d, WARN_MESG);
+	queue_unhtml(d, "\r\n");
     }
     
     if (d->type == CT_MUCK)
@@ -4861,7 +4913,7 @@ welcome_user(struct descriptor_data * d)
 	}
 
 	if ((f = fopen(buf, "r")) == NULL) {
-	    queue_ansi(d, DEFAULT_WELCOME_MESSAGE);
+	    queue_unhtml(d, DEFAULT_WELCOME_MESSAGE);
 	    perror("spit_file: welcome.txt");
 	} else {
 	  while (fgets(buf, sizeof buf, f)) {
@@ -4871,16 +4923,16 @@ welcome_user(struct descriptor_data * d)
 		*ptr++ = '\n';
 		*ptr++ = '\0';
 	    }
-	    queue_ansi(d, buf);
+	    queue_unhtml(d, buf);
 	  }
 	  fclose(f);
 	}
     }
     if (wizonly_mode) {
-	queue_ansi(d, MARK "Due to maintenance, only wizards can connect now.\r\n");
+	queue_unhtml(d, MARK "Due to maintenance, only wizards can connect now.\r\n");
     } else if (tp_playermax && con_players_curr >= tp_playermax_limit) {
-	queue_ansi(d, WARN_MESG);
-	queue_ansi(d, "\r\n");
+	queue_unhtml(d, WARN_MESG);
+	queue_unhtml(d, "\r\n");
     }
 }
 
