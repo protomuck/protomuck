@@ -895,7 +895,7 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
                 p->prev = NULL;
                 p->next = NULL;
 
-                q->eq = p;
+                q->t.eq = p;
                 q->type = 1;
                 break;
             }
@@ -909,7 +909,7 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
                 if (fr == ptr->fr && ptr->typ == TQ_MUF_TYP
                     && ptr->subtyp != TQ_MUF_TIMER) {
                     q->type = 2;
-                    q->tq = ptr;
+                    q->t.tq = ptr;
                     if (tmp == ptr) {
                         tqhead = tmp = tmp->next;
                         ptr = tmp;
@@ -947,15 +947,15 @@ muf_interrupt_requeue(struct muf_qitem *q)
     switch (q->type) {
         case 1:
             /* for putting back mufevent queue items */
-            if ((q->eq->next = mufevent_processes))
-                q->eq->next->prev = q->eq;
-            q->eq->prev = NULL;
-            mufevent_processes = q->eq;
+            if ((q->t.eq->next = mufevent_processes))
+                q->t.eq->next->prev = q->t.eq;
+            q->t.eq->prev = NULL;
+            mufevent_processes = q->t.eq;
             break;
         case 2:
             /* for putting back standard timequeue items */
-            q->tq->next = tqhead;
-            tqhead = q->tq;
+            q->t.tq->next = tqhead;
+            tqhead = q->t.tq;
             break;
     }
 
@@ -1064,12 +1064,12 @@ muf_interrupt_clean(struct frame *fr)
     if (q) {
         switch (q->type) {
             case 1:
-                q->eq->fr = NULL;
-                muf_event_queue_pfree(q->eq);
+                q->t.eq->fr = NULL;
+                muf_event_queue_pfree(q->t.eq);
                 break;
             case 2:
-                q->tq->fr = NULL;
-                free_timenode(q->tq);
+                q->t.tq->fr = NULL;
+                free_timenode(q->t.tq);
                 break;
         }
         free((void *) q);

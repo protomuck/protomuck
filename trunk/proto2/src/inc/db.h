@@ -710,7 +710,7 @@ struct muf_qitem { /* queue item to put back later */
     union {
         struct mufevent_process *eq; /* any mufeventqueue item that was in place when this interrupt was thrown */
         struct timenode         *tq; /* any timequeue item that was in place */
-    };
+    } t;
 };
 
 /* frame data structure necessary for executing programs */
