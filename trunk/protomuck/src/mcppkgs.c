@@ -255,16 +255,16 @@ mcppkg_simpleedit(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 			log_status("PROGRAM SAVED: %s by %s(%d)\n",
 					   unparse_object(player, obj), NAME(player), player);
 
-                        write_program(DBFETCH(obj)->sp.program.first, obj);
+			write_program(DBFETCH(obj)->sp.program.first, obj);
 
 			if (tp_log_programs)
-                                log_program_text(DBFETCH(obj)->sp.program.first, player, obj);
+				log_program_text(DBFETCH(obj)->sp.program.first, player, obj);
 
 			do_compile(descr, player, obj, 1);
 
-                        free_prog_text(DBFETCH(obj)->sp.program.first);
+			free_prog_text(DBFETCH(obj)->sp.program.first);
 
-                        DBFETCH(obj)->sp.program.first = tmpline;
+			DBFETCH(obj)->sp.program.first = tmpline;
 
 			DBDIRTY(player);
 			DBDIRTY(obj);
@@ -288,6 +288,7 @@ mcppkg_simpleedit(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 		}
 	}
 }
+
 
 
 
