@@ -206,7 +206,7 @@ mcp_initialize(void)
     *****************************************************************/ 
     
 void 
-mcp_negotiation_start(McpFrame * mfr, connection_t * con) 
+mcp_negotiation_start(McpFrame * mfr, connection_t con) 
 { 
     McpMesg reply; 
 

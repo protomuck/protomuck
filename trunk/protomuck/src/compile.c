@@ -966,10 +966,34 @@ next_token(COMPSTATE * cstat)
 
 
 /* skip comments */
+#ifdef OLDCOMMENT /* Traditional comment parser */
 void
 do_comment(COMPSTATE * cstat)
+{
+    int startLine = cstat->lineno;
+    while (*cstat->next_char && *cstat->next_char != ENDCOMMENT)
+        cstat->next_char++;
+	if (!(*cstat->next_char)) {
+	    advance_line(cstat);
+            if (!cstat->curr_line) {
+                char tbuf[BUFFER_LEN];
+                sprintf(tbuf, "Unterminated comment starting in line %d.",
+                        startLine);
+	        v_abort_compile(cstat, tbuf);
+            }
+  	    do_comment(cstat);
+	} else {
+	    cstat->next_char++;
+            if (!(*cstat->next_char))
+                advance_line(cstat);
+	}
+}
+#else
+void
+do_comment(COMPSTATE * cstat) /* ProtoMUCK Comment parser */
 {  
     int parCount = 1;
+    int startLine = cstat->lineno;
     cstat->next_char++;
     do {
         while (*cstat->next_char) {
@@ -986,10 +1010,15 @@ do_comment(COMPSTATE * cstat)
             cstat->next_char++;
         }
         advance_line(cstat);
-        if (!cstat->curr_line) 
-            v_abort_compile(cstat, "Unterminated comment.");
+        if (!cstat->curr_line) { 
+            char tbuf[BUFFER_LEN];
+            sprintf(tbuf, "Unterminated comment starting in line %d.",
+                startLine);
+            v_abort_compile(cstat, tbuf);
+        }
     } while ( 1 );
 }
+#endif
 
 /* handle compiler directives */
 int

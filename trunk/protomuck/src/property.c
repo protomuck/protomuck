@@ -1138,11 +1138,197 @@ Prop_SysPerms(dbref player, const char *type)
       return 0;
 }
 
+void
+reflist_add(dbref obj, const char* propname, dbref toadd)
+{
+	PropPtr ptr;
+	const char *temp;
+	const char *list;
+	int count = 0;
+	int charcount = 0;
+	char buf[BUFFER_LEN];
+	char outbuf[BUFFER_LEN];
+
+	ptr = get_property(obj, propname);
+	if (ptr) {
+		const char *pat = NULL;
+
+#ifdef DISKBASE
+		propfetch(obj, ptr);
+#endif
+		switch (PropType(ptr)) {
+		case PROP_STRTYP:
+			*outbuf = '\0';
+			list = temp = uncompress(PropDataStr(ptr));
+			sprintf(buf, "%d", toadd);
+			while (*temp) {
+				if (*temp == '#') {
+					pat = buf;
+					count++;
+					charcount = temp - list;
+				} else if (pat) {
+					if (!*pat) {
+						if (!*temp || *temp == ' ') {
+							break;
+						}
+						pat = NULL;
+					} else if (*pat != *temp) {
+						pat = NULL;
+					} else {
+						pat++;
+					}
+				}
+				temp++;
+			}
+			if (pat && !*pat) {
+				if (charcount > 0) {
+					strncpy(outbuf, list, charcount - 1);
+					outbuf[charcount-1] = '\0';
+				}
+				strcat(outbuf, temp);
+			} else {
+				strcpy(outbuf, list);
+			}
+			sprintf(buf, " #%d", toadd);
+			if (strlen(outbuf) + strlen(buf) < BUFFER_LEN) {
+				strcat(outbuf, buf);
+				for (temp = outbuf; isspace(*temp); temp++);
+				add_property(obj, propname, temp, 0);
+			}
+			break;
+		case PROP_REFTYP:
+			if (PropDataRef(ptr) != toadd) {
+				sprintf(outbuf, "#%d #%d", PropDataRef(ptr), toadd);
+				add_property(obj, propname, outbuf, 0);
+			}
+			break;
+		default:
+			sprintf(outbuf, "#%d", toadd);
+			add_property(obj, propname, outbuf, 0);
+			break;
+		}
+	} else {
+		sprintf(outbuf, "#%d", toadd);
+		add_property(obj, propname, outbuf, 0);
+	}
+}
 
 
+void
+reflist_del(dbref obj, const char* propname, dbref todel)
+{
+	PropPtr ptr;
+	const char *temp;
+	const char *list;
+	int count = 0;
+	int charcount = 0;
+	char buf[BUFFER_LEN];
+	char outbuf[BUFFER_LEN];
+
+	ptr = get_property(obj, propname);
+	if (ptr) {
+		const char *pat = NULL;
+
+#ifdef DISKBASE
+		propfetch(obj, ptr);
+#endif
+		switch (PropType(ptr)) {
+		case PROP_STRTYP:
+			*outbuf = '\0';
+			list = temp = uncompress(PropDataStr(ptr));
+			sprintf(buf, "%d", todel);
+			while (*temp) {
+				if (*temp == '#') {
+					pat = buf;
+					count++;
+					charcount = temp - list;
+				} else if (pat) {
+					if (!*pat) {
+						if (!*temp || *temp == ' ') {
+							break;
+						}
+						pat = NULL;
+					} else if (*pat != *temp) {
+						pat = NULL;
+					} else {
+						pat++;
+					}
+				}
+				temp++;
+			}
+			if (pat && !*pat) {
+				if (charcount > 0) {
+					strncpy(outbuf, list, charcount - 1);
+					outbuf[charcount-1] = '\0';
+				}
+				strcat(outbuf, temp);
+				for (temp = outbuf; isspace(*temp); temp++);
+				add_property(obj, propname, temp, 0);
+			}
+			break;
+		case PROP_REFTYP:
+			if (PropDataRef(ptr) == todel) {
+				add_property(obj, propname, "", 0);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+}
 
 
+int
+reflist_find(dbref obj, const char* propname, dbref tofind)
+{
+	PropPtr ptr;
+	const char *temp;
+	int pos = 0;
+	int count = 0;
+	char buf[BUFFER_LEN];
 
+	ptr = get_property(obj, propname);
+	if (ptr) {
+		const char *pat = NULL;
 
+#ifdef DISKBASE
+		propfetch(obj, ptr);
+#endif
+		switch (PropType(ptr)) {
+		case PROP_STRTYP:
+			temp = uncompress(PropDataStr(ptr));
+			sprintf(buf, "%d", tofind);
+			while (*temp) {
+				if (*temp == '#') {
+					pat = buf;
+					count++;
+				} else if (pat) {
+					if (!*pat) {
+						if (!*temp || *temp == ' ') {
+							break;
+						}
+						pat = NULL;
+					} else if (*pat != *temp) {
+						pat = NULL;
+					} else {
+						pat++;
+					}
+				}
+				temp++;
+			}
+			if (pat && !*pat) {
+				pos = count;
+			}
+			break;
+		case PROP_REFTYP:
+			if (PropDataRef(ptr) == tofind)
+				pos = 1;
+			break;
+		default:
+			break;
+		}
+	}
+	return pos;
+}
 
 
