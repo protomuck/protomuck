@@ -502,8 +502,8 @@ prim_sockdescr(PRIM_PROTOTYPE)
         abort_interp("Socket arguement expected.");
     
     sockdescr = oper1->data.sock->socknum;
-    PushInt(sockdescr);
     CLEAR(oper1);
+    PushInt(sockdescr);
 }
   
 void 
