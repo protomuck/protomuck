@@ -813,7 +813,8 @@ do_newpassword(dbref player, const char *name, const char *password)
 {
     dbref   victim;
 
-    if (!Arch(player) || Typeof(player) != TYPE_PLAYER) {
+    if ((!Arch(player) && !(POWERS(player) & POW_PLAYER_CREATE))
+            || Typeof(player) != TYPE_PLAYER) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     } else if ((victim = lookup_player(name)) == NOTHING) {

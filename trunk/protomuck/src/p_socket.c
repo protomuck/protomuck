@@ -92,12 +92,14 @@ remove_socket_from_queue(struct muf_socket *oldSock)
     struct muf_socket_queue *curr, *next, *temp;
     
     curr = socket_list;
-
     if (!curr)
         return; /* socket list is empty */
     
     if (curr->theSock == oldSock) { /* need to remove first */
         temp = curr->next;
+        curr->fr = NULL;
+        curr->next = NULL;
+        curr->theSock = NULL;
         free((void*) curr);
         socket_list = temp;
     } else { /* need to search through the list */
@@ -108,6 +110,9 @@ remove_socket_from_queue(struct muf_socket *oldSock)
         if (!curr)
             return; /* nothing to free */
         temp->next = curr->next;
+        curr->fr = NULL;
+        curr->next = NULL;
+        curr->theSock = NULL;
         free((void *) curr);
     }
 }
@@ -120,11 +125,12 @@ void
 muf_socket_events()
 {
     fd_set reads;
-    char littleBuf[128]; /* should be big enough */
+    char littleBuf[] = "SOCKET.READ\0"; 
     int maxDescr = 0;
     struct timeval t_val;
     struct muf_socket_queue *curr = socket_list;
     struct inst temp1;
+    int eventAdded = 0;
 
     if (!curr)
         return; /* no sockets to check */
@@ -133,16 +139,18 @@ muf_socket_events()
     t_val.tv_sec  = 0;
     t_val.tv_usec = 0;
 
-    strcpy(littleBuf, "SOCKET.READ");
-
     while(curr) { /* add sockets to check to set */
         if (!curr->theSock->readWaiting) { /* add it */
             FD_SET(curr->theSock->socknum, &reads);
             if (curr->theSock->socknum >= maxDescr)
                 maxDescr = curr->theSock->socknum;
+            eventAdded = 1;
         }
         curr = curr->next;
     } /* while(curr) */
+    if (!eventAdded)
+        return; /* none need to be checked */
+    
     /* now our &reads set is ready */
     select(maxDescr + 1, &reads, NULL, NULL, &t_val);
     
@@ -154,9 +162,8 @@ muf_socket_events()
             curr->theSock->readWaiting = 1;
             temp1.type = PROG_SOCKET;
             temp1.data.sock = curr->theSock;
-            curr->theSock->links++; /* manual pointer copy */
+            curr->theSock->links += 1; /* manual pointer copy */
             muf_event_add(curr->fr, littleBuf, &temp1, 1); /* 1 = exclusive */ 
-            CLEAR(&temp2);
             CLEAR(&temp1);
         } /* if */
         curr = curr->next;
@@ -342,7 +349,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
  */
     if (readme < 1 && readme != -1)
         readme = 0;
-
+    CHECKOFLOW(2);
     PushInt(readme);
     PushString(bigbuf);
     free((void *)mystring);
@@ -404,6 +411,7 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
                            unparse_object(player, player), sockval);
     if (readme < 1)
         readme = 0;
+    CHECKOFLOW(2);
     PushInt(readme);
     PushInt(theChar);
 }
@@ -892,7 +900,7 @@ prim_socket_setuser(PRIM_PROTOTYPE)
         abort_interp("Expected string for password. (3)");
     ptr = oper3->data.string ? oper3->data.string->data : pad_char; 
 
-    password == DBFETCH(ref)->sp.player.password;
+    password = DBFETCH(ref)->sp.player.password;
     if (password) { /* check pass since character has one */
         if (strcmp(ptr, password)) { /* incorrect password */
             CLEAR(oper1);
@@ -900,6 +908,7 @@ prim_socket_setuser(PRIM_PROTOTYPE)
             CLEAR(oper3);
             result = 0;
             PushInt(result);
+            return;
         }
     }
     /* passed password check. Now to connect. */
