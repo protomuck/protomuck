@@ -45,13 +45,14 @@ do_name(int descr, dbref player, const char *name, char *newname)
 {
     dbref   thing;
     char   *password;
+    char oldName[BUFFER_LEN];
+    char nName[BUFFER_LEN];
     if(tp_db_readonly) return;
 
     if(Guest(player)) {
 	anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
 	return;
     }
-
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
       if (Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing)))) {
 	  anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -104,13 +105,15 @@ do_name(int descr, dbref player, const char *name, char *newname)
 	    /* everything ok, notify */
 	    log_status("NAME: %s(%d) to %s by %s\n",
 		       NAME(thing), thing, newname, NAME(player));
+            strcpy(oldName, uncompress(NAME(thing)));
+            strcpy(nName, newname);
 	    delete_player(thing);
 	    if (NAME(thing))
 		free((void *) NAME(thing));
 	    ts_modifyobject(thing);
 	    NAME(thing) = alloc_string(newname);
 	    add_player(thing);
-	    anotify_nolisten2(player, CSUCC "Name set.");
+	    anotify_fmt(player, CSUCC "Name changed from %s to %s.", oldName, nName);
 	    return;
 	} else {
 	    if (!ok_name(newname)) {
@@ -120,12 +123,14 @@ do_name(int descr, dbref player, const char *name, char *newname)
 	}
 
 	/* everything ok, change the name */
+        strcpy(oldName, uncompress(NAME(thing)));        
+        strcpy(nName, newname);
 	if (NAME(thing)) {
 	    free((void *) NAME(thing));
 	}
 	ts_modifyobject(thing);
 	NAME(thing) = alloc_string(newname);
-	anotify_nolisten2(player, CSUCC "Name set.");
+	anotify_fmt(player, CSUCC "Name changed from %s to %s.", oldName, nName);
 	DBDIRTY(thing);
 	if (Typeof(thing) == TYPE_EXIT && MLevel(thing)) {
 	    SetMLevel(thing, 0);
@@ -1247,7 +1252,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	f2 = F2MOBILE;
     } else if (string_prefix("PROTECT", p) || !string_compare("*", p)) {
 	f2 = F2PROTECT;
-    } else if (string_prefix("ANTIPROTECT", p) || !string_compare("I", p)) {
+    } else if (string_prefix("ANTIPROTECT", p) || !string_compare("K", p)) {
 	f2 = F2ANTIPROTECT;
     } else if (string_prefix("EXAMINE_OK", p) || !string_compare("&", p)) {
 	f2 = F2EXAMINE_OK;
