@@ -1,17 +1,18 @@
 #include "copyright.h"
 
-#define IN_JMP           1
-#define IN_READ          2
-#define IN_TREAD         3
-#define IN_SLEEP         4
-#define IN_CALL          5
-#define IN_EXECUTE       6
-#define IN_RET           7
-#define IN_EVENT_WAITFOR 8
-#define IN_CATCH         9
+#define IN_JMP            1
+#define IN_READ           2
+#define IN_TREAD          3
+#define IN_SLEEP          4
+#define IN_CALL           5
+#define IN_EXECUTE        6
+#define IN_RET            7
+#define IN_EVENT_WAITFOR  8
+#define IN_CATCH          9
+#define IN_CATCH_DETAILED 10
 
 #define BASE_MIN 1
-#define BASE_MAX (9 + PRIMS_CONNECTS_CNT + PRIMS_DB_CNT + PRIMS_MATH_CNT + \
+#define BASE_MAX (10 + PRIMS_CONNECTS_CNT + PRIMS_DB_CNT + PRIMS_MATH_CNT + \
     PRIMS_MISC_CNT + PRIMS_PROPS_CNT + PRIMS_STACK_CNT + PRIMS_STRINGS_CNT + \
     PRIMS_FLOAT_CNT + PRIMS_ERROR_CNT + PRIMS_FILE_CNT + PRIMS_ARRAY_CNT + \
     PRIMS_MCP_CNT + PRIMS_SOCKET_CNT + PRIMS_SYSTEM_CNT + PRIMS_INTERNAL_CNT +\

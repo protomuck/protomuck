@@ -52,7 +52,8 @@ p_null(PRIM_PROTOTYPE)
 /* void    (*prim_func[]) (PRIM_PROTOTYPE) = */
 void (*prim_func[]) (PRIM_PROTOTYPE) = {
     p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null,
-        /* JMP, READ, TREAD, SLEEP,  CALL,   EXECUTE, RETURN, EVENT_WAITFOR, CATCH */
+        p_null,
+        /* JMP, READ, TREAD, SLEEP,  CALL,   EXECUTE, RETURN, EVENT_WAITFOR, CATCH, CATCH_DETAILED */
         PRIMS_CONNECTS_FUNCS,
         PRIMS_DB_FUNCS,
         PRIMS_MATH_FUNCS,
@@ -511,13 +512,16 @@ interp(int descr, dbref player, dbref location, dbref program,
 /*    if (program == -1)
  *        return NULL;
  */
-    if (!MLevel(program) || !MLevel(OWNER(program)) ||
-        ((OkObj(source)
-          && Typeof(source) != TYPE_GARBAGE) ? (!TMage(OWNER(source))
-                                                && !can_link_to(OWNER(source),
-                                                                TYPE_EXIT,
-                                                                program)) : 0))
-    {
+    if (!MLevel(program) || !MLevel(OWNER(program)) || ((OkObj(source)
+                                                         && Typeof(source) !=
+                                                         TYPE_GARBAGE)
+                                                        ? (!TMage(OWNER(source))
+                                                           &&
+                                                           !can_link_to(OWNER
+                                                                        (source),
+                                                                        TYPE_EXIT,
+                                                                        program))
+                                                        : 0)) {
         anotify_nolisten(PSafe, CFAIL "Program call: Permission denied.", 1);
         return 0;
     }
@@ -547,16 +551,19 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->caller.st[0] = source;
     fr->caller.st[1] = program;
 
-
     fr->system.top = 1;
     fr->system.st[0].progref = 0;
     fr->system.st[0].offset = 0;
+
+    fr->errorstr = NULL;
+    fr->errorinst = NULL;
+    fr->errorprog = NOTHING;
+    fr->errorline = 0;
 
     fr->fors.top = 0;
     fr->fors.st = NULL;
     fr->trys.top = 0;
     fr->trys.st = NULL;
-    fr->errorstr = NULL;
     fr->aborted = 0;
 
     fr->waitees = NULL;
@@ -1093,6 +1100,7 @@ do_abort_loop(dbref player, dbref program, const char *msg,
     char buffer[128];
     struct descriptor_data *curdescr;
 
+/*
     if (fr->trys.top) {
         fr->errorstr = string_dup(msg);
         err++;
@@ -1101,6 +1109,19 @@ do_abort_loop(dbref player, dbref program, const char *msg,
             calc_profile_timing(program, fr);
         }
     }
+*/
+       if (fr->trys.top) {
+               fr->errorstr = string_dup(msg);
+               fr->errorinst = string_dup(insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program));
+               fr->errorline = pc->line;
+               fr->errorprog = program;
+               err++;
+       } else {
+               if (pc) {
+                       calc_profile_timing(program, fr);
+               }
+       }
+
     if (clinst1)
         CLEAR(clinst1);
     if (clinst2)
@@ -1732,6 +1753,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         break;
 
                     case IN_CATCH:
+		    case IN_CATCH_DETAILED:
                     {
                         int depth;
 
@@ -1756,6 +1778,46 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         fr->trys.top--;
                         fr->trys.st = pop_try(fr->trys.st);
 
+                        if (pc->data.number == IN_CATCH) {
+                            /* IN_CATCH */
+                            if (fr->errorstr) {
+                                arg[atop].type = PROG_STRING;
+                                arg[atop++].data.string =
+                                    alloc_prog_string(fr->errorstr);
+                                free(fr->errorstr);
+                                fr->errorstr = NULL;
+                            } else {
+                                arg[atop].type = PROG_STRING;
+                                arg[atop++].data.string = NULL;
+                            }
+                            if (fr->errorinst) {
+                                free(fr->errorinst);
+                                fr->errorinst = NULL;
+                            }
+                        } else {
+                            /* IN_CATCH_DETAILED */
+                            stk_array *nu = new_array_dictionary();
+
+                            if (fr->errorstr) {
+                                array_set_strkey_strval(&nu, "error",
+                                                        fr->errorstr);
+                                free(fr->errorstr);
+                                fr->errorstr = NULL;
+                            }
+                            if (fr->errorinst) {
+                                array_set_strkey_strval(&nu, "instr",
+                                                        fr->errorinst);
+                                free(fr->errorinst);
+                                fr->errorinst = NULL;
+                            }
+                            array_set_strkey_intval(&nu, "line", fr->errorline);
+                            array_set_strkey_refval(&nu, "program",
+                                                    fr->errorprog);
+                            arg[atop].type = PROG_ARRAY;
+                            arg[atop++].data.array = nu;
+                        }
+
+/*
                         if (fr->errorstr) {
                             arg[atop].type = PROG_STRING;
                             arg[atop++].data.string =
@@ -1766,6 +1828,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                             arg[atop].type = PROG_STRING;
                             arg[atop++].data.string = NULL;
                         }
+*/
                         reload(fr, atop, stop);
                     }
                         pc++;
@@ -2145,13 +2208,14 @@ newpermissions(int mlev, dbref player, dbref thing, int true_c)
         thing = DBFETCH(player)->sp.player.home;
 
     /* never do this check if one object or the other is invalid */
-    if (OkObj(thing)) { 
-    if (((Protect(thing) && !(mlev >= LBOY) && (MLevel(OWNER(thing)) >= LBOY))
-         || (Protect(thing) && !(mlev > MLevel(OWNER(thing))))
-        ) && !((FLAG2(OWNER(thing)) & F2ANTIPROTECT)
-               || (FLAG2(thing) & F2ANTIPROTECT))
-        )
-        return 0;
+    if (OkObj(thing)) {
+        if (((Protect(thing) && !(mlev >= LBOY)
+              && (MLevel(OWNER(thing)) >= LBOY))
+             || (Protect(thing) && !(mlev > MLevel(OWNER(thing))))
+            ) && !((FLAG2(OWNER(thing)) & F2ANTIPROTECT)
+                   || (FLAG2(thing) & F2ANTIPROTECT))
+            )
+            return 0;
     }
 
     if ((mlev >= LWIZ) && (mlev >= MLevel(OWNER(thing))))
@@ -2294,6 +2358,9 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
 
     if (fr->trys.top) {
         fr->errorstr = string_dup(msg);
+        fr->errorinst = string_dup(insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program));
+        fr->errorline = pc->line;
+        fr->errorprog = program;
         err++;
     } else {
         fr->pc = pc;

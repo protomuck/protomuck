@@ -713,7 +713,10 @@ struct frame {
     int     instcnt;                /* How many instructions have run. */
     int     timercount;             /* How many timers currently exist. */
     int     pid;                    /* what is the process id? */
-    char   *errorstr;               /* The error string thrown */
+    char    *errorstr;             /* the error string thrown */
+    char    *errorinst;            /* the instruction name that threw an error */
+    dbref   errorprog;             /* the program that threw an error */
+    int     errorline;              /* the program line that threw an error */
     int     aborted;                /* indicates program aborted */
     int     descr;                  /* Descriptor of running player */
     void *rndbuf;                   /* buffer for seedable random */
