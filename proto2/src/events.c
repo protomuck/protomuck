@@ -212,10 +212,9 @@ check_cron_time(void)
  * Archive Interval for auto-archiving support. 
  **********************************************/
 
-static time_t last_archive_time = 0L; //Always stores the last archive time
-static int archive_done = 0;    //Indicates if an archive has been done
-
-                            //since startup. (to prevent repetition)
+static time_t last_archive_time = 0L; /* Always stores the last archive time */
+static int archive_done = 0;          /* Indicates if an archive has been done */
+                                      /* since startup. (to prevent repetition) */
 /* This returns the next time that a full site archive is to be done. */
 time_t
 next_archive_time()

@@ -1233,7 +1233,7 @@ mfn_smatch(MFUNARGS)
 const char *
 mfn_strlen(MFUNARGS)
 {
-    sprintf(buf, "%zd", strlen(argv[0]));
+    sprintf(buf, "%d", (int)strlen(argv[0]));
     return buf;
 }
 
@@ -1815,7 +1815,7 @@ mfn_dirprops(MFUNARGS)
 #endif
 
     propadr = first_prop(obj, argv[0], &pptr, propname);
-    while ((propadr > 0) && *propname) {
+    while ((propadr) && *propname) {
         if ((!Prop_Hidden(propname) && !(PropFlags(propadr) & PROP_SYSPERMS))
             || Archperms(perms)) {
             sprintf(buf2, "%s", propname);

@@ -111,10 +111,10 @@ struct descriptor_data {
     int                      inIAC;         /* Used for telnet negotiation */
     time_t                   last_time;
     time_t                   connected_at;
-//  int                      hostaddr;      /* HEX host address */     /* use: hu->h->a */
-//  int                      port;          /* Port number */          /* use: hu->u->uport */
-//  const char              *hostname;      /* String host name */     /* use: hu->h->name */
-//  const char              *username;      /* Descriptor user name */ /* use: hu->u->user */
+/*  int                      hostaddr;  */  /* HEX host address */     /* use: hu->h->a */
+/*  int                      port;      */  /* Port number */          /* use: hu->u->uport */
+/*  const char              *hostname;  */  /* String host name */     /* use: hu->h->name */
+/*  const char              *username;  */  /* Descriptor user name */ /* use: hu->u->user */
     struct huinfo           *hu;            /* host/user information, part of the new resolver system */
     int                      quota;
     int                      commands;      /* Number of commands done */

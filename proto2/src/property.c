@@ -553,7 +553,7 @@ genderof(int descr, dbref player)
 
 /* return a pointer to the first property in a propdir and duplicates the
    property name into 'name'.  returns 0 if the property list is empty
-   or -1 if the property list does not exist. */
+   or does not exist. */
 PropPtr
 first_prop_nofetch(dbref player, const char *dir, PropPtr *list, char *name)
 {
@@ -580,7 +580,7 @@ first_prop_nofetch(dbref player, const char *dir, PropPtr *list, char *name)
     *list = p = propdir_get_elem(DBFETCH(player)->properties, buf);
     if (!p) {
         *name = '\0';
-        return ((PropPtr) -1);
+        return NULL;
     }
     *list = PropDir(p);
     p = first_node(*list);
@@ -929,7 +929,6 @@ db_get_single_prop(FILE * f, dbref obj, int pos)
                 if (!(pdat.flags & PROP_COMPRESSED))
                     value = (char *) old_uncompress(value);
 #endif
-                //pdat.flags |= PROP_NOASCIICHK;
                 pdat.data.str = value;
             } else {
                 pdat.flags |= PROP_ISUNLOADED;

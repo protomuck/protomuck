@@ -423,7 +423,7 @@ handle_read_event(int descr, dbref player, const char *command,
     }
     ptr = tqhead;
     lastevent = NULL;
-    while (ptr && !event) {     //If event is not NULL, we don't want to do this part.
+    while (ptr && !event) {     /* If event is not NULL, we don't want to do this part. */
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                        ptr->subtyp == TQ_MUF_TREAD) &&
             (OkObj(player) ? ptr->uid == player : ptr->descr == descr)) {
@@ -433,7 +433,7 @@ handle_read_event(int descr, dbref player, const char *command,
         ptr = ptr->next;
     }
     if (event)
-        ptr = event;            //pointer now points to the passed TREAD event. 
+        ptr = event;            /* pointer now points to the passed TREAD event. */ 
     /* When execution gets to here, either ptr will point to the
      * READ event for the player, or else ptr will be NULL.
      */
@@ -467,7 +467,7 @@ handle_read_event(int descr, dbref player, const char *command,
             }
         }
         /* remember next timequeue node, to check for more READs later */
-        if (!event) {           //don't want these steps if it is a TREAD event.
+        if (!event) {           /* don't want these steps if it is a TREAD event. */
             lastevent = ptr;
             ptr = ptr->next;
 
@@ -1114,7 +1114,7 @@ dequeue_prog_descr(int descr, int sleeponly)
         }
     }
     if (sleeponly == 1 || sleeponly == 0) {
-        // treat MUF_EVENT processes as backgrounded
+        /* treat MUF_EVENT processes as backgrounded */
         count += muf_event_dequeue_descr(descr);
     }
     for (ptr = tqhead; ptr; ptr = ptr->next) {

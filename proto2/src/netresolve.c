@@ -21,6 +21,10 @@
 #include "externs.h"
 #include "netresolve.h"         /* hinoserm */
 
+#ifndef HOSTCACHE_DEBUG
+#define HOSTCACHE_DEBUG
+#endif
+
 struct hostinfo *hostdb = NULL; /* the main host cache */
 struct husrinfo *userdb = NULL; /* the username list */
 unsigned int hostdb_count = 0; /* number of entries in the host cache */
@@ -111,6 +115,10 @@ resolve_hostnames(void)
 
                 if ((ipnum = str2ip(hostip)) != -1) {
                     struct hostinfo *h;
+
+#ifdef HOSTCACHE_DEBUG
+                    log_status("HOST: GOT: %X (%s):%s\n", ipnum, host_as_hex(ipnum), hostname);
+#endif /* HOSTCACHE_DEBUG */
 
                     for (h = hostdb; h; h = h->next) {
                         if (h->a == ipnum) {
@@ -218,7 +226,9 @@ host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
     if (!tp_hostnames)
         return;
 
-    log_status("Hostname request: %X\n", h->a); 
+#ifdef HOSTCACHE_DEBUG
+    log_status("HOST: Request: %X (%s)\n", h->a, host_as_hex(h->a));
+#endif /* HOSTCACHE_DEBUG */
 
 #ifdef SPAWN_HOST_RESOLVER
     if (!host_get_oldres(h, lport, prt))
@@ -251,19 +261,21 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         hu->u = NULL;
 
     for (h = hostdb; h; h = h->next) {
-//log_status("h->a: %X == %X, %s", h->a, a, h->name);
         if (h->a == a) {
             h->links++;
             h->uses++;
-            log_status("Hostname in cache: %X, %s\n", h->a, h->name);
+#ifdef HOSTCACHE_DEBUG
+            log_status("HOST: Cached: %X (%s), %s\n", h->a, host_as_hex(h->a), h->name);
+#endif /* HOSTCACHE_DEBUG */
             if (current_systime - h->wupd > 80)
                 host_request(h, lport, prt);
             hu->h = h;
             return hu;
         }
     }
-
-    log_status("New hostname (not in cache): %X\n", a);
+#ifdef HOSTCACHE_DEBUG
+    log_status("HOST: New (not in cache): %X (%s)\n", a, host_as_hex(a));
+#endif /* HOSTCACHE_DEBUG */
 
     h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
     h->links = 1;
@@ -288,8 +300,8 @@ host_delete(struct huinfo *hu)
 {
     hu->h->links--;
 
-//    if (hostdb_count > 200 && current_systime - hu->h->wupd > 7200) /* || tp_host_cache_cleantime < 0 */
-//        host_free(hu->h);
+/*    if (hostdb_count > 200 && current_systime - hu->h->wupd > 7200) */ /* || tp_host_cache_cleantime < 0 */
+/*        host_free(hu->h); */
 
     if (hu->u) {
         if (hu->u->next)
@@ -335,7 +347,7 @@ void
 host_load(void)
 {
     FILE *f;
-    int ip;
+    unsigned int ip;
     char name[129];
     char *p = name;
     struct hostinfo *h;
@@ -350,7 +362,7 @@ host_load(void)
         h->links = 0;
         h->uses = 0;
         h->wupd = 0;
-        h->a = ip;
+        h->a = (int)ip;
         strcpy(h->name, name);
         h->prev = NULL;
         h->next = hostdb;
@@ -372,8 +384,10 @@ host_save(void)
     if (!(f = fopen("nethost.cache", "w")))
         return;
 
-    for (h = hostdb; h; h = h->next)
-        fprintf(f, "%X %s\n", h->a, h->name);
+    for (h = hostdb; h; h = h->next) {
+        if (!strcmp(h->name, host_as_hex(h->a)))
+            fprintf(f, "%X %s\n", h->a, h->name);
+    }
 
     fclose(f);
 }

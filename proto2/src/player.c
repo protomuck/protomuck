@@ -227,7 +227,7 @@ set_password(dbref player, const char *password)
 /* Proto now sets passwords encrypted.
  */
 /* Does not! -Hinoserm */
-//    char md5buf[64]; /* Must... stop... C++... comments... -Hinoserm */
+/*    char md5buf[64]; */
 
     if (player != NOTHING) {
         if (!password || !*password) {
@@ -240,7 +240,7 @@ set_password(dbref player, const char *password)
         if (!ok_password(password))
             return 0;
 
-        //MD5base64(md5buf, set_pw, strlen(set_pw));
+        /* MD5base64(md5buf, set_pw, strlen(set_pw)); */
         if (DBFETCH(player)->sp.player.password)
             free((void *) DBFETCH(player)->sp.player.password);
         DBSTORE(player, sp.player.password, alloc_string(password));

@@ -851,7 +851,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
     struct inst *result;
     char username[10];
     char myresult[255];
-    struct sockaddr_in remoteaddr; // client's address
+    struct sockaddr_in remoteaddr; /* client's address */
     int addr_len;
     fd_set reads;
     struct timeval t_val;
@@ -872,7 +872,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
     FD_ZERO(&reads);
     FD_SET(sockdescr, &reads);
     select(sockdescr + 1, &reads, NULL, NULL, &t_val);
-    if (!(FD_ISSET(sockdescr, &reads))) { //No connection waiting
+    if (!(FD_ISSET(sockdescr, &reads))) { /* No connection waiting */
         CLEAR(oper1);
         PushInt(newsock);
         return;
@@ -883,7 +883,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
     newsock =
         accept(sockdescr, (struct sockaddr *) &remoteaddr,
                (socklen_t *) &addr_len);
-    if (newsock == -1) {        //some kind of error
+    if (newsock == -1) {        /* some kind of error */
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
@@ -954,7 +954,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     struct inst *result;
     char username[10];
     char myresult[255];
-    struct sockaddr_in remoteaddr; // client's address
+    struct sockaddr_in remoteaddr; /* client's address */
     int addr_len;
     fd_set reads;
     struct timeval t_val;
@@ -978,7 +978,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     FD_ZERO(&reads);
     FD_SET(sockdescr, &reads);
     select(sockdescr + 1, &reads, NULL, NULL, &t_val);
-    if (!(FD_ISSET(sockdescr, &reads))) { //No connection waiting
+    if (!(FD_ISSET(sockdescr, &reads))) { /* No connection waiting */
         CLEAR(oper1);
         PushInt(newsock);
         return;
@@ -989,7 +989,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     newsock =
         accept(sockdescr, (struct sockaddr *) &remoteaddr,
                (socklen_t *) &addr_len);
-    if (newsock == -1) {        //some kind of error
+    if (newsock == -1) {        /* some kind of error */
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else

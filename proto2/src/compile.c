@@ -1182,9 +1182,9 @@ OptimizeIntermediate(COMPSTATE *cstat)
                                 advance = 0;
                                 break;
                             }
-                        }       //end of % case 
-                    }           //end of if PROG_INTEGER if
-                }               // end of 2 contiguous 
+                        }       /* end of % case */
+                    }           /* end of if PROG_INTEGER if */
+                }               /* end of 2 contiguous */ 
 
                 /* 0 = into not */
                 if (IntermediateIsInteger(curr, 0)) {
@@ -1820,8 +1820,8 @@ do_directive(COMPSTATE *cstat, char *direct)
     } else if (!string_compare(temp, "cleardefs")) {
         char nextToken[BUFFER_LEN];
 
-        purge_defs(cstat);      //Get rid of all defs first.
-        include_internal_defs(cstat); //Always include internal defs.
+        purge_defs(cstat);            /* Get rid of all defs first. */
+        include_internal_defs(cstat); /* Always include internal defs. */
         while (*cstat->next_char && isspace(*cstat->next_char))
             cstat->next_char++; /* eating leading spaces */
         strcpy(nextToken, cstat->next_char);
@@ -3393,8 +3393,11 @@ object_word(COMPSTATE *cstat, const char *token)
     nw->in.data.objref = objno;
     return nw;
 }
-                                                    /* support routines for internal data structures. *//* add procedure to procedures list */ void
 
+/* support routines for internal data structures. */
+
+/* add procedure to procedures list */
+void
 add_proc(COMPSTATE *cstat, const char *proc_name,
          struct INTERMEDIATE *place, int rettype)
 {

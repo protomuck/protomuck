@@ -20,7 +20,7 @@ extern void prim_ftostr(PRIM_PROTOTYPE);
 extern void prim_fmod(PRIM_PROTOTYPE);
 extern void prim_modf(PRIM_PROTOTYPE);
 extern void prim_pi(PRIM_PROTOTYPE);
-// extern void prim_inf(PRIM_PROTOTYPE);
+/* extern void prim_inf(PRIM_PROTOTYPE); */
 extern void prim_round(PRIM_PROTOTYPE);
 extern void prim_xyz_to_polar(PRIM_PROTOTYPE);
 extern void prim_polar_to_xyz(PRIM_PROTOTYPE);

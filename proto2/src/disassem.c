@@ -68,8 +68,8 @@ disassemble(dbref player, dbref program)
                         curr->data.fnumber);
                 break;
             case PROG_ADD:
-                sprintf(buf, "%d: (line %d) ADDRESS: %zd", i, curr->line,
-                        curr->data.addr->data - codestart);
+                sprintf(buf, "%d: (line %d) ADDRESS: %d", i, curr->line,
+                        (int)(curr->data.addr->data - codestart));
                 break;
             case PROG_TRY:
                 sprintf(buf, "%d: (line %d) TRY: %d", i, curr->line,

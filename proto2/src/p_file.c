@@ -26,7 +26,7 @@
 #include "params.h"
 #include "strings.h"
 #include "interp.h"
-#include <dirent.h>             //May be a problem in non-linux systems.
+#include <dirent.h>             /* May be a problem in non-linux systems. */
 
 extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern int tmp, result;
@@ -492,8 +492,8 @@ prim_freadn(PRIM_PROTOTYPE)
         i++;
         tempBuf[i] = '\0';
         fclose(fh);
-//        if (tempBuf[0] != EOF)
-//            result = 1;
+/*      if (tempBuf[0] != EOF) */
+/*          result = 1; */
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREADN: %s \n", program,
                          unparse_object(PSafe, PSafe),
@@ -1083,8 +1083,8 @@ prim_freadto(PRIM_PROTOTYPE)
         i++;
         tempBuf[i] = '\0';
         fclose(fh);
-//        if (tempBuf[0] != EOF)
-//            result = 1;
+/*        if (tempBuf[0] != EOF) */
+/*            result = 1; */
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREADN: %s \n", program,
                          unparse_object(PSafe, PSafe),
@@ -1365,7 +1365,7 @@ prim_send_binary(PRIM_PROTOTYPE)
                          unparse_object(PSafe, PSafe),
                          oper2->data.string->data);
         /* buffer filled, now queue */
-        notify_descriptor_raw(theDescr, tempBuf, i);
+        notify_descriptor_raw(theDescr, (char *)tempBuf, i);
     }
     CLEAR(oper1);
     CLEAR(oper2);

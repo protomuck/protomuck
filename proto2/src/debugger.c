@@ -263,7 +263,6 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
             for (k = 0; k < fntop->data.mufproc->args; ++k) {
                 const char *nam = scopedvar_getname(fr, lev, k);
                 char *val;
-                //const char *fmt;
 
                 if (!nam) {
                     break;

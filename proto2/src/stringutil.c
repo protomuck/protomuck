@@ -779,7 +779,7 @@ color_lookup(dbref player, const char *color, const char *defcolor,
             (void) intrecurse++;
             return color_lookup(player, color, defcolor, intrecurse);
         }
-    }                           //End of player != NOTHING check. Too lazy to indent all that.
+    }                           /* End of player != NOTHING check. Too lazy to indent all that. */
     if (!strcasecmp("NORMAL", color)) {
         return ANSINORMAL;
     } else if (!strcasecmp("BOLD", color) || !strcasecmp("BRIGHT", color)) {

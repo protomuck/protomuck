@@ -54,10 +54,10 @@ descr_flag_set_perms(int dflag, int mlev, dbref prog)
 {
 /* Checks to see if a flag is settable for descr_set.
  */
-    if (mlev < LARCH)           //For now all descr flag stuff is W1.
+    if (mlev < LARCH)           /* For now all descr flag stuff is W1. */
         return 0;
 
-    //Standard non-settables
+    /* Standard non-settables */
     if (dflag == DF_HTML || dflag == DF_PUEBLO || dflag == DF_MUF
         || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE
 #ifdef USE_SSL
@@ -66,7 +66,7 @@ descr_flag_set_perms(int dflag, int mlev, dbref prog)
         )
         return 0;
 
-    //Default is settable
+    /* Default is settable */
     return 1;
 }
 
@@ -1230,7 +1230,7 @@ prim_descr_set(PRIM_PROTOTYPE)
         abort_interp(tp_noperm_mesg);
 
     d = get_descr(descr, NOTHING);
-    if (!d)                     //Just to be safe. Shouldn't ever happen anyway.
+    if (!d)                     /* Just to be safe. Shouldn't ever happen anyway. */
         abort_interp("Invalid descriptor.");
 
     if (!result)

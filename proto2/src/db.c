@@ -300,8 +300,8 @@ putproperties_rec(FILE * f, const char *dir, dbref obj)
     char name[BUFFER_LEN];
 
     pref = first_prop_nofetch(obj, dir, &pptr, name);
-    while (pref > 0) {
-        p = (PropPtr) pref;
+    while (pref) {
+        p = pref;
         db_putprop(f, dir, p);
         strcat(strcpy(buf, dir), name);
         if (PropDir(p))
@@ -871,7 +871,7 @@ ifloat(const char *s)
         s++;                    /* remove leading spaces */
     if (*s == '+' || *s == '-')
         s++;
-    // inf or nan
+    /* inf or nan */
     if (*s == 'i' || *s == 'n' || *s == 'I' || *s == 'N') {
         s++;
         if (*s == 'n' || *s == 'a' || *s == 'N' || *s == 'A') {
@@ -1544,7 +1544,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         }
     }
 
-    // o->password = getstring(f);
+    /* o->password = getstring(f); */
     /* For downward compatibility with databases using the */
     /* obsolete ANTILOCK flag. */
     if (FLAGS(objno) & ANTILOCK) {
