@@ -945,9 +945,11 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
         abort_interp("Non-string argument (2)");
     if (oper2->type != PROG_INTEGER)
         abort_interp("Descriptor integer expected. (1)");
-    if (!pdescrp(oper2->data.number))
+    if (!pdescrp(oper2->data.number)) {
+        CLEAR(oper1);
+        CLEAR(oper2);
         return;
-    /* abort_interp("That is not a valid descriptor."); */
+    }
     if (oper1->data.string) {
         strcpy(buf, oper1->data.string->data);
         notify_descriptor(oper2->data.number, buf);
@@ -973,9 +975,11 @@ prim_ansi_notify_descriptor(PRIM_PROTOTYPE)
         abort_interp("Non-string argument. (2)");
     if (oper2->type != PROG_INTEGER)
         abort_interp("Invalid descriptor arguement. (1)");
-    if (!pdescrp(oper2->data.number))
+    if (!pdescrp(oper2->data.number)) {
+        CLEAR(oper1);
+        CLEAR(oper2);
         return;
-    /* abort_interp("That is not a valid descriptor."); */
+    }
     if (oper1->data.string) {
         strcpy(buf, oper1->data.string->data);
         anotify_descriptor(oper2->data.number, buf);
@@ -1001,9 +1005,11 @@ prim_notify_descriptor_char(PRIM_PROTOTYPE)
         abort_interp("Mage primitive.");
     if (oper1->type != PROG_INTEGER || oper2->type != PROG_INTEGER)
         abort_interp("Requires integer arguements.");
-    if (!pdescrp(oper2->data.number))
+    if (!pdescrp(oper2->data.number)) {
+        CLEAR(oper1);
+        CLEAR(oper2);
         return;
-    /* abort_interp("Not a valid descriptor."); */
+    }
     theChar = (char) oper1->data.number;
 
     notify_descriptor_char(oper2->data.number, theChar);
