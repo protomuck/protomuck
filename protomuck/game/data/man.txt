@@ -171,7 +171,7 @@ Array Prims:
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
   BWRITE    BREAD    BAPPEND   FRM        FREN
-  FPUBLISH  FSINFO   FSTATS    CURID      FSIZE
+  FPUBLISH  FSINFO   FSTATS    CURID      FSIZE    GETDIR
 
 MCP Prims:
   MCP_REGISTER    MCP_REGISTER EVENT   MCP_SUPPORTS       MCP_BIND
@@ -1011,7 +1011,7 @@ before the if. For every IF in a word, there MUST be a THEN, and
 vice-versa.  ELSE is optional.
 In MUF, the following are FALSE:
 Empty strings.
-Negative dbref numbers.
+A dbref of #-1. (All other negative dbrefs are TRUE).
 0 integers.
 0.00000 float points.
 All other data types and conditions are TRUE.
@@ -3223,6 +3223,7 @@ fstats              ( s -- i1 ... i6 )
 fsize               ( s -- i )
 frm                 ( s -- i )
 fren                ( s1 s2 -- i )
+getdir              ( s -- arr )
 newprogram          ( s -- d )
 compile             ( d i -- i )
 uncompile           ( d -- )
@@ -3272,7 +3273,8 @@ See also FOREGROUND, BACKGROUND, PREEMPT, FORK, QUEUE, KILL, and SLEEP.
 DIRECTIVES|DIR|$DEFINE|DEFINE|$DEF|DEF|$UNDEF|UNDEF|$ECHO|ECHO
 
 $define <defname> <definition> $enddef
-  Basically the same as C's #define <defname> <definition>
+  Basically the same as C's #define <defname> <definition>. Used to create
+  definitions that can be used later in the program.
 
 $def <defname> <definition>
   This is the same as $define, except that the definition stops at the end
@@ -3285,7 +3287,7 @@ $echo <string>
   Echos the given string to the screen of the person compiling the program.
   Runs at compile-time.
 
-Type 'man dir2' for more directives.
+Type 'man dir2' for more directives and 'man dir list' for a listing.
 ~
 DIR2|DIRECTIVES2|DIRECTIVE2|$IFDEF|$IFNDEF|IFDEF|IFNDEF|VERSION|__VERSION
 
@@ -3317,11 +3319,11 @@ are nestable also.  Some examples:
   $ifndef __version>Muck2.2fb3.5 $define envprop .envprop $enddef $endif
   $define ploc $ifdef proplocs .proploc $else $endif $enddef
 
-Type 'man dir3' for more directives.
+Type 'man dir3' for more directives and 'man dir list' for a listing.
 ~
-DIR3|DIRECTIVES3|DIRECTIVE3
+DIR3|DIRECTIVES3|DIRECTIVE3|$INCLUDE|INCLUDE
 
-$include <dbref|progreg>
+$include <dbref|progreg|integer>
 
 Sets a bunch of $defines from the properties in the /_defs/ propdir.
 For example, if object #345 had the following properties:
@@ -3336,18 +3338,131 @@ references to 'desc', 'setpropstr', 'setpropval', and 'setprop' would
 be expanded to the string values of their respective programs. ie:
 'desc' would be replaced throughout the program with '"_/de" getpropstr'
 
-Type 'man dir4' for more hints.
-~
-DIR4|DIRECTIVES4|DIRECTIVE4
+If the following integers are passed, then one can control which _defs
+and macros get loaded into the program as well:
+0 = Macros and MUF owner _defs and #0 _defs
+1 = #0 _defs and MUF owner _defs but not macros.
+2 = macros only.
 
-You can now escape a token in MUF so that it will be interpreted literally.
+Note that for non-wizards, #0 _defs/ are always loaded no matter what.
+
+Type 'man dir4' for more directives and 'man dir list' for a listing.
+~~~~
+DIR4|DIRECTIVES4|DIRECTIVE4|$BETA|$ALPHA|$VERSION|$LIB-VERSION|
+$beta <integer>
+    Sets an integer prop on the program under a _Beta prop. Note that
+    the _Beta prop is cleared at compile time, so if this directive is
+    not in the code, that prop will not have a value.
+
+$alpha <integer>
+    Sets an integer prop on the program under a _Alpha prop. The _Alpha
+    prop is cleared at compile time, so without this directive, there
+    will be no value under the prop.
+
+$version <float>
+    Sets a string prop on the program under a _Version prop.
+
+$lib-version <float>
+    Sets a string prop on the program under _Lib-Version.
+
+See 'man dir5' for more directives and 'man dir list' for a listing.
+~~~~~
+DIR5|DIRECTIVES5|$AUTHOR|$NOTE|$ANSI|$ABORT|$LOG_STATUS|$SHOW_STATUS
+$author <string>
+    Sets a string prop on the program under _Author.
+
+$note <string>
+    Sets a string (up to the end of the line in the code) under a
+    _note prop.
+
+$ansi <message>
+    Same as $echo, except that it accepts Neon ANSI tags (^RED^).
+
+$abort [<message>]
+    Aborts compiling and prints out the error message.
+
+$log_status <message>
+    Adds a line to the status log. Also gets shown to LOGWALL W3s.
+
+$show_status <message>
+    Walls the message to LOGWALL W3s without logging it to the status log.
+
+See 'man dir6' for more directives and 'man dir list' for a listing.
+~~~~
+DIR6|DIRECTIVES6|$PUBDEF|$NOMACROS|$CLEARDEFS|
+$pubdef 
+    By using this directive, the _defs/ directory on a MUF program can
+    be set at compile time. 
+    $pubdef :   == Removes the _defs/ directory on the program object.
+    $pubdef <def name> = Removes only that _def/ from program object.
+    $pubdef <def name> <definition> = Sets that public _def/
+    $pubdef \<def name> <definition> = Only sets _def/ if not already set.
+    E.g.: $pubdef tell me @ swap notify
+       would put a _defs/tell:me @ swap notify prop on the program object.
+    Def names cannot have ':' nor '/' in them.
+
+$nomacros 
+    Ignore all macros during compiling.
+
+$cleardefs [ALL]
+    Ignores program _defs/ when compiling the program. Wizards can use
+    $cleardefs ALL to also ignore #0 _defs/ when compiling. This does
+    not affect macros, and internal _defs/ are always loaded no matter what.
+
+See 'man dir7' for more directives and 'man dir list' for a listing.
+~~~~~
+|DIR7|DIRECTIVES7|$ifbeta|$ifalpha|$ifver|$iflibver|$ifauthor|$iflib|$ifcancall
+Note: In all cases, you can replace <library/prog dbref> with the word: this
+      to indicate the program being compiled. These are all $if $else $endif
+      constructions. Refer to $ifdef $else $endif for details on usage.
+$ifbeta    <library/dbref> <integer>   $ifnbeta    <library/dbref> <integer>
+$ifalpha   <library/dbref> <integer>   $ifnalpha   <library/dbref> <integer>
+$ifver     <library/dbref> <float>     $ifnver     <library/dbref> <integer>
+$iflibver  <library/dbref> <float>     $ifnlibver  <library/dbref> <float>
+$ifauthor  <library/dbref> <smatch>    $ifnauthor  <library/dbref> <smatch>
+$iflib     <library to check for>      $ifnlib     <library to check for>
+$ifcancall <library/dbref> <function>  $ifncancall <library/dbref> <function>
+
+See 'man dir8' for more information on directives.
+
+~~~~
+DIR8|DIRECTIVES8|DIRECTIVE8
+
+You can escape a token in MUF so that it will be interpreted literally.
 ie:  \.pmatch will try to compile '.pmatch' without expanding it as a
 macro.  This lets you make special things with $defines such as:
 $define addprop over over or if \addprop else pop pop remove_prop $enddef
 so that all the 'addprop's in the program will be expanded to the
 definition, but the 'addprop' in the definition will not try to expand
 recursively.  It will call the actual addprop.
-~
+
+See 'man dir list' for a list of all directives.
+~~~~~
+DIR LIST|DIRLIST|ALL DIRECTIVES|DIRS
+ 
+Working with props:
+$alpha      $pubdef    $note      $lib-version
+$beta       $author    $version
+
+Working with macros and definitions:
+$define     $enddef    $def       $undef
+$cleardefs  $include   $nomacros  
+
+Notification:
+$echo       $ansi      $abort     $show_status
+$log_status
+
+Compilier Variables:
+__version  __neon      __proto    __muckname
+
+Conditionals:
+$ifdef     $ifalpha    $ifbeta    $ifver       $iflibver
+$ifndef    $ifnalpha   $ifnbeta   $ifnver      $ifnlibver
+$ifauthor  $iflib      $ifcancall
+$ifnauthor $ifnlib     $ifncancall
+
+See 'man dirs' for more infomation on directives.
+~~~~
 LIBRARIES|LIBS|LIB1|LIBS1|LIBRARIES1
 
 How to use a library:
@@ -4697,6 +4812,7 @@ FWRITE, FREAD, FREADN, FREADTO, FAPPEND, FCR - For use with characters.
 BWRITE, BREAD, BAPPEND - For use with integer values for ASCII.
 FPUBLISH, FSINFO, FSTATS, CURID, FSIZE, FNAME-OK? - Getting file/host information.
 FRM, FREN - For moving/removing files.
+GETDIR - For reading the contents of a directory
 See: SHORTCUTS
 ~~~~~~
 SHORTCUTS|FILE SHORTCUTS|FILESHORTCUTS|SHORTCUT|FILE SHORTCUT
@@ -8254,3 +8370,23 @@ no longer an issue and use of this prim has been deprecated. It
 still exists because it is one of the prims that the internal
 program iteration uses JMP to implement loops and if-else-then
 statements.
+~~~~
+GETDIR
+
+getdir ( s -- arr )
+-------------------
+Level: W4 Boy
+s = String representing directory to check for.
+arr = Array containing the contents of that directory.
+
+Given a directory name, it returns an array containing that
+directory's contents. Subdirectories are indicated with a / mark 
+following the name. If given just '/' as the directory name, it
+returns the contents of the files/ directory. Works under the same 
+rules as the rest of the file prims concerning the use of shortcuts 
+for security reasons.
+
+Example: "$INFO/" getdir would return the contents of the data/info directory
+
+See: FILE PRIMS, SHORTCUTS
+~~~~~
