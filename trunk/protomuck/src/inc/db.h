@@ -192,24 +192,25 @@ typedef int dbref;		/* offset into db */
 
 /* Proto @Powers */
 
-#define POW_ANNOUNCE          0x1   /* Can use @wall and dwall commands */
-#define POW_BOOT              0x2   /* Can use @boot and dboot commands */
-#define POW_CHOWN_ANYTHING    0x4   /* Can @chown anything, unless it is PROTECTed */
-#define POW_EXPANDED_WHO      0x8   /* Gets the wizard version of WHO */
-#define POW_HIDE             0x10   /* Can set themselves DARK or login HIDDEN */
-#define POW_IDLE             0x20   /* Not effected by the idle limit */
-#define POW_LINK_ANYWHERE    0x40   /* Can @link an exit to anywhere */
-#define POW_LONG_FINGERS     0x80   /* Can do anything from a long distance */
-#define POW_NO_PAY          0x100   /* Infinite money */
-#define POW_OPEN_ANYWHERE   0x200   /* @open an exit from any location */
-#define POW_PLAYER_CREATE   0x400   /* Can use @pcreate, @frob, and @toad */
-#define POW_SEARCH          0x800   /* Can use @find, @entrances, and @contents */
-#define POW_SEE_ALL        0x1000   /* Can examine any object, and @list any program */
-#define POW_TELEPORT       0x2000   /* Fee use of @teleport */
-#define POW_SHUTDOWN       0x4000   /* Ability to @shutdown and @restart*/
-#define POW_CONTROL_MUF    0x8000   /* Ability to control all MUFs */
-#define POW_CONTROL_ALL   0x10000   /* Ability to control all objects */
-#define POW_ALL_MUF_PRIMS 0x20000   /* Gives full access to MUF prims */
+#define POW_ANNOUNCE          0x1   /* [a] Can use @wall and dwall commands */
+#define POW_BOOT              0x2   /* [b] Can use @boot and dboot commands */
+#define POW_CHOWN_ANYTHING    0x4   /* [c] Can @chown anything, unless it is PROTECTed */
+#define POW_EXPANDED_WHO      0x8   /* [x] Gets the wizard version of WHO */
+#define POW_HIDE             0x10   /* [h] Can set themselves DARK or login HIDDEN */
+#define POW_IDLE             0x20   /* [i] Not effected by the idle limit */
+#define POW_LINK_ANYWHERE    0x40   /* [l] Can @link an exit to anywhere */
+#define POW_LONG_FINGERS     0x80   /* [g] Can do anything from a long distance */
+#define POW_NO_PAY          0x100   /* [n] Infinite money */
+#define POW_OPEN_ANYWHERE   0x200   /* [o] @open an exit from any location */
+#define POW_PLAYER_CREATE   0x400   /* [p] Can use @pcreate, @frob, and @toad */
+#define POW_SEARCH          0x800   /* [s] Can use @find, @entrances, and @contents */
+#define POW_SEE_ALL        0x1000   /* [e] Can examine any object, and @list any program */
+#define POW_TELEPORT       0x2000   /* [t] Fee use of @teleport */
+#define POW_SHUTDOWN       0x4000   /* [d] Ability to @shutdown and @restart*/
+#define POW_CONTROL_MUF    0x8000   /* [f] Ability to control all MUFs */
+#define POW_CONTROL_ALL   0x10000   /* [r] Ability to control all objects */
+#define POW_ALL_MUF_PRIMS 0x20000   /* [m] Gives full access to MUF prims */
+/* FREE POWER LETTERS: jkquvwyz */
 
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
@@ -243,10 +244,12 @@ typedef int object_power_type;
 #define LMUF	(2)
 #define LMPI	(1)
 
-#define RawMWLevel(x)         ( ( ((FLAGS(x) & W4)?1:0)<<3 ) + \
+#define CheckMWLevel(x)       ( ( ((FLAGS(x) & W4)?1:0)<<3 ) + \
                                 ( ((FLAGS(x) & W3)?1:0)<<2 ) + \
                                 ( ((FLAGS(x) & W2)?1:0)<<1 ) + \
                                 ( ((FLAGS(x) & W1)?1:0)    )    )
+
+extern int RawMWLevel(dbref thing);
 
 #define RawMLevel(x)    ( Man(x) ? LMAN : RawMWLevel(x) )
 

@@ -687,6 +687,7 @@ void prim_fstats(PRIM_PROTOTYPE)
   if(tp_log_files)
     log2filetime("logs/files", "#%d by %s FSTATS : %s \n", program, unparse_object(player, player), oper1->data.string->data); 
   CLEAR(oper1);
+  CHECKOFLOW(6);
   PushInt(fs.st_gid); 
   PushInt(fs.st_uid); 
   PushInt(fs.st_ctime); 
@@ -720,6 +721,7 @@ void prim_fsinfo(PRIM_PROTOTYPE)
   statfs("/", &fs); 
     if(tp_log_files)
       log2filetime("logs/files", "#%d by %s FSINFO \n", program, unparse_object(player, player)); 
+  CHECKOFLOW(8);
   PushInt(fs.f_type); 
   PushInt(fs.f_blocks); 
   PushInt(fs.f_bfree); 

@@ -90,6 +90,7 @@ extern int tp_dump_copies;
 extern dbref tp_quit_prog;
 extern dbref tp_login_who_prog;
 extern dbref tp_player_start;
+extern dbref tp_reg_wiz;
 extern dbref tp_player_prototype;
 extern dbref tp_cron_prog;
 #ifdef HTTPD
@@ -160,6 +161,7 @@ extern int tp_mortalwho;
 extern int tp_guest_needflag;
 extern int tp_fb_controls;
 extern int tp_allow_old_trigs;
+extern int tp_multi_wizlevels;
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);

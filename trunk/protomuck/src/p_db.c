@@ -144,13 +144,13 @@ int check_mlev(char *flag, int *truewiz)
    if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) || string_prefix("m3", flag))
       return LM3;
    if (string_prefix("mage", flag) || string_prefix("W1", flag))
-      return LMAGE;
+      return (tp_multi_wizlevels ? LMAGE : LM3);
    if (string_prefix("wizard", flag) || string_prefix("W2", flag))
-      return LWIZ;
+      return (tp_multi_wizlevels ? LWIZ : LARCH);
    if (string_prefix("archwizard", flag) || string_prefix("W3", flag))
       return LARCH;
    if (string_prefix("boy", flag) || string_prefix("W4", flag))
-      return LBOY;
+      return (tp_multi_wizlevels ? LBOY : LARCH);
    if (string_prefix("man", flag) || string_prefix("W5", flag))
       return LMAN;
    return 0;
@@ -2465,6 +2465,8 @@ prim_next_flag(PRIM_PROTOTYPE)
     if(result == 0 || ref >= db_top)
        ref = NOTHING;
     PushObject(ref);
+    CLEAR(oper1);
+    CLEAR(oper2);
 }
 
 void
@@ -2511,6 +2513,8 @@ prim_nextowned_flag(PRIM_PROTOTYPE)
     if(result == 0 || ref >= db_top)
        ref = NOTHING;
     PushObject(ref);
+    CLEAR(oper1);
+    CLEAR(oper2);
 }
 
 void
@@ -2551,7 +2555,8 @@ prim_nextplayer_flag(PRIM_PROTOTYPE)
     if(result == 0 || ref >= db_top)
        ref = NOTHING;
     PushObject(ref);
-
+    CLEAR(oper1);
+    CLEAR(oper2);
 }
 
 
@@ -2635,6 +2640,8 @@ prim_nextthing_flag(PRIM_PROTOTYPE)
     if(result == 0 || ref >= db_top)
        ref = NOTHING;
     PushObject(ref);
+    CLEAR(oper1);
+    CLEAR(oper2);
 }
 
 void
@@ -2762,6 +2769,7 @@ prim_newprogram(PRIM_PROTOTYPE)
 	DBDIRTY(newprog);
 	DBDIRTY(player);
       PushObject(newprog);
+      CLEAR(oper1);
 }
 
 extern struct line *read_program(dbref prog);

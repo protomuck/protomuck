@@ -690,6 +690,7 @@ prim_descrdbref(PRIM_PROTOTYPE)
    dr = descrdata_by_descr(oper1->data.number);
    CHECKOFLOW(1);
    PushObject(dr->player);
+   CLEAR(oper1);
 }
 
 void
@@ -902,7 +903,7 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
 
 	d = descrdata_by_descr(oper1->data.number);
 
-        CHECKOP(1);
+        CHECKOFLOW(1);
 	nw = new_array_dictionary();
 	temp1.type = PROG_STRING;
 	temp1.data.string = alloc_prog_string("DESCRIPTOR");
