@@ -1315,7 +1315,7 @@ mfn_ftime(MFUNARGS)
     } else {
         time(&lt);
     }
-    if (argc == 2) {
+    if (argc > 1) {
         lt += (3600 * atoi(argv[1]));
         lt += get_tz_offset();
     }

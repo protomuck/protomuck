@@ -953,11 +953,13 @@ copyinst(struct inst * from, struct inst * to)
 			from->data.sock->links++;
 	    }
             break;
+#ifdef SQL_SUPPORT
       case PROG_MYSQL:
             if (from->data.mysql) {
                 from->data.mysql->links++;
             }
             break;
+#endif
       }
 }
 

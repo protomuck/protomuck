@@ -2188,29 +2188,34 @@ do_sweep(int descr, dbref player, const char *name)
     flag = 0;
     loc = thing;
     while (loc != NOTHING) {
-	if (controls(player, loc)) {
-	    if (!flag) {
-		anotify_nolisten(player, CINFO "Listening rooms down the environment:", 1);
-		flag = 1;
-	    }
+	if (!flag) {
+            anotify_nolisten(player, 
+                            CINFO "Listening rooms down the environment:", 1);
+            flag = 1;
+        }
 
-	    if ((FLAGS(loc) & LISTENER) &&
-		    (get_property(loc, "@listen")   ||
-		     get_property(loc, "@olisten")   ||
-		     get_property(loc, "~listen")   ||
-		     get_property(loc, "~olisten")  ||
-		     get_property(loc, "_listen")   ||
-		     get_property(loc, "_olisten"))) {
-		sprintf(buf, "  %s" NORMAL " is a listening room.",
-			ansi_unparse_object(player, loc));
-		anotify_nolisten(player, buf, 1);
-	    }
-
-	    exit_match_exists(player, loc, "page");
-	    exit_match_exists(player, loc, "whisper");
-	    exit_match_exists(player, loc, "pose");
-	    exit_match_exists(player, loc, "say");
+        if ((FLAGS(loc) & LISTENER) &&
+            (get_property(loc, "@listen")   ||
+             get_property(loc, "@olisten")   ||
+             get_property(loc, "~listen")   ||
+             get_property(loc, "~olisten")  ||
+             get_property(loc, "_listen")   ||
+             get_property(loc, "_alisten")  ||
+             get_property(loc, "_aolisten") ||
+             get_property(loc, "~alisten")  ||
+             get_property(loc, "~aolisten") ||
+             get_property(loc, "@alisten")  ||
+             get_property(loc, "~aolisten") ||
+             get_property(loc, "_olisten"))) {
+             sprintf(buf, "  %s" NORMAL " is a listening room.",
+                            ansi_unparse_object(player, loc));
+             anotify_nolisten(player, buf, 1);
 	}
+
+	exit_match_exists(player, loc, "page");
+	exit_match_exists(player, loc, "whisper");
+	exit_match_exists(player, loc, "pose");
+	exit_match_exists(player, loc, "say");
 	loc = getparent(loc);
     }
     anotify_nolisten(player, CINFO "**End of list**", 1);

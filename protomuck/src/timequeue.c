@@ -850,7 +850,8 @@ get_pidinfo(int pid)
         }
         ptr = ptr->next;
     }
-    if (ptr && (ptr->eventnum == pid)) {
+    if (ptr && (ptr->eventnum == pid) &&
+         (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER)) {
         if (ptr->fr) {
             etime = rtime - ptr->fr->started;
             if (etime > 0) {

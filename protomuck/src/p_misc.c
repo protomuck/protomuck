@@ -467,17 +467,125 @@ prim_getpids(PRIM_PROTOTYPE)
 void
 prim_getpidinfo(PRIM_PROTOTYPE)
 {
-	stk_array *nw;
+    stk_array *nw;
+    struct inst temp1, temp2;
+    time_t rtime = current_systime;
+    time_t etime = 0;
+    double pcnt = 0.0;
 
-	CHECKOP(1);
-	oper1 = POP();
-	if (mlev < LARCH)
-		abort_interp("Archwizard prim.");
-	if (oper1->type != PROG_INTEGER)
-		abort_interp("Non-integer argument (1)");
-	nw = get_pidinfo(oper1->data.number);
-	CLEAR(oper1);
-	PushArrayRaw(nw);
+    /* int */
+    CHECKOP(1);
+    oper1 = POP();
+    if (mlev < LARCH)
+        abort_interp("Archwizard prim.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument (1)");
+
+    /* This is kind of hacky. Basically, if we are getting the 
+     * current program's info, we need to do it here, since it
+     * doesn't exist in the timequeue. Otherwise, we need to
+     * defer to the timequeue functions for info
+     */
+    if (oper1->data.number == fr->pid) {
+        nw = new_array_dictionary();
+        etime = rtime - fr->started;
+        if (etime > 0) {
+            pcnt = fr->totaltime.tv_sec;
+            pcnt += fr->totaltime.tv_usec / 1000000;
+            pcnt = pcnt * 100 / etime;
+            if (pcnt > 100.0) 
+                pcnt = 100.0;
+        } else 
+            pcnt = 0.0;
+        temp1.type = PROG_STRING; /* PID */
+        temp1.data.string = alloc_prog_string("PID");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = fr->pid;
+        array_setitem(&nw, &temp1, &temp2); 
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* CALLED_PROG */
+        temp1.data.string = alloc_prog_string("CALLED_PROG");
+        temp2.type = PROG_OBJECT;
+        temp2.data.objref = fr->prog;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* TRIG */
+        temp1.data.string = alloc_prog_string("TRIG");
+        temp2.type = PROG_OBJECT;
+        temp2.data.objref = fr->trig;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* PLAYER */
+        temp1.data.string = alloc_prog_string("PLAYER");
+        temp2.type = PROG_OBJECT;
+        temp2.data.objref = fr->player;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* CALLED_DATA */
+        temp1.data.string = alloc_prog_string("CALLED_DATA");
+        temp2.type = PROG_STRING;
+        temp2.data.string = alloc_prog_string(""); /*not sure on this one */
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* INSTCNT */
+        temp1.data.string = alloc_prog_string("INSTCNT");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = fr->instcnt;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* DESCR */
+        temp1.data.string = alloc_prog_string("DESCR");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = fr->descr;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* CPU */
+        temp1.data.string = alloc_prog_string("CPU");
+        temp2.type = PROG_FLOAT;
+        temp2.data.fnumber = (float) pcnt;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* NEXTRUN */
+        temp1.data.string = alloc_prog_string("NEXTRUN");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = 0; /* Currently running */
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* STARTED */
+        temp1.data.string = alloc_prog_string("STARTED");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = (int) fr->started;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* TYPE */
+        temp1.data.string = alloc_prog_string("TYPE");
+        temp2.type = PROG_STRING;
+        temp2.data.string = alloc_prog_string("MUF"); /* always MUF here */
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* SUBTYPE */
+        temp1.data.string = alloc_prog_string("SUBTYPE"); 
+        temp2.type = PROG_STRING;
+        temp2.data.string = alloc_prog_string(""); /* never a subtype here */
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+    } else /* not current PID */ 
+        nw = get_pidinfo(oper1->data.number);
+
+    CLEAR(oper1);
+    PushArrayRaw(nw);
 }
 
 
