@@ -1,0 +1,58 @@
+We don't use builder bits; just #define Builder() as (1).
+
+Our player birthroom is #2, not #0.
+
+We allow '==" and ;==:
+
+I make prim_online mucker level 1.
+Also conddbref, conidle, contime
+
+We use -lmalloc
+
+I allow @pcreate even with REGISTRATION off.
+
+We've dropped NEXTPROP and PROPDIR? to M2.
+
+I don't normally log wiz commands.  CODEWIZARD now excepted.
+
+I comment out the game.c and interface.c default 'log_command()' logging.
+
+We add some stuff to wiz.c:do_usage().
+
+My interface.c check_connect(), aside from having
+the reg_* hacks, logs d->hostname, not just d->descriptor.
+
+I leave DOUBLING on but change it to actually grow by 10%
+increments rather than 100% increments.
+
+Added a "db_clear_object(newobj); /* CrT */" to db.c:new_object()
+'else' clause, it seemed to be crashing on
+do_dig -> new_object -> db_free_object -> free()
+
+I add a
+    OWNER(thing) = GOD;  /* CrT */
+at end of move.c:recycle(), so people don't own their garbage.
+
+We changed game.c:process_command() to allow mortals to use !@edi
+!@lis and !l overrides to get native server code.
+
+Changed interface.c:check_connect to log pw on failed tries, mostly
+so I can diagnose people who fail to connect.
+
+I fix timequeue.c next_timequeue_event() main loop to not crash
+on null tqhead.
+
+We fix timestamps(?) prim to be M3.
+
+We change 'gripe' command to require three letter prefix.
+
+We change @toad to not do it if *name/@/precious:{any}
+
+Fb5.24 cores if we sweep someone who is INTERACTIVE.  We add a
+check to p_misc.c:prim_force() to prevent this.
+
+On Mumford's request, p_db.c:prim_moveto has one check commented out.
+
+On Kurane's request, db.c:log_program_text uses folding-mode format.
+
+We turn off all the Builder() restrictions in create.c
