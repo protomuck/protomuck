@@ -1449,7 +1449,7 @@ static int mpi_muf_call_levels = 0;
 const char *
 mfn_muf(MFUNARGS)
 {
-    char *ptr;
+    const char *ptr;
     struct inst *rv = NULL;
     struct frame *tmpfr;
     dbref obj = mesg_dbref_raw(descr, player, what, perms, argv[0]);
@@ -1481,6 +1481,7 @@ mfn_muf(MFUNARGS)
 
     if (!rv)
         return "";
+
     switch (rv->type) {
         case PROG_STRING:
             if (rv->data.string) {

@@ -1,5 +1,8 @@
 /* MPI msgparse.c header file. */
 
+#ifndef MPI_H
+#define MPI_H
+
 #define MPI_ISPUBLIC	0x00  /* never test for this one */
 #define MPI_ISPRIVATE	0x01
 #define MPI_ISLISTENER	0x02
@@ -23,4 +26,5 @@ extern char *
 do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf,
 	    const char *abuf, char *outbuf, int mesgtyp);
 
+#endif /* MPI_H */
 

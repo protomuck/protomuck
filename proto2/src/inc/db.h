@@ -92,6 +92,7 @@ extern char match_args[BUFFER_LEN];
 extern char match_cmdname[BUFFER_LEN];
 
 typedef int dbref;		/* offset into db */
+typedef char bool;      /* for eventual C++ convert */
 
 #define TIME_INFINITE ((sizeof(time_t) == 4)? 0xefffffff : 0xefffffffffffffff)
 #define valid_obj(a) (a > -1 && a < db_top)

@@ -1,4 +1,7 @@
 
+#ifndef MSGPARSE_H
+#define MSGPARSE_H
+
 #define MAX_MFUN_NAME_LEN 16
 #define MAX_MFUN_LIST_LEN 512
 #define MPI_MAX_VARIABLES 32
@@ -15,46 +18,46 @@
 
 #undef WIZZED_DELAY
 
-
-int Archperms(dbref what);
-int Wizperms(dbref what);
-int Mageperms(dbref what);
+extern bool Archperms(register dbref what);
+extern bool Wizperms(register dbref what);
+extern bool Mageperms(register dbref what);
 
 extern void mesg_init(void);
 
-int safeputprop(dbref obj, dbref perms, char *buf, char *val);
-const char *safegetprop(dbref player, dbref what, dbref perms, const char *inbuf);
-const char *safegetprop_strict(dbref player, dbref what, dbref perms, const char *inbuf);
+extern bool safeputprop(dbref obj, dbref perms, register const char *buf, const char *val);
+extern const char *safegetprop_limited(dbref player, register dbref what, dbref whom, dbref perms, const char *inbuf);
+extern const char *safegetprop_strict(dbref player, dbref what, dbref perms, const char *inbuf);
+extern const char *safegetprop(dbref player, register dbref what, dbref perms, const char *inbuf);
 
-char *stripspaces(char *buf, char *in);
-char *string_substitute(const char *str, const char *oldstr, const char *newstr, char *buf, int maxlen);
-char *cr2slash(char *buf, const char *in);
+extern const char *stripspaces(register char *buf, register char *in);
+extern const char *string_substitute(const char *str, const char *oldstr, const char *newstr, char *buf, int maxlen);
+extern const char *cr2slash(register char *buf, register const char *in);
 
-int get_list_count(dbref trig, dbref what, dbref perms, const char *listname);
-const char *get_list_item(dbref trig, dbref what, dbref perms, const char *listname, int itemnum);
-char *get_concat_list(dbref player, dbref what, dbref perms, dbref obj, const char *listname, char *buf, int maxchars, int mode);
+extern int get_list_count(dbref trig, dbref what, dbref perms, const char *listname);
+extern const char *get_list_item(dbref trig, dbref what, dbref perms, const char *listname, int itemnum);
+extern const char *get_concat_list(dbref player, dbref what, dbref perms, dbref obj, const char *listname, char *buf, int maxchars, int mode);
 
-int isneighbor(dbref d1, dbref d2);
-int mesg_read_perms(dbref player, dbref perms, dbref obj);
-int mesg_local_perms(dbref player, dbref perms, dbref obj);
+extern bool isneighbor(register dbref d1, register dbref d2);
+extern bool mesg_read_perms(register dbref player, register dbref perms, register dbref obj);
+extern bool mesg_local_perms(register dbref player, register dbref perms, register dbref obj);
 
-dbref mesg_dbref_raw(int descr, dbref player, dbref what, dbref perms, const char *buf);
-dbref mesg_dbref(int descr, dbref player, dbref what, dbref perms, char *buf);
-dbref mesg_dbref_mage(int descr, dbref player, dbref what, dbref perms, char *buf);
-dbref mesg_dbref_strict(int descr, dbref player, dbref what, dbref perms, char *buf);
-dbref mesg_dbref_local(int descr, dbref player, dbref what, dbref perms, char *buf);
+extern dbref mesg_dbref_raw(int descr, dbref player, dbref what, dbref perms, const char *buf);
+extern dbref mesg_dbref(int descr, dbref player, dbref what, dbref perms, char *buf);
+extern dbref mesg_dbref_mage(int descr, dbref player, dbref what, dbref perms, char *buf);
+extern dbref mesg_dbref_strict(int descr, dbref player, dbref what, dbref perms, char *buf);
+extern dbref mesg_dbref_local(int descr, dbref player, dbref what, dbref perms, char *buf);
 
-char *ref2str(dbref obj, char *buf);
-int truestr(char *buf);
+extern const char *ref2str(register dbref obj, register char *buf);
+extern bool truestr(register const char *buf);
 
-int check_mvar_overflow(int count);
-int new_mvar(const char *varname, char *buf);
-char *get_mvar(const char *varname);
-int free_top_mvar(void);
+extern bool check_mvar_overflow(register int count);
+extern bool new_mvar(register const char *varname, register char *buf);
+extern char *get_mvar(register const char *varname);
+extern bool free_top_mvar(void);
 
-int new_mfunc(const char *funcname, const char *buf);
-const char *get_mfunc(const char *funcname);
-int free_mfuncs(int downto);
+extern bool new_mfunc(register const char *funcname, register const char *buf);
+extern const char *get_mfunc(register const char *funcname);
+extern bool free_mfuncs(register int downto);
 
 
 
@@ -70,5 +73,5 @@ typedef char argv_typ[10][BUFFER_LEN];
 #define MesgParse(in,out) mesg_parse(descr, player, what, perms, (in), (out), BUFFER_LEN, mesgtyp)
 
 
-
+#endif /* MSGPARSE_H */
 
