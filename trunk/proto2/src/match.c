@@ -136,7 +136,7 @@ find_registered_obj(dbref player, const char *name)
         case PROP_REFTYP:
             match = PropDataRef(ptr);
             if (((match >= 0) && (match < db_top)
-                && (Typeof(match) != TYPE_GARBAGE)) || (match == -4) )
+                 && (Typeof(match) != TYPE_GARBAGE)) || (match == -4))
                 return (match);
             break;
         case PROP_INTTYP:
@@ -236,14 +236,16 @@ match_here(struct match_data *md)
 void
 match_home(struct match_data *md)
 {
-    if (!string_compare(md->match_name, "home") || !string_compare(md->match_name, "#-3"))
+    if (!string_compare(md->match_name, "home")
+        || !string_compare(md->match_name, "#-3"))
         md->exact_match = HOME;
 }
 
 void
 match_null(struct match_data *md)
 {
-    if (!string_compare(md->match_name, "nil") || !string_compare(md->match_name, "#-4"))
+    if (!string_compare(md->match_name, "nil")
+        || !string_compare(md->match_name, "#-4"))
         md->exact_match = NIL;
 }
 
@@ -324,16 +326,16 @@ match_exits(dbref first, struct match_data *md)
         }
         exitprog = 1;
         /*
-        if (FLAGS(exit) & HAVEN || !tp_require_has_mpi_arg) {
-            exitprog = 1;
-        } else if (DBFETCH(exit)->sp.exit.dest) {
-            for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++) {
-                if ((DBFETCH(exit)->sp.exit.dest)[i] != NIL)
-                if (Typeof((DBFETCH(exit)->sp.exit.dest)[i]) == TYPE_PROGRAM)
-                    exitprog = 1;
-                }
-        }
-        */
+           if (FLAGS(exit) & HAVEN || !tp_require_has_mpi_arg) {
+           exitprog = 1;
+           } else if (DBFETCH(exit)->sp.exit.dest) {
+           for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++) {
+           if ((DBFETCH(exit)->sp.exit.dest)[i] != NIL)
+           if (Typeof((DBFETCH(exit)->sp.exit.dest)[i]) == TYPE_PROGRAM)
+           exitprog = 1;
+           }
+           }
+         */
         exitname = NAME(exit);
         while (*exitname) {     /* for all exit aliases */
             for (p = md->match_name; /* check out 1 alias */

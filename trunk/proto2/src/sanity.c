@@ -311,11 +311,12 @@ check_thing(dbref player, dbref obj)
 
     if (!valid_obj(i) && i != NIL) {
         violate(player, obj, "has its home set to an invalid object");
-    } else if (i != NIL) if (TYPEOF(i) != TYPE_ROOM &&
-               TYPEOF(i) != TYPE_THING && TYPEOF(i) != TYPE_PLAYER) {
-        violate(player, obj,
-                "has its home set to an object that is not a room, thing, or player");
-    }
+    } else if (i != NIL)
+        if (TYPEOF(i) != TYPE_ROOM &&
+            TYPEOF(i) != TYPE_THING && TYPEOF(i) != TYPE_PLAYER) {
+            violate(player, obj,
+                    "has its home set to an object that is not a room, thing, or player");
+        }
 }
 
 

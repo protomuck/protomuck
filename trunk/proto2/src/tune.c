@@ -164,6 +164,7 @@ int tp_wizhidden_access_bit = 3;
 int tp_userflag_mlev = 0;
 
 int tp_wwwport = TINYPORT - 1;  /* hinoserm */
+
 #ifdef NEWHTTPD                 /* hinoserm */
 int tp_web_logfile_lvl = 2;     /* hinoserm */
 int tp_web_logwall_lvl = 1;     /* hinoserm */
@@ -344,6 +345,7 @@ int tp_compatible_muf_perms = 0;
 int tp_allow_unidle = 0;
 int tp_alt_infinity_handler = 1;
 int tp_autolinking = 1;
+
 /* int tp_require_has_mpi_arg = 0; */
 
 #ifdef NEWHTTPD                 /* hinoserm */
