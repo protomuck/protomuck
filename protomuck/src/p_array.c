@@ -1643,6 +1643,7 @@ void
 prim_array_findval(PRIM_PROTOTYPE)
 {
         struct inst *in;
+        struct inst temp1;
         stk_array *arr;
         stk_array *nw;
         int found = 0;
