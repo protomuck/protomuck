@@ -1,0 +1,405 @@
+Changes from 1.012  -> Proto 1.5
+--------------------------------
+Internal Changes:
+  Made it so that setting a QUELL flag on a puppet or a vehicle will stop
+    it from echoing. Idea from Confu@Ranma.
+
+  Fixed the read prim to work when MUF called from command props. This
+    change required that I take out the check that automatically put
+    a MUF into write-only mode if the trigger is a room. Since propqueued
+    programs are already automatically in background mode, the read prim
+    will still abort when called from them. I could find no other impact
+    on having the program be readable. If some unusual behavior arrises
+    as a result of this change, we'll have to rethink it.
+
+  Changed the token for EXAMINE_OK from & to Y.
+
+  Added @tune log_failedhelp. When set to 'yes', failed help searches
+    will get logged to log/help. So when a player goes to search for
+    something in the help file that doesn't have an entry, their
+    failed search will get logged to the help log file with the format
+    '<player name> tried to search for '<search term>' in: <file name>'.
+    Also, if a help file does not exist at all, a line that reads:
+    'MISSING: <file name>' will be printed. Defaults to off.
+
+  Made it so that @sanchange and @fixwizbits cannot be @forced.
+
+  Removed in-server alias 'hand'. Used to be aliased to 'drop'.
+
+  Removed the MPI parsing from in-server pose.
+
+  Cleaned up the help format for dwall. 
+
+  Added permissions checks to dboot. 
+
+  Made it so that things set = VEHICLE show up in @sweep listed as
+    vehicles. Idea from Confu@Ranma
+
+  Cleaned up the format of @proginfo.
+
+  Made it so that W4 players can @boot wizzes of W3 or less, but only
+    #1 can @boot W4 players.
+
+  Removed B-Bit requirement for @attach, considering the player already
+    owns the object at that point anyway.
+
+  Really beefed up the customizable colors support. Now ANSI tags
+    in MUF and MPI can refer to props that are listed under the
+    _/colors/ directory on the player. For example, if there is
+    an ANSI tag in a program called ^SAY/POSE^, and the player has
+    a prop called '_/colors/say/pose:red' on them, then that ANSI
+    tag will be converted to ^RED^ at the time the message is notified
+    to the player. There are also several in-server messages that can be
+    changed in the same manner:
+      _/colors/succ -- The various success messages, like when setting a prop.
+      _/colors/fail -- The various fail and perm denied messages.
+      _/colors/info -- General information messages.
+      _/colors/note -- Other misc in-server info messages.
+      _/colors/move -- The color for the 'has arrived.' and 'has left.' messages.
+    First the individual player or object being notified is checked, and then
+    #0 is checked, and then the #define defaults set at compile time are checked.
+    A parse_neon prim was added as well to go along with this support. 
+
+  Made a minor change to '@list'. When entering:
+    '@list #<program>=!<start> - <stop>', the '%n lines listed.'
+    message at the end will be in ( ) marks, making it a comment.
+    This is mostly to help out with @archive programs, by making it
+    so that the '%n lines listed.' message doesn't interfer with the
+    re-entering of the archive.
+
+  Added an IDLE flag. This gets put on players once they reach the
+    idle time indicated in the @tune 'idletime'. It is taken off 
+    when they unidle, or when they disconnect. This flag is not
+    settable or unsettable.
+
+  Made OLDPARSE @tuneable, and fixed it so that it actually works 
+    (@tune old_parseprop).
+
+  Made the Command/ propdirs @tuneable with enable_propcommands.
+
+  Added _ocommand/ ~ocommand/ and @ocommand/ propdir support. The
+    only difference between these and the others is that MPI parsed
+    on these will be treated as public MPI instead of just private to
+    the player who triggers the actions.
+
+  Added _Login/ and _DiscLogin/ propqueues. These are propqueues that
+    can be called from the login screen, stored on #0. 
+
+  You can now disable the MCP message on the login screen by 
+    setting the @tune enable_mcp to 'no'.  It is defaulted to 'yes'.
+
+  Added the NO_COMMAND flag to prevent objects from checking the command 
+    props, except for the PropHidden types.
+
+  Fixed a bug on the login screen for, if someone had his or her caps lock on, it
+    would not understand what command is being ran.
+
+  Changed in-server get/take command to prevent puppets from
+    looting players' inventories. Idea from Confu@Ranma.
+
+  Changed @unlink messages to include the name of the object 
+    being unlinked, and in the case of exits, the thing that 
+    it is being unlinked from.
+
+  Fixed a minor bug in @unlink that wouldn't recognize players 
+    even when they were in the exact same room.
+
+  Changed @password to return the syntax when it fails to work.
+  Changed @pcreate to return the syntax when it fails to work.
+
+  @link exit indicating exit's name in the message as well.
+  @link room indicating name of the dropto that is set.
+  @link player indicating name of place player's home is set to.
+
+  Made it so that @chown indicates who owned the object before it
+    was reassigned. 
+
+  When a player drops a connection, but still has at least one
+    connection to the MUCK, the disconnect message will be:
+    '%N has dropped a connection.' instead of the normal:
+    '%N has disconnected.' for when the player no longer has
+    any connections to the MUCK.
+  
+  @tune log_interactive has been added.
+
+  @tune idletime. This controls how long a player has to idle 
+    before the idle/ propqueues are called. ( see below ) From GlowMUCK.
+
+  @tune enable_idle_msgs. This toggles whether or not a message is 
+    displayed to the room when a player becomes idle.
+
+  @tune user_idle_propqueue. This toggles whether or not the _idle/ 
+    and _unidle/ propqueues will be recognized or not. Setting this 
+    to NO causes _idle and _unidle propqueues to be ignored. From GlowMUCK.
+
+  @tune login_huh_handler will be removed in the next release of
+    ProtoMUCK, so it is important to begin using the @logincommands/
+    props when writing code. 
+
+  Added an @tune permissions levels compile time option. 
+    #defining W4_TUNEABLES in config.h will make it so that 
+    certain server releated @tuneables will be changeable by 
+    W4+ only. Not defined by default. Concept based on GlowMUCK.
+
+  Added '@tune <data type>' options to print out smaller sections
+    of the @tune list. Example: @tune str will just print the string 
+    @tuneables.
+
+  Putting an lsedit list on the www_root room named _/www/http/404 
+    will allow you to set up the webpage that gets displayed when the 
+    webserver call does not find the intended URL. I.e., a customized 
+    File Not Found page. From GlowMUCK.
+
+  MPI parsing in the internal say/pose program was removed. Thanks for
+    pointing that one out!
+
+  If a player examines the action linked to a program set VIEWABLE,
+    then the player will be shown the dbref of the program itself.
+    Idea from Stray@OldeMUCK.
+
+  Added command props. By doing: 
+    '@set <thing/room/player>=@command/<actionName>:<mpi or MUF dbref>'
+    players will be able to type 'actionName' to parse the MPI or call
+    the MUF as if it was a normal action on the room. Further development
+    on this feature soon to come. Support for '~command/' and '_command/' 
+    command directories added as well. This concept was provided by 
+    Deedlit@Dragon.
+    In order for the command props on an object to get checked for, the
+    object must be set = COMMAND. (This part changed before release. See
+                                    related notes.)
+    The huh_handler will be removed in future versions of Proto, the 
+    use of the command props will allow the creation of psuedo actions
+    much like the huh_handler was used for in early versions of Proto.
+    If the owner of an object has no B-bit, nor is a mage or higher, then 
+    the command props will not work, unless it is a @-level command prop.
+
+  Added '@logincommands/' command props. These props are to be stored
+    on #0 and work just like the in-muck ones, except that they are
+    called from the login screen instead, thus replacing Proto's earlier
+    implementation of the login_huh_handler.
+
+  Added idle and unidle propqueues. These are propqueues that are run 
+    when a player falls idle, and when the player unidles. From GlowMUCK.
+
+  Removed @hopper support all together.
+
+  @POWERS added. It is a W4+ only command that allows admin to give
+    a player special perks with the in-server commands, without 
+    having to give the player a full fledged w-bit. W4's can look
+    up the @powers list on a player via the @powers command. @powers
+    are also listed in the normal examine output. This idea was suggested
+    by Deedlit@Dragon.
+    Syntax is:
+      @powers                     - To list the default @powers list.
+      @powers <player>            - To list the @powers on a player.
+      @powers <player>=[!]<power> - To assign or remove @powers.
+    ANNOUNCE        - Can use @wall and dwall commands
+    BOOT            - Can use @boot and dboot commands
+    CHOWN_ANYTHING  - Can @chown anything, unless it is PROTECTed
+    EXPANDED_WHO    - Gets the wizard version of WHO
+    HIDE            - Can set themselves DARK or login HIDDEN
+    IDLE            - Not effected by the idle limit
+    LINK_ANYWHERE   - Can @link an exit to anywhere
+    LONG_FINGERS    - Can do anything from a long distance
+    NO_PAY          - Infinite money
+    OPEN_ANYWHERE   - Can @open an exit from any location
+    PLAYER_CREATE   - Can use @pcreate, @frob, and @toad
+    SEARCH          - Can use @find, @entrances, @contents, and @own
+    SEE_ALL         - Can examine any object, and @list any program
+    TELEPORT        - Unrestricted use of @teleport
+
+  A way of customizing the in-server colors was added. By setting
+    the following props, the inserver color scheme can be altered.
+    _colors/succ      _colors/note
+    _colors/fail      _colors/move
+    _colors/info
+    If these props are set on #0, they affect everyone, if they are
+    set on an individual player, they affect only that player. The
+    contents of the prop need to be a single word representing the
+    ANSI color desired. Do not include the ^^.
+    For example, '@set #0=_colors/succ:blue' would make it so that
+    the messages that use ^SUCC^ for their color would display blue
+    instead of the default green.
+
+Server-Code:
+  Updated array.c and p_array.c to the latest versions from FB6 in 
+    order to correct minor memory leaks.
+
+  Cleaned up the descriptor code some more, as well as added 
+    various failsafes to account for bad descriptors.
+
+  Changed systime to a variable to reduce the number of calls to the
+    server's system time. (A FB5.6x change)
+
+  Changed the way the frame level was kept track of in MUF in order
+    to fix reoccuring error in the 1.0x line.
+
+  System-Only props added. These are props that cannot be accessed
+    by any means in-muck, used to conveniently store information 
+    in the data base, without having to change the data base format.
+    From FB6.
+ 
+  Fixed a crasher that was closing the dump file early when 
+    diskbasing wasn't in use, but delta dumps were. FB6 change.
+
+  Optimized MUF connection prims to be 0(1) instead of 0(n) by using the
+    lookup tables. (FB6)
+
+  Made it so that the descriptor keeps track of the connected port
+    This is on the road towards the multiport system that will be in
+    later versions.
+
+  Any port that is less than 1 will not open.  This will allow for ease of
+    disabling the WWW and Pueblo ports.
+
+  Notify_Listeners(), Notify_Html_Listeners(), and Ansi_Notify_Listeners() 
+    now passes the descriptor to any programs.
+
+  Made the COMMAND flag set automaticaly like the LISTENER flag whenever a command
+    property is set.
+
+  On a program crash, the command and arguments used will be placed 
+    within the .debug/ propdir, and if it isn't the original program ran, 
+    it will place that in as well.  Furthermore, it will send a message to 
+    the LOGWALL wizards. (Idea inspired by suggestions from Nodaitsu)
+  
+MPI:
+  Fixed a permission problem with {testlock} when used on wizard 
+    properties (FB6a34)
+
+  {telldescr:} function. Intended to be put to use with the 
+    @logincommands/ prop commands.
+
+  Added {timing} MPI function awhile back. (FB6)
+
+  Fixed a crasher with {listprop} with too many properties (FB6a34)
+
+  Optimized {select} MPI command to make it fast on very 
+    sparse lists (FB6a33)
+
+MUF:
+  Fixed crashers in ARRAY_NUNION, ARRAY_NDIFFERENCE, and ARRAY_NINTERSECT.
+    FB6 fix.
+
+  Fixed the pmatch prim to return #-2 when there are more than one
+    player online that match the string, and the string is not an
+    exact match for any player on the muck. It also now accepts
+    dbref #'s in string format and returns the player's dbref as a
+    dbref object if it does match a player.
+
+  Changed the syntax and mechanics behind nextentrance to allow a more
+    accurate and specific search.
+
+  Fixed array_put_propvals to work with refs and locks correctly. Now
+    acts just like setprop in terms of how it sets data. I.e., emtpy
+    strings will clear the prop, negative dbrefs will clear the prop,
+    locks will be stored as lock type props, etc.
+  Fixed array_get_propdirs.
+  Fixed descr_array. 
+
+  Fixed a bug with PARSEPROP not being re-entrant. (FB6a33)
+    Did the same for PARSEMPI.
+
+  Made some of the compile time errors involving loops and if-then
+    statements more clear. A FB6 change.
+
+  Fixed the STOD prim to correctly handle the string "#3". A FB6-fix.
+
+  HTMuf Crasher from sleep prim has been fixed. Cause was the crasher
+    in notify_descriptor.
+
+  NOTIFY_DESCRIPTOR crasher fixed. Used to crash when given an invalid
+    descriptor.
+
+  FB6's MCP GUI MUF support added.
+
+  STRINGPFX now returns 0 if arguement 1 is an empty string, instead of
+    the negative integers it used to return. A FB6 change.
+
+  NAME and TRUENAME now return '<garbage>' when given dbrefs of 
+    recycled objects instead of aborting the program. A FB6 change.
+ 
+  Prop setting prims can no longer be used to change the contents of
+    the _msgmacs/ directories. A GlowMUCK idea.
+
+  Cleaned up some empty-string crashers in various MUF prims.
+
+  MUF Manual updated to indicate the changes made in MUF.
+
+  MUF Function headers re-added. See 'man function headers'. From FB6.
+  
+  Fixed crashers in CHECKPASSWORD and DESCR_SETUSER that would crash
+    the muck if the player had a null password. A FB6 fix.
+
+  Old in-server #define for parseprop has been removed. There are
+    now two versions of parseprop that can be picked from the @tune table.
+  old_parseprop = yes
+      The permissions level of the MPI parsed by the parseprop prim
+      are set according to the permissions bit on the MUF program 
+      that contains the parseprop prim. I.e., a w-bitted program will
+      parse MPI at w-levels when using the parseprop prim.
+  old_parseprop = no
+      The permissions level of the MPI parsed by the parseprop prim
+      are set according to the permissions on the object itself that
+      the prop is located on. I.e., a non-wiz player's props would
+      be parsed at non-wiz levels, whereas the props on a wiz would
+      be parsed at wiz levels. 
+
+  Allowed the COMMAND and LISTENER flags to be checked with the flag?-like prims
+
+  MUF Prims added/readded:
+    FINDNEXT              ( From FB6 )
+    ARRAY_JOIN            ( From FB6 )
+    ARRAY_MATCHKEY        ( From FB6 )
+    ARRAY_MATCHVAL        ( From FB6 )
+    ARRAY_EXTRACT         ( From FB6 )
+    ARRAY_FILTER_PROP     ( From FB6 )
+    FREADTO
+    DESCRDBREF
+    DESCRIDLE
+    DESCRTIME
+    DESCRHOST
+    DESCRUSER
+    DESCRIPNUM
+    DESCRPORT
+    DESCRCONPORT
+    DESCRLEASTIDLE
+    DESCRMOSTIDLE
+    FIRSTDESCR
+    LASTDESCR
+    VAR!  ( From FB6 )
+    EXPLODE_ARRAY
+    ARRAY_SORT  ( From FB6 )
+    POWER?
+    ISPOWER?
+    NEXTPLAYER_POWER
+    ++
+    --
+   ( *DIST2D
+    *2DDIST
+    *3DDIST )
+    PNAME-OK?
+    NAME-OK?
+    ANSI_MIDSTR
+    FORCE_LEVEL
+    ARRAY_ANSI_NOTIFY
+    ARRAY_NOTIFY_HTML
+    PARSE_NEON
+    MCP PRIMS: (See 'man MCP prims' from FB6 )
+      MCP_REGISTER
+      MCP_REGISTER_EVENT
+      MCP_SUPPORTS
+      MCP_BIND
+      MCP_SEND
+      GUI_AVAILABLE
+      GUI_DLOG_CREATE
+      GUI_DLOG_SHOW
+      GUI_DLOG_CLOSE
+      GUI_CTRL_CREATE
+      GUI_VALUE_SET
+      GUI_VALUES_GET
+      GUI_CTRL_COMMAND
+      GUI_VALUE_GET
+    New Event Prims (From FB6):
+      EVENT_WAITFOR
+      EVENT_EXISTS
