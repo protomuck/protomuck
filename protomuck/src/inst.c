@@ -44,7 +44,8 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
     int length;
     int firstflag = 1;
     
-    if (tp_expanded_debug) strmax = BUFFER_LEN;
+    if (FLAGS(program) & XFORCIBLE)
+        strmax = BUFFER_LEN / 11;
 
     switch (theinst->type) {
 	case PROG_PRIMITIVE:
@@ -74,13 +75,13 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
 			strcpy(buffer, "1:0{}");
 			break;
 		}
-		if (tp_expanded_debug) {
+		if (FLAGS(program) & XFORCIBLE) {
 #ifdef DEBUGARRAYS
 			sprintf(buffer, "R%dC%d{", theinst->data.array->links, theinst->data.array->items);
 #else
 			sprintf(buffer, "%d{", theinst->data.array->items);
 #endif
-			length = buflen - 10;
+			length = strmax;
 			firstflag = 1;
 			if (array_first(theinst->data.array, &temp1)) {
 				do {

@@ -1045,13 +1045,11 @@ int
 anotify_nolisten(dbref player, const char *msg, int isprivate)
 {
     char    buf[BUFFER_LEN + 2];
-
     if( (FLAGS(OWNER(player)) & CHOWN_OK) && !(FLAG2(OWNER(player)) & F2HTML) ) {
 	parse_ansi(player, buf, msg, ANSINORMAL);
     } else {
 	unparse_ansi(buf, msg);
     }
-
     return notify_nolisten(player, buf, isprivate);
 }
 

@@ -321,9 +321,5 @@ extern void panic(const char *);
 #define ANSI_BG_WHITE	"\033[47m"
 
 
-
-
-
-
-
+#define TildeAnsiDigit(x)       (((x) == '-') || (((x) >= '0') && ((x) <= '9')))
 

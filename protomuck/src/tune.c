@@ -289,7 +289,6 @@ int tp_enable_idle_msgs            = 0;
 int tp_user_idle_propqueue         = 0;
 int tp_quiet_moves                 = 0;
 int tp_quiet_connects              = 0;
-int tp_expanded_debug              = 0;
 int tp_proplist_int_counter        = 0;
 int tp_enable_mcp                  = 1;
 int tp_enable_commandprops         = 1;
@@ -360,7 +359,6 @@ struct tune_bool_entry tune_bool_list[] =
     {"user_idle_propqueue",    &tp_user_idle_propqueue,      LARCH, LMUF },
     {"quiet_moves",            &tp_quiet_moves,              LARCH, LMUF },
     {"quiet_connects",         &tp_quiet_connects,           LARCH, LMUF },
-    {"expanded_debug",         &tp_expanded_debug,           LARCH, LMUF },
     {"proplist_int_counter",   &tp_proplist_int_counter,     LARCH, LMUF },
     {"enable_mcp",             &tp_enable_mcp,               WBOY,  LMUF },
     {"enable_commandprops",    &tp_enable_commandprops,      WBOY,  LMUF },
