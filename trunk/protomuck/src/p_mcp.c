@@ -813,7 +813,7 @@ prim_gui_dlog_close(PRIM_PROTOTYPE)
 		abort_interp("Invalid dialog ID.");
 
 	muf_dlog_remove(fr, oper1->data.string->data);
-
+        GuiFree(oper1->data.string->data);
 	CLEAR(oper1);
 }
 
@@ -1032,9 +1032,9 @@ prim_gui_value_set(PRIM_PROTOTYPE)
 	char **valarray;
 	struct inst temp1;
 	array_data *temp2;
-      char pad_char[] = "";
+        char pad_char[] = "";
 
-	CHECKOP(2);
+	CHECKOP(3);
 	oper3 = POP();				/* str value  */
 	oper2 = POP();				/* str ctrlid */
 	oper1 = POP();				/* str dlogid */
