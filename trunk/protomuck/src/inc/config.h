@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.6 2000-09-18 03:04:30 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.7 2000-09-18 03:15:28 akari Exp $
  * $Log: not supported by cvs2svn $
  *
  * Revision 1.3  2000/06/27 22:32:17  moose
@@ -86,6 +86,12 @@
 /* I put this in when I couldn't figure out why sockets were failing from */
 /* a bad net connection for the server. */
 #undef DEBUGPROCESS
+
+/* Define this to make various system related @tune options changable */
+/* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
+/* all @tune options as befire. */
+
+#undef W4_TUNEABLES
 
 /* Define MORTWHO to make it so wizards need to type WHO! to see hosts */
 /* When undefined, WHO! will show the mortal WHO+@doing (without going Q) */
