@@ -452,7 +452,6 @@ write_program(struct line * first, dbref i)
     f = fopen(fname, "w");
     if (!f) {
 	log_status("Couldn't open file %s!\n", fname);
-	return(0);
     } else
     while (first) {
 	if (!first->this_line)
