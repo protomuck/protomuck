@@ -220,11 +220,6 @@ dump_database_internal(void)
 
     /* Write out the macros */
 
-    sprintf(tmpfile, "%s.#%d#", MACRO_FILE, epoch - 1);
-
-    if (unlink(tmpfile))
-        perror(tmpfile);
-
     sprintf(tmpfile, "%s.#%d#", MACRO_FILE, epoch);
 
     if ((f = fopen(tmpfile, "w")) != NULL) {
