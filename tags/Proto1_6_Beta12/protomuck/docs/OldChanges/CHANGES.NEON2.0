@@ -1,0 +1,45 @@
+NeonMuck source code is (C)1996 Jeremy Blackman, Andrew Nelson, and Joe
+Traub.
+All rights reserved.  All pertinant TinyMUCK and TinyMUCKfb copyrights
+also still apply.  Database compression code (C) Dragon's Eye Productions
+and used with the kind permission of Dr. Cat.
+---- Changes from pre-2.x Neon as of Neon 2.0 ----
+
+* First prototype of NWI (Neon Web Interface) is in place.
+    - this allows a user without Pueblo to log in and still get
+      multimedia.
+
+* More MUF primitives cleaned up.
+
+* Some 'ease of use' MPI and MUF for multimedia added...
+    - commandtext
+    - playmidi
+
+* KEEPDUMPS cleaned up.
+
+* First hooks for a potential Windows port added in place.
+
+---- Changes from Neon 2.0 as of Neon 2.10 ----
+
+* NWI cleaned up slightly.
+
+* This version is mostly internal changes to allow easier compiling
+  across different platforms.
+    - SunOS/Solaris now compiles without too much trouble, although a
+      slight manual change to autoconf.h is still needed after running
+      the configure script.
+    - WinNT/95 port works now!
+
+* Some (undocumented, and possibly temporary) new MUF primitives added,
+  to support arrays and socket controls.
+
+---- Planned changes ---
+
+Loki is talking to Foxen, the author of TinyMUCKfb, about establishing
+some standards between the two MUCKs so that TinyMUCKfb, which will support
+multimedia as well eventually, will be able to exchange code with NeonMuck.
+
+This may necessitate a large revision, to 3.x, but will allow the standards
+for arrays, sockets, etc to be fixed and then documented, since it will
+then be a reasonable safe assumption they won't be changing.
+
