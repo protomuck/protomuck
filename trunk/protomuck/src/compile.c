@@ -1250,11 +1250,10 @@ do_directive(COMPSTATE * cstat, char *direct)
                 while(*cstat->next_char && isspace(*cstat->next_char))
                     cstat->next_char++; /* eating leading spaces */
 		tmpname = (char *) cstat->next_char;
+                add_property(cstat->program, "_Author", tmpname, 0);
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
-		add_property(cstat->program, "_Author", tmpname, 0);
-
 	} else if (!string_compare(temp, "note")) {
                 while(*cstat->next_char && isspace(*cstat->next_char))
                     cstat->next_char++; /* eating leading spaces */
