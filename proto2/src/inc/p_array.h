@@ -53,6 +53,7 @@ extern void prim_array_nested_set(PRIM_PROTOTYPE);
 extern void prim_array_nested_del(PRIM_PROTOTYPE);
 
 extern void prim_array_filter_flags(PRIM_PROTOTYPE);
+extern void prim_array_sum(PRIM_PROTOTYPE);
 
 #define PRIMS_ARRAY_FUNCS prim_array_make, prim_array_make_dict,              \
         prim_array_explode, prim_array_vals, prim_array_keys,                 \
@@ -71,7 +72,7 @@ extern void prim_array_filter_flags(PRIM_PROTOTYPE);
         prim_array_matchkey, prim_array_matchval, prim_array_extract,         \
         prim_array_cut, prim_array_compare, prim_array_sort_indexed,          \
         prim_array_interpret, prim_array_filter_flags, prim_array_nested_get, \
-	prim_array_nested_set, prim_array_nested_del
+	prim_array_nested_set, prim_array_nested_del, prim_array_sum
 
 #define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT",        \
         "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS",              \
@@ -91,6 +92,6 @@ extern void prim_array_filter_flags(PRIM_PROTOTYPE);
         "ARRAY_CUT", "ARRAY_COMPARE", "ARRAY_SORT_INDEXED",       \
         "ARRAY_INTERPRET", "ARRAY_FILTER_FLAGS",                  \
 	"ARRAY_NESTED_GET", "ARRAY_NESTED_SET",                   \
-	"ARRAY_NESTED_DEL"
+	"ARRAY_NESTED_DEL", "ARRAY_SUM"
 
-#define PRIMS_ARRAY_CNT 49
+#define PRIMS_ARRAY_CNT 50

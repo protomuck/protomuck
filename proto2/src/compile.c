@@ -545,6 +545,8 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "}tell", "} array_make me @ 1 array_make array_notify");
     insert_def(cstat, "[]", "array_getitem");
     insert_def(cstat, "->[]", "array_setitem");
+    insert_def(cstat, "[]<-", "array_appenditem");
+    insert_def(cstat, "[^]", "array_insertitem");
     insert_def(cstat, "[..]", "array_getrange");
     insert_def(cstat, "array_diff", "2 array_ndiff");
     insert_def(cstat, "array_union", "2 array_nunion");

@@ -142,7 +142,7 @@ Data Base Prims:
   NEWROOM       NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
   PENNIES       ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
   COPYOBJ       RECYCLE     MOVETO       STATS          DBTOP
-  OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
+  OK?           THING?      EXIT?        PLAYER?        PROGRAM?   ROOM?
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
@@ -166,7 +166,7 @@ See: PRIMS6
 PRIMS6|PRIM6
 
 Array Prims:
-  ARRAY_MAKE           ARRAY_MAKE_DICT      }DICT              }LIST
+  ARRAY_MAKE           ARRAY_MAKE_DICT     
   ARRAY_EXPLODE        ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
   ARRAY_FIRST          ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
   ARRAY_GETITEM        ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_SORT
@@ -174,7 +174,7 @@ Array Prims:
   ARRAY_DELITEM        ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
   ARRAY_NINTERSECT     ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
   ARRAY_NOTIFY         ARRAY_REVERSE        DESCR_ARRAY        DICTIONARY?
-  ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS }JOIN 
+  ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS 
   ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
   ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
   ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL   
@@ -182,7 +182,8 @@ Array Prims:
   ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
   EXITS_ARRAY          ENTRANCES_ARRAY      GETOBJINFO         GETDESCRINFO
   FIND_ARRAY           ARRAY_CUT            ARRAY_COMPARE      ARRAY_INTERPRET
-  ARRAY_SORT_INDEXED   }CAT
+  ARRAY_SORT_INDEXED   ARRAY_SUM
+  }ARRAY     }LIST     }DICT     }JOIN      }CAT
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
@@ -214,11 +215,11 @@ ANSI Prims:
  PARSE_ANSI             UNPARSE_ANSI
 
 Webserver Prims:
- BASE64ENCODE           BASE64DECODE
+ BASE64ENCODE           BASE64DECODE           HTTPDATA
 
 Ignore Support Prims:
- MAX_IGNORES            IGNORE			UNIGNORE
- IGNORING?		IGNORE_ARRAY
+ MAX_IGNORES            IGNORE_ADD	       IGNORE_DEL
+ IGNORING?              ARRAY_GET_IGNORES
     
 ~~~~~
 PRIMSLIST|PRIMS LIST|LIST PRIMS
@@ -284,7 +285,7 @@ The following prims are used to perform arithmetic with MUF:
 RANDOM     BITOR     BITXOR     BITSHIFT     ++     --
 CEIL       FLOOR     SQRT       PI           ROUND  
 SIN        COS       TAN        ASIN         ACOS   ATAN
-ATAN2      DIST3D    XYZ_TO_POLAR     POLAR_TO_XYZ  
+ATAN2      DIST3D    XYZ_TO_POLAR     	     POLAR_TO_XYZ  
 EXP        LOG       LOG10      FABS         POW    FRAND
 FMOD       MODF      ABS        SIGN
 SRAND      GETSEED   SETSEED
@@ -5738,7 +5739,7 @@ dbref numbers.
 
 See: ARRAY PRIMS
 ~
-}DICT|}LIST|}JOIN
+}DICT|}LIST|}JOIN|}ARRAY
 ------------
 }dict ( { x1 x2 x3 ... xn -- dict )
 }list ( { x1 x2 x3 ... xn -- array )
@@ -5755,6 +5756,8 @@ These are all in-server $defines for:
 } array_make
 } 2 / array_make_dict
 } array_make "" array_join
+
+}array is another name for }list.
 
 See: ARRAY PRIMS
 ~~~
@@ -5900,7 +5903,7 @@ See: ARRAY PRIMS, ARRAY_PREV, ARRAY_FIRST, ARRAY_NEXT
 ~~~~
 ARRAY_GETITEM|[]
 
-array_getitem( a @ -- x )
+array_getitem( a @ -- x )	[]
 -------------------------
 Level: M1 Apprentice
 a = An array.
@@ -5915,9 +5918,9 @@ array_getitem can be shortcutted to []
 
 See: ARRAY PRIMS, ARRAY_SETITEM
 ~
-ARRAY_SETITEM
+ARRAY_SETITEM|->[]
 
-array_setitem( x a @ -- a' )
+array_setitem( x a @ -- a' )	->[]
 ----------------------------
 Level: M1 Apprentice
 x  = Any data type on the stack.
@@ -5930,11 +5933,13 @@ points to a location in the array, will set the value to the
 element indicated by the index marker to x. The program will
 abort if the index marker is out of range of array a.
 
+array_setitem can be shortcutted to ->[]
+
 See: ARRAY PRIMS, ARRAY_GETITEM
 ~
-ARRAY_APPENDITEM
+ARRAY_APPENDITEM|[]<-
 
-array_appenditem( x a -- a' )
+array_appenditem( x a -- a' )	[]<-
 -----------------------------
 Level: M1 Apprentice
 x  = Any data type on the stack.
@@ -5944,11 +5949,13 @@ a' = Changed array.
 Given an array, and a data object on the stack, appends a new
 element onto the end of the array containing object x.
 
+array_appenditem can be shortcutted to []<-
+
 See: ARRAY PRIMS
 ~
 ARRAY_INSERTITEM
 
-array_insertitem ( x a @ -- a' )
+array_insertitem ( x a @ -- a' )	[^]
 --------------------------------
 Level: M1 Apprentice
 x  = Any data type on the stack.
@@ -5960,11 +5967,13 @@ Given an item on the stack, and array, and a valid index marker,
 inserts the contents of x into the array -after- the index marker
 given. Program aborts if the index marker is out of range.
 
+array_insertitem can be shortcutted to [^]
+
 See: ARRAY PRIMS
 ~
 ARRAY_GETRANGE
 
-array_getrange( a @ @2 -- a2 )
+array_getrange( a @ @2 -- a2 )	[..]
 ------------------------------
 Level: M1 Apprentice
 a  = An array.
@@ -9890,3 +9899,19 @@ are currently supported:
     "instr"    The name string of the instruction which threw the error.
     "line"     The integer program line number where the error was thrown.
     "program"  The dbref of the program in which the error was thrown.
+~~~
+ARRAY_SUM
+
+array_sum ( a -- n )
+---------
+Level: M1 Apprentice
+
+a = An array of integers or floats
+n = An integer or float result of the sum of array a.
+
+Takes an array of integers and/or floats, and outputs a result containing
+the sum of all integers and floats found.  If any floating points were
+in the array, the result will be float, even if the result is not
+fractional.
+
+If any other datatypes are in the array, it will abort in an error.
