@@ -56,7 +56,7 @@ const char *infotext[] =
     "of TinyMUCK.",
     " ",
     "And, here is the list of the programmers for ProtoMUCK:",
-    "  Moose/Van  : ashitaka@home.com    Akari : Nakoruru08@hotmail.com",
+    "  Moose/Van  : contikimoose@hotmail.com  Akari : Nakoruru08@hotmail.com",
     " ",
     "Thanks are also due towards the multiple people who had also",
     "contributed ideas for the MUCK as we worked on it, and even tried to",
@@ -90,4 +90,5 @@ do_credits(dbref player)
 EOF
 
 exit 0
+
 

@@ -78,6 +78,9 @@ Unused time before obj shows as old in in-server searches such as
 maxidle
 How much time a player can idle before being booted if idleboot is on.
 ~~~
+idletime
+How much time until a player is considered to be idle.
+~~~
 cron_interval
 Frequency at which to run the MUF set in cron_prog.
 ~~~
@@ -278,19 +281,6 @@ Force Mucker Level 1 muf progs to prepend names on notify's to
 players other than the using player, and on notify_except's
 and notify_excludes.
 ~~
-registration
-Currently disabled, pending implementation in future versions of Proto.
-~~
-online_registration
-Allow new connections and guests to use the 'request' command to
-request new characters. See @hopper and 'request'.
-~~
-fast_registration
-Creates characters immediately after the 'request' is made for them,
-as long as the name isn't taken and the information is valid, and
-the character is not from a banned address or email addy. Issues
-an email with the password to the email address
-~~
 teleport_to_player
 Allow the use of exits linked to players. 
 ~~
@@ -358,6 +348,12 @@ Set this to the number of timers to be allowed per muf program.
 ~~
 allow_home
 Setting this to no disables the in-server home command.
+~~
+enable_idle_msgs
+If this is enabled, then the room will be notified with a message if a player goes idle, or becomes unidle.
+~~
+user_idle_propqueue
+If enabled, this will allow _Idle/ and _Unidle to be used, so that not just administration can set this propdir.
 ~~
 quiet_moves
 Setting this to yes turns off the '%N has arrived/left.' messages 

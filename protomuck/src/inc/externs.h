@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.13 2000-11-10 22:18:53 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.14 2000-11-12 08:37:12 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands
@@ -111,7 +111,7 @@ extern void do_shutdown(dbref player, const char *msg);
 extern void do_restart(dbref player, const char *msg);
 extern void fork_and_dump(void);
 extern void dump_database(void);
-extern int prop_command(int, dbref, char *, char *);
+extern int prop_command(int descr, dbref player, char *command, char *arg, char *type, int mt);
 extern void dump_warning(void);
 #ifdef DELTADUMPS
 extern void dump_deltas(void);
@@ -272,8 +272,6 @@ extern int member(dbref thing, dbref list);
 extern dbref remove_first(dbref first, dbref what);
 
 /* From wiz.c */
-extern int hop_count();
-extern void email_newbie(const char *name, const char *email, const char *rlname);
 extern void do_wizchat(dbref player, const char *arg);
 extern void do_memory(dbref who);
 extern void do_newpassword(dbref player, const char *name, const char *password);
@@ -424,4 +422,5 @@ extern time_t sel_prof_start_time;
 extern long sel_prof_idle_sec;
 extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
+
 

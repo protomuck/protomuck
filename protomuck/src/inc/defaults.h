@@ -67,7 +67,8 @@
 #define DUMP_WARNTIME TIME_MINUTE(2) /* warning time before a dump */
 #define MONOLITHIC_INTERVAL TIME_DAY(1) /* max time between full dumps */
 #define CLEAN_INTERVAL TIME_MINUTE(15) /* time between unused obj purges */
-#define CRON_INTERVAL TIME_MINUTE(15) /* frequency of cron-daemon runs 8?
+#define CRON_INTERVAL TIME_MINUTE(15) /* frequency of cron-daemon runs */
+#define IDLETIME TIME_MINUTE(30) /* Time until player is idle */
 
 
 /* Information needed for RWHO. */
@@ -262,5 +263,6 @@
 
 /* Define to 0 to prevent diskbasing of property values, or to 1 to allow. */
 #define DISKBASE_PROPVALS 1
+
 
 

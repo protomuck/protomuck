@@ -1019,10 +1019,14 @@ do_mush_set(int descr, dbref player, char *name, char *setting, char *command)
    if ((thing = match_controlled(descr, player, name)) == NOTHING)
       return;
 
-    if (Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing)))) {
+   if (Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing)))) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-	return;
-    }
+      return;
+   }
+
+   if (Prop_SysPerms(thing, prop)) {
+      anotify_nolisten2(player, CFAIL "That property is already used as a system property.");
+   }
 
    if(!(*setting)) {
       ts_modifyobject(thing);
@@ -1043,6 +1047,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     dbref   thing;
     const char *p;
     object_flag_type f=0, f2=0;
+    int ibol=0;
 
     if(tp_db_readonly) return;
 
@@ -1105,6 +1110,10 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	/* while (isspace(*class) && *class) class++; */
 	if (*class == '^' && number(class+1))
 	    ival = atoi(++class);
+
+      if (Prop_SysPerms(thing, type)) {
+          anotify_nolisten2(player, CFAIL "That property is already used as a system property.");
+      }
 
 	if (!Arch(OWNER(player)) && Prop_Hidden(type)){
      	    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -1220,6 +1229,12 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 
     } else if (string_prefix("GUEST", p)) {
 	f2 = F2GUEST;
+    } else if (string_prefix("COMMANDS", p)) {
+	f2 = F2COMMAND;
+    } else if (string_prefix("NO_COMMANDS", p)) {
+      f2 = F2COMMAND;
+      if (*flag != NOT_TOKEN)
+         ibol = 1;
     } else if (string_prefix("LOGWALL", p) || !string_compare("!", p)) {
 	f2 = F2LOGWALL;
     } else if (string_prefix("MUFCOUNT", p) || !string_compare("+", p)) {
@@ -1341,6 +1356,10 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
 	return;
     }
 
+    if (Prop_SysPerms(thing, type)) {
+      anotify_nolisten2(player, CFAIL "That property is already used as a system property.");
+    }
+
     if (!Arch(OWNER(player)) && Prop_Hidden(type)){
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
@@ -1392,6 +1411,7 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
     }
     anotify_nolisten2(player, CSUCC "Property set.");
 }
+
 
 
 

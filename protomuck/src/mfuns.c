@@ -75,7 +75,7 @@ mfn_prop(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("PROP","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("PROP",NOPERM_MESG);
+        ABORT_MPI("PROP",tp_noperm_mesg);
     ptr = safegetprop(player, obj, perms, pname);
     if (!ptr) ABORT_MPI("PROP","Failed read.");
     return ptr;
@@ -95,7 +95,7 @@ mfn_propbang(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("PROP","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("PROP",NOPERM_MESG);
+        ABORT_MPI("PROP",tp_noperm_mesg);
     ptr = safegetprop_strict(player, obj, perms, pname);
     if (!ptr) ABORT_MPI("PROP","Failed read.");
     return ptr;
@@ -116,9 +116,9 @@ mfn_store(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("STORE","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("STORE",NOPERM_MESG);
+        ABORT_MPI("STORE",tp_noperm_mesg);
     if (!safeputprop(obj, perms, pname, ptr))
-        ABORT_MPI("STORE",NOPERM_MESG);
+        ABORT_MPI("STORE",tp_noperm_mesg);
     return ptr;
 }
 
@@ -136,9 +136,9 @@ mfn_delprop(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("DELPROP","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("DELPROP",NOPERM_MESG);
+        ABORT_MPI("DELPROP",tp_noperm_mesg);
     if (!safeputprop(obj, perms, pname, NULL))
-        ABORT_MPI("DELPROP",NOPERM_MESG);
+        ABORT_MPI("DELPROP",tp_noperm_mesg);
     return "";
 }
 
@@ -156,7 +156,7 @@ mfn_exec(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("EXEC","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("EXEC",NOPERM_MESG);
+        ABORT_MPI("EXEC",tp_noperm_mesg);
     while (*pname == PROPDIR_DELIMITER) pname++;
     ptr = safegetprop(player, obj, perms, pname);
     if (!ptr) ABORT_MPI("EXEC","Failed read.");
@@ -182,7 +182,7 @@ mfn_execbang(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("EXEC!","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("EXEC!",NOPERM_MESG);
+        ABORT_MPI("EXEC!",tp_noperm_mesg);
     while (*pname == PROPDIR_DELIMITER) pname++;
     ptr = safegetprop_strict(player, obj, perms, pname);
     if (!ptr) ABORT_MPI("EXEC!","Failed read.");
@@ -209,7 +209,7 @@ mfn_index(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("INDEX","Match failed.");
     if (obj == PERMDENIED)
-	ABORT_MPI("INDEX",NOPERM_MESG);
+	ABORT_MPI("INDEX",tp_noperm_mesg);
     tmpobj = obj;
     ptr = safegetprop(player, obj, perms, pname);
     if (!ptr) ABORT_MPI("INDEX","Failed read.");
@@ -236,7 +236,7 @@ mfn_indexbang(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("INDEX","Match failed.");
     if (obj == PERMDENIED)
-	ABORT_MPI("INDEX",NOPERM_MESG);
+	ABORT_MPI("INDEX",tp_noperm_mesg);
     tmpobj = obj;
     ptr = safegetprop_strict(player, obj, perms, pname);
     if (!ptr) ABORT_MPI("INDEX","Failed read.");
@@ -262,7 +262,7 @@ mfn_propdir(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("PROPDIR","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("PROPDIR",NOPERM_MESG);
+        ABORT_MPI("PROPDIR",tp_noperm_mesg);
 
     if (is_propdir(obj, pname)) {
         return "1";
@@ -289,7 +289,7 @@ mfn_listprops(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("LISTPROPS","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("LISTPROPS",NOPERM_MESG);
+        ABORT_MPI("LISTPROPS",tp_noperm_mesg);
 
     if (argc > 2) {
         pattern = argv[2];
@@ -364,7 +364,7 @@ mfn_concat(MFUNARGS)
         obj = mesg_dbref(descr, player, what, perms, argv[1]);
     }
     if (obj == PERMDENIED)
-	ABORT_MPI("CONCAT",NOPERM_MESG);
+	ABORT_MPI("CONCAT",tp_noperm_mesg);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("CONCAT","Match failed.");
     ptr = get_concat_list(player, what, perms, obj, pname, buf, BUFFER_LEN, 1);
@@ -387,7 +387,7 @@ mfn_select(MFUNARGS)
         obj = mesg_dbref(descr, player, what, perms, argv[2]);
     }
     if (obj == PERMDENIED)
-	ABORT_MPI("LIST",NOPERM_MESG);
+	ABORT_MPI("LIST",tp_noperm_mesg);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("LIST","Match failed.");
 
@@ -417,7 +417,7 @@ mfn_list(MFUNARGS)
         obj = mesg_dbref(descr, player, what, perms, argv[1]);
     }
     if (obj == PERMDENIED)
-	ABORT_MPI("LIST",NOPERM_MESG);
+	ABORT_MPI("LIST",tp_noperm_mesg);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("LIST","Match failed.");
     ptr = get_concat_list(player, what, perms, obj, pname, buf, BUFFER_LEN, 0);
@@ -438,7 +438,7 @@ mfn_lexec(MFUNARGS)
         obj = mesg_dbref(descr, player, what, perms, argv[1]);
     }
     if (obj == PERMDENIED)
-	ABORT_MPI("LEXEC",NOPERM_MESG);
+	ABORT_MPI("LEXEC",tp_noperm_mesg);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("LEXEC","Match failed.");
     while (*pname == PROPDIR_DELIMITER) pname++;
@@ -466,7 +466,7 @@ mfn_rand(MFUNARGS)
         obj = mesg_dbref(descr, player, what, perms, argv[1]);
     }
     if (obj == PERMDENIED)
-	ABORT_MPI("RAND",NOPERM_MESG);
+	ABORT_MPI("RAND",tp_noperm_mesg);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("RAND","Match failed.");
     num = get_list_count(what, obj, perms, pname);
@@ -493,7 +493,7 @@ mfn_timesub(MFUNARGS)
         obj = mesg_dbref(descr, player, what, perms, argv[3]);
     }
     if (obj == PERMDENIED)
-	ABORT_MPI("TIMESUB",NOPERM_MESG);
+	ABORT_MPI("TIMESUB",tp_noperm_mesg);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	ABORT_MPI("TIMESUB","Match failed.");
     num = get_list_count(what, obj, perms, pname);
@@ -1430,7 +1430,7 @@ mfn_loc(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("LOC","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("LOC",NOPERM_MESG);
+        ABORT_MPI("LOC",tp_noperm_mesg);
     return ref2str(getloc(obj), buf);
 }
 
@@ -1477,7 +1477,7 @@ mfn_money(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("MONEY","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("MONEY",NOPERM_MESG);
+        ABORT_MPI("MONEY",tp_noperm_mesg);
     switch (Typeof(obj)) {
         case TYPE_THING:
             sprintf(buf, "%d", DBFETCH(obj)->sp.thing.value);
@@ -1500,7 +1500,7 @@ mfn_flags(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("FLAGS","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("FLAGS",NOPERM_MESG);
+        ABORT_MPI("FLAGS",tp_noperm_mesg);
     return unparse_flags(obj, buf);
 }
 
@@ -1516,9 +1516,9 @@ mfn_ansi(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("ANSI","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("ANSI",NOPERM_MESG);
+        ABORT_MPI("ANSI",tp_noperm_mesg);
     if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("ANSI",NOPERM_MESG);
+        ABORT_MPI("ANSI",tp_noperm_mesg);
     *buf = '\0';
     strcpy(buf2, argv[0]);
     for (ptr = buf2; *ptr; ptr = ptr2) {
@@ -1558,9 +1558,9 @@ mfn_html(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("HTML","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("HTML",NOPERM_MESG);
+        ABORT_MPI("HTML",tp_noperm_mesg);
     if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("HTML",NOPERM_MESG);
+        ABORT_MPI("HTML",tp_noperm_mesg);
     *buf = '\0';
     strcpy(buf2, argv[0]);
     for (ptr = buf2; *ptr; ptr = ptr2) {
@@ -1599,9 +1599,9 @@ mfn_tell(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("TELL","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("TELL",NOPERM_MESG);
+        ABORT_MPI("TELL",tp_noperm_mesg);
     if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("TELL",NOPERM_MESG);
+        ABORT_MPI("TELL",tp_noperm_mesg);
     *buf = '\0';
     strcpy(buf2, argv[0]);
     for (ptr = buf2; *ptr; ptr = ptr2) {
@@ -1628,6 +1628,48 @@ mfn_tell(MFUNARGS)
 }
 
 const char *
+mfn_telldescr(MFUNARGS)
+{
+    char buf2[BUFFER_LEN];
+    char *ptr, *ptr2;
+    dbref obj = descr;
+    if (argc > 1)
+      if (!string_compare(argv[1], "descr"))
+         obj = descr;
+      else
+  	   obj = atoi(argv[1]);
+    if (!pdescrp(obj))
+        ABORT_MPI("TELLDESCR","Invalid descriptor.");
+    if (obj == PERMDENIED)
+        ABORT_MPI("TELLDESCR",tp_noperm_mesg);
+    if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
+        ABORT_MPI("TELLDESCR",tp_noperm_mesg);
+    *buf = '\0';
+    strcpy(buf2, argv[0]);
+    for (ptr = buf2; *ptr; ptr = ptr2) {
+	ptr2 = index(ptr, '\r');
+	if (ptr2) {
+	    *ptr2++ = '\0';
+	} else {
+	    ptr2 = ptr + strlen(ptr);
+	}
+	if (Typeof(what)==TYPE_ROOM || OWNER(what) == obj || player == obj ||
+		Mageperms(what) ||
+		(Typeof(what)==TYPE_EXIT && Typeof(getloc(what))==TYPE_ROOM) ||
+		string_prefix(argv[0], NAME(player))) {
+	    sprintf(buf, "%.4093s", ptr);
+	} else {
+	    sprintf(buf, "%s%.16s%s%.4078s",
+		    ((obj == OWNER(perms) || obj==player)? "" : "> "),
+		    NAME(player),
+		    ((*argv[0] == '\'' || isspace(*argv[0]))? "" : " "), ptr);
+	}
+	notify_descriptor(obj, buf);
+    }
+    return argv[0];
+}
+ 
+const char *
 mfn_otell(MFUNARGS)
 {
     char buf2[BUFFER_LEN];
@@ -1641,9 +1683,9 @@ mfn_otell(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("OTELL","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("OTELL",NOPERM_MESG);
+        ABORT_MPI("OTELL",tp_noperm_mesg);
     if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("OTELL",NOPERM_MESG);
+        ABORT_MPI("OTELL",tp_noperm_mesg);
     if (argc > 2)
 	eobj = mesg_dbref_raw(descr, player, what, perms, argv[2]);
     strcpy(buf2, argv[0]);
@@ -1687,9 +1729,9 @@ mfn_oansi(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("OANSI","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("OANSI",NOPERM_MESG);
+        ABORT_MPI("OANSI",tp_noperm_mesg);
     if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("OANSI",NOPERM_MESG);
+        ABORT_MPI("OANSI",tp_noperm_mesg);
     if (argc > 2)
 	eobj = mesg_dbref_raw(descr, player, what, perms, argv[2]);
     strcpy(buf2, argv[0]);
@@ -1733,9 +1775,9 @@ mfn_ohtml(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("OHTML","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("OHTML",NOPERM_MESG);
+        ABORT_MPI("OHTML",tp_noperm_mesg);
     if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("OHTML",NOPERM_MESG);
+        ABORT_MPI("OHTML",tp_noperm_mesg);
     if (argc > 2)
 	eobj = mesg_dbref_raw(descr, player, what, perms, argv[2]);
     strcpy(buf2, argv[0]);
@@ -1804,7 +1846,7 @@ mfn_created(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("CREATED","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("CREATED",NOPERM_MESG);
+        ABORT_MPI("CREATED",tp_noperm_mesg);
 
     sprintf(buf, "%ld", DBFETCH(obj)->ts.created);
 
@@ -1821,7 +1863,7 @@ mfn_lastused(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("LASTUSED","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("LASTUSED",NOPERM_MESG);
+        ABORT_MPI("LASTUSED",tp_noperm_mesg);
 
     sprintf(buf, "%ld", DBFETCH(obj)->ts.lastused);
 
@@ -1838,7 +1880,7 @@ mfn_modified(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("MODIFIED","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("MODIFIED",NOPERM_MESG);
+        ABORT_MPI("MODIFIED",tp_noperm_mesg);
 
     sprintf(buf, "%ld", DBFETCH(obj)->ts.modified);
 
@@ -1855,7 +1897,7 @@ mfn_usecount(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("USECOUNT","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("USECOUNT",NOPERM_MESG);
+        ABORT_MPI("USECOUNT",tp_noperm_mesg);
 
     sprintf(buf, "%d", DBFETCH(obj)->ts.usecount);
 
@@ -1923,6 +1965,7 @@ mfn_center(MFUNARGS)
 }
 
 #endif /* MPI */
+
 
 
 

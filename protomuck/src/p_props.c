@@ -27,6 +27,8 @@ extern char buf[BUFFER_LEN];
 int
 prop_read_perms(dbref player, dbref obj, const char *name, int mlev)
 { 
+    if (Prop_SysPerms(obj, name))
+      return 0;
     if ((mlev < LM3) && Prop_Private(name) && !permissions(mlev, player, obj))
 	return 0;
     if ((mlev < LARCH) && Prop_Hidden(name))
@@ -37,6 +39,8 @@ prop_read_perms(dbref player, dbref obj, const char *name, int mlev)
 int
 prop_write_perms(dbref player, dbref obj, const char *name, int mlev)
 {
+    if (Prop_SysPerms(obj, name))
+      return 0;
     if (mlev < LWIZ) {
 	if (Prop_SeeOnly(name)) return 0;
 	if (!permissions(mlev, player, obj)) {
@@ -798,7 +802,6 @@ prim_parsempi(PRIM_PROTOTYPE)
     }
 }
 
-#ifdef OLDPARSE
 void 
 prim_parseprop(PRIM_PROTOTYPE)
 {
@@ -861,8 +864,13 @@ prim_parseprop(PRIM_PROTOTYPE)
     ptr = (oper2->data.string)? oper2->data.string->data : "";
     if(temp) {
 	result = oper4->data.number & (~MPI_ISLISTENER);
+#ifdef OLDPARSE
         ptr = do_parse_mesg_2(fr->descr, player, oper3->data.objref, (dbref)program, temp,
 			    ptr, buf, result);
+#else
+        ptr = do_parse_mesg_2(fr->descr, player, oper3->data.objref, temp,
+			    ptr, buf, result);
+#endif
 	CLEAR(oper1);
 	CLEAR(oper2);
 	CLEAR(oper3);
@@ -876,7 +884,7 @@ prim_parseprop(PRIM_PROTOTYPE)
         PushNullStr;
     }
 }
-#endif
+
 
 void
 prim_propqueue(PRIM_PROTOTYPE)
@@ -1002,6 +1010,7 @@ prim_islockedp(PRIM_PROTOTYPE)
 
    PushInt(result);
 }
+
 
 
 

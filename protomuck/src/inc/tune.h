@@ -43,6 +43,7 @@ extern time_t tp_dump_warntime;
 extern time_t tp_monolithic_interval;
 extern time_t tp_clean_interval;
 extern time_t tp_aging_time;
+extern time_t tp_idletime;
 extern time_t tp_maxidle;
 extern time_t tp_cron_interval;
 
@@ -129,9 +130,9 @@ extern int tp_wiz_vehicles;
 extern int tp_wiz_name;
 extern int tp_recycle_frobs;
 extern int tp_m1_name_notify;
-extern int tp_registration;
+/* extern int tp_registration;
 extern int tp_online_registration;
-extern int tp_fast_registration;
+extern int tp_fast_registration; */
 extern int tp_teleport_to_player;
 extern int tp_secure_teleport;
 extern int tp_exit_darking;
@@ -149,6 +150,8 @@ extern int tp_db_readonly;
 extern int tp_process_timer_limit;
 extern int tp_pcreate_copy_props;
 extern int tp_enable_home;
+extern int tp_enable_idle_msgs;
+extern int tp_user_idle_propqueue;
 extern int tp_quiet_moves;
 extern int tp_quiet_connects;
 extern int tp_expanded_debug;
@@ -161,6 +164,7 @@ extern void tune_save_parms_to_file(FILE *f);
 extern int tp_building;
 extern int tp_all_can_build_rooms;
 extern int tp_restricted_building;
+
 
 
 

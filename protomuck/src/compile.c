@@ -447,9 +447,6 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "instring", "tolower swap tolower swap instr");
 	insert_def(cstat, "rinstring", "tolower swap tolower swap rinstr");
 	insert_def(cstat, "stripspaces", "strip begin dup \"  \" instr while \" \" \"  \" subst repeat");
-#ifndef OLDPARSE
-	insert_def(cstat, "parseprop", "4 pick 4 rotate getpropstr rot rot parsempi");
-#endif
 	insert_intdef(cstat, "bg_mode", BACKGROUND);
 	insert_intdef(cstat, "fg_mode", FOREGROUND);
 	insert_intdef(cstat, "pr_mode", PREEMPT);
@@ -2535,4 +2532,5 @@ init_primitives(void)
 	IN_FOR = get_primitive(" FOR");
 	IN_FOREACH = get_primitive(" FOREACH");
 }
+
 

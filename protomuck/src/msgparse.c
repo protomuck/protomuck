@@ -761,7 +761,10 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
 	return NULL;
     }
     if (Typeof(what) == TYPE_GARBAGE) {
-	notify_nolisten(player, "MPI Error: Garbage trigger.", 1);
+      if (player < 1)
+         notify_descriptor(descr, "MPI Error: Garbage trigger.");
+      else
+  	   notify_nolisten(player, "MPI Error: Garbage trigger.", 1);
 	return NULL;
     }
     strcpy(wbuf, inbuf);
@@ -815,7 +818,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
 				    zptr, MFUN_LEADCHAR,
 				    (varflag? cmdbuf : mfun_list[s].name),
 				    MFUN_ARGEND);
-			    notify_nolisten(player, dbuf, 1);
+                      if (player < 1 ) {
+                         notify_descriptor(descr, dbuf);
+                      } else {
+			       notify_nolisten(player, dbuf, 1);
+                      }
 			    return NULL;
 			}
                         if (wbuf[p] == MFUN_ARGEND) {
@@ -840,7 +847,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
 				sprintf(ebuf, "%s %c%s%c: End brace not found.",
 					zptr, MFUN_LEADCHAR, cmdbuf,
 					MFUN_ARGEND);
-				notify_nolisten(player, ebuf, 1);
+                        if (player < 1) {
+                           notify_descriptor(descr, ebuf);
+                        } else {
+				   notify_nolisten(player, ebuf, 1);
+                        }
 				return NULL;
 			    }
                         }
@@ -853,7 +864,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
 				zptr = get_mvar("how");
 				sprintf(ebuf, "%s %c%s%c: Unrecognized variable.",
 					zptr, MFUN_LEADCHAR, cmdbuf, MFUN_ARGEND);
-				notify_nolisten(player, ebuf, 1);
+                        if (player < 1) {
+                           notify_descriptor(descr, ebuf);
+                        } else {
+ 				   notify_nolisten(player, ebuf, 1);
+                        }
 				return NULL;
 			    }
 			    strcpy(argv[0], zptr);
@@ -878,7 +893,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
                                 }
                             }
                             sprintf(dbuf, "%.512s%c", dbuf, MFUN_ARGEND);
-                            notify_nolisten(player, dbuf, 1);
+                           if (player < 1) {
+                              notify_descriptor(descr, dbuf);
+                           } else {
+                              notify_nolisten(player, dbuf, 1);
+                           }
                         }
                         if (mfun_list[s].stripp) {
                             for (i = (varflag? 1 : 0); i < argc; i++) {
@@ -894,7 +913,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
                                             MFUN_LEADCHAR,
                                             (varflag?cmdbuf:mfun_list[s].name),
                                             MFUN_ARGEND, i+1);
-                                    notify_nolisten(player, dbuf, 1);
+                                    if (player < 1) {
+                                       notify_descriptor(descr, dbuf);
+                                    } else {
+                                       notify_nolisten(player, dbuf, 1);
+                                    }
                                     return NULL;
                                 }
                             }
@@ -926,7 +949,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
                                     zptr, MFUN_LEADCHAR,
                                     (varflag? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGEND);
-                            notify_nolisten(player, ebuf, 1);
+                            if (player < 1) {
+                               notify_descriptor(descr, ebuf);
+                            } else {
+                               notify_nolisten(player, ebuf, 1);
+                            }
                             return NULL;
                         } else if (mfun_list[s].maxargs > 0 &&
 				    argc > mfun_list[s].maxargs) {
@@ -935,7 +962,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
                                     zptr, MFUN_LEADCHAR,
                                     (varflag? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGEND);
-                            notify_nolisten(player, ebuf, 1);
+                            if (player < 1) {
+                               notify_descriptor(descr, ebuf);
+                            } else {
+                               notify_nolisten(player, ebuf, 1);
+                            }
                             return NULL;
                         } else {
                             ptr = mfun_list[s].mfn(descr, player, what, perms, argc,
@@ -952,7 +983,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
                                             zptr, MFUN_LEADCHAR,
                                             (varflag?cmdbuf:mfun_list[s].name),
                                             MFUN_ARGEND);
-                                    notify_nolisten(player, ebuf, 1);
+                                    if (player < 1) {
+                                       notify_descriptor(descr, ebuf);
+                                    } else {
+                                       notify_nolisten(player, ebuf, 1);
+                                    }
                                     return NULL;
                                 }
 				ptr = dptr;
@@ -961,7 +996,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
                         if (mesgtyp & MPI_ISDEBUG) {
                             sprintf(dbuf, "%.512s = \"%.512s\"", dbuf,
                                     cr2slash(ebuf, ptr));
-                            notify_nolisten(player, dbuf, 1);
+                            if (player < 1) {
+                               notify_descriptor(descr, dbuf);
+                            } else {
+                               notify_nolisten(player, dbuf, 1);
+                            }
                         }
                     } else if (msg_is_macro(player, what, perms, cmdbuf)) {
                         if (wbuf[p] == MFUN_ARGEND) {
@@ -976,7 +1015,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
 				sprintf(ebuf, "%s %c%s%c: End brace not found.",
 					zptr, MFUN_LEADCHAR, cmdbuf,
 					MFUN_ARGEND);
-				notify_nolisten(player, ebuf, 1);
+                        if (player < 1) {
+                           notify_descriptor(descr, ebuf);
+                        } else {
+ 				   notify_nolisten(player, ebuf, 1);
+                        }
 				return NULL;
 			    }
                         }
@@ -989,7 +1032,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
 			char *zptr = get_mvar("how");
 			sprintf(ebuf, "%s %c%s%c: Unrecognized function.",
 				zptr, MFUN_LEADCHAR, cmdbuf, MFUN_ARGEND);
-			notify_nolisten(player, ebuf, 1);
+                  if (player < 1) {
+                     notify_descriptor(descr, ebuf);
+                  } else {
+			   notify_nolisten(player, ebuf, 1);
+                  }
 			return NULL;
                     }
                 } else {
@@ -1012,7 +1059,11 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf, 
         char *zptr = get_mvar("how");
         sprintf(dbuf, "%s %*s\"%s\"", zptr, (mesg_rec_cnt*2-4), "",
                 cr2slash(buf2, outbuf));
-        notify_nolisten(player, dbuf, 1);
+        if (player < 1) {
+           notify_descriptor(descr, dbuf);
+        } else {
+           notify_nolisten(player, dbuf, 1);
+        }
     }
     mesg_rec_cnt--;
     return (outbuf);
@@ -1109,6 +1160,7 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf, const char
 	strcpy(outbuf, inbuf);
     return outbuf;
 }
+
 
 
 

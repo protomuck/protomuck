@@ -94,6 +94,7 @@ time_t tp_monolithic_interval     = MONOLITHIC_INTERVAL;
 time_t tp_clean_interval          = CLEAN_INTERVAL;
 time_t tp_aging_time              = AGING_TIME;
 time_t tp_maxidle                 = MAXIDLE;
+time_t tp_idletime                = IDLETIME;
 time_t tp_cron_interval           = CRON_INTERVAL;
 
 struct tune_time_entry {
@@ -114,6 +115,7 @@ struct tune_time_entry tune_time_list[] =
     {"clean_interval",      &tp_clean_interval,       LARCH, LMUF },
     {"aging_time",          &tp_aging_time,           LARCH, LMUF },
     {"maxidle",             &tp_maxidle,              LARCH, LMUF },
+    {"idletime",            &tp_idletime,             LARCH, LMUF },
     {"cron_interval",       &tp_cron_interval,        LARCH, LMUF },
     {NULL, NULL, 0}
 };
@@ -265,9 +267,9 @@ int tp_wiz_vehicles                = WIZ_VEHICLES;
 int tp_wiz_name                    = 0;
 int tp_recycle_frobs               = 0;
 int tp_m1_name_notify              = M1_NAME_NOTIFY;
-int tp_registration                = REGISTRATION;
+/* int tp_registration                = REGISTRATION;
 int tp_online_registration         = 0;
-int tp_fast_registration           = 0;
+int tp_fast_registration           = 0; */
 int tp_teleport_to_player          = TELEPORT_TO_PLAYER;
 int tp_secure_teleport             = SECURE_TELEPORT;
 int tp_exit_darking                = EXIT_DARKING;
@@ -287,6 +289,8 @@ int tp_restricted_building         = 1;
 int tp_all_can_build_rooms         = 1;
 int tp_pcreate_copy_props          = 0;
 int tp_enable_home                 = 1;
+int tp_enable_idle_msgs            = 0;
+int tp_user_idle_propqueue         = 0;
 int tp_quiet_moves                 = 0;
 int tp_quiet_connects              = 0;
 int tp_expanded_debug              = 0;
@@ -327,9 +331,9 @@ struct tune_bool_entry tune_bool_list[] =
     {"wiz_name",               &tp_wiz_name,                 LARCH, LMUF },
     {"recycle_frobs",          &tp_recycle_frobs,            WBOY , LMUF },
     {"m1_name_notify",         &tp_m1_name_notify,           LARCH, LMUF },
-    {"registration",           &tp_registration,             WBOY , LMAGE},
+/*    {"registration",           &tp_registration,             WBOY , LMAGE},
     {"online_registration",    &tp_online_registration,      WBOY , LMAGE},
-    {"fast_registration",      &tp_fast_registration,        WBOY , LMAGE},
+    {"fast_registration",      &tp_fast_registration,        WBOY , LMAGE}, */
     {"teleport_to_player",     &tp_teleport_to_player,       LARCH, LMUF },
     {"secure_teleport",        &tp_secure_teleport,          LARCH, LMUF },
     {"exit_darking",           &tp_exit_darking,             LARCH, LMUF },
@@ -349,6 +353,8 @@ struct tune_bool_entry tune_bool_list[] =
     {"restricted_building",    &tp_restricted_building,      LARCH, LMUF },
     {"pcreate_copy_props",     &tp_pcreate_copy_props,       LARCH, LMUF },
     {"allow_home",             &tp_enable_home,              LARCH, LMUF },
+    {"enable_idle_msgs",       &tp_enable_idle_msgs,         LARCH, LMUF },
+    {"user_idle_propqueue",    &tp_user_idle_propqueue,      LARCH, LMUF },
     {"quiet_moves",            &tp_quiet_moves,              LARCH, LMUF },
     {"quiet_connects",         &tp_quiet_connects,           LARCH, LMUF },
     {"expanded_debug",         &tp_expanded_debug,           LARCH, LMUF },
@@ -984,4 +990,5 @@ do_tune(dbref player, char *parmname, char *parmval)
 	return;
     }
 }
+
 

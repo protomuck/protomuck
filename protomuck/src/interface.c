@@ -97,6 +97,8 @@ int     queue_string(struct descriptor_data *, const char *);
 int     queue_write(struct descriptor_data *, const char *, int);
 int     process_output(struct descriptor_data * d);
 int     process_input(struct descriptor_data * d);
+void    announce_idle(struct descriptor_data *d);
+void    announce_unidle(struct descriptor_data *d);
 void    announce_connect(int descr, dbref);
 void    announce_disconnect(struct descriptor_data *);
 char   *time_format_1(time_t);
@@ -317,7 +319,7 @@ main(int argc, char **argv)
          fprintf(stderr," to be EXPERIMENTAL.  I will try to provide as\n");
          fprintf(stderr," much support as I can for it, but recognize that\n");
          fprintf(stderr," ProtoMuck as a whole is a spare-time project.\n");
-         fprintf(stderr,"   --Moose/Van (ashitaka@home.com)\n");
+         fprintf(stderr,"   --Moose/Van (contikimoose@hotmail.com)\n");
          fprintf(stderr,"   --Akari     (Nakoruru08@hotmail.com)\n");
 	   fprintf(stderr,"----------------------------------------------\n");
 	#endif
@@ -510,6 +512,7 @@ notify_descriptor(int descr, const char *msg)
    struct descriptor_data *d;
 
    for (d = descriptor_list; d && (d->descriptor != descr); d = d->next);
+   if (!d || d->descriptor != descr) return;
 
     ptr2 = msg;
     while (ptr2 && *ptr2) {
@@ -1227,6 +1230,10 @@ shovechars(int port)
 		    ) {
 			idleboot_user(d);
 		    }
+                if (((now - d->last_time) >= tp_idletime) && !(FLAG2(d->player) & F2IDLE)) {
+                   FLAG2(d->player) |= F2IDLE;
+                   announce_idle(d);
+                }
 		} else {
 		    if ((now - d->connected_at) > 300) {
 			d->booted = 1;
@@ -2196,10 +2203,17 @@ do_command(struct descriptor_data * d, char *command)
     struct frame *tmpfr;
     char cmdbuf[BUFFER_LEN];
 
-    if (d->connected)
+    if (d->connected) {
 	ts_lastuseobject(d->player);
-	if (!mcp_frame_process_input(&d->mcpframe, command, cmdbuf, sizeof(cmdbuf)))
-		return 1;
+      if (FLAG2(d->player) & F2IDLE) {
+        FLAG2(d->player) &= ~F2IDLE;
+        announce_unidle(d);
+      }
+    }
+
+    if (!mcp_frame_process_input(&d->mcpframe, command, cmdbuf, sizeof(cmdbuf)))
+	return 1;
+
     command = cmdbuf;
     if (!strcmp(command, QUIT_COMMAND)) {
 	return 0;
@@ -2693,11 +2707,15 @@ check_connect(struct descriptor_data * d, const char *msg)
     dbref   player;
     time_t  now;
     int     result;
+    char    msgargs[BUFFER_LEN];
 
     if( tp_log_connects )
 	log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg );
 
     parse_connect(msg, command, user, password);
+    strcpy(msgargs, user);
+    strcat(msgargs, " ");
+    strcat(msgargs, password);
 
 #ifdef HTTPD
     if (d->type == CT_HTML && (d->http_login == 0)) {
@@ -2827,14 +2845,6 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    /* cks: someone has to initialize this somewhere. */
 	    DBFETCH(d->player)->sp.player.block = 0;
 	    spit_file(player, MOTD_FILE);
-	    if ( TArch(player) ) {
-		char buf[ 128 ];
-		int count = hop_count();
-		sprintf( buf, CNOTE
-		    "There %s %d registration%s in the hopper.",
-		    (count==1)?"is":"are", count, (count==1)?"":"s" );
-		anotify( player, buf );
-	    }
 	    interact_warn(player);
 	    if (sanity_violated && TMage(player)) {
 		notify(player, MARK "WARNING!  The DB appears to be corrupt!");
@@ -2842,23 +2852,12 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    announce_connect(d->descriptor, player);
 	}
      }
+    } else if (prop_command(d->descriptor, (dbref) 0, command, msgargs, "@logincommand", 1)) { /* Check for replaced login commands */
     } else if (string_prefix("help", command) ) { /* Connection Help */
 	log_status("HELP: %2d %s(%s) %s %d cmds\n",
 	    d->descriptor, d->hostname, d->username,
 	    host_as_hex(d->hostaddr), d->commands);
 	help_user(d);
-    } else if (string_prefix("request", command) ) {
-	/* Guests online should already be checked out ok */
-	if( reg_site_is_barred(d->hostaddr) == TRUE ) {
-	    queue_ansi(d,"Sorry, but we are not accepting requests from your site.\r\n");
-	    d->booted = 1;
-	} else {
-  	    log_status("RQST: %2d %s(%s) %s %d cmds\n",
-	      d->descriptor, d->hostname, d->username,
-	      host_as_hex(d->hostaddr), d->commands);
-          if( request(-1, d, msg) )
-             d->booted = 1;
-      }
     } else {
       if (Typeof(tp_login_huh_command) == TYPE_PROGRAM) {
          char   *full_command, xbuf[BUFFER_LEN];
@@ -3178,132 +3177,6 @@ do_armageddon(dbref player, const char *msg)
     exit(1);
 }
 
-int
-request( dbref player, struct descriptor_data *d, const char *msg )
-{
-    char    command[80];
-    char    user[80];
-    char    password[80];
-    char    email[80];
-    char    firstname[80];
-    char    lastname[80];
-    char    fullname[161];
-    char    *jerk;
-
-    if ((player > 0) && !Guest(player) && !Mage(player)) {
-	anotify(player, CFAIL "Only guests can request new characters.");
-	return 0;
-    }
-
-    if( !d )
-	if(!( d = get_descr(0, player) )) return 0;
-
-    if( tp_online_registration ) {
-	parse_connect(msg, command, user, password);
-	parse_connect(password, email, firstname, lastname);
-	if(!*user) {
-	    queue_ansi(d, "To request a character type:\r\n\r\n"
-		"   request <char name> <e-mail> <your name>   (Don't type the <> signs)\r\n\r\n"
-		"<char name> is the name you'd like for your character\r\n"
-		"   <e-mail> is your email address, ie: user@host.com\r\n"
-		"<your name> is your first and last name in real life\r\n"
-	    );
-	    return 0;
-	}
-	if (!ok_player_name(user)) {
-	    queue_ansi(d,
-		"Sorry, that name is invalid or in use.  Try another?\r\n"
-	    );
-	} else if (!strchr(email,'@') || !strchr(email,'.')) {
-	    queue_ansi(d,
-		"That doesn't look like an email address.  Type just 'request' for help.\r\n"
-	    );
-	} else if ( *firstname == '\0' ) {
-	    queue_ansi(d,
-		"You forgot your name.  Type just 'request' for help.\r\n"
-	    );
-	} else if ( *lastname == '\0' ) {
-	    queue_ansi(d,
-		"You forgot your last name.\r\n"
-	    );
-	} else if ( strchr(firstname,'\'')
-		 || strchr(lastname,'\'')
-		 || strchr(email,'\'')
-		 || strchr(user,'\'')  ) {
-	    queue_ansi(d,
-		"Please don't use single quotes in names.\r\n"
-	    );
-	} else if ( strchr(firstname,'`')
-		 || strchr(lastname,'`')
-		 || strchr(email,'`')
-		 || strchr(user,'`')  ) {
-	    queue_ansi(d,
-		"Please don't use backquotes in names.\r\n"
-	    );
-	} else if ( strchr(firstname,'\"')
-		 || strchr(lastname,'\"')
-		 || strchr(email,'\"')
-		 || strchr(user,'\"')  ) {
-	    queue_ansi(d,
-		"Please don't use quotes in names.\r\n"
-	    );
-	} else if ( strchr(firstname,'\\')
-		 || strchr(lastname,'\\')
-		 || strchr(email,'\\')
-		 || strchr(user,'\\')  ) {
-	    queue_ansi(d,
-		"Please don't use backslashes in names.\r\n"
-	    );
-	} else if ( strchr(email,'<')
-		 || strchr(email,'>')
-		 || strchr(email,'/')
-		 || strchr(email,';')
-		 || strchr(email,'!')
-		 || strchr(email,'|')
-		 || strchr(email,'%')
-		 || strchr(email,'&')
-		 || strchr(email,':')  ) {
-	    queue_ansi(d,
-		"There are unacceptable characters in your email address.\r\n"
-	    );
-	} else {
-	    jerk = reg_email_is_a_jerk(email) ? "##JERK## " : "";
-
-#ifdef SPAWN_HOST_RESOLVER
-	    resolve_hostnames(); /* See if we can get a real site name */
-#endif
-
-	    log2filetime( LOG_HOPPER, "'%s' %s'%s' '%s %s' %s(%s) %s\r\n",
-		user, jerk, email, firstname, lastname,
-		d->hostname, d->username, host_as_hex(d->hostaddr)
-	    );
-
-	    log_status(
-		"*REG: %2d '%s' %s'%s' '%s %s' %s(%s) %s\n",
-		d->descriptor, user, jerk, email, firstname, lastname,
-		d->hostname, d->username, host_as_hex(d->hostaddr)
-	    );
-
-	    if(tp_fast_registration && !(*jerk) ) {
-		sprintf(fullname, "%s %s", firstname, lastname);
-		email_newbie(user, email, fullname);
-		queue_ansi(d, "Your request has been processed.\r\n"
-		    "Your player's password has been e-mailed to you.\r\n"
-		);
-		wall_arches( MARK
-		    "New request filed in newbie hopper and processed." );
-	    } else {
-		queue_ansi(d, "Your request has been filed.\r\n"
-		    "Turnaround is generally less than 24 hours.\r\n"
-		    "Your player's password will be sent to you via e-mail.\r\n"
-		);
-		wall_arches( MARK "New request filed in newbie hopper." );
-	    }
-	    return 1;
-	}
-    } else queue_ansi(d, "Online registration is not open now.\r\n" );
-    return 0;
-}
 
 void 
 emergency_shutdown(void)
@@ -3599,11 +3472,6 @@ announce_connect(int descr, dbref player)
 
     if(Guest(player)) {
 	FLAGS(player) &= ~CHOWN_OK;
-	if (tp_online_registration)
-	{
-	  notify(player, MARK "You can request your own character while online.");
-	  notify(player, "    Type 'request' to see what to do.");
-	}
     }
 
     /*
@@ -3732,6 +3600,73 @@ announce_disconnect(struct descriptor_data *d)
       }
     }
 }
+
+
+void 
+announce_idle(struct descriptor_data *d)
+{
+    dbref   player = d->player;
+    dbref   loc;
+    char    buf[BUFFER_LEN];
+
+    if (!d->connected || (loc = getloc(player)) == NOTHING)
+	return;
+
+    if ((!Dark(player)) && (!Dark(loc)) && (tp_enable_idle_msgs)) {
+	sprintf(buf, CMOVE "%s has become terminally idle.", PNAME(player));
+	anotify_except(DBFETCH(loc)->contents, player, buf, player);
+    }
+
+    /* queue up all _idle programs referred to by properties */
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"@idle", "Idle", 1, 1);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"@oidle", "Oidle", 1, 0);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"~idle", "Idle", 1, 1);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"~oidle", "Oidle", 1, 0);
+    if(tp_user_idle_propqueue) {
+	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	    "_idle", "Idle", 1, 1);
+	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	    "_oidle", "Oidle", 1, 0);
+    }
+}
+
+void 
+announce_unidle(struct descriptor_data *d)
+{
+    dbref   player = d->player;
+    dbref   loc;
+    char    buf[BUFFER_LEN];
+
+    if (!d->connected || (loc = getloc(player)) == NOTHING)
+	return;
+
+    if ((!Dark(player)) && (!Dark(loc)) && (tp_enable_idle_msgs)) {
+	sprintf(buf, CMOVE "%s has unidled.", PNAME(player));
+	anotify_except(DBFETCH(loc)->contents, player, buf, player);
+    }
+
+    /* queue up all _unidle programs referred to by properties */
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"@unidle", "Unidle", 1, 1);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"@ounidle", "Ounidle", 1, 0);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"~unidle", "Unidle", 1, 1);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	"~ounidle", "Ounidle", 1, 0);
+    if(tp_user_idle_propqueue) {
+	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	    "_unidle", "Unidle", 1, 1);
+	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+	    "_ounidle", "Ounidle", 1, 0);
+    }
+}
+
+
 
 #ifdef MUD_ID
 void
@@ -4236,14 +4171,6 @@ plogin_user(struct descriptor_data *d, dbref who)
 	    d->connected = 1;
           d->connected_at = current_systime;
 	   spit_file(d->player, MOTD_FILE);
-	   if ( TArch(d->player) ) {
-	      char buf[ 128 ];
-	      int count = hop_count();
-	      sprintf( buf, CNOTE
-	         "There %s %d registration%s in the hopper.",
-	         (count==1)?"is":"are", count, (count==1)?"":"s" );
-	      anotify( d->player, buf );
-	    }
 	    interact_warn(d->player);
 	    if (sanity_violated && TMage(d->player)) {
 	       notify(d->player, MARK "WARNING!  The DB appears to be corrupt!");
@@ -4353,9 +4280,10 @@ pdescrtype(int c)
 int
 pdescrp(int c)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
 
-    d = descrdata_by_descr(c);
+    for (d = descriptor_list; d && (d->descriptor != c); d = d->next);
+/*    d = descrdata_by_descr(c); */
     if (d && d->descriptor == c)
        return 1;
     else
@@ -4535,6 +4463,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

@@ -186,6 +186,7 @@ typedef int dbref;		/* offset into db */
 #define F2COMMAND         0x400     /* For the new MUSH-style commands -- NO SUPPORT YET */
 #define F2EXAMINE_OK      0x800     /* The new EXAMINE_OK flag */
 #define F2ANTIPROTECT    0x1000     /* Anti-protect flag to allow a wizard to combat against PROTECT. */
+#define F2IDLE           0x2000     /* To watch if someone is idle or not. */
 
 /* Proto @Powers */
 
@@ -206,7 +207,7 @@ typedef int dbref;		/* offset into db */
 
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
-#define DUM2_MASK	(0)
+#define DUM2_MASK	(F2IDLE)
 #define DUM3_MASK (0)
 #define DUM4_MASK (0)
 
@@ -781,6 +782,7 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 

@@ -27,6 +27,7 @@ extern void prim_event_count(PRIM_PROTOTYPE);
 extern void prim_event_send(PRIM_PROTOTYPE);
 extern void prim_pnameokp(PRIM_PROTOTYPE);
 extern void prim_nameokp(PRIM_PROTOTYPE);
+extern void prim_force_level(PRIM_PROTOTYPE);
 
 /* From p_html.c */
 extern void prim_commandtext(PRIM_PROTOTYPE);
@@ -49,7 +50,7 @@ extern void prim_sockcheck(PRIM_PROTOTYPE);
     prim_socksend, prim_sockrecv, prim_sockclose,                        \
     prim_setsysparm, prim_cancallp, prim_timer_start, prim_timer_stop,   \
     prim_event_count, prim_event_send, prim_nbsockopen, prim_sockcheck,  \
-    prim_pnameokp, prim_nameokp
+    prim_pnameokp, prim_nameokp, prim_force_level
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET",    \
     "SYSTIME", "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL",  \
@@ -60,9 +61,11 @@ extern void prim_sockcheck(PRIM_PROTOTYPE);
     "SOCKSEND", "SOCKRECV", "SOCKCLOSE",                 \
     "SETSYSPARM", "CANCALL?", "TIMER_START",             \
     "TIMER_STOP", "EVENT_COUNT", "EVENT_SEND",           \
-    "NBSOCKOPEN", "SOCKCHECK", "PNAME-OK?", "NAME-OK?"
+    "NBSOCKOPEN", "SOCKCHECK", "PNAME-OK?", "NAME-OK?",  \
+    "FORCE_LEVEL"
 
-#define PRIMS_MISC_CNT 38
+#define PRIMS_MISC_CNT 39
+
 
 
 
