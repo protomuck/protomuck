@@ -796,21 +796,30 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
     }
     switch (Typeof(thing)) {
 	case TYPE_ROOM:
-	    sprintf(buf, "%s" NORMAL "  Owner: %s  Parent: ", ansi_unparse_object(OWNER(player), thing),
+	    sprintf(buf, "%.*s" NORMAL "  Owner: %s  Parent: ", 
+	            (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
+	            ansi_unparse_object(OWNER(player), thing),
 		    NAME(OWNER(thing)));
-	    strcat(buf, ansi_unparse_object(OWNER(player), DBFETCH(thing)->location));
+	            strcat(buf, ansi_unparse_object(OWNER(player), 
+		    DBFETCH(thing)->location));
 	    break;
 	case TYPE_THING:
-	    sprintf(buf, "%s" NORMAL "  Owner: %s  Value: %d", ansi_unparse_object(OWNER(player), thing),
-		    NAME(OWNER(thing)), DBFETCH(thing)->sp.thing.value);
+	    sprintf(buf, "%.*s" NORMAL "  Owner: %s  Value: %d", 
+	        (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35), 
+	        ansi_unparse_object(OWNER(player), thing),
+		NAME(OWNER(thing)), DBFETCH(thing)->sp.thing.value);
 	    break;
 	case TYPE_PLAYER:
-	    sprintf(buf, "%s" NORMAL "  %s: %d  ", ansi_unparse_object(OWNER(player), thing),
+	    sprintf(buf, "%.*s" NORMAL "  %s: %d  ", 
+                    (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
+                    ansi_unparse_object(OWNER(player), thing),
 		    tp_cpennies, DBFETCH(thing)->sp.player.pennies);
 	    break;
 	case TYPE_EXIT:
 	case TYPE_PROGRAM:
-	    sprintf(buf, "%s" NORMAL "  Owner: %s", ansi_unparse_object(OWNER(player), thing),
+	    sprintf(buf, "%.*s" NORMAL "  Owner: %s", 
+                    (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
+                    ansi_unparse_object(OWNER(player), thing),
 		    NAME(OWNER(thing)));
 	    break;
 	case TYPE_GARBAGE:
