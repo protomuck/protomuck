@@ -15,6 +15,9 @@
 /* Define if your struct tm has tm_zone.  */
 #undef HAVE_TM_ZONE
 
+/* if _timezone is defined in time.h, define this */
+#undef HAVE__TIMEZONE
+
 /* Define if you don't have tm_zone but do have the external array
    tzname.  */
 #undef HAVE_TZNAME
@@ -47,6 +50,9 @@
 /* Define to `unsigned' if <sys/types.h> doesn't define.  */
 #undef size_t
 
+/* Define to `int' if <sys/socket.h> doesn't define.  */
+#undef socklen_t
+
 /* Define if you have the ANSI C header files.  */
 #undef STDC_HEADERS
 
@@ -61,6 +67,12 @@
 
 /* Define if your <sys/time.h> declares struct tm.  */
 #undef TM_IN_SYS_TIME
+
+/* Define if you have the <sys/errno.h> header file.  */
+#undef HAVE_SYS_ERRNO_H
+
+/* Define if you have the <errno.h> header file.  */
+#undef HAVE_ERRNO_H
 
 /* Define if the closedir function returns void instead of int.  */
 #undef VOID_CLOSEDIR
