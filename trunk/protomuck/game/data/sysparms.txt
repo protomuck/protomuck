@@ -491,3 +491,8 @@ break a foreground program. W2 and above can always do it.
 mcp_muf_lev
 This determines the M level that a player must have to write 
 programs that take advantage of MCP related prims.
+~~~
+multi_wizlevels
+This @tune can turn off tiered wiz levels. With it on, there
+will be W5/W4/W3/W2/W1 (The Neon/Glow scheme). Turning it off
+will make it so that there is only #1/W (Fuzzball scheme).
