@@ -605,7 +605,7 @@ prim_array_n_union(PRIM_PROTOTYPE)
                 abort_interp("Stack underflow.");
 
         if (result > 0) {
-                new_mash = new_array_dictionary(0);
+                new_mash = new_array_dictionary();
                 for (num_arrays = 0; num_arrays < result; num_arrays++) {
                         oper1 = POP();
                         array_mash(oper1->data.array, &new_mash, 1);
@@ -641,7 +641,7 @@ prim_array_n_intersection(PRIM_PROTOTYPE)
                 abort_interp("Stack underflow.");
 
         if (result > 0) {
-                new_mash = new_array_dictionary(0);
+                new_mash = new_array_dictionary();
                 for (num_arrays = 0; num_arrays < result; num_arrays++) {
                         oper1 = POP();
                         array_mash(oper1->data.array, &new_mash, 1);
@@ -677,7 +677,7 @@ prim_array_n_difference(PRIM_PROTOTYPE)
                 abort_interp("Stack underflow.");
 
         if (result > 0) {
-                new_mash = new_array_dictionary(0);
+                new_mash = new_array_dictionary();
 
                 oper1 = POP();
                 array_mash(oper1->data.array, &new_mash, 1);
@@ -1150,12 +1150,11 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
         stk_array *arr;
         char propname[BUFFER_LEN];
         char dir[BUFFER_LEN];
-/*      PData propdat; */
         const char *fmtin;
         char *fmtout;
         int dirlen;
         int count;
-      int protoflags;
+        int protoflags;
 
         /* dbref strPropDir array -- */
         CHECKOP(3);
@@ -1172,15 +1171,13 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                 abort_interp("Array required. (3)");
         if (oper3->data.array && oper3->data.array->type != ARRAY_PACKED)
                 abort_interp("Argument must be a list type array. (3)");
-
         ref = oper1->data.objref;
         strcpy(dir, DoNullInd(oper2->data.string));
         arr = oper3->data.array;
-
         dirlen = strlen(dir);
         fmtout = propname;
-/*      fmtin = tp_proplist_counter_fmt; */
-      fmtin = "P#";
+        fmtin = tp_proplist_counter_fmt;
+/*        fmtin = "P#"; */
         while (*fmtin) {
                 if (*fmtin == 'P') {
                         if ((fmtout + dirlen) - propname > sizeof(propname))
@@ -1193,28 +1190,22 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                 fmtin++;
         }
         *fmtout++ = '\0';
-
         if (!prop_write_perms(ProgUID, ref, propname, mlev))
                 abort_interp("Permission denied while trying to set protected property.");
-
-        if ( /* tp_proplist_int_counter */ 0) {
+        if (tp_proplist_int_counter) {
                 protoflags = PROP_INTTYP;
-/*              propdat.data.val = array_count(arr); */
             sprintf(buf, "%d", array_count(arr));
         } else {
                 sprintf(buf, "%d", array_count(arr));
                 protoflags = PROP_STRTYP;
-/*              propdat.data.str = buf; */
         }
         set_property(ref, propname, protoflags, buf);
-
         if (array_first(arr, &temp1)) {
                 do {
                         oper4 = array_getitem(arr, &temp1);
-
                         fmtout = propname;
-/*                      fmtin = tp_proplist_entry_fmt; */
-                  fmtin = "P#/N";
+                        fmtin = tp_proplist_entry_fmt;
+/*                        fmtin = "P#/N"; */
                         while (*fmtin) {
                                 if (*fmtin == 'N') {
                                         if ((fmtout + 18) - propname > sizeof(propname))
@@ -1232,10 +1223,8 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                                 fmtin++;
                         }
                         *fmtout++ = '\0';
-
                         if (!prop_write_perms(ProgUID, ref, propname, mlev))
                                 abort_interp("Permission denied while trying to set protected property.");
-
                         switch (oper4->type) {
                         case PROG_STRING:
                                 protoflags = PROP_STRTYP;
@@ -1264,13 +1253,12 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                         set_property(ref, propname, protoflags, buf);
                 } while (array_next(arr, &temp1));
         }
-
         count = temp1.data.number;
         for (;;) {
                 count++;
                 fmtout = propname;
-/*              fmtin = tp_proplist_entry_fmt; */
-            fmtin = "P#/N";
+                fmtin = tp_proplist_entry_fmt;
+/*              fmtin = "P#/N"; */
                 while (*fmtin) {
                         if (*fmtin == 'N') {
                                 if ((fmtout + 18) - propname > sizeof(propname))
@@ -1294,7 +1282,6 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                         break;
                 }
         }
-
         CLEAR(oper1);
         CLEAR(oper2);
         CLEAR(oper3);
@@ -1344,7 +1331,7 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
                         while (*rawstr && !isspace(*rawstr))
                                 rawstr++;
                         while (isspace(*rawstr))
-                                rawstr++;        
+                                rawstr++;
 
                         temp1.type = PROG_INTEGER;
                         temp1.data.number = count;
@@ -1361,69 +1348,71 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
         }
 
         PushArrayRaw(new);
-}   
+}
+
 
 void
 prim_array_put_reflist(PRIM_PROTOTYPE)
 {
-	stk_array *arr;
-	char buf2[BUFFER_LEN];
-	char dir[BUFFER_LEN];
-	char *out;
-	int protoflags;
-	int len;
+        stk_array *arr;
+        char buf2[BUFFER_LEN];
+        char dir[BUFFER_LEN];
+        char *out;
+        int len;
+        int protoflags;
 
-	/* dbref strPropDir array -- */
-	CHECKOP(3);
-	oper3 = POP();
-	oper2 = POP();
-	oper1 = POP();
-	if (oper1->type != PROG_OBJECT)
-		abort_interp("Dbref required. (1)");
-	if (!valid_object(oper1))
-		abort_interp("Invalid dbref. (1)");
-	if (oper2->type != PROG_STRING)
-		abort_interp("String required. (2)");
-	if (!oper2->data.string)
-		abort_interp("Non-null string required. (2)");
-	if (oper3->type != PROG_ARRAY)
-		abort_interp("Argument must be a list array of dbrefs. (3)");
-	if (oper3->data.array && oper3->data.array->type != ARRAY_PACKED)
-		abort_interp("Argument must be a list array of dbrefs. (3)");
-	if (!array_is_homogenous(oper3->data.array, PROG_OBJECT))
-		abort_interp("Argument must be a list array of dbrefs. (3)");
+        /* dbref strPropDir array -- */
+        CHECKOP(3);
+        oper3 = POP();
+        oper2 = POP();
+        oper1 = POP();
+        if (oper1->type != PROG_OBJECT)
+                abort_interp("Dbref required. (1)");
+        if (!valid_object(oper1))
+                abort_interp("Invalid dbref. (1)");
+        if (oper2->type != PROG_STRING)
+                abort_interp("String required. (2)");
+        if (!oper2->data.string)
+                abort_interp("Non-null string required. (2)");
+        if (oper3->type != PROG_ARRAY)
+                abort_interp("Argument must be a list array of dbrefs. (3)");
+        if (oper3->data.array && oper3->data.array->type != ARRAY_PACKED)
+                abort_interp("Argument must be a list array of dbrefs. (3)");
+        if (!array_is_homogenous(oper3->data.array, PROG_OBJECT))
+                abort_interp("Argument must be a list array of dbrefs. (3)");
 
-	ref = oper1->data.objref;
-	strcpy(dir, DoNullInd(oper2->data.string));
-	arr = oper3->data.array;
-	buf[0] = '\0';
+        ref = oper1->data.objref;
+        strcpy(dir, DoNullInd(oper2->data.string));
 
-	if (!prop_write_perms(ProgUID, ref, dir, mlev))
-		abort_interp("Permission denied.");
+        remove_property(ref, dir);
+        arr = oper3->data.array;
+        buf[0] = '\0';
 
-	out = buf;
-	if (array_first(arr, &temp1)) {
-		do {
-			oper4 = array_getitem(arr, &temp1);
-			len = sprintf(buf2, "#%d", oper4->data.objref);
+        if (!prop_write_perms(ProgUID, ref, dir, mlev))
+                abort_interp(tp_noperm_mesg);
 
-			if (out + len - buf >= BUFFER_LEN - 3)
-				abort_interp("Operation would result in string length overflow.");
+        out = buf;
+        if (array_first(arr, &temp1)) {
+                do {
+                        oper4 = array_getitem(arr, &temp1);
+                        len = sprintf(buf2, "#%d", oper4->data.objref);
 
-			if (*buf)
-				*out++ = ' ';
-			strcpy(out, buf2);
-			out += len;
-		} while (array_next(arr, &temp1));
-	}
+                        if (out + len - buf >= BUFFER_LEN - 3)
+                                abort_interp("Operation would result in string length overflow.");
 
-	remove_property(ref, dir);
-	protoflags = PROP_STRTYP;
-	set_property(ref, dir, protoflags, buf);
+                        if (*buf)
+                                *out++ = ' ';
+                        strcpy(out, buf2);
+                        out += len;
+                } while (array_next(arr, &temp1));
+        }
 
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
+        protoflags = PROP_STRTYP;
+        set_property(ref, dir, protoflags, buf);
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+        CLEAR(oper3);
 }
 
 
@@ -1548,3 +1537,4 @@ prim_explode_array(PRIM_PROTOTYPE)
     CLEAR(&temp2);
     CLEAR(&temp3);
 } 
+

@@ -2,7 +2,7 @@
 # Generated automatically by configure.
 # Run this file to recreate the current configuration.
 # This directory was configured as follows,
-# on host tnt.muck.tj:
+# on host yggdrasil.megami.net:
 #
 # ./configure 
 #
@@ -209,9 +209,9 @@ CEOF
 ${ac_dA}HAVE_TM_ZONE${ac_dB}HAVE_TM_ZONE${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_TM_ZONE${ac_uB}HAVE_TM_ZONE${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_TM_ZONE${ac_eB}HAVE_TM_ZONE${ac_eC}1${ac_eD}
-${ac_dA}UNAME_VALUE${ac_dB}UNAME_VALUE${ac_dC}"Linux tnt.muck.tj 2.2.5-22 #1 Wed Jun 2 09:02:27 EDT 1999 i586 unknown"${ac_dD}
-${ac_uA}UNAME_VALUE${ac_uB}UNAME_VALUE${ac_uC}"Linux tnt.muck.tj 2.2.5-22 #1 Wed Jun 2 09:02:27 EDT 1999 i586 unknown"${ac_uD}
-${ac_eA}UNAME_VALUE${ac_eB}UNAME_VALUE${ac_eC}"Linux tnt.muck.tj 2.2.5-22 #1 Wed Jun 2 09:02:27 EDT 1999 i586 unknown"${ac_eD}
+${ac_dA}UNAME_VALUE${ac_dB}UNAME_VALUE${ac_dC}"Linux yggdrasil.megami.net 2.0.36 #1 Tue Oct 13 22:17:11 EDT 1998 i686 unknown"${ac_dD}
+${ac_uA}UNAME_VALUE${ac_uB}UNAME_VALUE${ac_uC}"Linux yggdrasil.megami.net 2.0.36 #1 Tue Oct 13 22:17:11 EDT 1998 i686 unknown"${ac_uD}
+${ac_eA}UNAME_VALUE${ac_eB}UNAME_VALUE${ac_eC}"Linux yggdrasil.megami.net 2.0.36 #1 Tue Oct 13 22:17:11 EDT 1998 i686 unknown"${ac_eD}
 s%^[ 	]*#[ 	]*undef[ 	][ 	]*[a-zA-Z_][a-zA-Z_0-9]*%/* & */%
 CEOF
   sed -f conftest.frag conftest.in > conftest.out
