@@ -15,6 +15,18 @@
 #  include <timebits.h>
 #endif
 
+#ifdef USE_SSL
+# if defined (HAVE_OPENSSL_SSL_H)
+#  include <openssl/ssl.h>
+# elif defined (HAVE_SSL_SSL_H)
+#  include <ssl/ssl.h>
+# elif defined (HAVE_SSL_H)
+#  include <ssl.h>
+# else
+#  error "USE_SSL defined but ssh.h not found. Make sure you used the --with-ssl configure option."
+# endif
+#endif
+
 #ifdef SQL_SUPPORT
 #include <mysql/mysql.h>
 #include <mysql/mysql_version.h>
@@ -500,7 +512,7 @@ struct stack_addr {                 /* for the system callstack                 
     struct inst *offset;            /* the address of the call                      */
 };
 
-struct muf_socket {                 /* struct for MUF socket data                   */
+struct muf_socket {                  /* struct for MUF socket data                   */
     int socknum;                     /* The descriptor number for the socket         */
     bool connected;                  /* Set to 1 if ever connected                   */
     bool listening;                  /* Set to 1 if successfully opened listening    */
@@ -520,6 +532,9 @@ struct muf_socket {                 /* struct for MUF socket data               
     bool usesmartqueue;              /* makes the socket completely telnet savy      */
     signed char is_player;           /* means to not close the socket when clearing  */
     bool readWaiting;                /* to support socket events                     */
+#ifdef SSL_SOCKETS
+    SSL *ssl_session;                /* SSL session data                             */
+#endif
 };
 
 struct muf_socket_queue {           /* struct for socket events queue linked-list   */

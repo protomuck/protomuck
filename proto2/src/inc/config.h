@@ -55,7 +55,7 @@
  * configure option, and will soon be removed from this file.
 */
 
-/* #undef USE_SSL */
+/* #define USE_SSL */
 
 /* Alynna - Define this to have support for the @/ignore prop, a reflist
    on a player which will drop notifies from the players in the prop to
@@ -113,7 +113,7 @@
  *
  * See http://www.protomuck.org/ for an example of this. :)
  */
-#undef PROTO_AS_ROOT
+#define PROTO_AS_ROOT
 
 /* Define MUF_SOCKETS to include the MUF socket prims.
  * MUF socket support is necessary for any MUF programs
@@ -125,6 +125,7 @@
  */
 
 #define MUF_SOCKETS
+#define SSL_SOCKETS
 
 /* Define MUF_EDIT_PRIMS to compile in a set of prims that have
  * the ability to edit MUF code or the MUF macros. This can be
@@ -175,7 +176,7 @@
 
 /* Use to compress string data (recomended)
  */
-#define COMPRESS
+#undef COMPRESS
 
 /* To use a simple disk basing scheme where properties aren't loaded
  * from the input file until they are needed, define this. 
