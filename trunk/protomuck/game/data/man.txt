@@ -145,18 +145,18 @@ See: PRIMS6
 PRIMS6|PRIM6
 
 Array Prims:
-  ARRAY_MAKE         ARRAY_MAKE_DICT      }DICT              }ARRAY
-  ARRAY_EXPLODE      ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
-  ARRAY_FIRST        ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
-  ARRAY_GETITEM      ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_INSERTITEM
-  ARRAY_GETRANGE     ARRAY_SETRANGE       ARRAY_INSERTRANGE  
-  ARRAY_DELITEM      ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
-  ARRAY_NINTERSECT   ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
-  ARRAY_NOTIFY       ARRAY_REVERSE        ARRAY?             DICTIONARY?
-  ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS     ARRAY_PUT_PROPVALS 
-  ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST     ARRAY_INSERTITEM
-  ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST      ARRAY_FINDVAL
-  DESCR_ARRAY          ONLINE_ARRAY           ARRAY_EXCLUDEVAL
+  ARRAY_MAKE           ARRAY_MAKE_DICT      }DICT              }ARRAY
+  ARRAY_EXPLODE        ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
+  ARRAY_FIRST          ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
+  ARRAY_GETITEM        ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_SORT
+  ARRAY_GETRANGE       ARRAY_SETRANGE       ARRAY_INSERTRANGE  ARRAY?
+  ARRAY_DELITEM        ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
+  ARRAY_NINTERSECT     ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
+  ARRAY_NOTIFY         ARRAY_REVERSE        DESCR_ARRAY        DICTIONARY?
+  ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS 
+  ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
+  ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
+  ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR
@@ -5156,18 +5156,18 @@ See: ARRAYS2
 ARRAYS2|ARRAY2
 
 The following ARRAY prims are available:
-ARRAY_MAKE         ARRAY_MAKE_DICT      }DICT              }ARRAY
-ARRAY_EXPLODE      ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
-ARRAY_FIRST        ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
-ARRAY_GETITEM      ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_INSERTITEM
-ARRAY_GETRANGE     ARRAY_SETRANGE       ARRAY_INSERTRANGE  
-ARRAY_DELITEM      ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
-ARRAY_NINTERSECT   ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
-ARRAY_NOTIFY       ARRAY_REVERSE        ARRAY?             DICTIONARY?
-ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS     ARRAY_PUT_PROPVALS 
-ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST     ARRAY_FINDVAL
-ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST      ARRAY_EXCLUDEVAL
-DESCR_ARRAY          ONLINE_ARRAY
+ARRAY_MAKE           ARRAY_MAKE_DICT      }DICT              }ARRAY
+ARRAY_EXPLODE        ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
+ARRAY_FIRST          ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
+ARRAY_GETITEM        ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_SORT
+ARRAY_GETRANGE       ARRAY_SETRANGE       ARRAY_INSERTRANGE  ARRAY?
+ARRAY_DELITEM        ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
+ARRAY_NINTERSECT     ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
+ARRAY_NOTIFY         ARRAY_REVERSE        DESCR_ARRAY        DICTIONARY?
+ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS 
+ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
+ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
+ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
 
 See: Individual entries for more information.
 ~~~~~~
@@ -7260,3 +7260,27 @@ This prim can be used to determine if a program's call was due to
 indicates that the program's call was the result of a forcing.
 A return of 0 indicates the player called the program without
 being forced.
+~~~~
+ARRAY_SORT
+
+array_sort ( a1 i -- a2 )
+-------------------------
+Level: M1 Apprentice
+a1 = List style array.
+i  = integer representing sort type.
+a2 = Sorted array.
+
+This sorts all the items in the list array given, based on the given 
+sort type. This can sort strings, integers, floats, dbrefs, or mixes 
+of types.  Integers are sorted in with floats, but strings sort after 
+all numbers.  Dbrefs sort after the other number types, but before 
+string types.  Other stack item types will sort separately, but in an 
+undefined consistent order.  The valid sort types are 0 - 3, which have
+the following inserver muf macro $defines:
+
+    SORTTYPE_CASE_ASCEND     Case sensitive and ascending order.
+    SORTTYPE_NOCASE_ASCEND   Case insensitive and ascending order.
+    SORTTYPE_CASE_DESCEND    Case sensitive and descending order.
+    SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
+See: ARRAY PRIMS, SORT
+~~~~~
