@@ -343,7 +343,7 @@ mfn_ref(MFUNARGS)
     char *p;
 
     for (p = argv[0]; *p && isspace(*p); p++);
-    if (*p == '#' && number(p+1)) {
+    if (*p == NUMBER_TOKEN && number(p+1)) {
         obj = atoi(p+1);
     } else {
 	obj = mesg_dbref_local(descr, player, what, perms, argv[0]);
@@ -1409,7 +1409,7 @@ mfn_muf(MFUNARGS)
     ptr = get_mvar("how");
     strcpy(match_cmdname, ptr);
     strcat(match_cmdname, "(MPI)");
-    tmpfr = interp(descr, player, DBFETCH(player)->location, obj, perms, PREEMPT, STD_HARDUID);
+    tmpfr = interp(descr, player, DBFETCH(player)->location, obj, perms, PREEMPT, STD_HARDUID, 0);
     if (tmpfr) {
 	rv = interp_loop(player, obj, tmpfr, 1);
     }

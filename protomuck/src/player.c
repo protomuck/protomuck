@@ -26,7 +26,7 @@ connect_player(const char *name, const char *password)
 {
     dbref   player;
 
-    if (*name == '#' && number(name+1) && atoi(name+1)) {
+    if (*name == NUMBER_TOKEN && number(name+1) && atoi(name+1)) {
 	player = (dbref) atoi(name + 1);
 	if ((player < 0) || (player >= db_top) || (Typeof(player) != TYPE_PLAYER))
 	    player = NOTHING;

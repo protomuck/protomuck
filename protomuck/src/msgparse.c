@@ -460,6 +460,11 @@ struct mpivar {
 static struct mpivar varv[MPI_MAX_VARIABLES];
 int varc = 0;
 
+int check_mvar_overflow(int count)
+{
+    return (varc + count) > MPI_MAX_VARIABLES;
+}
+
 int
 new_mvar(const char *varname, char *buf)
 {
@@ -1091,8 +1096,10 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms, const char *in
 #endif                          /* COMPRESS */
 
        *outbuf = '\0';
-       if (new_mvar("how", howvar)) return outbuf;
-       strcpy(howvar, abuf);
+       if ((mesgtyp & MPI_NOHOW) == 0) {
+           if (new_mvar("how", howvar)) return outbuf;
+               strcpy(howvar, abuf);
+       }
 
        if (new_mvar("cmd", cmdvar)) return outbuf;
        strcpy(cmdvar, match_cmdname);

@@ -1154,7 +1154,93 @@ tilde_tct( const char *in, char out[BUFFER_LEN])
     return out;
 }
 
+int is_valid_pose_separator(char ch)
+{
+    return (ch == '\'') || (ch == ' ') || (ch == ',' ) || (ch == '-');
+}
 
+void
+prefix_message(char *Dest, const char *Src, const char *Prefix, 
+int BufferLength, int SuppressIfPresent)
+{
 
+    int PrefixLength = strlen(Prefix);
+    int CheckForHangingEnter = 0;
+  
+    while((BufferLength > PrefixLength) && (*Src != '\0')) {
+        if (*Src == '\r') {
+            Src++;
+            continue;
+        }
+        if (!SuppressIfPresent || strncmp(Src, Prefix, PrefixLength) ||
+             (!is_valid_pose_separator(Src[PrefixLength]) &&
+             (Src[PrefixLength] != '\r') && 
+             (Src[PrefixLength] != '\0') )) {
+            strcpy(Dest, Prefix);
+            
+            Dest += PrefixLength;
+            BufferLength -= PrefixLength;
 
+            if (BufferLength > 1) {
+                if (!is_valid_pose_separator(*Src)) {
+                    *Dest++ = ' ';
+                     BufferLength--;
+                }
+            }
+        }
+        while ((BufferLength > 1) && (*Src != '\0')) {
+            *Dest++ = *Src;
+            BufferLength--;
+        
+            if (*Src++ == '\r') {
+                CheckForHangingEnter = 1;
+                break;
+            }
+        }
+    }
+    if (CheckForHangingEnter && (Dest[-1] == '\r'))
+        Dest--;
+        
+    *Dest = '0';
+}
 
+int
+is_prop_prefix(const char *Property, const char *Prefix)
+{
+    while (*Property == PROPDIR_DELIMITER)
+        Property++;
+    
+    while (*Prefix == PROPDIR_DELIMITER)
+        Prefix++;
+
+    while (*Prefix) {
+        if (*Property == '\0')
+            return 0;
+        if (*Property++ != *Prefix++)
+            return 0;
+    }
+
+    return (*Property == '\0') || (*Property == PROPDIR_DELIMITER);
+}
+
+int 
+has_suffix(const char* text, const char *suffix)
+{
+    int tlen = text ? strlen(text) : 0;
+    int slen = suffix ? strlen(suffix) : 0;
+
+    if (!tlen || !slen || (tlen < slen))
+        return 0;
+
+    return !string_compare(text + tlen - slen, suffix);
+}
+
+int
+has_suffix_char(const char *text, char suffix)
+{
+    int tlen = text ? strlen(text) : 0;
+
+    if (tlen < 1 )
+        return 0;
+    return text[tlen - 1] == suffix;
+}

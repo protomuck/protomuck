@@ -90,6 +90,7 @@ extern int tp_playermax_limit;
 extern int tp_dump_copies;
 extern int tp_min_progbreak_lev;
 extern int tp_mcp_muf_mlev;
+extern int tp_max_wiz_preempt_count;
 extern int tp_mysql_result_limit;
 
 /* dbrefs */

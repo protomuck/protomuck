@@ -105,10 +105,8 @@ exec_or_notify(int descr, dbref player, dbref thing,
 	    p = do_parse_mesg(descr,player,thing,p,whatcalled,buf,MPI_ISPRIVATE);
 	    strcpy(match_args, p);
 	    strcpy(match_cmdname, whatcalled);
-/*	    (void) interp(descr, player, DBFETCH(player)->location, i, thing,
-			  PREEMPT, STD_HARDUID, 0); */
 	    tmpfr = interp(descr, player, DBFETCH(player)->location, i, thing,
-		   PREEMPT, STD_HARDUID);
+		   PREEMPT, STD_HARDUID, 0);
 	    if (tmpfr) {
 		interp_loop(player, i, tmpfr, 0);
 	    }
@@ -173,10 +171,8 @@ exec_or_html_notify(int descr, dbref player, dbref thing,
 	    p = do_parse_mesg(descr,player,thing,p,whatcalled,buf,MPI_ISPRIVATE);
 	    strcpy(match_args, p);
 	    strcpy(match_cmdname, whatcalled);
-/*	    (void) interp(descr, player, DBFETCH(player)->location, i, thing,
-			  PREEMPT, STD_HARDUID, 0); */
 	    tmpfr = interp(descr, player, DBFETCH(player)->location, i, thing,
-		   PREEMPT, STD_HARDUID);
+		   PREEMPT, STD_HARDUID, 0);
 	    if (tmpfr) {
 		interp_loop(player, i, tmpfr, 0);
 	    }

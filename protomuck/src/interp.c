@@ -60,6 +60,7 @@ void    (*prim_func[]) (PRIM_PROTOTYPE) =
     PRIMS_STACK_FUNCS,
     PRIMS_STRINGS_FUNCS,
     PRIMS_FLOAT_FUNCS,
+    PRIMS_REGEX_FUNCS,
     PRIMS_ERROR_FUNCS,
 #ifdef FILE_PRIMS
     PRIMS_FILE_FUNCS,
@@ -479,10 +480,12 @@ purge_try_pool(void)
 }
 
 
-
+/* the forced_pid argument assigns the frame a PID if passed,
+ * otherwise the frame gets its own from top_pid like normal
+ */
 struct frame*
 interp(int descr, dbref player, dbref location, dbref program,
-       dbref source, int nosleeps, int whichperms)
+       dbref source, int nosleeps, int whichperms, int forced_pid)
 {
     struct frame *fr;
     int     i;
@@ -501,7 +504,7 @@ interp(int descr, dbref player, dbref location, dbref program,
 	fr = (struct frame *) malloc(sizeof(struct frame));
     }
     fr->next = NULL;
-    fr->pid = top_pid++;
+    fr->pid = forced_pid ? forced_pid : top_pid++;
     fr->descr = descr;
     fr->multitask = nosleeps;
     fr->perms = whichperms;
@@ -1162,7 +1165,12 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
                     abort_loop("Program specific instruction limit exceeded.", NULL, NULL); 
 	if ((fr->multitask == PREEMPT) || (FLAGS(program) & BUILDER)) {
 	    if (mlev >= LMAGE) {
+                if (tp_max_wiz_preempt_count) {
+                    if (instr_count >= tp_max_wiz_preempt_count)
+                        abort_loop_hard("Maximum preempt instruction count reached.", NULL, NULL);
+                } else {
 		instr_count = 0;/* if program is wizbit, then clear count */
+                }
 	    } else {
 		/* else make sure that the program doesn't run too long */
 		if (instr_count >= tp_max_instr_count)

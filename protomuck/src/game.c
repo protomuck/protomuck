@@ -544,12 +544,14 @@ do_restrict(dbref player, const char *arg)
 
     if (!strcmp(arg, "on")) {
 	wizonly_mode = 1;
-	notify(player, "Login access is now restricted to wizards only.");
+	anotify(player, 
+            CSUCC "Login access is now restricted to wizards only.");
     } else if (!strcmp(arg, "off")) {
 	wizonly_mode = 0;
-	notify(player, "Login access is now unrestricted.");
+	anotify(player, CSUCC "Login access is now unrestricted.");
     } else {
-	notify(player, "Argument must be 'on' or 'off'.");
+	anotify_fmt(player, CINFO "Restricted mode is: %s", 
+            wizonly_mode ? "on" : "off");
     }
 }
 
@@ -761,8 +763,14 @@ process_command(int descr, dbref player, char *command)
 					break;
 				    case 'o':
 				    case 'O':
-					Matched("@chown");
-					do_chown(descr, player, arg1, arg2);
+                                        if (strlen(command) < 7) {
+                                            Matched("@chown")
+					    do_chown(descr, player, arg1, arg2);
+                                        } else {
+                                            Matched("@chown_lock");
+                                            do_chlock(descr, player, arg1, 
+                                                      arg2);
+                                        }
 					break;
 				    default:
 					goto bad;
@@ -906,8 +914,13 @@ process_command(int descr, dbref player, char *command)
 				break;
 			    case 'o':
 			    case 'O':
-				Matched("@force");
-				do_force(descr, player, arg1, arg2);
+                                if (strlen(command) < 7) {
+				    Matched("@force");
+				    do_force(descr, player, arg1, arg2);
+                                } else {
+                                    Matched("@force_lock");
+                                    do_flock(descr, player, arg1, arg2);
+                                }
 				break;
 			    case 'r':
 			    case 'R':
@@ -1131,6 +1144,11 @@ process_command(int descr, dbref player, char *command)
 				Matched("@recycle");
 				do_recycle(descr, player, arg1);
 				break;
+                            case 'l':
+                            case 'L':
+                                Matched("@relink");
+                                do_relink(descr, player, arg1, arg2);
+                                break;
 			    case 's':
 			    case 'S':
 				if (!string_compare(command, "@restart")) {
@@ -1651,8 +1669,8 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
       }
       else {
          struct frame *tmpfr;
-         tmpfr = interp(descr, player, DBFETCH(player)->location, progRef, where, FOREGROUND, 
-                        STD_HARDUID);
+         tmpfr = interp(descr, player, DBFETCH(player)->location, progRef, 
+                        where, FOREGROUND, STD_HARDUID, 0);
          if (tmpfr) {
             interp_loop(player, progRef, tmpfr, 0);
          }

@@ -393,12 +393,17 @@ prim_program_insertlines(PRIM_PROTOTYPE)
             curr = new_line; /* move curr to insert after it next */
         } while(array_next(lines, &temp1));
     }
+    log_status("PROGRAM EDITED: %s by %s(%d)\n", unparse_object(player, 
+        oper1->data.objref), NAME(player), player);
+    if (tp_log_programs)
+        log_program_text(DBFETCH(theprog)->sp.program.first, player, 
+                         oper1->data.objref);
     endline = DBFETCH(theprog)->sp.program.curr_line;
     CLEAR(oper3);
     write_program(DBFETCH(theprog)->sp.program.first, theprog);
     free_prog_text(DBFETCH(theprog)->sp.program.first);
     DBFETCH(theprog)->sp.program.first = NULL;
-    
+    DBDIRTY(program); 
     PushInt(endline);    
 }
 

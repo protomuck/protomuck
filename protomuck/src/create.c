@@ -206,16 +206,33 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
  */
 
 int 
-link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_list)
+link_exit(int descr, dbref player, dbref exit, char *dest_name, 
+dbref * dest_list)
+{
+    return _link_exit(descr, player, exit, dest_name, dest_list, 0);
+}
+
+int 
+link_exit_dry(int descr, dbref player, dbref exit, char *dest_name, 
+dbref *dest_list)
+{
+    return _link_exit(descr, player, exit, dest_name, dest_list, 1);
+}
+
+
+
+
+_link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref *dest_list, int dryrun)
 {
     char   *p, *q;
     int     prdest;
     dbref   dest;
-    int     ndest;
+    int     ndest, error;
     char    buf[BUFFER_LEN], qbuf[BUFFER_LEN];
 
     prdest = 0;
     ndest = 0;
+    error = 0;
 
     while (*dest_name) {
 	while (isspace(*dest_name))
@@ -238,6 +255,8 @@ link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_lis
 		if (prdest) {
 		    sprintf(buf, CFAIL "One non-thing link allowed. Destination %s ignored.", unparse_object(player, dest));
 		    anotify_nolisten2(player, buf);
+                    if (dryrun)
+                        error = 1;
 		    continue;
 		}
 		dest_list[ndest++] = dest;
@@ -251,6 +270,8 @@ link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_lis
 		    sprintf(buf, CFAIL "Destination %s would create a loop, ignored.",
 			    unparse_object(player, dest));
 		    anotify_nolisten2(player, buf);
+                    if (dryrun)
+                        error = 1;
 		    continue;
 		}
 		dest_list[ndest++] = dest;
@@ -259,20 +280,28 @@ link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_lis
 		anotify_nolisten2(player, CFAIL "Weird object type.");
 		log_status("*BUG: weird object: Typeof(%d) = %d\n",
 			   dest, Typeof(dest));
+                if (dryrun)
+                    error = 1;
 		break;
 	}
-	if (dest == HOME) {
-	    anotify_nolisten2(player, CSUCC "Linked to HOME.");
-	} else {
-	    sprintf(buf, CSUCC "%s linked to %s.", 
-                  NAME(exit), unparse_object(player, dest));
-	    anotify_nolisten2(player, buf);
-	}
+        if (!dryrun) {
+	    if (dest == HOME) {
+	        anotify_nolisten2(player, CSUCC "Linked to HOME.");
+	    } else {
+	        sprintf(buf, CSUCC "%s linked to %s.", 
+                      NAME(exit), unparse_object(player, dest));
+	        anotify_nolisten2(player, buf);
+	    }
+        }
 	if (ndest >= MAX_LINKS) {
 	    anotify_nolisten2(player, CSUCC "Too many destinations, extra ignored.");
+            if (dryrun)
+                error = 1;
 	    break;
 	}
     }
+    if (dryrun && error)
+        return 0;
     return ndest;
 }
 

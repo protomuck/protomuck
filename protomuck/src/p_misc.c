@@ -168,7 +168,6 @@ prim_queue(PRIM_PROTOTYPE)
 		    NOTHING, oper2->data.objref, DoNullInd(oper1->data.string),
 		     "Queued Event.", 0);
 
-    result++; /* cheap hack to fix it to be the correct PID */
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
