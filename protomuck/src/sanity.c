@@ -1404,7 +1404,7 @@ void hack_it_up(void)
     do
     {
 	printf("\nCommand: (? for help)\n");
-	gets(cbuf);
+	fgets(cbuf, sizeof(cbuf), stdin);
 
 	switch (tolower(cbuf[0]))
 	{
@@ -1488,4 +1488,5 @@ san_main(void)
     
     printf("Exiting sanity editor...\n\n");
 }
+
 

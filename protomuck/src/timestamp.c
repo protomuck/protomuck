@@ -7,7 +7,7 @@
 void 
 ts_newobject(struct object * thing)
 {
-    time_t now = time(NULL);
+    time_t now = current_systime;
 
     thing->ts.created = now;
     thing->ts.modified = now;
@@ -20,7 +20,7 @@ ts_useobject(dbref thing)
 {
     if (thing == NOTHING)
 	return;
-    DBFETCH(thing)->ts.lastused = time(NULL);
+    DBFETCH(thing)->ts.lastused = current_systime;
     DBFETCH(thing)->ts.usecount++;
     DBDIRTY(thing);
     if (Typeof(thing) == TYPE_ROOM)
@@ -32,7 +32,7 @@ ts_lastuseobject(dbref thing)
 {
     if (thing == NOTHING)
 	return;
-    DBSTORE(thing, ts.lastused, time(NULL));
+    DBSTORE(thing, ts.lastused, current_systime);
     if (Typeof(thing) == TYPE_ROOM)
 	ts_lastuseobject(DBFETCH(thing)->location);
 }
@@ -40,5 +40,6 @@ ts_lastuseobject(dbref thing)
 void 
 ts_modifyobject(dbref thing)
 {
-    DBSTORE(thing, ts.modified, time(NULL));
+    DBSTORE(thing, ts.modified, current_systime);
 }
+

@@ -120,38 +120,38 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
           sprintf(buffer, "%#g", theinst->data.fnumber);
           break;
 	case PROG_ADD:
-	    if (theinst->data.addr->data->type == PROG_FUNCTION) {
-	        if (theinst->data.addr->progref != program)
-		    sprintf(buffer, "'#%d'%s", theinst->data.addr->progref,
-			    theinst->data.addr->data->data.string->data);
-		else
-		    sprintf(buffer, "'%s",
-			    theinst->data.addr->data->data.string->data);
-	    } else {
-		sprintf(buffer, "'line%d?", theinst->data.addr->data->line);
-	    }
+		if (theinst->data.addr->data->type == PROG_FUNCTION &&
+			theinst->data.addr->data->data.mufproc != NULL)
+		{
+			if (theinst->data.addr->progref != program)
+				sprintf(buffer, "'#%d'%s", theinst->data.addr->progref,
+						theinst->data.addr->data->data.mufproc->procname);
+			else
+				sprintf(buffer, "'%s", theinst->data.addr->data->data.mufproc->procname);
+		} else {
+			if (theinst->data.addr->progref != program)
+				sprintf(buffer, "'#%d'line%d?", theinst->data.addr->progref,
+						theinst->data.addr->data->line);
+			else
+				sprintf(buffer, "'line%d?", theinst->data.addr->data->line);
+		}
 	    break;
-	case PROG_DECLVAR:
-		sprintf(buffer, "DECLVAR(%dvars)", theinst->data.number);
-		break;
 	case PROG_IF:
 	    sprintf(buffer, "IF->line%d", theinst->data.call->line);
 	    break;
 	case PROG_EXEC:
-	    if (theinst->data.call->type == PROG_FUNCTION) {
-		sprintf(buffer, "EXEC->%s",
-			theinst->data.call->data.string->data);
-	    } else {
-		sprintf(buffer, "EXEC->line%d", theinst->data.call->line);
-	    }
+		if (theinst->data.call->type == PROG_FUNCTION) {
+			sprintf(buffer, "EXEC->%s", theinst->data.call->data.mufproc->procname);
+		} else {
+			sprintf(buffer, "EXEC->line%d", theinst->data.call->line);
+		}
 	    break;
 	case PROG_JMP:
-	    if (theinst->data.call->type == PROG_FUNCTION) {
-		sprintf(buffer, "JMP->%s",
-			theinst->data.call->data.string->data);
-	    } else {
-		sprintf(buffer, "JMP->line%d", theinst->data.call->line);
-	    }
+		if (theinst->data.call->type == PROG_FUNCTION) {
+			sprintf(buffer, "JMP->%s", theinst->data.call->data.mufproc->procname);
+		} else {
+			sprintf(buffer, "JMP->line%d", theinst->data.call->line);
+		}
 	    break;
 	case PROG_OBJECT:
 	    sprintf(buffer, "#%d", theinst->data.objref);
@@ -162,6 +162,12 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
 	case PROG_SVAR:
 		sprintf(buffer, "SV%d", theinst->data.number);
 		break;
+	case PROG_SVAR_AT:
+		sprintf(buffer, "SV%d @", theinst->data.number);
+		break;
+	case PROG_SVAR_BANG:
+		sprintf(buffer, "SV%d !", theinst->data.number);
+		break;
 	case PROG_LVAR:
 	    sprintf(buffer, "LV%d", theinst->data.number);
 	    break;
@@ -169,8 +175,12 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
             sprintf(buffer, "(SOCKET)");
             break;
 	case PROG_FUNCTION:
-	    sprintf(buffer, "(%s)", theinst->data.string->data);
-	    break;
+		sprintf(buffer, "INIT FUNC: %s (%d arg%s)",
+				theinst->data.mufproc->procname,
+				theinst->data.mufproc->args,
+				theinst->data.mufproc->args == 1? "" : "s"
+				);
+		break;
 	case PROG_LOCK:
 	    if (theinst->data.lock == TRUE_BOOLEXP) {
 		strcpy(buffer, "[TRUE_BOOLEXP]");
@@ -213,6 +223,7 @@ debug_inst(struct inst * pc, struct inst * stack, char *buffer, int buflen, int 
     strcat(buffer, insttotext(pc, buf2, buflen, 30, program));
     return (buffer);
 }
+
 
 
 

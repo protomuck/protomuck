@@ -22,6 +22,7 @@ struct inst *oper1, *oper2, *oper3, *oper4;
 struct inst temp1, temp2, temp3;
 struct inst arrayvar;
 int result, tmp;
+float fresult;
 dbref ref;
 char buf[BUFFER_LEN];
 
@@ -89,77 +90,66 @@ prim_ldup(PRIM_PROTOTYPE)
 	}
 }
 
-
 void
 prim_at(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    temp1 = *(oper1 = POP());
-    if ((temp1.type != PROG_VAR) && (temp1.type != PROG_LVAR) && (oper1->type != PROG_SVAR))
-        abort_interp("Non-variable argument");
-    if (temp1.data.number >= MAX_VAR || temp1.data.number < 0)
-        abort_interp("Variable number out of range");
-/*    if (temp1.type == PROG_LVAR) {
-      copyinst(&(CurrVar[temp1.data.number]), &arg[(*top)++]);
-    } else {
-      copyinst(&(fr->variables[temp1.data.number]), &arg[(*top)++]);
-    } */
-    if (temp1.type == PROG_LVAR) {
-	/* LOCALVAR */
-	copyinst(&(CurrVar[temp1.data.number]), &arg[(*top)++]);
-    } else if (temp1.type == PROG_VAR) {
-	/* GLOBALVAR */
-	copyinst(&(fr->variables[temp1.data.number]), &arg[(*top)++]);
-    } else {
-	/* SCOPEDVAR */
-	struct inst *tmp;
+	CHECKOP(1);
+	temp1 = *(oper1 = POP());
+	if ((temp1.type != PROG_VAR) && (temp1.type != PROG_LVAR) && (temp1.type != PROG_SVAR))
+		abort_interp("Non-variable argument.");
+	if (temp1.data.number >= MAX_VAR || temp1.data.number < 0)
+		abort_interp("Variable number out of range.");
+	if (temp1.type == PROG_LVAR) {
+		/* LOCALVAR */
+		struct localvars *tmp = localvars_get(fr, program);
+		copyinst(&(tmp->lvars[temp1.data.number]), &arg[(*top)++]);
+	} else if (temp1.type == PROG_VAR) {
+		/* GLOBALVAR */
+		copyinst(&(fr->variables[temp1.data.number]), &arg[(*top)++]);
+	} else {
+		/* SCOPEDVAR */
+		struct inst *tmp;
 
-	tmp = scopedvar_get(fr, temp1.data.number);
-	if (!tmp)
-		abort_interp("Scoped variable number out of range.");
-	copyinst(tmp, &arg[(*top)++]);
-    }
-    CLEAR(&temp1);
+		tmp = scopedvar_get(fr, temp1.data.number);
+		if (!tmp)
+			abort_interp("Scoped variable number out of range.");
+		copyinst(tmp, &arg[(*top)++]);
+	}
+	CLEAR(&temp1);
 }
 
 void
 prim_bang(PRIM_PROTOTYPE)
 {
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if ((oper1->type != PROG_VAR) && (oper1->type != PROG_LVAR) && (oper1->type != PROG_SVAR))
-        abort_interp("Non-variable argument (2)");
-    if (oper1->data.number >= MAX_VAR || oper1->data.number < 0)
-        abort_interp("Variable number out of range. (2)");
-/*    if (oper1->type == PROG_LVAR) {
-      CLEAR(&(CurrVar[oper1->data.number]));
-      copyinst(oper2, &(CurrVar[oper1->data.number]));
-    } else {
-      CLEAR(&(fr->variables[oper1->data.number]));
-      copyinst(oper2, &(fr->variables[oper1->data.number]));
-    } */
-    if (oper1->type == PROG_LVAR) {
-	/* LOCALVAR */
-	CLEAR(&(CurrVar[oper1->data.number]));
-	copyinst(oper2, &(CurrVar[oper1->data.number]));
-    } else if (oper1->type == PROG_VAR) {
-	/* GLOBALVAR */
-	CLEAR(&(fr->variables[oper1->data.number]));
-	copyinst(oper2, &(fr->variables[oper1->data.number]));
-    } else {
-	/* SCOPEDVAR */
-	struct inst *tmp;
+	CHECKOP(2);
+	oper1 = POP();
+	oper2 = POP();
+	if ((oper1->type != PROG_VAR) && (oper1->type != PROG_LVAR) && (oper1->type != PROG_SVAR))
+		abort_interp("Non-variable argument (2)");
+	if (oper1->data.number >= MAX_VAR || oper1->data.number < 0)
+		abort_interp("Variable number out of range. (2)");
+	if (oper1->type == PROG_LVAR) {
+		/* LOCALVAR */
+		struct localvars *tmp = localvars_get(fr, program);
+		CLEAR(&(tmp->lvars[oper1->data.number]));
+		copyinst(oper2, &(tmp->lvars[oper1->data.number]));
+	} else if (oper1->type == PROG_VAR) {
+		/* GLOBALVAR */
+		CLEAR(&(fr->variables[oper1->data.number]));
+		copyinst(oper2, &(fr->variables[oper1->data.number]));
+	} else {
+		/* SCOPEDVAR */
+		struct inst *tmp;
 
-	tmp = scopedvar_get(fr, oper1->data.number);
-	if (!tmp)
-		abort_interp("Scoped variable number out of range.");
-	CLEAR(tmp);
-	copyinst(oper2, tmp);
-    }
-    CLEAR(oper1);
-    CLEAR(oper2);
-}  
+		tmp = scopedvar_get(fr, oper1->data.number);
+		if (!tmp)
+			abort_interp("Scoped variable number out of range.");
+		CLEAR(tmp);
+		copyinst(oper2, tmp);
+	}
+	CLEAR(oper1);
+	CLEAR(oper2);
+}
 
 void
 prim_var(PRIM_PROTOTYPE)
@@ -453,7 +443,7 @@ prim_version(PRIM_PROTOTYPE)
     char temp[256];
     CHECKOP(0);
     CHECKOFLOW(1);
-    sprintf(temp, "%s(%s)", NEONVER, VERSION);
+    sprintf(temp, "%s(ProtoMUCK%s)", VERSION, PROTOBASE);
     PushString(temp);
 }
 
@@ -885,6 +875,8 @@ prim_interp(PRIM_PROTOTYPE)
         abort_interp("Bad object. (2)");
     if (!permissions(mlev, ProgUID, oper2->data.objref))
 	abort_interp(tp_noperm_mesg);
+    if (fr->level > 8)
+        abort_interp("Interp call loops not allowed.");
     CHECKREMOTE(oper2->data.objref);
 
     strcpy(buf, match_args);
@@ -1129,5 +1121,4 @@ prim_forpop(PRIM_PROTOTYPE)
 	fr->fors.top--;
 	fr->fors.st = pop_for(fr->fors.st);
 }
-
 

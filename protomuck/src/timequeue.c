@@ -470,12 +470,12 @@ next_timequeue_event()
     struct frame *tmpfr;
     dbref   tmpcp;
     int     tmpbl, tmpfg;
-    timequeue ptr, lastevent;
+    timequeue ptr, lastevent, event;
     int     maxruns = 0;
     time_t  rtime = time((time_t *) NULL);
 
     lastevent = tqhead;
-    while ((lastevent) && (rtime >= lastevent->when) && (maxruns < 10)) {
+    while ((lastevent) && (rtime >= lastevent->when) && (maxruns < 30)) {
 	lastevent = lastevent->next;
 	maxruns++;
     }
@@ -484,77 +484,78 @@ next_timequeue_event()
 	if (tqhead->typ == TQ_MUF_TYP && tqhead->subtyp == TQ_MUF_READ) {
 	    break;
 	}
-	tqhead->eventnum = 0;
-	if (tqhead->typ == TQ_MPI_TYP) {
+      event = tqhead;
+      tqhead = tqhead->next;
+
+	event->eventnum = 0;
+	if (event->typ == TQ_MPI_TYP) {
 	    char cbuf[BUFFER_LEN];
 	    int ival;
 
-	    strcpy(match_args, tqhead->str3? tqhead->str3 : "");
-	    strcpy(match_cmdname, tqhead->command? tqhead->command : "");
-	    ival = (tqhead->subtyp & TQ_MPI_OMESG)? MPI_ISPUBLIC : MPI_ISPRIVATE;
-	    if (tqhead->subtyp & TQ_MPI_LISTEN) {
+	    strcpy(match_args, event->str3? event->str3 : "");
+	    strcpy(match_cmdname, event->command? event->command : "");
+	    ival = (event->subtyp & TQ_MPI_OMESG)? MPI_ISPUBLIC : MPI_ISPRIVATE;
+	    if (event->subtyp & TQ_MPI_LISTEN) {
 		ival |= MPI_ISLISTENER;
-		do_parse_mesg(tqhead->descr, tqhead->uid, tqhead->trig, tqhead->called_data,
+		do_parse_mesg(event->descr, event->uid, event->trig, event->called_data,
 			      "(MPIlisten)", cbuf, ival);
-	    } else if ((tqhead->subtyp & TQ_MPI_SUBMASK) == TQ_MPI_DELAY) {
-		do_parse_mesg(tqhead->descr, tqhead->uid, tqhead->trig, tqhead->called_data,
+	    } else if ((event->subtyp & TQ_MPI_SUBMASK) == TQ_MPI_DELAY) {
+		do_parse_mesg(event->descr, event->uid, event->trig, event->called_data,
 			      "(MPIdelay)", cbuf, ival);
 	    } else {
-		do_parse_mesg(tqhead->descr, tqhead->uid, tqhead->trig, tqhead->called_data,
+		do_parse_mesg(event->descr, event->uid, event->trig, event->called_data,
 			      "(MPIqueue)", cbuf, ival);
 	    }
 	    if (*cbuf) {
-		if (!(tqhead->subtyp & TQ_MPI_OMESG)) {
-		    notify_nolisten(tqhead->uid, cbuf, 1);
+		if (!(event->subtyp & TQ_MPI_OMESG)) {
+		    notify_nolisten(event->uid, cbuf, 1);
 		} else {
 		    char bbuf[BUFFER_LEN];
 		    dbref plyr;
 
 		    sprintf(bbuf, ">> %.4000s %.*s",
-			    NAME(tqhead->uid),
-			    (int)(4000 - strlen(NAME(tqhead->uid))),
-			    pronoun_substitute(tqhead->descr, tqhead->uid, cbuf));
-		    plyr = DBFETCH(tqhead->loc)->contents;
+			    NAME(event->uid),
+			    (int)(4000 - strlen(NAME(event->uid))),
+			    pronoun_substitute(tqhead->descr, event->uid, cbuf));
+		    plyr = DBFETCH(event->loc)->contents;
 		    for (;plyr != NOTHING; plyr = DBFETCH(plyr)->next) {
-			if (Typeof(plyr)==TYPE_PLAYER && plyr!=tqhead->uid)
+			if (Typeof(plyr)==TYPE_PLAYER && plyr!=event->uid)
 			    notify_nolisten(plyr, bbuf, 0);
 		    }
 		}
 	    }
-	} else if (tqhead->typ == TQ_MUF_TYP) {
-	    if (Typeof(tqhead->called_prog) == TYPE_PROGRAM) {
-		if (tqhead->subtyp == TQ_MUF_DELAY) {
-		    tmpcp = DBFETCH(tqhead->uid)->sp.player.curr_prog;
-		    tmpbl = DBFETCH(tqhead->uid)->sp.player.block;
-		    tmpfg = (tqhead->fr->multitask != BACKGROUND);
-		    interp_loop(tqhead->uid,tqhead->called_prog,tqhead->fr,0);
+	} else if (event->typ == TQ_MUF_TYP) {
+	    if (Typeof(event->called_prog) == TYPE_PROGRAM) {
+		if (event->subtyp == TQ_MUF_DELAY) {
+		    tmpcp = DBFETCH(event->uid)->sp.player.curr_prog;
+		    tmpbl = DBFETCH(event->uid)->sp.player.block;
+		    tmpfg = (event->fr->multitask != BACKGROUND);
+		    interp_loop(event->uid,event->called_prog,event->fr,0);
 		    if (!tmpfg) {
-			DBFETCH(tqhead->uid)->sp.player.block = tmpbl;
+			DBFETCH(event->uid)->sp.player.block = tmpbl;
 		    }
-		} else if (tqhead->subtyp == TQ_MUF_TIMER) {
+		} else if (event->subtyp == TQ_MUF_TIMER) {
 		    struct inst temp;
 
 		    temp.type = PROG_INTEGER;
 		    temp.data.number = tqhead->when;
 		    tqhead->fr->timercount--;
-		    muf_event_add(tqhead->fr, tqhead->called_data, &temp);
-		} else if (tqhead->subtyp == TQ_MUF_TREAD) {
-		    handle_read_event(tqhead->descr, tqhead->uid, NULL);
+		    muf_event_add(event->fr, event->called_data, &temp);
+		} else if (event->subtyp == TQ_MUF_TREAD) {
+		    handle_read_event(event->descr, event->uid, NULL);
 		} else {
-		    strcpy(match_args, tqhead->called_data? tqhead->called_data : "");
-		    strcpy(match_cmdname, tqhead->command? tqhead->command : "");
-                    tmpfr = interp(tqhead->descr, tqhead->uid, tqhead->loc, tqhead->called_prog,
-                                           tqhead->trig, BACKGROUND, STD_HARDUID);
+		    strcpy(match_args, event->called_data? event->called_data : "");
+		    strcpy(match_cmdname, event->command? event->command : "");
+                    tmpfr = interp(event->descr, event->uid, event->loc, event->called_prog,
+                                           event->trig, BACKGROUND, STD_HARDUID);
 		    if (tmpfr) {
-                        interp_loop(tqhead->uid, tqhead->called_prog, tmpfr, 0);
+                        interp_loop(event->uid, event->called_prog, tmpfr, 0);
 		    }
 		}
 	    }
 	}
-	ptr = tqhead;
-	tqhead = tqhead->next;
-	ptr->fr = NULL;
-	free_timenode(ptr);
+	event->fr = NULL;
+	free_timenode(event);
 	process_count--;
     }
 }
@@ -635,52 +636,69 @@ list_events(dbref player)
     int     count = 0;
     timequeue ptr = tqhead;
     time_t  rtime = time((time_t *) NULL);
+    time_t  etime;
+    double  pcnt;
 
-    anotify_nolisten(player, CINFO "     PID Next  Run KInst Prog#   Player", 1);
+    anotify_nolisten(player, CINFO "     PID Next  Run KInst %CPU Prog#   Player", 1);
 
     while (ptr) {
 	strcpy(buf2, ((ptr->when - rtime) > 0) ?
 	       time_format_2((time_t) (ptr->when - rtime)) : "Due");
+	if (ptr->fr) {
+	    etime = rtime - ptr->fr->started;
+	    if (etime > 0) {
+		pcnt = ptr->fr->totaltime.tv_sec;
+		pcnt += ptr->fr->totaltime.tv_usec / 1000000;
+		pcnt = pcnt * 100 / etime;
+		if (pcnt > 100.0) {
+		    pcnt = 100.0;
+		}
+	    } else {
+		pcnt = 0.0;
+	    }
+	}
 	if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_DELAY) {
-	    (void) sprintf(buf, "%8d %4s %4s %5d #%-6d %-16s %.512s",
+	    (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
 			   ptr->eventnum, buf2,
-			   time_format_2((time_t) (rtime - ptr->fr->started)),
-			   (ptr->fr->instcnt / 1000),
+			   time_format_2((long) etime),
+			   (ptr->fr->instcnt / 1000), pcnt,
 			   ptr->called_prog, NAME(ptr->uid),
 			   ptr->called_data);
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_READ) {
-	    (void) sprintf(buf, "%8d %4s %4s %5d #%-6d %-16s %.512s",
+	    (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
 			   ptr->eventnum, "--",
-			   time_format_2((time_t) (rtime - ptr->fr->started)),
-			   (ptr->fr->instcnt / 1000),
+			   time_format_2((long) etime),
+			   (ptr->fr->instcnt / 1000), pcnt,
 			   ptr->called_prog, NAME(ptr->uid),
 			   ptr->called_data);
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TIMER) {
 	    (void) sprintf(buf, "(%6d) %4s %4s %5d #%-6d %-16s %.512s",
 			   ptr->eventnum, buf2,
-			   time_format_2((time_t) (rtime - ptr->fr->started)),
-			   (ptr->fr->instcnt / 1000),
+			   time_format_2((long) etime),
+			   (ptr->fr->instcnt / 1000), pcnt,
 			   ptr->called_prog, NAME(ptr->uid),
                      ptr->called_data);
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TREAD) {
 	    (void) sprintf(buf, "%8d %4s %4s %5d #%-6d %-16s %.512s",
 			   ptr->eventnum, buf2,
-			   time_format_2((time_t) (rtime - ptr->fr->started)),
-			   (ptr->fr->instcnt / 1000),
+			   time_format_2((long) etime),
+			   (ptr->fr->instcnt / 1000), pcnt,
 			   ptr->called_prog, NAME(ptr->uid),
                      ptr->called_data);
 	} else if (ptr->typ == TQ_MPI_TYP) {
-	    (void) sprintf(buf, "%8d %4s   --   MPI #%-6d %-16s \"%.512s\"",
+	    (void) sprintf(buf, "%8d %4s   --   MPI   -- #%-6d %-16s \"%.512s\"",
 			   ptr->eventnum, buf2, ptr->trig, NAME(ptr->uid),
 			   ptr->called_data);
 	} else {
-	    (void) sprintf(buf, "%8d %4s   0s     0 #%-6d %-16s \"%.512s\"",
+	    (void) sprintf(buf, "%8d %4s   0s     0   -- #%-6d %-16s \"%.512s\"",
 			   ptr->eventnum, buf2, ptr->called_prog,
 			   NAME(ptr->uid), ptr->called_data);
 	}
-	if (Mage(OWNER(player)) || (OWNER(ptr->called_prog) == OWNER(player))
-                || (ptr->uid == player)) {
+	if (Mage(OWNER(player)) || ((ptr->called_prog != NOTHING) &&
+               (OWNER(ptr->called_prog) == OWNER(player))) || (ptr->uid == player))
 	    notify_nolisten(player, buf, 1);
+        else if (ptr->called_prog == NOTHING) {
+	    fprintf(stderr, "Strangeness alert!  @ps produces %s\n", buf);
         } else if (ptr->called_prog != NOTHING && OWNER(ptr->called_prog) == OWNER(player)) {
 	    notify_nolisten(player, buf, 1);
 	}
@@ -1205,6 +1223,7 @@ listenqueue(int descr, dbref player, dbref where, dbref trigger, dbref what, dbr
 	}
     }
 }
+
 
 
 

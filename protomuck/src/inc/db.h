@@ -5,7 +5,11 @@
 
 #include <stdio.h>
 #include <time.h>
-/* #include "array.h" */
+#include <sys/time.h>
+#ifdef HAVE_TIMEBITS_H
+#  define __need_timeval 1
+#  include <timebits.h>
+#endif
 
 /* max length of command argument to process_command */
 #define MAX_COMMAND_LEN 3072
@@ -17,10 +21,17 @@
 #define SMALL_NUM 1.0E-37
 #define NSMALL_NUM -1.0E-37
 
+extern time_t current_systime;
 extern char match_args[BUFFER_LEN];
 extern char match_cmdname[BUFFER_LEN];
 
 typedef int dbref;		/* offset into db */
+
+#define TIME_INFINITE ((sizeof(time_t) == 4)? 0xefffffff : 0xefffffffffffffff)
+
+#define DB_READLOCK(x)
+#define DB_WRITELOCK(x)
+#define DB_RELEASE(x)
 
 #ifdef GDBM_DATABASE
 #  define DBFETCH(x)  dbfetch(x)
@@ -158,12 +169,12 @@ typedef int dbref;		/* offset into db */
 
 #define F2GUEST		    0x1     /* Guest character */
 #define F2LOGWALL	          0x2     /* Wizard sees logs walled */
-#define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ /* Why can't we just make this automatic? */
+#define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ /* Why can't we just make this automatic somehow? */
 #define F2HIDDEN            0x8     /* The new HIDDEN flag */
-#define F2MOBILE	         0x10     /* Mobile object */ /* What use is this, really? */
+#define F2MOBILE	         0x10     /* Mobile object */ /* What use is this, really? -- Should be replaced! */
 #define F2PUEBLO           0x20     /* Player has Pueblo multimedia support */
 #define F2HTML             0x40     /* Player has at least BASIC HTML, maybe Pueblo */
-#define F2MCP              0x80     /* Program is a MUCK C Program. */ /* Should we keep MCP? */
+#define F2MCP              0x80     /* Program is a MUCK C Program. */ /* Being phased out. */
 #define F2PROTECT         0x100     /* The new PROTECT flag */
 #define F2PARENT          0x200     /* The new PARENT flag */
 #define F2COMMAND         0x400     /* For the new MUSH-style commands -- NO SUPPORT YET */
@@ -181,6 +192,8 @@ typedef int object_flag_type;
 
 #define MAN	(1)
 #define Man(x)   ((x) == MAN)
+#define GOD (1)
+#define God(x)   ((x) == GOD)
 
 #define LMAN	(9)
 #define LBOY      (8)
@@ -213,11 +226,13 @@ typedef int object_flag_type;
 #define TBoy(x)         (MLevel(x) >= LBOY)
 #define TArch(x)		(MLevel(x) >= LARCH)
 #define TWiz(x)		(MLevel(x) >= LWIZ)
+#define TWizard(x)      (MLevel(x) >= LWIZ)
 #define TMage(x)		(MLevel(x) >= LMAGE)
 
 #define Boy(x)          (QLevel(x) >= LBOY)
 #define Arch(x)		(QLevel(x) >= LARCH)
 #define Wiz(x)		(QLevel(x) >= LWIZ)
+#define Wizard(x)       (QLevel(x) >= LWIZ)
 #define Mage(x)		(QLevel(x) >= LMAGE)
 
 #define Mucker3(x) (MLevel(x) >= LM3)
@@ -289,8 +304,20 @@ struct line {
     struct line *next, *prev;	/* the next line and the previous line */
 };
 
+/* constants and defines for MUV data types */
+#define MUV_ARRAY_OFFSET		16
+#define MUV_ARRAY_MASK			(0xff << MUV_ARRAY_OFFSET)
+#define MUV_ARRAYOF(x)			(x + (1 << MUV_ARRAY_OFFSET))
+#define MUV_TYPEOF(x)			(x & ~MUV_ARRAY_MASK)
+#define MUV_ARRAYSETLEVEL(x,l)	((l << MUV_ARRAY_OFFSET) | MUF_TYPEOF(x))
+#define MUV_ARRAYGETLEVEL(x)	((x & MUV_ARRAY_MASK) >> MUV_ARRAY_OFFSET)
+
 /* stack and object declarations */
 /* Integer types go here */
+#define PROG_VARIES      255    /* MUV flag denoting variable number of args */
+#define PROG_VOID        254    /* MUV void return type */
+#define PROG_UNTYPED     253    /* MUV unknown var type */
+
 #define PROG_CLEARED     0
 #define PROG_PRIMITIVE   1	/* forth prims and hard-coded C routines */
 #define PROG_INTEGER     2	/* integer types */
@@ -307,11 +334,12 @@ struct line {
 #define PROG_IF          13	/* A low level IF statement */
 #define PROG_EXEC        14	/* EXECUTE shortcut */
 #define PROG_JMP         15	/* JMP shortcut */
-#define PROG_DECLVAR     16   /* DECLare scoped VARiables */
-#define PROG_ARRAY       17   /* Array @ = (r1)..(ri) (i) */
-#define PROG_DICTIONARY  18   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
-#define PROG_SOCKET      19   /* NeonMuck socket type */
-#define PROG_MARK        20   /* Stack markers -- not in yet */
+#define PROG_ARRAY       16   /* Array @ = (r1)..(ri) (i) */
+#define PROG_DICTIONARY  17   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
+#define PROG_SOCKET      18   /* NeonMuck socket type */
+#define PROG_MARK        19   /* Stack markers -- not in yet */
+#define PROG_SVAR_AT     20   /* @ shortcut for scoped vars */
+#define PROG_SVAR_BANG   21   /* ! shortcut for scoped vars */
 
 #define MAX_VAR        104	/* maximum number of variables including the
 				 * basic ME and LOC                */
@@ -336,6 +364,7 @@ struct stack_addr {             /* for the system calstack */
     struct inst *offset;        /* the address of the call */
 };
 
+struct stk_array_t;
 
 struct muf_socket {             /* placeholder so more data can be */
    int socknum;                 /* added at a later date  --Loki   */
@@ -344,7 +373,11 @@ struct muf_socket {             /* placeholder so more data can be */
    char lastchar;
 };
 
-struct stk_array_t;
+struct muf_proc_data {
+    char *procname;
+	int vars;
+	int args;
+};
 
 struct inst {			/* instruction */
     short   type;
@@ -355,10 +388,11 @@ struct inst {			/* instruction */
 	int     number;		  /* used for both primitives and integers */
       float   fnumber;          /* used for float storage */
 	dbref   objref;		  /* object reference */
+      struct stk_array_t *array;/* FB6 style array */
 	struct inst *call;	  /* use in IF and JMPs */
 	struct prog_addr *addr;   /* the result of 'funcname */
-      struct stk_array_t *array;/* FB6 style array */
       struct muf_socket *sock;  /* a neonmuck socket */
+	struct muf_proc_data *mufproc; /* Data specific to each procedure */
     }       data;
 };
 
@@ -389,9 +423,11 @@ struct callstack {
     dbref   st[STACK_SIZE];
 };
 
-struct varstack {
-    int     top;
-    vars   *st[STACK_SIZE];
+struct localvars {
+	struct localvars *next;
+	struct localvars **prev;
+	dbref prog;
+	vars lvars;
 };
 
 struct forstack {
@@ -446,7 +482,7 @@ struct frame {
     struct stack argument;          /* argument stack */
     struct callstack caller;        /* caller prog stack */
     struct forstack fors;           /* for loop stack */
-    struct varstack varset;         /* local variables */
+    struct localvars* lvars;        /* local variables */
     vars    variables;              /* global variables */
     struct inst *pc;                /* next executing instruction */
     int     writeonly;              /* This program should not do reads */
@@ -455,6 +491,7 @@ struct frame {
     int     level;                  /* prevent interp call loops */
     short   already_created;        /* this prog already created an object */
     short   been_background;        /* this prog has run in the background */
+    short   skip_declare;           /* tells interp to skip next scoped var decl */
     dbref   trig;                   /* triggering object */
     dbref   prog;                   /* program dbref */
     dbref   player;                 /* person who ran the program */
@@ -467,6 +504,8 @@ struct frame {
     struct scopedvar_t *svars;      /* Variables with function scoping. */
     struct mufevent *events;        /* MUF event list. */
     struct debuggerdata brkpt;      /* info the debugger needs */
+    struct timeval proftime;        /* profiling timing code */
+    struct timeval totaltime;       /* profiling timing code */
     struct dlogidlist *dlogids;     /* List of dlogids this frame uses. */
 	union {
 		struct {
@@ -512,6 +551,8 @@ union specific {      /* I've been railroaded! */
 	short   insert_mode;	/* in insert mode? */
 	short   block;
 	const char *password;
+        int*    descrs;
+        short   descr_count;
     }       player;
     struct {			/* PROGRAM-specific fields */
 	short   curr_line;	/* current-line */
@@ -523,6 +564,56 @@ union specific {      /* I've been railroaded! */
 	struct publics *pubs;	/* public subroutine addresses */
     }       program;
 };
+
+#define PROGRAM_SP(x)			(DBFETCH(x)->sp.program)
+
+
+#define PROGRAM_INSTANCES(x)		(PROGRAM_SP(x)->instances)
+#define PROGRAM_CURR_LINE(x)		(PROGRAM_SP(x)->curr_line)
+#define PROGRAM_SIZ(x)			(PROGRAM_SP(x)->siz)
+#define PROGRAM_CODE(x)			(PROGRAM_SP(x)->code)
+#define PROGRAM_START(x)		(PROGRAM_SP(x)->start)
+#define PROGRAM_FIRST(x)		(PROGRAM_SP(x)->first)
+#define PROGRAM_PUBS(x)			(PROGRAM_SP(x)->pubs)
+#define PROGRAM_MCPBINDS(x)		(PROGRAM_SP(x)->mcpbinds)
+
+#define PROGRAM_INC_INSTANCES(x)	(PROGRAM_SP(x)->instances++)
+#define PROGRAM_DEC_INSTANCES(x)	(PROGRAM_SP(x)->instances--)
+
+#define PROGRAM_SET_INSTANCES(x,y)	(PROGRAM_SP(x)->instances = y)
+#define PROGRAM_SET_CURR_LINE(x,y)	(PROGRAM_SP(x)->curr_line = y)
+#define PROGRAM_SET_SIZ(x,y)		(PROGRAM_SP(x)->siz = y)
+#define PROGRAM_SET_CODE(x,y)		(PROGRAM_SP(x)->code = y)
+#define PROGRAM_SET_START(x,y)		(PROGRAM_SP(x)->start = y)
+#define PROGRAM_SET_FIRST(x,y)		(PROGRAM_SP(x)->first = y)
+#define PROGRAM_SET_PUBS(x,y)		(PROGRAM_SP(x)->pubs = y)
+#define PROGRAM_SET_MCPBINDS(x,y)	(PROGRAM_SP(x)->mcpbinds = y)
+
+#define THING_SP(x)		(DBFETCH(x)->sp.thing)
+
+#define THING_HOME(x)		(THING_SP(x)->home)
+#define THING_VALUE(x)		(THING_SP(x)->pennies)
+
+#define THING_SET_HOME(x,y)	(THING_SP(x)->home = y)
+#define THING_SET_VALUE(x,y)	(THING_SP(x)->pennies = y)
+
+
+#define PLAYER_SP(x)		(DBFETCH(x)->sp.player)
+
+#define PLAYER_HOME(x)		(PLAYER_SP(x)->home)
+#define PLAYER_PENNIES(x)	(PLAYER_SP(x)->pennies)
+#define PLAYER_CURR_PROG(x)	(PLAYER_SP(x)->curr_prog)
+#define PLAYER_INSERT_MODE(x)	(PLAYER_SP(x)->insert_mode)
+#define PLAYER_BLOCK(x)		(PLAYER_SP(x)->block)
+#define PLAYER_PASSWORD(x)	(PLAYER_SP(x)->password)
+
+#define PLAYER_SET_HOME(x,y)		(PLAYER_SP(x)->home = y)
+#define PLAYER_SET_PENNIES(x,y)		(PLAYER_SP(x)->pennies = y)
+#define PLAYER_ADD_PENNIES(x,y)		(PLAYER_SP(x)->pennies += y)
+#define PLAYER_SET_CURR_PROG(x,y)	(PLAYER_SP(x)->curr_prog = y)
+#define PLAYER_SET_INSERT_MODE(x,y)	(PLAYER_SP(x)->insert_mode = y)
+#define PLAYER_SET_BLOCK(x,y)		(PLAYER_SP(x)->block = y)
+#define PLAYER_SET_PASSWORD(x,y)	(PLAYER_SP(x)->password = y)
 
 
 /* timestamps record */
@@ -557,6 +648,9 @@ struct object {
     object_flag_type flags, flag2;
     struct timestamps ts;
     union specific sp;
+    unsigned int     mpi_prof_sec;
+    unsigned int     mpi_prof_usec;
+    unsigned int     mpi_prof_use;
 };
 
 struct macrotable {
@@ -605,7 +699,7 @@ extern dbref db_write_deltas(FILE *f);
 
 extern void free_prog_text(struct line * l);
 
-extern int write_program(struct line * first, dbref i, dbref saver);
+extern void write_program(struct line * first, dbref i);
 
 extern void log_program_text(struct line * first, dbref player, dbref i);
 
@@ -684,6 +778,7 @@ extern void macroload();
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 

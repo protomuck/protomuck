@@ -23,6 +23,8 @@ extern void prim_descr_htmlp(PRIM_PROTOTYPE);
 extern void prim_descr_pueblop(PRIM_PROTOTYPE);
 extern void prim_welcome_user(PRIM_PROTOTYPE);
 extern void prim_descrp(PRIM_PROTOTYPE);
+extern void prim_motd_notify(PRIM_PROTOTYPE);
+extern void prim_descr_logout(PRIM_PROTOTYPE);
 
 #define PRIMS_CONNECTS_FUNCS prim_awakep, prim_online, prim_concount,      \
     prim_condbref, prim_conidle, prim_contime, prim_conhost, prim_conuser, \
@@ -30,7 +32,7 @@ extern void prim_descrp(PRIM_PROTOTYPE);
     prim_nextdescr, prim_descriptors, prim_descr_setuser,		         \
     prim_conipnum, prim_conport, prim_online_array, prim_descr_array,      \
     prim_descrflush, prim_descr, prim_descr_htmlp, prim_descr_pueblop,     \
-    prim_welcome_user, prim_descrp
+    prim_welcome_user, prim_descrp, prim_motd_notify, prim_descr_logout
 
 #define PRIMS_CONNECTS_NAMES "AWAKE?", "ONLINE", "CONCOUNT",  \
     "CONDBREF", "CONIDLE", "CONTIME", "CONHOST", "CONUSER",   \
@@ -38,8 +40,9 @@ extern void prim_descrp(PRIM_PROTOTYPE);
     "NEXTDESCR", "DESCRIPTORS", "DESCR_SETUSER",	        \
     "CONIPNUM", "CONPORT", "ONLINE_ARRAY", "DESCR_ARRAY",     \
     "DESCRFLUSH", "DESCR", "DESCR_HTML?", "DESCR_PUEBLO?",    \
-    "DESCR_WELCOME_USER", "DESCR?"
+    "DESCR_WELCOME_USER", "DESCR?", "MOTD_NOTIFY", "DESCR_LOGOUT"
 
-#define PRIMS_CONNECTS_CNT 25
+#define PRIMS_CONNECTS_CNT 27
+
 
 

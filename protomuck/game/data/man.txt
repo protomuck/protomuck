@@ -1,5 +1,5 @@
 ==================================================================
-                     ProtoMUCK 1.0 MUF Manual
+                     ProtoMUCK 1.01 MUF Manual
 
 Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
@@ -22,7 +22,7 @@ PRIM1|PRIMS1|PRIMS|PRIMITIVES
 Variable Prims:
   VAR     VARIABLE     VARIABLE?     LVAR     LOCALVAR
   @       !            ME            TRIGGER  COMMAND
-  DESCR
+  DESCR   VAR!
 
 Multitasking Prims:
   PREEMPT       FOREGROUND     BACKGROUND     MODE     SETMODE
@@ -97,6 +97,7 @@ Connection Prims:
   CONUSER    CONIPNUM   CONPORT      DESCRCON      NEXTDESCR 
   DESCRIPTORS      DESCR_SETUSER     DESCR        DESCRFLUSH
   DESCR_HTML?      DESCR_PUEBLO?     DESCR?       DESCR_WELCOME_USER
+  DESCR_LOGOUT
 
 Locks Management:
   SETLOCKSTR     GETLOCKSTR     LOCKED?     PARSELOCK
@@ -119,20 +120,21 @@ PRIMS5|PRIM5
 Data Base Prims:
   CONTENTS    EXITS       NEXT         NEXTOWNED      NEXTPLAYER
   SETNAME     SET         SETOWN       SETLINK        GETLINKS
-  MATCH       RMATCH      PART_PMATCH  PMATCH
-  NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM
-  GETLINK     LOCATION    OWNER        CONTROLS 
-  FLAG?       MLEVEL      DBCMP        CHECKPASSWORD 
-  NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS
+  MATCH       RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
+  NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
+  GETLINK     LOCATION    OWNER        CONTROLS       NEXT_FLAG 
+  FLAG?       MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
+  NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
   PENNIES     ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
   COPYOBJ     RECYCLE     MOVETO       STATS          DBTOP
   OK?         THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
-
+  NEXTPROGRAM NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
+  NEXTENTRANCE
 System Prims:
   SYSPARM     SETSYSPARM     LOGSTATUS     VERSION     FORCE
-
+  MOTD_NOTIFY
 Socket Prims:
-  SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV
+  SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK
 
 See: PRIMS6
 ~~~~~
@@ -199,6 +201,7 @@ SOCKETS            - Some notes about the socket support in ProtoMUCK.
 FILE PRIMS         - Some notes about the file prims.
 FLOAT PRIMS        - A note explaining float support in MUF.
 ARRAY PRIMS        - Some notes on using arrays with MUF. 
+FUNCTION HEADERS   - Notes about using function headers in MUF.
 MUF EVENTS         - Notes on how to use events in MUF.
 WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
 CREDITS            - Who to blame this mess on!
@@ -273,14 +276,16 @@ The following prims are used to work with the MUCK database:
 
 CONTENTS    EXITS       NEXT         NEXTOWNED      NEXTPLAYER
 SETNAME     SET         SETOWN       SETLINK        GETLINKS
-MATCH       RMATCH      PART_PMATCH  PMATCH
-NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM
-GETLINK     LOCATION    OWNER        CONTROLS 
-FLAG?       MLEVEL      DBCMP        CHECKPASSWORD 
-NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS
+MATCH       RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
+NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
+GETLINK     LOCATION    OWNER        CONTROLS       NEXT_FLAG 
+FLAG?       MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
+NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
 PENNIES     ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
 COPYOBJ     RECYCLE     MOVETO       STATS          DBTOP
 OK?         THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
+NEXTPROGRAM NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
+NEXTENTRANCE
 
 ~~~~
 STACK PRIMS|STACKPRIMS
@@ -348,7 +353,7 @@ The following prims are used to work with variables in MUF:
 
 VAR     VARIABLE     VARIABLE?     LVAR     LOCALVAR
 @       !            ME            TRIGGER  COMMAND
-DESCR
+DESCR   VAR!
 
 Some of the above are not true prims, in that they have no
 affect on the stack, but are classified as prims for reference
@@ -363,6 +368,7 @@ CONIDLE    CONDESCR   CONHOST      CONBOOT      CONNOTIFY
 CONUSER    CONIPNUM   CONPORT      DESCRCON      NEXTDESCR
 DESCRIPTORS      DESCR_SETUSER     DESCR        DESCRFLUSH
 DESCR_HTML?      DESCR_PUEBLO?     DESCR?       DESCR_WELCOME_USER
+DESCR_LOGOUT
 ~~~~~~
 LOCK PRIMS
 
@@ -378,6 +384,7 @@ SYSTEM PRIMS|SYSTEMPRIMS
 These prims are used to make changes in the MUCK system:
 
 SYSPARM     SETSYSPARM     LOGSTATUS     VERSION     FORCE
+MOTD_NOTIFY
 
 ~~~~~
 MULTITASKING PRIMS
@@ -3008,6 +3015,12 @@ descr_pueblo?       ( i -- i )
 descr_welcome_user  ( i --   )
 descr?              ( i -- i )
 event_send          ( i s ? -- )
+motd_notify         ( d -- )
+nextprogram         ( d -- d )
+nextexit            ( d -- d )
+nextroom            ( d -- d )
+nextthing           ( d -- d )
+nextentrance        ( d -- d )
 
 See: M3, MUCKER LEVELS, individual prim entries for more details
 ~~~~~
@@ -3022,6 +3035,11 @@ nextdescr           (i1 -- i2)
 fork                ( -- i)
 nextowned           ( d -- d' )
 notify_descriptor   ( i s -- )
+setpassword         ( d s1 s2 -- )
+next_flag           ( d s -- d )
+nextowned_flag      ( d s -- d )
+nextplayer_flag     ( d s -- d )
+nextthing_flag      ( d s -- d )
 
 See: W1, MUCKER LEVELS, individual prim entries for more details
 ~~~~
@@ -3058,8 +3076,12 @@ sockopen            ( s1 i -- socket s2 )
 socksend            ( socket s -- i ) 
 sockrecv            ( socket -- s )
 sockclose           ( socket -- i )
+nbsockopen          ( s1 i -- socket s2 )
+sockcheck           ( socket -- i )
 propqueue           ( d1 s1 d2 s2 -- )
 envpropqueue        ( d1 s1 d2 s2 -- )
+newpassword         ( d s -- )
+descr_logout        ( i -- )
 
 See: W3, MUCKER LEVELS, individual prim entries for details
 ~
@@ -3374,7 +3396,7 @@ Foxen     - A lot of the original work on the FB and FB6 code base.
 Whitefire - Some of the older MUF prims.
 Points    - Author of the float support for FB6.
 Loki      - Many bug fixes and new prims added in NeonMUCK
-Nodaitsu  - Contributed socket prims and file prims from MakoMUCK.
+Nodaitsu  - Contributed file prims from MakoMUCK.
 Van       - Author of several of the ProtoMUCK exclusive prims.
 Akari     - Author of some ProtoMUCK prims, debugger, tester.
 
@@ -4218,8 +4240,11 @@ is which while working on a program.
 When a program aborts or ends with any sockets still open, all open 
 sockets are closed, so there is not the problem of leaving open sockets
 like there was in NeonMUCK.
+SOCKOPEN is included strictly for backwards compatability, though now
+returns a non-blocking socket as well.
 
-See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV
+See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
+     SOCKET?
 ~
 SOCKOPEN
 
@@ -4236,8 +4261,9 @@ another site. If the host name is not recognized by DNS, the program
 will abort, otherwise will attempt to open a connection. If the 
 connection is successful, a socket variable and string containing
 "noerr" are returned to the stack. Any other result than "noerr" 
-should be treated as a failed connection, and end the attempt by 
-popping the socket variable returned as well.
+should be treated as a failed connection, and the socket return should
+be discarded. The code on this has been changed to create safer
+non-blocking sockets instead, and the timeout is 10 seconds.
 
 See: SOCKETS
 ~
@@ -4479,7 +4505,7 @@ $MPIHELP/         = data/mpihelp/
 $WELCOME/         = data/welcome/
 $PUBLIC_HTML/     = ../../public_html/
 $WWW/             = ../../www/
-
+$LOGS/            = logs/
 See: FILE PRIMS
 ~
 FWRITE
@@ -5798,7 +5824,7 @@ array_union      = 2 array_nunion
 array_intersect  = 2 array_nintersect
 
 See: ARRAY_NDIFF, ARRAY_NUNION, ARRAY_NINTERSECT, ARRAY PRIMS
-
+~~~~
 CLEAR
 
 clear ( -- )
@@ -6608,3 +6634,280 @@ s' = The same string, with all spaces cut down to just one.
 Strips out all the extra spaces from a string, both from the
 front, the tail, and between words. So the following string:
 "  This is    ProtoMUCK.  " would become "This is ProtoMUCK."
+~~~~
+SETPASSWORD
+
+setpassword( d s1 s2 -- )
+-------------------------
+Level: W1 Mage
+d  = Any valid player dbref.
+s1 = The player's old password.
+s2 = The player's new password.
+
+Given a player's dbref and their old password in s1, will change
+the player's password to s2. 
+~~~~
+NEWPASSWORD
+
+newpassword( d s -- )
+---------------------
+Level: W3 ArchWizard
+d = Any valid player dbref.
+s = That player's new password.
+
+Changes player d's password to the contents of string s. If player is
+a wizard, then the program must be running under W4 level in order to
+change their password.
+~~~~
+NEXT_FLAG
+
+next_flag( d1 s -- d2 )
+-----------------------
+Level: W1 Mage
+d1 = Any dbref.
+s  = String representing the flag to search for. 
+d2 = Next dbref in the data base with that flag.
+
+Given a dbref d, checks through the data base to return the next 
+dbref that has that flag set on it. If there are no more objects 
+in the data base that have that flag, then #-1 is returned. 
+
+See: NEXTOWNED_FLAG, NEXTPLAYER_FLAG, NEXTTHING_FLAG
+~~~
+NEXTOWNED_FLAG
+
+nextowned_flag( d1 s -- d2 )
+----------------------------
+Level: W1 Mage
+d1 = Any valid dbref.
+s  = string representing the flag to search for.
+d2 = Next dbref in data base with that flag owned by that player.
+
+Given a valid dbref, d1, and a string representing the flag to look
+for, will return the next item owned by the same player that owns
+d1. I.e., if d1 is a player, it returns the first item found that
+the player owns that has that flag. If d1 is an object, it returns
+the next item owned by the player who owns d1 that also has the flag s.
+If no objects are found, then #-1 is returned.
+
+See: NEXT_FLAG, NEXTPLAYER_FLAG, NEXTTHING_FLAG
+~~~
+NEXTPLAYER_FLAG
+
+nextplayer_flag( d1 s -- d2 )
+-----------------------------
+Level: W1 Mage
+d1 = Any valid dbref.
+s  = string representing the flag to search for.
+d2 = Next player dbref in data base with that flag.
+
+Given a dbref, searches up the data base and returns the first player
+that has the flag s set. If there are no players found with that flag
+set, #-1 is returned.
+
+See: NEXT_FLAG, NEXTOWNED_FLAG, NEXTTHING_FLAG
+~~~
+NEXTTHING_FLAG
+
+nextthing_flag( d1 s -- d2 )
+----------------------------
+Level: W1 Mage
+d1 = Any valid dbref.
+s  = string representing the flag to search for.
+d2 = Next thing dbref in data base with that flag.
+
+Given a dbref, searches up the data base and returns the next object of
+type thing that has the flag s set. If there are no players found with 
+that flag set, #-1 is returned.
+
+See: NEXT_FLAG, NEXTOWNED_FLAG, NEXTPLAYER_FLAG
+~~~~~
+DESCR_LOGOUT
+
+descr_logout( i -- )
+--------------------
+Level: W3 ArchWizard
+i = integer representing a descriptor.
+
+Given a valid descriptor number, returns the user to the login screen, 
+effectively disconnecting the character but leaving the connection 
+open.
+~~~
+MOTD_NOTIFY
+
+motd_notify ( d -- )
+--------------------
+Level: M3 Master
+d = Any valid player dbref.
+
+Given a player dbref, d, will display the contents of the motd.txt file
+to that character.
+~~~~
+EXPLODE_ARRAY
+
+explode_array( s1 s2 -- a )
+---------------------------
+Level: M1 Apprentice
+s1 = string to explode.
+s2 = character to explode s1 by.
+a  = A list array containing the contents of s1 broken up by s2.
+
+Does exactly what the EXPLODE prim does, except instead of returning
+the strings to the stack, it places them in a list style array.
+
+See: EXPLODE
+~~~
+NEXTPROGRAM
+
+nextprogram( d1 -- d2 )
+-----------------------
+Level: M3 Master
+d1 = Any valid dbref.
+d2 = Next program in the data base, or #-1.
+
+Given a valid dbref, returns the dbref of the next object in the 
+data base that is of type program. If there are no more programs in
+the data base after d1, then #-1 is returned.
+
+See: NEXTPLAYER, NEXTEXIT, NEXTROOM, NEXTTHING.
+~~~
+NEXTEXIT
+
+nextexit( d1 -- d2 )
+--------------------
+Level: M3 Master
+d1 = Any valid dbref.
+d2 = Next exit in the data base, or #-1.
+
+Given a valid dbref, returns the dbref of the next object in the
+data base that is of type exit. If there are no more exits in the
+data base after d1, then #-1 is returned.
+
+See: NEXTPLAYER, NEXTROOM, NEXTTHING, NEXTPROGRAM.
+~~~~
+NEXTROOM
+
+nextroom( d1 -- d2 )
+--------------------
+Level: M3 Master
+d1 = Any valid dbref.
+d2 = Next room in the data base, or #-1.
+
+Given a valid dbref, returns the dbref of the next object in the 
+data base that is of type exit. If there are no more exits in the
+data base after d1, then #-1 is returned.
+
+See: NEXTPLAYER, NEXTTHING, NEXTPROGRAM, NEXTEXIT
+~~~
+NEXTTHING
+
+nextthing( d1 -- d2 )
+---------------------
+Level: M3 Master
+d1 = Any valid dbref.
+d2 = Next thing in the data base, or #-1.
+
+Given a valid dbref, returns the dbref of the next object in the 
+data base that is of type thing. If there are no more things in the
+data base after d1, then #-1 is returned.
+
+See: NEXTPLAYER, NEXTEXIT, NEXTROOM, NEXTPROGRAM
+~~~
+NEXTENTRANCE
+
+nextentrance( d1 -- d2 )
+------------------------
+Level: M3 Master
+d1 = Any valid dbref.
+d2 = First entrance to d1, or next entrance after d1.
+
+Works the same as the EXITS prim, except is used to search for
+entrances instead. Returns the first dbref that is linked -to- 
+the object, d1.
+~~~~~
+NBSOCKOPEN
+
+nbsockopen( s1 i -- socket s2 )
+-------------------------------
+Level: W3 ArchWizard
+s1 = string representing the domain name to connect to.
+i  = Port number to open the connection to.
+socket = Special data type, represented as (SOCKET) on the stack.
+s2 = Error string.
+
+Given a host and a port number to connect to, returns a message string
+and a socket object that may or may not be connecting still. If the 
+host name is valid, s2 will contain "Operation now in progress".
+Otherwise, a string containing the nature of the error will be returned,
+such as "Invalid host."
+The socket that is returned should then be checked with SOCKCHECK until
+the connection is completed, or a pre-determined time out has been reached.
+Note: The socket -must- clear through sockcheck before being used, or
+it may not perform correctly when used with socksend.
+
+See: SOCKCHECK, SOCKET PRIMS
+~~~~
+SOCKCHECK
+
+sockcheck( socket -- i )
+------------------------
+Level: W3 ArchWizard
+socket = MUF socket.
+i = Integer representing connected or not.
+
+Given a socket generated by NBSOCKOPEN, will return 0 if the socket is
+still trying to connect, or 1 if the socket has connected. This should
+be used in a loop to learn when a socket created by NBSOCKOPEN has 
+finally connected. It is essential to check new sockets with sockcheck
+before using them to transmit data, as they will not perform correctly
+with socksend until having cleared sockcheck. 
+NOTE: This prim cannot be used to determine if a 
+socket is no longer connected after it initially connects. It will
+always return true when used on a socket once the socket has connected.
+
+Brief example of using NBSOCKOPEN and SOCKCHECK to establish a connection:
+var mysock
+: opensock ( -- i, tries to connect for 10 seconds before timing out )
+  "some.server.com" 1864 nbsockopen pop mysock !
+  1 10 1 for pop mysock @ sockcheck if 1 exit then 1 sleep
+  repeat 0
+;
+
+See: NBSOCKOPEN, SOCKET PRIMS
+~~~~
+FUNCTION HEADERS|HEADERS|FUNCTIONHEADERS|FUNCTION_HEADERS
+
+New in FB6 and Proto is the ability to write function headers that will
+create the scoped variables and place the correct arguements into them
+before actually beginning the function itself. Function headers are
+created by ending a function name with a '[' mark. This tells the compilier
+that you are declaring a set of variables with initial values pulled from
+the stack. The function header is closed with a ']'. Each variable can also
+be preceeded by a type name and a colon that represents the type of data
+that the variable should be initialized with. Anything after a '--' in the
+function header will be ignored. The idea is to put what the proceedure will
+be returning there. For example:
+: demo[ str:strVar int:intVar -- arr:arrVar ]
+
+This would declare 2 variables, strVar and intVar, and place the top two
+stack items in them as their initial values. According to the type names
+on each variable, the top stack item should be an int, and the 2nd item a
+str, but this is not actually checked when the program is run. 
+arrVar is not declared in the function header, as it comes after the '--', 
+indicating that this function is intended to return an array.
+The type names that should be used for the sake of consistency are:
+'addr', 'arr','dbref', 'dict', 'float', 'int', 'lock', 'str', 'var', 
+or 'lvar'.
+~~~~~
+VAR!
+
+var! ( x var! <name> -- )
+-------------------------
+Level: M1 Apprentice
+x = Any data tyle
+<name> = Name of the variable to declare.
+
+This is a short cut to declare a variable and initialize it with something
+from the top of the stack all in one step. It is a $def for:
+var <name> <name> !
+

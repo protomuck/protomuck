@@ -305,18 +305,26 @@ prim_fork(PRIM_PROTOTYPE)
     tmpfr->caller.top = fr->caller.top;
     for (i = 0; i <= fr->caller.top; i++) {
 	tmpfr->caller.st[i] = fr->caller.st[i];
-	if (i > 0) DBFETCH(fr->caller.st[i])->sp.program.instances++;
+	if (i > 0)
+            DBFETCH(fr->caller.st[i])->sp.program.instances++;
     }
 
     for (i = 0; i < MAX_VAR; i++)
 	copyinst(&fr->variables[i], &tmpfr->variables[i]);
 
-    tmpfr->varset.top = fr->varset.top;
-    for (i = fr->varset.top; i >= 0; i--) {
-	tmpfr->varset.st[i] = (vars *) calloc(1, sizeof(vars));
-	for (j = 0; j < MAX_VAR; j++)
-	    copyinst(&((*fr->varset.st[i])[j]), &((*tmpfr->varset.st[i])[j]));
-    }
+	localvar_dupall(tmpfr, fr);
+	scopedvar_dupall(tmpfr, fr);
+
+	tmpfr->error.is_flags = fr->error.is_flags;
+	if (fr->rndbuf) {
+		tmpfr->rndbuf = (void *) malloc(sizeof(unsigned long) * 4);
+
+		if (tmpfr->rndbuf) {
+			memcpy(tmpfr->rndbuf, fr->rndbuf, 16);
+		}
+	} else {
+		tmpfr->rndbuf = NULL;
+	}
 
     tmpfr->pc = pc;
     tmpfr->pc++;
@@ -613,7 +621,7 @@ prim_cancallp(PRIM_PROTOTYPE)
 
 		tmpline = DBFETCH(oper1->data.objref)->sp.program.first;
 		DBFETCH(oper1->data.objref)->sp.program.first = ( (struct line *) read_program(oper1->data.objref) );
-		do_compile(fr->descr, OWNER(oper1->data.objref), oper1->data.objref);
+		do_compile(fr->descr, OWNER(oper1->data.objref), oper1->data.objref, 0);
 		free_prog_text(DBFETCH(oper1->data.objref)->sp.program.first);
 		DBFETCH(oper1->data.objref)->sp.program.first = tmpline;
 	}

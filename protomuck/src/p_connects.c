@@ -331,7 +331,9 @@ prim_nextdescr(PRIM_PROTOTYPE)
 void 
 prim_descriptors(PRIM_PROTOTYPE)
 {
-    int     mydescr, mycount = 0;
+    int  mydescr, mycount = 0;
+    int  di, dcount;
+    int* darr;
 
     CHECKOP(1);
     oper1 = POP();
@@ -346,13 +348,29 @@ prim_descriptors(PRIM_PROTOTYPE)
 	abort_interp("Non-player argument");
     CLEAR(oper1);
     CHECKOP(0);
-    for (result = pcount(); result; result--) {
-	if ((ref == NOTHING) || (pdbref(result) == ref)) {
-	    CHECKOFLOW(1);
-	    mydescr = pdescr(result);
-	    PushInt(mydescr);
-	    mycount++;
-	}
+
+    if (ref == NOTHING) {
+        for (result = pcount(); result; result--) {
+            CHECKOFLOW(1);
+            mydescr = pdescr(result);
+            PushInt(mydescr);
+            mycount++;
+        }
+    } else {
+        if (Typeof(ref) == TYPE_PLAYER) {
+            darr   = DBFETCH(ref)->sp.player.descrs;
+            dcount = DBFETCH(ref)->sp.player.descr_count;
+            if (!darr)
+                dcount = 0;
+        } else {
+            darr = NULL;
+            dcount = 0;
+        }
+        for (di = 0; di < dcount; di++) {
+            CHECKOFLOW(1);
+            PushInt(darr[di]);
+            mycount++;
+        }
     }
     CHECKOFLOW(1);
     PushInt(mycount);
@@ -400,7 +418,7 @@ prim_descr_setuser(PRIM_PROTOTYPE)
 {
     char *ptr;
 
-    CHECKOP(2);
+    CHECKOP(3);
     oper3 = POP();
     oper2 = POP();
     oper1 = POP();
@@ -533,6 +551,39 @@ prim_descrp(PRIM_PROTOTYPE)
 
     CLEAR(oper1);
     PushInt(result);
+}
+
+void
+prim_motd_notify(PRIM_PROTOTYPE)
+{
+   CHECKOP(1);
+   oper1 = POP();
+   if (mlev < 3)
+       abort_interp("Requires Mucker Level 3 or better.");
+   if (!valid_object(oper1))
+       abort_interp("invalid argument");
+   ref = oper1->data.objref;
+
+   CLEAR(oper1);
+   spit_file(ref, MOTD_FILE);
+}
+
+void
+prim_descr_logout(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (mlev < LARCH)
+       abort_interp("Requires Wizard Level 3 (Archwizard) or better.");
+    if (oper1->type != PROG_INTEGER)
+       abort_interp("Integer descriptor number expected.");
+
+    if (!pdescrp(oper1->data.number))
+       abort_interp("That is not a valid descriptor.");
+
+    pdescr_logout(oper1->data.number);
+    CLEAR(oper1);
 }
 
 

@@ -1,3 +1,6 @@
+
+
+
 /* Stuff the interpreter needs. */
 /* Some icky machine/compiler #defines. --jim */
 #ifdef MIPS
@@ -36,6 +39,8 @@ extern void RCLEAR(struct inst *oper, char *file, int line);
 extern void push (struct inst *stack, int *top, int type, voidptr res);
 extern int valid_object(struct inst *oper);
   
+extern struct localvars *localvars_get(struct frame *fr, dbref prog);
+extern void localvar_dupall(struct frame *fr, struct frame *oldfr);
 extern struct inst *scopedvar_get(struct frame *fr, int varnum);
 extern void scopedvar_dupall(struct frame *fr, struct frame *oldfr);
 extern int false (struct inst *p);
@@ -70,7 +75,6 @@ extern int permissions(int mlev, dbref player, dbref thing);
 extern int arith_type(struct inst *op1, struct inst *op2);
   
 #define CHECKOP(N) { if ((*top) < (N)) { char* errbuf = (char*)malloc(128); interp_err(player, program, pc, arg, *top, fr->caller.st[1], insttotext(pc, errbuf, 128, 30, program), "Stack underflow."); free(errbuf); return; } nargs = (N); }
-/* #define CHECKOP(N) { if ((*top) < (N)) { interp_err(player, program, pc, arg, *top, fr->caller.st[1], insttotext(pc, 30, program), "Stack underflow."); return; } nargs = (N); } */
 
 #define POP() (arg + --(*top))
   
@@ -84,9 +88,8 @@ extern void do_abort_interp(dbref player, const char *msg, struct inst *pc,
      struct inst *arg, int atop, struct frame *fr,
      struct inst *oper1, struct inst *oper2, struct inst *oper3,
      struct inst *oper4, int nargs, dbref program, char *file, int line);
-  
 
-#define CurrVar (*(fr->varset.st[fr->varset.top]))
+
 
 #define Min(x,y) ((x < y) ? x : y)
 #define ProgMLevel(x) (find_mlev(x, fr, fr->caller.top))
@@ -106,10 +109,12 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
 #define PushFloat(x)    push(arg, top, PROG_FLOAT, MIPSCAST &x)
 #define PushLock(x)     push(arg, top, PROG_LOCK, MIPSCAST copy_bool(x))
 #define PushTrueLock(x) push(arg, top, PROG_LOCK, MIPSCAST TRUE_BOOLEXP)
+
 #define PushMark()      push(arg, top, PROG_MARK, MIPSCAST 0)
 #define PushStrRaw(x)   push(arg, top, PROG_STRING, MIPSCAST x)
 #define PushString(x)   PushStrRaw(alloc_prog_string(x))
 #define PushNullStr     PushStrRaw(0)
+
 #define PushArrayRaw(x) push(arg, top, PROG_ARRAY, MIPSCAST x)
 #define PushNullArray   PushArrayRaw(0)
 #define PushInst(x) copyinst(x, &arg[((*top)++)])
@@ -134,4 +139,6 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 #include "p_error.h"
 #include "p_file.h"
 #include "p_array.h"
+
+
 

@@ -321,7 +321,7 @@ main (int argc, char**argv)
     queue_add_node("er ", 99999999);
 
     while (!feof(stdin)) {
-        gets(buf);
+	  fgets(buf, sizeof(buf), stdin);
         p = strchr(buf, ':');
         if (p && (atoi(p+1) == 10)) {
 	    p = strchr(p + 1, ':');
@@ -334,3 +334,4 @@ main (int argc, char**argv)
     /* printf("%d unique words found.\n", total_words); */
     /* printf("%d counted words.\n", counted_words); */
 }
+

@@ -559,4 +559,199 @@ prim_int(PRIM_PROTOTYPE)
 	PushInt(result);
 }
 
+void
+prim_plusplus(PRIM_PROTOTYPE)
+{
+      struct inst *tmp;
+      short itype;
+      int vnum;
+ 
+      CHECKOP(1)
+      temp1 = *(oper1 = POP());
+
+      if(oper1->type == PROG_VAR || oper1->type == PROG_SVAR || oper1->type == PROG_LVAR)
+         if(oper1->data.number > MAX_VAR || oper1->data.number < 0)
+            abort_interp("Variable number out of range.");
+
+      switch(oper1->type) {
+         case PROG_VAR:
+		copyinst(&(fr->variables[temp1.data.number]), oper2);
+            goto dovar;
+         case PROG_SVAR:
+		oper2 = scopedvar_get(fr, temp1.data.number);
+            goto dovar;
+         case PROG_LVAR:
+            {
+               struct localvars *tmp2 = localvars_get(fr, program);
+ 		   copyinst(&(tmp2->lvars[temp1.data.number]), oper2);
+               goto dovar;
+            }
+         case PROG_INTEGER:
+            oper1->data.number++;
+            result = oper1->data.number;
+            CLEAR(oper1);
+            PushInt(result);
+            break;
+         case PROG_OBJECT:
+            oper1->data.objref++;
+            result = oper1->data.objref;
+            CLEAR(oper1);
+            PushObject(result);
+            break;
+         case PROG_FLOAT:
+            oper1->data.fnumber++;
+            fresult = oper1->data.fnumber;
+            CLEAR(oper1);
+            PushFloat(fresult);
+            break;
+         default:
+            abort_interp("Invalid datatype.");
+      }
+      return;
+
+   dovar:
+      itype = temp1.type;
+      vnum = temp1.data.number;
+      switch(oper2->type) {
+         case PROG_INTEGER:
+            oper2->data.number++;
+            result = oper2->data.number;
+            goto dovar2;
+         case PROG_OBJECT:
+            oper2->data.objref++;
+            result = oper2->data.objref;
+            goto dovar2;
+         case PROG_FLOAT:
+            oper2->data.fnumber++;
+            fresult = oper2->data.fnumber;
+            goto dovar2;
+         default:
+            abort_interp("Invalid datatype in variable.");
+      }
+   dovar2:
+      switch(temp1.type) {
+         case PROG_VAR:
+            {
+		   copyinst(oper2, &(fr->variables[vnum]));
+               break;
+             }
+         case PROG_SVAR:
+            {
+		   struct inst *tmp2;
+		   tmp2 = scopedvar_get(fr, vnum);
+		   if (!tmp2)
+			   abort_interp("Scoped variable number out of range.");
+		   copyinst(tmp2, oper2);
+               break;
+            }
+         case PROG_LVAR:
+            {
+               struct localvars *tmp2 = localvars_get(fr, program);
+		   CLEAR(&(tmp2->lvars[vnum]));
+               copyinst(oper2, &(tmp2->lvars[vnum]));
+               break;
+            }
+      }
+      CLEAR(oper1);
+}
+
+void
+prim_minusminus(PRIM_PROTOTYPE)
+{
+      struct inst *tmp;
+      short itype;
+      int vnum;
+ 
+      CHECKOP(1)
+      temp1 = *(oper1 = POP());
+
+      if(oper1->type == PROG_VAR || oper1->type == PROG_SVAR || oper1->type == PROG_LVAR)
+         if(oper1->data.number > MAX_VAR || oper1->data.number < 0)
+            abort_interp("Variable number out of range.");
+
+      switch(oper1->type) {
+         case PROG_VAR:
+		copyinst(&(fr->variables[temp1.data.number]), oper2);
+            goto dovar;
+         case PROG_SVAR:
+		oper2 = scopedvar_get(fr, temp1.data.number);
+            goto dovar;
+         case PROG_LVAR:
+            {
+               struct localvars *tmp2 = localvars_get(fr, program);
+ 		   copyinst(&(tmp2->lvars[temp1.data.number]), oper2);
+               goto dovar;
+            }
+         case PROG_INTEGER:
+            oper1->data.number--;
+            result = oper1->data.number;
+            CLEAR(oper1);
+            PushInt(result);
+            break;
+         case PROG_OBJECT:
+            oper1->data.objref--;
+            result = oper1->data.objref;
+            CLEAR(oper1);
+            PushObject(result);
+            break;
+         case PROG_FLOAT:
+            oper1->data.fnumber--;
+            fresult = oper1->data.fnumber;
+            CLEAR(oper1);
+            PushFloat(fresult);
+            break;
+         default:
+            abort_interp("Invalid datatype.");
+      }
+      return;
+
+   dovar:
+      itype = temp1.type;
+      vnum = temp1.data.number;
+      switch(oper2->type) {
+         case PROG_INTEGER:
+            oper2->data.number--;
+            result = oper2->data.number;
+            goto dovar2;
+         case PROG_OBJECT:
+            oper2->data.objref--;
+            result = oper2->data.objref;
+            goto dovar2;
+         case PROG_FLOAT:
+            oper2->data.fnumber--;
+            fresult = oper2->data.fnumber;
+            goto dovar2;
+         default:
+            abort_interp("Invalid datatype in variable.");
+      }
+   dovar2:
+      switch(temp1.type) {
+         case PROG_VAR:
+            {
+		   copyinst(oper2, &(fr->variables[vnum]));
+               break;
+             }
+         case PROG_SVAR:
+            {
+		   struct inst *tmp2;
+		   tmp2 = scopedvar_get(fr, vnum);
+		   if (!tmp2)
+			   abort_interp("Scoped variable number out of range.");
+		   copyinst(tmp2, oper2);
+               break;
+            }
+         case PROG_LVAR:
+            {
+               struct localvars *tmp2 = localvars_get(fr, program);
+		   CLEAR(&(tmp2->lvars[vnum]));
+               copyinst(oper2, &(tmp2->lvars[vnum]));
+               break;
+            }
+      }
+      CLEAR(oper1);
+}
+
+
+
+
 

@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.1.1.1 2000-09-18 01:04:36 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.2 2000-09-18 02:03:38 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands
@@ -80,7 +80,7 @@ extern void do_open(int descr, dbref player, const char *direction, const char *
 extern void do_link(int descr, dbref player, const char *name, const char *room_name);
 extern void do_dig(int descr, dbref player, const char *name, const char *pname);
 extern void do_create(dbref player, char *name, char *cost);
-extern void do_prog(int descr, dbref player, const char *name, int mcp);
+extern void do_prog(int descr, dbref player, const char *name);
 extern void do_edit(int descr, dbref player, const char *name);
 extern int unset_source(dbref player, dbref loc, dbref action);
 extern int link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_list);
@@ -310,7 +310,7 @@ extern void uncompile_program(dbref i);
 extern void do_uncompile(dbref player);
 extern void do_proginfo(dbref player, const char *arg);
 extern void free_unused_programs(void);
-extern void do_compile(int descr, dbref in_player, dbref in_program); 
+extern void do_compile(int descr, dbref in_player, dbref in_program, int force_err_display); 
 extern int get_primitive(const char *);
 extern void clear_primitives(void);
 extern void init_primitives(void);
@@ -396,4 +396,11 @@ extern void delete_seed(void *buffer);
 extern unsigned long rnd(void *buffer);
 
 
+/* For MPI profiling */
+extern time_t mpi_prof_start_time;
+/* For select idle profiling */
+extern time_t sel_prof_start_time;
+extern long sel_prof_idle_sec;
+extern long sel_prof_idle_usec;
+extern unsigned long sel_prof_idle_use;
 

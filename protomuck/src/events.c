@@ -1,5 +1,6 @@
 
 
+#include <time.h>
 #include "db.h"
 #include "props.h"
 #include "config.h"
@@ -8,7 +9,6 @@
 #include "externs.h"
 #include "interp.h"
 #include "interface.h"
-#include <time.h>
 
 
 /****************************************************************

@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.1.1.1 2000-09-18 01:04:32 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.2 2000-09-18 02:03:38 akari Exp $
  * $Log: not supported by cvs2svn $
  *
  * Revision 1.3  2000/06/27 22:32:17  moose
@@ -68,10 +68,8 @@
  *
  */
 
-#define INTERNAL_PORT 3006
-#define TINYPORT 3005
-#define WWWPORT 3004
-#define PUEBLOPORT 3007
+#define TINYPORT      8881    /* Port that tinymuck uses for playing */
+
 /*
  * Some systems can hang for up to 30 seconds while trying to resolve
  * hostnames.  Define this to use a non-blocking second process to resolve
@@ -79,16 +77,7 @@
  * (make resolver) and put it in the directory that the protomuck program is
  * run from.
  */
-#undef SPAWN_HOST_RESOLVER
-
-/*
- * Set this to be the file that you wish the ProtoMUCK file prims to
- * be set to save to by default. "files/" is the normal directory
- * chosen, though "../public_html" might be another favorite. Setting
- * this to a directory that does not exist will disable file prims 
- * except for use with shortcuts.
- */
-#define FILE_PRIMS_DIRECTORY "files/"
+#define SPAWN_HOST_RESOLVER
 
 /* Debugging info for database loading */
 #undef VERBOSELOAD
@@ -110,7 +99,7 @@
 
 /* Define to require that a room a Guest can go in have the Guest flag */
 /* If undefined, Guests will be banned from rooms with a Guest flag */
-#define G_NEEDFLAG
+#undef G_NEEDFLAG
 
 /* Define to compile in HTTPD server WWW page support */
 #define HTTPD
@@ -143,13 +132,13 @@
 
 /* Define this to set which server to use for e-mail registration.
  */
-#define MAILSERVER "mail.eskimo.com"
+#define MAILSERVER "mail.somewhere.com"
 
 /* Needed for a dummy load at startup.  Define to a small MIDI
  * somewhere which has the correct MIME type.  Preferably on
  * your local server.
  */
-#define DUMMYMIDI "http://adobe.chaco.com/~jeremy/ami/smoon.mid"
+#define DUMMYMIDI "http://www.somewhere.com/~user/asong.mid"
 
 /* This is a shortcut.  Define this to add ALL compatiblity options.
  * To ensure TinyMUCKfb compatiblity.
@@ -270,6 +259,15 @@
 #ifdef LOCKOUT
 # define LOCKOUT_FILE "data/lockout.txt"
 #endif /* LOCKOUT */
+
+/*
+ * Set this to be the file that you wish the ProtoMUCK file prims to
+ * be set to save to by default. "files/" is the normal directory
+ * chosen, though "../public_html" might be another favorite. Setting
+ * this to a directory that does not exist will disable file prims 
+ * except for use with shortcuts.
+ */
+#define FILE_PRIMS_DIRECTORY "files/"
 
 #ifdef DETACH
 # define LOG_FILE "logs/protomuck"          /* Log stdout to ... */      
@@ -487,6 +485,7 @@
 /* Final line of defense for self configuration, systems we know  */
 /* need special treatment.                                        */ 
 /******************************************************************/
+
 
 
 

@@ -150,11 +150,14 @@
 /* Server support of @doing (reads the _/do prop on WHOs) */
 #define WHO_DOING 1
 
-/* To enable logging of all commands */
+/* To enable logging of all regular commands */
 #define LOG_COMMANDS 0
 
 /* To enable logging of connection commands */ /* Actually for seeing http */
 #define LOG_CONNECTS 0
+
+/* To enable logging of all INTERACTIVE commands, (muf editor, muf READ, etc) */
+#define LOG_INTERACTIVE 0
 
 /* Log failed commands ( HUH'S ) to status log */
 #define LOG_FAILED_COMMANDS 0
@@ -164,7 +167,7 @@
 
 /* Log the text of changed programs when they are saved.  This is helpful
  * for catching people who upload scanners, use them, then recycle them. */
-#define LOG_PROGRAMS 1
+#define LOG_PROGRAMS 0
 
 /* Log the connections and transmissions of socket usage. Does not
  * log what is actually transmitted, only addresses and port #'s. */
@@ -259,4 +262,5 @@
 
 /* Define to 0 to prevent diskbasing of property values, or to 1 to allow. */
 #define DISKBASE_PROPVALS 1
+
 
