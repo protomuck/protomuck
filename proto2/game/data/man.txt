@@ -2810,9 +2810,37 @@ s = That dbref after being unparsed.
 Returns the name-and-flag string for an object.  It always has the dbref and
 flag string after the name, even if the player doesn't control the object.
 For example: "One(#1PW5)"
-If d is #-1, will return "*NOTHING*" to the stack, if d is #-3, will return
-"*HOME*" to the stack. If d is any other negative dbref, or is higher than
-the highest valid dbref, will return "*INVALID*".
+If d is #-1, will return "*NOTHING*" to the stack. If d is #-3, will return "*HOME*" to the stack. If d is #-4, will return "*NIL*" to the stack. If d is any other negative dbref, or any dbref higher than DBTOP, will return "*INVALID(#???)*" with the question marks replaced by the dbref in question.
+
+See: ANSI_UNPARSEOJB
+~
+ANSI_UNPARSEOBJ
+
+ansi_unparseobj ( d -- s )
+Level: M1 Apprentice
+d = Any dbref.
+s = That dbref after being unparsed.
+
+This function is identical to UNPARSEOBJ, with the distinction that the
+resultant string is colorized with FB ANSI escape codes according to
+the following convention:
+
+The name of the object is colorized as follows:
+  Player        green
+  Room          cyan
+  Thing         purple
+  Exit/Action   blue
+  Program       red
+  #-1           normal
+  #-2           purple
+  #-3           white
+  #-4           cyan
+  Invalid       red
+
+The dbref section immediately following the name (for valid objects) will
+be colored yellow.
+
+See: UNPARSEOBJ
 ~
 DBTOP
 
@@ -5966,9 +5994,10 @@ a  = An array.
 @  = Index marker within range for array a.
 a' = Changed array.
 
-Given an item on the stack, and array, and a valid index marker, 
-inserts the contents of x into the array -after- the index marker
-given. Program aborts if the index marker is out of range.
+Given an item (x) on the stack, an array and an index number in
+the range 0 through array_count + 1, inserts the contents of x
+into the array before the index marker given. Program aborts if
+the index marker is out of range.
 
 array_insertitem can be shortcutted to [^]
 
@@ -8349,7 +8378,8 @@ referred to exits. If the process does not exist, the event will be
 sent immediately. The exit event can be retrieved by a call to 
 EVENT_WAITFOR. The event type will be "PROC.EXIT." with the PID of the
 process appended to it. The PID will also be returned as the data value
-from the event.
+from the event when the process has terminated normally, or -1 when the
+process has terminated due to abort or other crash.
 ~~~~
 TRY
 
