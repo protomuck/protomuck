@@ -15,7 +15,7 @@ PRIMS3 - Time, Data Conversion, Notifying (I/O)
 PRIMS4 - Connections, Locks, Strings
 PRIMS5 - Data Base, System, Sockets
 PRIMS6 - Arrays, Files, MCP Prims
-PRIMS7 - MUF editing prims, MySQL prims
+PRIMS7 - MUF editing prims, MySQL prims, ANSI prims
 
 To view a list of prim topics: PRIMS LIST
 ~~~~~
@@ -180,8 +180,8 @@ Array Prims:
   ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
   ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
   EXITS_ARRAY          ENTRANCES_ARRAY      GETOBJINFO         GETDESCRINFO
-  FIND_ARRAY           ARRAY_CUT            ARRAY_COMPARE      ARRAY_SORT_INDEXED 
-  ARRAY_INTERPRET      }CAT
+  FIND_ARRAY           ARRAY_CUT            ARRAY_COMPARE      ARRAY_INTERPRET
+  ARRAY_SORT_INDEXED   }CAT
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
@@ -204,6 +204,14 @@ MUF Editing Prims:
 
 MySQL Prims:
   SQLQUERY    SQLCONNECT    SQLCLOSE    SQLPING    SQL?
+
+ANSI Prims:
+ ANSI_MIDSTR            ANSI_NAME              ANSI_NOTIFY
+ ANSI_NOTIFY_DESCRIPTOR ANSI_NOTIFY_EXCEPT     ANSI_NOTIFY_EXCLUDE
+ ANSI_STRCUT            ANSI_STRIP             ANSI_STRLEN
+ ANSI_UNPARSEOBJ        ARRAY_ANSI_NOTIFY      ESCAPE_ANSI
+ PARSE_ANSI             UNPARSE_ANSI
+    
 ~~~~~
 PRIMSLIST|PRIMS LIST|LIST PRIMS
 MATH PRIMS         - Prims that handle math.
@@ -226,7 +234,8 @@ FILE PRIMS         - Prims for managing files on the server level.
 ARRAY PRIMS        - Prims for working with MUF arrays.
 MCP PRIMS          - Prims for working with graphical MUF protocal.
 MUF EDIT PRIMS     - Prims for making MUF editors.
-SQL PRIMS          - Prims for working with MySQL databases. 
+SQL PRIMS          - Prims for working with MySQL databases.
+ANSI PRIMS         - Prims for working with ANSI color.
 
 See: TOPIC LIST for different discussions of topics.
 ~
@@ -242,6 +251,7 @@ SPECIAL SYMBOLS    - Special tokens used in writing MUF.
 MULTITASKING       - An explanation about the modes MUF can run in.
 DIRECTIVES         - An explanation of compile time directives.
 FLAGS              - Explanations of how flags will affect MUF.
+ANSI               - Information on ANSI colors.
 LIBRARIES          - An explanation about how to work with MUF libs.
 LOOPS              - Explanation and examples of MUF loops.
 PROPQUEUES         - How to use propqueues with MUF.
@@ -282,6 +292,7 @@ AND     OR     NOT    XOR
 PROP PRIMS|PROPS|PROPPRIMS
 
 The following prims are used to work with properties on objects:
+  
 ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
 GETPROPSTR  GETPROPVAL    GETPROPFVAL     ENVPROPSTR    NEXTPROP
 DESC        IDESC         HTMLDESC        IHTMLDESC     PROPDIR?
@@ -473,6 +484,18 @@ TIMER_START   TIMER_STOP     EVENT_WAITFOR  WATCHPID
 
 See: MULTITASKING
 ~~~~
+ANSI PRIMS
+
+These prims are used when dealing with ANSI colors:
+
+ANSI_MIDSTR            ANSI_NAME              ANSI_NOTIFY
+ANSI_NOTIFY_DESCRIPTOR ANSI_NOTIFY_EXCEPT     ANSI_NOTIFY_EXCLUDE
+ANSI_STRCUT            ANSI_STRIP             ANSI_STRLEN
+ANSI_UNPARSEOBJ        ARRAY_ANSI_NOTIFY      ESCAPE_ANSI
+PARSE_ANSI             UNPARSE_ANSI
+
+See: ANSI
+~~~~
 DATA TYPES|OBJECT TYPES|DATATYPES
 
 These are the fundamental data types in MUF:
@@ -637,7 +660,7 @@ as well as in the muck. These can all be customized in-muck with:
     _/colors/fail          _/colors/succ          _/colors/info
     _/colors/note          _/colors/move
 
-See: MUSH ANSI, STANDARD ANSI, TILDE ANSI, and NEON ANSI2
+See: MUSH ANSI, STANDARD ANSI, TILDE ANSI, NEON ANSI2, and ANSI PRIMS
 ~~~
 MATH OPERATORS|+|-|*|/|%|MODULO|ADD|SUBTRACT|MULTIPLY|DIVIDE
 
