@@ -259,10 +259,10 @@ RCLEAR(struct inst * oper, char *file, int line)
       case PROG_SOCKET:
                 oper->data.sock->links = oper->data.sock->links - 1;
                 if (oper->data.sock && oper->data.sock->links == 0) {
-			if (oper->data.sock->connected) {
+//			if (oper->data.sock->connected) {
 				shutdown(oper->data.sock->socknum,2);
 				closesocket(oper->data.sock->socknum);
-			}
+//			}
 			free((void *) oper->data.sock);
 		}
             break;
@@ -679,7 +679,6 @@ prog_clean(struct frame * fr)
     int     i;
     struct frame *ptr;
     time_t  now;
-
     now = current_systime;
 
     if ( (FLAG2(fr->player)&F2MUFCOUNT) && (controls(fr->player, fr->prog)
