@@ -1,0 +1,15 @@
+#!/bin/csh -f
+
+# Save any corefile:
+# Set this to whatever your /bin/mail program is, possibly /bin/mailx or it
+# may be in /usr/bin, /sbin, or /lib.
+
+set MAIL = /usr/bin/mail
+
+sleep 5
+set timestamp = "`date +'%y.%m.%d.%H.%M'`"
+if (-r core) then
+    mv -f core core.$timestamp
+    echo "core.$timestamp saved by restart from server crash" | $MAIL `whoami`
+endif
+
