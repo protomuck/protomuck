@@ -62,7 +62,7 @@ Control Structures:
   COMPILED?    TREAD      FOREACH     FOR         PROPQUEUE   ENVPROPQUEUE         
   INSTANCES    MAGECALL   WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
   GETPIDS      TRY        CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
-  PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE
+  PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE              DEBUGGER_BREAKPOINT
 
 Property Prims:
   ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
@@ -79,11 +79,12 @@ See: PRIMS3
 PRIM3|PRIMS3
 Time Prims:
   TIME     SYSTIME     TIMESTAMPS     TIMESPLIT     TIMEFMT
-  DATE     GMTOFFSET
+  DATE     GMTOFFSET   SYSTIME_PRECISE
 
 Data Conversion:
   ATOI     DBREF     INT     INTOSTR     CTOI     ITOC
-  STOD     DTOS      FLOAT   STRTOF      FTOSTR
+  STOD     DTOS      FLOAT   STRTOF      FTOSTR   ITOH
+  HTOI
 
 Notifying Prims (I/O):
   NOTIFY              NOTIFY_EXCLUDE              NOTIFY_EXCEPT
@@ -125,7 +126,7 @@ Strings Prims:
   FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
   ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
   NAME-OK?      PNAME-OK?    ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
-  POWER_2CHAR
+  POWER_2CHAR   UNESCAPE_URL ESCAPE_URL
  
 See: PRIMS5
 ~~~~~
@@ -156,7 +157,7 @@ System Prims:
 Socket Prims:
   SOCKOPEN        SOCKCLOSE      SOCKSEND      SOCKRECV       NBSOCKOPEN
   SOCKCHECK       LSOCKOPEN      SOCKACCEPT    GET_SOCKINFO   SOCKET_SETUSER
-  SET_SOCKOPT     SOCKTODESCR    
+  SET_SOCKOPT     SOCKTODESCR    SOCKSHUTDOWN
 
 See: PRIMS6
 ~~~~~
@@ -182,7 +183,7 @@ Array Prims:
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
-  BWRITE    BREAD    BAPPEND   FRM        FREN
+  BWRITE    BREAD    BAPPEND   FRM        FREN     MKDIR
   FPUBLISH  FSINFO   FSTATS    CURID      FSIZE    GETDIR
 
 MCP Prims:
@@ -252,6 +253,7 @@ MUF EVENTS         - Notes on how to use events in MUF.
 MCP PRIMS          - Notes on the graphical MUF prims.
 WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
 EXCEPTION HANDLING - Notes on exception handling in MUF.
+MUF OPTIMIZING     - What the new byte code optimizer actually does. 
 CREDITS            - Who to blame this mess on!
 ~~~~
 MATH PRIMS|MATHPRIMS
@@ -317,6 +319,8 @@ DTOS      ( d -- s )
 FLOAT     ( i -- f )
 STRTOF    ( s -- f )
 FTOSTR    ( f -- s )
+ITOH      ( i -- s )
+HTOI      ( s -- i )
 
 See: DATA TYPES
 ~~~~
@@ -365,7 +369,7 @@ STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
 FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
 ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
 PNAME-OK?     NAME-OK?     ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
-POWER_2CHAR
+POWER_2CHAR   UNESCAPE_URL ESCAPE_URL
 
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
@@ -382,12 +386,12 @@ These prims are used to direct the MUF programs:
 EXIT         CALL      EXECUTE     READ        PUBLIC      SLEEP
 PID          ISPID?    KILL        IF          ELSE        THEN
 QUEUE        FORK      INTERP      CALLER      ABORT       CASE
-TRIG         PROG      PARSEMPI    PARSEPROP             CANCALL?
+TRIG         PROG      PARSEMPI    PARSEPROP   CANCALL?
 BEGIN        UNTIL     REPEAT      WHILE       BREAK       CONTINUE
 COMPILED?    TREAD     FOREACH     FOR         PROPQUEUE   ENVPROPQUEUE         
 INSTANCES    MAGECALL  WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
 GETPIDS      TRY       CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
-PARSEPROPEX  DEBUG_ON  DEBUG_OFF   DEBUG_LINE
+PARSEPROPEX  DEBUG_ON  DEBUG_OFF   DEBUG_LINE              DEBUGGER_BREAKPOINT
 
 See: LOOPS, MULTITASKING
 ~~~~
@@ -396,7 +400,7 @@ TIME PRIMS|TIMEPRIMS
 The following prims are used to work with time:
 
 TIME     SYSTIME     TIMESTAMPS     TIMESPLIT     TIMEFMT
-DATE     GMTOFFSET
+DATE     GMTOFFSET   SYSTIME_PRECISE
 
 Like most UNIX programs, time manipulation is handled in
 seconds, and then broken down into readable formats for users.
@@ -1641,6 +1645,7 @@ PUEBLO = "pueblo"
 HTML = "html"
 PARENT = "parent"
 PROTECT = "protect"
+MEEPER = "m"
 See SET2 for special notes about some of the flags.
 See also SETNAME, SETDESC, and FLAG?.
 ~
@@ -3254,6 +3259,7 @@ sqlping             ( sql -- i )
 sqlquery            ( sql s -- dict ... dictn n arr )
 sqlconnect          ( s s s s i -- sql i )
 copyprops           ( d s d s i -- i )
+sockshutdown        ( socket i -- i )
 
 See: W3, MUCKER LEVELS, individual prim entries for details
 ~
@@ -3279,6 +3285,7 @@ fsize               ( s -- i )
 frm                 ( s -- i )
 fren                ( s1 s2 -- i )
 getdir              ( s -- arr )
+mkdir               ( s -- i )
 newprogram          ( s -- d )
 compile             ( d i -- i )
 uncompile           ( d -- )
@@ -4640,7 +4647,7 @@ returns a non-blocking socket as well.
 
 See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
      SOCKET?, SOCKDESCR, NBSOCKRECV, LSOCKOPEN, SOCKACCEPT, GET_SOCKINFO,
-     SOCKET_SETUSER, SET_SOCKOPT, SOCKTODESCR
+     SOCKET_SETUSER, SET_SOCKOPT, SOCKTODESCR, SOCKSHUTDOWN
 ~
 SOCKOPEN
 
@@ -4730,7 +4737,11 @@ it. When a MUF program ends, either by crashing, or ending normally,
 any open socket connections are automatically closed. Still, it is a 
 good practice to close them manually when they are no longer needed.
 
-See: SOCKETS
+This prim is depricated as of 1.80 and newer. Starting with Proto 1.9,
+it will be replaced by an in-server define of:
+2 SOCKSHUTDOWN
+
+See: SOCKETS, SOCKSHUTDOWN
 ~
 SPLIT
 
@@ -4909,7 +4920,7 @@ FWRITE, FREAD, FREADN, FREADTO, FAPPEND, FCR - For use with characters.
 BWRITE, BREAD, BAPPEND - For use with integer values for ASCII.
 FPUBLISH, FSINFO, FSTATS, CURID, FSIZE, FNAME-OK? - Getting file/host information.
 FRM, FREN - For moving/removing files.
-GETDIR - For reading the contents of a directory
+GETDIR, MKDIR - For working with directories.
 See: SHORTCUTS
 ~~~~~~
 SHORTCUTS|FILE SHORTCUTS|FILESHORTCUTS|SHORTCUT|FILE SHORTCUT
@@ -7399,7 +7410,8 @@ x = Any data tyle
 <name> = Name of the variable to declare.
 
 This is a short cut to declare a variable and initialize it with something
-from the top of the stack all in one step. It is a $def for:
+from the top of the stack all in one step. During compile time it is 
+expanded to: 
 var <name> <name> !
 ~~~~~
 ISPOWER?
@@ -8501,7 +8513,7 @@ returns the contents of the files/ directory. Works under the same
 rules as the rest of the file prims concerning the use of shortcuts 
 for security reasons.
 
-If nothing exists at the location s, then -1 is returned.
+If nothing exists at the location s, then 0 is returned.
 If a file exists, but is not a directory, then 0 is returned.
 If the directory exists, then the array is returned. The array may
     be empty if the directory is empty. 
@@ -9213,8 +9225,8 @@ sockets have an event, that means there is a connection waiting
 to be accepted by them. 
 
 EVENT_WAITFOR will return:
-(SOCKET) "SOCKET.READ"  for normal sockets and
-(LSOCKET) "SOCKET.LISTEN" for listening sockets. 
+(SOCKET) "SOCKET.READ.<sock number>" for normal sockets and
+(LSOCKET) "SOCKET.LISTEN.<sock number>" for listening sockets. 
 
 See: SOCKET EVENTS 2
 ~~~
@@ -9382,3 +9394,165 @@ debug_off   - Removes the DEBUG flag from a program.
 debug_line  - Prints out a single line of debug tracing for whatever is
               on the stack that instant. 
 ~~~~
+MUF OPTIMIZING|MUFOPTIMIZING|
+
+MUF Optimizing
+--------------
+New in Proto 1.80 is the byte-code optimizer as implemented in FB6.
+optimize_muf must be @tuned to yes for it to work. If a program is
+set = N, then that program will not be optimized during compile time.
+
+The MUF optimizer removes redundent steps from the MUF code and also
+combines certain instructions into single steps, all to reduce the
+number of instructions ran during run time. The actual number of 
+instructions reduced will be reported during compile time.
+
+Most of the optimization involves variables, in terms of reducing the
+number of steps needed to set, clear, retrieve data, etc. 
+
+The other things that are currently optimized are as follows:
+"" strcmp 0 =        ------> not
+# # +                ------> <sum of the two ints>
+# # -                ------> <difference of the two ints>
+# # *                ------> <product of the two ints>
+# # /                ------> <quotent of the two ints>
+# # %                ------> <result of MOD on the two ints>
+0 =                  ------> not
+1 +                  ------> ++
+1 -                  ------> --
+rot rot swap         ------> swap rot
+not not if           ------> if
+
+There is room for additional optimization to be added in future versions:
+"" stringcmp 0 = into simply 'not'
+and
+"" stringcmp not if into simply 'not' 
+There's a bunch of others too.
+floating point number optimizing. 
+~~~
+ITOH|
+ 
+itoh ( i -- s )
+-----------------
+Level: M1 Apprentice
+i = Integer to convert to hexadecimal.
+s = Hexadecimal value returned as string.
+ 
+Converts an integer into a hexadecimal string.
+ 
+Example:
+     15 becomes "0F"
+    255 becomes "FF"
+   4095 becomes "FFF"
+  65535 becomes "FFFF"
+ 
+See: HTOI
+~~~~
+HTOI|
+ 
+htoi ( s -- i )
+-----------------
+Level: M1 Apprentice
+s = Hexidecimal string to convert into integer.
+i = Integer value of hexidecimal string.
+ 
+Converts a hexadecimal string into an integer.
+ 
+Example:
+     "E" becomes 14
+    "8A" becomes 138   
+   "E4A" becomes 3658
+  "FFFA" becomes 65530
+ 
+See: ITOH
+~~~~
+UNESCAPE_URL|
+ 
+unescape_url ( s1 -- s2 )
+-----------------
+Level: M1 Apprentice
+s1 = URL string to process.
+s2 = URL string returned with %xx hex codes converted.
+ 
+Given an escaped URL as argument s1, converts the %xx hex
+codes into their ASCII character values.
+ 
+Used primarily by the MUF webserver and HTMuf/CGI 
+programs.
+     
+See: ESCAPE_URL
+~~~~
+ESCAPE_URL|
+ 
+escape_url ( s1 -- s2 )
+-----------------
+Level: M1 Apprentice
+s1 = Unescaped URL string to process.
+s2 = Escaped URL string.
+ 
+Given an unescaped URL as argument s1, converts certain 
+characters
+into %xx hex values.
+ 
+Used primarily by the MUF webserver and HTMuf/CGI 
+programs.
+ 
+See: UNESCAPE_URL
+~~~~
+SOCKSHUTDOWN|
+
+sockshutdown ( (SOCKET) i1 -- i2 )
+----------------------------------
+Level: W3 ArchWizard
+i1 = integer (0 through 2) indicating how to shut down the socket.
+i2 = success indicator
+
+This closes down the socket. You can control in which way you want
+the socket to be shutdown. 
+i1 can be the following values:
+0 = Stop recieving data for this socket. 
+1 = Stop trying to transmit any data from this socket. This will
+    also keep the TCP layer from looking for acknowledgement packets
+    on this connection.
+2 = Close down the socket in both directions. This is the traditional
+    SOCKCLOSE behavior. 
+
+This prim will replace SOCKCLOSE in 1.9. SOCKCLOSE will be defined
+as '2 SOCKSHUTDOWN' come 1.9. 
+
+See: SOCKCLOSE
+~~~~
+MKDIR|
+
+mkdir ( s -- i )
+----------------
+Level: W4 Boy
+s = name and path of the new directory
+i = Success in making the directory
+
+Given a string, attempts to make a directory by that name. Respects
+and requires the file token shortcuts. If the directory is made,
+1 is returned. 0 is returned if the prim was unable to make the
+directory.
+
+See: FILE PRIMS, SHORTCUTS
+~~~~
+DEBUGGER_BREAKPOINT|
+
+debugger_breakpoint ( -- )
+--------------------------
+Level: M1 Apprentice
+
+When this prim is encountered, the MUF is forced straight into the 
+interactive debugger mode on whoever it was that was running the MUF.
+~~~~~
+SYSTIME_PRECISE|
+
+systime_precise ( -- f )
+------------------------
+Level: M1 Apprentice
+f = floating point number
+
+This prim returns the systime time with an accuracy down to millisecond
+accuracy. Can be used for high precision timing loops.
+~~~~~
