@@ -11,6 +11,9 @@
  * Tunable parameters -- Edit to you heart's content 
  *
  */
+#ifndef __CONFIG_H
+#define __CONFIG_H
+
 #include "copyright.h"
 
 /************************************************************************
@@ -311,10 +314,27 @@
 #include <ctype.h>
 #include <sys/types.h>
 
-#ifdef WIN32
+#ifdef _MSC_VER 
+/* 
+ * If you are using Visual C++, please use 6.0 or later.
+ */
+#define WIN_VC
+#endif
+
+#ifdef WIN_VC
 # include "winconf.h"
 # include "process.h"
 # include <winsock.h>
+# define  errnosocket WSAGetLastError()
+# ifdef  SPAWN_HOST_RESOLVER
+#  undef SPAWN_HOST_RESOLVER
+# endif
+  /* Define WINNT >= 4.0 to get better WinSock compile */
+# ifdef _WIN32_WINNT
+#  undef _WIN32_WINNT
+# endif
+# define _WIN32_WINNT 0x0400
+# include <windows.h>
 # define  strcasecmp(x,y) stricmp((x),(y))
 # define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
 # define  waitpid(x,y,z) cwait((y),(x),_WAIT_CHILD)
@@ -324,7 +344,9 @@
 # define  getdtablesize() (FD_SETSIZE)
 # define  readsocket(x,y,z) recv((x),(y),(z),0)
 # define  writesocket(x,y,z) send((x),(y),(z),0)
-# define  gettimeofday(x,y) (((x)->tv_sec = time(NULL)) + ((x)->tv_usec = 0))
+# define  random() rand()
+# define  srandom() srand()
+  extern void gettimeofday(struct timeval *tval, void *tzone);
 # define  errnosocket WSAGetLastError()
 #else
 # include "autoconf.h"
@@ -405,6 +427,10 @@
  * Not realy used for anything any more, probably can be scrapped,
  * will see in a version or so.
  */
+
+#if defined(__CYGWIN__)
+# define WIN32
+#endif
 #if defined(linux) || defined(__linux__) || defined(LINUX)
 # define SYS_TYPE "Linux"
 # define LINUX
@@ -450,8 +476,15 @@
 # endif
 #endif
 
-#if defined(__WINDOWS__)
-# define SYS_TYPE "WIN32"
+#if defined(__WINDOWS__) || defined(WIN32)
+# define SYS_TYPE "WINDOWS"
+# if !defined(WIN32) && !defined(__VISUAL_C__)
+#  define WIN32
+# endif
+#endif
+
+#if defined(WIN_VC)
+# define SYS_TYPE "WINDOWS"
 #endif
 
 #ifndef SYS_TYPE
@@ -467,4 +500,4 @@
 
 
 
-
+#endif /* _CONFIG_H_ */

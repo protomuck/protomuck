@@ -3,8 +3,11 @@
 #ifndef __DB_H
 #define __DB_H
 
+#include "config.h"
 #include <stdio.h>
-#include <time.h>
+#ifndef WIN_VC
+# include <time.h>
+#endif
 #include <sys/time.h>
 #ifdef HAVE_TIMEBITS_H
 #  define __need_timeval 1
