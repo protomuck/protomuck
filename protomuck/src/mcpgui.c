@@ -21,6 +21,7 @@ typedef struct DlogData_t {
 	struct DlogData_t **prev;
 	char *id;
 	int descr;
+        int dismissed;
 	DlogValue *values;
 	Gui_CB callback;
 	GuiErr_CB error_cb;
@@ -75,6 +76,18 @@ gui_dlog_get_descr(const char *dlogid)
 		return EGUINODLOG;
 	}
 }
+
+int
+GuiClosed(const char *dlogid) 
+{ 
+    DlogData *ptr = gui_dlog_find(dlogid); 
+    
+    if (ptr) { 
+        return ptr->dismissed; 
+    } else { 
+       return EGUINODLOG; 
+    } 
+} 
 
 
 int
@@ -237,6 +250,7 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 	} else if (!string_compare(msg->mesgname, "ctrl-event")) {
 		const char *evt = mcp_mesg_arg_getline(msg, "event", 0);
 		const char *dismissed = mcp_mesg_arg_getline(msg, "dismissed", 0);
+                const char *data = mcp_mesg_arg_getline(msg, "data", 0);
 		int did_dismiss = 1;
 
 		if (!id || !*id) {
@@ -253,8 +267,12 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 				did_dismiss = 0;
 			}
 		}
+                if (did_dismiss) { 
+                        dat->dismissed = 1; 
+                } 
+
 		if (dat->callback) {
-			dat->callback(dat->descr, dlogid, id, evt, did_dismiss, dat->context);
+			dat->callback(dat->descr, dlogid, id, evt, data, did_dismiss, dat->context);
 		}
 	} else if (!string_compare(msg->mesgname, "error")) {
 		const char *err  = mcp_mesg_arg_getline(msg, "errcode", 0);
@@ -290,6 +308,7 @@ gui_dlog_alloc(int descr, Gui_CB callback, GuiErr_CB error_cb, void *context)
 	ptr->id = (char *) malloc(strlen(tmpid) + 1);
 	strcpy(ptr->id, tmpid);
 	ptr->descr = descr;
+        ptr->dismissed = 0;
 	ptr->callback = callback;
 	ptr->error_cb = error_cb;
 	ptr->context = context;
@@ -338,6 +357,30 @@ GuiFree(const char *id)
 	free(ptr);
 	return 0;
 }
+
+int 
+gui_dlog_closeall_descr(int descr) 
+{ 
+    DlogData *ptr; 
+
+    ptr = dialog_list; 
+    while (ptr) { 
+        while (ptr) { 
+            if (ptr->descr == descr) { 
+                break; 
+            } 
+            ptr = ptr->next; 
+        } 
+        if (!ptr) { 
+            return 0; 
+        } 
+        if (ptr->callback) { 
+            ptr->callback(ptr->descr, ptr->id, "_closed", "buttonpress", NULL, 1, ptr->context); 
+        } 
+        ptr = ptr->next; 
+    } 
+    return 0; 
+} 
 
 
 int
@@ -519,10 +562,12 @@ GuiShow(const char *id)
 		return EGUINODLOG;
 	}
 	if (GuiSupported(descr)) {
+                if (!GuiClosed(id)) {
 		mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-show");
 		mcp_mesg_arg_append(&msg, "dlogid", id);
 		mcp_frame_output_mesg(mfr, &msg);
 		mcp_mesg_clear(&msg);
+                }
 		return 0;
 	}
 	return EGUINOSUPPORT;
@@ -542,10 +587,12 @@ GuiClose(const char *id)
 		return EGUINODLOG;
 	}
 	if (GuiSupported(descr)) {
+           if (!GuiClosed(id)) {
 		mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-close");
 		mcp_mesg_arg_append(&msg, "dlogid", id);
 		mcp_frame_output_mesg(mfr, &msg);
 		mcp_mesg_clear(&msg);
+           }
 		return 0;
 	}
 	return EGUINOSUPPORT;

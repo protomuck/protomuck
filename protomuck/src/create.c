@@ -161,7 +161,8 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 	DBDIRTY(loc);
 
 	/* and we're done */
-	sprintf(buf, CSUCC "Exit #%d created and opened.", exit);
+	sprintf(buf, CSUCC "Exit %s created and opened.", 
+                unparse_object(player, exit));
 	anotify_nolisten2(player, buf);
 
 	/* check second arg to see if we should do a link */
@@ -492,7 +493,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     DBDIRTY(room);
     DBDIRTY(newparent);
 
-    sprintf(buf, CSUCC "Room #%d created.", room);
+    sprintf(buf, CSUCC "Room %s created.", unparse_object(player, room));
     anotify_nolisten2(player, buf);
 
     strcpy(buf, pname);
@@ -848,7 +849,8 @@ do_create(dbref player, char *name, char *acost)
 	DBDIRTY(player);
 
 	/* and we're done */
-	sprintf(buf, CSUCC "Object #%d created.", thing);
+	sprintf(buf, CSUCC "Object %s created.",
+                unparse_object(player, thing));
 	anotify_nolisten2(player, buf);
 	DBDIRTY(thing);
     }
@@ -1027,7 +1029,8 @@ do_action(int descr, dbref player, const char *action_name, const char *source_n
     FLAGS(action) = TYPE_EXIT;
 
     set_source(player, action, source);
-    sprintf(buf, CSUCC "Action #%d created and attached.", action);
+    sprintf(buf, CSUCC "Action %s created and attached to %s.",
+            unparse_object(player, action), NAME(source));
     anotify_nolisten2(player, buf);
     DBDIRTY(action);
 
@@ -1052,6 +1055,7 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
     dbref   action, source;
     dbref   loc;		/* player's current location */
     struct match_data md;
+    char buf[BUFFER_LEN];
 
     if ((loc = DBFETCH(player)->location) == NOTHING)
 	return;
@@ -1088,7 +1092,9 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
 	return;
     }
     set_source(player, action, source);
-    anotify_nolisten2(player, CSUCC "Action re-attached.");
+    sprintf(buf, CSUCC "Action %s re-attached to %s from %s.",
+            unparse_object(player, action), NAME(source), NAME(loc) );
+    anotify_nolisten2(player, buf);
     if (MLevel(action)) {
 	SetMLevel(action, 0);
         anotify_nolisten2(player, CINFO "Action priority Level reset to zero.");

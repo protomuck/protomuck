@@ -77,6 +77,7 @@
     const char * dlogid,         \
     const char * id,             \
     const char * event,          \
+    const char * data,   \
     int   did_dismiss,    \
     void* context
 
@@ -206,6 +207,7 @@ int GuiShow(const char *id);
  */
 int GuiClose(const char *id);
 int GuiFree(const char *id);
+int gui_dlog_closeall_descr(int descr);
 int gui_dlog_freeall_descr(int descr);
 
 

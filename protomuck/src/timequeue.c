@@ -136,9 +136,9 @@ free_timenode(timequeue ptr)
     if (ptr->str3)
 	free(ptr->str3);
     if (ptr->fr) {
-	if (ptr->fr->multitask != BACKGROUND)
-	    DBFETCH(ptr->uid)->sp.player.block = 0;
-	if (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER) {
+        if (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER) { 
+	    if (ptr->fr->multitask != BACKGROUND)
+	        DBFETCH(ptr->uid)->sp.player.block = 0;
 	    prog_clean(ptr->fr);
 	}
 	if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
@@ -146,7 +146,7 @@ free_timenode(timequeue ptr)
 	    FLAGS(ptr->uid) &= ~INTERACTIVE;
 	    FLAGS(ptr->uid) &= ~READMODE;
 	    anotify_nolisten(ptr->uid, CINFO
-							"Data input aborted.  The command you were using was killed.", 1);
+                "Data input aborted.  The command you were using was killed.", 1);
 	}
     }
     if (free_timenode_count < tp_free_frames_pool) {
@@ -1062,7 +1062,7 @@ do_dequeue(int descr, dbref player, const char *arg1)
 	    }
 	    while (ptr) {
 		tmp = ptr;
-		ptr = ptr->next;
+		tqhead = ptr = ptr->next;
 		free_timenode(tmp);
 		process_count--;
 	    }
