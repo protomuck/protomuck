@@ -132,6 +132,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 
     mystring = (char *) malloc(3);
     bigbuf = (char *) malloc(BUFFER_LEN);
+    memset(bigbuf, '\0', BUFFER_LEN); /* clear buffer out */
     bufpoint = bigbuf;
 
     t_val.tv_sec = 0;
@@ -162,21 +163,71 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
            if ((*mystring == '\0') || (((*mystring == '\n') ||
                (*mystring == '\r') )))
                break;
-           gotmessage = 1;
+           gotmessage = 1; /* indicates the socket sent -something- */
 	   ++charCount;
 	   if (isascii(*mystring))
                *bufpoint++=*mystring;
            readme = recv(oper1->data.sock->socknum,mystring,1,0);
        }
-       if(isascii(*mystring))
+       if (*mystring == '\n' && oper1->data.sock->usequeue) {
+           gotmessage = 1; /* needed to catch enter presses for sockqueue */
+           if (charCount == 0)
+               charCount = 1;
+           bigbuf[0] = '\n';
+       }
+       if(isascii(*mystring)) /* TODO: Check if lastchar is ever used. */
            oper1->data.sock->lastchar = *mystring;
+       if (gotmessage && oper1->data.sock->usequeue) { /* special handling */
+           char *p, *pend, *q, *qend;
+           struct muf_socket *theSock = oper1->data.sock;       
+           if (!theSock->raw_input) { /* No Queue. Allocate one. */
+               theSock->raw_input = (char *) malloc(sizeof(char) * BUFFER_LEN);
+               theSock->raw_input_at = theSock->raw_input;
+           }
+           p = theSock->raw_input_at;
+           pend = theSock->raw_input + BUFFER_LEN - 1;
+           gotmessage = 0; /* now it determines if we send or not. */
+           for (q = bigbuf, qend = bigbuf + charCount; q < qend; ++q) {
+               if (*q == '\n' || *q == '\r') { /* encountered end of line */
+                   *p = '\0';
+                   if (p > theSock->raw_input) /* have string */
+                       strcpy(bigbuf, theSock->raw_input);
+                   else /* empty string */
+                       strcpy(bigbuf, "");
+                   free(theSock->raw_input);
+                   theSock->raw_input = NULL;
+                   theSock->raw_input_at = NULL; 
+                   p = NULL;
+                   gotmessage = 1; /* to prevent clearing bigbuf later */
+                   break;   
+               } else if (p < pend && (isascii(*q))) {
+                   if (isprint(*q))
+                       *p++ = *q;
+                   else if (*q == '\t') 
+                       *p++ = ' ';
+                   else if (*q == 8 || *q == 127)
+                       if (p > theSock->raw_input)
+                           --p; /* back cursor up */
+                       else 
+                           *p = '\0'; /* zero string */
+               }
+           } /* for */
+           if (p > theSock->raw_input)
+               theSock->raw_input_at = p;
+           if (!gotmessage)
+               strcpy(bigbuf, "");
+       } /* if tp_socket queues... */
+    } /* if FD_ISSET */
+    if (gotmessage) { /* update */
+        oper1->data.sock->last_time = time(NULL);
+        oper1->data.sock->commands += 1;
     }
     CLEAR(oper1);
     if(tp_log_sockets)
         if(gotmessage)
             log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program, 
                            unparse_object(player, player), sockval);
-    *bufpoint = '\0';
+    //*bufpoint = '\0';
 /* If readme is 0, it got dropped. If it's less than -1, there was
  * an error and it should be dropped anyway. 
  * If it's -1, then it's just a empty non-blocking call.
@@ -237,6 +288,7 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
        }
        oper1->data.sock->lastchar = *mystring;
     }
+    oper1->data.sock->last_time = time(NULL); /* time of last command */
     CLEAR(oper1);
     if(tp_log_sockets)
         if(gotmessage)
@@ -272,6 +324,7 @@ prim_sockclose(PRIM_PROTOTYPE)
         log2filetime( "logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program, 
                        unparse_object(player, player), 
                        oper1->data.sock->socknum);
+    oper1->data.sock->connected = 0;
     CLEAR(oper1);
     PushInt(myresult);
 }   
@@ -349,13 +402,20 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     result->data.sock->links = 1;
     result->data.sock->lastchar = '0';
     result->data.sock->listening = 0;
-    /* Right now, this is just a temp fix to prevent a crasher with
-     * invalid hosts. Eventually it will actually store the long int
-     * value of the host. There will be no need to change other references
-     * in the code once this change is made, since any host int will
-     * be 'true', which corresponds with the '1' being set manually 
-     * for right now.
-     */
+    result->data.sock->raw_input = NULL;
+    result->data.sock->raw_input_at = NULL;
+    result->data.sock->inIAC = 0;
+    result->data.sock->commands = 0;
+    result->data.sock->port = oper2->data.number; /* remote port # */
+    result->data.sock->hostname = alloc_string(oper1->data.string->data);
+    result->data.sock->host = ntohl(name.sin_addr.s_addr);
+    result->data.sock->username = alloc_string(unparse_object(player, player));
+    result->data.sock->connected_at = time(NULL);
+    result->data.sock->last_time = time(NULL);
+    if (tp_enable_sockqueue)
+        result->data.sock->usequeue = 1;
+    else
+        result->data.sock->usequeue = 0; 
     result->data.sock->host = validHost; 
     if(tp_log_sockets)
       log2filetime( "logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n", 
@@ -428,6 +488,7 @@ prim_sockcheck(PRIM_PROTOTYPE)
        else 
            oper1->data.sock->connected = 1;
     }
+    oper1->data.sock->last_time = time(NULL);
     CLEAR(oper1);
     PushInt(connected);
 }
@@ -527,6 +588,17 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->links = 1;
     result->data.sock->lastchar = '0';
     result->data.sock->listening = 1;
+    result->data.sock->raw_input = NULL;
+    result->data.sock->raw_input_at = NULL;
+    result->data.sock->inIAC = 0;
+    result->data.sock->connected_at = time(NULL);
+    result->data.sock->last_time = time(NULL);
+    result->data.sock->commands = 0;
+    result->data.sock->port = oper1->data.number; /* listening port */
+    result->data.sock->hostname = alloc_string("localhost");
+    result->data.sock->username = alloc_string(tp_muckname);
+    result->data.sock->host = 1;
+    result->data.sock->usequeue = 0;
 
     if (tp_log_sockets)
         log2filetime( "logs/sockets", "#%d by %s LSOCKOPEN: Port:%d -> %d\n",
@@ -596,7 +668,6 @@ prim_sockaccept(PRIM_PROTOTYPE)
     } 
 
     /* We have the new socket, now initialize muf_socket struct */
-    CLEAR(oper1);
     result = (struct inst *) malloc(sizeof(struct inst));
     result->type = PROG_SOCKET;
     result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
@@ -605,10 +676,62 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->links = 1;
     result->data.sock->lastchar = '0';
     result->data.sock->listening = 0;
+    result->data.sock->raw_input = NULL;
+    result->data.sock->raw_input_at = NULL;
+    result->data.sock->inIAC = 0;
+    result->data.sock->connected_at = time(NULL);
+    result->data.sock->last_time = time(NULL);
+    result->data.sock->hostname = alloc_string("somesite"); /* not done */
+    result->data.sock->username = alloc_string("someuser"); /* not done */
+    result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
+    result->data.sock->port = oper1->data.sock->port; /* port it connected to*/
+    if (tp_enable_sockqueue)
+        result->data.sock->usequeue = 1;
+    else
+        result->data.sock->usequeue = 0;
+    if (tp_log_sockets)
+        log2filetime( "logs/sockets", "#%d by %s SOCKACCEPT: Port:%d -> %d\n",
+                      program, unparse_object(player, (dbref) 1),
+                      oper1->data.number, result->data.sock->socknum);
 
-    //add in socket logging here
+    CLEAR(oper1);
+
     copyinst(result, &arg[(*top)++]);
     CLEAR(result);
 }    
+
+void
+prim_get_sockinfo(PRIM_PROTOTYPE)
+{
+    stk_array *nw;
+    struct muf_socket *theSock;
+    /* (SOCKET) -- dict */
+    oper1 = POP(); /* socket */
+
+    if (mlev < LARCH)
+        abort_interp("Permission denied.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("MUF Socket expected. (1)");
+
+    theSock = oper1->data.sock;
+    nw = new_array_dictionary();
+    array_set_strkey_intval(&nw, "DESCR", theSock->socknum);
+    array_set_strkey_intval(&nw, "CONNECTED", theSock->connected);
+    array_set_strkey_intval(&nw, "LISTENING", theSock->listening);
+    array_set_strkey_strval(&nw, "HOST", host_as_hex(theSock->host));
+    array_set_strkey_intval(&nw, "CONNECTED_AT", theSock->connected_at);
+    array_set_strkey_intval(&nw, "LAST_TIME", theSock->last_time);
+    array_set_strkey_intval(&nw, "COMMANDS", theSock->commands);
+    array_set_strkey_intval(&nw, "PORT", theSock->port);
+    array_set_strkey_intval(&nw, "SOCKQUEUE", theSock->usequeue);
+    array_set_strkey_strval(&nw, "HOSTNAME", 
+                                theSock->hostname ? theSock->hostname : "" ); 
+    array_set_strkey_strval(&nw, "USERNAME", 
+                                theSock->username ? theSock->username : "" );
+
+    CLEAR(oper1);
+    PushArrayRaw(nw);
+
+} 
 
 #endif /* MUF_SOCKETS */

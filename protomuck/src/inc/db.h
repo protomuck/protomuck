@@ -438,7 +438,18 @@ struct muf_socket {             /* struct for MUF socket data */
    int listening;               /* Set to 1 if successfully opened listening */
    int links;                   /* Number of instances of the socket. */
    int host;                    /* will eventually be the host integer */
-   char lastchar;
+   char *raw_input;             /* recieve queue for telnet connections. */
+   char *raw_input_at;          /* for use in handling the recieve queue */
+   int  inIAC;                  /* For correct telnet negotiations. */
+   int connected_at;            /* Systime connection was made. */
+   int last_time;               /* last time command recieved. */
+   const char *hostname;        /* string host name for incoming cons */
+   const char *username;        /* string user name for incoming cons */
+   int commands;                /* number of commands entered. */
+   int port;                    /* port number that LSOCKET is listening on */
+   int usequeue;                /* toggles recieve buffer behavior */
+   char lastchar; /* Does this do anything actually? */
+    
 };
 
 #ifdef SQL_SUPPORT
