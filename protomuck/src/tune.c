@@ -97,6 +97,7 @@ time_t tp_connidle                = CONNIDLE;
 time_t tp_maxidle                 = MAXIDLE;
 time_t tp_idletime                = IDLETIME;
 time_t tp_cron_interval           = CRON_INTERVAL;
+time_t tp_archive_interval        = ARCHIVE_INTERVAL;
 
 struct tune_time_entry {
     const char *name;
@@ -119,6 +120,7 @@ struct tune_time_entry tune_time_list[] =
     {"maxidle",             &tp_maxidle,              LARCH, LMUF },
     {"idletime",            &tp_idletime,             LARCH, LMUF },
     {"cron_interval",       &tp_cron_interval,        LARCH, LMUF },
+    {"archive_interval",    &tp_archive_interval,     LARCH, LMUF },
     {NULL, NULL, 0, 0}
 };
 
@@ -303,6 +305,7 @@ int tp_mortalwho			     = 1;
 int tp_fb_controls		     = 1;
 int tp_allow_old_trigs		     = 1;
 int tp_multi_wizlevels             = 1;
+int tp_auto_archive                = 0;
 
 struct tune_bool_entry {
     const char *name;
@@ -374,6 +377,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"fb_controls",            &tp_fb_controls,              LBOY,  LMUF },
     {"allow_old_trigs",        &tp_allow_old_trigs,          LARCH, LMUF },
     {"multi_wizlevels",        &tp_multi_wizlevels,          LBOY,  LMUF },
+    {"auto_archive",           &tp_auto_archive,             LBOY,  LMAGE},
     {NULL, NULL, 0, 0}
 };
 
