@@ -15,6 +15,9 @@ Alphabetically or sorted by Category.  To get these indexes, type:
 ~
 NEW|WHATSNEW|WHAT'SNEW|WHAT'S NEW|WHATS NEW|WHAT IS NEW|WHATISNEW
 What's new in MPI?
+
+New addition to ProtoMUCK v1.80:
+  {parse_ansi}
  
 New additions to ProtoMUCK v1.60:
   {descr}   {sysparm}
@@ -116,7 +119,7 @@ String Functions
   html         instr        left         lit          midstr       nl    
   null         oansi        ohtml        otell        pronouns     right 
   smatch       strip        strlen       subst        tell         tolower
-  toupper      telldescr
+  toupper      telldescr    parse_ansi
  
 Use 'mpi <topicname>' to get more information on a topic.
 ~
@@ -240,13 +243,13 @@ lunion       lunique      macros       match        max          midstr
 min          mklist       mod          modified     money        muckname     
 muf          mult         name         ne           nearby       nl           
 not          null         online       ontime       or           oansi        
-ohtml        otell        owner        parse        pmatch       pronouns     
-prop         prop!        propdir      rand         ref          right        
-secs         select       set          sign         smatch       stimestr     
-store        strip        strlen       sublist      subst        subt         
-tell         testlock     time         timestr      timesub      tolower      
-toupper      type         tzoffset     usecount     v            version      
-while        with         xor
+ohtml        otell        owner        parse        parse_ansi   
+pmatch       pronouns     prop         prop!        propdir      rand    
+ref          right        secs         select       set          sign   
+smatch       stimestr     store        strip        strlen       sublist  
+subst        subt         tell         testlock     time         timestr    
+timesub      tolower      toupper      type         tzoffset     usecount  
+v            version      while        with         xor
  
 Use 'mpi <topicname>' to get more information on a topic.
 ~
@@ -1757,7 +1760,21 @@ arguments:
 	}
     }
     {names:{contents:here},1,1}
+~~~
+PARSE_ANSI
 
+{parse_ansi:type,string}
+------------------------
+
+Similiar to the MUF PARSE_ANSI prim, it will convert any type of ANSI
+code into Standard ANSI. The following ANSI codes are handled:
+
+Type 0 = FB6 style ANSI tags:  \[[0;31
+Type 1 = Neon style ANSI tags: ^RED^
+Type 2 = Mush style ANSI tags: %cg%ch
+Type 3 = Tilde style ANSI tags: ~&110
+
+~~~~ 
 
 
 
