@@ -5612,7 +5612,7 @@ array = A list array.
 
 These are both in-server $defines for:
 } array_make
-} array_dict_make
+} array_make_dict
 
 See: ARRAY PRIMS
 ~~~
