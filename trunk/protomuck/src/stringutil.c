@@ -514,7 +514,7 @@ color_lookup( dbref player, const char *color, const char *defcolor, int intrecu
 
    if( (!color) || (!*color) )
 	return defcolor;
-
+    if (player != NOTHING ) {
     if( !strcasecmp( "SUCC", color ) || !strcasecmp( "CSUCC", color ) ) {
       tempcolor = get_uncompress(GETMESG(player, "_/COLORS/SUCC"));
       if(!tempcolor)
@@ -576,7 +576,7 @@ color_lookup( dbref player, const char *color, const char *defcolor, int intrecu
        (void) intrecurse++;
        return color_lookup(player, color, defcolor, intrecurse);
     }
-
+    }//End of player != NOTHING check. Too lazy to indent all that.
     if( !strcasecmp( "NORMAL", color )) {
 	return ANSINORMAL;
     } else if( !strcasecmp( "FLASH", color ) || !strcasecmp( "BLINK", color )) {

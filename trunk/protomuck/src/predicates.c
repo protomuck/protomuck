@@ -375,6 +375,8 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
 int 
 payfor(dbref who, int cost)
 {
+    if (who == NOTHING)
+        return 1;
     who = OWNER(who);
     if (Mage(who) || (POWERS(who) & POW_NO_PAY)) {
 	return 1;

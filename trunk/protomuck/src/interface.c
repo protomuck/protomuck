@@ -3002,7 +3002,6 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	if((prpt) || (m && *m)) 
 	{
 		struct frame *tmpfr;
-notify(1, "Checking for program ref.");
 	      if (PropType(prpt) == PROP_REFTYP) /* Program reference? */
 	      {
 		sprintf(buf, "%d|%s|%s|%s",
@@ -3012,7 +3011,6 @@ notify(1, "Checking for program ref.");
 		tmpfr = interp(d->descriptor, tp_www_surfer, what, PropDataRef(prpt),
 		       tp_www_root, BACKGROUND, STD_HARDUID);
 		if (tmpfr) {
-notify(1, "In the interp loop.");
 			interp_loop(tp_www_surfer, PropDataRef(prpt), tmpfr, 1);
 		}
 		strcpy(match_args,"");
@@ -4855,7 +4853,7 @@ pset_user2(int c, dbref who)
    else
       result = plogin_user(d, who);
       d->booted = 0;
-      if (d->typ == CT_MUF)
+      if (d->type == CT_MUF)
           d->type = CT_MUCK;
    return result;
 }

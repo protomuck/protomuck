@@ -723,19 +723,26 @@ list_events(dbref player)
 			   ptr->eventnum, "--",
 			   time_format_2((long) etime),
 			   (ptr->fr->instcnt / 1000), pcnt,
-			   ptr->called_prog, NAME(ptr->uid), ptr->called_data);
+			   ptr->called_prog, 
+                           (ptr->uid != NOTHING) ? NAME(ptr->uid): "(Login)",
+                           ptr->called_data);
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TIMER) {
 	    (void) sprintf(buf, "(%6d) %4s %4s %5d %4.1f #%-6d %-16s %.512s",
 			   ptr->eventnum, buf2,
 			   time_format_2((long) etime),
 			   (ptr->fr->instcnt / 1000), pcnt,
-			   ptr->called_prog, NAME(ptr->uid), ptr->called_data);
+			   ptr->called_prog, 
+                           (ptr->uid != NOTHING) ? NAME(ptr->uid): "(Login)", 
+                           ptr->called_data);
+
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TREAD) {
 	    (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
 			   ptr->eventnum, buf2,
 			   time_format_2((long) etime),
 			   (ptr->fr->instcnt / 1000), pcnt,
-			   ptr->called_prog, NAME(ptr->uid), ptr->called_data);
+			   ptr->called_prog, 
+                           (ptr->uid != NOTHING) ? NAME(ptr->uid): "(Login)", 
+                           ptr->called_data);
 	} else if (ptr->typ == TQ_MPI_TYP) {
 	    (void) sprintf(buf, "%8d %4s   --   MPI   -- #%-6d %-16s \"%.512s\"",
 			   ptr->eventnum, buf2, ptr->trig, NAME(ptr->uid), ptr->called_data);
