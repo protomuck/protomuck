@@ -26,10 +26,11 @@ Variable Prims:
   DESCR   VAR!
 
 Multitasking Prims:
-  PREEMPT       FOREGROUND     BACKGROUND     MODE         SETMODE
-  PR_MODE       FG_MODE        BG_MODE        SLEEP
-  EVENT_WAIT    EVENT_SEND     EVENT_COUNT    EVENT_EXISTS
-  TIMER_START   TIMER_STOP     EVENT_WAITFOR  WATCHPID
+  PREEMPT       FOREGROUND      BACKGROUND     MODE         SETMODE
+  PR_MODE       FG_MODE         BG_MODE        SLEEP
+  EVENT_WAIT    EVENT_SEND      EVENT_COUNT    EVENT_EXISTS
+  TIMER_START   TIMER_STOP      EVENT_WAITFOR  WATCHPID
+  ONEVENT       INTERRUPT_LEVEL
 
 Math and Logic Prims:
   +     -     *     /     %     <     >     =     <=     >=  
@@ -274,6 +275,7 @@ MUF EVENTS         - Notes on how to use events in MUF.
 MCP PRIMS          - Notes on the graphical MUF prims.
 WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
 EXCEPTION HANDLING - Notes on exception handling in MUF.
+INTERRUPTS         - Explanation and examples of MUF interrupt support.
 MUF OPTIMIZING     - What the new byte code optimizer actually does. 
 CREDITS            - Who to blame this mess on!
 ~~~~
@@ -486,10 +488,11 @@ MULTITASKING PRIMS
 
 These prims are used to manage MUF program run-modes:
 
-PREEMPT       FOREGROUND     BACKGROUND     MODE     SETMODE
-PR_MODE       FG_MODE        BG_MODE        SLEEP
-EVENT_WAIT    EVENT_SEND     EVENT_COUNT
-TIMER_START   TIMER_STOP     EVENT_WAITFOR  WATCHPID
+PREEMPT       FOREGROUND       BACKGROUND     MODE     SETMODE
+PR_MODE       FG_MODE          BG_MODE        SLEEP
+EVENT_WAIT    EVENT_SEND       EVENT_COUNT
+TIMER_START   TIMER_STOP       EVENT_WAITFOR  WATCHPID
+ONEVENT       INTERRUPT_LEVEL
 
 See: MULTITASKING
 ~~~~
@@ -9915,3 +9918,120 @@ in the array, the result will be float, even if the result is not
 fractional.
 
 If any other datatypes are in the array, it will abort in an error.
+~~~~~
+INTERRUPTS|INTERRUPT|MUF INTERRUPTS|MUFINTERRUPTS|INTERRUPTS1|INTERRUPT1
+
+MUF Interrupts
+--------------
+Introduced with ProtoMUCK 2.0, MUF interrupts allow MUF programs to set
+ interrupts linked to specific events.  When this specific event is received,
+ program execution will halt and the function specified (using ONEVENT) is
+ called.  When this function exits, program execution continues at whatever
+ point and state it was at when the interrupt was thown.
+
+At the time of this writing, timer events cannot interrupt SLEEP or READ. The
+ cause of this problem is unknown.  Also, interrupt functions cannot interrupt
+ eachother.  That is, if a new interrupt is thrown while a previous interrupt's
+ function is still in execution, the second (and any following interrupts) will
+ be handled after the exit of each previous interrupt handler function.
+
+The maximum level of interrupts queued for execution at a time is 32, although
+ an unlimited number of interrupts can be declared at a time using the ONEVENT
+ primitive.
+
+Interrupts can interrupt EVENT_WAITFOR, SLEEP, READ and any other blocking
+ MUF program states, and can wait for any specific event.
+
+Multiple interrupts can be queued for the same event, and will be executed
+ in reverse order of how they were declared (using ONEVENT).
+
+Continued, see: INTERRUPTS2
+~~~~~
+INTERRUPTS2|INTERRUPT2|MUF INTERRUPTS2|MUFINTERRUPTS2
+
+MUF Interrupts, continued
+-------------------------
+Based on the integer value passed to ONEVENT, the triggering event may or may
+ not be passed to the MUF event queue (IE: caught by EVENT_WAITFOR).  If
+ multiple interrupts exist for the same event, and any one of those says to
+ leave the event in the queue, such will be done.  Please keep this in mind
+ if EVENT_WAITFOR is used within interrupt-called functions.
+
+When an interrupt is thrown, the function it calls is passed the following set
+ of arguements:
+
+   ( ???:Data strEvent strID )
+
+Data is the data passed to the event, strEvent is the string event ID name, and
+ strID is the interrupt's ID name as passed to ONEVENT.  Only one interrupt can
+ be declared with the same name per program instance.  Keep this in mind if
+ using interrupts in libraries or other shared programs.
+
+Please note that interrupt functions are _NOT_ protected from the rest of the
+ program's active stack.  If stack items are edited, changed, or you fail to
+ pop or use the three stack items provided to the interrupt function, the main
+ program _WILL_ fail (unless otherwise done by design).
+
+For an example, see: INTERRUPTS3
+
+See: ONEVENT, INTERRUPT_LEVEL
+~~~~~
+INTERRUPTS3|INTERRUPT3|MUF INTERRUPTS3|MUFINTERRUPTS3
+
+MUF Interrupts, example
+-----------------------
+Here is a simple example program which throws an interrupt every 5 seconds
+ using a timer:
+
+: ping ( ? s s -- )
+   ( Notify the user, reset the timer, and make sure )
+   (  to leave with a clean stack.                   )
+   me @ "Got interrupt ID: " rot strcat notify
+   pop pop 5 "ping" timer_start
+;
+
+: main ( s -- )
+   "TIMER.ping" "intping" 'ping 0 onevent
+   5 "ping" timer_start
+   begin
+     event_waitfor pop pop
+     ( We never fall here, the event is never passed )
+     (  to EVENT_WAITFOR.                            )
+   repeat
+;
+~~~~~
+ONEVENT
+
+onevent ( s1 s2 a i -- )
+------------------------
+Level: M1 Apprentice
+s1 = Event ID of the event to trigger this interrupt.
+s2 = This interrupt's ID name.
+a  = Address of function to execute when the interrupt is thrown.
+i  = If true, event is passed into the program's event queue.
+
+Example usage:
+ "TIMER.ping" "int1" 'pingfunc 0 onevent
+
+Declares interrupt s2 for the current program, which will be triggered
+ whenever the program receives an event with the same ID as s1.  s1 accepts
+ SMATCH-like patterns like EVENT_WAITFOR does.
+
+If i evaluates to a true integer, the event will be passed to the program's
+ event queue, so that it can be caught by EVENT_WAITFOR and EVENT_EXISTS.
+ Otherwise, the event is not passed and is deleted after all interrupts for it
+ are thrown.
+
+See: INTERRUPTS, EVENT_WAITFOR, ADDRESS
+~~~~~
+INTERRUPT_LEVEL
+
+interrupt_level ( -- i)
+-----------------------
+Level: M1 Apprentice
+i = Number of interrupt levels.
+
+Returns the number of interrupts the program has serviced without returning
+ itself to normal execution.  The maximum is 32 before the program errors out.
+
+See: INTERRUPTS, ONEVENT
