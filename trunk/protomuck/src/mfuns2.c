@@ -79,7 +79,7 @@ mfn_owner(MFUNARGS)
     if (obj == AMBIGUOUS || obj == NOTHING || obj == UNKNOWN)
         ABORT_MPI("OWNER","Failed match.");
     if (obj == PERMDENIED)
-        ABORT_MPI("OWNER",NOPERM_MESG);
+        ABORT_MPI("OWNER",tp_noperm_mesg);
     if (obj == HOME)
 	obj = DBFETCH(player)->sp.player.home;
     return ref2str(OWNER(obj), buf);
@@ -129,7 +129,7 @@ mfn_links(MFUNARGS)
     if (obj == AMBIGUOUS || obj == UNKNOWN || obj == NOTHING || obj == HOME)
 	ABORT_MPI("LINKS","Match failed.");
     if (obj == PERMDENIED)
-	ABORT_MPI("LINKS",NOPERM_MESG);
+	ABORT_MPI("LINKS",tp_noperm_mesg);
     switch (Typeof(obj)) {
 	case TYPE_ROOM:
 	    obj = DBFETCH(obj)->sp.room.dropto;
@@ -204,6 +204,10 @@ mfn_testlock(MFUNARGS)
         ABORT_MPI("TESTLOCK","Match failed. (2)");
     if (obj == PERMDENIED)
         ABORT_MPI("TESTLOCK","Permission denied. (2)");
+    if (Prop_Hidden(argv[1]))
+        ABORT_MPI("TESTLOCK","Permission denied. (2)");
+    if (Prop_Private(argv[1]) && OWNER(perms) != OWNER(what))
+        ABORT_MPI("TESTLOCK","Permission denied. (2)");
     lok = get_property_lock(obj, argv[1]);
     if (argc > 3 && lok == TRUE_BOOLEXP)
 	return (argv[3]);
@@ -227,7 +231,7 @@ mfn_contents(MFUNARGS)
     if (obj == AMBIGUOUS || obj == UNKNOWN || obj == NOTHING || obj == HOME)
         ABORT_MPI("CONTENTS","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("CONTENTS",NOPERM_MESG);
+        ABORT_MPI("CONTENTS",tp_noperm_mesg);
 
     typchk = NOTYPE;
     if (argc > 1) {
@@ -282,7 +286,7 @@ mfn_exits(MFUNARGS)
     if (obj == AMBIGUOUS || obj == UNKNOWN || obj == NOTHING || obj == HOME)
         ABORT_MPI("EXITS","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("EXITS",NOPERM_MESG);
+        ABORT_MPI("EXITS",tp_noperm_mesg);
 
     switch(Typeof(obj)) {
         case TYPE_ROOM:
@@ -344,7 +348,7 @@ mfn_ref(MFUNARGS)
     } else {
 	obj = mesg_dbref_local(descr, player, what, perms, argv[0]);
 	if (obj == PERMDENIED)
-	    ABORT_MPI("REF",NOPERM_MESG);
+	    ABORT_MPI("REF",tp_noperm_mesg);
 	if (obj == UNKNOWN) obj = NOTHING;
     }
     sprintf(buf, "#%d", obj);
@@ -361,7 +365,7 @@ mfn_name(MFUNARGS)
     if (obj == UNKNOWN)
         ABORT_MPI("NAME","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("NAME",NOPERM_MESG);
+        ABORT_MPI("NAME",tp_noperm_mesg);
     if (obj == NOTHING) {
         strcpy(buf, "#NOTHING#");
 	return buf;
@@ -391,7 +395,7 @@ mfn_fullname(MFUNARGS)
     if (obj == UNKNOWN)
         ABORT_MPI("NAME","Match failed.");
     if (obj == PERMDENIED)
-        ABORT_MPI("NAME",NOPERM_MESG);
+        ABORT_MPI("NAME",tp_noperm_mesg);
     if (obj == NOTHING) {
         strcpy(buf, "#NOTHING#");
 	return buf;
@@ -1216,7 +1220,7 @@ mfn_type(MFUNARGS)
         return("Bad");
     if (obj == HOME) return("Room");
     if (obj == PERMDENIED)
-	ABORT_MPI("TYPE",NOPERM_MESG);
+	ABORT_MPI("TYPE",tp_noperm_mesg);
     
     switch(Typeof(obj)) {
         case TYPE_PLAYER:
@@ -1250,7 +1254,7 @@ mfn_istype(MFUNARGS)
     if (obj == NOTHING || obj == AMBIGUOUS || obj == UNKNOWN)
         return(string_compare(argv[1], "Bad") ? "0" : "1");
     if (obj == PERMDENIED)
-	ABORT_MPI("TYPE",NOPERM_MESG);
+	ABORT_MPI("TYPE",tp_noperm_mesg);
     if (obj == HOME)
         return(string_compare(argv[1], "Room") ? "0" : "1");
     
@@ -1343,7 +1347,7 @@ mfn_delay(MFUNARGS)
     if (i < 1) i = 1;
 #ifdef WIZZED_DELAY
     if (!Wizperms(perms))
-        ABORT_MPI("delay",NOPERM_MESG);
+        ABORT_MPI("delay",tp_noperm_mesg);
 #endif
     cmdchr = get_mvar("cmd");
     argchr = get_mvar("arg");
@@ -1362,7 +1366,7 @@ mfn_kill(MFUNARGS)
     if (i > 0) {
 	if (in_timequeue(i)) {
 	    if (!control_process(perms, i)) {
-		ABORT_MPI("KILL",NOPERM_MESG);
+		ABORT_MPI("KILL",tp_noperm_mesg);
 	    }
 	    i = dequeue_process(i);
 	} else {
@@ -1394,9 +1398,9 @@ mfn_muf(MFUNARGS)
     if (obj <= NOTHING || Typeof(obj) != TYPE_PROGRAM)
         ABORT_MPI("MUF","Bad program reference.");
     if (!(FLAGS(obj) & LINK_OK) && !controls(perms,obj))
-        ABORT_MPI("MUF",NOPERM_MESG);
+        ABORT_MPI("MUF",tp_noperm_mesg);
     if ((mesgtyp & (MPI_ISLISTENER | MPI_ISLOCK)) && (MLevel(obj) < 3))
-        ABORT_MPI("MUF",NOPERM_MESG);
+        ABORT_MPI("MUF",tp_noperm_mesg);
 
     if (++mpi_muf_call_levels > 18)
         ABORT_MPI("MUF","Too many call levels.");
@@ -1456,7 +1460,7 @@ mfn_force(MFUNARGS)
     if (!*argv[1])
         ABORT_MPI("FORCE","Null command string. (2)");
     if (!tp_zombies && !Archperms(perms))
-        ABORT_MPI("FORCE",NOPERM_MESG);
+        ABORT_MPI("FORCE",tp_noperm_mesg);
     if (!Archperms(perms)) {
 	const char *ptr = RNAME(obj);
 	char objname[BUFFER_LEN], *ptr2;
@@ -1466,7 +1470,7 @@ mfn_force(MFUNARGS)
 	    if (FLAGS(obj) & DARK)
 		ABORT_MPI("FORCE","Cannot force a dark puppet.");
 	    if ((FLAGS(OWNER(obj)) & ZOMBIE))
-		ABORT_MPI("FORCE",NOPERM_MESG);
+		ABORT_MPI("FORCE",tp_noperm_mesg);
 	    if (loc != NOTHING && (FLAGS(loc) & ZOMBIE) &&
 		    Typeof(loc) == TYPE_ROOM)
 		ABORT_MPI("FORCE","Cannot force a Puppet in a no-puppets room.");
@@ -1477,10 +1481,10 @@ mfn_force(MFUNARGS)
 		ABORT_MPI("FORCE","Cannot force a thing named after a player.");
 	}
 	if (!(FLAGS(obj) & XFORCIBLE)) {
-	    ABORT_MPI("FORCE",NOPERM_MESG);
+	    ABORT_MPI("FORCE",tp_noperm_mesg);
 	}
 	if (!test_lock_false_default(descr, perms, obj, "@/flk")) {
-	    ABORT_MPI("FORCE",NOPERM_MESG);
+	    ABORT_MPI("FORCE",tp_noperm_mesg);
 	}
     }
     if (Man(obj))
@@ -1682,7 +1686,7 @@ mfn_dirprops(MFUNARGS)
 	if (obj == AMBIGUOUS || obj == UNKNOWN || obj == NOTHING || obj == HOME)
 	    ABORT_MPI("DIRPROPS","Match failed.");
 	if (obj == PERMDENIED)
-	    ABORT_MPI("DIRPROPS",NOPERM_MESG);
+	    ABORT_MPI("DIRPROPS",tp_noperm_mesg);
     } else obj = what;
 
     buf[0] = '\0';
@@ -1724,11 +1728,11 @@ mfn_showlist(MFUNARGS)
 	if (obj == AMBIGUOUS || obj == UNKNOWN || obj == NOTHING || obj == HOME)
 	    ABORT_MPI("SHOWLIST","Match failed.");
 	if (obj == PERMDENIED)
-	    ABORT_MPI("SHOWLIST",NOPERM_MESG);
+	    ABORT_MPI("SHOWLIST",tp_noperm_mesg);
     } else obj = what;
 
     if (Prop_Hidden(argv[0]) && !Archperms(perms))
-	ABORT_MPI("SHOWLIST",NOPERM_MESG);
+	ABORT_MPI("SHOWLIST",tp_noperm_mesg);
     while ( (lines < MAX_MFUN_LIST_LEN) && (!lines || (m && *m)) ) {
 	sprintf(buf, "%s#/%d", argv[0], ++lines);
 	m = safegetprop_strict(player, obj, perms, buf);
@@ -1843,6 +1847,7 @@ mfn_escape(MFUNARGS)
 
 
 #endif /* MPI */
+
 
 
 

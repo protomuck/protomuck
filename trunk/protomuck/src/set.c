@@ -1245,12 +1245,6 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 
     } else if (string_prefix("GUEST", p)) {
 	f2 = F2GUEST;
-    } else if (string_prefix("COMMANDS", p)) {
-	f2 = F2COMMAND;
-    } else if (string_prefix("NO_COMMANDS", p)) {
-      f2 = F2COMMAND;
-      if (*flag != NOT_TOKEN)
-         ibol = 1;
     } else if (string_prefix("LOGWALL", p) || !string_compare("!", p)) {
 	f2 = F2LOGWALL;
     } else if (string_prefix("MUFCOUNT", p) || !string_compare("+", p)) {
@@ -1263,6 +1257,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	f2 = F2ANTIPROTECT;
     } else if (string_prefix("EXAMINE_OK", p) || !string_compare("&", p)) {
 	f2 = F2EXAMINE_OK;
+    } else if (string_prefix("NO_COMMAND", p)) {
+	f2 = F2NO_COMMAND;
     } else if (string_prefix("HIDDEN", p) || !string_compare("#", p)) {
 	f2 = F2HIDDEN;
 /*    } else if (string_prefix("PUEBLO", p)) {
@@ -1427,6 +1423,7 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
     }
     anotify_nolisten2(player, CSUCC "Property set.");
 }
+
 
 
 

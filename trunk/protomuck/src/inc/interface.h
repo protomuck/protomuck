@@ -43,6 +43,7 @@ struct descriptor_data {
     int	    commands;
     int     linelen;
     int     type;
+    int     cport;
     int     http_login;
     char    *identify;
     char    *lastmidi;
@@ -57,6 +58,7 @@ struct descriptor_data {
 #define CT_MUCK		0
 #define CT_HTML		1
 #define CT_PUEBLO	      2
+#define CT_MUF          3
 
 /* these symbols must be defined by the interface */
 
@@ -263,5 +265,6 @@ extern void panic(const char *);
 #define ANSI_BG_BLUE	"\033[44m"
 #define ANSI_BG_MAGENTA	"\033[45m"
 #define ANSI_BG_WHITE	"\033[47m"
+
 
 

@@ -1,4 +1,4 @@
-#define PROTOBASE "1.5b8"
+#define PROTOBASE "1.5b10"
 #ifdef WIN32
   #define PROTOVER "Proto" PROTOBASE "-win32"
 #else
@@ -8,6 +8,7 @@
 #define VERSION "Muck2.2fb5.67"
 
 extern const char *infotext[];
+
 
 
 

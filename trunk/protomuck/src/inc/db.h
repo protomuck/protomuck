@@ -183,10 +183,11 @@ typedef int dbref;		/* offset into db */
 #define F2MCP              0x80     /* Program is a MUCK C Program. */ /* Being phased out. */
 #define F2PROTECT         0x100     /* The new PROTECT flag */
 #define F2PARENT          0x200     /* The new PARENT flag */
-#define F2COMMAND         0x400     /* For the new MUSH-style commands -- NO SUPPORT YET */
+#define F2COMMAND         0x400     /* For the new MUSH-style commands -- INTERNAL FLAG ONLY */
 #define F2EXAMINE_OK      0x800     /* The new EXAMINE_OK flag */
 #define F2ANTIPROTECT    0x1000     /* Anti-protect flag to allow a wizard to combat against PROTECT. */
 #define F2IDLE           0x2000     /* To watch if someone is idle or not. */
+#define F2NO_COMMAND     0x4000     /* Set on an object to prevent command props from being ran */
 
 /* Proto @Powers */
 
@@ -207,7 +208,7 @@ typedef int dbref;		/* offset into db */
 
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
-#define DUM2_MASK	(F2IDLE)
+#define DUM2_MASK	(F2IDLE | F2COMMAND)
 #define DUM3_MASK (0)
 #define DUM4_MASK (0)
 
@@ -782,6 +783,7 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 

@@ -65,7 +65,7 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
           *p++ = 'K';
       if (FLAG2(thing) & F2EXAMINE_OK)
           *p++ = '&';
-      if (FLAG2(thing) & F2COMMAND)
+      if (FLAG2(thing) & F2NO_COMMAND)
           *p++ = 'N';
       if (FLAG2(thing) & F2HIDDEN)
           *p++ = '#';
@@ -278,6 +278,7 @@ unparse_boolexp(dbref player, struct boolexp * b, int fullname)
 
     return boolexp_buf;
 }
+
 
 
 

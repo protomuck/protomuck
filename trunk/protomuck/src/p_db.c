@@ -65,6 +65,8 @@ int check_flag1(char *flag)
       return JUMP_OK;
    if (string_prefix("link_ok", flag) || string_prefix("light", flag))
       return LINK_OK;
+   if (string_prefix("listener", flag))
+      return LISTENER;
    if (string_prefix("builder", flag) || string_prefix("bound", flag))
       return BUILDER;
    if (string_prefix("interactive", flag))
@@ -102,6 +104,8 @@ int check_flag2(char *flag, int *nbol)
       return F2HIDDEN;
    if (string_prefix("command", flag))
       return F2COMMAND;
+   if (string_prefix("no_command", flag))
+      return F2NO_COMMAND;
    if (string_prefix("examine_ok", flag))
       return F2EXAMINE_OK;
    if (string_prefix("mobile", flag) || string_prefix("offer", flag))
@@ -174,6 +178,8 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
       return 0;
    if(flag == ABODE && Typeof(ref) == TYPE_PROGRAM)
       return 0;
+   if(flag == LISTENER)
+      return 0;
    if(flag == XFORCIBLE)
       return 0;
    if(flag == QUELL)
@@ -206,6 +212,10 @@ flag_set_perms2(dbref ref, int flag, int mlev)
       return 0;
    if(flag == F2IDLE)
       return 0;
+   if(flag == F2COMMAND)
+      return 0;
+   if(flag == F2NO_COMMAND)
+      return (mlev >= LMAGE);
 
    return 1;
 }
@@ -228,16 +238,16 @@ has_flagp(dbref ref, char *flag, int mlev)
       if(!flag_check_perms(ref, tmp1, mlev))
          return -2;
       if(tmp1 == DARK)
-         rslt = ( (FLAGS(ref) & DARK) || (FLAG2(ref) & F2HIDDEN) );
+         result = ( (FLAGS(ref) & DARK) || (FLAG2(ref) & F2HIDDEN) );
       else
-         rslt = (FLAGS(ref) & tmp1);
+         result = (FLAGS(ref) & tmp1);
    } else {
       lev = check_mlev(flag, &truwiz);
       if(lev) {
          if(truwiz)
-            rslt = (QLevel(ref) >= lev);
+            result = (QLevel(ref) >= lev);
          else
-            rslt = (MLevel(ref) >= lev);
+            result = (MLevel(ref) >= lev);
       } else {
          tmp2 = check_flag2(flag, &tmp3);
          if(!tmp2)
@@ -245,15 +255,22 @@ has_flagp(dbref ref, char *flag, int mlev)
          if(!flag_check_perms2(ref, tmp2, mlev))
             return -2;
          if(tmp3)
-            rslt = ((FLAG2(ref) & tmp2) && (FLAG2(ref) & tmp3));
+            result = ((FLAG2(ref) & tmp2) && (FLAG2(ref) & tmp3));
          else
-            rslt = (FLAG2(ref) & tmp2);
+            if(tmp2 == F2COMMAND)
+               result = ( (FLAG2(ref) & tmp2) && !(FLAG2(ref) & F2NO_COMMAND) );
+            else
+               if(tmp2 == F2NO_COMMAND)
+                  result = ( (FLAG2(ref) & tmp2) || !(FLAG2(ref) & F2COMMAND) );
+               else
+                  result = (FLAG2(ref) & tmp2);
       }
    }
-   if(result)
-      return (!rslt);
-   else
+   if (result) {
+      return (!(rslt));
+   } else {
       return (rslt);
+   }
 }
 
 int
@@ -2536,6 +2553,7 @@ prim_nextthing_flag(PRIM_PROTOTYPE)
        ref = NOTHING;
     PushObject(ref);
 }
+
 
 
 

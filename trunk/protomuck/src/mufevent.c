@@ -23,26 +23,71 @@ struct mufevent_process {
 	struct mufevent_process *next;
 	dbref player;
 	dbref prog;
+	int filtercount;
+	char** filters;
 	struct frame *fr;
 } *mufevent_processes;
 
 
-/* void muf_event_register(dbref player, dbref prog, struct frame* fr)
- * Called when a MUF program enters EVENT_WAIT, to register that
- * the program is ready to process MUF events.
+/* static void muf_event_process_free(struct mufevent* ptr)
+ * Frees up a mufevent_process once you are done with it.
+ * This shouldn't be used outside this module.
+ */
+static void
+muf_event_process_free(struct mufevent_process *ptr)
+{
+	int i;
+
+	ptr->next = NULL;
+	ptr->player = NOTHING;
+	ptr->prog = NOTHING;
+	if (ptr->fr) {
+		prog_clean(ptr->fr);
+		ptr->fr = NULL;
+	}
+	if (ptr->filters) {
+		for (i = 0; i < ptr->filtercount; i++) {
+			if (ptr->filters[i]) {
+				free(ptr->filters[i]);
+				ptr->filters[i] = NULL;
+			}
+		}
+		free(ptr->filters);
+		ptr->filters = NULL;
+		ptr->filtercount = 0;
+	}
+	free(ptr);
+}
+
+
+/* void muf_event_register_specific(dbref player, dbref prog, struct frame* fr, int eventcount, char** eventids)
+ * Called when a MUF program enters EVENT_WAITFOR, to register that
+ * the program is ready to process MUF events of the given ID type.
+ * This duplicates the eventids list for itself, so the caller is
+ * responsible for freeing the original eventids list passed.
  */
 void
-muf_event_register(dbref player, dbref prog, struct frame *fr)
+muf_event_register_specific(dbref player, dbref prog, struct frame *fr, int eventcount, char** eventids)
 {
 	struct mufevent_process *newproc;
 	struct mufevent_process *ptr;
+	int i;
 
 	newproc = (struct mufevent_process *) malloc(sizeof(struct mufevent_process));
 
+	newproc->next = NULL;
 	newproc->player = player;
 	newproc->prog = prog;
 	newproc->fr = fr;
-	newproc->next = NULL;
+	newproc->filtercount = eventcount;
+	if (eventcount > 0) {
+		newproc->filters = (char**) malloc(eventcount * sizeof(char**));
+		for (i = 0; i < eventcount; i++) {
+			newproc->filters[i] = string_dup(eventids[i]);
+		}
+	} else {
+		newproc->filters = NULL;
+	}
 
 	ptr = mufevent_processes;
 	while (ptr && ptr->next) {
@@ -53,6 +98,45 @@ muf_event_register(dbref player, dbref prog, struct frame *fr)
 	} else {
 		ptr->next = newproc;
 	}
+}
+
+
+/* void muf_event_register(dbref player, dbref prog, struct frame* fr)
+ * Called when a MUF program enters EVENT_WAIT, to register that
+ * the program is ready to process any type of MUF events.
+ */
+void
+muf_event_register(dbref player, dbref prog, struct frame *fr)
+{
+	muf_event_register_specific(player, prog, fr, 0, NULL);
+}
+
+
+/* int muf_event_read_notify(int descr, dbref player)
+ * Sends a "READ" event to the first foreground or preempt muf process
+ * that is owned by the given player.  Returns 1 if an event was sent,
+ * 0 otherwise.
+ */
+int
+muf_event_read_notify(int descr, dbref player)
+{
+	struct mufevent_process *ptr;
+
+	ptr = mufevent_processes;
+	while (ptr) {
+		if (ptr->player == player) {
+			if (ptr->fr && ptr->fr->multitask != BACKGROUND) {
+				struct inst temp;
+
+				temp.type = PROG_INTEGER;
+				temp.data.number = descr;
+				muf_event_add(ptr->fr, "READ", &temp, 1);
+				return 1;
+			}
+		}
+		ptr = ptr->next;
+	}
+	return 0;
 }
 
 
@@ -71,9 +155,8 @@ muf_event_dequeue_pid(int pid)
 		if ((*prev)->fr->pid == pid) {
 			next = (*prev)->next;
 			muf_event_purge((*prev)->fr);
-			prog_clean((*prev)->fr);
+			muf_event_process_free(*prev);
 			count++;
-			free(*prev);
 			*prev = next;
 		} else {
 			prev = &((*prev)->next);
@@ -126,9 +209,8 @@ muf_event_dequeue(dbref prog)
 			tmp = *prev;
 			*prev = tmp->next;
 			muf_event_purge(tmp->fr);
-			prog_clean(tmp->fr);
+			muf_event_process_free(tmp);
 			count++;
-			free(tmp);
 		} else {
 			prev = &((*prev)->next);
 		}
@@ -209,7 +291,7 @@ muf_event_list(dbref player, char *pat)
 		sprintf(buf, pat,
 				proc->fr->pid, "--",
 				time_format_2((long) (rtime - proc->fr->started)),
-				(proc->fr->instcnt / 1000), pcnt, proc->prog, NAME(proc->player), "EVENT_WAIT");
+				(proc->fr->instcnt / 1000), pcnt, proc->prog, NAME(proc->player), "EVENT_WAITFOR");
 		if (Wiz(OWNER(player)) || (OWNER(proc->prog) == OWNER(player))
 			|| (proc->player == player))
 			notify_nolisten(player, buf, 1);
@@ -236,6 +318,23 @@ muf_event_count(struct frame* fr)
 }
 
 
+/* int muf_event_exists(struct frame* fr, const char* eventid)
+ * Returns how many events of the given event type are waiting to be processed.
+ */
+int
+muf_event_exists(struct frame* fr, const char* eventid)
+{
+	struct mufevent *ptr;
+	int count = 0;
+
+	for (ptr = fr->events; ptr; ptr = ptr->next)
+		if (!strcmp(ptr->event, eventid))
+			count++;
+
+	return count;
+}
+
+
 /* static void muf_event_free(struct mufevent* ptr)
  * Frees up a MUF event once you are done with it.  This shouldn't be used
  * outside this module.
@@ -249,8 +348,6 @@ muf_event_free(struct mufevent *ptr)
 	ptr->next = NULL;
 	free(ptr);
 }
-
-
 
 
 /* void muf_event_add(struct frame* fr, char* event, struct inst* val, int exclusive)
@@ -272,7 +369,7 @@ muf_event_add(struct frame *fr, char *event, struct inst *val, int exclusive)
 		ptr = ptr->next;
 	}
 
-	if (exclusive && !strcmp(event, ptr->event)) {
+	if (exclusive && ptr && !strcmp(event, ptr->event)) {
 		return;
 	}
 
@@ -286,6 +383,46 @@ muf_event_add(struct frame *fr, char *event, struct inst *val, int exclusive)
 	} else {
 		ptr->next = newevent;
 	}
+}
+
+
+
+/* struct mufevent* muf_event_pop_specific(struct frame* fr, int eventcount, const char** events)
+ * Removes the first event of one of the specified types from the event queue
+ * of the given program instance.
+ * Returns a pointer to the removed event to the caller.
+ * Returns NULL if no matching events are found.
+ * You will need to call muf_event_free() on the returned data when you
+ * are done with it and wish to free it from memory.
+ */
+struct mufevent*
+muf_event_pop_specific(struct frame *fr, int eventcount, char **events)
+{
+	struct mufevent *tmp = NULL;
+	struct mufevent *ptr = NULL;
+	int i;
+
+	for (i = 0; i < eventcount; i++) {
+		if (fr->events && !strcmp(events[i], fr->events->event)) {
+			tmp = fr->events;
+			fr->events = tmp->next;
+			return tmp;
+		}
+	}
+
+	ptr = fr->events;
+	while (ptr && ptr->next) {
+		for (i = 0; i < eventcount; i++) {
+			if (!strcmp(events[i], ptr->next->event)) {
+				tmp = ptr->next;
+				ptr->next = tmp->next;
+				return tmp;
+			}
+		}
+		ptr = ptr->next;
+	}
+
+	return NULL;
 }
 
 
@@ -338,9 +475,23 @@ muf_event_remove(struct frame *fr, char *event, int which)
 
 
 
+/* static struct mufevent* muf_event_peek(struct frame* fr)
+ * This returns a pointer to the top muf event of the given
+ * program instance's event queue.  The event is not removed
+ * from the queue.
+ */
+static struct mufevent *
+muf_event_peek(struct frame *fr)
+{
+	return fr->events;
+}
+
+
+
 /* static struct mufevent* muf_event_pop(struct frame* fr)
  * This pops the top muf event off of the given program instance's
- * event queue, and returns it to the caller.
+ * event queue, and returns it to the caller.  The caller should
+ * call muf_event_free() on the data when it is done with it.
  */
 static struct mufevent *
 muf_event_pop(struct frame *fr)
@@ -394,7 +545,17 @@ muf_event_process(void)
 		nextprev = &((*prev)->next);
 		next = proc->next;
 		if (proc->fr) {
-			ev = muf_event_pop(proc->fr);
+			if (proc->filtercount > 0) {
+				/* Search prog's event list for the apropriate event type. */
+
+				/* HACK:  This is probably inefficient to be walking this
+				 * queue over and over. Hopefully it's usually a short list.
+				 */
+				ev = muf_event_pop_specific(proc->fr, proc->filtercount, proc->filters);
+			} else {
+				/* Pop first event off of prog's event queue. */
+				ev = muf_event_pop(proc->fr);
+			}
 			if (ev) {
 				limit--;
 
@@ -406,7 +567,7 @@ muf_event_process(void)
 					 * Uh oh! That MUF program's stack is full!
 					 * Print an error, free the frame, and exit.
 					 */
-					notify_nolisten(proc->player, "Program stack overflow.", 1);
+					anotify_nolisten(proc->player, CINFO "Program stack overflow.", 1);
 					prog_clean(proc->fr);
 				} else {
                               tmpcp = DBFETCH(proc->player)->sp.player.curr_prog;
@@ -429,12 +590,13 @@ muf_event_process(void)
 
 				proc->fr = NULL;
 				proc->next = NULL;
-				free(proc);
+				muf_event_process_free(proc);
 			}
 		}
 		prev = nextprev;
 		proc = next;
 	}
 }
+
 
 

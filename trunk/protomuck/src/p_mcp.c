@@ -818,6 +818,98 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
 
 
 void
+prim_gui_ctrl_command(PRIM_PROTOTYPE)
+{
+	int vallines = 0;
+	char **vallist = NULL;
+	char *dlogid = NULL;
+	char *ctrlid = NULL;
+	char *ctrlcmd = NULL;
+	stk_array *arr;
+	McpMesg msg;
+	McpFrame *mfr;
+	int descr;
+	int i;
+
+	CHECKOP(4);
+	oper4 = POP();				/* dict args */
+	oper2 = POP();				/* str  command */
+	oper3 = POP();				/* str  ctrlid */
+	oper1 = POP();				/* str  dlogid */
+
+	if (oper1->type != PROG_STRING)
+		abort_interp("Dialog ID string expected. (1)");
+	if (!oper1->data.string || !*oper1->data.string->data)
+		abort_interp("Non-null dialog ID string expected. (1)");
+
+	if (oper2->type != PROG_STRING)
+		abort_interp("Control command string expected. (2)");
+	if (!oper2->data.string || !*oper2->data.string->data)
+		abort_interp("Non-null control command string expected. (2)");
+
+	if (oper3->type != PROG_STRING)
+		abort_interp("Control ID string expected. (3)");
+	if (!oper3->data.string || !*oper3->data.string->data)
+		abort_interp("Non-null control ID string expected. (3)");
+
+	if (oper4->type != PROG_ARRAY)
+		abort_interp("Dictionary of arguments expected. (4)");
+
+	dlogid = oper1->data.string->data;
+	ctrlcmd = oper2->data.string->data;
+	ctrlid = oper3->data.string ? oper3->data.string->data : NULL;
+	arr = oper4->data.array;
+
+	descr = gui_dlog_get_descr(dlogid);
+	mfr = descr_mcpframe(descr);
+
+	if (!mfr)
+		abort_interp("No such dialog currently exists. (1)");
+
+	if (!GuiSupported(descr))
+		abort_interp("Internal error: The given dialog's descriptor doesn't support the GUI package. (1)");
+
+	mcp_mesg_init(&msg, GUI_PACKAGE, "ctrl-command");
+
+	result = stuff_dict_in_mesg(arr, &msg);
+	if (result) {
+		mcp_mesg_clear(&msg);
+		switch (result) {
+			case -1:
+				abort_interp("Args dictionary can only have string keys. (4)");
+				break;
+			case -2:
+				abort_interp("Args dictionary cannot have a null string key. (4)");
+				break;
+			case -3:
+				abort_interp("Unsupported value type in list value. (4)");
+				break;
+			case -4:
+				abort_interp("Unsupported value type in args dictionary. (4)");
+				break;
+		}
+	}
+	
+	mcp_mesg_arg_remove(&msg, "dlogid");
+	mcp_mesg_arg_append(&msg, "dlogid", dlogid);
+
+	mcp_mesg_arg_remove(&msg, "id");
+	mcp_mesg_arg_append(&msg, "id", ctrlid);
+
+	mcp_mesg_arg_remove(&msg, "command");
+	mcp_mesg_arg_append(&msg, "command", ctrlcmd);
+
+	mcp_frame_output_mesg(mfr, &msg);
+	mcp_mesg_clear(&msg);
+
+	CLEAR(oper1);
+	CLEAR(oper2);
+	CLEAR(oper3);
+	CLEAR(oper4);
+}
+
+
+void
 prim_gui_value_set(PRIM_PROTOTYPE)
 {
 	int count;
@@ -967,5 +1059,58 @@ prim_gui_values_get(PRIM_PROTOTYPE)
 	CLEAR(oper1);
 	PushArrayRaw(new);
 }
+
+
+void
+prim_gui_value_get(PRIM_PROTOTYPE)
+{
+	char *dlogid;
+	char *ctrlid;
+	stk_array *new;
+	struct inst temp1;
+	array_data temp2;
+	int lines;
+	int i;
+
+	CHECKOP(2);
+	oper2 = POP();				/* str  ctrlid */
+	oper1 = POP();				/* str  dlogid */
+
+	if (oper1->type != PROG_STRING)
+		abort_interp("String dialog ID expected. (1)");
+	if (!oper1->data.string || !*oper1->data.string->data)
+		abort_interp("Non-null string dialog ID expected. (1)");
+
+	if (oper2->type != PROG_STRING)
+		abort_interp("String control ID expected. (2)");
+	if (!oper2->data.string || !*oper2->data.string->data)
+		abort_interp("Non-null string control ID expected. (2)");
+
+	dlogid = oper1->data.string->data;
+	ctrlid = oper2->data.string->data;
+
+	lines = gui_value_linecount(dlogid, ctrlid);
+	new = new_array_packed(lines);
+
+	for (i = 0; i < lines; i++) {
+		temp1.type = PROG_INTEGER;
+		temp1.data.number = i;
+
+		temp2.type = PROG_STRING;
+		temp2.data.string = alloc_prog_string(gui_value_get(dlogid, ctrlid, i));
+
+		array_setitem(&new, &temp1, &temp2);
+
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+	}
+
+	CLEAR(oper1);
+	CLEAR(oper2);
+	PushArrayRaw(new);
+}
+
+
+
 
 

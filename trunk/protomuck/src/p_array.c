@@ -739,7 +739,119 @@ prim_array_notify(PRIM_PROTOTYPE)
                                 do {
                                         oper3 = array_getitem(refarr, &temp1);
 
-                                        notify_listeners(player, program, oper3->data.objref,
+                                        notify_listeners(fr->descr, player, program, oper3->data.objref,
+                                                                         getloc(oper3->data.objref), buf, 1);
+
+                                        oper3 = NULL;
+                                } while (array_next(refarr, &temp1));
+                        }
+                        oper4 = NULL;
+                } while (array_next(strarr, &temp2));
+        }
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+}
+
+
+
+void
+prim_array_ansi_notify(PRIM_PROTOTYPE)
+{
+        stk_array *strarr;
+        stk_array *refarr;
+        struct inst *oper1, *oper2, *oper3, *oper4;
+        struct inst temp1, temp2;
+        char buf2[BUFFER_LEN * 2];
+
+        CHECKOP(2);
+        oper2 = POP();
+        oper1 = POP();
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array of strings. (1)");
+        if (!array_is_homogenous(oper1->data.array, PROG_STRING))
+                abort_interp("Argument not an array of strings. (1)");
+        if (oper2->type != PROG_ARRAY)
+                abort_interp("Argument not an array of dbrefs. (2)");
+        if (!array_is_homogenous(oper2->data.array, PROG_OBJECT))
+                abort_interp("Argument not an array of dbrefs. (2)");
+        strarr = oper1->data.array;
+        refarr = oper2->data.array;
+
+        if (array_first(strarr, &temp2)) {
+                do {
+                        oper4 = array_getitem(strarr, &temp2);
+                        strcpy(buf, DoNullInd(oper4->data.string));
+                        if (tp_m1_name_notify && mlev < 2) {
+                                strcpy(buf2, PNAME(player));
+                                strcat(buf2, " ");
+                                if (!string_prefix(buf, buf2)) {
+                                        strcat(buf2, buf);
+                                        buf2[BUFFER_LEN - 1] = '\0';
+                                        strcpy(buf, buf2);
+                                }
+                        }
+                        if (array_first(refarr, &temp1)) {
+                                do {
+                                        oper3 = array_getitem(refarr, &temp1);
+
+                                        ansi_notify_listeners(fr->descr, player, program, oper3->data.objref,
+                                                                         getloc(oper3->data.objref), buf, 1);
+
+                                        oper3 = NULL;
+                                } while (array_next(refarr, &temp1));
+                        }
+                        oper4 = NULL;
+                } while (array_next(strarr, &temp2));
+        }
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+}
+
+
+
+void
+prim_array_notify_html(PRIM_PROTOTYPE)
+{
+        stk_array *strarr;
+        stk_array *refarr;
+        struct inst *oper1, *oper2, *oper3, *oper4;
+        struct inst temp1, temp2;
+        char buf2[BUFFER_LEN * 2];
+
+        CHECKOP(2);
+        oper2 = POP();
+        oper1 = POP();
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array of strings. (1)");
+        if (!array_is_homogenous(oper1->data.array, PROG_STRING))
+                abort_interp("Argument not an array of strings. (1)");
+        if (oper2->type != PROG_ARRAY)
+                abort_interp("Argument not an array of dbrefs. (2)");
+        if (!array_is_homogenous(oper2->data.array, PROG_OBJECT))
+                abort_interp("Argument not an array of dbrefs. (2)");
+        strarr = oper1->data.array;
+        refarr = oper2->data.array;
+
+        if (array_first(strarr, &temp2)) {
+                do {
+                        oper4 = array_getitem(strarr, &temp2);
+                        strcpy(buf, DoNullInd(oper4->data.string));
+                        if (tp_m1_name_notify && mlev < 2) {
+                                strcpy(buf2, PNAME(player));
+                                strcat(buf2, " ");
+                                if (!string_prefix(buf, buf2)) {
+                                        strcat(buf2, buf);
+                                        buf2[BUFFER_LEN - 1] = '\0';
+                                        strcpy(buf, buf2);
+                                }
+                        }
+                        if (array_first(refarr, &temp1)) {
+                                do {
+                                        oper3 = array_getitem(refarr, &temp1);
+
+                                        notify_html_listeners(fr->descr, player, program, oper3->data.objref,
                                                                          getloc(oper3->data.objref), buf, 1);
 
                                         oper3 = NULL;
@@ -1627,4 +1739,5 @@ prim_explode_array(PRIM_PROTOTYPE)
     CLEAR(&temp2);
     CLEAR(&temp3);
 } 
+
 

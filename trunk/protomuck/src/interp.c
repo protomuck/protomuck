@@ -51,8 +51,8 @@ p_null(PRIM_PROTOTYPE)
 /* void    (*prim_func[]) (PRIM_PROTOTYPE) = */
 void    (*prim_func[]) (PRIM_PROTOTYPE) =
 {
-    p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null,
-    /* JMP, READ, TREAD, SLEEP,  CALL,   EXECUTE, RETURN, EVENT_WAIT */
+    p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null,
+    /* JMP, READ, TREAD, SLEEP,  CALL,   EXECUTE, RETURN, EVENT_WAIT, EVENT_WAITFOR */
     PRIMS_CONNECTS_FUNCS,
     PRIMS_DB_FUNCS,
     PRIMS_MATH_FUNCS,
@@ -1122,6 +1122,51 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			/* NOTREACHED */
 			break;
 
+			case IN_EVENT_WAITFOR:
+				if (atop < 1)
+					abort_loop("Stack Underflow. Missing eventID list array argument.", NULL, NULL);
+				temp1 = arg + --atop;
+				if (temp1->type != PROG_ARRAY)
+					abort_loop("EventID string list array expected.", temp1, NULL);
+				if (temp1->data.array && temp1->data.array->type != ARRAY_PACKED)
+					abort_loop("Argument must be a list array of eventid strings.", temp1, NULL);
+				if (!array_is_homogenous(temp1->data.array, PROG_STRING))
+					abort_loop("Argument must be a list array of eventid strings.", temp1, NULL);
+				fr->pc = pc + 1;
+				reload(fr, atop, stop);
+
+				{
+					int i, outcount;
+					int count = array_count(temp1->data.array);
+					char** events = (char**)malloc(count * sizeof(char**));
+					for (outcount = i = 0; i < count; i++) {
+						char *val = array_get_intkey_strval(temp1->data.array, i);
+						if (val != NULL) {
+							int found = 0;
+							int j;
+							for (j = 0; j < outcount; j++) {
+								if (!strcmp(events[j], val)) {
+									found = 1;
+									break;
+								}
+							}
+							if (!found) {
+								events[outcount++] = val;
+							}
+						}
+					}
+					muf_event_register_specific(player, program, fr, outcount, events);
+					free(events);
+				}
+
+                        DBSTORE(player, sp.player.block, (!fr->been_background));
+				CLEAR(temp1);
+				fr->level--;
+				calc_profile_timing(program,fr);
+				return NULL;
+				/* NOTREACHED */
+				break;
+
 		    case IN_READ:
 			if (writeonly)
 			    abort_loop("Program is write-only.", NULL, NULL);
@@ -1427,6 +1472,7 @@ do_abort_silent(void)
 {
     err++;
 }
+
 
 
 

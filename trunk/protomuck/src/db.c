@@ -861,6 +861,7 @@ skipproperties(FILE * f, dbref obj)
 {
     char    buf[BUFFER_LEN * 3];
     int islisten = 0;
+    int iscommand = 0;
 
     /* get rid of first line */
     fgets(buf, sizeof(buf), f);
@@ -869,8 +870,19 @@ skipproperties(FILE * f, dbref obj)
     while (strcmp(buf,"***Property list end ***\n") && strcmp(buf,"*End*\n")){
 	if (!islisten) {
 	    if (string_prefix(buf, "_listen")) islisten = 1;
+	    if (string_prefix(buf, "_olisten")) islisten = 1;
 	    if (string_prefix(buf, "~listen")) islisten = 1;
 	    if (string_prefix(buf, "~olisten")) islisten = 1;
+	    if (string_prefix(buf, "@listen")) islisten = 1;
+	    if (string_prefix(buf, "@olisten")) islisten = 1;
+	}
+	if (!iscommand) {
+	    if (string_prefix(buf, "_command")) iscommand = 1;
+	    if (string_prefix(buf, "_ocommand")) iscommand = 1;
+	    if (string_prefix(buf, "~command")) iscommand = 1;
+	    if (string_prefix(buf, "~ocommand")) iscommand = 1;
+	    if (string_prefix(buf, "@command")) iscommand = 1;
+	    if (string_prefix(buf, "@ocommand")) iscommand = 1;
 	}
 	fgets(buf, sizeof(buf), f);
     }
@@ -878,6 +890,11 @@ skipproperties(FILE * f, dbref obj)
 	FLAGS(obj) |= LISTENER;
     } else {
 	FLAGS(obj) &= ~LISTENER;
+    }
+    if (iscommand) {
+	FLAG2(obj) |= F2COMMAND;
+    } else {
+	FLAG2(obj) &= ~F2COMMAND;
     }
 }
 
@@ -1669,3 +1686,4 @@ WLevel(dbref player)
 
     return mlev >= LMAGE ? mlev : 0;
 }   
+

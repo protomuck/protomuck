@@ -758,6 +758,7 @@ prim_parsempi(PRIM_PROTOTYPE)
     const char *temp;
     char *ptr;
     struct inst *oper1, *oper2, *oper3, *oper4;
+    char buf[BUFFER_LEN];
 
     CHECKOP(4);
     oper4 = POP();  /* int */
@@ -808,6 +809,7 @@ prim_parseprop(PRIM_PROTOTYPE)
     const char *temp;
     char *ptr;
     struct inst *oper1, *oper2, *oper3, *oper4;
+    char buf[BUFFER_LEN];
 
     CHECKOP(4);
     oper4 = POP();  /* int */
@@ -1010,6 +1012,7 @@ prim_islockedp(PRIM_PROTOTYPE)
 
    PushInt(result);
 }
+
 
 
 

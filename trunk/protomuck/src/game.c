@@ -620,9 +620,15 @@ process_command(int descr, dbref player, char *command)
         if (!( *command == OVERIDE_TOKEN && TMage(player) )) {
            if (prop_command(descr, player, command, full_command, "@command", 1))
                return;
+           if (prop_command(descr, player, command, full_command, "@ocommand", 0))
+               return;
            if (prop_command(descr, player, command, full_command, "~command", 1))
                return;
+           if (prop_command(descr, player, command, full_command, "~ocommand", 0))
+               return;
            if (prop_command(descr, player, command, full_command, "_command", 1))
+               return;
+           if (prop_command(descr, player, command, full_command, "_ocommand", 0))
                return;
         }
 	switch (command[0]) {
@@ -1443,8 +1449,8 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
    const char *workBuf = NULL; 
    sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);
    strcpy(match_cmdname, command);
-   strcpy(match_args, arg);            
-   ptr = envprop_cmds(&where, propName, 0);
+   strcpy(match_args, arg);
+   ptr = envprop_cmds(&where, propName, Prop_Hidden(propName));
    if (!ptr) return 0;
 #ifdef DISKBASE
    propfetch(what, ptr);
@@ -1547,5 +1553,6 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
 }
 
 #undef Matched
+
 
 

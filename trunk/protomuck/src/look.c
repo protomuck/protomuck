@@ -605,8 +605,8 @@ flag_description(dbref thing)
           strcat(buf, (Typeof(thing) == TYPE_PLAYER || Typeof(thing) == TYPE_PROGRAM) ? " PROG_DEBUG" : " PARENT");
       if (FLAG2(thing) & F2HIDDEN)
           strcat(buf, " HIDDEN");
-      if (FLAG2(thing) & F2COMMAND)
-          strcat(buf, " COMMAND");
+      if (FLAG2(thing) & F2NO_COMMAND)
+          strcat(buf, " NO_COMMAND");
       if (FLAG2(thing) & F2EXAMINE_OK)
           strcat(buf, " EXAMINE_OK");
 	if (FLAG2(thing) & F2MOBILE)
@@ -1477,9 +1477,9 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		break;
 	    case 'N':
 		if (mode)
-		    check->clearflag2 |= F2COMMAND;
+		    check->clearflag2 |= F2NO_COMMAND;
 		else
-		    check->setflag2 |= F2COMMAND;
+		    check->setflag2 |= F2NO_COMMAND;
 		break;
 	    case '&':
 		if (mode)
@@ -2055,6 +2055,7 @@ do_sweep(int descr, dbref player, const char *name)
     }
     anotify_nolisten2(player, CINFO "**End of list**");
 }
+
 
 
 

@@ -26,6 +26,8 @@ extern void prim_array_n_intersection(PRIM_PROTOTYPE);
 extern void prim_array_n_difference(PRIM_PROTOTYPE);
 
 extern void prim_array_notify(PRIM_PROTOTYPE);
+extern void prim_array_ansi_notify(PRIM_PROTOTYPE);
+extern void prim_array_notify_html(PRIM_PROTOTYPE);
 extern void prim_array_reverse(PRIM_PROTOTYPE);
 
 extern void prim_array_get_propdirs(PRIM_PROTOTYPE);
@@ -45,24 +47,27 @@ extern void prim_explode_array(PRIM_PROTOTYPE);
         prim_array_insertrange, prim_array_delitem, prim_array_delrange, \
         prim_array_n_union, prim_array_n_intersection, \
         prim_array_n_difference, prim_array_notify, prim_array_reverse, \
-		prim_array_get_propvals, prim_array_get_propdirs, \
-		prim_array_get_proplist, prim_array_put_propvals, \
-		prim_array_put_proplist, prim_array_get_reflist, \
-		prim_array_put_reflist, prim_array_appenditem, prim_array_findval, \
-		prim_array_excludeval, prim_explode_array, prim_array_sort
+        prim_array_get_propvals, prim_array_get_propdirs, \
+        prim_array_get_proplist, prim_array_put_propvals, \
+        prim_array_put_proplist, prim_array_get_reflist, \
+        prim_array_put_reflist, prim_array_appenditem, prim_array_findval, \
+        prim_array_excludeval, prim_explode_array, prim_array_sort, \
+        prim_array_ansi_notify, prim_array_notify_html
 
-#define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT", \
-        "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS", \
-        "ARRAY_FIRST", "ARRAY_LAST", "ARRAY_NEXT", "ARRAY_PREV", \
-        "ARRAY_COUNT", "ARRAY_GETITEM", "ARRAY_SETITEM", \
-        "ARRAY_INSERTITEM", "ARRAY_GETRANGE", "ARRAY_SETRANGE", \
-        "ARRAY_INSERTRANGE", "ARRAY_DELITEM", "ARRAY_DELRANGE", \
-        "ARRAY_NUNION", "ARRAY_NINTERSECT", \
-        "ARRAY_NDIFF", "ARRAY_NOTIFY", "ARRAY_REVERSE", \
-		"ARRAY_GET_PROPVALS", "ARRAY_GET_PROPDIRS", \
-		"ARRAY_GET_PROPLIST", "ARRAY_PUT_PROPVALS", \
-		"ARRAY_PUT_PROPLIST", "ARRAY_GET_REFLIST", \
-		"ARRAY_PUT_REFLIST", "ARRAY_APPENDITEM", "ARRAY_FINDVAL", \
-		"ARRAY_EXCLUDEVAL", "EXPLODE_ARRAY", "ARRAY_SORT"
+#define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT",        \
+        "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS",              \
+        "ARRAY_FIRST", "ARRAY_LAST", "ARRAY_NEXT", "ARRAY_PREV",  \
+        "ARRAY_COUNT", "ARRAY_GETITEM", "ARRAY_SETITEM",          \
+        "ARRAY_INSERTITEM", "ARRAY_GETRANGE", "ARRAY_SETRANGE",   \
+        "ARRAY_INSERTRANGE", "ARRAY_DELITEM", "ARRAY_DELRANGE",   \
+        "ARRAY_NUNION", "ARRAY_NINTERSECT",                       \
+        "ARRAY_NDIFF", "ARRAY_NOTIFY", "ARRAY_REVERSE",           \
+        "ARRAY_GET_PROPVALS", "ARRAY_GET_PROPDIRS",               \
+        "ARRAY_GET_PROPLIST", "ARRAY_PUT_PROPVALS",               \
+        "ARRAY_PUT_PROPLIST", "ARRAY_GET_REFLIST",                \
+        "ARRAY_PUT_REFLIST", "ARRAY_APPENDITEM", "ARRAY_FINDVAL", \
+        "ARRAY_EXCLUDEVAL", "EXPLODE_ARRAY", "ARRAY_SORT",        \
+        "ARRAY_ANSI_NOTIFY", "ARRAY_NOTIFY_HTML"
 
-#define PRIMS_ARRAY_CNT 43
+#define PRIMS_ARRAY_CNT 45
+
