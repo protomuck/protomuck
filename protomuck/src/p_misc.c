@@ -264,12 +264,8 @@ prim_timestamps(PRIM_PROTOTYPE)
     ref = oper1->data.objref;
     if (ref >= db_top || ref <= NOTHING)
       abort_interp("Dbref is not an object nor garbage.");
-/*    if (!valid_object(oper1))
-	abort_interp("Invalid object"); */
-/*    CHECKREMOTE(oper1->data.objref); */
     CHECKREMOTE(ref);
     CHECKOFLOW(4);
-/*    ref = oper1->data.objref; */
     CLEAR(oper1);
     result = DBFETCH(ref)->ts.created;
     PushInt(result);
@@ -417,6 +413,7 @@ prim_stats(PRIM_PROTOTYPE)
 		}
 	    }
 	}
+        CHECKOFLOW(7);
 	ref = rooms + exits + things + players + programs + garbage;
 	PushInt(ref);
 	PushInt(rooms);

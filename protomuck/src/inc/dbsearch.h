@@ -28,8 +28,9 @@ struct flgchkdat {
     int     clearflags;         /* flags to check are cleared. */
     int     setflag2;           /* flags that are set to check for */
     int     clearflag2;         /* flags to check are cleared. */
-    int     setpower;           /* flags that are set to check for */
-    int     clearpower;         /* flags to check are cleared. */
+    int     setpowers;          /* powers that are set to check for */
+    int     clearpowers;        /* powers to check are cleared. */
+    int     anypower;           /* check for any power? */
     int     forlink;            /* check linking? */
     int     islinked;           /* if yes, check if not unlinked */
     int     forold;             /* check for old object? */
@@ -38,3 +39,4 @@ struct flgchkdat {
     int     issize;             /* list objs larger than size? */
     int     size;               /* what size to check against. No check if 0 */
 };
+

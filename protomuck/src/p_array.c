@@ -34,7 +34,7 @@ prim_array_make(PRIM_PROTOTYPE)
         int i;
 
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();    /* integer - stackrange count */
         if (oper1->type != PROG_INTEGER)
                 abort_interp("Invalid item count.");
         result = oper1->data.number;
@@ -68,7 +68,7 @@ prim_array_make_dict(PRIM_PROTOTYPE)
         int i;
 
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();   /* integer - stackrange count */
         if (oper1->type != PROG_INTEGER)
                 abort_interp("Invalid item count.");
         result = oper1->data.number;
@@ -104,7 +104,7 @@ prim_array_explode(PRIM_PROTOTYPE)
 {
         stk_array *arr;
 
-        CHECKOP(1);
+        CHECKOP(1);    /* array */
         oper1 = POP();
         if (oper1->type != PROG_ARRAY)
                 abort_interp("Argument not an array.");
@@ -136,7 +136,7 @@ prim_array_vals(PRIM_PROTOTYPE)
         stk_array *arr;
 
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();     /* array */
         if (oper1->type != PROG_ARRAY)
                 abort_interp("Argument not an array.");
         copyinst(oper1, &temp2);
@@ -165,7 +165,7 @@ prim_array_keys(PRIM_PROTOTYPE)
         stk_array *arr;
 
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();     /* array */
         if (oper1->type != PROG_ARRAY)
                 abort_interp("Argument not an array.");
         copyinst(oper1, &temp2);
@@ -191,7 +191,7 @@ void
 prim_array_count(PRIM_PROTOTYPE)
 {
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();     /* array */
         if (oper1->type != PROG_ARRAY)
                 abort_interp("Argument not an array.");
         result = array_count(oper1->data.array);
@@ -592,7 +592,7 @@ prim_array_n_union(PRIM_PROTOTYPE)
         int num_arrays;
 
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();     /* integer - stackrange count */
         if (oper1->type != PROG_INTEGER)
                 abort_interp("Invalid item count.");
         result = oper1->data.number;
@@ -1042,7 +1042,6 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
                 sprintf(buf, "%s%c%s", dir, PROPDIR_DELIMITER, propname);
                 if (prop_read_perms(ProgUID, ref, buf, mlev)) {
                     prptr = get_property(ref, buf);
-//Changed to above line -Akari  prptr = get_property(ref, propname);
                         if (prptr) {
 #ifdef DISKBASE
                                 propfetch(ref, prptr);
@@ -1400,7 +1399,6 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
         dirlen = strlen(dir);
         fmtout = propname;
         fmtin = tp_proplist_counter_fmt;
-/*        fmtin = "P#"; */
         while (*fmtin) {
                 if (*fmtin == 'P') {
                         if ((fmtout + dirlen) - propname > sizeof(propname))
@@ -1428,7 +1426,6 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                         oper4 = array_getitem(arr, &temp1);
                         fmtout = propname;
                         fmtin = tp_proplist_entry_fmt;
-/*                        fmtin = "P#/N"; */
                         while (*fmtin) {
                                 if (*fmtin == 'N') {
                                         if ((fmtout + 18) - propname > sizeof(propname))
@@ -1481,7 +1478,6 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                 count++;
                 fmtout = propname;
                 fmtin = tp_proplist_entry_fmt;
-/*              fmtin = "P#/N"; */
                 while (*fmtin) {
                         if (*fmtin == 'N') {
                                 if ((fmtout + 18) - propname > sizeof(propname))
@@ -1868,7 +1864,6 @@ prim_array_matchkey(PRIM_PROTOTYPE)
 			}
 		} while (array_next(arr, &temp1));
 	}
-
 	CLEAR(oper2);
 	CLEAR(oper1);
 

@@ -1088,9 +1088,10 @@ do_inventory(dbref player)
 }
 
 extern const char *uppercase;
+extern const char *lowercase;
 
 #define UPCASE(x) (uppercase[x])
-
+#define DOWNCASE(x) (lowercase[x])
 
 int 
 init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
@@ -1099,6 +1100,7 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
     char   *cptr;
     int     output_type = 0;
     int     mode = 0;
+    int     inflags = 1;
 
     strcpy(buf, flags);
     for (cptr = buf; *cptr && (*cptr != '='); cptr++);
@@ -1135,6 +1137,8 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
     check->clearflags = 0;
     check->setflag2 = 0;
     check->clearflag2 = 0;
+    check->setpowers = 0;
+    check->clearpowers = 0;
 
     check->forlevel = 0;
     check->islevel = 0;
@@ -1151,6 +1155,7 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
     check->isnotwiz = 0;
     check->iswiz = 0;
 
+    check->anypower = 0;
     check->forlink = 0;
     check->islinked = 0;
     check->forold = 0;
@@ -1161,7 +1166,11 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
     check->size = 0;
 
     while (*flags) {
-        switch (UPCASE(*flags)) {
+      if (*flags == ':') {
+          inflags = !(inflags);
+          check->anypower = 1;
+      } else {
+        switch (inflags ? UPCASE(*flags) : DOWNCASE(*flags)) {
 	    case '!':
 		if (mode)
 		    mode = 0;
@@ -1276,7 +1285,7 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		    check->isnotfive = 1;
 		} else {
 		    check->forlevel = 1;
-		    check->islevel = 5;
+		    check->islevel = tp_multi_wizlevels ? 5 : 4;
 		}
 		break;
 	    case '6':
@@ -1284,7 +1293,7 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		    check->isnotsix = 1;
 		} else {
 		    check->forlevel = 1;
-		    check->islevel = 6;
+		    check->islevel = tp_multi_wizlevels ? 6 : 7;
 		}
 		break;
 	    case '7':
@@ -1300,7 +1309,7 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		    check->isnoteight = 1;
 		} else {
 		    check->forlevel = 1;
-		    check->islevel = 8;
+		    check->islevel = tp_multi_wizlevels ? 8 : 7;
 		}
 		break;
 	    case '9':
@@ -1451,10 +1460,137 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		else
 		    check->setflag2 |= F2EXAMINE_OK;
 		break;
+	    case 'a':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_ANNOUNCE;
+            else
+		    check->setpowers |= POW_ANNOUNCE;
+            break;
+	    case 'b':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_BOOT;
+            else
+		    check->setpowers |= POW_BOOT;
+            break;
+	    case 'c':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_CHOWN_ANYTHING;
+            else
+		    check->setpowers |= POW_CHOWN_ANYTHING;
+            break;
+	    case 'x':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_EXPANDED_WHO;
+            else
+		    check->setpowers |= POW_EXPANDED_WHO;
+            break;
+	    case 'h':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_HIDE;
+            else
+		    check->setpowers |= POW_HIDE;
+            break;
+	    case 'i':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_IDLE;
+            else
+		    check->setpowers |= POW_IDLE;
+            break;
+	    case 'l':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_LINK_ANYWHERE;
+            else
+		    check->setpowers |= POW_LINK_ANYWHERE;
+            break;
+	    case 'g':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_LONG_FINGERS;
+            else
+		    check->setpowers |= POW_LONG_FINGERS;
+            break;
+	    case 'n':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_NO_PAY;
+            else
+		    check->setpowers |= POW_NO_PAY;
+            break;
+	    case 'o':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_OPEN_ANYWHERE;
+            else
+		    check->setpowers |= POW_OPEN_ANYWHERE;
+            break;
+	    case 'p':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_PLAYER_CREATE;
+            else
+		    check->setpowers |= POW_PLAYER_CREATE;
+            break;
+	    case 's':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_SEARCH;
+            else
+		    check->setpowers |= POW_SEARCH;
+            break;
+	    case 'e':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_SEE_ALL;
+            else
+		    check->setpowers |= POW_SEE_ALL;
+            break;
+	    case 't':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_TELEPORT;
+            else
+		    check->setpowers |= POW_TELEPORT;
+            break;
+	    case 'd':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_SHUTDOWN;
+            else
+		    check->setpowers |= POW_SHUTDOWN;
+            break;
+	    case 'f':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_CONTROL_MUF;
+            else
+		    check->setpowers |= POW_CONTROL_MUF;
+            break;
+	    case 'r':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_CONTROL_ALL;
+            else
+		    check->setpowers |= POW_CONTROL_ALL;
+            break;
+	    case 'm':
+		check->anypower = 0;
+		if (mode)
+		    check->clearpowers |= POW_ALL_MUF_PRIMS;
+            else
+		    check->setpowers |= POW_ALL_MUF_PRIMS;
+            break;
 	    case ' ':
 		if (mode)
 		    mode = 2;
 		break;
+	  }
 	}
 	if (mode)
 	    mode--;
@@ -1516,6 +1652,19 @@ checkflags(dbref what, struct flgchkdat check)
 	return (0);
     if ((~FLAG2(what)) & check.setflag2)
 	return (0);
+
+    if (Typeof(what) == TYPE_PLAYER) {
+	    if (POWERS(what) & check.clearpowers)
+		return (0);
+	    if ((~POWERS(what)) & check.setpowers)
+		return (0);
+	    if (check.anypower)
+		if (!(POWERS(what)))
+			return (0);
+    } else {
+	    if (check.anypower || check.clearpowers || check.setpowers)
+		return (0);
+    }
 
     if (check.forlink) {
 	switch (Typeof(what)) {
@@ -2023,6 +2172,7 @@ do_sweep(int descr, dbref player, const char *name)
     }
     anotify_nolisten(player, CINFO "**End of list**", 1);
 }
+
 
 
 

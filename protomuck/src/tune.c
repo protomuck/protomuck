@@ -207,6 +207,7 @@ struct tune_val_entry tune_val_list[] =
 dbref tp_quit_prog         = -1;
 dbref tp_login_who_prog    = -1;
 dbref tp_player_start      = PLAYER_START;
+dbref tp_reg_wiz           = -1;
 dbref tp_player_prototype  = -1;
 dbref tp_cron_prog         = -1;
 #ifdef HTTPD
@@ -228,6 +229,7 @@ struct tune_ref_entry tune_ref_list[] =
     {"quit_prog",         TYPE_PROGRAM,   &tp_quit_prog,        WBOY , LMAGE},
     {"login_who_prog",    TYPE_PROGRAM,   &tp_login_who_prog,   WBOY , LMAGE},
     {"player_start",      TYPE_ROOM,      &tp_player_start,     LARCH, LMAGE},
+    {"reg_wiz",           TYPE_PLAYER,    &tp_reg_wiz,          WBOY , LMAGE},
     {"player_prototype",  TYPE_PLAYER,    &tp_player_prototype, LARCH, LMAGE},
     {"cron_prog",         TYPE_PROGRAM,   &tp_cron_prog,        LARCH, LMAGE},
 #ifdef HTTPD
@@ -299,6 +301,7 @@ int tp_guest_needflag		     = 0;
 int tp_mortalwho			     = 1;
 int tp_fb_controls		     = 1;
 int tp_allow_old_trigs		     = 1;
+int tp_multi_wizlevels             = 1;
 
 struct tune_bool_entry {
     const char *name;
@@ -369,6 +372,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"mortalwho",              &tp_mortalwho,                LARCH, LMUF },
     {"fb_controls",            &tp_fb_controls,              LBOY,  LMUF },
     {"allow_old_trigs",        &tp_allow_old_trigs,          LARCH, LMUF },
+    {"multi_wizlevels",        &tp_multi_wizlevels,          LBOY,  LMUF },
     {NULL, NULL, 0, 0}
 };
 

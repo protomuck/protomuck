@@ -82,13 +82,52 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
  	   case LMPI:	*p++ = 'M'; break;
          case LMAN:  	*p++ = 'W'; *p++ = '5'; break;
          case LBOY:  	*p++ = 'W'; *p++ = '4'; break;
-	   case LARCH:	*p++ = 'W'; *p++ = '3'; break;
+	   case LARCH:	*p++ = 'W'; if (tp_multi_wizlevels) { *p++ = '3'; } break;
 	   case LWIZ:	*p++ = 'W'; *p++ = '2'; break;
 	   case LMAGE:	*p++ = 'W';			break;
 	   case LM3:	*p++ = 'M'; *p++ = '3'; break;
 	   case LM2:	*p++ = 'M'; *p++ = '2'; break;
 	   case LM1:	*p++ = 'M'; *p++ = '1'; break;
        }
+    }
+    if (POWERS(thing) && (Typeof(thing) == TYPE_PLAYER)) {
+        *p++ = ':';
+        if (POWERS(thing) & POW_ANNOUNCE)
+            *p++ = 'a';
+        if (POWERS(thing) & POW_BOOT)
+            *p++ = 'b';
+        if (POWERS(thing) & POW_CHOWN_ANYTHING)
+            *p++ = 'c';
+        if (POWERS(thing) & POW_EXPANDED_WHO)
+            *p++ = 'x';
+        if (POWERS(thing) & POW_HIDE)
+            *p++ = 'h';
+        if (POWERS(thing) & POW_IDLE)
+            *p++ = 'i';
+        if (POWERS(thing) & POW_LINK_ANYWHERE)
+            *p++ = 'l';
+        if (POWERS(thing) & POW_LONG_FINGERS)
+            *p++ = 'g';
+        if (POWERS(thing) & POW_NO_PAY)
+            *p++ = 'n';
+        if (POWERS(thing) & POW_OPEN_ANYWHERE)
+            *p++ = 'o';
+        if (POWERS(thing) & POW_PLAYER_CREATE)
+            *p++ = 'p';
+        if (POWERS(thing) & POW_SEARCH)
+            *p++ = 's';
+        if (POWERS(thing) & POW_SEE_ALL)
+            *p++ = 'e';
+        if (POWERS(thing) & POW_TELEPORT)
+            *p++ = 't';
+        if (POWERS(thing) & POW_SHUTDOWN)
+            *p++ = 'd';
+        if (POWERS(thing) & POW_CONTROL_MUF)
+            *p++ = 'f';
+        if (POWERS(thing) & POW_CONTROL_ALL)
+            *p++ = 'r';
+        if (POWERS(thing) & POW_ALL_MUF_PRIMS)
+            *p++ = 'm';
     }
     *p = '\0';
     return buf;
@@ -278,6 +317,7 @@ unparse_boolexp(dbref player, struct boolexp * b, int fullname)
 
     return boolexp_buf;
 }
+
 
 
 

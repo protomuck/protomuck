@@ -1680,6 +1680,21 @@ db_read(FILE * f)
 }				/* db_read */
 
 int
+RawMWLevel(dbref thing)
+{
+	switch (CheckMWLevel(thing)) {
+		case LBOY:
+			return (tp_multi_wizlevels ? LBOY : LARCH);
+		case LWIZ:
+			return (tp_multi_wizlevels ? LWIZ : LARCH);
+		case LMAGE:
+			return (tp_multi_wizlevels ? LMAGE : LM3);
+		default:
+			return CheckMWLevel(thing);
+	}
+}
+
+int
 WLevel(dbref player)
 {
     int mlev = MLevel(player);
