@@ -476,8 +476,8 @@ main(int argc, char **argv)
 
 
 #ifdef DETACH
-#if defined(CYGWIN) || defined(WIN32) || defined(WIN_VC)
-# ifdef CYGWIN
+#if defined(__CYGWIN__) || defined(WIN32) || defined(WIN_VC)
+# ifdef __CYGWIN__
         fprintf(stdout, "ProtoMUCK-Cygwin %s now detaching from console.\n",
                 PROTOBASE);
 # else
@@ -532,7 +532,7 @@ main(int argc, char **argv)
 
 /* CYGWIN hack - Cygwin is SYS_POSIX but doesnt come as such. */
 
-#if defined(CYGWIN) || defined(SYS_POSIX) || defined (USE_SID)
+#if defined(__CYGWIN__) || defined(SYS_POSIX) || defined (USE_SID)
             setsid();
 #elif defined(SYSV) || defined(USE_SYSVPGRP)
             setpgrp();          /* System V's way */
