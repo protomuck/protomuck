@@ -297,6 +297,9 @@ can_doit(int descr, register dbref player, register dbref thing,
 bool
 can_see(register dbref player, register dbref thing, register bool can_see_loc)
 {
+    if(!OkObj(player) || !OkObj(thing))
+	return 0;
+    
     if (player == thing || Typeof(thing) == TYPE_EXIT
         || Typeof(thing) == TYPE_ROOM)
         return 0;
