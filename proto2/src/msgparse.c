@@ -368,7 +368,11 @@ mesg_dbref_raw(int descr, dbref player, dbref what, dbref perms,
         } else if (!string_compare(buf, "me")) {
             obj = player;
         } else if (!string_compare(buf, "here")) {
-            obj = getloc(player);
+            if (OkObj(player)) {
+                obj = getloc(player);
+            } else {
+                obj = NOTHING;
+            }
         } else if (!string_compare(buf, "home")) {
             obj = HOME;
         } else {
