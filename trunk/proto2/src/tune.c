@@ -28,7 +28,9 @@ const char *tp_dumping_mesg = DUMPING_MESG;
 const char *tp_dumpdone_mesg = DUMPDONE_MESG;
 const char *tp_leave_message = LEAVE_MESSAGE;
 const char *tp_huh_mesg = HUH_MESG;
+#ifdef MAILSERVER
 const char *tp_mailserver = MAILSERVER;
+#endif
 const char *tp_servername = "localhost";
 const char *tp_noperm_mesg = NOPERM_MESSAGE;
 const char *tp_noguest_mesg = NOGUEST_MESSAGE;
@@ -71,7 +73,9 @@ struct tune_str_entry tune_str_list[] = {
     {"Currency", "cpenny", &tp_cpenny, LARCH, LMUF, 1},
     {"Currency", "cpennies", &tp_cpennies, LARCH, LMUF, 1},
     {"Identity", "muckname", &tp_muckname, WBOY, LMUF, 1},
+#ifdef MAILSERVER
     {"Legacy", "mailserver", &tp_mailserver, WBOY, LWIZ, 1},
+#endif
     {"Identity", "servername", &tp_servername, WBOY, LMUF, 1},
     {"Legacy", "reg_email", &tp_reg_email, WBOY, LARCH, 1},
     {"Props", "proplist_counter_fmt", &tp_proplist_counter_fmt, LARCH, LMUF, 1},
