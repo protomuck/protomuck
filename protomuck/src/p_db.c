@@ -2302,6 +2302,8 @@ prim_movepennies(PRIM_PROTOTYPE)
 void
 prim_instances(PRIM_PROTOTYPE)
 {
+   unsigned short a = 0;
+   int b = 0;
    CHECKOP(1);
    oper1 = POP();
 
@@ -2313,7 +2315,9 @@ prim_instances(PRIM_PROTOTYPE)
       abort_interp("Object must be a program.");
 
    CLEAR(oper1);
-   PushInt(DBFETCH(ref)->sp.program.instances);
+   a = DBFETCH(ref)->sp.program.instances;
+   b = a;
+   PushInt(b);
 }
 
 void
