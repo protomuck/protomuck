@@ -218,7 +218,7 @@ prim_program_getlines(PRIM_PROTOTYPE)
                                  * of the program, so back up one in the count. */
         --count;
     ary = new_array_packed(count);
-    for (curr = segment, i = 0; --count; ++i, curr = curr->next)
+    for (curr = segment, i = 0; count--; ++i, curr = curr->next)
         array_set_intkey_strval(&ary, i, curr->this_line);
 
     free_prog_text(first);
