@@ -90,7 +90,7 @@ prim_add(PRIM_PROTOTYPE)
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
-            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            fresult = tp_alt_infinity_handler ? ( tf1 + tf2 ) : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
          }
         }
@@ -133,7 +133,7 @@ prim_subtract(PRIM_PROTOTYPE)
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
-            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            fresult = tp_alt_infinity_handler ? ( tf1 + tf2 ) : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
          }
         }
@@ -176,7 +176,7 @@ prim_multiply(PRIM_PROTOTYPE)
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
-            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            fresult = tp_alt_infinity_handler ? ( tf1 * tf2 ) : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
          }
         }
@@ -209,7 +209,8 @@ prim_divide(PRIM_PROTOTYPE)
         if ((oper1->type == PROG_INTEGER && !oper1->data.number) ||
             (oper1->type == PROG_FLOAT && fabs(oper1->data.fnumber)
              < DBL_EPSILON)) {
-            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            fresult = tp_alt_infinity_handler ? 
+             ((oper2->type == PROG_INTEGER) ? oper2->data.number : oper2->data.fnumber) * INF : 0.0;
             fr->error.error_flags.div_zero = 1;
         } else {
             tf1 =
@@ -225,7 +226,7 @@ prim_divide(PRIM_PROTOTYPE)
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
-            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            fresult = tp_alt_infinity_handler ? ( tf1 / tf2 ) : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
          }
             }

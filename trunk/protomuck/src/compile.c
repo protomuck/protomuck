@@ -16,6 +16,8 @@
 #include "interp.h"
 #include <ctype.h>
 #include <time.h>
+#include "nan.h"
+#include <math.h>
 
 /* This file contains code for doing "byte-compilation" of
    mud-forth programs.  As such, it contains many internal
@@ -587,8 +589,6 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "Rad2Deg", "180 pi / *");
 
     /* inserver str .. cat */
-    insert_def(cstat, "str", "{");
-    insert_def(cstat, "cat", "} array_make array_interpret");
     insert_def(cstat, "}cat", "} array_make array_interpret");
        
 
@@ -3189,12 +3189,24 @@ struct INTERMEDIATE *
 float_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *nw;
-
     nw = new_inst(cstat);
     nw->no = cstat->nowords++;
     nw->in.type = PROG_FLOAT;
     nw->in.line = cstat->lineno;
+#ifdef CYGWIN
+    /* What does God neeed with a starship? */
+       nw->in.data.fnumber = 0.0;
+    if (!string_compare(token,"inf")) 
+     { nw->in.data.fnumber = (float) INF; }
+    if (!string_compare(token,"-inf")) 
+     { nw->in.data.fnumber = (float) NINF; }
+    if (!string_compare(token,"nan"))
+     { nw->in.data.fnumber = (float) NAN; }
+    if (!nw->in.data.fnumber) 
+     { sscanf(token, "%lg", &(nw->in.data.fnumber)); }
+#else
     sscanf(token, "%lg", &(nw->in.data.fnumber));
+#endif
     return nw;
 }
 

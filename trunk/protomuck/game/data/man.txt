@@ -84,7 +84,7 @@ Time Prims:
 Data Conversion:
   ATOI     DBREF     INT     INTOSTR     CTOI     ITOC
   STOD     DTOS      FLOAT   STRTOF      FTOSTR   ITOH
-  HTOI     STR       CAT     FTOSTRC
+  HTOI     FTOSTRC
 
 Notifying Prims (I/O):
   NOTIFY              NOTIFY_EXCLUDE              NOTIFY_EXCEPT
@@ -9557,7 +9557,7 @@ f = floating point number
 This prim returns the systime time with an accuracy down to millisecond
 accuracy. Can be used for high precision timing loops.
 ~~~~~
-ARRAY_INTERPRET|}CAT|STR|CAT
+ARRAY_INTERPRET|}CAT
 
 array_interpret ( a -- s )
 ---------------
@@ -9574,10 +9574,6 @@ Results in "Alynna has 5 apples and gave 0.5 to you." if #2 is named Alynna.
 
 }cat is an inserver define for '} array_make array_interpret', so the following
 works: { "The answer is: " 2 3 4 5 + + + }cat
-
-For compatibility with older libraries:
- str is inserver defined to {
- cat is inserver defined to }cat
 ~~~~~
 FTOSTRC
 
