@@ -428,6 +428,7 @@ struct muf_socket {             /* struct for MUF socket data */
    int connected;               /* Set to 1 if ever connected */
    int listening;               /* Set to 1 if successfully opened listening */
    int links;                   /* Number of instances of the socket. */
+   int host;                    /* will eventually be the host integer */
    char lastchar;
 };
 
