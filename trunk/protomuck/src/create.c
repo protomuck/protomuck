@@ -481,7 +481,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     while ((newparent != NOTHING) && !(FLAGS(newparent) & ABODE) && !(FLAG2(newparent) & F2PARENT))
 	newparent = DBFETCH(newparent)->location;
     if (newparent == NOTHING)
-	newparent = GLOBAL_ENVIRONMENT;
+	newparent = tp_default_parent;
 
     NAME(room) = alloc_string(name);
     DBFETCH(room)->location = newparent;

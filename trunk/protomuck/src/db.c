@@ -50,6 +50,8 @@ getparent(dbref obj)
     do {
 	if (Typeof(obj)==TYPE_THING && (FLAGS(obj) & VEHICLE) && limit-->0) {
 	    obj = DBFETCH(obj)->sp.thing.home;
+            if (obj != NOTHING && Typeof(obj) == TYPE_PLAYER) 
+                obj = DBFETCH(obj)->sp.player.home;
 	} else {
 	    obj = getloc(obj);
 	}
@@ -927,6 +929,10 @@ db_free_object(dbref i)
 
 #ifdef DISKBASE
     unloadprops_with_prejudice(i);
+#else
+    if (o->properties) {
+       delete_proplist(o->properties);
+    } 
 #endif
 
     if (Typeof(i) == TYPE_EXIT && o->sp.exit.dest) {

@@ -280,9 +280,11 @@ mfn_listprops(MFUNARGS)
     char         *endbuf, *pattern;
     char          tmpbuf[BUFFER_LEN];
     char          patbuf[BUFFER_LEN];
+    char          pnamebuf[BUFFER_LEN];
     int           flag;
 
-    pname = argv[0];
+    strcpy(pnamebuf, argv[0]);
+    pname = pnamebuf; 
     if (argc > 1) {
         obj = mesg_dbref(descr, player, what, perms, argv[1]);
     }

@@ -94,6 +94,7 @@ extern dbref tp_player_start;
 extern dbref tp_reg_wiz;
 extern dbref tp_player_prototype;
 extern dbref tp_cron_prog;
+extern dbref tp_default_parent;
 #ifdef HTTPD
 extern dbref tp_www_root;
 extern dbref tp_www_surfer;

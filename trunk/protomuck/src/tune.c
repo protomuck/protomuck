@@ -214,6 +214,7 @@ dbref tp_login_who_prog    = -1;
 dbref tp_player_start      = PLAYER_START;
 dbref tp_player_prototype  = -1;
 dbref tp_cron_prog         = -1;
+dbref tp_default_parent    = GLOBAL_ENVIRONMENT;
 #ifdef HTTPD
 dbref tp_www_root          = -1;
 dbref tp_www_surfer        = -1;
@@ -235,6 +236,7 @@ struct tune_ref_entry tune_ref_list[] =
     {"player_start",      TYPE_ROOM,      &tp_player_start,     LARCH, LMAGE},
     {"player_prototype",  TYPE_PLAYER,    &tp_player_prototype, LARCH, LMAGE},
     {"cron_prog",         TYPE_PROGRAM,   &tp_cron_prog,        LARCH, LMAGE},
+    {"default_parent",    TYPE_ROOM,      &tp_default_parent,   LARCH, LMAGE},
 #ifdef HTTPD
     {"www_root",          TYPE_ROOM,      &tp_www_root,         LARCH, LMAGE},
     {"www_surfer",        TYPE_PLAYER,    &tp_www_surfer,       LARCH, LMAGE},

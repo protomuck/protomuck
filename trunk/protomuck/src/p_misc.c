@@ -913,8 +913,8 @@ void prim_watchpid(PRIM_PROTOTYPE)
 	CLEAR (oper1);
 } 
 
-
-
-
-
-
+void
+prim_read_wants_blanks(PRIM_PROTOTYPE)
+{
+    fr->wantsblanks = !(fr->wantsblanks);
+}

@@ -382,6 +382,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->player = player;
     fr->instcnt = 0;
     fr->skip_declare = 0;
+    fr->wantsblanks = 0;
     fr->caller.top = 1;
     fr->caller.st[0] = source;
     fr->caller.st[1] = program;

@@ -545,7 +545,6 @@ process_command(int descr, dbref player, char *command)
     char    ybuf[BUFFER_LEN];
     int     isOverride = 0;
     struct frame *tmpfr;
-
     if (command == 0)
 	abort();
 
@@ -558,15 +557,16 @@ process_command(int descr, dbref player, char *command)
 
     if ((tp_log_commands || (tp_log_guests && Guest(OWNER(player)))) &&
 	    (tp_log_interactive || !(FLAGS(player)&(INTERACTIVE | READMODE)))) {
-	log_command("%s%s%s%s(%d) in %s(%d):%s %s\n",
-		    Mage(OWNER(player)) ? "WIZ: " : "",
-		    (Typeof(player) != TYPE_PLAYER) ? NAME(player) : "",
-		    (Typeof(player) != TYPE_PLAYER) ? " by " : "",
-		    NAME(OWNER(player)), (int) player,
-		    NAME(DBFETCH(player)->location),
-		    (int) DBFETCH(player)->location,
-		    (FLAGS(player) & INTERACTIVE) ?
-		    " [interactive]" : " ", command);
+        if (*command) /* To prevent logging of NULL commands? FB6 change */
+	    log_command("%s%s%s%s(%d) in %s(%d):%s %s\n",
+		        Mage(OWNER(player)) ? "WIZ: " : "",
+		        (Typeof(player) != TYPE_PLAYER) ? NAME(player) : "",
+		        (Typeof(player) != TYPE_PLAYER) ? " by " : "",
+		        NAME(OWNER(player)), (int) player,
+		        NAME(DBFETCH(player)->location),
+		        (int) DBFETCH(player)->location,
+		        (FLAGS(player) & INTERACTIVE) ?
+		        " [interactive]" : " ", command);
     }
 
     if (FLAGS(player) & INTERACTIVE) {
@@ -576,6 +576,9 @@ process_command(int descr, dbref player, char *command)
     /* eat leading whitespace */
     while (*command && isspace(*command))
 	(void) command++;
+    /* disable null command once past READ stuff */
+    if (!*command)
+        return;
 
     commandstuff = command;
     /* check for single-character commands */
