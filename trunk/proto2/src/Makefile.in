@@ -39,8 +39,6 @@ DEST=${ROOT}/game
 CC=@CC@
 DEFS=@DEFS@
 LIBR=@LIBS@
-LEX=@LEX@
-YACC=@YACC@
 
 # #######################################################################
 #  	   Usualy don't need to change anything past here.
@@ -50,8 +48,6 @@ YACC=@YACC@
 # Include path, Cflags...
 #
 CFLAGS= ${OPTIM} ${DEFS} -I${INCLUDE}
-YFLAGS= -d
-LXFLAGS=
 
 #
 # for saving old copies.
@@ -63,7 +59,6 @@ RM= -rm -f
 # Misc stuff for odd targets.
 #
 SRC_PREFIX=
-MKDEPEND= makedepend
 MAKE= make
 MKTAGS= ctags
 
@@ -109,14 +104,7 @@ EOBJ= oldcompress.o diskprop.o property.o propdirs.o props.o stringutil.o \
 OBJ= ${COBJ} ${ROBJ} ${MOBJ}
 TARGETS= protomuck resolver olddecompress topwords
 
-.SUFFIXES: .y .fl .c .o
-
-.y.c:
-	${PRE} ${YACC} ${YFLAGS} -o $*.c $*.y
-	${PRE} -mv $*.h ${INCLUDE}
-
-.fl.c:
-	${PRE} ${LEX} ${LXFLAGS} -o$*.c $*.fl
+.SUFFIXES: .c .o
 
 .c.o:
 	${PRE} ${CC} ${CFLAGS} -c $*.c
@@ -134,10 +122,6 @@ protomuck:        ${P} ${COBJ} interface.o mkversion.sh
 
 resolver:	resolver.o
 	${PRE} ${CC} ${CFLAGS} -o resolver resolver.o ${LIBR}
-
-extract: ${P} extract.o ${EOBJ}
-	 ${RM} extract
-	 ${CC} ${CFLAGS} -o extract ${EOBJ} extract.o
 
 topwords: topwords.o hashtab.o
 	${RM} topwords
@@ -184,9 +168,6 @@ sources: ${SRC}
 
 names:
 	@for i in ${SRC}; do echo ${SRC_PREFIX}$$i; done
-
-depend:
-	${MKDEPEND} -- -D__${MACHTYPE}__ ${CFLAGS} -- ${CSRC} ${MSRC}
 
 
 ########################################################

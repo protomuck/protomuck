@@ -41,8 +41,10 @@ check_descr_flag(char *dflag)
         return DF_COLOR;
     if (string_prefix("df_interactive", dflag))
         return DF_INTERACTIVE;
+#ifdef USE_SSL
     if (string_prefix("df_ssl", dflag))
         return DF_SSL;
+#endif /* USE_SSL */
     return 0;
 }
 
@@ -56,7 +58,11 @@ descr_flag_set_perms(int dflag, int mlev, dbref prog)
 
     //Standard non-settables
     if (dflag == DF_HTML || dflag == DF_PUEBLO || dflag == DF_MUF
-        || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE || dflag == DF_SSL)
+        || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE
+#ifdef USE_SSL
+        || dflag == DF_SSL
+#endif /* USE_SSL */
+        )
         return 0;
 
     //Default is settable
@@ -538,7 +544,7 @@ prim_descr_setuser(PRIM_PROTOTYPE)
         const char *passwd = DBFETCH(ref)->sp.player.password;
 
         if (passwd) {
-            if (!check_password(ref,ptr)) {
+            if (!check_password(ref, ptr)) {
                 CLEAR(oper1);
                 CLEAR(oper2);
                 CLEAR(oper3);
@@ -709,8 +715,11 @@ prim_descr_sslp(PRIM_PROTOTYPE)
 
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
-
+#ifdef USE_SSL
     result = (pdescrtype(oper1->data.number) == CT_SSL);
+#else
+    result = 0;
+#endif
 
     CHECKOFLOW(1);
     CLEAR(oper1);
