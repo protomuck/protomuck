@@ -259,7 +259,7 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
             while (fntop->type != PROG_FUNCTION)
                 --fntop;
 
-            bufend += sprintf(buf2, "%.512s\033[1m(\033[0m", ptr);
+            bufend += sprintf(buf2, "%.512s" SYSWHITE "(" SYSNORMAL, ptr);
             for (k = 0; k < fntop->data.mufproc->args; ++k) {
                 const char *nam = scopedvar_getname(fr, lev, k);
                 char *val;
@@ -273,13 +273,13 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
                                  program);
 
                 if (k) {
-                    fmt = "\033[1m, %s=\033[0m%s";
+                    fmt = SYSWHITE ", %s=" SYSNORMAL "%s";
                 } else {
-                    fmt = "\033[1m%s=\033[0m%s";
+                    fmt = SYSWHITE "%s=" SYSNORMAL "%s";
                 }
                 bufend += snprintf(bufend, buf2 - bufend - 18, fmt, nam, val);
             }
-            bufend += snprintf(bufend, buf2 - bufend - 1, "\033[1m)\033[0m",
+            bufend += snprintf(bufend, buf2 - bufend - 1, SYSWHITE ")" SYSNORMAL,
                                ptr);
             ptr = buf2;
         }
