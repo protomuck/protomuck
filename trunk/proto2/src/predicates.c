@@ -13,13 +13,16 @@
 #include "externs.h"
 #include "reg.h"
 
-int
-can_link_to(dbref who, object_flag_type what_type, dbref where)
+bool
+can_link_to(register dbref who, object_flag_type what_type,
+            register dbref where)
 {
     if (where == HOME)
         return 1;
+
     if (where < 0 || where > db_top)
         return 0;
+
     switch (what_type) {
         case TYPE_EXIT:
             return (controls(who, where) || (FLAGS(where) & LINK_OK)
@@ -53,11 +56,12 @@ can_link_to(dbref who, object_flag_type what_type, dbref where)
             /* NOTREACHED */
             break;
     }
+
     return 0;
 }
 
-int
-can_link(dbref who, dbref what)
+bool
+can_link(register dbref who, register dbref what)
 {
     return (controls(who, what) || ((Typeof(what) == TYPE_EXIT)
                                     && DBFETCH(what)->sp.exit.ndest == 0));
@@ -69,10 +73,10 @@ can_link(dbref who, dbref what)
  * or that are jump_ok, and you cannot jump to players that are !jump_ok.
  */
 
-int
-could_doit(int descr, dbref player, dbref thing)
+bool
+could_doit(int descr, register dbref player, register dbref thing)
 {
-    dbref source, dest, owner;
+    register dbref source, dest, owner;
 
     if (Typeof(thing) == TYPE_EXIT) {
         if (DBFETCH(thing)->sp.exit.ndest == 0) {
@@ -120,14 +124,16 @@ could_doit(int descr, dbref player, dbref thing)
             }
         }
     }
+
     return (eval_boolexp(descr, player, GETLOCK(thing), thing));
 }
 
 
-int
-could_doit2(int descr, dbref player, dbref thing, char *prop, int tryprog)
+bool
+could_doit2(int descr, register dbref player, register dbref thing, char *prop,
+            register bool tryprog)
 {
-    dbref source, dest, owner;
+    register dbref source, dest, owner;
 
     if (Typeof(thing) == TYPE_EXIT) {
         if (DBFETCH(thing)->sp.exit.ndest == 0) {
@@ -180,32 +186,35 @@ could_doit2(int descr, dbref player, dbref thing, char *prop, int tryprog)
 }
 
 
-int
-test_lock(int descr, dbref player, dbref thing, const char *lockprop)
+bool
+test_lock(register int descr, register dbref player, register dbref thing,
+          register const char *lockprop)
 {
-    struct boolexp *lokptr;
+    register struct boolexp *lokptr;
 
     lokptr = get_property_lock(thing, lockprop);
     return (eval_boolexp(descr, player, lokptr, thing));
 }
 
 
-int
-test_lock_false_default(int descr, dbref player, dbref thing,
-                        const char *lockprop)
+bool
+test_lock_false_default(register int descr, register dbref player,
+                        register dbref thing, register const char *lockprop)
 {
-    struct boolexp *lok = get_property_lock(thing, lockprop);
+    register struct boolexp *lok = get_property_lock(thing, lockprop);
 
     if (lok == TRUE_BOOLEXP)
         return 0;
+
     return (eval_boolexp(descr, player, lok, thing));
 }
 
 
-int
-can_doit(int descr, dbref player, dbref thing, const char *default_fail_msg)
+bool
+can_doit(int descr, register dbref player, register dbref thing,
+         const char *default_fail_msg)
 {
-    dbref loc;
+    register dbref loc;
 
     if ((loc = getloc(player)) == NOTHING)
         return 0;
@@ -242,8 +251,8 @@ can_doit(int descr, dbref player, dbref thing, const char *default_fail_msg)
     }
 }
 
-int
-can_see(dbref player, dbref thing, int can_see_loc)
+bool
+can_see(register dbref player, register dbref thing, register bool can_see_loc)
 {
     if (player == thing || Typeof(thing) == TYPE_EXIT
         || Typeof(thing) == TYPE_ROOM)
@@ -274,20 +283,14 @@ can_see(dbref player, dbref thing, int can_see_loc)
 }
 
 #ifdef CONTROLS_SUPPORT
-int
-controlsEx(dbref who, dbref what)
-{
-    if (FLAG2(what) & F2CONTROLS)
-        return test_lock_false_default(-1, OWNER(who), what, "_/chlk");
-    else
-        return 0;
-}
+#   define controlsEx(W, H) ((FLAG2(what) & F2CONTROLS) && \
+    test_lock_false_default(-1, OWNER(who), what, "_/chlk"))
 #endif
 
-int
-newcontrols(dbref who, dbref what, int true_c)
+bool
+newcontrols(register dbref who, register dbref what, register bool true_c)
 {
-    dbref index;
+    register dbref index;
 
     /* No one controls invalid objects */
     if (what < 0 || what >= db_top)
@@ -327,8 +330,8 @@ newcontrols(dbref who, dbref what, int true_c)
      * This gives him power to affect any object in his w-bitted parent room.
      */
 
-    /* Read the manual (help CONTROLS) about this new stuff
-     *
+    /* 
+     *  Read the manual (help CONTROLS) about this new stuff.
      */
 
 #ifdef CONTROLS_SUPPORT
@@ -353,8 +356,6 @@ newcontrols(dbref who, dbref what, int true_c)
             }
         }
     } else {
-#else
-        true_c = 1;
 #endif
 
         if (tp_realms_control && (Typeof(what) != TYPE_PLAYER))
@@ -369,24 +370,12 @@ newcontrols(dbref who, dbref what, int true_c)
     return 0;
 }
 
-int
-controls(dbref who, dbref what)
-{
-    return newcontrols(who, what, 0);
-}
-
-int
-truecontrols(dbref who, dbref what)
-{
-    return newcontrols(who, what, 1);
-}
-
 /* Indicates if a flag can or cannot be set.
  * Returns 1 if the flag can't be set, 0 if it can.
  * Note that this function only handles flagset 1. restricted2 for flagset2
  */
-int
-restricted(dbref player, dbref thing, object_flag_type flag)
+bool
+restricted(register dbref player, register dbref thing, object_flag_type flag)
 {
     switch (flag) {
         case ABODE:
@@ -456,8 +445,8 @@ restricted(dbref player, dbref thing, object_flag_type flag)
 /* determines if a player can set a flag based on permission level 
  * 0 indicates they can, 1 indicates they cannot. Only checks flagset2.
  */
-int
-restricted2(dbref player, dbref thing, object_flag_type flag)
+bool
+restricted2(register dbref player, register dbref thing, object_flag_type flag)
 {
     switch (flag) {
         case F2GUEST:
@@ -496,38 +485,41 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
  * pennies and returns 1. Returns 0 if the player could not afford
  * it.
  */
-int
-payfor(dbref who, int cost)
+bool
+payfor(register dbref who, register int cost)
 {
     if (who == NOTHING)
         return 1;
+
     who = OWNER(who);
     if (Mage(who) || (POWERS(who) & POW_NO_PAY)) {
         return 1;
+
     } else if (DBFETCH(who)->sp.player.pennies >= cost) {
         DBFETCH(who)->sp.player.pennies -= cost;
         DBDIRTY(who);
         return 1;
-    } else {
+    } else
         return 0;
-    }
 }
 
-int
-word_start(const char *str, const char let)
+bool
+word_start(register const char *str, register const char let)
 {
-    int chk;
+    register bool chk;
 
     for (chk = 1; *str; str++) {
         if (chk && *str == let)
             return 1;
-        chk = *str == ' ';
+
+        chk = (*str == ' ');
     }
+
     return 0;
 }
 
-int
-ok_name(const char *name)
+bool
+ok_name(register const char *name)
 {
     return (name
             && *name
@@ -545,18 +537,17 @@ ok_name(const char *name)
             && string_compare(name, "here"));
 }
 
-int
-ok_player_name(const char *name)
+bool
+ok_player_name(register const char *name)
 {
-    const char *scan;
+    register const char *scan;
 
     if (!ok_name(name) || strlen(name) > PLAYER_NAME_LIMIT)
         return 0;
 
     for (scan = name; *scan; scan++) {
-        if (!(isprint(*scan) && !isspace(*scan))) { /* was isgraph(*scan) */
+        if (!(isprint(*scan) && !isspace(*scan))) /* was isgraph(*scan) */
             return 0;
-        }
     }
 
     if (name_is_bad(name))
@@ -566,18 +557,17 @@ ok_player_name(const char *name)
     return (lookup_player(name) == NOTHING);
 }
 
-int
-ok_password(const char *password)
+bool
+ok_password(register const char *password)
 {
-    const char *scan;
+    register const char *scan;
 
     if (*password == '\0')
         return 0;
 
     for (scan = password; *scan; scan++) {
-        if (*scan == '=' || !(isprint(*scan) && !isspace(*scan))) {
+        if (*scan == '=' || !(isprint(*scan) && !isspace(*scan)))
             return 0;
-        }
     }
 
     return 1;

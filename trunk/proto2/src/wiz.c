@@ -919,55 +919,6 @@ do_pcreate(dbref player, const char *user, const char *password)
     }
 }
 
-static const char *
-power_description(dbref thing)
-{
-    static char buf[BUFFER_LEN];
-
-    strcpy(buf, SYSGREEN "Powers: " SYSYELLOW);
-    if (POWERS(thing) & POW_ALL_MUF_PRIMS)
-        strcat(buf, "ALL_MUF_PRIMS ");
-    if (POWERS(thing) & POW_ANNOUNCE)
-        strcat(buf, "ANNOUNCE ");
-    if (POWERS(thing) & POW_BOOT)
-        strcat(buf, "BOOT ");
-    if (POWERS(thing) & POW_CHOWN_ANYTHING)
-        strcat(buf, "CHOWN_ANYTHING ");
-    if (POWERS(thing) & POW_CONTROL_ALL)
-        strcat(buf, "CONTROL_ALL ");
-    if (POWERS(thing) & POW_CONTROL_MUF)
-        strcat(buf, "CONTROL_MUF ");
-    if (POWERS(thing) & POW_EXPANDED_WHO)
-        strcat(buf, "EXPANDED_WHO ");
-    if (POWERS(thing) & POW_HIDE)
-        strcat(buf, "HIDE ");
-    if (POWERS(thing) & POW_IDLE)
-        strcat(buf, "IDLE ");
-    if (POWERS(thing) & POW_LINK_ANYWHERE)
-        strcat(buf, "LINK_ANYWHERE ");
-    if (POWERS(thing) & POW_LONG_FINGERS)
-        strcat(buf, "LONG_FINGERS ");
-    if (POWERS(thing) & POW_NO_PAY)
-        strcat(buf, "NO_PAY ");
-    if (POWERS(thing) & POW_OPEN_ANYWHERE)
-        strcat(buf, "OPEN_ANYWHERE ");
-    if (POWERS(thing) & POW_PLAYER_CREATE)
-        strcat(buf, "PLAYER_CREATE ");
-    if (POWERS(thing) & POW_SEARCH)
-        strcat(buf, "SEARCH ");
-    if (POWERS(thing) & POW_SEE_ALL)
-        strcat(buf, "SEE_ALL ");
-    if (POWERS(thing) & POW_SHUTDOWN)
-        strcat(buf, "SHUTDOWN ");
-    if (POWERS(thing) & POW_TELEPORT)
-        strcat(buf, "TELEPORT ");
-    if (POWERS(thing) & POW_STAFF)
-        strcat(buf, "STAFF ");
-    if (POWERS(thing) & POW_PLAYER_PURGE)
-        strcat(buf, "PLAYER_PURGE");
-    return buf;
-}
-
 void
 do_powers(int descr, dbref player, const char *name, const char *power)
 {

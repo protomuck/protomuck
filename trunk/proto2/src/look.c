@@ -25,9 +25,9 @@ extern const char *uncompress(const char *);
 
 /* prints owner of something */
 static void
-print_owner(dbref player, dbref thing)
+print_owner(register dbref player, register dbref thing)
 {
-    dbref ref;
+    register dbref ref;
 
     switch (Typeof(thing)) {
         case TYPE_PLAYER:
@@ -55,20 +55,20 @@ print_owner(dbref player, dbref thing)
 }
 
 void
-exec_or_notify(int descr, dbref player, dbref thing,
-               const char *message, const char *whatcalled)
+exec_or_notify_2(int descr, dbref player, dbref thing,
+                 const char *message, const char *whatcalled, register bool typ)
 {
-    char *p;
-    char *p2;
-    char *p3;
+    register char *p;
     char buf[BUFFER_LEN];
-    char tmpcmd[BUFFER_LEN];
-    char tmparg[BUFFER_LEN];
 
     p = (char *) get_uncompress((char *) message);
 
     if (*p == EXEC_SIGNAL) {
-        int i;
+        char tmpcmd[BUFFER_LEN];
+        char tmparg[BUFFER_LEN];
+        register char *p2;
+        register char *p3;
+        register int i;
 
         if (*(++p) == REGISTERED_TOKEN) {
             strcpy(buf, p);
@@ -80,11 +80,10 @@ exec_or_notify(int descr, dbref player, dbref thing,
             if (*p3)
                 *p3 = '\0';
 
-            if (*p2) {
+            if (*p2)
                 i = (dbref) find_registered_obj(thing, p2);
-            } else {
+            else
                 i = 0;
-            }
         } else {
             i = atoi(p);
             for (; *p && !isspace(*p); p++) ;
@@ -92,11 +91,10 @@ exec_or_notify(int descr, dbref player, dbref thing,
                 p++;
         }
         if (i < 0 || i >= db_top || (Typeof(i) != TYPE_PROGRAM)) {
-            if (*p) {
+            if (*p)
                 notify(player, p);
-            } else {
+            else
                 notify(player, "You see nothing special.");
-            }
         } else {
             struct frame *tmpfr;
 
@@ -108,97 +106,30 @@ exec_or_notify(int descr, dbref player, dbref thing,
             strcpy(match_cmdname, whatcalled);
             tmpfr = interp(descr, player, DBFETCH(player)->location, i, thing,
                            PREEMPT, STD_HARDUID, 0);
-            if (tmpfr) {
+            if (tmpfr)
                 interp_loop(player, i, tmpfr, 0);
-            }
+
             strcpy(match_args, tmparg);
             strcpy(match_cmdname, tmpcmd);
         }
     } else {
         p = do_parse_mesg(descr, player, thing, p, whatcalled, buf,
                           MPI_ISPRIVATE);
-        notify(player, p);
-    }
-}
-
-void
-exec_or_html_notify(int descr, dbref player, dbref thing,
-                    const char *message, const char *whatcalled)
-{
-    char *p;
-    char *p2;
-    char *p3;
-    char buf[BUFFER_LEN];
-    char tmpcmd[BUFFER_LEN];
-    char tmparg[BUFFER_LEN];
-
-#ifdef COMPRESS
-    p = (char *) uncompress((char *) message);
-#else /* !COMPRESS */
-    p = (char *) message;
-#endif /* COMPRESS */
-
-    if (*p == EXEC_SIGNAL) {
-        int i;
-
-        if (*(++p) == REGISTERED_TOKEN) {
-            strcpy(buf, p);
-            for (p2 = buf; *p && !isspace(*p); p++) ;
-            if (*p)
-                p++;
-
-            for (p3 = buf; *p3 && !isspace(*p3); p3++) ;
-            if (*p3)
-                *p3 = '\0';
-
-            if (*p2) {
-                i = (dbref) find_registered_obj(thing, p2);
-            } else {
-                i = 0;
-            }
-        } else {
-            i = atoi(p);
-            for (; *p && !isspace(*p); p++) ;
-            if (*p)
-                p++;
-        }
-        if (i < 0 || i >= db_top || (Typeof(i) != TYPE_PROGRAM)) {
-            if (*p) {
-                notify(player, p);
-            } else {
-                notify(player, "You see nothing special.");
-            }
-        } else {
-            struct frame *tmpfr;
-
-            strcpy(tmparg, match_args);
-            strcpy(tmpcmd, match_cmdname);
-            p = do_parse_mesg(descr, player, thing, p, whatcalled, buf,
-                              MPI_ISPRIVATE);
-            strcpy(match_args, p);
-            strcpy(match_cmdname, whatcalled);
-            tmpfr = interp(descr, player, DBFETCH(player)->location, i, thing,
-                           PREEMPT, STD_HARDUID, 0);
-            if (tmpfr) {
-                interp_loop(player, i, tmpfr, 0);
-            }
-            strcpy(match_args, tmparg);
-            strcpy(match_cmdname, tmpcmd);
-        }
-    } else {
-        p = do_parse_mesg(descr, player, thing, p, whatcalled, buf,
-                          MPI_ISPRIVATE);
-        notify_html(player, p);
+        if (typ)
+            notify(player, p);
+        else
+            notify_html(player, p);
     }
 }
 
 int
-count_details(dbref player, dbref what, const char *propname)
+count_details(dbref player, register dbref what, register const char *propname)
 {
-    const char *pname;
-    char buf[BUFFER_LEN];
+    register const char *pname;
     char exbuf[BUFFER_LEN];
-    int count;
+    char buf[BUFFER_LEN];
+    register int count;
+
 
     count = 0;
 
@@ -210,6 +141,7 @@ count_details(dbref player, dbref what, const char *propname)
             count++;
         }
     }
+
     return count;
 }
 
@@ -217,7 +149,7 @@ void
 look_details(dbref player, dbref what, const char *propname)
 {
     const char *pname;
-    char *tmpchr;
+    register char *tmpchr;
     char buf[BUFFER_LEN], buf2[BUFFER_LEN];
     char exbuf[BUFFER_LEN];
 
@@ -230,13 +162,15 @@ look_details(dbref player, dbref what, const char *propname)
             strcat(buf2, pname + strlen("_obj/"));
             tmpchr = buf2 + strlen(SYSPURPLE);
             while (((*tmpchr) != '\0')) {
-                if (((*tmpchr) == ';')) {
+                if (((*tmpchr) == ';'))
                     (*tmpchr) = '\0';
-                } else
+                else
                     tmpchr++;
             }
+
             if (controls(player, what))
                 strcat(buf2, CINFO "(detail)");
+
             anotify_nolisten(player, buf2, 1);
         }
     }
@@ -246,10 +180,8 @@ static void
 look_contents(dbref player, dbref loc, const char *contents_name)
 {
     dbref thing;
-    dbref can_see_loc;
-    int saw_something;
-
-    saw_something = 0;
+    register bool can_see_loc;
+    register bool saw_something = 0;
 
     /* check to see if he can see the location */
     can_see_loc = (!Dark(loc) || controls(player, loc) || Light(loc));
@@ -262,10 +194,9 @@ look_contents(dbref player, dbref loc, const char *contents_name)
             saw_something = 1;
             anotify_nolisten(player, contents_name, 1);
             DOLIST(thing, DBFETCH(loc)->contents) {
-                if (can_see(player, thing, can_see_loc)) {
+                if (can_see(player, thing, can_see_loc))
                     anotify_nolisten(player, ansi_unparse_object(player, thing),
                                      1);
-                }
             }
             break;              /* we're done */
         }
@@ -282,19 +213,16 @@ look_contents(dbref player, dbref loc, const char *contents_name)
 static void
 look_simple(int descr, dbref player, dbref thing, const char *name)
 {
-    if (Html(player) && GETHTMLDESC(thing)) {
+    if (Html(player) && GETHTMLDESC(thing))
         exec_or_html_notify(descr, player, thing, GETHTMLDESC(thing), name);
-    } else {
-        if (GETDESC(thing)) {
-            exec_or_notify(descr, player, thing, GETDESC(thing), name);
-        } else {
-            notify(player, "You see nothing special.");
-        }
-    }
+    else if (GETDESC(thing))
+        exec_or_notify(descr, player, thing, GETDESC(thing), name);
+    else
+        notify(player, "You see nothing special.");
 }
 
 void
-look_room(int descr, dbref player, dbref loc, int verbose)
+look_room(register int descr, register dbref player, register dbref loc)
 {
     char obj_num[20];
 
@@ -303,14 +231,12 @@ look_room(int descr, dbref player, dbref loc, int verbose)
 
     /* tell him the description */
     if (Typeof(loc) == TYPE_ROOM) {
-        if (Html(player) && GETHTMLDESC(loc)) {
+        if (Html(player) && GETHTMLDESC(loc))
             exec_or_html_notify(descr, player, loc, GETHTMLDESC(loc),
                                 "(@Desc)");
-        } else {
-            if (GETDESC(loc)) {
-                exec_or_notify(descr, player, loc, GETDESC(loc), "(@Desc)");
-            }
-        }
+        else if (GETDESC(loc))
+            exec_or_notify(descr, player, loc, GETDESC(loc), "(@Desc)");
+
         /* tell him the appropriate messages if he has the key */
         if (can_doit(descr, player, loc, 0)) {
 /* These 2 used to be handled in can_doit, but I had moved them to
@@ -319,23 +245,19 @@ look_room(int descr, dbref player, dbref loc, int verbose)
  * for example). All this stuff for checking permissions in predicates.c
  * needs to be rewritten to make a lot more sense. TODO
  */
-            if (GETSUCC(loc)) {
+            if (GETSUCC(loc))
                 exec_or_notify(descr, player, loc, GETSUCC(loc), "(@Succ)");
-            }
-            if (GETOSUCC(loc) && !Dark(player)) {
+
+            if (GETOSUCC(loc) && !Dark(player))
                 parse_omessage(descr, player, loc, loc, GETOSUCC(loc),
                                NAME(player), "(@Osucc)");
-            }
         }
     } else {
-        if (Html(player) && GETIHTMLDESC(loc)) {
+        if (Html(player) && GETIHTMLDESC(loc))
             exec_or_html_notify(descr, player, loc, GETIHTMLDESC(loc),
                                 "(@Idesc)");
-        } else {
-            if (GETIDESC(loc)) {
-                exec_or_notify(descr, player, loc, GETIDESC(loc), "(@Idesc)");
-            }
-        }
+        else if (GETIDESC(loc))
+            exec_or_notify(descr, player, loc, GETIDESC(loc), "(@Idesc)");
     }
     ts_useobject(loc);
 
@@ -350,28 +272,29 @@ look_room(int descr, dbref player, dbref loc, int verbose)
 }
 
 void
-do_look_around(int descr, dbref player)
+do_look_around(register int descr, register dbref player)
 {
-    dbref loc;
+    register dbref loc;
 
     if ((loc = getloc(player)) == NOTHING)
         return;
-    look_room(descr, player, loc, 1);
+
+    look_room(descr, player, loc);
 }
 
 void
-do_look_at(int descr, dbref player, const char *name, const char *detail)
+do_look_at(int descr, dbref player, register const char *name,
+           const char *detail)
 {
     dbref thing, lastthing;
+    register bool nomatch;
     struct match_data md;
-    int nomatch;
     char buf[BUFFER_LEN];
     char obj_num[20];
 
     if (*name == '\0' || !string_compare(name, "here")) {
-        if ((thing = getloc(player)) != NOTHING) {
-            look_room(descr, player, thing, 1);
-        }
+        if ((thing = getloc(player)) != NOTHING)
+            look_room(descr, player, thing);
     } else {
 
 #ifdef DISKBASE
@@ -399,7 +322,7 @@ do_look_at(int descr, dbref player, const char *name, const char *detail)
                         && !can_link_to(player, TYPE_ROOM, thing)) {
                         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
                     } else {
-                        look_room(descr, player, thing, 1);
+                        look_room(descr, player, thing);
                     }
                     break;
                 case TYPE_PLAYER:
@@ -491,12 +414,9 @@ do_look_at(int descr, dbref player, const char *name, const char *detail)
                 }
                 propadr = next_prop(pptr, propadr, propname);
             }
-            if (nomatch)
-                if (thing == player) {
-                    thing = getloc(player);
-                    if (thing != player)
-                        goto repeat_match;
-                }
+            if (nomatch && thing == player)
+                if ((thing = getloc(player)) != player)
+                    goto repeat_match;
 
             thing = lastthing;
             if (((int) lastmatch > 0) && (PropType(lastmatch) == PROP_STRTYP)) {
@@ -513,18 +433,17 @@ do_look_at(int descr, dbref player, const char *name, const char *detail)
             } else {
                 anotify_nolisten(player, CINFO NOMATCH_MESSAGE, 1);
             }
-        } else {
+        } else
             anotify_nolisten(player, CINFO AMBIGUOUS_MESSAGE, 1);
-        }
     }
 }
 
 #ifdef VERBOSE_EXAMINE
 
 static const char *
-flag_description(dbref thing)
+flag_description(register dbref thing)
 {
-    static char buf[BUFFER_LEN];
+    static char buf[1024];
 
     strcpy(buf, SYSGREEN "Type: " SYSYELLOW);
     switch (Typeof(thing)) {
@@ -664,10 +583,12 @@ flag_description(dbref thing)
     return buf;
 }
 
-static const char *
-power_description(dbref thing)
+#endif /* VERBOSE_EXAMINE */
+
+const char *
+power_description(register dbref thing)
 {
-    static char buf[BUFFER_LEN];
+    static char buf[1024];
 
     strcpy(buf, SYSGREEN "Powers: " SYSYELLOW);
     if (POWERS(thing) & POW_ALL_MUF_PRIMS)
@@ -713,8 +634,6 @@ power_description(dbref thing)
     return buf;
 }
 
-#endif /* VERBOSE_EXAMINE */
-
 int
 listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
 {
@@ -722,10 +641,10 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
     char wld[BUFFER_LEN];
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
-    char *ptr, *wldcrd = wld;
     PropPtr propadr, pptr;
-    int i, cnt = 0;
-    int recurse = 0;
+    register char *ptr, *wldcrd = wld;
+    register int i, cnt = 0;
+    register bool recurse = 0;
 
     strcpy(wld, wild);
     i = strlen(wld);
@@ -760,15 +679,16 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
     return cnt;
 }
 
-
 int
-size_object(dbref i, int load)
+size_object(register dbref i, register int load)
 {
-    int byts;
+    register int byts;
+
     byts = sizeof(struct object);
-    if (NAME(i)) {
+
+    if (NAME(i))
         byts += strlen(NAME(i)) + 1;
-    }
+
     byts += size_properties(i, load);
 
     if (Typeof(i) == TYPE_EXIT && DBFETCH(i)->sp.exit.dest) {
@@ -778,19 +698,21 @@ size_object(dbref i, int load)
     } else if (Typeof(i) == TYPE_PROGRAM) {
         byts += size_prog(i);
     }
+
     return byts;
 }
 
 void
 do_examine(int descr, dbref player, const char *name, const char *dir)
 {
-    dbref thing;
-    char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
+    char buf[BUFFER_LEN];
+    struct match_data md;
+    register dbref thing;
+    register int i, cnt;
     dbref content;
     dbref exit;
-    int i, cnt;
-    struct match_data md;
+
     struct tm *time_tm;         /* used for timestamps */
 
     if (Guest(player)) {
@@ -1179,19 +1101,20 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 
 
 void
-do_score(dbref player, int domud)
+do_score(register dbref player)
 {
     char buf[BUFFER_LEN];
 
     sprintf(buf, CINFO "You have %d %s.", DBFETCH(player)->sp.player.pennies,
             DBFETCH(player)->sp.player.pennies == 1 ? tp_penny : tp_pennies);
+
     anotify_nolisten(player, buf, 1);
 }
 
 void
-do_inventory(dbref player)
+do_inventory(register dbref player)
 {
-    dbref thing;
+    register dbref thing;
 
     if ((thing = DBFETCH(player)->contents) == NOTHING &&
         !count_details(player, player, "_obj")) {
@@ -1206,23 +1129,25 @@ do_inventory(dbref player)
         look_details(player, player, "_obj");
     }
 
-    do_score(player, 0);
+    do_score(player);
 }
 
-int
-init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
+char
+init_checkflags(dbref player, register const char *flags,
+                struct flgchkdat *check)
 {
     char buf[BUFFER_LEN];
-    char *cptr;
-    int output_type = 0;
-    int mode = 0;
-    int inflags = 1;
+    register char *cptr;
+    register char output_type = 0;
+    register char mode = 0;
+    register bool inflags = 1;
 
     strcpy(buf, flags);
     for (cptr = buf; *cptr && (*cptr != '='); cptr++) ;
     if (*cptr == '=')
         *(cptr++) = '\0';
     flags = buf;
+
     while (*cptr && isspace(*cptr))
         cptr++;
 
@@ -1736,8 +1661,8 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 }
 
 
-int
-checkflags(dbref what, struct flgchkdat check)
+bool
+checkflags(register dbref what, struct flgchkdat check)
 {
     if (check.fortype && (Typeof(what) != check.istype))
         return (0);
@@ -1832,16 +1757,16 @@ checkflags(dbref what, struct flgchkdat check)
     }
     if (check.size) {
         if ((size_object(what, check.loadedsize) < check.size)
-            != (!check.issize)) {
+            != (!check.issize))
             return 0;
-        }
     }
     return (1);
 }
 
 
 void
-display_objinfo(dbref player, dbref obj, int output_type)
+display_objinfo(register dbref player, register dbref obj,
+                register char output_type)
 {
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
@@ -1908,13 +1833,13 @@ display_objinfo(dbref player, dbref obj, int output_type)
 
 
 void
-do_find(dbref player, const char *name, const char *flags)
+do_find(register dbref player, register const char *name, const char *flags)
 {
-    dbref i;
-    struct flgchkdat check;
+    register char output_type;
     char buf[BUFFER_LEN + 2];
-    int total = 0;
-    int output_type = init_checkflags(player, flags, &check);
+    register int total = 0;
+    struct flgchkdat check;
+    register dbref i;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -1928,6 +1853,7 @@ do_find(dbref player, const char *name, const char *flags)
     if (!payfor(player, tp_lookup_cost)) {
         anotify_fmt(player, CFAIL "You don't have enough %s.", tp_pennies);
     } else {
+        output_type = init_checkflags(player, flags, &check);
         for (i = 0; i < db_top; i++) {
             if ((Wiz(OWNER(player)) || (POWERS(player) & POW_SEARCH)
                  || OWNER(i) == OWNER(player)) && checkflags(i, check)
@@ -1936,6 +1862,7 @@ do_find(dbref player, const char *name, const char *flags)
                 total++;
             }
         }
+
         anotify_nolisten(player, CINFO "***End of List***", 1);
         anotify_fmt(player, CSUCC "%d objects found.", total);
     }
@@ -1943,12 +1870,12 @@ do_find(dbref player, const char *name, const char *flags)
 
 
 void
-do_owned(dbref player, const char *name, const char *flags)
+do_owned(register dbref player, const char *name, const char *flags)
 {
-    dbref victim, i;
+    register char output_type;
+    register dbref victim, i;
     struct flgchkdat check;
-    int total = 0;
-    int output_type = init_checkflags(player, flags, &check);
+    register int total = 0;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -1959,6 +1886,7 @@ do_owned(dbref player, const char *name, const char *flags)
         anotify_fmt(player, CFAIL "You don't have enough %s.", tp_pennies);
         return;
     }
+
     if ((Mage(OWNER(player)) && *name) || (POWERS(player) & POW_SEARCH)) {
         if ((victim = strcmp(name, "me") ? lookup_player(name) : player)
             == NOTHING) {
@@ -1968,22 +1896,25 @@ do_owned(dbref player, const char *name, const char *flags)
     } else
         victim = player;
 
+    output_type = init_checkflags(player, flags, &check);
+
     for (i = 0; i < db_top; i++) {
         if ((OWNER(i) == OWNER(victim)) && checkflags(i, check)) {
             display_objinfo(player, i, output_type);
             total++;
         }
     }
+
     anotify_nolisten(player, CINFO "***End of List***", 1);
     anotify_fmt(player, CSUCC "%d objects found.", total);
 }
 
 void
-do_trace(int descr, dbref player, const char *name, int depth)
+do_trace(int descr, register dbref player, const char *name, register int depth)
 {
-    dbref thing;
-    int i;
     struct match_data md;
+    register dbref thing;
+    register int i;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -1997,6 +1928,7 @@ do_trace(int descr, dbref player, const char *name, int depth)
     match_neighbor(&md);
     match_possession(&md);
     match_registered(&md);
+
     if ((thing = noisy_match_result(&md)) == NOTHING || thing == AMBIGUOUS)
         return;
 
@@ -2011,14 +1943,15 @@ do_trace(int descr, dbref player, const char *name, int depth)
 }
 
 void
-do_entrances(int descr, dbref player, const char *name, const char *flags)
+do_entrances(int descr, register dbref player, const char *name,
+             const char *flags)
 {
-    dbref i, j;
-    dbref thing;
+    register dbref i, thing;
+    dbref j;
     struct match_data md;
     struct flgchkdat check;
-    int total = 0;
-    int output_type = init_checkflags(player, flags, &check);
+    register int total = 0;
+    register char output_type;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -2042,15 +1975,19 @@ do_entrances(int descr, dbref player, const char *name, const char *flags)
 
         thing = noisy_match_result(&md);
     }
+
     if (thing == NOTHING) {
         anotify_nolisten(player, CINFO "I don't know what object you mean.", 1);
         return;
     }
+
     if (!controls(OWNER(player), thing) && !(POWERS(player) & POW_SEARCH)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
-    init_checkflags(player, flags, &check);
+
+    output_type = init_checkflags(player, flags, &check);
+
     for (i = 0; i < db_top; i++) {
         if (checkflags(i, check)) {
             switch (Typeof(i)) {
@@ -2086,19 +2023,21 @@ do_entrances(int descr, dbref player, const char *name, const char *flags)
             }
         }
     }
+
     anotify_nolisten(player, CINFO "***End of List***", 1);
     anotify_fmt(player, CSUCC "%d objects found.", total);
 }
 
 void
-do_contents(int descr, dbref player, const char *name, const char *flags)
+do_contents(int descr, register dbref player, const char *name,
+            const char *flags)
 {
-    dbref i;
     dbref thing;
+    register dbref i;
     struct match_data md;
     struct flgchkdat check;
-    int total = 0;
-    int output_type = init_checkflags(player, flags, &check);
+    register int total = 0;
+    register char output_type;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -2122,13 +2061,16 @@ do_contents(int descr, dbref player, const char *name, const char *flags)
 
         thing = noisy_match_result(&md);
     }
+
     if (thing == NOTHING)
         return;
+
     if (!controls(OWNER(player), thing) && !(POWERS(player) & POW_SEARCH)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
-    init_checkflags(player, flags, &check);
+
+    output_type = init_checkflags(player, flags, &check);
     DOLIST(i, DBFETCH(thing)->contents) {
         if (checkflags(i, check)) {
             display_objinfo(player, i, output_type);
@@ -2157,11 +2099,11 @@ do_contents(int descr, dbref player, const char *name, const char *flags)
     anotify_fmt(player, CSUCC "%d objects found.", total);
 }
 
-static int
+static bool
 exit_matches_name(dbref exit, const char *name)
 {
     char buf[BUFFER_LEN];
-    char *ptr, *ptr2;
+    register char *ptr, *ptr2;
 
     strcpy(buf, NAME(exit));
     for (ptr2 = ptr = buf; *ptr; ptr = ptr2) {
@@ -2181,7 +2123,7 @@ exit_matches_name(dbref exit, const char *name)
 void
 exit_match_exists(dbref player, dbref obj, const char *name)
 {
-    dbref exit;
+    register dbref exit;
     char buf[BUFFER_LEN];
 
     exit = DBFETCH(obj)->exits;
@@ -2198,8 +2140,9 @@ exit_match_exists(dbref player, dbref obj, const char *name)
 void
 do_sweep(int descr, dbref player, const char *name)
 {
-    dbref thing, ref, loc;
-    int flag, tellflag;
+    register dbref ref;
+    dbref thing, loc;
+    register bool flag, tellflag;
     struct match_data md;
     char buf[BUFFER_LEN];
 
