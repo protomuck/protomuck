@@ -65,29 +65,31 @@ prim_dupn(PRIM_PROTOTYPE)
     }
 }
 
-
 void
 prim_ldup(PRIM_PROTOTYPE)
 {
-    int i;
+	int i;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
-        abort_interp("Operand is not an integer.");
-    result = oper1->data.number;
-    if (result < 0)
-        abort_interp("Operand is negative.");
-    CLEAR(oper1);
-    PushInt(result);
-    result++;
-    CHECKOP(result);
-    nargs = 0;
-    CHECKOFLOW(result);
-    for (i = result; i > 0; i--) {
-        copyinst(&arg[*top - result], &arg[*top]);
-        (*top)++;
-    }
+	CHECKOP_READONLY(1);
+	nargs = 0;
+
+	if (arg[*top - 1].type != PROG_INTEGER)
+		abort_interp("Operand is not an integer.");
+
+	result = arg[*top - 1].data.number;
+
+	if (result < 0)
+		abort_interp("Operand is negative.");
+
+	result++;
+	CHECKOP_READONLY(result);
+	nargs = 0;
+	CHECKOFLOW(result);
+
+	for (i = result; i > 0; i--) {
+		copyinst(&arg[*top - result], &arg[*top]);
+		(*top)++;
+	}
 }
 
 void
