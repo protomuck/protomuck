@@ -1037,7 +1037,7 @@ db_get_single_prop(FILE * f, dbref obj, int pos)
                     abort();
                 }
             } else {
-                sscanf(value, "%lg", (PTYPE) & fval);
+                sscanf(value, "%lg", (double *) &fval);
             }
             set_property_nofetch(obj, name, flg, (PTYPE) fltostr(fbuf, fval));
             break;
