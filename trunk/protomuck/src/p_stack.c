@@ -1117,6 +1117,7 @@ prim_foriter(PRIM_PROTOTYPE)
 			array_data *val = array_getitem(arr, &fr->fors.st->cur);
 
 			if (val) {
+				CHECKOFLOW(2);
 				PushInst(&fr->fors.st->cur);	/* push key onto stack */
 				PushInst(val);	/* push value onto stack */
 				tmp = 1;		/* tell following IF to NOT branch out of loop */
