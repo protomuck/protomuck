@@ -840,6 +840,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
 {
     dbref   thing;
     dbref   owner;
+    dbref   oldOwner;
     struct match_data md;
 
     if(tp_db_readonly) return;
@@ -880,6 +881,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
+    oldOwner = OWNER(thing);
     switch (Typeof(thing)) {
 	case TYPE_ROOM:
 	    if (!Mage(OWNER(player)) && DBFETCH(player)->location != thing) {
@@ -912,14 +914,16 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
     if (owner == player) {
 	char    buf[BUFFER_LEN], buf1[BUFFER_LEN];
 	strcpy( buf1, unparse_object(player, thing));
-	sprintf(buf, CSUCC "Owner of %s changed to you.", buf1 );
+	sprintf(buf, CSUCC "Owner of %s changed to you from %s.", 
+                buf1, unparse_object(player,oldOwner));
 	anotify_nolisten2(player, buf);
     } else {
 	char    buf[BUFFER_LEN], buf1[BUFFER_LEN], buf2[BUFFER_LEN];
 
 	strcpy( buf1, unparse_object(player, thing));
 	strcpy( buf2, unparse_object(player, owner));
-	sprintf(buf, CSUCC "Owner of %s changed to %s.", buf1, buf2 );
+	sprintf(buf, CSUCC "Owner of %s changed to %s from %s.", buf1, buf2, 
+                unparse_object(player, oldOwner));
 	anotify_nolisten2(player, buf);
     }
     DBDIRTY(thing);
