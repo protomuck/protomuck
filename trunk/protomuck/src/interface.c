@@ -1911,7 +1911,7 @@ new_connection(int port, int sock)
             add_property((dbref)0, "_sys/concount", NULL, result);
 	return initializesock( newsock,
 	    hostname, ntohs(addr.sin_port),
-	    ntohl(addr.sin_addr.s_addr), ctype, port, 0
+	    ntohl(addr.sin_addr.s_addr), ctype, port, 1
 	);
     }
 }
@@ -5277,6 +5277,27 @@ welcome_user(struct descriptor_data * d)
 	  queue_ansi(d, "\r\nThis world is Pueblo 1.0 Enhanced.\r\n\r\n");
 	  queue_ansi(d, "</xch_mudtext><img xch_mode=html>");
        }
+        fname = reg_site_welcome(d->hostaddr);
+        if (fname && (*fname == '.')) {
+            strcpy(buf, WELC_FILE);
+        } else if (fname && (*fname == '#')) {
+            if (tp_rand_screens > 0)
+                sprintf(buf, "data/welcome%d.txt",(rand()%tp_rand_screens)+1);
+            else
+                strcpy(buf, WELC_HTML);
+        } else if (fname) {
+            strcpy(buf, "data/welcome/");
+            ptr = buf + strlen(buf);
+            while(*fname && (*fname != ' ')) (*(ptr++)) = (*(fname++));
+            *ptr = '\0';
+            strcat(buf, ".txt");
+        } else if (reg_site_is_barred(d->hostaddr) == TRUE) {
+            strcpy(buf, BARD_FILE);
+        } else if (tp_rand_screens > 0) {
+            sprintf(buf, "data/welcome%d.txt", (rand()%tp_rand_screens) + 1);
+        } else {
+            strcpy(buf, WELC_HTML);
+        }
 	strcpy(buf, WELC_HTML);
         mcp_negotiation_start(&d->mcpframe, d);
 	if ((f = fopen(buf, "r")) == NULL) {
@@ -5294,14 +5315,15 @@ welcome_user(struct descriptor_data * d)
 	  }
 	  fclose(f);
 	}
-    }
-    if (wizonly_mode) {
-	queue_unhtml(d, MARK "<b>Due to maintenance, only wizards can connect now.</b>\r\n");
-    } else if (tp_playermax && con_players_curr >= tp_playermax_limit) {
-	queue_unhtml(d, WARN_MESG);
-	queue_unhtml(d, "\r\n");
-    }
-    
+        if (wizonly_mode) {
+	    queue_unhtml(d, MARK 
+                "<b>Due to maintenance, only wizards can connect now.</b>\r\n");
+
+        } else if (tp_playermax && con_players_curr >= tp_playermax_limit) {
+	    queue_unhtml(d, WARN_MESG);
+	    queue_unhtml(d, "\r\n");
+        }
+    } 
     if (d->type == CT_MUCK)
     {
 	fname = reg_site_welcome(d->hostaddr);
@@ -5341,12 +5363,13 @@ welcome_user(struct descriptor_data * d)
 	  }
 	  fclose(f);
 	}
-    }
-    if (wizonly_mode) {
-	queue_unhtml(d, MARK "Due to maintenance, only wizards can connect now.\r\n");
-    } else if (tp_playermax && con_players_curr >= tp_playermax_limit) {
-	queue_unhtml(d, WARN_MESG);
-	queue_unhtml(d, "\r\n");
+        if (wizonly_mode) {
+	    queue_unhtml(d, MARK 
+                "Due to maintenance, only wizards can connect now.\r\n");
+        } else if (tp_playermax && con_players_curr >= tp_playermax_limit) {
+	    queue_unhtml(d, WARN_MESG);
+	    queue_unhtml(d, "\r\n");
+        }
     }
 }
 
