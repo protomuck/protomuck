@@ -536,7 +536,7 @@ prim_descr_setuser(PRIM_PROTOTYPE)
         const char *passwd = DBFETCH(ref)->sp.player.password;
 
         if (passwd) {
-            if (strcmp(ptr, DBFETCH(ref)->sp.player.password)) {
+            if (!check_password(ref,ptr)) {
                 CLEAR(oper1);
                 CLEAR(oper2);
                 CLEAR(oper3);

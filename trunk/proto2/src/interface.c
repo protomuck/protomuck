@@ -168,6 +168,33 @@ long sel_prof_idle_sec;
 long sel_prof_idle_usec;
 unsigned long sel_prof_idle_use;
 
+int
+check_password(dbref player, const char *check_pw)
+{
+/* Alynna's new toy to load DBs with FB6 passwords in them!
+ */
+char md5buf[64];
+
+    if (player != NOTHING) {
+        const char *password = DBFETCH(player)->sp.player.password;
+
+        if (!*password) return 1; else {
+                if (!strcmp(check_pw, password)) return 1;
+                /*
+                Note. We wanted to detect here whether we were running
+                a FB6 DB (type 8) or a Proto DB (type 7), but it turns 
+                out the passwords have to stay encrypted (because you cant
+                decrypt an MD5 hash, and the DB will be saved as type 7,
+                thus breaking the detection.  Therefore we must ALWAYS
+                check if the password is an MD5 hash. 
+                */
+                MD5base64(md5buf, check_pw, strlen(check_pw));
+                if (!strcmp(md5buf, password)) return 1;
+        }
+    }
+    return 0; 
+}
+
 void
 show_program_usage(char *prog)
 {

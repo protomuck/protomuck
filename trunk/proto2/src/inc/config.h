@@ -107,7 +107,7 @@
  * and writes out a protomuck.pid file
  */
 
-#undef DETACH
+#define DETACH
 
 // If you have problems compiling with DETACH defined, uncomment one
 // of these:
