@@ -1,0 +1,319 @@
+A list of changes, features, fixes, etc., over the course of 
+development for the ProtoMUCK 1.7 line.
+
+INTERNAL:
+On or before May 12, 2001
+- Changed it so that if a descriptor is running a MUF, it will not 
+    get dropped from the connect screen, even after exceeding the 
+    @tune connidle setting. Otherwise connections get dropped when 
+    they've been connected for that long. 
+- Changed it so that when a player is connected to via a MUF port's 
+    use of descr_setuser, their port mode is changed to Text Port.
+
+May 12, 2001:
+- MUF port and @logincommand/ port has been rigorously tested. There
+    may still be some bugs lingering in these new features, but by
+    and large, they are stable and usable.
+
+May 22, 2001:
+- Made it so that passwords can't have '=' signs in them, since this
+    makes it so that you cannot later on change your password.
+
+May 24, 2001:
+- Implemented the DF_INTERACTIVE flag for descriptor reading. Granted,
+    there's nothing that you can actually do with this yet, but there
+    will be with time. 
+- Implemented the DF_COLOR flag that now gets checked by queue_ansi
+    for descriptors that are not connected to a player.
+- Descriptor Flags as of right now:
+    DF_HTML, DF_PUEBLO, DF_MUF, DF_IDLE, DF_TRUEIDLE, DF_INTERACTIVE
+    DF_COLOR
+- Patched a rare crasher in MUF port support that would only happen if
+    the first connection to the MUF port dropped before the program
+    terminated normally. (dequeuing error).
+
+June 14, 2001:
+- Added Descriptor Flag listing to dinfo.
+
+July 8, 2001:
+- Added a tp_mcp_muf_mlev @tuneable. [FB6 idea]
+- Documented @ports support in help.txt
+
+July 20, 2001:
+- Replaced the intostr() function with one that will correctly handle
+    MAX int and other large numbers. [Suggestion from Confu@Ranma]
+
+August 19, 2001:
+- Changed the ANSI notification formats to resolve a conflict with
+    Trebuchet. Now GUI dialogues in Trebuchet will open on the first
+    try instead of requiring 3 - 4 tries.
+
+August 29, 2001:
+- Made some minor fixes to MCP support. A few lines that weren't correct
+    according to FB6's versions of them. 
+- Made it so that disconnects are not announced when quiet_connects 
+    is @tuned to yes.
+
+September 20, 2001:
+- Made it so that MCP flushes every so often for long program edits.
+  [Proto idea/FB6 Fix].
+
+September 27, 2001:
+- Made it so that the destinations of exits can be reassigned by 
+  MPI or MUF calls from the @succ;@odrop, etc., messages, and the
+  player will be moved to that new destination instead of the original
+  one. This is a compile time option as DYNAMIC_LINKS which is off by
+  default. Exits linked to programs may not be re-linked in this manner,
+  and the destination of re-linked exits must match the same type as the
+  original destination.
+- Fixed the IDLE flag stuff to check only the least idle descriptor 
+  instead of going off the most idle one.
+
+October 7, 2001:
+- Implemented the @autoarchive support. It is both a command, 'autoarchive',
+  and an @tuneable interval (archive_interval). Also, there is an 
+  overriding @tune paramter, 'archive_site', that can be toggled to shut 
+  off the @autoarchiving support all together.
+  Entries added to the @tune help, as well as to help.txt on the subject.
+  Added a saftey delay that makes it so that auto-archiving cannot be run
+  more than once every thirty minutes (Based on an ARCHIVE_DELAY #define
+  in defaults.h).
+
+October 18, 2001:
+- Fixed up some bugs with @succ/@osuccs not getting called when picking
+  something up.
+- Added bandwidth stats to @stats, only show up when @stats is used by a
+  player of W1 or higher.
+
+October 19, 2001:
+- Cleaned up the formatting a bit on the new bandwidth part of the @stats.
+
+October 22, 2001:
+- Added a ~sys/concount counter that keeps a tally of the total number of
+  connections made to the MUCK. It resets to zero at startup.
+- Gave the MOBILE flag the token of '?' so that it can be searched for 
+  with the various DB searching prims.
+- Added OLDCOMMENT as an alias to the LIGHT flag. Setting a program =
+  OLDCOMMENT will make it compile using the old style comment parser 
+  for backwards compatability. By default, MUF programs are compiled
+  using the new comment parser, and there shouldn't be any problems.
+  But if working with older MUF, if there appears to be a problem 
+  compiling due to something with the comments, just set the 
+  program = OLDCOMMENT and that should fix it.
+
+November 1, 2001:
+- Fixed a potential crasher from looking up parents incorrectly in db.c. 
+    [FB6 fix]
+- Added a default_parent @tuneable that will tell the @inserver @dig where
+    to set room's parent rooms to if one isn't found normally. Used to be
+    set to #0 at compile time but is now @tuneable. [FB6 idea]
+
+SERVER SIDE:
+July 8, 2001:
+- Patched up some minor FB6 fixes in announce.c [FB6 fix]
+- Patched memory leaks in array.c. [FB6 fix]
+- Patched memory leak in compile.c. [FB6 fix]
+- Added cleanup calls for purging the for and try pools. [FB6 fix]
+- Added shutdown memory cleaning to help with memory profiling. [FB6 fix]
+
+July 20, 2001:
+- Fixed various Re-CLEAR() calls. [FB6 fix]
+- Fixed the instances count for first compile run programs. [FB6 fix]
+- Hopefully fixed a 1.70 crasher dealing with calling 
+    dequeue_descr_prog() at incorrect times.
+
+July 22, 2001:
+- More attempts at fixing the dequeue related crasher.
+
+July 29, 2001:
+- More memory leak fixing.
+
+August 16, 2001:
+- Fixed a memory leak in the MUF socket support.
+
+September 5, 2001:
+- Made some changes to the configure script and p_file.c to
+  hopefully enable compatability with various BSD based OS's.
+  It will still be necessary for the person installing the MUCK
+  to strip the binaries after they are installed 
+  (a quirky thing about BSD requires this). Failure to do so will
+  result in random crashes.
+
+September 21, 2001:
+- Fixed a compiletime warning from yesterday's changes to the MCP code.
+- Added a compiletime option to config.h to toggle between the 
+  traditional MUF comment parser and the ProtoMUCK comment parser 
+  implemented since Proto 1.60.
+- Fixed a crasher in the MCP support dealing with releasing GUI events.
+
+September 28, 2001:
+- Fixed a bad line in the restart script.
+- Added an archive script that will be called from in-muck
+  according to an @tune preference. [Concept originated by Rika]
+     Notes on the archive script:
+     In order to use as little disk space as possible with the
+     autoarchiving, turn off ARCHIVE_LOGS, turn on REMOVE_DUMPS,
+     and CLEAR_HOSTCACHE, keep the ARCHIVE_MUF number low, and
+     make sure to remove all the *.o files from the src/ directory
+     ahead of time.
+     If you decide to use ARCHIVE_LOGS, remember to clean out the oldlogs
+     directory on occasion, since those can really build up!
+     Make sure to follow the instructions, and make sure that the locations are
+     all set correctly. Failure to do so could result in the possible loss
+     of data.
+
+October 4, 2001:
+- Fixed up the archive script some more.
+
+November 1, 2001:
+- Changed db.c to make sure properties are unloaded when not in DISKBASED
+     mode. [FB6 fix]
+
+MPI
+November 1, 2001:
+- Fixed buffer overrun issue with {listprops:} [FB6 fix]
+
+MUF:
+On or before May 12, 2001
+- READ prim support from the login screen has been added. It works 
+    by individual descriptors for connections that are not yet logged 
+    into a character, and behaves like it always has for players 
+    connected to the MUCK. This works from @logincommand/ calls as well 
+    as the MUF port call. A lot of changes had to be made to pull this 
+    off, so there will be some testing period, before I can say for 
+    certainty that it's safe and stable. 
+- Added ansi_notify_descriptor. Works just like notify_descriptor,
+    except that it will not strip out standard ANSI tags for
+    descriptors that are not connected to a player. The purpose of
+    this would be to enable ANSI use for @logincommand/ and MUF port
+    programs.
+
+May 22, 2001:
+- The descriptor READ support, as well as MUF ports in general, have
+    have been highly tested and put to use in a couple not-yet-public
+    MUCKs in the making and have been found to be safe and stable. 
+
+May 24, 2001:
+- Changed the behavior of ANSI_NOTIFY_DESCRIPTOR to now handle parsing
+    Neon ANSI tags. It also checks for a DF_COLOR flag on the descriptor
+    to determine if the ANSI should be notified out to the descriptor
+    or not.
+- Added DESCR_SET for setting certain flags on descriptors. For now only
+    DF_COLOR can be set.
+- Added DESCR_FLAG? for checking for set descriptor flags. All existing
+    descriptor flags can be checked for.
+- Fixed some serious logical errors in the flag? prim. It was perfectly
+    safe before, but the fact that it worked was just happenchance.
+
+July 8, 2001:
+- Patched a rare bug resulting from the # of instances not being cleared
+    at compile time. [FB6 fix]
+- Couple fixes to MCP prims. [FB6 fix]
+- Added a permissions check to almost every GUI and MCP prim. The level
+    is @tuneable, but defaults to M3. [FB6 idea]
+
+July 9, 2001:
+- Added a GETDIR ( s<directory name> -- array<directory contents> )
+  prim. Retrieves the contents of a directory as an array.
+
+July 20, 2001:
+- Fixed a define for gui_dlog_simple in compile.c [FB6 fix]
+- Fixed a logical error in the type checking for the FINDNEXT prim.
+
+August 16, 2001:
+- Made it so that MUF sockets in debug mode show up as: (SOCKET[#])
+    where # is the descriptor unique to that socket. 
+- Fixed it so that MUF sockets get shutdown when a program aborts or there
+    are no more instances of that socket in the frame. (On the stack or
+    in a variable).
+
+August 19, 2001:
+- Started work on incorporating a large number of MUF compile time 
+    directives into compile.c. A list of new directives added will
+    be included in the changes once they have all been tested and 
+    found safe and stable.
+
+August 21, 2001:
+- More work on adding new directives. 
+- Changed $echo and $ansi directives to only notify to the player if
+    the MUF is being compiled in 'force_error_display' mode, so that
+    they do not notify to the player during automatted compiling.
+- Made it so that the compilier will stop compiling on directive errors.
+    Used to just continue along sometimes until it reached another problem.
+- Added the option to exit the MUF editor without saving the changes. Defaults
+    as 'x'. Using this option takes the player out of the MUF editor, but any
+    changes made since entering it will not be saved.
+- Fixed the getpids prim to include the current instance of the program if
+    requesting the PIDs for the currently running program.
+- Fixed strtoflt to handle a kinds of number formats:
+    #, #.#, #e#, #.#e#, .#, .#e# 
+    This change is actually universal throughout the system. Float prop types
+    can handle this now as well as anything else that handles floats.
+
+August 22, 2001:
+- Fixed a crasher with the INTERP prim that resulted from passing
+    anything other than a string as the initial arguement.
+
+August 25, 2001:
+- Fixed a bug with $ifdef and $ifndef that came about due to the recent compile.c
+    work.
+
+Auguest 27, 2001:
+- Fixed a bug with stod returning #0 when passed invalid strings rather
+    than #-1 like it should.
+
+September 4, 2001:
+- Fixed a bug with the $pubdef directive messing up the compile time
+    definitions for the program.
+- Fixed a bug with $cleardefs eating the next token unless 
+    a space or word was put on the same line after it.
+
+September 20, 2001:
+- Made it so that the Debug lines show the PID of the process too. [FB6 idea]
+- Fixed errors with storing proplists via MCP's simpleedit. [FB6 fix]
+- Fixed a bug with fork not copying the for stack data or the try/catch
+  stack data to the child process. [FB6 fix]
+- Changed NEWOBJECT to not allow the source location to be a room.
+
+September 21, 2001:
+- Added REFLIST_FIND, REFLIST_ADD, REFLIST_REMOVE, and DIFF3. [FB6 Prims]
+- Made it so that the 'unterminated comment' MUF compile error indicates
+  the line that the unterminated comment started in.
+
+September 24, 2001:
+- Fixed a bug with MUF sockets not getting closed if they hadn't gone
+  through a SOCKCHECK call yet.
+
+September 27, 2001:
+- Fixed SETLINK to accept things as linkable destinations for rooms in
+  order to set room droptos via MUF. [FB6 Fix]
+
+October 19, 2001:
+- Added a flag_2char and power_2char prim for converting a flag to its
+  correct token. 
+- Fixed the next* prim #defines to use the two new prims for more 
+  accurate support.
+
+October 21, 2001:
+- Added a bandwidth prim for obtaining the global bandwidth stats.
+- Added a notify_descriptor_char prim for notifying out a single 
+  character to a descriptor. Takes an integer, writes out the
+  corresponding ASCII code to the descriptor, without any changes.
+
+October 22, 2001:
+- Added a file prims shortcut for sysparms.txt.
+
+November 1, 2001:
+- Added READ_WANTS_BLANKS prim and implemented the changes needed
+    so that the READ prim can catch blank lines from the user as
+    valid input as long as ther READ_WANTS_BLANKS prim is used 
+    first in that program. Using READ_WANTS_BLANKS again will 
+    switch the READ prim back to the default behavior. [FB6 idea]
+
+November 8, 2001:
+- Added LSOCKOPEN and SOCKACCEPT, thus enabling listening socket
+    support into the MUF socket routines. This is just phase one
+    in the implementation of this support. More work is slated to
+    be done to add more information to the muf_socket struct, such
+    as the host of the other end, and other important info. Expect
+    that in a later version of Proto.
