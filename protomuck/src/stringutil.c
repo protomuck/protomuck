@@ -352,29 +352,6 @@ intostr(char * buf, int i)
 }
 
 /*
-char *
-intostr(int i)
-{
-    static char num[16];
-    int j, k;
-    char *ptr2;
-
-    k = i;
-    ptr2 = num+14;
-    num[15] = '\0';
-    if (i < 0) i = -i;
-    while (i) {
-	j = i % 10;
-	*ptr2-- = '0' + j;
-	i /= 10;
-    }
-    if (!k) *ptr2-- = '0';
-    if (k < 0) *ptr2-- = '-';
-    return (++ptr2);
-}
-*/
-
-/*
  * Encrypt one string with another one.
  */
 
