@@ -427,7 +427,9 @@ handle_read_event(int descr, dbref player, const char *command)
 	    }
 	} else {
 	    /* This is a MUF READ event. */
-          if (command) if (!string_compare(command, BREAK_COMMAND)) {
+          if (command) if (!string_compare(command, BREAK_COMMAND) &&
+                           ( (MLevel(player) >= tp_min_progbreak_lev)|| 
+                           (Wiz(player))) ) {
 
 		/* Whoops!  The user typed @Q.  Free the frame and exit. */
 		prog_clean(fr);

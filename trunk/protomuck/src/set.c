@@ -1218,7 +1218,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("LINK_OK", p)) {
 	f = LINK_OK;
 
-    } else if (string_prefix("XFORCIBLE", p)) {
+    } else if (string_prefix("XFORCIBLE", p) || 
+               string_prefix("EXPANDED_DEBUG", p) ) {
 	if (force_level) {
 	    anotify_nolisten2(player, CFAIL "Can't set this flag from an @force or {force}.");
 	    return;

@@ -301,10 +301,12 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 {
     int     i;
     dbref   dest;
+    dbref   loc;
     int     sobjact;		/* sticky object action flag, sends home
 				 * source obj */
     int     succ;
     struct frame *tmpfr;
+    loc = DBFETCH(player)->location;
 
     sobjact = 0;
     succ = 0;
@@ -321,18 +323,36 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			break;
 		    }
 		    if (!Mage(OWNER(player)) && Typeof(player)==TYPE_THING
-			    && (FLAGS(dest)&ZOMBIE)) {
-			anotify_nolisten2(player, CFAIL "You can't go that way.");
+			    && ( (FLAGS(dest) | FLAGS(exit)) &ZOMBIE)) {
+			anotify_nolisten2(player, CFAIL "Puppets can't go that way.");
 			break;
 		    }
-		    if ((FLAGS(player) & VEHICLE) &&
+		    if ((FLAGS(player) & VEHICLE) && Typeof(player)==TYPE_THING &&
 			    ((FLAGS(dest) | FLAGS(exit)) & VEHICLE)) {
-			anotify_nolisten2(player, CFAIL "You can't go that way.");
+			anotify_nolisten2(player, CFAIL "Vehicles can't go that way.");
 			break;
 		    }
+                    if (Guest(player) && ( tp_guest_needflag ?
+                        !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) & F2GUEST)) ) {
+                        anotify_nolisten2(player, CFAIL "Guests can't go in there.");
+                        break;
+                    }
+                    if (Guest(player) && ( 0 ?      
+                        !(FLAG2(exit) & F2GUEST) : (FLAG2(exit) & F2GUEST)) ) {
+                        anotify_nolisten2(player, CFAIL "Guests can't do that.");
+                        break;
+                    }
+                    if (GETSUCC(exit)) {
+                        exec_or_notify(descr, player, exit, GETSUCC(exit), 
+                                       "(@Succ)");
+                    }
+                    if (GETOSUCC(exit) && !Dark(player)) {
+                        parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
+                                       NAME(player), "(@Osucc)");
+                    }
 		    if (GETDROP(exit))
 			exec_or_notify(descr, player, exit, GETDROP(exit), "(@Drop)");
-		    if (GETODROP(exit) /*&& !Dark(player)*/) {
+		    if (GETODROP(exit) && !Dark(player)) {
 			parse_omessage(descr, player, dest, exit, GETODROP(exit),
 					PNAME(player), "(@Odrop)");
 		    }
@@ -347,10 +367,18 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			    anotify_nolisten2(player, CINFO "That would cause a paradox.");
 			    break;
 			}
+                        if (GETSUCC(exit)) {
+                             exec_or_notify(descr, player, exit, GETSUCC(exit), 
+                                           "(@Succ)");
+                        }
+                        if (GETOSUCC(exit) && !Dark(player)) {
+                            parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
+                                           NAME(player), "(@Osucc)");
+                        }
 			if (GETDROP(exit))
 			    exec_or_notify(descr, player, exit, GETDROP(exit),
 					   "(@Drop)");
-			if (GETODROP(exit) /*&& !Dark(player)*/) {
+			if (GETODROP(exit) && !Dark(player)) {
 			    parse_omessage(descr, player, dest, exit, GETODROP(exit),
 				    PNAME(player), "(@Odrop)");
 			}
@@ -397,7 +425,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			    exec_or_notify(descr, player, exit,
 				    GETDROP(exit), "(@Drop)");
 			}
-			if (GETODROP(exit) /*&& !Dark(player)*/) {
+			if (GETODROP(exit) && !Dark(player)) {
 			    parse_omessage(descr, player, getloc(dest), exit,
 				    GETODROP(exit), PNAME(player), "(@Odrop)");
 			}
@@ -408,13 +436,34 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 		}
 		break;
 	    case TYPE_PROGRAM:
+                if (Guest(player) && (0 ?
+                    !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) & F2GUEST)) ) {
+                    anotify_nolisten2(player, CFAIL "Guests can't use that program.");
+                    break;
+                }
+                if (Guest(player) && (0 ?
+                     !(FLAG2(exit) & F2GUEST) : (FLAG2(exit) & F2GUEST)) ) {
+                     anotify_nolisten2(player, CFAIL "Guests can't do that.")
+                     break;
+                }
+                if (!Mage(OWNER(player)) && Typeof(player)==TYPE_THING
+                         && ( FLAGS(exit) & ZOMBIE)) {
+                    anotify_nolisten2(player, CFAIL "Puppets can't go that way.");
+                    break;
+                }
+                if (GETSUCC(exit)) {
+                    exec_or_notify(descr, player, exit, GETSUCC(exit),
+                                   "(@Succ)");
+                }
+                if (GETOSUCC(exit) && !Dark(player)) {
+                    parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
+                                   NAME(player), "(@Osucc)");
+                }
 		tmpfr = interp(descr, player, DBFETCH(player)->location, dest, exit,
 			   FOREGROUND, STD_REGUID);
 		if (tmpfr) {
 			interp_loop(player, dest, tmpfr, 0);
 		}
-		/* (void) interp(descr, player, DBFETCH(player)->location, dest, exit,
-			      FOREGROUND, STD_REGUID, 0); */
 		return;
 	}
     }

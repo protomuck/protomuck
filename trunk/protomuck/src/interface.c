@@ -2362,7 +2362,10 @@ strsave(const char *s)
 void 
 save_command(struct descriptor_data * d, const char *command)
 {
-    if (d->connected && !string_compare((char *) command, BREAK_COMMAND)) {
+    if (d->connected && 
+        !string_compare((char *) command, BREAK_COMMAND) &&
+        ( (MLevel(d->player) >= tp_min_progbreak_lev) ||
+        (Wiz(d->player)))  ) {
 	if (dequeue_prog(d->player, 2))
 	    anotify(d->player, CINFO "Foreground program aborted.");
 	DBFETCH(d->player)->sp.player.block = 0;
@@ -2520,6 +2523,8 @@ do_command(struct descriptor_data * d, char *command)
 {
     struct frame *tmpfr;
     char cmdbuf[BUFFER_LEN];
+    if (d->connected)
+        ts_lastuseobject(d->player);
 
     if (!mcp_frame_process_input(&d->mcpframe, command, cmdbuf, sizeof(cmdbuf)))
 	return 1;
@@ -4048,6 +4053,8 @@ announce_disconnect(struct descriptor_data *d)
  	   announce_puppets(player, "falls asleep.", "_/pdcon");
       }
     }
+    ts_lastuseobject(player);
+    DBDIRTY(player);
 }
 
 

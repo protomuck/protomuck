@@ -76,7 +76,8 @@ int check_flag1(char *flag)
       return INTERACTIVE;
    if (string_prefix("zombie", flag) || string_prefix("puppet", flag))
       return ZOMBIE;
-   if (string_prefix("xforcible", flag))
+   if (string_prefix("xforcible", flag) || 
+       string_prefix("expanded_debug", flag))
       return XFORCIBLE;
    if (string_prefix("vehicle", flag) || string_prefix("viewable", flag))
       return VEHICLE;
