@@ -748,4 +748,92 @@ void prim_fren(PRIM_PROTOTYPE)
   CLEAR(oper1);
   CLEAR(oper2);
   PushInt(result);
-} 
+}
+
+void
+prim_freadto(PRIM_PROTOTYPE)
+{
+  FILE *fh;
+  char *filename;
+  int offset;
+  char tempBuf[BUFFER_LEN] = "";
+  int result, i, found_end = 0;
+  char checkChar;
+  char tempChr;
+  CHECKOP(3);
+
+  oper1 = POP();  /*The search character.*/
+  oper2 = POP();  /*The offset value.*/
+  oper3 = POP();  /*The file name.*/
+
+  /*Permissions checks*/
+  if (getuid() == 0 )
+      abort_interp("Muck is running under root privs, file prims disabled.");
+  if (mlev < LBOY) abort_interp("FREADTO is BOY level prim only.");
+
+  /*Type Checking*/
+  if (oper1->type != PROG_STRING)
+      abort_interp("Arguement 1 is not a string.");
+  if (!oper1->data.string)
+      abort_interp("Arguement 1 is a null string.");
+  if (oper2->type != PROG_INTEGER)
+      abort_interp("Arguement 2 is not an integer.");
+  if (oper2->data.number < 0)
+      abort_interp("Arguement 2 is a negative number.");
+  if (oper3->type != PROG_STRING)
+      abort_interp("Arguement 1 is not a string.");
+  if (!oper3->data.string)
+      abort_interp("Arguement 1 is a null string.");
+
+  /*Value Assignment*/
+  offset = oper2->data.number;
+  filename = oper3->data.string->data;
+#ifdef SECURE_FILE_PRIMS
+  if (!(valid_name(filename)))
+      abort_interp( "Invalid file name.");
+  if ( strchr( filename, '$' ) == NULL )
+      filename = set_directory(filename);
+  else
+      filename = parse_token( filename );
+  if ( filename == NULL )
+      abort_interp( "Invalid shortcut used." );
+#endif
+  if ( !(strcasecmp(oper1->data.string->data, "\r")) )
+      checkChar = '\n';
+  else if ( !(strcasecmp(oper1->data.string->data, "$EOF$")) )
+           checkChar = EOF;
+       else checkChar = oper1->data.string->data[0];
+
+  /* Routines */
+  fh = fopen(filename, "r");
+  if (fh == NULL) 
+      result = 0;
+  else {
+      for ( i = 0; i < BUFFER_LEN - 4 && found_end != 1; i++, offset++) {
+          fseek(fh, offset, SEEK_SET);
+          tempChr = (char) fgetc(fh);
+          if (tempChr == EOF || tempChr == checkChar )
+              found_end = 1;
+          else
+              tempBuf[i] = tempChr;
+          if ( checkChar == '\n' && tempChr == '\n' && i == 0 )
+              tempBuf[i] = ' ';
+      }
+      i++;
+      tempBuf[i] = '\0';
+      fclose(fh);
+      if ( tempBuf[0] != EOF )
+          result = 1;
+          if(tp_log_files)
+      log2filetime("logs/files", "#%d by %s FREADN: %s \n", program, 
+                    unparse_object(player, player), oper3->data.string->data); 
+  }
+  CLEAR(oper1);
+  CLEAR(oper2);
+  CLEAR(oper3);
+  PushInt(offset);
+  if ( result )
+      PushString(tempBuf);
+  else
+    PushNullStr;
+}
