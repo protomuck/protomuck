@@ -156,6 +156,6 @@ if ($diskfree < $diskneeded) then
 endif
 
 # echo "Server started at: `date`"
-( ./protomuck $DBIN $DBOUT $PORTS >& logs/ttyerr.log; ./coremail ) &
+( ./protomuck $DBIN $DBOUT $PORTS >& logs/ttyerr.log ) &
 # echo "Server stopped at: `date`"
 
