@@ -107,6 +107,7 @@ main(int argc, char *argv[])
         printf("|--------------------------------------------------------------|\n");
 
         for (i = 0; i < BASE_MAX; i++)
+            if (base_inst[i][0] != ' ')
             if (!check_file(f, base_inst[i]))
                 printf("| %3d: %-55s |\n", ++count, base_inst[i]);
 
