@@ -199,15 +199,12 @@ prim_socksend(PRIM_PROTOTYPE)
 
         sprintf(buf, "%s\n", oper2->data.string->data);
 
-#ifdef SSL_SOCKETS
-            if (!oper1->data.sock->ssl_session) {
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+        if (oper1->data.sock->ssl_session)
+            result = SSL_write(oper1->data.sock->ssl_session, buf, strlen(buf));
+        else
 #endif
-                result = writesocket(oper1->data.sock->socknum, buf, strlen(buf));
-#ifdef SSL_SOCKETS
-            } else {
-                result = SSL_write(oper1->data.sock->ssl_session, buf, strlen(buf));
-            }
-#endif
+            result = writesocket(oper1->data.sock->socknum, buf, strlen(buf));
 
         if (tp_log_sockets)
             log2filetime("logs/sockets", "#%d by %s SOCKSEND:  %d\n", program,
@@ -270,15 +267,13 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 
     select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
-#ifdef SSL_SOCKETS
-        if (!oper1->data.sock->ssl_session) {
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+        if (oper1->data.sock->ssl_session)
+            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+        else
 #endif
             readme = readsocket(oper1->data.sock->socknum, mystring, 1);
-#ifdef SSL_SOCKETS
-        } else {
-            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-        }
-#endif
+
         conRead = readme;
         while (readme > 0 && charCount < BUFFER_LEN) {
             if ((*mystring == '\0') || (((*mystring == '\n') ||
@@ -288,15 +283,12 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
             ++charCount;
             /* if (isascii(*mystring)) -- Commented this out to test 8-bit support on the stack -Hinoserm */
             *bufpoint++ = *mystring;
-#ifdef SSL_SOCKETS
-            if (!oper1->data.sock->ssl_session) {
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+            if (oper1->data.sock->ssl_session)
+                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+            else
 #endif
                 readme = readsocket(oper1->data.sock->socknum, mystring, 1);
-#ifdef SSL_SOCKETS
-            } else {
-                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-            }
-#endif
         }
         if (*mystring == '\n' && oper1->data.sock->usequeue) {
             gotmessage = 1;     /* needed to catch enter presses for sockqueue */
@@ -401,15 +393,13 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
     select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
 
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
-#ifdef SSL_SOCKETS
-        if (!oper1->data.sock->ssl_session) {
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+        if (oper1->data.sock->ssl_session)
+            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+        else
 #endif
             readme = readsocket(oper1->data.sock->socknum, mystring, 1);
-#ifdef SSL_SOCKETS
-        } else {
-            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-        }
-#endif
+
         if (readme > 0) {
             gotmessage = 1;
             aChar = mystring[0];
@@ -444,7 +434,7 @@ prim_sockclose(PRIM_PROTOTYPE)
     if (oper1->data.sock->is_player) { /* don't close descrs */
         result = 0;
     } else {
-#ifdef SSL_SOCKETS
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
         /* Alynna - Must be done twice to enact a bidirectional shutdown,
            so do it again if still open, meaning remote end allows socket reuse */
         if (oper1->data.sock->ssl_session) {
@@ -503,7 +493,7 @@ prim_sockshutdown(PRIM_PROTOTYPE)
                          program, unparse_object(PSafe, PSafe),
                          oper1->data.sock->socknum);
         if (tmp == 2) {
-#ifdef SSL_SOCKETS
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
             /* Alynna - Must be done twice to enact a bidirectional shutdown,
                so do it again if still open, meaning remote end allows socket reuse */
             if (oper1->data.sock->ssl_session) {
@@ -587,7 +577,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->usequeue = 0;
         result->data.sock->usesmartqueue = 0;
         result->data.sock->readWaiting = 0;
-#ifdef SSL_SOCKETS
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
         result->data.sock->ssl_session = NULL;
 #endif
         add_socket_to_queue(result->data.sock, fr);
@@ -612,17 +602,16 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 void
 prim_ssl_nbsockopen(PRIM_PROTOTYPE)
 {
+#if !defined(SSL_SOCKETS) || !defined(USE_SSL)
+    abort_interp("MUF SSL sockets not supported.");
+#else
     struct inst *result = NULL;
     register int mysock = 0;
     struct sockaddr_in name;
     struct hostent *myhost;
     char myresult[255];
-#ifdef SSL_SOCKETS
     int ssl_error;
-#endif
-#ifndef SSL_SOCKETS
-    abort_interp("MUF SSL sockets not supported.");
-#endif
+
     CHECKOP(2);
     oper2 = POP();
     oper1 = POP();
@@ -680,20 +669,14 @@ prim_ssl_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->usequeue = 0;
         result->data.sock->usesmartqueue = 0;
         result->data.sock->readWaiting = 0;
-#ifdef SSL_SOCKETS
         result->data.sock->ssl_session = SSL_new(ssl_ctx_client);
         SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
         ssl_error = SSL_connect(result->data.sock->ssl_session);
-        if (ssl_error == 0) {
-            sprintf(myresult, "SSLerr: %d %d %s", 
-                    ssl_error, 
-                    SSL_get_error(result->data.sock->ssl_session, ssl_error),
-                    ERR_reason_error_string(SSL_get_error(result->data.sock->ssl_session, ssl_error))
-                    );
-            if (SSL_shutdown(result->data.sock->ssl_session) < 1)
-                SSL_shutdown(result->data.sock->ssl_session);
+        if (ssl_error <= 0) {
+            ssl_error = SSL_get_error(result->data.sock->ssl_session, ssl_error);
+            if (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE)
+                sprintf(myresult, "SSLerr: %d", ssl_error);
         }
-#endif
         add_socket_to_queue(result->data.sock, fr);
         if (tp_log_sockets)
             log2filetime("logs/sockets",
@@ -711,6 +694,7 @@ prim_ssl_nbsockopen(PRIM_PROTOTYPE)
     PushString(myresult);
     if (result)
         free((void *) result);
+#endif /* SSL_SOCKETS && USE_SSL */
 }
 
 void
@@ -830,7 +814,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->host = 1;
     result->data.sock->usequeue = 0;
     result->data.sock->readWaiting = 0;
-#ifdef SSL_SOCKETS
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
     result->data.sock->ssl_session = NULL;
 #endif
     add_socket_to_queue(result->data.sock, fr);
@@ -926,7 +910,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
-#ifdef SSL_SOCKETS
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
     result->data.sock->ssl_session = NULL;
 #endif
     add_socket_to_queue(result->data.sock, fr);
@@ -947,6 +931,9 @@ prim_sockaccept(PRIM_PROTOTYPE)
 void
 prim_ssl_sockaccept(PRIM_PROTOTYPE)
 {
+#if !defined(SSL_SOCKETS) || !defined(USE_SSL)
+    abort_interp("MUF SSL sockets not supported.");
+#else
     int newsock = 0;
     int sockdescr = 0;
     struct inst *result;
@@ -957,16 +944,12 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     int addr_len;
     fd_set reads;
     struct timeval t_val;
-#ifdef SSL_SOCKETS
     int ssl_error;
-#endif
 
     CHECKOP(1);
     /* LSOCKET */
     oper1 = POP();              /* LSOCKET */
-#ifndef SSL_SOCKETS
-    abort_interp("MUF SSL sockets not supported.");
-#endif
+
     if (mlev < LBOY)
         abort_interp("Listening sockets are for W4 or above.");
     if (oper1->type != PROG_SOCKET)
@@ -1028,18 +1011,17 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
-        result->data.sock->ssl_session = SSL_new(ssl_ctx);
-        SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
-        ssl_error = SSL_accept(result->data.sock->ssl_session);
-        if (ssl_error == 0) {
-            sprintf(myresult, "SSLerr: %d %d %s", 
-                    ssl_error, 
-                    SSL_get_error(result->data.sock->ssl_session, ssl_error),
-                    ERR_reason_error_string(SSL_get_error(result->data.sock->ssl_session, ssl_error))
-                    );
-            if (SSL_shutdown(result->data.sock->ssl_session) < 1)
-                SSL_shutdown(result->data.sock->ssl_session);
-        }
+    result->data.sock->ssl_session = SSL_new(ssl_ctx);
+
+    SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
+    ssl_error = SSL_accept(result->data.sock->ssl_session);
+
+    if (ssl_error <= 0) {
+        ssl_error = SSL_get_error(result->data.sock->ssl_session, ssl_error);
+        if (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE)
+            sprintf(myresult, "SSLerr: %d", ssl_error);
+    }
+
     add_socket_to_queue(result->data.sock, fr);
     if (tp_log_sockets)
         log2filetime("logs/sockets",
@@ -1052,6 +1034,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     CLEAR(result);
     if (result)
         free((void *) result);
+#endif /* SSL_SOCKETS && USE_SSL */
 }
 
 
@@ -1071,7 +1054,7 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     theSock = oper1->data.sock;
     nw = new_array_dictionary();
     array_set_strkey_intval(&nw, "DESCR", theSock->socknum);
-#ifdef SSL_SOCKETS
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
     array_set_strkey_intval(&nw, "SSL", theSock->ssl_session ? 1 : 0);
 #endif
     array_set_strkey_intval(&nw, "CONNECTED", theSock->connected);
@@ -1138,19 +1121,17 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     /* first make sure that the socket is non-blocking */
     make_nonblocking(theSock->socknum);
     /* Now establish a normal telnet connection to the MUCK */
-#ifdef SSL_SOCKETS
-    if (!theSock->ssl_session) {
+#if defined(SSL_SOCKETS) && defined (USE_SSL)
+    if (theSock->ssl_session)
+        d = initializesock(theSock->socknum, theSock->hostname,
+                           atoi(theSock->username), theSock->host,
+                           CT_SSL, theSock->port, 0);
+    else
 #endif
         d = initializesock(theSock->socknum, theSock->hostname,
                            atoi(theSock->username), theSock->host,
                            CT_MUCK, theSock->port, 0);
-#ifdef SSL_SOCKETS
-    } else {
-        d = initializesock(theSock->socknum, theSock->hostname,
-                           atoi(theSock->username), theSock->host,
-                           CT_SSL, theSock->port, 0);
-    }
-#endif
+
     check_maxd(d);
     /* d is now in the descriptor list and properly initialized. 
      * Now connect it to a player. */
