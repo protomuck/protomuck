@@ -878,10 +878,12 @@ prim_sockaccept(PRIM_PROTOTYPE)
 #else
         strcpy(myresult, sys_errlist[errnosocket]);
 #endif
-        newsock = 0;
+        CLEAR(oper1);
         PushString(myresult);
         return;
     }
+
+    make_nonblocking(newsock);
 
     /* We have the new socket, now initialize muf_socket struct */
     oper1->data.sock->commands += 1;
@@ -945,6 +947,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     fd_set reads;
     struct timeval t_val;
     int ssl_error;
+    SSL *ssl_session;
 
     CHECKOP(1);
     /* LSOCKET */
@@ -979,9 +982,25 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
 #else
         strcpy(myresult, sys_errlist[errnosocket]);
 #endif
-        newsock = 0;
+        CLEAR(oper1);
         PushString(myresult);
         return;
+    }
+
+    make_nonblocking(newsock);
+
+    ssl_session = SSL_new(ssl_ctx);
+    SSL_set_fd(ssl_session, newsock);
+
+    if ((ssl_error = SSL_accept(ssl_session)) <= 0) {
+        ssl_error = SSL_get_error(ssl_session, ssl_error);
+        if (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) {
+            sprintf(myresult, "SSLerr: %d", ssl_error);
+            SSL_free(ssl_session);
+            CLEAR(oper1);
+            PushString(myresult);
+            return;
+        }
     }
 
     /* We have the new socket, now initialize muf_socket struct */
@@ -1011,16 +1030,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
-    result->data.sock->ssl_session = SSL_new(ssl_ctx);
-
-    SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
-    ssl_error = SSL_accept(result->data.sock->ssl_session);
-
-    if (ssl_error <= 0) {
-        ssl_error = SSL_get_error(result->data.sock->ssl_session, ssl_error);
-        if (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE)
-            sprintf(myresult, "SSLerr: %d", ssl_error);
-    }
+    result->data.sock->ssl_session = ssl_session;
 
     add_socket_to_queue(result->data.sock, fr);
     if (tp_log_sockets)
