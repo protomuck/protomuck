@@ -927,3 +927,28 @@ prim_read_wants_blanks(PRIM_PROTOTYPE)
 {
     fr->wantsblanks = !(fr->wantsblanks);
 }
+
+void
+prim_debugger_break(PRIM_PROTOTYPE)
+{
+    int i = 0;
+    if (fr->brkpt.count >= MAX_BREAKS)
+        abort_interp("Too many breakpoints set.");
+
+    fr->brkpt.force_debugging = 1;
+    if (fr->brkpt.count != 1 || fr->brkpt.temp[0] != 1 ||
+        fr->brkpt.level[0] != -1 || fr->brkpt.line[0] != -1 ||
+        fr->brkpt.linecount[0] != -2 || fr->brkpt.pc[0] != NULL ||
+        fr->brkpt.pccount[0] != -2 || fr->brkpt.prog[0] != program ) {
+        /* need to make initial breakpoint */
+        i = fr->brkpt.count++;
+        fr->brkpt.temp[i] = 1;
+        fr->brkpt.level[i] = -1;
+        fr->brkpt.line[i] = -1;
+        fr->brkpt.linecount[i] = -2;
+        fr->brkpt.pc[i] = NULL;
+        fr->brkpt.pccount[i] = 0;
+        fr->brkpt.prog[i] = NOTHING;
+    }
+}
+        

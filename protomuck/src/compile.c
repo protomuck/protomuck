@@ -1284,8 +1284,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 
 	if (!cstat.procs)
 		v_abort_compile(&cstat, "Missing procedure definition.");
-
-        if (tp_optimize_muf && !(FLAGS(program_in) & F2NO_COMMAND)) {
+        if (tp_optimize_muf && !(FLAG2(program_in) & F2NO_COMMAND)) {
             int maxpasses = 5;
             int passcount = 0;
             int optimcount = 0;

@@ -540,6 +540,7 @@ interp(int descr, dbref player, dbref location, dbref program,
 	fr->variables[i].data.number = 0;
     }
 
+    fr->brkpt.force_debugging = 0;
     fr->brkpt.debugging  = 0;
     fr->brkpt.bypass     = 0;
     fr->brkpt.isread     = 0;
@@ -1160,7 +1161,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		return NULL;
 	    }
 	}
-	if ((FLAGS(program) & ZOMBIE) && !fr->been_background && controls(player, program)) {
+	if ((FLAGS(program) & ZOMBIE) || fr->brkpt.force_debugging &&
+             !fr->been_background && controls(player, program)) {
 	    fr->brkpt.debugging = 1;
 	} else {
 	    fr->brkpt.debugging = 0;
