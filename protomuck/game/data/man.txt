@@ -58,7 +58,7 @@ Control Structures:
   BEGIN      UNTIL    REPEAT      WHILE     BREAK       CONTINUE
   COMPILED?  TREAD    FOREACH     FOR       PROPQUEUE   ENVPROPQUEUE         
   INSTANCES  MAGECALL WIZCALL     ARCHCALL  BOYCALL     GETPIDINFO
-  GETPIDS    TRY      CATCH       ENDCATCH
+  GETPIDS    TRY      CATCH       ENDCATCH  JMP
 
 Property Prims:
   ADDPROP     GETPROP     SETPROP     ENVPROP     REMOVE_PROP
@@ -87,7 +87,7 @@ Notifying Prims (I/O):
   NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
   NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
   STOPMIDI            PLAYMIDI                    COMMANDTEXT
-  ARRAY_ANSI_NOTIFY   ARRAY_NOTIFY_HTML
+  ARRAY_ANSI_NOTIFY   ARRAY_NOTIFY_HTML           ANSI_NOTIFY_DESCRIPTOR
 
 See: PRIMS4
 ~~~~~
@@ -102,7 +102,8 @@ Connection Prims:
   DESCR_LOGOUT     DESCRDBREF        DESCRIDLE    DESCRTIME
   DESCRHOST        DESCRIPNUM        DESCRPORT    DESCRCONPORT
   DESCRLEASTIDLE   DESCRMOSTIDLE     FIRSTDESCR   LASTDESCR
-  DESCRUSER        GETDESCRINFO
+  DESCRUSER        GETDESCRINFO      DESCRBOOT    DESCR_SET
+  DESCR_FLAG?
 
 Locks Management:
   SETLOCKSTR     GETLOCKSTR     LOCKED?     PARSELOCK
@@ -273,7 +274,7 @@ NOTIFY_HTML         NOTIFY_HTML_EXCLUDE         NOTIFY_HTML_EXCLUDE
 NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
 NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
 STOPMIDI            PLAYMIDI                    COMMANDTEXT
-ARRAY_ANSI_NOTIFY   NOTIFY_ARRAY_HTML
+ARRAY_ANSI_NOTIFY   NOTIFY_ARRAY_HTML           ANSI_NOTIFY_DESCRIPTOR
 
 ~
 CONVERSION PRIMS|COVERSION|CONVERSIONPRIMS|CONVERTING
@@ -357,7 +358,7 @@ TRIG       PROG     PARSEMPI    PARSEPROP             CANCALL?
 BEGIN      UNTIL    REPEAT      WHILE     BREAK       CONTINUE
 COMPILED?  TREAD    FOREACH     FOR       PROPQUEUE   ENVPROPQUEUE         
 INSTANCES  MAGECALL WIZCALL     ARCHCALL  BOYCALL     GETPIDINFO
-GETPIDS    TRY      CATCH       ENDCATCH
+GETPIDS    TRY      CATCH       ENDCATCH  JMP
 
 See: LOOPS, MULTITASKING
 ~~~~
@@ -405,7 +406,7 @@ For working with Descriptors:
   DESCRIDLE        DESCRTIME         DESCRHOST     DESCRIPNUM
   DESCRPORT        DESCRCONPORT      FIRSTDESCR    LASTDESCR
   DESCRLEASTIDLE   DESCRMOSTIDLE     DESCRUSER     GETDESCRINFO
-
+  DESCRBOOT        DESCR_SET         DESCR_FLAG?
 ~~~~~~
 LOCK PRIMS
 
@@ -1466,6 +1467,12 @@ lock will always fail and print the fail messages at read time.  It
 cannot be used in a program associated with a room object. A program
 running in background mode cannot use the read prim. 
 
+As of Proto 1.7, READ can work with descriptors that are not yet connected
+to players. This is useful for programs called via @logincommand/ props, as
+well as programs run via the MUF port. In both of these cases, the READ prim
+can be used in the same way it is used in in-MUCK programs. The running the
+program will be blocked, and the next input from the descriptor will be pushed
+onto the stack. 
 See: BACKGROUND, TREAD
 ~
 REMOVE_PROP
@@ -2812,8 +2819,7 @@ Level: M1 Apprentice
 
 Prevents a program from being swapped out to do multitasking.  Needed in
 some cases to protect crucial data from being changed while it is being
-worked on.  A program will remain in preempt mode until it's execution is
-completed.  Basically what this command does is to turn off multitasking,
+worked on. Basically what this command does is to turn off multitasking,
 but then you have a limit on how many instructions you can run without
 needing either to pause with a SLEEP, or have a Wizbit on the program.
 
@@ -3123,24 +3129,26 @@ W1PRIMS|W1 PRIMS|W1_PRIMS|W1-PRIMS
 The following prims become available at the level of W1, though
 they still may have some uses reserved for higher permission levels:
 
-newexit             (d1 s -- d2)
-conhost             (i -- s)
-conipnum            (i -- s)
-nextdescr           (i1 -- i2)
-fork                ( -- i)
-nextowned           ( d -- d' )
-notify_descriptor   ( i s -- )
-setpassword         ( d s1 s2 -- )
-next_flag           ( d s -- d )
-nextowned_flag      ( d s -- d )
-nextplayer_flag     ( d s -- d )
-nextthing_flag      ( d s -- d )
-nextplayer_power    ( d s -- d )
-nextentrance        ( d d -- d )
-descrhost           ( i -- s )
-descripnum          ( i -- s )
-firstdescr          ( d -- i )
-lastdescr           ( d -- i )
+newexit                (d1 s -- d2)
+conhost                (i -- s)
+conipnum               (i -- s)
+nextdescr              (i1 -- i2)
+fork                   ( -- i)
+nextowned              ( d -- d' )
+notify_descriptor      ( i s -- )
+ansi_notify_descriptor ( i s -- )
+setpassword            ( d s1 s2 -- )
+next_flag              ( d s -- d )
+nextowned_flag         ( d s -- d )
+nextplayer_flag        ( d s -- d )
+nextthing_flag         ( d s -- d )
+nextplayer_power       ( d s -- d )
+nextentrance           ( d d -- d )
+descrhost              ( i -- s )
+descripnum             ( i -- s )
+firstdescr             ( d -- i )
+lastdescr              ( d -- i )
+descr_flag?            ( i s -- i )
 
 See: W1, MUCKER LEVELS, individual prim entries for more details
 ~~~~
@@ -3189,6 +3197,8 @@ descrconport        ( i -- i )
 getpids             ( d -- arr )
 getpidinfo          ( i -- dict )
 getdescrinfo        ( i -- dict )
+descrboot           ( i -- )
+descr_set           ( i s -- )
 
 See: W3, MUCKER LEVELS, individual prim entries for details
 ~
@@ -4621,16 +4631,23 @@ of character that could be returned will still be put on the stack.
 If s1 is an empty string, returns an empty string no matter what.
 If i1 is a point that is beyond the range of s1, returns a null string.
 ~
-NOTIFY_DESCRIPTOR
+NOTIFY_DESCRIPTOR|DESCRNOTIFY|ANSI_NOTIFY_DESCRIPTOR
 
-notify_descriptor ( i s -- )
-----------------------------
+notify_descriptor or ansi_notify_descriptor or descrnotify ( i s -- )
+---------------------------------------------------------------------
 Level: W1 Mage
 i = integer representing a descriptor number.
 s = string to notify to that descriptor.
 
 Given a string i, and a descriptor number, will notify to that
 descriptor directly.
+descrnotify is an alias to notify_descriptor. Both of these will 
+strip out any standad ANSI when notifying to descriptors that are not 
+connected to a player, since there is no C flag to check for.
+
+ansi_notify_descriptor works the same, except that it parses Neon ANSI,
+just like ansi_notify.
+
 ~
 STRENCRYPT
 
@@ -8188,3 +8205,52 @@ all matches to the stack in a list array all at once.
 
 See: FINDNEXT, ARRAY PRIMS
 ~~~~
+DESCRBOOT|
+
+descrboot ( i -- )
+------------------
+Level: W3 ArchWizard
+i = integer representing descriptor.
+
+Boots the given descriptor from the MUCK.
+
+See: CONBOOT
+~~~
+DESCR_SET
+
+descr_set ( i s -- )
+--------------------
+Level: W3 ArchWizard
+i = integer representing a descriptor
+s = string representing the flag to set
+
+Used to set descriptor flags on descriptors. 
+
+See: 'HELP DESCRIPTOR FLAGS' for a list of descriptor flags
+~~~~
+DESCR_FLAG?
+
+descr_flag? ( i1 s -- i2 )
+--------------------------
+i1 = integer representing a descriptor
+s  = string representing the flag to check for
+i2 = integer representing result
+
+Used to check for checking for the presense of descriptor flags on
+descriptors.
+
+See: 'HELP DESCRIPTOR FLAGS' for a list of descriptor flags.
+~~~~~
+JMP
+
+jmp ( address -- )
+------------------
+address - A function address to jump to
+
+Moves program iteration to that function address. Was an early
+way to implement tail recursion without the overhead of pushing
+another function onto the stack. By today's standards, this is 
+no longer an issue and use of this prim has been deprecated. It
+still exists because it is one of the prims that the internal
+program iteration uses JMP to implement loops and if-else-then
+statements.
