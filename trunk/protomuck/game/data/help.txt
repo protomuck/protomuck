@@ -1568,6 +1568,9 @@ commands that they don't want a guest to have.
 
 Depending on options chosen at compile time, Guests might only be able to
 go into rooms set = GUEST, or they might be blocked from rooms set = GUEST.
+
+If an EXIT or PROGRAM is set GUEST, then no player that is set GUEST can 
+use them.
 Only Mage or higher can set the GUEST flag.
 
 See: GUEST BANS
@@ -1838,6 +1841,9 @@ instead of it's @desc, and you will not be shown it's @succ or @fail.
 Objects dropped in a vehicle will not go away to the their homes, as a
 vehicle cannot have a dropto set in it.
 
+Exits set VEHICLE cannot be used by objects of type thing that are also set
+VEHICLE.
+
 Players with the VEHICLE flag set cannot set the V flag themselves. This can
 only be set by Mages or higher.
 
@@ -1922,10 +1928,15 @@ from '"wizard" flag?' when the player is QUELLed.  Wiz-bitted programs will
 still act wizbitted whether or not the owner is QUELLED.
 However '"truewizard" flag?' would return the true value. Only players of
 W1 or higher can set the QUELL flag.
+
 Combining the QUELL flag with the HARDUID flag on a program makes it so that
 the program runs at the level of the bit on the object itself, instead of
 at the owner's permission level. It still can't be made to run higher than
 the owner's permission, however.
+
+Putting the QUELL flag on THINGS set PUPPET or VEHICLE will make it so that
+they do not echo back to the player. This allows one to turn off the echoing,
+while not disabling puppet or vehicle dependent functions for that THING.
 ~~
 IDLE|I
 IDLE (I)

@@ -5708,7 +5708,7 @@ See: ARRAY PRIMS
 ARRAY_DELITEM
 
 array_delitem( a @ -- a' )
----------------------------
+--------------------------
 Level: M1 Apprentice
 a  = An array.
 @  = A valid index marker for array a1.
@@ -5723,6 +5723,7 @@ See: ARRAY PRIMS, ARRAY_DELRANGE
 ARRAY_DELRANGE
 
 array_delrange( a @1 @2 -- a' )
+-------------------------------
 Level: M1 Apprentice
 a  = An array.
 @1 = Index marker indicating starting position to delete from.
@@ -8174,7 +8175,7 @@ USERNAME      (s) - The user name for that descr's IP address.
 FIND_ARRAY|
 
 find_array ( d1 d2 s1 s2 -- arr )
-------------------------------
+---------------------------------
 Level: M2 Journeyman
 d1 = dbref to start from.
 d2 = Owner to search for.
