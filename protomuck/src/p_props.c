@@ -1388,6 +1388,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
                         case PROG_STRING:
                             strncpy(var_buf, DoNullInd(val->data.string),
                                       BUFFER_LEN);
+                            break;
                         case PROG_LOCK:
                             strncpy(var_buf, unparse_boolexp(ProgUID, 
                                       val->data.lock, 1), BUFFER_LEN);
