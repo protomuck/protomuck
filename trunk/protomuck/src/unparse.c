@@ -73,6 +73,8 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
           *p++ = '$';
       if (FLAG2(thing) & F2HTML)
 	    *p++ = '&';
+      if (FLAG2(thing) & F2MOBILE)
+	    *p++ = '~';
     }
     if (thing == 1) {
        *p++ = 'W' ; *p++ = '5' ;
@@ -131,6 +133,139 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
     }
     *p = '\0';
     return buf;
+}
+
+char 
+flag_2char(char *flag)
+{
+   if (string_prefix("mobile", flag))
+        return '~';
+   if (string_prefix("m", flag))
+	return 'M';
+   if (string_prefix("w", flag))
+	return 'W';
+   if (string_prefix("builder", flag) || string_prefix("bound", flag))
+      return 'B';
+   if (string_prefix("jump_ok", flag))
+      return 'J';
+   if (string_prefix("link_ok", flag))
+      return 'L';
+   if (string_prefix("dark", flag) || string_prefix("debugging", flag))
+      return 'D';
+   if (string_prefix("sticky", flag) || string_prefix("silent", flag) || 
+		      string_prefix("setuid", flag))
+      return 'S';
+   if (string_prefix("quell", flag))
+      return 'Q';
+   if (string_prefix("chown_ok", flag) || string_prefix("color_on", flag) 
+		   || string_prefix("ansi", flag))
+      return 'C';
+   if (string_prefix("haven", flag) || string_prefix("harduid", flag) 
+		   || string_prefix("hide", flag))
+      return 'H';
+   if (string_prefix("abode", flag) || string_prefix("autostart", flag) 
+		   || string_prefix("abate", flag))
+      return 'A';
+   if (string_prefix("vehicle", flag) || string_prefix("viewable", flag))
+      return 'V';
+   if (string_prefix("xforcible", flag) || 
+		   string_prefix("expanded_debug", flag))
+      return 'X';
+   if (string_prefix("zombie", flag) || string_prefix("puppet", flag))
+      return 'Z';
+   if (string_prefix("guest", flag))
+      return 'G';
+   if (string_prefix("idle", flag))
+      return 'I';
+   if (string_prefix("logwall", flag))
+      return '!';
+   if (string_prefix("mufcount", flag))
+      return '+';
+   if (string_prefix("light", flag))
+      return 'O';
+   if (string_prefix("parent", flag) || string_prefix("prog_debug", flag))
+      return '%';
+   if (string_prefix("protect", flag))
+      return '*';
+   if (string_prefix("antiprotect", flag))
+      return 'K';
+   if (string_prefix("examine_ok", flag))
+      return 'Y';
+   if (string_prefix("no_command", flag))
+      return 'N';
+   if (string_prefix("hidden", flag))
+      return '#';
+   if (string_prefix("pueblo", flag))
+      return '$';
+   if (string_prefix("nhtml", flag) || string_prefix("html", flag))
+      return '&';
+   if (string_prefix("meeper", flag) || string_prefix("mpi", flag))
+	return LMPI + '0';
+   if (string_prefix("mucker", flag) || string_prefix("mucker1", flag) || 
+		   string_prefix("m1", flag))
+      return LM1 + '0';
+   if (string_prefix("nucker", flag) || string_prefix("mucker2", flag) || 
+		   string_prefix("m2", flag))
+      return LM2 + '0';
+   if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) 
+		   || string_prefix("m3", flag))
+      return LM3 + '0';
+   if (string_prefix("mage", flag) || string_prefix("W1", flag))
+      return (tp_multi_wizlevels ? LMAGE : LM3) + '0';
+   if (string_prefix("wizard", flag) || string_prefix("W2", flag))
+      return (tp_multi_wizlevels ? LWIZ : LARCH) + '0';
+   if (string_prefix("archwizard", flag) || string_prefix("W3", flag))
+      return LARCH + '0';
+   if (string_prefix("boy", flag) || string_prefix("W4", flag))
+      return (tp_multi_wizlevels ? LBOY : LARCH) + '0';
+   if (string_prefix("man", flag) || string_prefix("W5", flag))
+      return LMAN + '0';
+
+   return 0;
+}
+
+char
+power_2char(char *p)
+{
+    if ( string_prefix("ALL_MUF_PRIMS", p) ) {
+       return 'm';
+    } else if ( string_prefix("ANNOUNCE", p) ) {
+       return 'a';
+    } else if ( string_prefix("BOOT", p) ) {
+       return 'b';
+    } else if ( string_prefix("CHOWN_ANYTHING", p) ) {
+       return 'c';
+    } else if ( string_prefix("CONTROL_ALL", p) ) {
+       return 'r';
+    } else if ( string_prefix("CONTROL_MUF", p) ) {
+       return 'f';
+    } else if ( string_prefix("EXPANDED_WHO", p) ) {
+       return 'x';
+    } else if ( string_prefix("HIDE", p) ) {
+       return 'h';
+    } else if ( string_prefix("IDLE", p) ) {
+       return 'i';
+    } else if ( string_prefix("LINK_ANYWHERE", p) ) {
+       return 'l';
+    } else if ( string_prefix("LONG_FINGERS", p) ) {
+       return 'g';
+    } else if ( string_prefix("NO_PAY", p) ) {
+       return 'n';
+    } else if ( string_prefix("OPEN_ANYWHERE", p) ) {
+       return 'o';
+    } else if ( string_prefix("PLAYER_CREATE", p) ) {
+       return 'p';
+    } else if ( string_prefix("SEARCH", p) ) {
+       return 's';
+    } else if ( string_prefix("SEE_ALL", p) ) {
+       return 'e';
+    } else if ( string_prefix("SHUTDOWN", p) ) {
+       return 'd';
+    } else if ( string_prefix("TELEPORT", p) ) {
+       return 't';
+    } else {
+       return 0;
+    }
 }
 
 const char *

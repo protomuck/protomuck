@@ -2411,6 +2411,70 @@ prim_textattr(PRIM_PROTOTYPE)
 }
 
 
+void
+prim_flag_2char(PRIM_PROTOTYPE)
+{
+	int n = 0;
+	char flag_char;
+	char *flag_str;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (oper1->type != PROG_STRING)
+		abort_interp("Top argument must be a string. (1)");
+	if (!oper1->data.string)
+		abort_interp("Empty string given. (1)");
+	flag_str = malloc(strlen(oper1->data.string->data) + 1);
+	strcpy(flag_str, oper1->data.string->data);
+	while(*flag_str == '!') {
+		n = !n;
+		(void) flag_str++;
+	}
+	flag_char = flag_2char(flag_str);
+	free(flag_str);
+	CLEAR(oper1);
+	if (flag_char <= 0)
+		abort_interp("Not a valid flag to convert to a character. (1)");
+	if (n)
+		buf[0] = '!';
+	buf[n] = flag_char;
+	buf[n+1] = '\0';
+	PushString(buf);
+}
+
+
+void
+prim_power_2char(PRIM_PROTOTYPE)
+{
+	int n = 0;
+	char power_char;
+	char *power_str;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (oper1->type != PROG_STRING)
+		abort_interp("Top argument must be a string. (1)");
+	if (!oper1->data.string)
+		abort_interp("Empty string given. (1)");
+	power_str = malloc(strlen(oper1->data.string->data) + 1);
+	strcpy(power_str, oper1->data.string->data);
+	while(*power_str == '!') {
+		n = !n;
+		(void) power_str++;
+	}
+	power_char = power_2char(power_str);
+	free(power_str);
+	CLEAR(oper1);
+	if (power_char <= 0)
+		abort_interp("Not a valid power to convert to a character. (1)");
+	if (n)
+		buf[0] = '!';
+	buf[n] = power_char;
+	buf[n+1] = '\0';
+	PushString(buf);
+}
+
+
 
 
 
