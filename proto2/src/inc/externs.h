@@ -163,17 +163,15 @@ extern void do_prog(int descr, dbref player, const char *name);
 #ifdef MCP_SUPPORT
 extern void do_mcpprogram(int descr, dbref player, const char *name);
 extern void do_mcpedit(int descr, dbref player, const char *name);
-extern void mcpedit_program(int descr, dbref player, dbref prog,
-                            const char *name);
 #endif
 extern void do_edit(int descr, dbref player, const char *name);
 extern int unset_source(dbref player, dbref loc, dbref action);
-extern int link_exit(int descr, dbref player, dbref exit, char *dest_name,
-                     dbref *dest_list);
-extern int link_exit_dry(int descr, dbref player, dbref exit,
-                     char *dest_name, dbref *dest_list);
+extern int _link_exit(int descr, dbref player, dbref exit, char *dest_name,
+                               register dbref *dest_list, register bool dryrun);
+#define link_exit(A, B, C, D, E) (_link_exit(A, B, C, D, E, 0))
+#define link_exit_dry(A, B, C, D, E) (_link_exit(A, B, C, D, E, 1))
 extern void set_source(dbref player, dbref action, dbref source);
-extern int exit_loop_check(dbref source, dbref dest);
+extern bool exit_loop_check(register dbref source, register dbref dest);
 
 /* from diskprop.c */
 extern void diskbase_debug(dbref player);
@@ -185,8 +183,7 @@ extern void undirtyprops(dbref obj);
 #endif
 
 /* from edit.c */
-extern struct macrotable
- *new_macro(const char *name, const char *definition, dbref player);
+extern struct macrotable *new_macro(const char *name, const char *definition, dbref player);
 extern char *macro_expansion(struct macrotable *node, const char *match);
 extern void match_and_list(int descr, dbref player, const char *name,
                            char *linespec, int editor);

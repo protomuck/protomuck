@@ -213,6 +213,53 @@ new_object(void)
     return newobj;
 }
 
+
+dbref
+new_program(register dbref player, register const char *name)
+{
+    register unsigned char mlvl;
+    register dbref newprog;
+    char buf[BUFFER_LEN];
+
+    newprog = new_object();
+    player = OWNER(player);
+
+    NAME(newprog) = alloc_string(name);
+    sprintf(buf, "A scroll containing a spell called %s", name);
+    SETDESC(newprog, buf);
+    DBFETCH(newprog)->location = player;
+    FLAGS(newprog) = TYPE_PROGRAM;
+
+    mlvl = MLevel(player);
+    if (mlvl < 1)
+        mlvl = 2;
+    else if (mlvl > 3)
+        mlvl = 3;
+    SetMLevel(newprog, mlvl);
+
+    OWNER(newprog) = player;
+    DBFETCH(newprog)->sp.program.first = 0;
+    DBFETCH(newprog)->sp.program.curr_line = 0;
+    DBFETCH(newprog)->sp.program.siz = 0;
+    DBFETCH(newprog)->sp.program.code = 0;
+    DBFETCH(newprog)->sp.program.start = 0;
+    DBFETCH(newprog)->sp.program.pubs = 0;
+#ifdef MCP_SUPPORT
+    DBFETCH(newprog)->sp.program.mcpbinds = 0;
+#endif
+    DBFETCH(newprog)->sp.program.proftime.tv_sec = 0;
+    DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
+    DBFETCH(newprog)->sp.program.profstart = 0;
+    DBFETCH(newprog)->sp.program.profuses = 0;
+    DBFETCH(newprog)->sp.program.instances = 0;
+    PUSH(newprog, DBFETCH(player)->contents);
+    DBDIRTY(newprog);
+    DBDIRTY(player);
+
+    return newprog;
+}
+
+
 void
 putref(FILE * f, dbref ref)
 {
