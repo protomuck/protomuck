@@ -2384,7 +2384,7 @@ addrout(int lport, int a, unsigned short prt)
         /* it's in a slow mood *grin*. If the nameserver lags */
         /* consistently, a hostname cache ala OJ's tinymuck2.3 */
         /* would make more sense:                             */
-        static secs_lost = 0;
+        static int secs_lost = 0;
 
         if (secs_lost) {
             secs_lost--;
