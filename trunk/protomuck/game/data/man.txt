@@ -554,7 +554,7 @@ BLUE             NAVY    or CBLUE            BBLUE
 PURPLE           VIOLET  or CPURPLE          BPURPLE
 CYAN             AQUA    or CCYAN            BCYAN
 WHITE            GRAY    or CWHITE           BWHITE
-                 GLOOM   or CBLACK
+BLACK            GLOOM   or CBLACK           BBLACK
 
 In addition, the following ANSI tokens can be used:
     ^CFAIL^ -- Color defined for when commands fail. 
@@ -4641,20 +4641,6 @@ file, then it will read in characters up to the end of the file.
 
 See: FILE PRIMS, SHORTCUTS
 ~~~
-FREADTO
-
-freadto ( s1 i1 s2 -- i2 s3 )
------------------------------
-Level: W4 Boy
-s1 = string containing the file name.
-i1 = integer representing the file offset. 
-s2 = 
-i2 = integer representing the  offset from that read.
-s3 = 
-
-Not finished.
-
-~~~
 FPUBLISH
 
 fpublish ( s -- i )
@@ -4809,7 +4795,7 @@ frm ( s -- i )
 --------------
 Level: W4 Boy
 s = string representing fiile name to remove.
-i = integer representing success or failure.
+i = integer representing success or failure. 0 indicates success.
 
 Given a filename on the server, removes that file. If the file was
 removed fine, then a 0 is returned to the stack. If the file did 
