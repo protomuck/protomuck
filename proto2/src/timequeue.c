@@ -345,29 +345,41 @@ add_muf_delay_event(int delay, int descr, dbref player, dbref loc, dbref trig,
 
 
 
-void
-read_event_notify(int descr, dbref player)
+/* Changed the return to INT and added the cmd parameter. This
+ * will help with keeping events from breaking when using in-server
+ * globals like WHO and QUIT. -Akari
+ */
+int
+read_event_notify(int descr, dbref player, const char *cmd)
 {
     timequeue ptr;
 
-    if (muf_event_read_notify(descr, player)) {
-        return;
+    
+    if (muf_event_read_notify(descr, player, cmd)) {
+        return 1;
     }
 
     ptr = tqhead;
     while (ptr) {
         if (ptr->uid != NOTHING ? ptr->uid == player : ptr->descr == descr) {
             if (ptr->fr && ptr->fr->multitask != BACKGROUND) {
-                struct inst temp;
+                /* Don't queue the event unless there's actually 
+                 * a command. this is to accomidate changes in
+                 * interface.c to avoid problems with events and WHO -Akari
+                 */
+                if ( *cmd || ptr->fr->wantsblanks ) {
+                    struct inst temp;
 
-                temp.type = PROG_INTEGER;
-                temp.data.number = descr;
-                muf_event_add(ptr->fr, "READ", &temp, 1);
-                return;
+                    temp.type = PROG_INTEGER;
+                    temp.data.number = descr;
+                    muf_event_add(ptr->fr, "READ", &temp, 1);
+                    return 1;
+                }
             }
         }
         ptr = ptr->next;
     }
+    return 0;
 }
 
 /* I had to add the 'timequeue event' parameter to handle_read_event() in order
@@ -1051,11 +1063,13 @@ dequeue_prog(dbref program, int sleeponly)
             ptr = ptr->next;
         }                       /* while ptr */
     }
-    /* if tqhead */
-    if (sleeponly == 1 || sleeponly == 0) {
-        /* Treat MUF_EVENT processes as background processes */
-        count += muf_event_dequeue(program);
-    }
+
+    /* We used to treat MUF events as only background processes. 
+     * Now we pass the actual sleeponly parameter so that we can treat
+     * them as foreground processes when needed when handling READ events.
+     * -Akari
+     */
+    count += muf_event_dequeue(program, sleeponly);
 
     /* Make sure to re-set any READ/INTERACTIVE flags needed */
     for (ptr = tqhead; ptr; ptr = ptr->next) {
@@ -1108,10 +1122,13 @@ dequeue_prog_descr(int descr, int sleeponly)
             }
         }
     }
-    if (sleeponly == 1 || sleeponly == 0) {
-        /* treat MUF_EVENT processes as backgrounded */
-        count += muf_event_dequeue_descr(descr);
-    }
+    /* We used to treat event processes as background only
+     * but with READ events, we really need to acknowledge that
+     * they have forground possibilities as well. So now we pass
+     * the sleeponly parameter to the muf_event_dequeue functions
+     */
+    count += muf_event_dequeue_descr(descr, sleeponly);
+   
     for (ptr = tqhead; ptr; ptr = ptr->next) {
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                        ptr->subtyp == TQ_MUF_TREAD)) {
@@ -1241,7 +1258,7 @@ do_dequeue(int descr, dbref player, const char *arg1)
                 process_count--;
             }
             tqhead = NULL;
-            muf_event_dequeue(NOTHING);
+            muf_event_dequeue(NOTHING, 0);
             anotify_nolisten(player, CSUCC "Time queue cleared.", 1);
         } else {
             if (!number(arg1)) {

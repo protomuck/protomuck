@@ -89,7 +89,7 @@
  */
 
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#define IGNORE_SUPPORT
+#undef IGNORE_SUPPORT
 #define MAX_IGNORES 16
 #define MUF_MAX_IGNORES "16"
 
@@ -154,7 +154,7 @@
  */
 
 #define MUF_SOCKETS
-#define SSL_SOCKETS
+#undef  SSL_SOCKETS
 
 /* Define MUF_EDIT_PRIMS to compile in a set of prims that have
  * the ability to edit MUF code or the MUF macros. This can be
