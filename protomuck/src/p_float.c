@@ -11,7 +11,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <float.h>
-#include <bits/nan.h>
+#include "nan.h"
 #include "db.h"
 #include "tune.h"
 #include "inst.h"
