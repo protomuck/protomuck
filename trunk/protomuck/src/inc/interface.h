@@ -290,13 +290,6 @@ extern void panic(const char *);
 #define BCYAN	"^BCYAN^"
 #define BGRAY	"^BGRAY^"
 
-/* These are defined in defaults.h */
-#define CFAIL "^FAIL^"
-#define CSUCC "^SUCC^"
-#define CINFO "^INFO^"
-#define CNOTE "^NOTE^"
-#define CMOVE "^MOVE^"
-
 /* ANSI attributes and color codes for FB6 style ansi routines */
 
 #define ANSI_RESET	"\033[0m"
