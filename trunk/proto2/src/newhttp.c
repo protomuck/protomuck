@@ -522,6 +522,29 @@ http_decode64(const char *in, unsigned inlen, char *out)
 
 }
 
+#ifdef HTTP_MPI_SUPPORT
+char *
+http_parsempi(struct descriptor_data *d, dbref what, const char *yerf)
+{
+    char *ptr;
+    char buf[BUFFER_LEN];
+    dbref player;
+
+    player = OWNER(what);
+    if (yerf) {
+        (char *)ptr = (char *)yerf;
+	if (ptr) {
+           (char *)ptr = (char *)do_parse_mesg(d->descriptor, (dbref)player, (dbref)what, "WWW", ptr, buf, 0);
+        return (char *)*buf;
+	} else {
+        return NULL;    
+	}
+    } else {
+    return NULL;
+    }
+}
+#endif
+
 int
 http_parsedest(struct descriptor_data *d)
 {
@@ -828,7 +851,6 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
     const char *m = NULL;
     int lines = 0;
     int i;
-
     if (!OkObj(what))
         return 0;
 
@@ -875,6 +897,11 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
         if ((m = get_property_class(what, buf))) {
 #ifdef COMPRESS
             m = uncompress(m);
+#endif
+#ifdef HTTP_MPI_SUPPORT
+            if ((*m == (char)"&") && tp_web_allow_mpi) {
+	     m = http_parsempi(d, what, ++m);
+	    } 
 #endif
             queue_text(d, "%s\r\n", m);
         }
@@ -1138,6 +1165,12 @@ http_dourl(struct descriptor_data *d)
     if (tp_web_allow_files && (d->http.smethod->flags & HS_FILE) && http_dofile(d))
         return 1;
 
+#ifdef HTTP_MPI_SUPPORT
+    /* finish me hino!  -- Alynna
+    if (tp_web_allow_mpi && is_prop(d->http.rootobj, prop) {
+
+    } */
+#endif
     /* If it's a propdir and nothing else was found, */
     /* send a 403 error. Eventually, this'll be used */
     /* to display a directory listing.               */

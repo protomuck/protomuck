@@ -60,7 +60,7 @@
    version should be in text, for the MAX_IGNORES MUF define.
  */
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#undef IGNORE_SUPPORT
+#define IGNORE_SUPPORT
 #define MAX_IGNORES 16
 #define MUF_MAX_IGNORES "16"
 
@@ -95,6 +95,15 @@
 
 #define FILE_PRIMS
 
+/* Alynna -- ACHTUNG!  PELIGRO!  DANGER!
+ * DO NOT DEFINE UNDER PENALTY OF LAW.  This define is DANGEROUS.
+ * Define this if you want to run Proto as root, and still have 
+ * access to things like file primitives and other potential
+ * compromises.  You might want to do this if you decided that
+ * ProtoMUCK is a better webserver than Apache. 
+ */
+#define PROTO_AS_ROOT
+
 /* Define MUF_SOCKETS to include the MUF socket prims.
  * MUF socket support is necessary for any MUF programs
  * that involve opening connections to other servers,
@@ -124,6 +133,12 @@
  */
 
 #define DETACH
+
+/* This is the section to turn on and off cutting edge features.
+ */
+
+#define CONTROLS_SUPPORT	/* Alynna 20030907 */
+#define HTTP_MPI_SUPPORT	/* Alynna 20030907 */
 
 // If you have problems compiling with DETACH defined, uncomment one
 // of these:

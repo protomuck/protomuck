@@ -1,4 +1,6 @@
+#ifndef PROTO_AS_ROOT
 #define SECURE_FILE_PRIMS
+#endif
 #include "copyright.h"
 #include "config.h"
 #ifdef FILE_PRIMS
@@ -233,8 +235,10 @@ prim_fwrite(PRIM_PROTOTYPE)
     oper1 = POP();
     oper2 = POP();
     oper3 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_INTEGER)
@@ -298,8 +302,10 @@ prim_fappend(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -357,8 +363,10 @@ prim_fread(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("MUCK is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_INTEGER)
@@ -433,9 +441,11 @@ prim_freadn(PRIM_PROTOTYPE)
     oper1 = POP();              /*The range */
     oper2 = POP();              /*The offset */
     oper3 = POP();              /*The filename */
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         /*Permissions checks */
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     /*Type Checking */
@@ -513,8 +523,10 @@ prim_fcr(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -556,8 +568,10 @@ prim_fpublish(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -597,8 +611,10 @@ prim_bread(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_INTEGER)
@@ -653,8 +669,10 @@ prim_bwrite(PRIM_PROTOTYPE)
     oper1 = POP();
     oper2 = POP();
     oper3 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_INTEGER)
@@ -711,8 +729,10 @@ prim_bappend(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -761,8 +781,10 @@ prim_fsize(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -804,8 +826,10 @@ prim_fstats(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -859,8 +883,10 @@ prim_fsinfo(PRIM_PROTOTYPE)
 {
     struct statfs fs;
 
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     /* Returns: */
@@ -896,8 +922,10 @@ prim_frm(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -932,8 +960,10 @@ prim_fren(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -994,8 +1024,10 @@ prim_freadto(PRIM_PROTOTYPE)
     oper3 = POP();              /*The file name. */
 
     /*Permissions checks */
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("FREADTO is BOY level prim only.");
 
@@ -1084,8 +1116,10 @@ prim_fnameokp(PRIM_PROTOTYPE)
     CHECKOP(1);
     oper1 = POP();              /* string */
     /* Permissions and Type checks */
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -1126,8 +1160,10 @@ prim_getdir(PRIM_PROTOTYPE)
     oper1 = POP();              /* string */
 
     /* Permissions and type checks */
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -1192,8 +1228,10 @@ prim_mkdir(PRIM_PROTOTYPE)
     oper1 = POP();              /* string */
 
     /* Permissions and type checks */
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_STRING)
@@ -1260,8 +1298,10 @@ prim_send_binary(PRIM_PROTOTYPE)
     
 /* Disabling this code until I can get back to it. It's still a work in
  * progress, but might not be available until 1.9 */
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs. File prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_INTEGER)
