@@ -12,7 +12,9 @@
 #include "externs.h"
 #include "match.h"
 #include <float.h>
+#ifndef APPLE
 #include "nan.h"
+#endif
 #include "interface.h"
 #include "params.h"
 #include "tune.h"
