@@ -1610,89 +1610,92 @@ mfn_toupper(MFUNARGS)
     return buf;
 }
 
-
 const char *
 mfn_commas(MFUNARGS)
 {
-    int v, i, count, itemlen;
-    char *ptr;
-    char *out;
-    char buf2[BUFFER_LEN];
-    char sepbuf[BUFFER_LEN];
-    char tmp[BUFFER_LEN];
+	int v, i, count, itemlen;
+	char *ptr;
+	char *out;
+	char listbuf[BUFFER_LEN];
+	char sepbuf[BUFFER_LEN];
+	char buf2[BUFFER_LEN];
+	char tmp[BUFFER_LEN];
 
-    if (argc == 3)
-        ABORT_MPI("COMMAS","Takes 1, 2, or 4 arguments.");
+	if (argc == 3)
+		ABORT_MPI("COMMAS", "Takes 1, 2, or 4 arguments.");
 
-    ptr = MesgParse(argv[0], argv[0]);
-    CHECKRETURN(ptr,"COMMAS","arg 1");
-    count = countlitems(argv[0], "\r");
-    if (count == 0) return "";
+	ptr = MesgParse(argv[0], listbuf);
+	CHECKRETURN(ptr, "COMMAS", "arg 1");
+	count = countlitems(listbuf, "\r");
+	if (count == 0)
+		return "";
 
-    if (argc > 1) {
-        ptr = MesgParse(argv[1], argv[1]);
-        CHECKRETURN(ptr,"COMMAS","arg 2");
-    } else {
-        strcpy(argv[1], " and ");
-    }
+	if (argc > 1) {
+		ptr = MesgParse(argv[1], sepbuf);
+		CHECKRETURN(ptr, "COMMAS", "arg 2");
+	} else {
+		strcpy(sepbuf, " and ");
+	}
 
-    if (argc > 2) {
-        ptr = MesgParse(argv[2], buf2);
-        CHECKRETURN(ptr,"COMMAS","arg 3");
-        v = new_mvar(ptr, tmp);
-        if (v == 1)
-            ABORT_MPI("COMMAS","Variable name too long.");
-        if (v == 2)
-            ABORT_MPI("COMMAS","Too many variables already defined.");
-    }
+	if (argc > 2) {
+		ptr = MesgParse(argv[2], buf2);
+		CHECKRETURN(ptr, "COMMAS", "arg 3");
+		v = new_mvar(ptr, tmp);
+		if (v == 1)
+			ABORT_MPI("COMMAS", "Variable name too long.");
+		if (v == 2)
+			ABORT_MPI("COMMAS", "Too many variables already defined.");
+	}
 
-    *buf = '\0';
-    out = buf;
-    for (i = 1; i <= count; i++) {
-        ptr = getlitem(buf2, argv[0], "\r", i);
-        if (argc > 2) {
-            strcpy(tmp, ptr);
-            ptr = MesgParse(argv[3], buf2);
-            CHECKRETURN(ptr,"COMMAS","arg 3");
-        }
-        itemlen = strlen(ptr);
-        if ((out-buf) + itemlen == BUFFER_LEN) {
-            if (argc > 2)
-               free_top_mvar();
-            return buf;
-        }
-        strcat(out, ptr);
-        out += itemlen;
-        strcat(buf, ptr);
-        switch (count - i) {
-          case 0:
-	    if (argc > 2) free_top_mvar();
-            return buf;
-            break;
-          case 1:
-            itemlen = strlen(sepbuf);
-            if ((out-buf) + itemlen >= BUFFER_LEN) {
-                if (argc > 2 )
-                    free_top_mvar();
-                return buf;
-            }
-            strcat(out, sepbuf);
-            out += itemlen;
-            break;
-          default:
-            if ((out - buf) + 2 >= BUFFER_LEN) {
-                if (argc > 2 )
-                    free_top_mvar();
-                return buf;
-            }
-            strcat(out, ", ");
-            out += strlen(out);
-            break;
-        }
-    }
-    if (argc > 2) free_top_mvar();
-    return buf;
+	*buf = '\0';
+	out = buf;
+	for (i = 1; i <= count; i++) {
+		ptr = getlitem(buf2, listbuf, "\r", i);
+		if (argc > 2) {
+			strcpy(tmp, ptr);
+			ptr = MesgParse(argv[3], buf2);
+			CHECKRETURN(ptr, "COMMAS", "arg 3");
+		}
+		itemlen = strlen(ptr);
+		if ((out - buf) + itemlen >= BUFFER_LEN) {
+			if (argc > 2)
+				free_top_mvar();
+			return buf;
+		}
+		strcat(out, ptr);
+		out += itemlen;
+		switch (count - i) {
+		case 0:
+			if (argc > 2)
+				free_top_mvar();
+			return buf;
+			break;
+		case 1:
+			itemlen = strlen(sepbuf);
+			if ((out - buf) + itemlen >= BUFFER_LEN) {
+				if (argc > 2)
+					free_top_mvar();
+				return buf;
+			}
+			strcat(out, sepbuf);
+			out += itemlen;
+			break;
+		default:
+			if ((out - buf) + 2 >= BUFFER_LEN) {
+				if (argc > 2)
+					free_top_mvar();
+				return buf;
+			}
+			strcat(out, ", ");
+			out += strlen(out);
+			break;
+		}
+	}
+	if (argc > 2)
+		free_top_mvar();
+	return buf;
 }
+
 
 
 const char *
