@@ -224,11 +224,15 @@ int
 notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 		 dbref room, const char *msg, int isprivate)
 {
-    char buf[BUFFER_LEN];
+    char buf[BUFFER_LEN], buf2[BUFFER_LEN], *buf3, *noamsg;
     dbref ref;
 
     if (obj == NOTHING)
 	return;
+
+    buf3 = strcpy(buf2, msg);
+    buf2[0] = '\0';
+    noamsg = tct(buf2, buf3);
 
     if (tp_listeners && (tp_listeners_obj || Typeof(obj) == TYPE_ROOM)) {
 	listenqueue(descr, who,room,obj,obj,xprog,"_listen",msg, tp_listen_mlev,1,0);
@@ -237,9 +241,15 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 	listenqueue(descr, who,room,obj,obj,xprog,"~olisten",msg,tp_listen_mlev,0,1);
 	listenqueue(descr, who,room,obj,obj,xprog,"@listen",msg, tp_listen_mlev,1,1);
 	listenqueue(descr, who,room,obj,obj,xprog,"@olisten",msg,tp_listen_mlev,0,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"_alisten",noamsg, tp_listen_mlev,1,0);
+	listenqueue(descr, who,room,obj,obj,xprog,"_aolisten",noamsg,tp_listen_mlev,0,0);
+	listenqueue(descr, who,room,obj,obj,xprog,"~alisten",noamsg, tp_listen_mlev,1,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"~aolisten",noamsg,tp_listen_mlev,0,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"@alisten",noamsg, tp_listen_mlev,1,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"@aolisten",noamsg,tp_listen_mlev,0,1);
     }
 
-    if (tp_zombies && Typeof(obj) == TYPE_THING && !isprivate) {
+    if (tp_zombies && (Typeof(obj) == TYPE_THING) && !isprivate && !(FLAGS(obj) & QUELL)) {
 	if (FLAGS(obj) & VEHICLE) {
 	    if (getloc(who) == getloc(obj)) {
 		char pbuf[BUFFER_LEN];
@@ -292,9 +302,15 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 	listenqueue(descr, who,room,obj,obj,xprog,"~olisten",noabuf,tp_listen_mlev,0,1);
 	listenqueue(descr, who,room,obj,obj,xprog,"@listen",noabuf, tp_listen_mlev,1,1);
 	listenqueue(descr, who,room,obj,obj,xprog,"@olisten",noabuf,tp_listen_mlev,0,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"_alisten",msg, tp_listen_mlev,1,0);
+	listenqueue(descr, who,room,obj,obj,xprog,"_aolisten",msg,tp_listen_mlev,0,0);
+	listenqueue(descr, who,room,obj,obj,xprog,"~alisten",msg, tp_listen_mlev,1,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"~aolisten",msg,tp_listen_mlev,0,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"@alisten",msg, tp_listen_mlev,1,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"@aolisten",msg,tp_listen_mlev,0,1);
     }
 
-    if (tp_zombies && Typeof(obj) == TYPE_THING && !isprivate) {
+    if (tp_zombies && (Typeof(obj) == TYPE_THING) && !isprivate && !(FLAGS(obj) & QUELL)) {
 	if (FLAGS(obj) & VEHICLE) {
 	    if (getloc(who) == getloc(obj)) {
 		char pbuf[BUFFER_LEN];
@@ -313,7 +329,7 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 		);
 		ref = DBFETCH(obj)->contents;
 		while(ref != NOTHING) {
-		    anotify_nolisten(ref, buf, isprivate);
+		    anotify_nolisten(ref, msg, isprivate);
 		    ref = DBFETCH(ref)->next;
 		}
 	    }
@@ -331,13 +347,14 @@ int
 notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
 		 dbref room, const char *msg, int isprivate)
 {
-    char buf[BUFFER_LEN], *nohbuf;
+    char buf[BUFFER_LEN], *nohbuf, *noabuf, buf2[BUFFER_LEN];
     dbref ref;
 
     if (obj == NOTHING)
 	return;
 
     nohbuf = html_escape(msg);
+    noabuf = tct(buf2, nohbuf);
 
     if (tp_listeners && (tp_listeners_obj || Typeof(obj) == TYPE_ROOM)) {
 	listenqueue(descr, who,room,obj,obj,xprog,"_listen",nohbuf, tp_listen_mlev,1,0);
@@ -346,9 +363,15 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
 	listenqueue(descr, who,room,obj,obj,xprog,"~olisten",nohbuf,tp_listen_mlev,0,1);
 	listenqueue(descr, who,room,obj,obj,xprog,"@listen",nohbuf, tp_listen_mlev,1,1);
 	listenqueue(descr, who,room,obj,obj,xprog,"@olisten",nohbuf,tp_listen_mlev,0,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"_alisten",noabuf, tp_listen_mlev,1,0);
+	listenqueue(descr, who,room,obj,obj,xprog,"_aolisten",noabuf,tp_listen_mlev,0,0);
+	listenqueue(descr, who,room,obj,obj,xprog,"~alisten",noabuf, tp_listen_mlev,1,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"~aolisten",noabuf,tp_listen_mlev,0,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"@alisten",noabuf, tp_listen_mlev,1,1);
+	listenqueue(descr, who,room,obj,obj,xprog,"@aolisten",noabuf,tp_listen_mlev,0,1);
     }
 
-    if (tp_zombies && Typeof(obj) == TYPE_THING && !isprivate) {
+    if (tp_zombies && (Typeof(obj) == TYPE_THING) && !isprivate && !(FLAGS(obj) & QUELL)) {
 	if (FLAGS(obj) & VEHICLE) {
 	    if (getloc(who) == getloc(obj)) {
 		char pbuf[BUFFER_LEN];
@@ -502,6 +525,7 @@ blank(const char *s)
 
     return !(*s);
 }
+
 
 
 

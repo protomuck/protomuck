@@ -672,7 +672,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 	}
 	if (tp_zombies) {
 	    if ((Typeof(player) == TYPE_THING) && (FLAGS(player) & ZOMBIE) &&
-		    !(FLAGS(OWNER(player)) & ZOMBIE)) {
+		    !(FLAGS(OWNER(player)) & ZOMBIE) && !(FLAGS(player) & QUELL)) {
 		ref = getloc(player);
 		if (Mage(OWNER(player)) || ref == NOTHING ||
 		    Typeof(ref) != TYPE_ROOM || !(FLAGS(ref) & ZOMBIE)) {
@@ -778,7 +778,7 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 	}
 	if (tp_zombies) {
 	    if ((Typeof(player) == TYPE_THING) && (FLAGS(player) & ZOMBIE) &&
-		    !(FLAGS(OWNER(player)) & ZOMBIE)) {
+		    !(FLAGS(OWNER(player)) & ZOMBIE) && !(FLAGS(player) & QUELL)) {
 		ref = getloc(player);
 		if (Mage(OWNER(player)) || ref == NOTHING ||
 		    Typeof(ref) != TYPE_ROOM || !(FLAGS(ref) & ZOMBIE)) {
@@ -864,27 +864,11 @@ notify_html(dbref player, const char *msg)
 }
 
 int 
-anotify_nolisten2(dbref player, const char *msg)
-{
-    char    buf[BUFFER_LEN + 2];
-
-    if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
-	&& !(FLAG2(OWNER(player)) & F2HTML)) {
-	parse_ansi(player, buf, msg, ANSINORMAL);
-    } else {
-	unparse_ansi(buf, msg);
-    }
-
-    return notify_nolisten(player, buf, 1);
-}
-
-int 
 anotify_nolisten(dbref player, const char *msg, int isprivate)
 {
     char    buf[BUFFER_LEN + 2];
 
-    if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
-	&& !(FLAG2(OWNER(player)) & F2HTML)) {
+    if( (FLAGS(OWNER(player)) & CHOWN_OK) && !(FLAG2(OWNER(player)) & F2HTML) ) {
 	parse_ansi(player, buf, msg, ANSINORMAL);
     } else {
 	unparse_ansi(buf, msg);
@@ -893,6 +877,11 @@ anotify_nolisten(dbref player, const char *msg, int isprivate)
     return notify_nolisten(player, buf, isprivate);
 }
 
+int 
+anotify_nolisten2(dbref player, const char *msg)
+{
+    return anotify_nolisten(player, msg, 1);
+}
 
 int 
 anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
@@ -911,16 +900,7 @@ anotify_from(dbref from, dbref player, const char *msg)
 int 
 anotify(dbref player, const char *msg)
 {
-    char    buf[BUFFER_LEN + 500];
-
-    if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
-	&& !(FLAG2(OWNER(player)) & F2HTML)) {
-	parse_ansi(player, buf, msg, ANSINORMAL);
-    } else {
-	unparse_ansi(buf, msg);
-    }
-
-    return notify(player, buf);
+    return anotify_from_echo(player, player, msg, 1);
 }
 
 struct timeval 
@@ -4657,6 +4637,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

@@ -1217,7 +1217,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	    }
 	}
 	f = VEHICLE;
-    } else if (string_prefix("LINK_OK", p) || string_prefix("LIGHT", p)) {
+    } else if (string_prefix("LINK_OK", p)) {
 	f = LINK_OK;
 
     } else if (string_prefix("XFORCIBLE", p)) {
@@ -1247,6 +1247,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	f2 = F2GUEST;
     } else if (string_prefix("LOGWALL", p) || !string_compare("!", p)) {
 	f2 = F2LOGWALL;
+    } else if (string_prefix("LIGHT", p) || !string_compare("O", p)) {
+	f2 = F2LIGHT;
     } else if (string_prefix("MUFCOUNT", p) || !string_compare("+", p)) {
 	f2 = F2MUFCOUNT;
     } else if (string_prefix("MOBILE", p) || string_prefix("OFFER", p)) {
@@ -1423,6 +1425,7 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
     }
     anotify_nolisten2(player, CSUCC "Property set.");
 }
+
 
 
 

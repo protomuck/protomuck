@@ -515,7 +515,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
 		|| parent == AMBIGUOUS) {
 	    anotify_nolisten2(player, CINFO "Parent set to default.");
 	} else {
-	    if (!can_link_to(player, Typeof(room), parent) || room == parent) {
+	    if ((!can_link_to(player, Typeof(room), parent) && !(FLAG2(parent) & F2PARENT)) || room == parent) {
 		anotify_nolisten2(player, CFAIL "Permission denied.  Parent set to default.");
 	    } else {
 		moveto(room, parent);
@@ -1089,6 +1089,7 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
         anotify_nolisten2(player, CINFO "Action priority Level reset to zero.");
     }
 }
+
 
 
 

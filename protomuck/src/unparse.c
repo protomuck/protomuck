@@ -55,7 +55,7 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
 	    *p++ = '!';
 	if (FLAG2(thing) & F2MUFCOUNT)
 	    *p++ = '+';
-	if (FLAG2(thing) & F2MOBILE)
+	if (FLAG2(thing) & F2LIGHT)
 	    *p++ = 'O';
       if (FLAG2(thing) & F2PARENT)
           *p++ = '%';
@@ -278,6 +278,7 @@ unparse_boolexp(dbref player, struct boolexp * b, int fullname)
 
     return boolexp_buf;
 }
+
 
 
 

@@ -569,7 +569,7 @@ flag_description(dbref thing)
 	if (FLAGS(thing) & DARK)
 	    strcat(buf, (Typeof(thing) == TYPE_PROGRAM) ? " DEBUGGING" : " DARK");
 	if (FLAGS(thing) & LINK_OK)
-	    strcat(buf, (Typeof(thing) == TYPE_ROOM || Typeof(thing) == TYPE_PROGRAM) ? " LINK_OK" : " LIGHT");
+	    strcat(buf, " LINK_OK");
 
 	if (FLAGS(thing) & BUILDER)
 	    strcat(buf, (Typeof(thing) != TYPE_PROGRAM) ? " BUILDER" : " BOUND");
@@ -595,6 +595,8 @@ flag_description(dbref thing)
 	    strcat(buf, " IDLE");
 	if (FLAG2(thing) & F2LOGWALL)
 	    strcat(buf, " LOGWALL");
+      if (FLAG2(thing) & F2LIGHT)
+          strcat(buf, " LIGHT");
 	if (FLAG2(thing) & F2MUFCOUNT)
 	    strcat(buf, " MUFCOUNT");
       if (FLAG2(thing) & F2PROTECT)
@@ -1447,9 +1449,9 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		break;
 	    case 'O':
 		if (mode)
-		    check->clearflag2 |= F2MOBILE;
+		    check->clearflag2 |= F2LIGHT;
 		else
-		    check->setflag2 |= F2MOBILE;
+		    check->setflag2 |= F2LIGHT;
 		break;
 	    case '*':
 		if (mode)
@@ -2059,6 +2061,7 @@ do_sweep(int descr, dbref player, const char *name)
     }
     anotify_nolisten2(player, CINFO "**End of list**");
 }
+
 
 
 

@@ -50,7 +50,13 @@ set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
 	     string_prefix(type, "@listen") ||
 	     string_prefix(type, "_olisten") ||
 	     string_prefix(type, "~olisten") ||
-	     string_prefix(type, "@olisten"))) {
+	     string_prefix(type, "@olisten") ||
+	     string_prefix(type, "_alisten") ||
+	     string_prefix(type, "~alisten") ||
+	     string_prefix(type, "@alisten") ||
+	     string_prefix(type, "_aolisten") ||
+	     string_prefix(type, "~aolisten") ||
+	     string_prefix(type, "@aolisten"))) {
 	FLAGS(player) |= LISTENER;
     }
 
@@ -277,7 +283,13 @@ remove_property_nofetch(dbref player, const char *type)
           get_property(player, "~listen" )  ||
           get_property(player, "~olisten")  ||
           get_property(player, "@olisten")  ||
-          get_property(player, "@listen" )
+          get_property(player, "@listen" )  ||
+          get_property(player, "_alisten" )  ||
+          get_property(player, "_aolisten")  ||
+          get_property(player, "~alisten" )  ||
+          get_property(player, "~aolisten")  ||
+          get_property(player, "@aolisten")  ||
+          get_property(player, "@alisten" )
          ) ) {
        FLAGS(player) &= ~LISTENER;
     }
@@ -1123,6 +1135,7 @@ Prop_SysPerms(dbref player, const char *type)
    else
       return 0;
 }
+
 
 
 

@@ -914,7 +914,7 @@ prim_notify(PRIM_PROTOTYPE)
 	    }
 	}
 	notify_listeners(fr->descr, player, program, oper2->data.objref,
-			 getloc(oper2->data.objref), buf, 1);
+			 getloc(player), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -949,7 +949,7 @@ prim_notify_html(PRIM_PROTOTYPE)
 	}
         strcat(buf, "\r");
 	notify_html_listeners(fr->descr, player, program, oper2->data.objref,
-			 getloc(oper2->data.objref), buf, 1);
+			 getloc(player), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -983,7 +983,7 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
 	    }
 	}
 	notify_html_listeners(fr->descr, player, program, oper2->data.objref,
-			 getloc(oper2->data.objref), buf, 1);
+			 getloc(player), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1016,7 +1016,7 @@ prim_ansi_notify(PRIM_PROTOTYPE)
 	    }
 	}
 	ansi_notify_listeners(fr->descr, player, program, oper2->data.objref,
-			 getloc(oper2->data.objref), buf, 1);
+			 getloc(player), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1181,7 +1181,7 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 	}
 
 	if (tp_listeners) {
-	    notify_listeners(fr->descr, player, program, where, where, buf, 0);
+	    ansi_notify_listeners(fr->descr, player, program, where, where, buf, 0);
 	    if (tp_listeners_env) {
 		what = DBFETCH(where)->location;
 		for (; what != NOTHING; what = DBFETCH(what)->location)
@@ -2349,6 +2349,7 @@ prim_textattr(PRIM_PROTOTYPE)
 	CLEAR(oper2);
 	PushString(buf);
 }
+
 
 
 
