@@ -15,7 +15,7 @@
     PRIMS_MISC_CNT + PRIMS_PROPS_CNT + PRIMS_STACK_CNT + PRIMS_STRINGS_CNT + \
     PRIMS_FLOAT_CNT + PRIMS_ERROR_CNT + PRIMS_FILE_CNT + PRIMS_ARRAY_CNT + \
     PRIMS_MCP_CNT + PRIMS_SOCKET_CNT + PRIMS_SYSTEM_CNT + PRIMS_INTERNAL_CNT +\
-    PRIMS_MYSQL_CNT)
+    PRIMS_MYSQL_CNT + PRIMS_MUFEDIT_CNT)
 
 /* now refer to tables to map instruction number to name */
 extern const char *base_inst[];

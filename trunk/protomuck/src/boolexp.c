@@ -1,3 +1,8 @@
+/* This file contains functions used for evaluating bool expressions
+ * in MUF or MPI. These mostly take the form of 'locks' in the MUCK
+ * Almost no changes have been made to this file during the 
+ * development of ProtoMUCK. - Akari
+ */
 #include "copyright.h"
 #include "config.h"
 

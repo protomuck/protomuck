@@ -517,7 +517,6 @@ include_internal_defs(COMPSTATE * cstat)
 	insert_def(cstat, "err_fbounds?", "3 is_set?");
 	insert_def(cstat, "err_ibounds?", "4 is_set?");
       insert_def(cstat, "event_wait", "0 array_make event_waitfor");
-/*      insert_def(cstat, "tread", "\"__tread\" timer_start { \"TIMER.__tread\" \"READ\" }list event_waitfor swap pop \"READ\" strcmp if \"\" 0 else read 1 \"__tread\" timer_stop then"); */
 
 	/* Array convenience defines */
 	insert_def(cstat, "}list", "} array_make");
@@ -1217,9 +1216,6 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	cstat.addroffsets = NULL;
 	init_defs(&cstat);
 
-	remove_property(program_in, "_Alpha");
-	remove_property(program_in, "_Beta");
-
 	cstat.variables[0] = "ME";
 	cstat.variabletypes[0] = PROG_OBJECT;
 	cstat.variables[1] = "LOC";
@@ -1243,16 +1239,6 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 
 	if (!cstat.curr_line)
 		v_abort_compile(&cstat, "Missing program text.");
-
-/*      token = "0"; cstat2 = &cstat;
-      cstat.curr_word = cstat.first_word = number_word(cstat2, token);
-      cstat.curr_word->next = number_word(cstat2, token);
-      cstat.curr_word = cstat.curr_word->next;
-      cstat.curr_word->next = number_word(cstat2, token);
-      cstat.curr_word->next->in.data.number = current_systime;
-      cstat.curr_word = cstat.curr_word->next;
-      cstat.curr_word->next = number_word(cstat2, token);
-      cstat.curr_word = cstat.curr_word->next; */
 
 	/* do compilation */
 	while ((token = next_token(&cstat))) {

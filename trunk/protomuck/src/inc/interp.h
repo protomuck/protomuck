@@ -185,6 +185,7 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 #include "p_socket.h"
 #include "p_system.h"
 #include "p_mysql.h"
+#include "p_muf.h"
 
 
 

@@ -89,7 +89,10 @@ int check_flag1(char *flag)
       return VEHICLE;
    if (string_prefix("quell", flag))
       return QUELL;
+   if (string_prefix("internal", flag))
+      return INTERNAL;
    return 0;
+
 }
 
 int check_flag2(char *flag, int *nbol)

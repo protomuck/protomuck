@@ -37,6 +37,9 @@ const char *base_inst[] = {
 #ifdef SQL_SUPPORT
     PRIMS_MYSQL_NAMES,
 #endif
+#ifdef MUF_EDIT_PRIMS
+    PRIMS_MUFEDIT_NAMES,
+#endif
     PRIMS_INTERNAL_NAMES
 };
 

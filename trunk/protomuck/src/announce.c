@@ -9,6 +9,11 @@
  *      Bits of code are adapted from the Berkeley telnetd sources
  */
 
+/* Note that this program has been traditionally provided as a tool for
+ * MUCK admins to use as they see fit (usually when moving a MUCK to
+ * a new address), but that it isn't compiled as part of the standard
+ * build. -Akari
+ */
 #define PORT    4201
 
 #include <sys/param.h>
