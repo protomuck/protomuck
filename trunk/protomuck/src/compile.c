@@ -559,9 +559,10 @@ include_internal_defs(COMPSTATE * cstat)
 	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_tabbed", "d_tabbed swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_helper", "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
-	
-	/* One for the new staff prim */
-	insert_def(cstat, "staff?", "dup \"W\" flag? swap \"STAFF\" power? or");
+        insert_def(cstat, "NOQUEUE", "0");
+        insert_def(cstat, "SIMPLEQUEUE", "1");
+        insert_def(cstat, "TELNETQUEUE", "2");
+        insert_def(cstat, "HOMEINSTANCE", "5"); 
 	
 }
 

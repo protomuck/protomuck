@@ -100,6 +100,7 @@ const char *mfn_ohtml(MFUNARGS);
 const char *mfn_otell(MFUNARGS);
 const char *mfn_owner(MFUNARGS);
 const char *mfn_parse(MFUNARGS);
+const char *mfn_parse_ansi(MFUNARGS);
 const char *mfn_pmatch(MFUNARGS);
 const char *mfn_pronouns(MFUNARGS);
 const char *mfn_prop(MFUNARGS);

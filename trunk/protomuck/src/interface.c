@@ -288,12 +288,6 @@ main(int argc, char **argv)
           } else {
              val = atoi(argv[i]);
              if (!((val <= 1) || (val >= 65535))) {
-/*                if (numsocks >= 3) {
-                   show_program_usage(*argv);
-                } else {
-                   (void) numsocks++;
-                }
-             } else { */
                 if (initsock) {
                    if (numsocks < MAX_LISTEN_SOCKS) {
                       listener_port[numsocks++] = val;

@@ -1869,6 +1869,33 @@ mfn_escape(MFUNARGS)
 	return buf;
 }
 
+const char *
+mfn_parse_ansi(MFUNARGS)
+{
+    int atype = 0;
+    char abuf[BUFFER_LEN];
+    char tbuf[BUFFER_LEN];
+    
+    if (!number(argv[0]))
+        ABORT_MPI("PARSE_ANSI", "Need numeric ANSI type. (1)");
+    atype = atoi(argv[0]);
+
+    if (atype < 0 || atype > 3)
+        ABORT_MPI("PARSE_ANSI", "ANSI type must be between 0 and 3. (1)");
+
+    strcpy(abuf, argv[1]); 
+
+    if ( atype == 0 )
+        sprintf(buf, "%s", abuf);
+    else if ( atype == 1 )
+        sprintf(buf, "%s", parse_ansi(player, tbuf, abuf, ANSINORMAL));
+    else if ( atype == 2 ) 
+        sprintf(buf, "%s", parse_mush_ansi(tbuf, abuf));
+    else if ( atype == 3 )
+        sprintf(buf, "%s", parse_tilde_ansi(tbuf, abuf));
+
+    return buf;
+}
 
 #endif /* MPI */
 
