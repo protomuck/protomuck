@@ -47,6 +47,21 @@ moveto(dbref what, dbref where)
                     where = OWNER(what);
                     break;
             }
+        case NIL:
+            switch (Typeof(what)) {
+                case TYPE_PLAYER:
+                    where = tp_player_start;
+                    break;
+                case TYPE_THING:
+                    where = OWNER(what);
+                    break;
+                case TYPE_ROOM:
+                    where = tp_default_parent;
+                    break;
+                case TYPE_PROGRAM:
+                    where = OWNER(what);
+                    break;
+            }
     }
 
     /* now put what in where */
@@ -111,6 +126,8 @@ parent_loop_check(dbref source, dbref dest)
         return 0;
     if (dest == HOME)
         return 0;
+    if (dest == NIL)
+        return 0;
     if (Typeof(dest) == TYPE_THING &&
         parent_loop_check(source, DBFETCH(dest)->sp.thing.home))
         return 1;
@@ -128,6 +145,10 @@ enter_room(int descr, dbref player, dbref loc, dbref exit)
     /* check for room == HOME */
     if (loc == HOME)
         loc = DBFETCH(player)->sp.player.home; /* home */
+    /* check for room == NIL */
+    if (loc == NIL)
+        loc = Typeof(player) == TYPE_PLAYER ? 
+              tp_player_start : OWNER(player);
 
     /* get old location */
     old = DBFETCH(player)->location;
@@ -326,8 +347,17 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 
     for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++) {
         dest = (DBFETCH(exit)->sp.exit.dest)[i];
-        if (dest == HOME)
-            dest = DBFETCH(player)->sp.player.home;
+        if (dest == HOME) {
+            dest = DBFETCH(player)->sp.player.home; }
+        if (dest == NIL) { /* null destination, do nothing but the succ statements. */
+            if (GETSUCC(exit)) {
+                exec_or_notify(descr, player, exit, GETSUCC(exit), "(@Succ)");
+                }
+            if (GETOSUCC(exit) && !Dark(player)) {
+                parse_omessage(descr, player, loc, exit, GETOSUCC(exit), NAME(player), "(@Osucc)");
+                }
+            succ = 1;
+        } else {
         switch (Typeof(dest)) {
             case TYPE_ROOM:
                 if (pflag) {
@@ -521,6 +551,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                 }
                 return;
         }
+       }
     }
     if (sobjact)
         send_home(descr, DBFETCH(exit)->location, 0);

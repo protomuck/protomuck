@@ -170,6 +170,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
     match_home(&md);
     match_absolute(&md);
     match_registered(&md);
+    match_null(&md);
     if (Wiz(OWNER(player)) || POWERS(OWNER(player)) & POW_TELEPORT) {
         match_player(&md);
     }
@@ -207,6 +208,14 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                                                     * switch anyway */
                     break;
             }
+        case NIL:
+            switch(Typeof(victim)) {
+            case TYPE_PLAYER:    destination = tp_player_start; break;
+            case TYPE_THING:     destination = OWNER(victim); break;
+            case TYPE_ROOM:      destination = tp_default_parent; break;
+            case TYPE_PROGRAM:   destination = OWNER(victim); break;
+        }
+
         default:
             switch (Typeof(victim)) {
                 case TYPE_PLAYER:

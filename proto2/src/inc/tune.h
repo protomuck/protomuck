@@ -192,6 +192,8 @@ extern int tp_optimize_muf;
 extern int tp_compatible_muf_perms;
 extern int tp_allow_unidle; 
 extern int tp_alt_infinity_handler;
+extern int tp_autolinking;
+/* extern int tp_require_has_mpi_arg; */
 #ifdef NEWHTTPD                         /* hinoserm */
 extern int tp_web_allow_players;        /* hinoserm */
 extern int tp_web_allow_playerhtmuf;    /* hinoserm */

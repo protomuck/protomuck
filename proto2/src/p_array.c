@@ -1974,19 +1974,25 @@ prim_array_interpret(PRIM_PROTOTYPE)
                     break;
                 }
                 if (in->data.number == -2) {
-                    text = "*AMBIGUOUS*";
+                    text = "*AMBIGUOUS(#-2)*";
                     break;
                 }
                 if (in->data.number == -3) {
                     text = "*HOME*";
                     break;
                 }
-                if (in->data.number < -1) {
-                    text = "*INVALID*";
+                if (in->data.number == -4) {
+                    text = "*NIL*";
+                    break;
+                }
+                if (in->data.number < -4) {
+                    sprintf(buf, "*INVALID(#%d)*", in->data.number);
+                    text = buf;	
                     break;
                 }
                 if (in->data.number >= db_top) {
-                    text = "*INVALID*";
+                    sprintf(buf, "*INVALID(#%d)*", in->data.number);
+                    text = buf;
                     break;
                 }
                 sprintf(buf, "%s", NAME(in->data.number));

@@ -38,6 +38,10 @@ print_owner(register dbref player, register dbref thing)
             anotify_fmt(player, SYSYELLOW "Owner: %s", NAME(OWNER(thing)));
             if (DBFETCH(thing)->sp.exit.ndest) {
                 ref = (DBFETCH(thing)->sp.exit.dest)[0];
+		if (ref == NIL || ref == HOME)                     
+		    anotify_fmt(player, SYSCYAN "And is linked to: %s",
+                                ansi_unparse_object(MAN, ref));
+		else
                 if (Typeof(ref) == TYPE_PROGRAM && FLAGS(ref) & VEHICLE) {
                     anotify_fmt(player, SYSCYAN "And is linked to: %s",
                                 ansi_unparse_object(MAN, ref));

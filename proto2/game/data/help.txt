@@ -3586,6 +3586,56 @@ puppets. This is just the down and dirty way of going about it.
 
 See: PUPPETS2
 ~~~~~~
+NIL|#-4|*NIL*|alynna
+NIL(#-4)
+--------
+ProtoMUCK 2.0 introduces a new meta-object called NIL.  Occupying the
+DBREF #-4, it operates in a similar way to #-1 (Nothing) and also a
+possible 'do-nothing' MUF you may have installed and registered as
+$nothing. 
+
+This object differs from *NOTHING* in that it can be linked to, moved
+to, and set as a home.  It has various purposes in each situation but
+its most useful purpose is to link actions to it.  An action linked
+to NIL executes its associated MPI based on the result of its lock but
+takes no further action.   This obsoletes such methods of making
+MPI actions by linked to a do-nothing MUF, or setting always-fail locks
+and populating the @fail messages.
+
+These describe what happens to an object is linked or homed to NIL:
+Rooms:    Drop-to's items to their current owner, rather than HOME.
+Exits:    When triggered, the exit succeeds as if linked to an object, 
+          executes the trigger's MPI, but does not move the triggering 
+          player.
+Things:   Returns to its current owner when sent home.
+Players:  Returns to the current value of player_start @tune when sent 
+          home.
+
+When used with @tel or the MOVETO primitive an object will be moved to:
+Rooms:    The default parent.
+Things:   Returned to their owner.
+Players:  Sent to Player Start.
+Programs: Returned to their owner.
+
+See: AUTOLINKING
+~~~~~~
+AUTOLINKING
+Autolinking
+-----------
+ProtoMUCK 2.0, with the advent of the NIL meta-object, now supports
+autolinking.  When 'autolinking' is tuned on, actions created with @action
+or the NEWEXIT primitive will be automatically linked to NIL.  This allows
+any MPI you add to the @succ and @osucc statements without having to link
+to a do-nothing MUF or setting always-fail statements.
+
+This also prevents problems with the do-nothing object disappearing, and
+keeps an action safe from relinking by others while its final destination
+is still being worked on.
+
+Because ProtoMUCK will allow the controllers of an action to link an exit
+without delinking from NIL first, this should not break scripts or MUF that
+link to objects after creating a new action.
+~~~~~~
 PUPPETS2|
 
 Puppets - Continued

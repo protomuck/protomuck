@@ -1051,10 +1051,15 @@ do_relink(int descr, dbref player, const char *thing_name,
             return;
             break;
         default:
-            anotify(player, CFAIL "Unknown object type.");
-            log_status("PANIC: weird object: Typeof(%d) = %d\n", thing,
-                       Typeof(thing));
-            return;
+            init_match(descr, player, dest_name, NOTYPE, &md);
+            match_null(&md);
+
+            if ((dest = noisy_match_result(&md)) == NOTHING) {
+                anotify(player, CFAIL "Unknown object type.");
+	        log_status("PANIC: weird object: Typeof(%d) = %d\n", thing,
+    	                   Typeof(thing));
+	    return;
+            }
     }
 
     do_unlink_quiet(descr, player, thing_name);
@@ -1671,8 +1676,11 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
         set_property(thing, pname, &pdat);
     } else if (string_prefix("dbref", type)) {
         init_match(descr, player, value, NOTYPE, &md);
-        match_absolute(&md);
+        match_absoluteEx(&md);
         match_everything(&md);
+        match_ambiguous(&md);
+        match_home(&md);
+        match_null(&md);
         if ((pdat.data.ref = noisy_match_result(&md)) == NOTHING)
             return;
         pdat.flags = PROP_REFTYP;

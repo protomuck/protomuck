@@ -609,4 +609,12 @@ sslport
 The port SSL-aware clients use for secured connections.
 ~~~
 ssl_keyfile_passwd
-This field provides a password for commercial or personal SSL certificates that require a password or passphrase for their use.
+This field provides a password for commercial or personal SSL 
+certificates that require a password or passphrase for their use.
+~~~
+autolinking
+When this tune is on, all new actions will be, by default, linked 
+to NIL(#-4).  This is generally safer and more convenient than
+having them be created unlinked, and allows MPI to be loaded into
+the @succ of the action and used right away without special 
+treatment.

@@ -163,6 +163,9 @@ valid_ref(dbref obj)
     if (obj == NOTHING) {
         return 1;
     }
+    if (obj == NIL) {
+        return 1;
+    }
     if (obj < 0) {
         return 0;
     }
@@ -182,6 +185,8 @@ valid_obj(dbref obj)
     if (!valid_ref(obj)) {
         return 0;
     }
+    if (obj == NIL)
+        return 0;
     switch (TYPEOF(obj)) {
         case TYPE_ROOM:
         case TYPE_EXIT:
@@ -288,7 +293,7 @@ check_room(dbref player, dbref obj)
 
     i = DBFETCH(obj)->sp.room.dropto;
 
-    if (!valid_ref(i) && i != HOME) {
+    if (!valid_ref(i) && i != HOME && i != NIL) {
         violate(player, obj, "has its dropto set to an invalid object");
     } else if (i >= 0 && TYPEOF(i) != TYPE_THING && TYPEOF(i) != TYPE_ROOM) {
         violate(player, obj,
@@ -304,9 +309,9 @@ check_thing(dbref player, dbref obj)
 
     i = DBFETCH(obj)->sp.thing.home;
 
-    if (!valid_obj(i)) {
+    if (!valid_obj(i) && i != NIL) {
         violate(player, obj, "has its home set to an invalid object");
-    } else if (TYPEOF(i) != TYPE_ROOM &&
+    } else if (i != NIL) if (TYPEOF(i) != TYPE_ROOM &&
                TYPEOF(i) != TYPE_THING && TYPEOF(i) != TYPE_PLAYER) {
         violate(player, obj,
                 "has its home set to an object that is not a room, thing, or player");
@@ -336,7 +341,7 @@ check_player(dbref player, dbref obj)
 
     i = DBFETCH(obj)->sp.player.home;
 
-    if (!valid_obj(i)) {
+    if (!valid_obj(i) && i != NIL) {
         violate(player, obj, "has its home set to an invalid object");
     } else if (i >= 0 && TYPEOF(i) != TYPE_ROOM) {
         violate(player, obj, "has its home set to a non-room object");

@@ -33,6 +33,7 @@ parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
     match_absolute(&md);
     match_everything(&md);
     match_home(&md);
+    match_null(&md);
 
     if ((dobj = match_result(&md)) == NOTHING || dobj == AMBIGUOUS) {
         sprintf(buf, CINFO "I couldn't find '%s'.", dest_name);
@@ -77,6 +78,9 @@ exit_loop_check(register dbref source, register dbref dest)
 
     if (source == dest)
         return 1;               /* That's an easy one! */
+
+    if (dest == NIL)            /* NIL itself cant HAVE loops */
+        return 0;
 
     if (Typeof(dest) != TYPE_EXIT)
         return 0;
@@ -245,6 +249,12 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
         if ((dest = parse_linkable_dest(descr, player, exit, q)) == NOTHING)
             continue;
 
+        if (dest == NIL) {
+            dest_list[ndest++] = dest;
+            anotify_nolisten2(player, CSUCC "Linked to NIL.");
+            continue;
+        }
+
         switch (Typeof(dest)) {
             case TYPE_PLAYER:
             case TYPE_ROOM:
@@ -285,9 +295,9 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
         }
 
         if (!dryrun) {
-            if (dest == HOME) {
+            if (dest == HOME)
                 anotify_nolisten2(player, CSUCC "Linked to HOME.");
-            } else {
+            else {
                 sprintf(buf, CSUCC "%s linked to %s.",
                         NAME(exit), unparse_object(player, dest));
                 anotify_nolisten2(player, buf);
@@ -344,6 +354,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
     match_here(&md);
     match_absolute(&md);
     match_registered(&md);
+
     if (Mage(OWNER(player)))
         match_player(&md);
 
@@ -355,14 +366,17 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             /* we're ok, check the usual stuff */
             if (DBFETCH(thing)->sp.exit.ndest != 0) {
                 if (controls(player, thing)) {
+                    if ((DBFETCH(thing)->sp.exit.dest)[0] != -4) {
                     anotify_nolisten2(player,
                                       CINFO "That exit is already linked.");
                     return;
+                    }
                 } else {
                     anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
                     return;
                 }
             }
+
             /* handle costs */
             if (OWNER(thing) == OWNER(player)) {
                 if (!payfor(player, tp_link_cost)) {
@@ -410,7 +424,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
                 free(DBFETCH(thing)->sp.exit.dest);
 
             DBFETCH(thing)->sp.exit.dest =
-                (dbref *) malloc(sizeof(dbref) * ndest);
+                  (dbref *) malloc(sizeof(dbref) * ndest);
             for (i = 0; i < ndest; i++)
                 (DBFETCH(thing)->sp.exit.dest)[i] = good_dest[i];
             break;
@@ -422,6 +436,8 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             match_registered(&md);
             match_me(&md);
             match_here(&md);
+            match_null(&md);
+
             if (Typeof(thing) == TYPE_THING)
                 match_possession(&md);
             if ((dest = noisy_match_result(&md)) == NOTHING)
@@ -452,6 +468,8 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             match_registered(&md);
             match_absolute(&md);
             match_home(&md);
+            match_null(&md);
+
             if ((dest = noisy_match_result(&md)) == NOTHING)
                 break;
 
@@ -1135,6 +1153,14 @@ do_action(int descr, dbref player, const char *action_name,
         pdat.data.ref = action;
         set_property(player, buf, &pdat);
     }
+    if (tp_autolinking) {
+        DBFETCH(action)->sp.exit.ndest = 1;
+        DBFETCH(action)->sp.exit.dest = (dbref *) malloc(sizeof(dbref));
+        (DBFETCH(action)->sp.exit.dest)[0] = NIL;
+        sprintf(buf, CINFO "Linked to NIL.");
+        anotify_nolisten2(player, buf);
+    }
+
 }
 
 /*

@@ -343,6 +343,8 @@ int tp_optimize_muf = OPTIMIZE_MUF;
 int tp_compatible_muf_perms = 0;
 int tp_allow_unidle = 0;
 int tp_alt_infinity_handler = 1;
+int tp_autolinking = 1;
+/* int tp_require_has_mpi_arg = 0; */
 
 #ifdef NEWHTTPD                 /* hinoserm */
 int tp_web_allow_players = 1;   /* hinoserm */
@@ -433,6 +435,8 @@ struct tune_bool_entry tune_bool_list[] = {
     {"MUF", "compatible_muf_perms", &tp_compatible_muf_perms, LBOY, LMAGE},
     {"Idletime", "allow_unidle", &tp_allow_unidle, LARCH, LMUF},
     {"Math", "alt_infinity_handler", &tp_alt_infinity_handler, LARCH, LMUF},
+    {"MPI", "autolinking", &tp_autolinking, LARCH, LMUF},
+/*    {"MPI", "require_has_mpi_arg", &tp_require_has_mpi_arg, LARCH, LMUF}, */
 #ifdef NEWHTTPD
     {"HTTPD", "web_allow_players", &tp_web_allow_players, LARCH, LMUF},
     {"HTTPD", "web_allow_playerhtmuf", &tp_web_allow_playerhtmuf, LARCH, LMUF},
