@@ -22,14 +22,8 @@
 #include "strings.h"
 #include "interp.h"
 #include "p_mysql.h"
-/*
-MYSQL *mysql_conn   = NULL;
-MYSQL_RES *res      = NULL;
-MYSQL_ROW row       = NULL;
-MYSQL_FIELD *fields = NULL;
-*/
 
-extern struct inst *oper1, *oper2, *oper3, *oper4;
+extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 
 /* Prim for connecting to a SQL database */
 void prim_sqlconnect(PRIM_PROTOTYPE)
@@ -38,7 +32,6 @@ void prim_sqlconnect(PRIM_PROTOTYPE)
     char hostname[BUFFER_LEN];
     char username[BUFFER_LEN];
     char database[BUFFER_LEN];
-    struct inst *oper5;
     struct inst *newsql;
     unsigned int timeout, notConnected, *timeoutPtr;
     MYSQL *result, *tempsql;

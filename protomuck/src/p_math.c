@@ -18,7 +18,7 @@
 #include "strings.h"
 #include "interp.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4;
+extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
@@ -843,7 +843,6 @@ prim_2ddist(PRIM_PROTOTYPE)
 void
 prim_3ddist(PRIM_PROTOTYPE)
 {
-   struct inst *oper5, *oper6;
 
    oper1 = POP();
    oper2 = POP();

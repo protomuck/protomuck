@@ -20,7 +20,7 @@
 #include "array.h"
 #include "mufevent.h"
 
-static struct inst *oper1, *oper2, *oper3, *oper4;
+static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 static int result;
 
 

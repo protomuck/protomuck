@@ -18,7 +18,7 @@
 #include "strings.h"
 #include "interp.h"
 
-static struct inst *oper1, *oper2, *oper3, *oper4;
+static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 static int result;
 static char buf[BUFFER_LEN];
 

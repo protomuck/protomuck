@@ -94,4 +94,3 @@ extern void prim_find_array(PRIM_PROTOTYPE);
     "FIND_ARRAY"
 
 #define PRIMS_DB_CNT 60
-
