@@ -63,7 +63,7 @@ int check_flag1(char *flag)
       return HAVEN;
    if (string_prefix("jump_ok", flag))
       return JUMP_OK;
-   if (string_prefix("link_ok", flag) || string_prefix("light", flag))
+   if (string_prefix("link_ok", flag))
       return LINK_OK;
    if (string_prefix("listener", flag))
       return LISTENER;
@@ -92,6 +92,8 @@ int check_flag2(char *flag, int *nbol)
       return F2GUEST;
    if (string_prefix("logwall", flag))
       return F2LOGWALL;
+   if (string_prefix("light", flag))
+      return F2LIGHT;
    if (string_prefix("mufcount", flag))
       return F2MUFCOUNT;
    if (string_prefix("protect", flag))
@@ -198,6 +200,8 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
 int
 flag_set_perms2(dbref ref, int flag, int mlev)
 {
+   if((flag == F2LIGHT) && (Typeof(ref) == TYPE_PLAYER))
+      return 0;
    if(flag == F2HIDDEN && mlev < LARCH)
       return 0;
    if(flag == F2GUEST && mlev < LMAGE)
@@ -1666,6 +1670,8 @@ void
 prim_pmatch(PRIM_PROTOTYPE)
 {
 	dbref ref;
+      char *buff;
+      char buf[BUFFER_LEN];
       int result;
 
 	CHECKOP(1);
@@ -1674,13 +1680,39 @@ prim_pmatch(PRIM_PROTOTYPE)
 		abort_interp("Non-string argument.");
 	if (!oper1->data.string)
 		abort_interp("Empty string argument.");
-      if( !string_compare(oper1->data.string->data,"me") ) {
-         ref = player;
+      buff = strcpy(buf, oper1->data.string->data);
+      while (isspace(*buff)) buff++;
+      if(*buff == '#') {
+         (void) buff++;
+         if(number(buff)) {
+            ref = atoi(buff);
+            if(ref <= 0 || ref >= db_top) {
+               ref = NOTHING;
+            } else {
+               if(Typeof(ref) != TYPE_PLAYER) {
+                  ref = NOTHING;
+               }
+            }
+         } else {
+            ref = NOTHING;
+         }
       } else {
-  	   ref = lookup_player(oper1->data.string->data);
-         if(ref == NOTHING) {
-            for(result = pcount(); result && ref == NOTHING; result--)
-               if (string_prefix(PNAME(pdbref(result)),oper1->data.string->data)) ref = pdbref(result);
+         if( !string_compare(buff,"me") ) {
+            ref = player;
+         } else {
+  	      ref = lookup_player(buff);
+            if(ref == NOTHING) {
+               for(result = pcount(); result; result--) {
+                  if (string_prefix(PNAME(pdbref(result)),buff)) {
+                     if (ref != NOTHING) {
+                        ref = AMBIGUOUS;
+                        break;
+                     } else {
+                        ref = pdbref(result);
+                     }
+                  }
+               }
+            }
          }
       }
 	CLEAR(oper1);
@@ -1855,56 +1887,55 @@ prim_nextthing(PRIM_PROTOTYPE)
 void
 prim_nextentrance(PRIM_PROTOTYPE)
 {
-      dbref lrom, ref;
-      int i;
-      CHECKOP(1);
-      oper1 = POP();
-      oper2 = POP();
+      dbref linkref, ref;
+      int foundref = 0;
+      int i, count;
+
       if (mlev < LMAGE)
-            abort_interp("Mage only prim.");
-      if (!valid_object(oper1))
-            abort_interp("Invalid dbref (1).");
+         abort_interp("Mage only prim.");
+      oper2 = POP();
+      oper1 = POP();
+      linkref = oper1->data.objref;
       ref = oper2->data.objref;
-      lrom = oper1->data.objref;
-      if (ref == AMBIGUOUS || ref < HOME || ref >= db_top || lrom <= HOME || lrom >= db_top)
-            abort_interp("Invalid reference object");
-      CHECKREMOTE(ref);
-      if (ref == HOME) {
-         ref = DBFETCH(player)->sp.player.home;
-      }
-      while (lrom < db_top) {
-            if (Typeof(lrom) == TYPE_EXIT) {
-               if ((DBFETCH(lrom)->sp.exit.dest[0] == ref) && (ref != lrom)) {
+      if (!valid_object(oper1) && (linkref != NOTHING) && (linkref != HOME))
+         abort_interp("Invalid link reference object (2)");
+      if (!valid_object(oper2) && ref != NOTHING)
+         abort_interp("Invalid reference object (1)");
+      if (linkref == HOME)
+         linkref = DBFETCH(player)->sp.player.home;
+      for (; ref < db_top; ref++) {
+         oper2->data.objref = ref;
+         if (valid_object(oper2)) {
+            switch(Typeof(ref)) {
+               case TYPE_PLAYER:
+                  if (DBFETCH(ref)->sp.player.home == linkref)
+                     foundref = 1;
                   break;
-               } else {
-                  lrom++;
-               }
-            } else {
-               if (Typeof(lrom) == TYPE_ROOM) {
-                  if ((DBFETCH(lrom)->sp.room.dropto == ref) && (ref != lrom)) {
-                     break;
-                  } else {
-                     lrom++;
+               case TYPE_ROOM:
+                  if (DBFETCH(ref)->sp.room.dropto == linkref)
+                     foundref = 1;
+                  break;
+               case TYPE_THING:
+                  if (DBFETCH(ref)->sp.thing.home == linkref)
+                     foundref = 1;
+                  break;
+               case TYPE_EXIT:
+                  count = DBFETCH(ref)->sp.exit.ndest;
+                  for (i = 0; i < count; i++) {
+                     if (DBFETCH(ref)->sp.exit.dest[i] == linkref)
+                        foundref = 1;
                   }
-               } else {
-                  if ((Typeof(lrom) == TYPE_THING) || (Typeof(lrom) == TYPE_PLAYER)) {
-                     if ((Typeof(lrom) == TYPE_THING ? DBFETCH(lrom)->sp.thing.home == ref : DBFETCH(lrom)->sp.player.home == ref) && (ref != lrom)) {
-                        break;
-                     } else {
-                        lrom++;
-                     }
-                  } else {
-                     lrom++;
-                  }
-               }
+                  break;
             }
+            if (foundref)
+               break;
+         }
       }
-      if (lrom >= db_top) {
-            lrom = NOTHING;
- }
+      if (!foundref)
+         ref = NOTHING;
       CLEAR(oper1);
       CLEAR(oper2);
-      PushObject(lrom);
+      PushObject(ref);
 }
 
 void
@@ -2578,6 +2609,7 @@ prim_nextthing_flag(PRIM_PROTOTYPE)
        ref = NOTHING;
     PushObject(ref);
 }
+
 
 
 

@@ -507,7 +507,7 @@ strdecrypt(const char *data, const char *key)
 }
 
 const char *
-color_lookup( dbref player, const char *color, const char *defcolor )
+color_lookup( dbref player, const char *color, const char *defcolor, int intrecurse )
 {
    const char *tempcolor;
    char buf[BUFFER_LEN];
@@ -518,12 +518,16 @@ color_lookup( dbref player, const char *color, const char *defcolor )
     if( !strcasecmp( "SUCC", color ) || !strcasecmp( "CSUCC", color ) ) {
       tempcolor = get_uncompress(GETMESG(player, "_/COLORS/SUCC"));
       if(!tempcolor)
+         tempcolor = get_uncompress(GETMESG(OWNER(player), "_/COLORS/SUCC"));
+      if(!tempcolor)
          tempcolor = get_uncompress(GETMESG(0, "_/COLORS/SUCC"));
       if(!tempcolor)
   	   tempcolor = CCSUCC;
       color = tempcolor;
     } else if( !strcasecmp( "FAIL", color ) || !strcasecmp( "CFAIL", color)) {
       tempcolor = get_uncompress(GETMESG(player, "_/COLORS/FAIL"));
+      if(!tempcolor)
+         tempcolor = get_uncompress(GETMESG(OWNER(player), "_/COLORS/FAIL"));
       if(!tempcolor)
          tempcolor = get_uncompress(GETMESG(0, "_/COLORS/FAIL"));
       if(!tempcolor)
@@ -532,6 +536,8 @@ color_lookup( dbref player, const char *color, const char *defcolor )
     } else if( !strcasecmp( "INFO", color ) || !strcasecmp( "CINFO", color)) {
       tempcolor = get_uncompress(GETMESG(player, "_/COLORS/INFO"));
       if(!tempcolor)
+         tempcolor = get_uncompress(GETMESG(OWNER(player), "_/COLORS/INFO"));
+      if(!tempcolor)
          tempcolor = get_uncompress(GETMESG(0, "_/COLORS/INFO"));
       if(!tempcolor)
   	   tempcolor = CCINFO;
@@ -539,12 +545,16 @@ color_lookup( dbref player, const char *color, const char *defcolor )
     } else if( !strcasecmp( "NOTE", color ) || !strcasecmp( "CNOTE", color)) {
       tempcolor = get_uncompress(GETMESG(player, "_/COLORS/NOTE"));
       if(!tempcolor)
+         tempcolor = get_uncompress(GETMESG(OWNER(player), "_/COLORS/NOTE"));
+      if(!tempcolor)
          tempcolor = get_uncompress(GETMESG(0, "_/COLORS/NOTE"));
       if(!tempcolor)
   	   tempcolor = CCNOTE;
       color = tempcolor;
     } else if( !strcasecmp( "MOVE", color ) || !strcasecmp( "CMOVE", color)) {
       tempcolor = get_uncompress(GETMESG(player, "_/COLORS/MOVE"));
+      if(!tempcolor)
+         tempcolor = get_uncompress(GETMESG(OWNER(player), "_/COLORS/MOVE"));
       if(!tempcolor)
          tempcolor = get_uncompress(GETMESG(0, "_/COLORS/MOVE"));
       if(!tempcolor)
@@ -555,9 +565,16 @@ color_lookup( dbref player, const char *color, const char *defcolor )
       strcat(buf, color);
       tempcolor = get_uncompress(GETMESG(player, buf));
       if(!tempcolor)
+         tempcolor = get_uncompress(GETMESG(OWNER(player), buf));
+      if(!tempcolor)
          tempcolor = get_uncompress(GETMESG(0, buf));
       if(tempcolor)
          color = tempcolor;
+    }
+
+    if (intrecurse < 5) {
+       (void) intrecurse++;
+       return color_lookup(player, color, defcolor, intrecurse);
     }
 
     if( !strcasecmp( "NORMAL", color )) {
@@ -655,7 +672,7 @@ parse_ansi( dbref player, char *buf, const char *from, const char *defcolor )
 	    *color = '\0';
 	    if(*from) from++;
 	    if(*cbuf) {
-		if((ansi = color_lookup(player, cbuf, defcolor)))
+		if((ansi = color_lookup(player, cbuf, defcolor, 1)))
 		    while(*ansi)
 			*(to++) = (*(ansi++));
 	    } else
@@ -921,6 +938,7 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     *p = '\0';
     return out;
 }
+
 
 
 

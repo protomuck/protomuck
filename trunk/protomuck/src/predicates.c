@@ -351,6 +351,8 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
 	case F2GUEST:
 	    return (!Mage(OWNER(player)));
 	    break;
+      case F2LIGHT:
+          if (Typeof(thing) == TYPE_PLAYER) { return (!Wiz(OWNER(player))); }
 	case F2LOGWALL:
 	    return (!Arch(OWNER(player)));
 	case F2HIDDEN:
@@ -450,6 +452,7 @@ ok_password(const char *password)
 
     return 1;
 }
+
 
 
 

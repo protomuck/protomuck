@@ -280,7 +280,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			break;
 		    }
 		    if (!controls(player, victim)
-			    || !can_link_to(player, NOTYPE, destination)
+			    || (!can_link_to(player, NOTYPE, destination) && !(FLAG2(destination) & F2PARENT))
 			    || victim == GLOBAL_ENVIRONMENT) {
                         if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
 		    	    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -1551,6 +1551,7 @@ do_fixw(dbref player, const char *msg)
     }
     anotify_nolisten2(player, CINFO "Done.");
 }
+
 
 
 

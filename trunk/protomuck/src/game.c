@@ -506,7 +506,6 @@ process_command(int descr, dbref player, char *command)
     char    xbuf[BUFFER_LEN];
     char    ybuf[BUFFER_LEN];
     const char *path;
-    int overRide = 0;
     struct frame *tmpfr;
 
     if (command == 0)
@@ -581,10 +580,8 @@ process_command(int descr, dbref player, char *command)
 	}
     }
 
-	if (*command == OVERIDE_TOKEN && TMage(player)){
+	if (*command == OVERIDE_TOKEN && TMage(player))
 	    command++;
-            overRide = 1;
-        }
 
 	full_command = strcpy(xbuf, command);
 	for (; *full_command && !isspace(*full_command); full_command++);
@@ -620,7 +617,7 @@ process_command(int descr, dbref player, char *command)
 
 	strcpy(match_cmdname, command);
 	strcpy(match_args, full_command);
-        if (!( overRide && TMage(player) ) && tp_enable_commandprops) {
+        if (!( *command == OVERIDE_TOKEN && TMage(player) ) && tp_enable_commandprops) {
            if (prop_command(descr, player, command, full_command, "@command", 1))
                return;
            if (prop_command(descr, player, command, full_command, "@ocommand", 0))

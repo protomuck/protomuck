@@ -1,8 +1,6 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.20 2000-12-19 19:20:05 akari Exp $
- * $Log: not supported by cvs2svn $
  * Revision 1.14  2000/11/12 08:37:12  akari
  * Added force_level prim.
  * Added idle/unidle propqueues.
@@ -447,6 +445,7 @@ extern time_t sel_prof_start_time;
 extern long sel_prof_idle_sec;
 extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
+
 
 
 

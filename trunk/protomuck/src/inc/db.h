@@ -188,6 +188,7 @@ typedef int dbref;		/* offset into db */
 #define F2ANTIPROTECT    0x1000     /* Anti-protect flag to allow a wizard to combat against PROTECT. */
 #define F2IDLE           0x2000     /* To watch if someone is idle or not. */
 #define F2NO_COMMAND     0x4000     /* Set on an object to prevent command props from being ran */
+#define F2LIGHT          0x8000     /* The LIGHT flag to counteract against the DARK flag */
 
 /* Proto @Powers */
 
@@ -299,7 +300,7 @@ typedef int object_power_type;
 #define Linkable(x) ((x) == HOME || \
                      (((Typeof(x) == TYPE_ROOM || Typeof(x) == TYPE_THING) ? \
                       (FLAGS(x) & ABODE) : (FLAGS(x) & LINK_OK)) != 0))
-#define Light(x)    ( FLAGS(x) & LINK_OK && !(Typeof(x) == TYPE_ROOM) && !(Typeof(x) == TYPE_PROGRAM) )
+#define Light(x)    (FLAG2(x) & F2LIGHT)
 #define Protect(x)  (FLAG2(x) & F2PROTECT)
 #define Hidden(x)   (FLAG2(x) & F2HIDDEN)
 
@@ -783,6 +784,7 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 
