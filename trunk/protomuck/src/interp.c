@@ -480,6 +480,42 @@ interp(int descr, dbref player, dbref location, dbref program,
 static int err;
 int     already_created;
 
+struct forvars * 
+copy_fors(struct forvars *forstack) 
+{ 
+    struct forvars *in; 
+    struct forvars *out = NULL; 
+    struct forvars *nu; 
+    struct forvars *last = NULL; 
+    
+    for (in = forstack; in; in = in->next) { 
+        if (!for_pool) { 
+            nu = malloc(sizeof(struct forvars)); 
+        } else { 
+            nu = for_pool; 
+            if (*last_for == for_pool->next) { 
+                last_for = &for_pool; 
+            } 
+            for_pool = nu->next; 
+        } 
+    
+        nu->didfirst = in->didfirst; 
+        copyinst(&in->cur, &nu->cur); 
+        copyinst(&in->end, &nu->end); 
+        nu->step = in->step; 
+        nu->next = NULL; 
+    
+        if (!out) { 
+            last = out = nu; 
+        } else { 
+            last->next = nu; 
+            last = nu; 
+        } 
+   } 
+   return out; 
+}   
+
+
 struct forvars *
 push_for(struct forvars *forstack)
 {
@@ -511,6 +547,42 @@ pop_for(struct forvars *forstack)
 	}
 	return newstack;
 }
+
+struct tryvars * 
+copy_trys(struct tryvars *trystack) 
+{ 
+    struct tryvars *in; 
+    struct tryvars *out = NULL; 
+    struct tryvars *nu; 
+    struct tryvars *last = NULL; 
+    
+    for (in = trystack; in; in = in->next) { 
+        if (!try_pool) { 
+            nu = malloc(sizeof(struct tryvars)); 
+        } else { 
+            nu = try_pool; 
+            if (*last_try == try_pool->next) { 
+                last_try = &try_pool; 
+            } 
+            try_pool = nu->next; 
+        } 
+    
+        nu->depth      = in->depth; 
+        nu->call_level = in->call_level; 
+        nu->for_count  = in->for_count; 
+        nu->addr       = in->addr; 
+        nu->next = NULL; 
+    
+        if (!out) { 
+            last = out = nu; 
+        } else { 
+            last->next = nu; 
+            last = nu; 
+        } 
+    } 
+    return out; 
+} 
+
 
 
 struct tryvars *
@@ -964,11 +1036,13 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
          (controls(OWNER(player), program) || (FLAG2(OWNER(player)) & F2PARENT))
 	) {
 		/* Small fix so only program owner can see debug traces */
-	    char   *m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
+	    char   *m = debug_inst(pc, fr->pid, arg, dbuf, sizeof(dbuf), 
+                                   atop, program);
 	    notify_nolisten(player, m, 1);
 	}
       if ( FLAGS(program) & DARK && FLAG2(program) & F2PARENT && (OWNER(program) != player || player == -1 )) {
-	    char   *m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
+	    char   *m = debug_inst(pc, fr->pid, arg, dbuf, sizeof(dbuf),
+                                   atop, program);
 	    notify_nolisten(OWNER(program), m, 1);
       }
 	if (fr->brkpt.debugging) {
@@ -1022,7 +1096,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
                             }
 			    fr->level--;
 			    if (!fr->brkpt.showstack) {
-				m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
+				m = debug_inst(pc, fr->pid, arg, dbuf, 
+                                               sizeof(dbuf), atop, program);
 				notify_nolisten(player, m, 1);
 			    }
 			    if (pc <= DBFETCH(program)->sp.program.code ||

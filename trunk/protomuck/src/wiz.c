@@ -179,8 +179,12 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 		    break;
 		case TYPE_THING:
 		    destination = DBFETCH(victim)->sp.thing.home;
-		    if (parent_loop_check(victim, destination))
+		    if (parent_loop_check(victim, destination)) {
 			destination = DBFETCH(OWNER(victim))->sp.player.home;
+                        if (parent_loop_check(victim, destination)) {
+                            destination = (dbref) 0;
+                        }
+                    }    
 		    break;
 		case TYPE_ROOM:
 		    destination = GLOBAL_ENVIRONMENT;
