@@ -430,7 +430,7 @@ rnd(void *buffer)
 
     if (!digest)
         return (0);
-    MD5hash(digest, digest, sizeof(digest));
+    MD5hash(digest, digest, sizeof(unsigned long));
     return (digest[0]);
 }
 
