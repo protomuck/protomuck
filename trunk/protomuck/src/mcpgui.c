@@ -44,8 +44,9 @@ void
 gui_initialize(void)
 {
 	McpVer oneoh = { 1, 0 };
+        McpVer oneone = { 1, 1 };
 
-	mcp_package_register(GUI_PACKAGE, oneoh, oneoh, gui_pkg_callback, NULL, NULL);
+	mcp_package_register(GUI_PACKAGE, oneoh, oneone, gui_pkg_callback, NULL, NULL);
 }
 
 

@@ -536,8 +536,13 @@ prim_descr_setuser(PRIM_PROTOTYPE)
     if (ref != NOTHING) { 
         const char *passwd = DBFETCH(ref)->sp.player.password; 
         if (passwd) {
-            if (strcmp(ptr, DBFETCH(ref)->sp.player.password))
-         	abort_interp("Incorrect password");
+            if (strcmp(ptr, DBFETCH(ref)->sp.player.password)) {
+                CLEAR(oper1);
+                CLEAR(oper2);
+                CLEAR(oper3);
+                result = 0;
+                PushInt(result);
+            }
         }
     }
     if (ref != NOTHING) {
