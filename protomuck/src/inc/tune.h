@@ -85,7 +85,7 @@ extern int tp_listen_mlev;
 extern int tp_playermax_limit;
 
 extern int tp_dump_copies;
-
+extern int tp_min_progbreak_lev;
 /* dbrefs */
 extern dbref tp_quit_prog;
 extern dbref tp_login_who_prog;
@@ -127,6 +127,7 @@ extern int tp_listeners_obj;
 extern int tp_listeners_env;
 extern int tp_zombies;
 extern int tp_wiz_vehicles;
+extern int tp_wiz_puppets;
 extern int tp_wiz_name;
 extern int tp_recycle_frobs;
 extern int tp_m1_name_notify;
@@ -161,6 +162,7 @@ extern int tp_guest_needflag;
 extern int tp_fb_controls;
 extern int tp_allow_old_trigs;
 extern int tp_multi_wizlevels;
+
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);

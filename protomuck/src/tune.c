@@ -155,7 +155,7 @@ int tp_listen_mlev              = LISTEN_MLEV;
 int tp_playermax_limit          = PLAYERMAX_LIMIT;
 int tp_process_timer_limit      = 4;
 int tp_dump_copies		  = 10;
-
+int tp_min_progbreak_lev        = 0;
 struct tune_val_entry {
     const char *name;
     int *val;
@@ -197,6 +197,7 @@ struct tune_val_entry tune_val_list[] =
     {"playermax_limit",       &tp_playermax_limit,     WBOY , LMUF },
     {"process_timer_limit",   &tp_process_timer_limit, LARCH, LMUF },
     {"dump_copies",           &tp_dump_copies,         WBOY,  LMUF },
+    {"min_progbreak_lev",     &tp_min_progbreak_lev,   LARCH, LMAGE},
     {NULL, NULL, 0, 0}
 };
 
@@ -263,6 +264,7 @@ int tp_listeners_obj               = LISTENERS_OBJ;
 int tp_listeners_env               = LISTENERS_ENV;
 int tp_zombies                     = ZOMBIES;
 int tp_wiz_vehicles                = WIZ_VEHICLES;
+int tp_wiz_puppets                 = 0;
 int tp_wiz_name                    = 0;
 int tp_recycle_frobs               = 0;
 int tp_m1_name_notify              = M1_NAME_NOTIFY;
@@ -333,6 +335,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"allow_listeners_env",    &tp_listeners_env,            LARCH, LMUF },
     {"allow_zombies",          &tp_zombies,                  LARCH, LMUF },
     {"wiz_vehicles",           &tp_wiz_vehicles,             LARCH, LMUF },
+    {"wiz_puppets",            &tp_wiz_puppets,              LARCH, LMUF },
     {"wiz_name",               &tp_wiz_name,                 LARCH, LMUF },
     {"recycle_frobs",          &tp_recycle_frobs,            WBOY , LMUF },
     {"m1_name_notify",         &tp_m1_name_notify,           LARCH, LMUF },

@@ -83,11 +83,16 @@ could_doit(int descr, dbref player, dbref thing)
 		return 0;
 	    }
 	}
-
+/*        if( (dest != HOME) &&
+            (Typeof(dest)==TYPE_ROOM) &&
+            (FLAGS(player) & ZOMBIE) && (Typeof(player) == TYPE_THING) &&
+            (FLAGS(dest) & ZOMBIE) ) 
+            return 0;
+ Saving this part for a revision of trigger() and this function. */
 	if( (dest != HOME) &&  
 	    (Typeof(dest)==TYPE_ROOM) &&
 	    Guest(player) && (tp_guest_needflag ? !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) & F2GUEST))) {
-	    anotify_nolisten(player, CFAIL "Guests aren't allowed there.", 1);
+/*	    anotify_nolisten(player, CFAIL "Guests aren't allowed there.", 1); */
 	    return 0;
 	}
 
@@ -209,13 +214,15 @@ can_doit(int descr, dbref player, dbref thing, const char *default_fail_msg)
 	return 0;
     } else {
 	/* can do it */
-	if (GETSUCC(thing)) {
+/* I moved these to the 'trigger()' function. -Akari */
+/*	if (GETSUCC(thing)) {
 	    exec_or_notify(descr, player, thing, GETSUCC(thing), "(@Succ)");
 	}
 	if (GETOSUCC(thing) && !Dark(player)) {
 	    parse_omessage(descr, player, loc, thing, GETOSUCC(thing),
 			    NAME(player), "(@Osucc)");
 	}
+ */
 	return 1;
     }
 }
@@ -290,6 +297,9 @@ restricted(dbref player, dbref thing, object_flag_type flag)
 		    (Typeof(thing) == TYPE_PROGRAM));
 	    break;
 	case ZOMBIE:
+            if (tp_wiz_puppets) 
+                if (Typeof(thing) == TYPE_THING)
+                    return (!Mage(OWNER(player)));
 	    if (Typeof(thing) == TYPE_PLAYER)
 		return(!Mage(OWNER(player)));
 	    if ((Typeof(thing) == TYPE_THING) &&
