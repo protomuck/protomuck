@@ -102,7 +102,7 @@ int check_flag2(char *flag, int *nbol)
       return F2GUEST;
    if (string_prefix("logwall", flag))
       return F2LOGWALL;
-   if (string_prefix("light", flag))
+   if (string_prefix("light", flag) || string_prefix("oldcomment", flag))
       return F2LIGHT;
    if (string_prefix("mufcount", flag))
       return F2MUFCOUNT;
@@ -121,7 +121,7 @@ int check_flag2(char *flag, int *nbol)
    if (string_prefix("examine_ok", flag))
       return F2EXAMINE_OK;
    if (string_prefix("mobile", flag) || string_prefix("offer", flag) ||
-		    string_prefix("~", flag) )
+		    string_prefix("?", flag) )
       return F2MOBILE;
    if (string_prefix("pueblo", flag))
       return F2PUEBLO;

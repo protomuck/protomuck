@@ -1246,12 +1246,13 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	f2 = F2GUEST;
     } else if (string_prefix("LOGWALL", p) || !string_compare("!", p)) {
 	f2 = F2LOGWALL;
-    } else if (string_prefix("LIGHT", p) || !string_compare("O", p)) {
+    } else if (string_prefix("LIGHT", p) || !string_compare("O", p) ||
+	       string_prefix("OLDCOMMENT", p)) {
 	f2 = F2LIGHT;
     } else if (string_prefix("MUFCOUNT", p) || !string_compare("+", p)) {
 	f2 = F2MUFCOUNT;
     } else if (string_prefix("MOBILE", p) || string_prefix("OFFER", p) ||
-		    string_prefix("~", p)) {  
+		    string_prefix("?", p)) {  
 	f2 = F2MOBILE;
     } else if (string_prefix("PROTECT", p) || !string_compare("*", p)) {
 	f2 = F2PROTECT;

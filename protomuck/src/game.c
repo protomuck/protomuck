@@ -483,11 +483,13 @@ init_game(const char *infile, const char *outfile)
 		     (int)time((time_t *) NULL));
 	add_property((dbref)0, "~sys/maxpennies", NULL, tp_max_pennies);
 	add_property((dbref)0, "~sys/dumpinterval", NULL, tp_dump_interval);
+	add_property((dbref)0, "~sys/concount", NULL, 0);
 	add_property((dbref)0, "~sys/max_connects", NULL, 0);
 	if (tp_allow_old_trigs) {
 		add_property((dbref)0, "_sys/startuptime", NULL,
 			     (int)time((time_t *) NULL));
 		add_property((dbref)0, "_sys/maxpennies", NULL, tp_max_pennies);
+		add_property((dbref)0, "_sys/concount", NULL, 0);
 		add_property((dbref)0, "_sys/dumpinterval", NULL, tp_dump_interval);
 		add_property((dbref)0, "_sys/max_connects", NULL, 0);
 	}
