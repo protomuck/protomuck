@@ -447,15 +447,17 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "instring", "tolower swap tolower swap instr");
 	insert_def(cstat, "rinstring", "tolower swap tolower swap rinstr");
 	insert_def(cstat, "stripspaces", "strip begin dup \"  \" instr while \" \" \"  \" subst repeat");
+#ifndef OLDPARSE
+	insert_def(cstat, "parseprop", "4 pick 4 rotate getpropstr rot rot parsempi");
+#endif
 	insert_intdef(cstat, "bg_mode", BACKGROUND);
 	insert_intdef(cstat, "fg_mode", FOREGROUND);
 	insert_intdef(cstat, "pr_mode", PREEMPT);
- 	insert_intdef(cstat, "max_variable_count", MAX_VAR);
+	insert_intdef(cstat, "max_variable_count", MAX_VAR);
         insert_intdef(cstat, "sorttype_case_ascend", SORTTYPE_CASE_ASCEND);
         insert_intdef(cstat, "sorttype_nocase_ascend", SORTTYPE_NOCASE_ASCEND);
         insert_intdef(cstat, "sorttype_case_descend", SORTTYPE_CASE_DESCEND);
         insert_intdef(cstat, "sorttype_nocase_descend", SORTTYPE_NOCASE_DESCEND);
-
 
 	/* Make defines for compatability to removed primitives */
 	insert_def(cstat, "desc", "\"_/de\" getpropstr");
@@ -1295,9 +1297,14 @@ process_special(COMPSTATE * cstat, const char *token)
 		struct INTERMEDIATE *eef;
 
 		eef = find_if(cstat);
-		if (!eef)
+		if (!eef) {
+                    eef = find_begin(cstat);
+                    if (eef) {
+                        abort_compile(cstat, "Unterminated Loop structure at ELSE.");
+                    } else {
 			abort_compile(cstat, "ELSE without IF.");
-
+                    }
+                }
 		new = new_inst(cstat);
 		new->no = cstat->nowords++;
 		new->in.type = PROG_JMP;
@@ -1312,9 +1319,14 @@ process_special(COMPSTATE * cstat, const char *token)
 		struct INTERMEDIATE *eef;
 
 		eef = find_else(cstat);
-		if (!eef)
+		if (!eef) {
+                    eef = find_begin(cstat);
+                    if (eef) {
+                        abort_compile(cstat, "Unterminated Loop structure at THEN.");
+                    } else {
 			abort_compile(cstat, "THEN without IF.");
-
+                    }
+                }
 		prealloc_inst(cstat);
 		eef->in.data.number = get_address(cstat, cstat->nextinst, 0);
 		return NULL;
@@ -1374,8 +1386,14 @@ process_special(COMPSTATE * cstat, const char *token)
 
 		curr = locate_for(cstat);
 		eef = find_begin(cstat);
-		if (!eef)
+		if (!eef) {
+                    eef = find_else(cstat);
+                    if (eef) {
+                        abort_compile(cstat, "Untermined IF-THEN structure at UNTIL.");
+                    } else {
 			abort_compile(cstat, "UNTIL without BEGIN.");
+                    }
+                }
 		new = new_inst(cstat);
 		new->no = cstat->nowords++;
 		new->in.type = PROG_IF;
@@ -1444,8 +1462,14 @@ process_special(COMPSTATE * cstat, const char *token)
 
 		curr = locate_for(cstat);
 		eef = find_begin(cstat);
-		if (!eef)
+		if (!eef) {
+                    eef = find_else(cstat);
+                    if (eef) {
+                        abort_compile(cstat, "Unterminated IF-THEN structure at REPEAT.");
+                    } else {
 			abort_compile(cstat, "REPEAT without BEGIN.");
+                    }
+                }
 		new = new_inst(cstat);
 		new->no = cstat->nowords++;
 		new->in.type = PROG_JMP;
@@ -2537,5 +2561,4 @@ init_primitives(void)
 	IN_FOR = get_primitive(" FOR");
 	IN_FOREACH = get_primitive(" FOREACH");
 }
-
 
