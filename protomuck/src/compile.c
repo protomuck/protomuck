@@ -530,8 +530,9 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "event_wait", "0 array_make event_waitfor");
 
     /* Array convenience defines */
+    insert_def(cstat, "}array", "} array_make");
     insert_def(cstat, "}list", "} array_make");
-    insert_def(cstat, "}dict", "}  2 / array_make_dict");
+    insert_def(cstat, "}dict", "} 2 / array_make_dict");
     insert_def(cstat, "}join", "} array_make \"\" array_join");
     insert_def(cstat, "}tell", "} array_make me @ 1 array_make array_notify");
     insert_def(cstat, "[]", "array_getitem");
@@ -584,7 +585,12 @@ include_internal_defs(COMPSTATE *cstat)
     /* Some math stuff */
     insert_def(cstat, "Deg2Rad", "pi 180 / *");
     insert_def(cstat, "Rad2Deg", "180 pi / *");
-    
+
+    /* inserver str .. cat */
+    insert_def(cstat, "str", "{");
+    insert_def(cstat, "cat", "} array_make array_interpret");
+    insert_def(cstat, "}cat", "} array_make array_interpret");
+       
 
 /* $defs for specific MUF prim sets */
 #ifdef SQL_SUPPPORT

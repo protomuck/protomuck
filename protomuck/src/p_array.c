@@ -1956,6 +1956,86 @@ prim_array_join(PRIM_PROTOTYPE)
 }
 
 void
+prim_array_interpret(PRIM_PROTOTYPE)
+{
+    struct inst *in;
+    stk_array *arr;
+    char outbuf[BUFFER_LEN];
+    char *ptr;
+    const char *text;
+    char *delim;
+    int tmplen;
+    int done;
+
+    CHECKOP(1);
+    oper1 = POP();              /* arr  Array */
+    if (oper1->type != PROG_ARRAY)
+        abort_interp("Argument not an array. (1)");
+
+    arr = oper1->data.array;
+    delim = (char *) "";
+    ptr = outbuf;
+    *outbuf = '\0';
+    done = !array_first(arr, &temp1);
+    while (!done) {
+        in = array_getitem(arr, &temp1);
+        switch (in->type) {
+            case PROG_STRING:
+                text = DoNullInd(in->data.string);
+                break;
+            case PROG_INTEGER:
+                sprintf(buf, "%d", in->data.number);
+                text = buf;
+                break;
+            case PROG_OBJECT:
+                if (in->data.number == -1) { text = "*NOTHING*"; break; }
+                if (in->data.number < -1) { text = "*INVALID*"; break; }
+                if (in->data.number >= db_top) { text = "*INVALID*"; break; }
+                sprintf(buf, "%s", NAME(in->data.number));
+                text = buf;
+                break;
+            case PROG_FLOAT:
+                sprintf(buf, "%.16lg", in->data.fnumber);
+                text = buf;
+                break;
+            case PROG_LOCK:
+                text = unparse_boolexp(ProgUID, in->data.lock, 1);
+                break;
+            default:
+                text = "<UNSUPPORTED>";
+                break;
+        }
+        if (ptr != outbuf) {
+            tmplen = strlen(delim);
+            if (tmplen > BUFFER_LEN - (ptr - outbuf) - 1) {
+                strncpy(ptr, delim, BUFFER_LEN - (ptr - outbuf) - 1);
+                outbuf[BUFFER_LEN - 1] = '\0';
+                break;
+            } else {
+                strcpy(ptr, delim);
+                ptr += tmplen;
+            }
+        }
+        tmplen = strlen(text);
+        if (tmplen > BUFFER_LEN - (ptr - outbuf) - 1) {
+            strncpy(ptr, text, BUFFER_LEN - (ptr - outbuf) - 1);
+            outbuf[BUFFER_LEN - 1] = '\0';
+            break;
+        } else {
+            strcpy(ptr, text);
+            ptr += tmplen;
+        }
+        done = !array_next(arr, &temp1);
+    }
+
+    CLEAR(oper2);
+    CLEAR(oper1);
+
+    PushString(outbuf);
+}
+
+
+void
 prim_array_matchkey(PRIM_PROTOTYPE)
 {
     struct inst *in;
