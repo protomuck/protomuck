@@ -746,6 +746,8 @@ extern void macrodump(struct macrotable *node, FILE *f);
 
 extern void macroload(FILE *f);
 
+extern int WLevel(dbref player);
+
 #define DOLIST(var, first) \
   for((var) = (first); (var) != NOTHING; (var) = DBFETCH(var)->next)
 #define PUSH(thing, locative) \

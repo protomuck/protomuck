@@ -1662,7 +1662,10 @@ db_read(FILE * f)
     }				/* for */
 }				/* db_read */
 
+int
+WLevel(dbref player)
+{
+    int mlev = MLevel(player);
 
-
-
-
+    return mlev >= LMAGE ? mlev : 0;
+}   

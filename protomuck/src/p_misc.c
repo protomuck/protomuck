@@ -593,6 +593,9 @@ prim_setsysparm(PRIM_PROTOTYPE)
 	case 3:					/* TUNESET_BADVAL */
 		abort_interp("Bad parameter value. (2)");
 		break;
+	case 4:                                 /* TUNESET_NOPERM */
+                abort_interp("Permission denied.");
+		break;
 	}
 	CLEAR(oper1);
 	CLEAR(oper2);
