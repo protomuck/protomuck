@@ -222,61 +222,64 @@ stuff_dict_in_mesg(stk_array *arr, McpMesg *msg)
         }
         argval = array_getitem(arr, &argname);
         switch (argval->type) {
-        case PROG_ARRAY:{
-            struct inst subname, *subval;
-            int contd = array_first(argval->data.array, &subname);
+            case PROG_ARRAY:{
+                struct inst subname, *subval;
+                int contd = array_first(argval->data.array, &subname);
 
-            mcp_mesg_arg_remove(msg, argname.data.string->data);
-            while (contd) {
-                subval = array_getitem(argval->data.array, &subname);
-                switch (subval->type) {
-                case PROG_STRING:
-                    mcp_mesg_arg_append(msg, argname.data.string->data,
-                                        DoNullInd(subval->data.string));
-                    break;
-                case PROG_INTEGER:
-                    sprintf(buf, "%d", subval->data.number);
-                    mcp_mesg_arg_append(msg, argname.data.string->data, buf);
-                    break;
-                case PROG_OBJECT:
-                    sprintf(buf, "#%d", subval->data.number);
-                    mcp_mesg_arg_append(msg, argname.data.string->data, buf);
-                    break;
-                case PROG_FLOAT:
-                    sprintf(buf, "%.16lg", subval->data.fnumber);
-                    mcp_mesg_arg_append(msg, argname.data.string->data, buf);
-                    break;
-                default:
-                    CLEAR(&argname);
-                    return -3;
+                mcp_mesg_arg_remove(msg, argname.data.string->data);
+                while (contd) {
+                    subval = array_getitem(argval->data.array, &subname);
+                    switch (subval->type) {
+                        case PROG_STRING:
+                            mcp_mesg_arg_append(msg, argname.data.string->data,
+                                                DoNullInd(subval->data.string));
+                            break;
+                        case PROG_INTEGER:
+                            sprintf(buf, "%d", subval->data.number);
+                            mcp_mesg_arg_append(msg, argname.data.string->data,
+                                                buf);
+                            break;
+                        case PROG_OBJECT:
+                            sprintf(buf, "#%d", subval->data.number);
+                            mcp_mesg_arg_append(msg, argname.data.string->data,
+                                                buf);
+                            break;
+                        case PROG_FLOAT:
+                            sprintf(buf, "%.16lg", subval->data.fnumber);
+                            mcp_mesg_arg_append(msg, argname.data.string->data,
+                                                buf);
+                            break;
+                        default:
+                            CLEAR(&argname);
+                            return -3;
+                    }
+                    contd = array_next(argval->data.array, &subname);
                 }
-                contd = array_next(argval->data.array, &subname);
+                break;
             }
-            break;
-        }
-        case PROG_STRING:
-            mcp_mesg_arg_remove(msg, argname.data.string->data);
-            mcp_mesg_arg_append(msg, argname.data.string->data,
-                                DoNullInd(argval->data.string));
-            break;
-        case PROG_INTEGER:
-            sprintf(buf, "%d", argval->data.number);
-            mcp_mesg_arg_remove(msg, argname.data.string->data);
-            mcp_mesg_arg_append(msg, argname.data.string->data, buf);
-            break;
-        case PROG_OBJECT:
-            sprintf(buf, "#%d", argval->data.number);
-            mcp_mesg_arg_remove(msg, argname.data.string->data);
-            mcp_mesg_arg_append(msg, argname.data.string->data, buf);
-            break;
-        case PROG_FLOAT:
-            sprintf(buf, "%.16lg", argval->data.fnumber);
-            mcp_mesg_arg_remove(msg, argname.data.string->data);
-            mcp_mesg_arg_append(msg, argname.data.string->data, buf);
-            break;
-        default:
-            CLEAR(&argname);
-            return -4;
+            case PROG_STRING:
+                mcp_mesg_arg_remove(msg, argname.data.string->data);
+                mcp_mesg_arg_append(msg, argname.data.string->data,
+                                    DoNullInd(argval->data.string));
+                break;
+            case PROG_INTEGER:
+                sprintf(buf, "%d", argval->data.number);
+                mcp_mesg_arg_remove(msg, argname.data.string->data);
+                mcp_mesg_arg_append(msg, argname.data.string->data, buf);
+                break;
+            case PROG_OBJECT:
+                sprintf(buf, "#%d", argval->data.number);
+                mcp_mesg_arg_remove(msg, argname.data.string->data);
+                mcp_mesg_arg_append(msg, argname.data.string->data, buf);
+                break;
+            case PROG_FLOAT:
+                sprintf(buf, "%.16lg", argval->data.fnumber);
+                mcp_mesg_arg_remove(msg, argname.data.string->data);
+                mcp_mesg_arg_append(msg, argname.data.string->data, buf);
+                break;
+            default:
+                CLEAR(&argname);
+                return -4;
         }
         result = array_next(arr, &argname);
     }
@@ -531,19 +534,21 @@ prim_mcp_send(PRIM_PROTOTYPE)
         if (result) {
             mcp_mesg_clear(&msg);
             switch (result) {
-            case -1:
-                abort_interp("Args dictionary can only have string keys. (4)");
-                break;
-            case -2:
-                abort_interp
-                    ("Args dictionary cannot have a null string key. (4)");
-                break;
-            case -3:
-                abort_interp("Unsupported value type in list value. (4)");
-                break;
-            case -4:
-                abort_interp("Unsupported value type in args dictionary. (4)");
-                break;
+                case -1:
+                    abort_interp
+                        ("Args dictionary can only have string keys. (4)");
+                    break;
+                case -2:
+                    abort_interp
+                        ("Args dictionary cannot have a null string key. (4)");
+                    break;
+                case -3:
+                    abort_interp("Unsupported value type in list value. (4)");
+                    break;
+                case -4:
+                    abort_interp
+                        ("Unsupported value type in args dictionary. (4)");
+                    break;
             }
         }
 
@@ -746,18 +751,19 @@ prim_gui_dlog_create(PRIM_PROTOTYPE)
     if (result) {
         mcp_mesg_clear(&msg);
         switch (result) {
-        case -1:
-            abort_interp("Args dictionary can only have string keys. (4)");
-            break;
-        case -2:
-            abort_interp("Args dictionary cannot have a null string key. (4)");
-            break;
-        case -3:
-            abort_interp("Unsupported value type in list value. (4)");
-            break;
-        case -4:
-            abort_interp("Unsupported value type in args dictionary. (4)");
-            break;
+            case -1:
+                abort_interp("Args dictionary can only have string keys. (4)");
+                break;
+            case -2:
+                abort_interp
+                    ("Args dictionary cannot have a null string key. (4)");
+                break;
+            case -3:
+                abort_interp("Unsupported value type in list value. (4)");
+                break;
+            case -4:
+                abort_interp("Unsupported value type in args dictionary. (4)");
+                break;
         }
     }
 
@@ -891,18 +897,19 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
     if (result) {
         mcp_mesg_clear(&msg);
         switch (result) {
-        case -1:
-            abort_interp("Args dictionary can only have string keys. (4)");
-            break;
-        case -2:
-            abort_interp("Args dictionary cannot have a null string key. (4)");
-            break;
-        case -3:
-            abort_interp("Unsupported value type in list value. (4)");
-            break;
-        case -4:
-            abort_interp("Unsupported value type in args dictionary. (4)");
-            break;
+            case -1:
+                abort_interp("Args dictionary can only have string keys. (4)");
+                break;
+            case -2:
+                abort_interp
+                    ("Args dictionary cannot have a null string key. (4)");
+                break;
+            case -3:
+                abort_interp("Unsupported value type in list value. (4)");
+                break;
+            case -4:
+                abort_interp("Unsupported value type in args dictionary. (4)");
+                break;
         }
     }
 
@@ -998,18 +1005,19 @@ prim_gui_ctrl_command(PRIM_PROTOTYPE)
     if (result) {
         mcp_mesg_clear(&msg);
         switch (result) {
-        case -1:
-            abort_interp("Args dictionary can only have string keys. (4)");
-            break;
-        case -2:
-            abort_interp("Args dictionary cannot have a null string key. (4)");
-            break;
-        case -3:
-            abort_interp("Unsupported value type in list value. (4)");
-            break;
-        case -4:
-            abort_interp("Unsupported value type in args dictionary. (4)");
-            break;
+            case -1:
+                abort_interp("Args dictionary can only have string keys. (4)");
+                break;
+            case -2:
+                abort_interp
+                    ("Args dictionary cannot have a null string key. (4)");
+                break;
+            case -3:
+                abort_interp("Unsupported value type in list value. (4)");
+                break;
+            case -4:
+                abort_interp("Unsupported value type in args dictionary. (4)");
+                break;
         }
     }
 
@@ -1090,27 +1098,27 @@ prim_gui_value_set(PRIM_PROTOTYPE)
                 break;
             }
             switch (temp2->type) {
-            case PROG_STRING:
-                value = (char *) DoNullInd(temp2->data.string);
-                break;
-            case PROG_INTEGER:
-                sprintf(buf, "%d", temp2->data.number);
-                value = buf;
-                break;
-            case PROG_OBJECT:
-                sprintf(buf, "#%d", temp2->data.number);
-                value = buf;
-                break;
-            case PROG_FLOAT:
-                sprintf(buf, "%.16lg", temp2->data.fnumber);
-                value = buf;
-                break;
-            default:
-                while (i-- > 0) {
-                    free(valarray[i]);
-                }
-                free(valarray);
-                abort_interp("Unsupported value type in list value. (3)");
+                case PROG_STRING:
+                    value = (char *) DoNullInd(temp2->data.string);
+                    break;
+                case PROG_INTEGER:
+                    sprintf(buf, "%d", temp2->data.number);
+                    value = buf;
+                    break;
+                case PROG_OBJECT:
+                    sprintf(buf, "#%d", temp2->data.number);
+                    value = buf;
+                    break;
+                case PROG_FLOAT:
+                    sprintf(buf, "%.16lg", temp2->data.fnumber);
+                    value = buf;
+                    break;
+                default:
+                    while (i-- > 0) {
+                        free(valarray[i]);
+                    }
+                    free(valarray);
+                    abort_interp("Unsupported value type in list value. (3)");
             }
             valarray[i] = (char *) malloc(sizeof(char) * strlen(value) + 1);
 

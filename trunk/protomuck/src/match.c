@@ -124,33 +124,35 @@ find_registered_obj(dbref player, const char *name)
     propfetch(player, ptr);     /* DISKBASE PROPVALS */
 #endif
     switch (PropType(ptr)) {
-    case PROP_STRTYP:
-        p = PropDataStr(ptr);
+        case PROP_STRTYP:
+            p = PropDataStr(ptr);
 #ifdef COMPRESS
-        p = uncompress(p);
+            p = uncompress(p);
 #endif
-        if (*p == NUMBER_TOKEN)
-            p++;
-        if (number(p)) {
-            match = (dbref) atoi(p);
-            if ((match >= 0) && (match < db_top) &&
-                (Typeof(match) != TYPE_GARBAGE))
+            if (*p == NUMBER_TOKEN)
+                p++;
+            if (number(p)) {
+                match = (dbref) atoi(p);
+                if ((match >= 0) && (match < db_top) &&
+                    (Typeof(match) != TYPE_GARBAGE))
+                    return (match);
+            }
+            break;
+        case PROP_REFTYP:
+            match = PropDataRef(ptr);
+            if ((match >= 0) && (match < db_top)
+                && (Typeof(match) != TYPE_GARBAGE))
                 return (match);
-        }
-        break;
-    case PROP_REFTYP:
-        match = PropDataRef(ptr);
-        if ((match >= 0) && (match < db_top) && (Typeof(match) != TYPE_GARBAGE))
-            return (match);
-        break;
-    case PROP_INTTYP:
-        match = (dbref) PropDataVal(ptr);
-        if ((match > 0) && (match < db_top) && (Typeof(match) != TYPE_GARBAGE))
-            return (match);
-        break;
-    case PROP_LOKTYP:
-        return (NOTHING);
-        break;
+            break;
+        case PROP_INTTYP:
+            match = (dbref) PropDataVal(ptr);
+            if ((match > 0) && (match < db_top)
+                && (Typeof(match) != TYPE_GARBAGE))
+                return (match);
+            break;
+        case PROP_LOKTYP:
+            return (NOTHING);
+            break;
     }
     return (NOTHING);
 }
@@ -437,14 +439,14 @@ match_player_actions(struct match_data *md)
     dbref obj;
 
     switch (Typeof(md->match_from)) {
-    case TYPE_PLAYER:
-    case TYPE_ROOM:
-    case TYPE_THING:
-        obj = DBFETCH(md->match_from)->exits;
-        break;
-    default:
-        obj = NOTHING;
-        break;
+        case TYPE_PLAYER:
+        case TYPE_ROOM:
+        case TYPE_THING:
+            obj = DBFETCH(md->match_from)->exits;
+            break;
+        default:
+            obj = NOTHING;
+            break;
     }
     if (obj == NOTHING)
         return;
@@ -462,14 +464,14 @@ match_room_exits(dbref loc, struct match_data *md)
     dbref obj;
 
     switch (Typeof(loc)) {
-    case TYPE_PLAYER:
-    case TYPE_ROOM:
-    case TYPE_THING:
-        obj = DBFETCH(loc)->exits;
-        break;
-    default:
-        obj = NOTHING;
-        break;
+        case TYPE_PLAYER:
+        case TYPE_ROOM:
+        case TYPE_THING:
+            obj = DBFETCH(loc)->exits;
+            break;
+        default:
+            obj = NOTHING;
+            break;
     }
     if (obj == NOTHING)
         return;
@@ -552,12 +554,12 @@ match_result(struct match_data *md)
         return (md->exact_match);
     } else {
         switch (md->match_count) {
-        case 0:
-            return NOTHING;
-        case 1:
-            return (md->last_match);
-        default:
-            return AMBIGUOUS;
+            case 0:
+                return NOTHING;
+            case 1:
+                return (md->last_match);
+            default:
+                return AMBIGUOUS;
         }
     }
 }
@@ -579,14 +581,14 @@ noisy_match_result(struct match_data *md)
     dbref match;
 
     switch (match = match_result(md)) {
-    case NOTHING:
-        anotify_nolisten(md->match_who, CINFO NOMATCH_MESSAGE, 1);
-        return NOTHING;
-    case AMBIGUOUS:
-        anotify_nolisten(md->match_who, CINFO AMBIGUOUS_MESSAGE, 1);
-        return NOTHING;
-    default:
-        return match;
+        case NOTHING:
+            anotify_nolisten(md->match_who, CINFO NOMATCH_MESSAGE, 1);
+            return NOTHING;
+        case AMBIGUOUS:
+            anotify_nolisten(md->match_who, CINFO AMBIGUOUS_MESSAGE, 1);
+            return NOTHING;
+        default:
+            return match;
     }
 }
 
@@ -596,12 +598,12 @@ match_rmatch(dbref arg1, struct match_data *md)
     if (arg1 == NOTHING)
         return;
     switch (Typeof(arg1)) {
-    case TYPE_PLAYER:
-    case TYPE_ROOM:
-    case TYPE_THING:
-        match_list(DBFETCH(arg1)->contents, md);
-        match_exits(DBFETCH(arg1)->exits, md);
-        break;
+        case TYPE_PLAYER:
+        case TYPE_ROOM:
+        case TYPE_THING:
+            match_list(DBFETCH(arg1)->contents, md);
+            match_exits(DBFETCH(arg1)->exits, md);
+            break;
     }
 }
 
@@ -613,53 +615,53 @@ path_name(const char *path)
     if (!path[0] || !path[1])
         return path;
     switch (path[0]) {
-    case 'n':
-    case 'N':
-        if (!string_compare(path, "north"))
-            return "n";
-        else if (!string_compare(path, "northwest"))
-            return "nw";
-        else if (!string_compare(path, "northeast"))
-            return "ne";
-    case 's':
-    case 'S':
-        if (!string_compare(path, "south"))
-            return "s";
-        else if (!string_compare(path, "southwest"))
-            return "sw";
-        else if (!string_compare(path, "southeast"))
-            return "se";
-        break;
-    case 'e':
-    case 'E':
-        if (!string_compare(path, "east"))
-            return "e";
-        break;
-    case 'w':
-    case 'W':
-        if (!string_compare(path, "west"))
-            return "w";
-        break;
-    case 'o':
-    case 'O':
-        if (!string_compare(path, "out"))
-            return "o";
-        break;
-    case 'i':
-    case 'I':
-        if (!string_compare(path, "in"))
-            return "i";
-        break;
-    case 'u':
-    case 'U':
-        if (!string_compare(path, "up"))
-            return "u";
-        break;
-    case 'd':
-    case 'D':
-        if (!string_compare(path, "down"))
-            return "d";
-        break;
+        case 'n':
+        case 'N':
+            if (!string_compare(path, "north"))
+                return "n";
+            else if (!string_compare(path, "northwest"))
+                return "nw";
+            else if (!string_compare(path, "northeast"))
+                return "ne";
+        case 's':
+        case 'S':
+            if (!string_compare(path, "south"))
+                return "s";
+            else if (!string_compare(path, "southwest"))
+                return "sw";
+            else if (!string_compare(path, "southeast"))
+                return "se";
+            break;
+        case 'e':
+        case 'E':
+            if (!string_compare(path, "east"))
+                return "e";
+            break;
+        case 'w':
+        case 'W':
+            if (!string_compare(path, "west"))
+                return "w";
+            break;
+        case 'o':
+        case 'O':
+            if (!string_compare(path, "out"))
+                return "o";
+            break;
+        case 'i':
+        case 'I':
+            if (!string_compare(path, "in"))
+                return "i";
+            break;
+        case 'u':
+        case 'U':
+            if (!string_compare(path, "up"))
+                return "u";
+            break;
+        case 'd':
+        case 'D':
+            if (!string_compare(path, "down"))
+                return "d";
+            break;
     }
 
     return path;

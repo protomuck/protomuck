@@ -34,7 +34,7 @@ fi fi
 #include "params.h"
 #include "interface.h"
 #include "externs.h"
-const char *generation = "$generation";
+    const char *generation = "$generation";
 const char *creation = "$creation";
 const char *version = PATCHLEVEL;
 

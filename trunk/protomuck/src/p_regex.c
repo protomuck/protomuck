@@ -68,34 +68,34 @@ const char *
 muf_re_error(int err)
 {
     switch (err) {
-    case REG_NOMATCH:
-        return "No matches";
-    case REG_BADPAT:
-        return "Invalid regular expression";
-    case REG_ECOLLATE:
-        return "Invalid collating element referenced";
-    case REG_ECTYPE:
-        return "Invalid character class type referenced";
-    case REG_EESCAPE:
-        return "Trailing \\ in pattern";
-    case REG_ESUBREG:
-        return "Number in \\digit invalid or in error";
-    case REG_EBRACK:
-        return "[ ] imbalance";
-    case REG_EPAREN:
-        return "\\( \\) or ( ) imbalance";
-    case REG_EBRACE:
-        return "{ } imbalance";
-    case REG_BADBR:
-        return "Content of \\{ \\} invalid";
-    case REG_ERANGE:
-        return "Invalid endpoint in range expression";
-    case REG_ESPACE:
-        return "Out of memory";
-    case REG_BADRPT:
-        return "?, * or + not preceded by valid regular expression";
-    default:
-        return "Unknown error";
+        case REG_NOMATCH:
+            return "No matches";
+        case REG_BADPAT:
+            return "Invalid regular expression";
+        case REG_ECOLLATE:
+            return "Invalid collating element referenced";
+        case REG_ECTYPE:
+            return "Invalid character class type referenced";
+        case REG_EESCAPE:
+            return "Trailing \\ in pattern";
+        case REG_ESUBREG:
+            return "Number in \\digit invalid or in error";
+        case REG_EBRACK:
+            return "[ ] imbalance";
+        case REG_EPAREN:
+            return "\\( \\) or ( ) imbalance";
+        case REG_EBRACE:
+            return "{ } imbalance";
+        case REG_BADBR:
+            return "Content of \\{ \\} invalid";
+        case REG_ERANGE:
+            return "Invalid endpoint in range expression";
+        case REG_ESPACE:
+            return "Out of memory";
+        case REG_BADRPT:
+            return "?, * or + not preceded by valid regular expression";
+        default:
+            return "Unknown error";
     }
 }
 
@@ -337,8 +337,7 @@ prim_regsub(PRIM_PROTOTYPE)
                                     ("Operation would result in overflow");
                             }
 
-                            for (;
-                                 (write_left > 0) && (count > 0)
+                            for (; (write_left > 0) && (count > 0)
                                  && (*ptr != '\0'); count--) {
                                 *write_ptr++ = *ptr++;
                                 write_left--;

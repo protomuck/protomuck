@@ -21,37 +21,37 @@ can_link_to(dbref who, object_flag_type what_type, dbref where)
     if (where < 0 || where > db_top)
         return 0;
     switch (what_type) {
-    case TYPE_EXIT:
-        return (controls(who, where) || (FLAGS(where) & LINK_OK)
-                || (POWERS(who) & POW_LINK_ANYWHERE));
-        /* NOTREACHED */
-        break;
-    case TYPE_PLAYER:
-        return (Typeof(where) == TYPE_ROOM && (controls(who, where)
-                                               || Linkable(where)
-                                               || (POWERS(who) &
-                                                   POW_LINK_ANYWHERE)));
-        /* NOTREACHED */
-        break;
-    case TYPE_ROOM:
-        return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_THING)
-                && (controls(who, where) || Linkable(where)
-                    || (POWERS(who) & POW_LINK_ANYWHERE)));
-        /* NOTREACHED */
-        break;
-    case TYPE_THING:
-        return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_PLAYER
-                 || Typeof(where) == TYPE_THING)
-                && (controls(who, where) || Linkable(where)
-                    || (POWERS(who) & POW_LINK_ANYWHERE)));
-        /* NOTREACHED */
-        break;
-    case NOTYPE:
-        return (controls(who, where) || (FLAGS(where) & LINK_OK)
-                || (POWERS(who) & POW_LINK_ANYWHERE)
-                || (Typeof(where) != TYPE_THING && (FLAGS(where) & ABODE)));
-        /* NOTREACHED */
-        break;
+        case TYPE_EXIT:
+            return (controls(who, where) || (FLAGS(where) & LINK_OK)
+                    || (POWERS(who) & POW_LINK_ANYWHERE));
+            /* NOTREACHED */
+            break;
+        case TYPE_PLAYER:
+            return (Typeof(where) == TYPE_ROOM && (controls(who, where)
+                                                   || Linkable(where)
+                                                   || (POWERS(who) &
+                                                       POW_LINK_ANYWHERE)));
+            /* NOTREACHED */
+            break;
+        case TYPE_ROOM:
+            return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_THING)
+                    && (controls(who, where) || Linkable(where)
+                        || (POWERS(who) & POW_LINK_ANYWHERE)));
+            /* NOTREACHED */
+            break;
+        case TYPE_THING:
+            return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_PLAYER
+                     || Typeof(where) == TYPE_THING)
+                    && (controls(who, where) || Linkable(where)
+                        || (POWERS(who) & POW_LINK_ANYWHERE)));
+            /* NOTREACHED */
+            break;
+        case NOTYPE:
+            return (controls(who, where) || (FLAGS(where) & LINK_OK)
+                    || (POWERS(who) & POW_LINK_ANYWHERE)
+                    || (Typeof(where) != TYPE_THING && (FLAGS(where) & ABODE)));
+            /* NOTREACHED */
+            break;
     }
     return 0;
 }
@@ -97,9 +97,7 @@ could_doit(int descr, dbref player, dbref thing)
             (FLAGS(dest) & ZOMBIE) ) 
             return 0;
  Saving this part for a revision of trigger() and this function. */
-        if ((dest != HOME) &&
-            (Typeof(dest) == TYPE_ROOM) &&
-            Guest(player)
+        if ((dest != HOME) && (Typeof(dest) == TYPE_ROOM) && Guest(player)
             && (tp_guest_needflag ? !(FLAG2(dest) & F2GUEST)
                 : (FLAG2(dest) & F2GUEST))) {
 /*	    anotify_nolisten(player, CFAIL "Guests aren't allowed there.", 1); */
@@ -149,9 +147,7 @@ could_doit2(int descr, dbref player, dbref thing, char *prop, int tryprog)
             }
         }
 
-        if ((dest != HOME) &&
-            (Typeof(dest) == TYPE_ROOM) &&
-            Guest(player)
+        if ((dest != HOME) && (Typeof(dest) == TYPE_ROOM) && Guest(player)
             && (tp_guest_needflag ? !(FLAG2(dest) & F2GUEST)
                 : (FLAG2(dest) & F2GUEST))) {
             anotify_nolisten(player, CFAIL "Guests aren't allowed there.", 1);
@@ -258,17 +254,17 @@ can_see(dbref player, dbref thing, int can_see_loc)
 
     if (can_see_loc) {
         switch (Typeof(thing)) {
-        case TYPE_PROGRAM:
-            return ((FLAGS(thing) & LINK_OK) || controls(player, thing)
-                    || (POWERS(player) & POW_SEE_ALL));
-        case TYPE_PLAYER:
-            if (tp_dark_sleepers) {
-                return (!Dark(thing) || online(thing)
+            case TYPE_PROGRAM:
+                return ((FLAGS(thing) & LINK_OK) || controls(player, thing)
                         || (POWERS(player) & POW_SEE_ALL));
-            }
-        default:
-            return (!Dark(thing) || (POWERS(player) & POW_SEE_ALL) ||
-                    (controls(player, thing) && !(FLAGS(player) & STICKY)));
+            case TYPE_PLAYER:
+                if (tp_dark_sleepers) {
+                    return (!Dark(thing) || online(thing)
+                            || (POWERS(player) & POW_SEE_ALL));
+                }
+            default:
+                return (!Dark(thing) || (POWERS(player) & POW_SEE_ALL) ||
+                        (controls(player, thing) && !(FLAGS(player) & STICKY)));
 
         }
     } else {
@@ -332,56 +328,57 @@ int
 restricted(dbref player, dbref thing, object_flag_type flag)
 {
     switch (flag) {
-    case ABODE:
-        return (!Mage(OWNER(player)) && (Typeof(thing) == TYPE_PROGRAM));
-        break;
-    case ZOMBIE:
-        if (tp_wiz_puppets)
-            if (Typeof(thing) == TYPE_THING)
-                return (!Mage(OWNER(player)));
-        if (Typeof(thing) == TYPE_PLAYER)
-            return (!Mage(OWNER(player)));
-        if ((Typeof(thing) == TYPE_THING) && (FLAGS(OWNER(player)) & ZOMBIE))
-            return (!Mage(OWNER(player)));
-        return (0);
-    case VEHICLE:
-        if (Typeof(thing) == TYPE_PLAYER)
-            return (!Mage(OWNER(player)));
-        if (tp_wiz_vehicles) {
-            if (Typeof(thing) == TYPE_THING)
-                return (!Mage(OWNER(player)));
-        } else {
-            if ((Typeof(thing) == TYPE_THING) && (FLAGS(player) & VEHICLE))
-                return (!Mage(OWNER(player)));
-        }
-        return (0);
-    case DARK:
-        if (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE)) {
+        case ABODE:
+            return (!Mage(OWNER(player)) && (Typeof(thing) == TYPE_PROGRAM));
+            break;
+        case ZOMBIE:
+            if (tp_wiz_puppets)
+                if (Typeof(thing) == TYPE_THING)
+                    return (!Mage(OWNER(player)));
             if (Typeof(thing) == TYPE_PLAYER)
-                return (1);
-            if (!tp_exit_darking && Typeof(thing) == TYPE_EXIT)
-                return (1);
-            if (!tp_thing_darking && Typeof(thing) == TYPE_THING)
-                return (1);
-        }
-        return (0);
-        break;
-    case QUELL:
-        return (TMage(thing) && (thing != player) &&
-                (Typeof(thing) == TYPE_PLAYER));
-        break;
-    case BUILDER:
-        return (!Mage(OWNER(player)));
-        break;
-    case W1:                   /* We use @set to make our own rules for these */
-    case W2:
-    case W3:
-    case W4:
-        return 1;
-        break;
-    default:
-        return 0;
-        break;
+                return (!Mage(OWNER(player)));
+            if ((Typeof(thing) == TYPE_THING)
+                && (FLAGS(OWNER(player)) & ZOMBIE))
+                return (!Mage(OWNER(player)));
+            return (0);
+        case VEHICLE:
+            if (Typeof(thing) == TYPE_PLAYER)
+                return (!Mage(OWNER(player)));
+            if (tp_wiz_vehicles) {
+                if (Typeof(thing) == TYPE_THING)
+                    return (!Mage(OWNER(player)));
+            } else {
+                if ((Typeof(thing) == TYPE_THING) && (FLAGS(player) & VEHICLE))
+                    return (!Mage(OWNER(player)));
+            }
+            return (0);
+        case DARK:
+            if (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE)) {
+                if (Typeof(thing) == TYPE_PLAYER)
+                    return (1);
+                if (!tp_exit_darking && Typeof(thing) == TYPE_EXIT)
+                    return (1);
+                if (!tp_thing_darking && Typeof(thing) == TYPE_THING)
+                    return (1);
+            }
+            return (0);
+            break;
+        case QUELL:
+            return (TMage(thing) && (thing != player) &&
+                    (Typeof(thing) == TYPE_PLAYER));
+            break;
+        case BUILDER:
+            return (!Mage(OWNER(player)));
+            break;
+        case W1:               /* We use @set to make our own rules for these */
+        case W2:
+        case W3:
+        case W4:
+            return 1;
+            break;
+        default:
+            return 0;
+            break;
     }
 }
 
@@ -392,24 +389,24 @@ int
 restricted2(dbref player, dbref thing, object_flag_type flag)
 {
     switch (flag) {
-    case F2GUEST:
-        return (!Mage(OWNER(player)));
-        break;
-    case F2LOGWALL:
-        return (!Arch(OWNER(player)));
-    case F2HIDDEN:             /* can only be set on players currently */
-        if (Typeof(thing) == TYPE_PLAYER)
-            return (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE));
-        else
-            return 1;
-    case F2ANTIPROTECT:
-        if (Typeof(thing) == TYPE_PLAYER)
-            return (!Boy(OWNER(player)));
-        else
-            return 1;
-    default:
-        return 0;
-        break;
+        case F2GUEST:
+            return (!Mage(OWNER(player)));
+            break;
+        case F2LOGWALL:
+            return (!Arch(OWNER(player)));
+        case F2HIDDEN:         /* can only be set on players currently */
+            if (Typeof(thing) == TYPE_PLAYER)
+                return (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE));
+            else
+                return 1;
+        case F2ANTIPROTECT:
+            if (Typeof(thing) == TYPE_PLAYER)
+                return (!Boy(OWNER(player)));
+            else
+                return 1;
+        default:
+            return 0;
+            break;
     }
 }
 

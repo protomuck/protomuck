@@ -72,20 +72,20 @@ prim_setsysparm(PRIM_PROTOTYPE)
                           oper1->data.string->data);
 
     switch (result) {
-    case 0:                    /* TUNESET_SUCCESS */
-        log_status("TUNED (MUF): %s(%d) tuned %s to %s\n",
-                   player != -1 ? NAME(player) : "(Login)", player,
-                   oper2->data.string->data, oper1->data.string->data);
-        break;
-    case 1:                    /* TUNESET_UNKNOWN */
-        abort_interp("Unknown parameter. (1)");
-        break;
-    case 2:                    /* TUNESET_SYNTAX */
-        abort_interp("Bad parameter syntax. (2)");
-        break;
-    case 3:                    /* TUNESET_BADVAL */
-        abort_interp("Bad parameter value. (2)");
-        break;
+        case 0:                /* TUNESET_SUCCESS */
+            log_status("TUNED (MUF): %s(%d) tuned %s to %s\n",
+                       player != -1 ? NAME(player) : "(Login)", player,
+                       oper2->data.string->data, oper1->data.string->data);
+            break;
+        case 1:                /* TUNESET_UNKNOWN */
+            abort_interp("Unknown parameter. (1)");
+            break;
+        case 2:                /* TUNESET_SYNTAX */
+            abort_interp("Bad parameter syntax. (2)");
+            break;
+        case 3:                /* TUNESET_BADVAL */
+            abort_interp("Bad parameter value. (2)");
+            break;
     }
     CLEAR(oper1);
     CLEAR(oper2);

@@ -1197,34 +1197,35 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
                 propfetch(ref, prptr);
 #endif
                 switch (PropType(prptr)) {
-                case PROP_STRTYP:
-                    temp2.type = PROG_STRING;
-                    temp2.data.string =
-                        alloc_prog_string(get_uncompress(PropDataStr(prptr)));
-                    break;
-                case PROP_LOKTYP:
-                    temp2.type = PROG_LOCK;
-                    if (PropFlags(prptr) & PROP_ISUNLOADED) {
-                        temp2.data.lock = TRUE_BOOLEXP;
-                    } else {
-                        temp2.data.lock = PropDataLok(prptr);
-                    }
-                    break;
-                case PROP_REFTYP:
-                    temp2.type = PROG_OBJECT;
-                    temp2.data.number = PropDataRef(prptr);
-                    break;
-                case PROP_INTTYP:
-                    temp2.type = PROG_INTEGER;
-                    temp2.data.number = PropDataVal(prptr);
-                    break;
-                case PROP_FLTTYP:
-                    temp2.type = PROG_FLOAT;
-                    temp2.data.fnumber = PropDataFVal(prptr);
-                    break;
-                default:
-                    goodflag = 0;
-                    break;
+                    case PROP_STRTYP:
+                        temp2.type = PROG_STRING;
+                        temp2.data.string =
+                            alloc_prog_string(get_uncompress
+                                              (PropDataStr(prptr)));
+                        break;
+                    case PROP_LOKTYP:
+                        temp2.type = PROG_LOCK;
+                        if (PropFlags(prptr) & PROP_ISUNLOADED) {
+                            temp2.data.lock = TRUE_BOOLEXP;
+                        } else {
+                            temp2.data.lock = PropDataLok(prptr);
+                        }
+                        break;
+                    case PROP_REFTYP:
+                        temp2.type = PROG_OBJECT;
+                        temp2.data.number = PropDataRef(prptr);
+                        break;
+                    case PROP_INTTYP:
+                        temp2.type = PROG_INTEGER;
+                        temp2.data.number = PropDataVal(prptr);
+                        break;
+                    case PROP_FLTTYP:
+                        temp2.type = PROG_FLOAT;
+                        temp2.data.fnumber = PropDataFVal(prptr);
+                        break;
+                    default:
+                        goodflag = 0;
+                        break;
                 }
 
                 if (goodflag) {
@@ -1326,35 +1327,36 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                 propfetch(ref, prptr);
 #endif
                 switch (PropType(prptr)) {
-                case PROP_STRTYP:
-                    temp2.type = PROG_STRING;
-                    temp2.data.string =
-                        alloc_prog_string(get_uncompress(PropDataStr(prptr)));
-                    break;
-                case PROP_LOKTYP:
-                    temp2.type = PROG_LOCK;
-                    if (PropFlags(prptr) & PROP_ISUNLOADED) {
-                        temp2.data.lock = TRUE_BOOLEXP;
-                    } else {
-                        temp2.data.lock = PropDataLok(prptr);
-                    }
-                    break;
-                case PROP_REFTYP:
-                    temp2.type = PROG_OBJECT;
-                    temp2.data.number = PropDataRef(prptr);
-                    break;
-                case PROP_INTTYP:
-                    temp2.type = PROG_INTEGER;
-                    temp2.data.number = PropDataVal(prptr);
-                    break;
-                case PROP_FLTTYP:
-                    temp2.type = PROG_FLOAT;
-                    temp2.data.fnumber = PropDataFVal(prptr);
-                    break;
-                default:
-                    temp2.type = PROG_INTEGER;
-                    temp2.data.number = 0;
-                    break;
+                    case PROP_STRTYP:
+                        temp2.type = PROG_STRING;
+                        temp2.data.string =
+                            alloc_prog_string(get_uncompress
+                                              (PropDataStr(prptr)));
+                        break;
+                    case PROP_LOKTYP:
+                        temp2.type = PROG_LOCK;
+                        if (PropFlags(prptr) & PROP_ISUNLOADED) {
+                            temp2.data.lock = TRUE_BOOLEXP;
+                        } else {
+                            temp2.data.lock = PropDataLok(prptr);
+                        }
+                        break;
+                    case PROP_REFTYP:
+                        temp2.type = PROG_OBJECT;
+                        temp2.data.number = PropDataRef(prptr);
+                        break;
+                    case PROP_INTTYP:
+                        temp2.type = PROG_INTEGER;
+                        temp2.data.number = PropDataVal(prptr);
+                        break;
+                    case PROP_FLTTYP:
+                        temp2.type = PROG_FLOAT;
+                        temp2.data.fnumber = PropDataFVal(prptr);
+                        break;
+                    default:
+                        temp2.type = PROG_INTEGER;
+                        temp2.data.number = 0;
+                        break;
                 }
             }
             temp1.type = PROG_INTEGER;
@@ -1405,20 +1407,20 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
         do {
             oper4 = array_getitem(arr, &temp1);
             switch (temp1.type) {
-            case PROG_STRING:
-                sprintf(propname, "%s%c%s", dir, PROPDIR_DELIMITER,
-                        DoNullInd(temp1.data.string));
-                break;
-            case PROG_INTEGER:
-                sprintf(propname, "%s%c%d", dir, PROPDIR_DELIMITER,
-                        temp1.data.number);
-                break;
-            case PROG_FLOAT:
-                sprintf(propname, "%s%c%.16lg", dir, PROPDIR_DELIMITER,
-                        temp1.data.fnumber);
-                break;
-            default:
-                *propname = '\0';
+                case PROG_STRING:
+                    sprintf(propname, "%s%c%s", dir, PROPDIR_DELIMITER,
+                            DoNullInd(temp1.data.string));
+                    break;
+                case PROG_INTEGER:
+                    sprintf(propname, "%s%c%d", dir, PROPDIR_DELIMITER,
+                            temp1.data.number);
+                    break;
+                case PROG_FLOAT:
+                    sprintf(propname, "%s%c%.16lg", dir, PROPDIR_DELIMITER,
+                            temp1.data.fnumber);
+                    break;
+                default:
+                    *propname = '\0';
             }
 
             if (!prop_write_perms(ProgUID, ref, propname, mlev))
@@ -1426,34 +1428,34 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
                     ("Permission denied while trying to set protected property.");
 
             switch (oper4->type) {
-            case PROG_STRING:
-                protoflags = PROP_STRTYP;
-                pval = (oper4->data.string ? oper4->data.string->data : 0);
-                set_property(ref, propname, protoflags, pval);
-                break;
-            case PROG_INTEGER:
-                protoflags = PROP_INTTYP;
-                result = oper4->data.number;
-                set_property(ref, propname, protoflags, (char *) result);
-                break;
-            case PROG_FLOAT:
-                protoflags = PROP_FLTTYP;
-                sprintf(buf, "%.16hg", oper4->data.fnumber);
-                pval = buf;
-                set_property(ref, propname, protoflags, pval);
-                break;
-            case PROG_OBJECT:
-                protoflags = PROP_REFTYP;
-                obj = oper4->data.objref;
-                set_property(ref, propname, protoflags, (char *) obj);
-                break;
-            case PROG_LOCK:
-                protoflags = PROP_LOKTYP;
-                pval = (PTYPE) copy_bool(oper4->data.lock);
-                set_property(ref, propname, protoflags, pval);
-                break;
-            default:
-                *propname = '\0';
+                case PROG_STRING:
+                    protoflags = PROP_STRTYP;
+                    pval = (oper4->data.string ? oper4->data.string->data : 0);
+                    set_property(ref, propname, protoflags, pval);
+                    break;
+                case PROG_INTEGER:
+                    protoflags = PROP_INTTYP;
+                    result = oper4->data.number;
+                    set_property(ref, propname, protoflags, (char *) result);
+                    break;
+                case PROG_FLOAT:
+                    protoflags = PROP_FLTTYP;
+                    sprintf(buf, "%.16hg", oper4->data.fnumber);
+                    pval = buf;
+                    set_property(ref, propname, protoflags, pval);
+                    break;
+                case PROG_OBJECT:
+                    protoflags = PROP_REFTYP;
+                    obj = oper4->data.objref;
+                    set_property(ref, propname, protoflags, (char *) obj);
+                    break;
+                case PROG_LOCK:
+                    protoflags = PROP_LOKTYP;
+                    pval = (PTYPE) copy_bool(oper4->data.lock);
+                    set_property(ref, propname, protoflags, pval);
+                    break;
+                default:
+                    *propname = '\0';
             }
         } while (array_next(arr, &temp1));
     }
@@ -1546,32 +1548,33 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                 abort_interp
                     ("Permission denied while trying to set protected property.");
             switch (oper4->type) {
-            case PROG_STRING:
-                protoflags = PROP_STRTYP;
-                sprintf(buf, "%s",
-                        oper4->data.string ? oper4->data.string->data : "0");
-                break;
-            case PROG_INTEGER:
-                protoflags = PROP_INTTYP;
-                sprintf(buf, "%d", oper4->data.number);
-                break;
-            case PROG_FLOAT:
-                protoflags = PROP_FLTTYP;
-                sprintf(buf, "%h", oper4->data.fnumber);
-                break;
-            case PROG_OBJECT:
-                protoflags = PROP_REFTYP;
-                sprintf(buf, "%d", oper4->data.objref);
-                break;
-            case PROG_LOCK:
-                protoflags = PROP_LOKTYP;
-                sprintf(buf, "%s",
-                        unparse_boolexp(player, copy_bool(oper4->data.lock),
-                                        1));
-                break;
-            default:
-                protoflags = PROP_INTTYP;
-                sprintf(buf, "%d", 0);
+                case PROG_STRING:
+                    protoflags = PROP_STRTYP;
+                    sprintf(buf, "%s",
+                            oper4->data.string ? oper4->data.string->
+                            data : "0");
+                    break;
+                case PROG_INTEGER:
+                    protoflags = PROP_INTTYP;
+                    sprintf(buf, "%d", oper4->data.number);
+                    break;
+                case PROG_FLOAT:
+                    protoflags = PROP_FLTTYP;
+                    sprintf(buf, "%h", oper4->data.fnumber);
+                    break;
+                case PROG_OBJECT:
+                    protoflags = PROP_REFTYP;
+                    sprintf(buf, "%d", oper4->data.objref);
+                    break;
+                case PROG_LOCK:
+                    protoflags = PROP_LOKTYP;
+                    sprintf(buf, "%s",
+                            unparse_boolexp(player, copy_bool(oper4->data.lock),
+                                            1));
+                    break;
+                default:
+                    protoflags = PROP_INTTYP;
+                    sprintf(buf, "%d", 0);
             }
             set_property(ref, propname, protoflags, buf);
         } while (array_next(arr, &temp1));
@@ -1894,27 +1897,27 @@ prim_array_join(PRIM_PROTOTYPE)
     while (!done) {
         in = array_getitem(arr, &temp1);
         switch (in->type) {
-        case PROG_STRING:
-            text = DoNullInd(in->data.string);
-            break;
-        case PROG_INTEGER:
-            sprintf(buf, "%d", in->data.number);
-            text = buf;
-            break;
-        case PROG_OBJECT:
-            sprintf(buf, "#%d", in->data.number);
-            text = buf;
-            break;
-        case PROG_FLOAT:
-            sprintf(buf, "%.16lg", in->data.fnumber);
-            text = buf;
-            break;
-        case PROG_LOCK:
-            text = unparse_boolexp(ProgUID, in->data.lock, 1);
-            break;
-        default:
-            text = "<UNSUPPORTED>";
-            break;
+            case PROG_STRING:
+                text = DoNullInd(in->data.string);
+                break;
+            case PROG_INTEGER:
+                sprintf(buf, "%d", in->data.number);
+                text = buf;
+                break;
+            case PROG_OBJECT:
+                sprintf(buf, "#%d", in->data.number);
+                text = buf;
+                break;
+            case PROG_FLOAT:
+                sprintf(buf, "%.16lg", in->data.fnumber);
+                text = buf;
+                break;
+            case PROG_LOCK:
+                text = unparse_boolexp(ProgUID, in->data.lock, 1);
+                break;
+            default:
+                text = "<UNSUPPORTED>";
+                break;
         }
         if (ptr != outbuf) {
             tmplen = strlen(delim);

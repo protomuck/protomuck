@@ -8,7 +8,7 @@
  * compatible systems by Peter A. Torkelson, aka WhiteFire.
  */
 
-                                        /* #define _POSIX_SOURCE *//* Solaris needs this */
+                                                                                              /* #define _POSIX_SOURCE *//* Solaris needs this */
 #ifdef SOLARIS
 #  ifndef _POSIX_SOURCE
 #    define _POSIX_SOURCE       /* Solaris needs this */

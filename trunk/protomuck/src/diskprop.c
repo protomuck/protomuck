@@ -36,18 +36,18 @@ removeobj_ringqueue(dbref obj)
     struct pload_Q *ref = NULL;
 
     switch (DBFETCH(obj)->propsmode) {
-    case PROPS_UNLOADED:
-        return;
-        break;
-    case PROPS_LOADED:
-        ref = &proploaded_Q;
-        break;
-    case PROPS_PRIORITY:
-        ref = &proppri_Q;
-        break;
-    case PROPS_CHANGED:
-        ref = &propchanged_Q;
-        break;
+        case PROPS_UNLOADED:
+            return;
+            break;
+        case PROPS_LOADED:
+            ref = &proploaded_Q;
+            break;
+        case PROPS_PRIORITY:
+            ref = &proppri_Q;
+            break;
+        case PROPS_CHANGED:
+            ref = &propchanged_Q;
+            break;
     }
 
     if (DBFETCH(obj)->nextold == NOTHING || DBFETCH(obj)->prevold == NOTHING)
@@ -78,20 +78,20 @@ addobject_ringqueue(dbref obj, int mode)
 
     DBFETCH(obj)->propsmode = mode;
     switch (mode) {
-    case PROPS_UNLOADED:
-        DBFETCH(obj)->nextold = NOTHING;
-        DBFETCH(obj)->prevold = NOTHING;
-        return;
-        break;
-    case PROPS_LOADED:
-        ref = &proploaded_Q;
-        break;
-    case PROPS_PRIORITY:
-        ref = &proppri_Q;
-        break;
-    case PROPS_CHANGED:
-        ref = &propchanged_Q;
-        break;
+        case PROPS_UNLOADED:
+            DBFETCH(obj)->nextold = NOTHING;
+            DBFETCH(obj)->prevold = NOTHING;
+            return;
+            break;
+        case PROPS_LOADED:
+            ref = &proploaded_Q;
+            break;
+        case PROPS_PRIORITY:
+            ref = &proppri_Q;
+            break;
+        case PROPS_CHANGED:
+            ref = &propchanged_Q;
+            break;
     }
 
     if (ref->obj == NOTHING) {

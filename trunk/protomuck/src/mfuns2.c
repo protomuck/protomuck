@@ -133,39 +133,39 @@ mfn_links(MFUNARGS)
     if (obj == PERMDENIED)
         ABORT_MPI("LINKS", tp_noperm_mesg);
     switch (Typeof(obj)) {
-    case TYPE_ROOM:
-        obj = DBFETCH(obj)->sp.room.dropto;
-        break;
-    case TYPE_PLAYER:
-        obj = DBFETCH(obj)->sp.player.home;
-        break;
-    case TYPE_THING:
-        obj = DBFETCH(obj)->sp.thing.home;
-        break;
-    case TYPE_EXIT:
-        *buf = '\0';
-        cnt = DBFETCH(obj)->sp.exit.ndest;
-        if (cnt) {
-            dbref obj2;
+        case TYPE_ROOM:
+            obj = DBFETCH(obj)->sp.room.dropto;
+            break;
+        case TYPE_PLAYER:
+            obj = DBFETCH(obj)->sp.player.home;
+            break;
+        case TYPE_THING:
+            obj = DBFETCH(obj)->sp.thing.home;
+            break;
+        case TYPE_EXIT:
+            *buf = '\0';
+            cnt = DBFETCH(obj)->sp.exit.ndest;
+            if (cnt) {
+                dbref obj2;
 
-            for (i = 0; i < cnt; i++) {
-                obj2 = DBFETCH(obj)->sp.exit.dest[i];
-                ref2str(obj2, buf2);
-                if (strlen(buf) + strlen(buf2) + 2 < BUFFER_LEN) {
-                    if (*buf)
-                        strcat(buf, "\r");
-                    strcat(buf, buf2);
+                for (i = 0; i < cnt; i++) {
+                    obj2 = DBFETCH(obj)->sp.exit.dest[i];
+                    ref2str(obj2, buf2);
+                    if (strlen(buf) + strlen(buf2) + 2 < BUFFER_LEN) {
+                        if (*buf)
+                            strcat(buf, "\r");
+                        strcat(buf, buf2);
+                    }
                 }
+                return buf;
+            } else {
+                return "#-1";
             }
-            return buf;
-        } else {
-            return "#-1";
-        }
-        break;
-    case TYPE_PROGRAM:
-    default:
-        obj = NOTHING;
-        break;
+            break;
+        case TYPE_PROGRAM:
+        default:
+            obj = NOTHING;
+            break;
     }
     return ref2str(obj, buf);
 }
@@ -294,14 +294,14 @@ mfn_exits(MFUNARGS)
         ABORT_MPI("EXITS", tp_noperm_mesg);
 
     switch (Typeof(obj)) {
-    case TYPE_ROOM:
-    case TYPE_THING:
-    case TYPE_PLAYER:
-        obj = DBFETCH(obj)->exits;
-        break;
-    default:
-        obj = NOTHING;
-        break;
+        case TYPE_ROOM:
+        case TYPE_THING:
+        case TYPE_PLAYER:
+            obj = DBFETCH(obj)->exits;
+            break;
+        default:
+            obj = NOTHING;
+            break;
     }
     *buf = '\0';
     outlen = 0;
@@ -1278,24 +1278,24 @@ mfn_type(MFUNARGS)
         ABORT_MPI("TYPE", tp_noperm_mesg);
 
     switch (Typeof(obj)) {
-    case TYPE_PLAYER:
-        return "Player";
-        break;
-    case TYPE_ROOM:
-        return "Room";
-        break;
-    case TYPE_EXIT:
-        return "Exit";
-        break;
-    case TYPE_THING:
-        return "Thing";
-        break;
-    case TYPE_PROGRAM:
-        return "Program";
-        break;
-    default:
-        return "Bad";
-        break;
+        case TYPE_PLAYER:
+            return "Player";
+            break;
+        case TYPE_ROOM:
+            return "Room";
+            break;
+        case TYPE_EXIT:
+            return "Exit";
+            break;
+        case TYPE_THING:
+            return "Thing";
+            break;
+        case TYPE_PROGRAM:
+            return "Program";
+            break;
+        default:
+            return "Bad";
+            break;
     }
     return "Bad";
 }
@@ -1314,24 +1314,24 @@ mfn_istype(MFUNARGS)
         return (string_compare(argv[1], "Room") ? "0" : "1");
 
     switch (Typeof(obj)) {
-    case TYPE_PLAYER:
-        return (string_compare(argv[1], "Player") ? "0" : "1");
-        break;
-    case TYPE_ROOM:
-        return (string_compare(argv[1], "Room") ? "0" : "1");
-        break;
-    case TYPE_EXIT:
-        return (string_compare(argv[1], "Exit") ? "0" : "1");
-        break;
-    case TYPE_THING:
-        return (string_compare(argv[1], "Thing") ? "0" : "1");
-        break;
-    case TYPE_PROGRAM:
-        return (string_compare(argv[1], "Program") ? "0" : "1");
-        break;
-    default:
-        return (string_compare(argv[1], "Bad") ? "0" : "1");
-        break;
+        case TYPE_PLAYER:
+            return (string_compare(argv[1], "Player") ? "0" : "1");
+            break;
+        case TYPE_ROOM:
+            return (string_compare(argv[1], "Room") ? "0" : "1");
+            break;
+        case TYPE_EXIT:
+            return (string_compare(argv[1], "Exit") ? "0" : "1");
+            break;
+        case TYPE_THING:
+            return (string_compare(argv[1], "Thing") ? "0" : "1");
+            break;
+        case TYPE_PROGRAM:
+            return (string_compare(argv[1], "Program") ? "0" : "1");
+            break;
+        default:
+            return (string_compare(argv[1], "Bad") ? "0" : "1");
+            break;
     }
     return (string_compare(argv[1], "Bad") ? "0" : "1");
 }
@@ -1482,32 +1482,32 @@ mfn_muf(MFUNARGS)
     if (!rv)
         return "";
     switch (rv->type) {
-    case PROG_STRING:
-        if (rv->data.string) {
-            strcpy(buf, rv->data.string->data);
+        case PROG_STRING:
+            if (rv->data.string) {
+                strcpy(buf, rv->data.string->data);
+                CLEAR(rv);
+                return buf;
+            } else {
+                CLEAR(rv);
+                return "";
+            }
+            break;
+        case PROG_INTEGER:
+            sprintf(buf, "%d", rv->data.number);
             CLEAR(rv);
             return buf;
-        } else {
+            break;
+        case PROG_FLOAT:
+            snprintf(buf, BUFFER_LEN, "%.16lg", rv->data.fnumber);
+        case PROG_OBJECT:
+            ptr = ref2str(rv->data.objref, buf);
+            CLEAR(rv);
+            return ptr;
+            break;
+        default:
             CLEAR(rv);
             return "";
-        }
-        break;
-    case PROG_INTEGER:
-        sprintf(buf, "%d", rv->data.number);
-        CLEAR(rv);
-        return buf;
-        break;
-    case PROG_FLOAT:
-        snprintf(buf, BUFFER_LEN, "%.16lg", rv->data.fnumber);
-    case PROG_OBJECT:
-        ptr = ref2str(rv->data.objref, buf);
-        CLEAR(rv);
-        return ptr;
-        break;
-    default:
-        CLEAR(rv);
-        return "";
-        break;
+            break;
     }
 }
 
@@ -1754,30 +1754,30 @@ mfn_commas(MFUNARGS)
         strcat(out, ptr);
         out += itemlen;
         switch (count - i) {
-        case 0:
-            if (argc > 2)
-                free_top_mvar();
-            return buf;
-            break;
-        case 1:
-            itemlen = strlen(sepbuf);
-            if ((out - buf) + itemlen >= BUFFER_LEN) {
+            case 0:
                 if (argc > 2)
                     free_top_mvar();
                 return buf;
-            }
-            strcat(out, sepbuf);
-            out += itemlen;
-            break;
-        default:
-            if ((out - buf) + 2 >= BUFFER_LEN) {
-                if (argc > 2)
-                    free_top_mvar();
-                return buf;
-            }
-            strcat(out, ", ");
-            out += strlen(out);
-            break;
+                break;
+            case 1:
+                itemlen = strlen(sepbuf);
+                if ((out - buf) + itemlen >= BUFFER_LEN) {
+                    if (argc > 2)
+                        free_top_mvar();
+                    return buf;
+                }
+                strcat(out, sepbuf);
+                out += itemlen;
+                break;
+            default:
+                if ((out - buf) + 2 >= BUFFER_LEN) {
+                    if (argc > 2)
+                        free_top_mvar();
+                    return buf;
+                }
+                strcat(out, ", ");
+                out += strlen(out);
+                break;
         }
     }
     if (argc > 2)
@@ -1942,22 +1942,22 @@ mfn_escape(MFUNARGS)
     *out++ = '`';
     while (*in && !done) {
         switch (*in) {
-        case '\\':
-        case '`':
-            if (out - buf >= BUFFER_LEN - 2) {
-                done = 1;
+            case '\\':
+            case '`':
+                if (out - buf >= BUFFER_LEN - 2) {
+                    done = 1;
+                    break;
+                }
+                *out++ = '\\';
+                *out++ = *in++;
                 break;
-            }
-            *out++ = '\\';
-            *out++ = *in++;
-            break;
 
-        default:
-            if (out - buf >= BUFFER_LEN - 1) {
-                done = 1;
-                break;
-            }
-            *out++ = *in++;
+            default:
+                if (out - buf >= BUFFER_LEN - 1) {
+                    done = 1;
+                    break;
+                }
+                *out++ = *in++;
         }
     }
     *out++ = '`';

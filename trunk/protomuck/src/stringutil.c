@@ -225,27 +225,27 @@ pronoun_substitute(int descr, dbref player, const char *str)
                     str++;
                 } else if (sex == GENDER_UNASSIGNED) {
                     switch (c) {
-                    case 'n':
-                    case 'N':
-                    case 'o':
-                    case 'O':
-                    case 's':
-                    case 'S':
-                    case 'r':
-                    case 'R':
-                        strcat(result, PNAME(player));
-                        break;
-                    case 'a':
-                    case 'A':
-                    case 'p':
-                    case 'P':
-                        strcat(result, PNAME(player));
-                        strcat(result, "'s");
-                        break;
-                    default:
-                        result[0] = *str;
-                        result[1] = 0;
-                        break;
+                        case 'n':
+                        case 'N':
+                        case 'o':
+                        case 'O':
+                        case 's':
+                        case 'S':
+                        case 'r':
+                        case 'R':
+                            strcat(result, PNAME(player));
+                            break;
+                        case 'a':
+                        case 'A':
+                        case 'p':
+                        case 'P':
+                            strcat(result, PNAME(player));
+                            strcat(result, "'s");
+                            break;
+                        default:
+                            result[0] = *str;
+                            result[1] = 0;
+                            break;
                     }
                     str++;
                     result += strlen(result);
@@ -255,34 +255,34 @@ pronoun_substitute(int descr, dbref player, const char *str)
                     }
                 } else {
                     switch (c) {
-                    case 'a':
-                    case 'A':
-                        strcat(result, absolute[sex]);
-                        break;
-                    case 's':
-                    case 'S':
-                        strcat(result, subjective[sex]);
-                        break;
-                    case 'p':
-                    case 'P':
-                        strcat(result, possessive[sex]);
-                        break;
-                    case 'o':
-                    case 'O':
-                        strcat(result, objective[sex]);
-                        break;
-                    case 'r':
-                    case 'R':
-                        strcat(result, reflexive[sex]);
-                        break;
-                    case 'n':
-                    case 'N':
-                        strcat(result, PNAME(player));
-                        break;
-                    default:
-                        *result = *str;
-                        result[1] = '\0';
-                        break;
+                        case 'a':
+                        case 'A':
+                            strcat(result, absolute[sex]);
+                            break;
+                        case 's':
+                        case 'S':
+                            strcat(result, subjective[sex]);
+                            break;
+                        case 'p':
+                        case 'P':
+                            strcat(result, possessive[sex]);
+                            break;
+                        case 'o':
+                        case 'O':
+                            strcat(result, objective[sex]);
+                            break;
+                        case 'r':
+                        case 'R':
+                            strcat(result, reflexive[sex]);
+                            break;
+                        case 'n':
+                        case 'N':
+                            strcat(result, PNAME(player));
+                            break;
+                        default:
+                            *result = *str;
+                            result[1] = '\0';
+                            break;
                     }
                     if (isupper(c) && islower(*result)) {
                         *result = toupper(*result);
@@ -892,73 +892,73 @@ parse_mush_ansi(char *buf, char *from)
             if (color == 'c') {
                 color = (*(from++));
                 switch (color) {
-                case 'x':
-                    ansi = ANSICBLACK;
-                    break;
-                case 'r':
-                    ansi = ANSICRED;
-                    break;
-                case 'g':
-                    ansi = ANSICGREEN;
-                    break;
-                case 'y':
-                    ansi = ANSICYELLOW;
-                    break;
-                case 'b':
-                    ansi = ANSICBLUE;
-                    break;
-                case 'm':
-                    ansi = ANSICPURPLE;
-                    break;
-                case 'c':
-                    ansi = ANSICCYAN;
-                    break;
-                case 'w':
-                    ansi = ANSICWHITE;
-                    break;
-                case 'X':
-                    ansi = ANSIBBLACK;
-                    break;
-                case 'R':
-                    ansi = ANSIBRED;
-                    break;
-                case 'G':
-                    ansi = ANSIBGREEN;
-                    break;
-                case 'Y':
-                    ansi = ANSIBBROWN;
-                    break;
-                case 'B':
-                    ansi = ANSIBBLUE;
-                    break;
-                case 'M':
-                    ansi = ANSIBPURPLE;
-                    break;
-                case 'C':
-                    ansi = ANSIBCYAN;
-                    break;
-                case 'W':
-                    ansi = ANSIBGRAY;
-                    break;
-                case 'i':
-                case 'I':
-                    ansi = ANSIINVERT;
-                    break;
-                case 'f':
-                case 'F':
-                    ansi = ANSIFLASH;
-                    break;
-                case 'h':
-                case 'H':
-                    ansi = ANSIBOLD;
-                    break;
-                case 'u':
-                case 'U':
-                    ansi = ANSIUNDERLINE;
-                    break;
-                default:
-                    ansi = ANSINORMAL;
-                    break;
+                    case 'x':
+                        ansi = ANSICBLACK;
+                        break;
+                    case 'r':
+                        ansi = ANSICRED;
+                        break;
+                    case 'g':
+                        ansi = ANSICGREEN;
+                        break;
+                    case 'y':
+                        ansi = ANSICYELLOW;
+                        break;
+                    case 'b':
+                        ansi = ANSICBLUE;
+                        break;
+                    case 'm':
+                        ansi = ANSICPURPLE;
+                        break;
+                    case 'c':
+                        ansi = ANSICCYAN;
+                        break;
+                    case 'w':
+                        ansi = ANSICWHITE;
+                        break;
+                    case 'X':
+                        ansi = ANSIBBLACK;
+                        break;
+                    case 'R':
+                        ansi = ANSIBRED;
+                        break;
+                    case 'G':
+                        ansi = ANSIBGREEN;
+                        break;
+                    case 'Y':
+                        ansi = ANSIBBROWN;
+                        break;
+                    case 'B':
+                        ansi = ANSIBBLUE;
+                        break;
+                    case 'M':
+                        ansi = ANSIBPURPLE;
+                        break;
+                    case 'C':
+                        ansi = ANSIBCYAN;
+                        break;
+                    case 'W':
+                        ansi = ANSIBGRAY;
+                        break;
+                    case 'i':
+                    case 'I':
+                        ansi = ANSIINVERT;
+                        break;
+                    case 'f':
+                    case 'F':
+                        ansi = ANSIFLASH;
+                        break;
+                    case 'h':
+                    case 'H':
+                        ansi = ANSIBOLD;
+                        break;
+                    case 'u':
+                    case 'U':
+                        ansi = ANSIUNDERLINE;
+                        break;
+                    default:
+                        ansi = ANSINORMAL;
+                        break;
                 }
                 if (*ansi)
                     while (*ansi)
@@ -991,9 +991,9 @@ unparse_mush_ansi(char *buf, char *from)
             if (color == 'c') {
                 color = (*(from++));
                 switch (color) {
-                default:
-                    ansi = "";
-                    break;
+                    default:
+                        ansi = "";
+                        break;
                 }
                 if (*ansi)
                     while (*ansi)
@@ -1070,32 +1070,32 @@ parse_tilde_ansi(char *buf, char *from)
                 /* second position, foreground color */
                 ansi = NULL;
                 switch (*from) {
-                case '0':
-                    ansi = isbold ? ANSIGLOOM : ANSIBLACK;
-                    break;
-                case '1':
-                    ansi = isbold ? ANSIRED : ANSICRIMSON;
-                    break;
-                case '2':
-                    ansi = isbold ? ANSIGREEN : ANSIFOREST;
-                    break;
-                case '3':
-                    ansi = isbold ? ANSIYELLOW : ANSIBROWN;
-                    break;
-                case '4':
-                    ansi = isbold ? ANSIBLUE : ANSINAVY;
-                    break;
-                case '5':
-                    ansi = isbold ? ANSIPURPLE : ANSIVIOLET;
-                    break;
-                case '6':
-                    ansi = isbold ? ANSICYAN : ANSIAQUA;
-                    break;
-                case '7':
-                    ansi = isbold ? ANSIWHITE : ANSIGRAY;
-                    break;
-                case '-':
-                    break;
+                    case '0':
+                        ansi = isbold ? ANSIGLOOM : ANSIBLACK;
+                        break;
+                    case '1':
+                        ansi = isbold ? ANSIRED : ANSICRIMSON;
+                        break;
+                    case '2':
+                        ansi = isbold ? ANSIGREEN : ANSIFOREST;
+                        break;
+                    case '3':
+                        ansi = isbold ? ANSIYELLOW : ANSIBROWN;
+                        break;
+                    case '4':
+                        ansi = isbold ? ANSIBLUE : ANSINAVY;
+                        break;
+                    case '5':
+                        ansi = isbold ? ANSIPURPLE : ANSIVIOLET;
+                        break;
+                    case '6':
+                        ansi = isbold ? ANSICYAN : ANSIAQUA;
+                        break;
+                    case '7':
+                        ansi = isbold ? ANSIWHITE : ANSIGRAY;
+                        break;
+                    case '-':
+                        break;
                 }
                 if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN))
                     while (*ansi)
@@ -1104,16 +1104,16 @@ parse_tilde_ansi(char *buf, char *from)
                 /* Take care of other first position attribute possibiliies. */
                 ansi = NULL;
                 switch (attr) {
-                case '2':      /* Need both to set invert, like old lib-ansi.muf */
-                case '8':
-                    ansi = ANSIINVERT;
-                    break;
-                case '5':      /* set for blinking foreground */
-                    ansi = ANSIFLASH;
-                    break;
+                    case '2':  /* Need both to set invert, like old lib-ansi.muf */
+                    case '8':
+                        ansi = ANSIINVERT;
+                        break;
+                    case '5':  /* set for blinking foreground */
+                        ansi = ANSIFLASH;
+                        break;
 
-                case '-':      /* leave alone */
-                    break;
+                    case '-':  /* leave alone */
+                        break;
                 }
                 if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN))
                     while (*ansi)
@@ -1125,32 +1125,32 @@ parse_tilde_ansi(char *buf, char *from)
                 /* third and last position, background color */
                 ansi = NULL;
                 switch (*from) {
-                case '0':
-                    ansi = ANSIBBLACK;
-                    break;
-                case '1':
-                    ansi = ANSIBRED;
-                    break;
-                case '2':
-                    ansi = ANSIBGREEN;
-                    break;
-                case '3':
-                    ansi = ANSIBBROWN;
-                    break;
-                case '4':
-                    ansi = ANSIBBLUE;
-                    break;
-                case '5':
-                    ansi = ANSIBPURPLE;
-                    break;
-                case '6':
-                    ansi = ANSIBCYAN;
-                    break;
-                case '7':
-                    ansi = ANSIBGRAY;
-                    break;
-                case '-':
-                    break;
+                    case '0':
+                        ansi = ANSIBBLACK;
+                        break;
+                    case '1':
+                        ansi = ANSIBRED;
+                        break;
+                    case '2':
+                        ansi = ANSIBGREEN;
+                        break;
+                    case '3':
+                        ansi = ANSIBBROWN;
+                        break;
+                    case '4':
+                        ansi = ANSIBBLUE;
+                        break;
+                    case '5':
+                        ansi = ANSIBPURPLE;
+                        break;
+                    case '6':
+                        ansi = ANSIBCYAN;
+                        break;
+                    case '7':
+                        ansi = ANSIBGRAY;
+                        break;
+                    case '-':
+                        break;
                 }
                 if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN))
                     while (*ansi)
@@ -1163,18 +1163,18 @@ parse_tilde_ansi(char *buf, char *from)
                 /* The single letter attributes */
                 ansi = NULL;
                 switch (*from) {
-                case 'r':      /* RESET to normal colors. */
-                case 'R':
-                    ansi = ANSINORMAL;
-                    break;
-                case 'c':      /* this used to clear the screen, its retained */
-                case 'C':      /* for parsing only, doesnt actually do it.    */
-                    ansi = "CLS";
-                    break;
-                case 'b':      /* this is for BELL.. or CTRL-G */
-                case 'B':
-                    ansi = "BEEP";
-                    break;
+                    case 'r':  /* RESET to normal colors. */
+                    case 'R':
+                        ansi = ANSINORMAL;
+                        break;
+                    case 'c':  /* this used to clear the screen, its retained */
+                    case 'C':  /* for parsing only, doesnt actually do it.    */
+                        ansi = "CLS";
+                        break;
+                    case 'b':  /* this is for BELL.. or CTRL-G */
+                    case 'B':
+                        ansi = "BEEP";
+                        break;
                 }
                 if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN))
                     while (*ansi)

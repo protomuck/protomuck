@@ -81,44 +81,44 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
         *p++ = '5';
     } else {
         switch (RawMLevel(thing)) {
-        case 0:
-            break;
-        case LMPI:
-            *p++ = 'M';
-            break;
-        case LMAN:
-            *p++ = 'W';
-            *p++ = '5';
-            break;
-        case LBOY:
-            *p++ = 'W';
-            *p++ = '4';
-            break;
-        case LARCH:
-            *p++ = 'W';
-            if (tp_multi_wizlevels) {
+            case 0:
+                break;
+            case LMPI:
+                *p++ = 'M';
+                break;
+            case LMAN:
+                *p++ = 'W';
+                *p++ = '5';
+                break;
+            case LBOY:
+                *p++ = 'W';
+                *p++ = '4';
+                break;
+            case LARCH:
+                *p++ = 'W';
+                if (tp_multi_wizlevels) {
+                    *p++ = '3';
+                }
+                break;
+            case LWIZ:
+                *p++ = 'W';
+                *p++ = '2';
+                break;
+            case LMAGE:
+                *p++ = 'W';
+                break;
+            case LM3:
+                *p++ = 'M';
                 *p++ = '3';
-            }
-            break;
-        case LWIZ:
-            *p++ = 'W';
-            *p++ = '2';
-            break;
-        case LMAGE:
-            *p++ = 'W';
-            break;
-        case LM3:
-            *p++ = 'M';
-            *p++ = '3';
-            break;
-        case LM2:
-            *p++ = 'M';
-            *p++ = '2';
-            break;
-        case LM1:
-            *p++ = 'M';
-            *p++ = '1';
-            break;
+                break;
+            case LM2:
+                *p++ = 'M';
+                *p++ = '2';
+                break;
+            case LM1:
+                *p++ = 'M';
+                *p++ = '1';
+                break;
         }
     }
     if (POWERS(thing) && (Typeof(thing) == TYPE_PLAYER)) {
@@ -309,38 +309,39 @@ unparse_object(dbref player, dbref loc)
     if (Typeof(player) != TYPE_PLAYER)
         player = OWNER(player);
     switch (loc) {
-    case NOTHING:
-        return "*NOTHING*";
-    case AMBIGUOUS:
-        return "*AMBIGUOUS*";
-    case HOME:
-        return "*HOME*";
-    default:
-        if (loc < 0 || loc > db_top)
+        case NOTHING:
+            return "*NOTHING*";
+        case AMBIGUOUS:
+            return "*AMBIGUOUS*";
+        case HOME:
+            return "*HOME*";
+        default:
+            if (loc < 0 || loc > db_top)
 #ifdef SANITY
-        {
-            sprintf(upb, "*INVALID*(#%d)", loc);
-            return upb;
-        }
+            {
+                sprintf(upb, "*INVALID*(#%d)", loc);
+                return upb;
+            }
 #else
-            return "*INVALID*";
+                return "*INVALID*";
 #endif
 #ifndef SANITY
-        if (!(FLAGS(player) & STICKY) &&
-            (TMage(player) || POWERS(player) & POW_SEE_ALL ||
-             can_link_to(player, NOTYPE, loc) ||
-             controls_link(player, loc) ||
-             ((Typeof(loc) != TYPE_PLAYER) && (FLAGS(loc) & CHOWN_OK))
-            )) {
-            /* show everything */
+            if (!(FLAGS(player) & STICKY) &&
+                (TMage(player) || POWERS(player) & POW_SEE_ALL ||
+                 can_link_to(player, NOTYPE, loc) ||
+                 controls_link(player, loc) ||
+                 ((Typeof(loc) != TYPE_PLAYER) && (FLAGS(loc) & CHOWN_OK))
+                )) {
+                /* show everything */
 #endif
-            sprintf(upb, "%s(#%d%s)", NAME(loc), loc, unparse_flags(loc, tbuf));
-            return upb;
+                sprintf(upb, "%s(#%d%s)", NAME(loc), loc,
+                        unparse_flags(loc, tbuf));
+                return upb;
 #ifndef SANITY
-        } else {
-            /* show only the name */
-            return NAME(loc);
-        }
+            } else {
+                /* show only the name */
+                return NAME(loc);
+            }
 #endif
     }
 }
@@ -353,23 +354,23 @@ ansiname(dbref loc, char buf[BUFFER_LEN])
 
     *buf = '\0';
     switch (Typeof(loc)) {
-    case TYPE_PLAYER:
-        strcpy(buf, SYSGREEN);
-        break;
-    case TYPE_THING:
-        strcpy(buf, SYSPURPLE);
-        break;
-    case TYPE_EXIT:
-        strcpy(buf, SYSBLUE);
-        break;
-    case TYPE_PROGRAM:
-        strcpy(buf, SYSRED);
-        break;
-    case TYPE_ROOM:
-        strcpy(buf, SYSCYAN);
-        break;
-    default:
-        strcpy(buf, SYSNORMAL);
+        case TYPE_PLAYER:
+            strcpy(buf, SYSGREEN);
+            break;
+        case TYPE_THING:
+            strcpy(buf, SYSPURPLE);
+            break;
+        case TYPE_EXIT:
+            strcpy(buf, SYSBLUE);
+            break;
+        case TYPE_PROGRAM:
+            strcpy(buf, SYSRED);
+            break;
+        case TYPE_ROOM:
+            strcpy(buf, SYSCYAN);
+            break;
+        default:
+            strcpy(buf, SYSNORMAL);
     }
 
     strcat(buf, tct(NAME(loc), tbuf));
@@ -384,33 +385,33 @@ ansi_unparse_object(dbref player, dbref loc)
     if (Typeof(player) != TYPE_PLAYER)
         player = OWNER(player);
     switch (loc) {
-    case NOTHING:
-        return SYSNORMAL "*NOTHING*";
-    case AMBIGUOUS:
-        return SYSPURPLE "*AMBIGUOUS*";
-    case HOME:
-        return SYSWHITE "*HOME*";
-    default:
-        if (loc < 0 || loc > db_top)
-            return SYSRED "*INVALID*";
+        case NOTHING:
+            return SYSNORMAL "*NOTHING*";
+        case AMBIGUOUS:
+            return SYSPURPLE "*AMBIGUOUS*";
+        case HOME:
+            return SYSWHITE "*HOME*";
+        default:
+            if (loc < 0 || loc > db_top)
+                return SYSRED "*INVALID*";
 #ifndef SANITY
-        if (!(FLAGS(player) & STICKY) &&
-            (TMage(player) || POWERS(player) & POW_SEE_ALL ||
-             POWERS(player) & POW_SEARCH ||
-             can_link_to(player, NOTYPE, loc) ||
-             controls_link(player, loc) ||
-             ((Typeof(loc) != TYPE_PLAYER) && (FLAGS(loc) & CHOWN_OK))
-            )) {
+            if (!(FLAGS(player) & STICKY) &&
+                (TMage(player) || POWERS(player) & POW_SEE_ALL ||
+                 POWERS(player) & POW_SEARCH ||
+                 can_link_to(player, NOTYPE, loc) ||
+                 controls_link(player, loc) ||
+                 ((Typeof(loc) != TYPE_PLAYER) && (FLAGS(loc) & CHOWN_OK))
+                )) {
 #endif
-            /* show everything */
-            sprintf(upb, "%s" SYSYELLOW "(#%d%s)",
-                    ansiname(loc, tbuf), loc, unparse_flags(loc, tbuf2));
-            return upb;
+                /* show everything */
+                sprintf(upb, "%s" SYSYELLOW "(#%d%s)",
+                        ansiname(loc, tbuf), loc, unparse_flags(loc, tbuf2));
+                return upb;
 #ifndef SANITY
-        } else {
-            /* show only the name */
-            return ansiname(loc, upb);
-        }
+            } else {
+                /* show only the name */
+                return ansiname(loc, upb);
+            }
 #endif
     }
 }
@@ -429,53 +430,54 @@ unparse_boolexp1(dbref player, struct boolexp *b,
         buftop += strlen(buftop);
     } else {
         switch (b->type) {
-        case BOOLEXP_AND:
-            if (outer_type == BOOLEXP_NOT) {
-                *buftop++ = '(';
-            }
-            unparse_boolexp1(player, b->sub1, b->type, fullname);
-            *buftop++ = AND_TOKEN;
-            unparse_boolexp1(player, b->sub2, b->type, fullname);
-            if (outer_type == BOOLEXP_NOT) {
-                *buftop++ = ')';
-            }
-            break;
-        case BOOLEXP_OR:
-            if (outer_type == BOOLEXP_NOT || outer_type == BOOLEXP_AND) {
-                *buftop++ = '(';
-            }
-            unparse_boolexp1(player, b->sub1, b->type, fullname);
-            *buftop++ = OR_TOKEN;
-            unparse_boolexp1(player, b->sub2, b->type, fullname);
-            if (outer_type == BOOLEXP_NOT || outer_type == BOOLEXP_AND) {
-                *buftop++ = ')';
-            }
-            break;
-        case BOOLEXP_NOT:
-            *buftop++ = '!';
-            unparse_boolexp1(player, b->sub1, b->type, fullname);
-            break;
-        case BOOLEXP_CONST:
-            if (fullname) {
+            case BOOLEXP_AND:
+                if (outer_type == BOOLEXP_NOT) {
+                    *buftop++ = '(';
+                }
+                unparse_boolexp1(player, b->sub1, b->type, fullname);
+                *buftop++ = AND_TOKEN;
+                unparse_boolexp1(player, b->sub2, b->type, fullname);
+                if (outer_type == BOOLEXP_NOT) {
+                    *buftop++ = ')';
+                }
+                break;
+            case BOOLEXP_OR:
+                if (outer_type == BOOLEXP_NOT || outer_type == BOOLEXP_AND) {
+                    *buftop++ = '(';
+                }
+                unparse_boolexp1(player, b->sub1, b->type, fullname);
+                *buftop++ = OR_TOKEN;
+                unparse_boolexp1(player, b->sub2, b->type, fullname);
+                if (outer_type == BOOLEXP_NOT || outer_type == BOOLEXP_AND) {
+                    *buftop++ = ')';
+                }
+                break;
+            case BOOLEXP_NOT:
+                *buftop++ = '!';
+                unparse_boolexp1(player, b->sub1, b->type, fullname);
+                break;
+            case BOOLEXP_CONST:
+                if (fullname) {
 #ifndef SANITY
-                strcpy(buftop, unparse_object(player, b->thing));
+                    strcpy(buftop, unparse_object(player, b->thing));
 #endif
-            } else {
-                sprintf(buftop, "#%d", b->thing);
-            }
-            buftop += strlen(buftop);
-            break;
-        case BOOLEXP_PROP:
-            strcpy(buftop, PropName(b->prop_check));
-            strcat(buftop, ":");
-            if (PropType(b->prop_check) == PROP_STRTYP)
-                strcat(buftop, PropDataStr(b->prop_check));
-            buftop += strlen(buftop);
-            break;
-        default:
-            fprintf(stderr, "PANIC: Invalid Bool type. unparseboolexp1().\n");
-            abort();            /* bad type */
-            break;
+                } else {
+                    sprintf(buftop, "#%d", b->thing);
+                }
+                buftop += strlen(buftop);
+                break;
+            case BOOLEXP_PROP:
+                strcpy(buftop, PropName(b->prop_check));
+                strcat(buftop, ":");
+                if (PropType(b->prop_check) == PROP_STRTYP)
+                    strcat(buftop, PropDataStr(b->prop_check));
+                buftop += strlen(buftop);
+                break;
+            default:
+                fprintf(stderr,
+                        "PANIC: Invalid Bool type. unparseboolexp1().\n");
+                abort();        /* bad type */
+                break;
         }
     }
 }

@@ -38,266 +38,268 @@ format_time(char *buf, int max_len, const char *fmt, struct tm *tmval)
                 pos--;
                 *tmp = '\0';
                 switch (*(fmt++)) {
-                case 'a':
-                    switch (tmval->tm_wday) {
-                    case 0:
-                        (void) strcpy(tmp, "Sun");
+                    case 'a':
+                        switch (tmval->tm_wday) {
+                            case 0:
+                                (void) strcpy(tmp, "Sun");
+                                break;
+                            case 1:
+                                (void) strcpy(tmp, "Mon");
+                                break;
+                            case 2:
+                                (void) strcpy(tmp, "Tue");
+                                break;
+                            case 3:
+                                (void) strcpy(tmp, "Wed");
+                                break;
+                            case 4:
+                                (void) strcpy(tmp, "Thu");
+                                break;
+                            case 5:
+                                (void) strcpy(tmp, "Fri");
+                                break;
+                            case 6:
+                                (void) strcpy(tmp, "Sat");
+                                break;
+                        }
                         break;
-                    case 1:
-                        (void) strcpy(tmp, "Mon");
+                    case 'A':
+                        switch (tmval->tm_wday) {
+                            case 0:
+                                (void) strcpy(tmp, "Sunday");
+                                break;
+                            case 1:
+                                (void) strcpy(tmp, "Monday");
+                                break;
+                            case 2:
+                                (void) strcpy(tmp, "Tuesday");
+                                break;
+                            case 3:
+                                (void) strcpy(tmp, "Wednesday");
+                                break;
+                            case 4:
+                                (void) strcpy(tmp, "Thursday");
+                                break;
+                            case 5:
+                                (void) strcpy(tmp, "Friday");
+                                break;
+                            case 6:
+                                (void) strcpy(tmp, "Saturday");
+                                break;
+                        }
                         break;
-                    case 2:
-                        (void) strcpy(tmp, "Tue");
+                    case 'h':
+                    case 'b':
+                        switch (tmval->tm_mon) {
+                            case 0:
+                                (void) strcpy(tmp, "Jan");
+                                break;
+                            case 1:
+                                (void) strcpy(tmp, "Feb");
+                                break;
+                            case 2:
+                                (void) strcpy(tmp, "Mar");
+                                break;
+                            case 3:
+                                (void) strcpy(tmp, "Apr");
+                                break;
+                            case 4:
+                                (void) strcpy(tmp, "May");
+                                break;
+                            case 5:
+                                (void) strcpy(tmp, "Jun");
+                                break;
+                            case 6:
+                                (void) strcpy(tmp, "Jul");
+                                break;
+                            case 7:
+                                (void) strcpy(tmp, "Aug");
+                                break;
+                            case 8:
+                                (void) strcpy(tmp, "Sep");
+                                break;
+                            case 9:
+                                (void) strcpy(tmp, "Oct");
+                                break;
+                            case 10:
+                                (void) strcpy(tmp, "Nov");
+                                break;
+                            case 11:
+                                (void) strcpy(tmp, "Dec");
+                                break;
+                        }
                         break;
-                    case 3:
-                        (void) strcpy(tmp, "Wed");
+                    case 'B':
+                        switch (tmval->tm_mon) {
+                            case 0:
+                                (void) strcpy(tmp, "January");
+                                break;
+                            case 1:
+                                (void) strcpy(tmp, "February");
+                                break;
+                            case 2:
+                                (void) strcpy(tmp, "March");
+                                break;
+                            case 3:
+                                (void) strcpy(tmp, "April");
+                                break;
+                            case 4:
+                                (void) strcpy(tmp, "May");
+                                break;
+                            case 5:
+                                (void) strcpy(tmp, "June");
+                                break;
+                            case 6:
+                                (void) strcpy(tmp, "July");
+                                break;
+                            case 7:
+                                (void) strcpy(tmp, "August");
+                                break;
+                            case 8:
+                                (void) strcpy(tmp, "September");
+                                break;
+                            case 9:
+                                (void) strcpy(tmp, "October");
+                                break;
+                            case 10:
+                                (void) strcpy(tmp, "November");
+                                break;
+                            case 11:
+                                (void) strcpy(tmp, "December");
+                                break;
+                        }
                         break;
-                    case 4:
-                        (void) strcpy(tmp, "Thu");
+                    case 'c':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%x %X\0", tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    case 5:
-                        (void) strcpy(tmp, "Fri");
+                    case 'C':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%A %B %e, %Y\0",
+                                                tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    case 6:
-                        (void) strcpy(tmp, "Sat");
+                    case 'd':
+                        int2str(tmp, tmval->tm_mday, 2, '0');
                         break;
-                    }
-                    break;
-                case 'A':
-                    switch (tmval->tm_wday) {
-                    case 0:
-                        (void) strcpy(tmp, "Sunday");
+                    case 'D':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%m/%d/%y\0", tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    case 1:
-                        (void) strcpy(tmp, "Monday");
+                    case 'e':
+                        int2str(tmp, tmval->tm_mday, 2, ' ');
                         break;
-                    case 2:
-                        (void) strcpy(tmp, "Tuesday");
+                    case 'H':
+                        int2str(tmp, tmval->tm_hour, 2, '0');
                         break;
-                    case 3:
-                        (void) strcpy(tmp, "Wednesday");
+                    case 'I':
+                        int2str(tmp, (tmval->tm_hour + 11) % 12 + 1, 2, '0');
                         break;
-                    case 4:
-                        (void) strcpy(tmp, "Thursday");
+                    case 'j':
+                        int2str(tmp, tmval->tm_yday + 1, 3, '0');
                         break;
-                    case 5:
-                        (void) strcpy(tmp, "Friday");
+                    case 'k':
+                        int2str(tmp, tmval->tm_hour, 2, ' ');
                         break;
-                    case 6:
-                        (void) strcpy(tmp, "Saturday");
+                    case 'l':
+                        int2str(tmp, (tmval->tm_hour + 11) % 12 + 1, 2, ' ');
                         break;
-                    }
-                    break;
-                case 'h':
-                case 'b':
-                    switch (tmval->tm_mon) {
-                    case 0:
-                        (void) strcpy(tmp, "Jan");
+                    case 'm':
+                        int2str(tmp, tmval->tm_mon + 1, 2, '0');
                         break;
-                    case 1:
-                        (void) strcpy(tmp, "Feb");
+                    case 'M':
+                        int2str(tmp, tmval->tm_min, 2, '0');
                         break;
-                    case 2:
-                        (void) strcpy(tmp, "Mar");
+                    case 'p':
+                        tmp[0] = ((tmval->tm_hour < 12) ? 'A' : 'P');
+                        tmp[1] = 'M';
+                        tmp[2] = '\0';
                         break;
-                    case 3:
-                        (void) strcpy(tmp, "Apr");
+                    case 'r':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%I:%M:%S %p\0",
+                                                tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    case 4:
-                        (void) strcpy(tmp, "May");
+                    case 'R':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%H:%M\0", tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    case 5:
-                        (void) strcpy(tmp, "Jun");
+                    case 'S':
+                        int2str(tmp, tmval->tm_sec, 2, '0');
                         break;
-                    case 6:
-                        (void) strcpy(tmp, "Jul");
+                    case 'T':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%H:%M:%S\0", tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    case 7:
-                        (void) strcpy(tmp, "Aug");
+                    case 'U':
+                        int2str(tmp,
+                                (tmval->tm_yday +
+                                 ((7 + tmval->tm_wday -
+                                   (tmval->tm_yday % 7)) % 7)) / 7, 2, '0');
                         break;
-                    case 8:
-                        (void) strcpy(tmp, "Sep");
+                    case 'w':
+                        tmp[0] = tmval->tm_wday + '0';
+                        tmp[1] = '\0';
                         break;
-                    case 9:
-                        (void) strcpy(tmp, "Oct");
+                    case 'W':
+                        int2str(tmp,
+                                (tmval->tm_yday +
+                                 ((13 + tmval->tm_wday -
+                                   (tmval->tm_yday % 7)) % 7)) / 7, 2, '0');
                         break;
-                    case 10:
-                        (void) strcpy(tmp, "Nov");
+                    case 'x':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%m/%d/%y\0", tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    case 11:
-                        (void) strcpy(tmp, "Dec");
+                    case 'X':
+                        if (!(ret = format_time(buf + pos, max_len - pos,
+                                                (char *) "%H:%M:%S\0", tmval)))
+                            return (0);
+                        pos += ret;
                         break;
-                    }
-                    break;
-                case 'B':
-                    switch (tmval->tm_mon) {
-                    case 0:
-                        (void) strcpy(tmp, "January");
+                    case 'y':
+                        int2str(tmp, (tmval->tm_year % 100), 2, '0');
                         break;
-                    case 1:
-                        (void) strcpy(tmp, "February");
+                    case 'Y':
+                        int2str(tmp, tmval->tm_year + 1900, 4, '0');
                         break;
-                    case 2:
-                        (void) strcpy(tmp, "March");
-                        break;
-                    case 3:
-                        (void) strcpy(tmp, "April");
-                        break;
-                    case 4:
-                        (void) strcpy(tmp, "May");
-                        break;
-                    case 5:
-                        (void) strcpy(tmp, "June");
-                        break;
-                    case 6:
-                        (void) strcpy(tmp, "July");
-                        break;
-                    case 7:
-                        (void) strcpy(tmp, "August");
-                        break;
-                    case 8:
-                        (void) strcpy(tmp, "September");
-                        break;
-                    case 9:
-                        (void) strcpy(tmp, "October");
-                        break;
-                    case 10:
-                        (void) strcpy(tmp, "November");
-                        break;
-                    case 11:
-                        (void) strcpy(tmp, "December");
-                        break;
-                    }
-                    break;
-                case 'c':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%x %X\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'C':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%A %B %e, %Y\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'd':
-                    int2str(tmp, tmval->tm_mday, 2, '0');
-                    break;
-                case 'D':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%m/%d/%y\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'e':
-                    int2str(tmp, tmval->tm_mday, 2, ' ');
-                    break;
-                case 'H':
-                    int2str(tmp, tmval->tm_hour, 2, '0');
-                    break;
-                case 'I':
-                    int2str(tmp, (tmval->tm_hour + 11) % 12 + 1, 2, '0');
-                    break;
-                case 'j':
-                    int2str(tmp, tmval->tm_yday + 1, 3, '0');
-                    break;
-                case 'k':
-                    int2str(tmp, tmval->tm_hour, 2, ' ');
-                    break;
-                case 'l':
-                    int2str(tmp, (tmval->tm_hour + 11) % 12 + 1, 2, ' ');
-                    break;
-                case 'm':
-                    int2str(tmp, tmval->tm_mon + 1, 2, '0');
-                    break;
-                case 'M':
-                    int2str(tmp, tmval->tm_min, 2, '0');
-                    break;
-                case 'p':
-                    tmp[0] = ((tmval->tm_hour < 12) ? 'A' : 'P');
-                    tmp[1] = 'M';
-                    tmp[2] = '\0';
-                    break;
-                case 'r':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%I:%M:%S %p\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'R':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%H:%M\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'S':
-                    int2str(tmp, tmval->tm_sec, 2, '0');
-                    break;
-                case 'T':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%H:%M:%S\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'U':
-                    int2str(tmp,
-                            (tmval->tm_yday +
-                             ((7 + tmval->tm_wday -
-                               (tmval->tm_yday % 7)) % 7)) / 7, 2, '0');
-                    break;
-                case 'w':
-                    tmp[0] = tmval->tm_wday + '0';
-                    tmp[1] = '\0';
-                    break;
-                case 'W':
-                    int2str(tmp,
-                            (tmval->tm_yday +
-                             ((13 + tmval->tm_wday -
-                               (tmval->tm_yday % 7)) % 7)) / 7, 2, '0');
-                    break;
-                case 'x':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%m/%d/%y\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'X':
-                    if (!(ret = format_time(buf + pos, max_len - pos,
-                                            (char *) "%H:%M:%S\0", tmval)))
-                        return (0);
-                    pos += ret;
-                    break;
-                case 'y':
-                    int2str(tmp, (tmval->tm_year % 100), 2, '0');
-                    break;
-                case 'Y':
-                    int2str(tmp, tmval->tm_year + 1900, 4, '0');
-                    break;
-                case 'Z':
+                    case 'Z':
 #ifdef HAVE_TM_ZONE
 /* If using cygwin and your timezone is not listed
    you may add your case here */
 #ifdef CYGWIN
-                    strcpy(tmp, CYGWIN_TZX);
+                        strcpy(tmp, CYGWIN_TZX);
 #elif HAVE_TZNAME
-                    strcpy(tmp, tzname[tmval->tm_isdst]);
+                        strcpy(tmp, tzname[tmval->tm_isdst]);
 #else
-                    strcpy(tmp, tmval->tm_zone);
+                        strcpy(tmp, tmval->tm_zone);
 #endif /* CYGWIN */
 #else
-                    strcpy(tmp, "   ");
+                        strcpy(tmp, "   ");
 #endif /* !HAVE_TM_ZONE */
-                    break;
-                case '%':
-                    tmp[0] = '%';
-                    tmp[1] = '\0';
-                    break;
-                default:
-                    tmp[0] = '%';
-                    tmp[1] = *(fmt - 1);
-                    tmp[2] = '\0';
-                    break;
+                        break;
+                    case '%':
+                        tmp[0] = '%';
+                        tmp[1] = '\0';
+                        break;
+                    default:
+                        tmp[0] = '%';
+                        tmp[1] = *(fmt - 1);
+                        tmp[2] = '\0';
+                        break;
                 }
                 if ((pos + strlen(tmp)) > max_len)
                     return (0);

@@ -95,31 +95,31 @@ do_wizchat(dbref player, const char *arg)
 
     switch (arg[0]) {
 
-    case '|':
-        sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA "%s",
-                tct(arg + 1, buf2));
-        break;
+        case '|':
+            sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA "%s",
+                    tct(arg + 1, buf2));
+            break;
 
-    case '#':
-        sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> "
-                SYSAQUA "%s", tct(arg + 1, buf2));
-        break;
+        case '#':
+            sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> "
+                    SYSAQUA "%s", tct(arg + 1, buf2));
+            break;
 
-    case ':':
-    case ';':
-        sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA
-                "%s %s", tct(NAME(player), buf2), tct(arg + 1, buf3));
-        break;
+        case ':':
+        case ';':
+            sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA
+                    "%s %s", tct(NAME(player), buf2), tct(arg + 1, buf3));
+            break;
 
-    case '?':
-        show_wizards(player);
-        return;
+        case '?':
+            show_wizards(player);
+            return;
 
-    default:
-        sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA
-                "%s says, \"" SYSYELLOW "%s" SYSAQUA "\"",
-                tct(NAME(player), buf2), tct(arg, buf3));
-        break;
+        default:
+            sprintf(buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA
+                    "%s says, \"" SYSYELLOW "%s" SYSAQUA "\"",
+                    tct(NAME(player), buf2), tct(arg, buf3));
+            break;
     }
     ansi_wall_wizards(buf);
 }
@@ -172,161 +172,166 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
         match_player(&md);
     }
     switch (destination = match_result(&md)) {
-    case NOTHING:
-        anotify_nolisten2(player, CINFO "Send it where?");
-        break;
-    case AMBIGUOUS:
-        anotify_nolisten2(player, CINFO "I don't know where you mean!");
-        break;
-    case HOME:
-        switch (Typeof(victim)) {
-        case TYPE_PLAYER:
-            destination = DBFETCH(victim)->sp.player.home;
-            if (parent_loop_check(victim, destination))
-                destination = DBFETCH(OWNER(victim))->sp.player.home;
+        case NOTHING:
+            anotify_nolisten2(player, CINFO "Send it where?");
             break;
-        case TYPE_THING:
-            destination = DBFETCH(victim)->sp.thing.home;
-            if (parent_loop_check(victim, destination)) {
-                destination = DBFETCH(OWNER(victim))->sp.player.home;
-                if (parent_loop_check(victim, destination)) {
-                    destination = (dbref) 0;
-                }
+        case AMBIGUOUS:
+            anotify_nolisten2(player, CINFO "I don't know where you mean!");
+            break;
+        case HOME:
+            switch (Typeof(victim)) {
+                case TYPE_PLAYER:
+                    destination = DBFETCH(victim)->sp.player.home;
+                    if (parent_loop_check(victim, destination))
+                        destination = DBFETCH(OWNER(victim))->sp.player.home;
+                    break;
+                case TYPE_THING:
+                    destination = DBFETCH(victim)->sp.thing.home;
+                    if (parent_loop_check(victim, destination)) {
+                        destination = DBFETCH(OWNER(victim))->sp.player.home;
+                        if (parent_loop_check(victim, destination)) {
+                            destination = (dbref) 0;
+                        }
+                    }
+                    break;
+                case TYPE_ROOM:
+                    destination = GLOBAL_ENVIRONMENT;
+                    break;
+                case TYPE_PROGRAM:
+                    destination = OWNER(victim);
+                    break;
+                default:
+                    destination = tp_player_start; /* caught in the next
+                                                    * switch anyway */
+                    break;
             }
-            break;
-        case TYPE_ROOM:
-            destination = GLOBAL_ENVIRONMENT;
-            break;
-        case TYPE_PROGRAM:
-            destination = OWNER(victim);
-            break;
         default:
-            destination = tp_player_start; /* caught in the next
-                                            * switch anyway */
-            break;
-        }
-    default:
-        switch (Typeof(victim)) {
-        case TYPE_PLAYER:
-            if (!controls(player, victim) ||
-                ((!controls(player, destination)) &&
-                 (!(FLAGS(destination) & JUMP_OK)) &&
-                 (destination != DBFETCH(victim)->sp.player.home)
-                ) ||
-                ((!controls(player, getloc(victim))) &&
-                 (!(FLAGS(getloc(victim)) & JUMP_OK)) &&
-                 (getloc(victim) != DBFETCH(victim)->sp.player.home)
-                ) ||
-                ((Typeof(destination) == TYPE_THING) &&
-                 !controls(player, getloc(destination))
-                )
-                ) {
-                if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+            switch (Typeof(victim)) {
+                case TYPE_PLAYER:
+                    if (!controls(player, victim) ||
+                        ((!controls(player, destination)) &&
+                         (!(FLAGS(destination) & JUMP_OK)) &&
+                         (destination != DBFETCH(victim)->sp.player.home)
+                        ) ||
+                        ((!controls(player, getloc(victim))) &&
+                         (!(FLAGS(getloc(victim)) & JUMP_OK)) &&
+                         (getloc(victim) != DBFETCH(victim)->sp.player.home)
+                        ) ||
+                        ((Typeof(destination) == TYPE_THING) &&
+                         !controls(player, getloc(destination))
+                        )
+                        ) {
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+                            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                            break;
+                        }
+                    }
+                    if (Typeof(destination) != TYPE_ROOM &&
+                        Typeof(destination) != TYPE_PLAYER &&
+                        Typeof(destination) != TYPE_THING) {
+                        anotify_nolisten2(player, CFAIL "Bad destination.");
+                        break;
+                    }
+                    if (!Wiz(victim) &&
+                        (Typeof(destination) == TYPE_THING &&
+                         !(FLAGS(destination) & VEHICLE))) {
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+                            anotify_nolisten2(player,
+                                              CFAIL
+                                              "Destination object is not a vehicle.");
+                            break;
+                        }
+                    }
+                    if (parent_loop_check(victim, destination)) {
+                        anotify_nolisten2(player,
+                                          CFAIL
+                                          "Objects can't contain themselves.");
+                        break;
+                    }
+                    if (Typeof(destination) == TYPE_PLAYER) {
+                        destination = DBFETCH(destination)->location;
+                    }
+                    if ((Typeof(destination) == TYPE_ROOM) && Guest(player) &&
+                        (tp_guest_needflag ? !(FLAG2(destination) & F2GUEST)
+                         : (FLAG2(destination) & F2GUEST))) {
+                        anotify_nolisten2(player,
+                                          CFAIL "Guests aren't allowed there.");
+                        break;
+                    }
+                    anotify_nolisten2(victim,
+                                      CNOTE
+                                      "You feel a wrenching sensation...");
+                    enter_room(descr, victim, destination,
+                               DBFETCH(victim)->location);
+                    sprintf(buf, CSUCC "%s teleported to %s.",
+                            unparse_object(player, victim), NAME(destination));
+                    anotify_nolisten2(player, buf);
                     break;
-                }
-            }
-            if (Typeof(destination) != TYPE_ROOM &&
-                Typeof(destination) != TYPE_PLAYER &&
-                Typeof(destination) != TYPE_THING) {
-                anotify_nolisten2(player, CFAIL "Bad destination.");
-                break;
-            }
-            if (!Wiz(victim) &&
-                (Typeof(destination) == TYPE_THING &&
-                 !(FLAGS(destination) & VEHICLE))) {
-                if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
-                    anotify_nolisten2(player,
-                                      CFAIL
-                                      "Destination object is not a vehicle.");
+                case TYPE_THING:
+                    if (parent_loop_check(victim, destination)) {
+                        anotify_nolisten2(player,
+                                          CFAIL
+                                          "You can't make a container contain itself!");
+                        break;
+                    }
+                case TYPE_PROGRAM:
+                    if (Typeof(destination) != TYPE_ROOM
+                        && Typeof(destination) != TYPE_PLAYER
+                        && Typeof(destination) != TYPE_THING) {
+                        anotify_nolisten2(player, CFAIL "Bad destination.");
+                        break;
+                    }
+                    if (!((controls(player, destination) ||
+                           can_link_to(player, NOTYPE, destination)) &&
+                          (controls(player, victim) ||
+                           controls(player, DBFETCH(victim)->location)))) {
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+                            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                            break;
+                        }
+                    }
+                    /* check for non-sticky dropto */
+                    if (Typeof(destination) == TYPE_ROOM
+                        && DBFETCH(destination)->sp.room.dropto != NOTHING
+                        && !(FLAGS(destination) & STICKY))
+                        destination = DBFETCH(destination)->sp.room.dropto;
+                    moveto(victim, destination);
+                    sprintf(buf, CSUCC "%s teleported to %s.",
+                            unparse_object(player, victim), NAME(destination));
+                    anotify_nolisten2(player, buf);
                     break;
-                }
-            }
-            if (parent_loop_check(victim, destination)) {
-                anotify_nolisten2(player,
-                                  CFAIL "Objects can't contain themselves.");
-                break;
-            }
-            if (Typeof(destination) == TYPE_PLAYER) {
-                destination = DBFETCH(destination)->location;
-            }
-            if ((Typeof(destination) == TYPE_ROOM) && Guest(player) &&
-                (tp_guest_needflag ? !(FLAG2(destination) & F2GUEST)
-                 : (FLAG2(destination) & F2GUEST))) {
-                anotify_nolisten2(player, CFAIL "Guests aren't allowed there.");
-                break;
-            }
-            anotify_nolisten2(victim,
-                              CNOTE "You feel a wrenching sensation...");
-            enter_room(descr, victim, destination, DBFETCH(victim)->location);
-            sprintf(buf, CSUCC "%s teleported to %s.",
-                    unparse_object(player, victim), NAME(destination));
-            anotify_nolisten2(player, buf);
-            break;
-        case TYPE_THING:
-            if (parent_loop_check(victim, destination)) {
-                anotify_nolisten2(player,
-                                  CFAIL
-                                  "You can't make a container contain itself!");
-                break;
-            }
-        case TYPE_PROGRAM:
-            if (Typeof(destination) != TYPE_ROOM
-                && Typeof(destination) != TYPE_PLAYER
-                && Typeof(destination) != TYPE_THING) {
-                anotify_nolisten2(player, CFAIL "Bad destination.");
-                break;
-            }
-            if (!((controls(player, destination) ||
-                   can_link_to(player, NOTYPE, destination)) &&
-                  (controls(player, victim) ||
-                   controls(player, DBFETCH(victim)->location)))) {
-                if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                case TYPE_ROOM:
+                    if (Typeof(destination) != TYPE_ROOM) {
+                        anotify_nolisten2(player, CFAIL "Bad destination.");
+                        break;
+                    }
+                    if (!controls(player, victim)
+                        || (!can_link_to(player, NOTYPE, destination)
+                            && !(FLAG2(destination) & F2PARENT))
+                        || victim == GLOBAL_ENVIRONMENT) {
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+                            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                            break;
+                        }
+                    }
+                    if (parent_loop_check(victim, destination)) {
+                        anotify_nolisten2(player,
+                                          CFAIL "Parent would create a loop.");
+                        break;
+                    }
+                    moveto(victim, destination);
+                    sprintf(buf, CSUCC "Parent of %s set to %s.",
+                            unparse_object(player, victim), NAME(destination));
+                    anotify_nolisten2(player, buf);
                     break;
-                }
-            }
-            /* check for non-sticky dropto */
-            if (Typeof(destination) == TYPE_ROOM
-                && DBFETCH(destination)->sp.room.dropto != NOTHING
-                && !(FLAGS(destination) & STICKY))
-                destination = DBFETCH(destination)->sp.room.dropto;
-            moveto(victim, destination);
-            sprintf(buf, CSUCC "%s teleported to %s.",
-                    unparse_object(player, victim), NAME(destination));
-            anotify_nolisten2(player, buf);
-            break;
-        case TYPE_ROOM:
-            if (Typeof(destination) != TYPE_ROOM) {
-                anotify_nolisten2(player, CFAIL "Bad destination.");
-                break;
-            }
-            if (!controls(player, victim)
-                || (!can_link_to(player, NOTYPE, destination)
-                    && !(FLAG2(destination) & F2PARENT))
-                || victim == GLOBAL_ENVIRONMENT) {
-                if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                case TYPE_GARBAGE:
+                    anotify_nolisten2(player, CFAIL "That is garbage.");
                     break;
-                }
+                default:
+                    anotify_nolisten2(player, CFAIL "You can't teleport that.");
+                    break;
             }
-            if (parent_loop_check(victim, destination)) {
-                anotify_nolisten2(player, CFAIL "Parent would create a loop.");
-                break;
-            }
-            moveto(victim, destination);
-            sprintf(buf, CSUCC "Parent of %s set to %s.",
-                    unparse_object(player, victim), NAME(destination));
-            anotify_nolisten2(player, buf);
             break;
-        case TYPE_GARBAGE:
-            anotify_nolisten2(player, CFAIL "That is garbage.");
-            break;
-        default:
-            anotify_nolisten2(player, CFAIL "You can't teleport that.");
-            break;
-        }
-        break;
     }
     return;
 }
@@ -363,9 +368,8 @@ do_force(int descr, dbref player, const char *what, char *command)
         return;
     }
 
-    if (!tp_zombies
-        && ((!Wiz(player) && QLevel(player) >= MLevel(victim))
-            || Typeof(player) != TYPE_PLAYER)) {
+    if (!tp_zombies && ((!Wiz(player) && QLevel(player) >= MLevel(victim))
+                        || Typeof(player) != TYPE_PLAYER)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
@@ -505,37 +509,37 @@ do_stats(dbref player, const char *name)
 
         if ((owner == NOTHING) || (OWNER(i) == owner))
             switch (Typeof(i)) {
-            case TYPE_ROOM:
-                tocnt++, total++, rooms++;
-                tosize += size_object(i, 0);
-                break;
-
-            case TYPE_EXIT:
-                tocnt++, total++, exits++;
-                tosize += size_object(i, 0);
-                break;
-
-            case TYPE_THING:
-                tocnt++, total++, things++;
-                tosize += size_object(i, 0);
-                break;
-
-            case TYPE_PLAYER:
-                tocnt++, total++, players++;
-                tosize += size_object(i, 0);
-                break;
-
-            case TYPE_PROGRAM:
-                total++, programs++;
-
-                if (DBFETCH(i)->sp.program.siz > 0) {
-                    tpcnt++;
-                    tpsize += size_object(i, 0);
-                } else {
-                    tocnt++;
+                case TYPE_ROOM:
+                    tocnt++, total++, rooms++;
                     tosize += size_object(i, 0);
-                }
-                break;
+                    break;
+
+                case TYPE_EXIT:
+                    tocnt++, total++, exits++;
+                    tosize += size_object(i, 0);
+                    break;
+
+                case TYPE_THING:
+                    tocnt++, total++, things++;
+                    tosize += size_object(i, 0);
+                    break;
+
+                case TYPE_PLAYER:
+                    tocnt++, total++, players++;
+                    tosize += size_object(i, 0);
+                    break;
+
+                case TYPE_PROGRAM:
+                    total++, programs++;
+
+                    if (DBFETCH(i)->sp.program.siz > 0) {
+                        tpcnt++;
+                        tpsize += size_object(i, 0);
+                    } else {
+                        tocnt++;
+                        tosize += size_object(i, 0);
+                    }
+                    break;
             }
         if ((owner == NOTHING) && Typeof(i) == TYPE_GARBAGE) {
             total++;
@@ -716,16 +720,16 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
     for (stuff = 0; stuff < db_top; stuff++) {
         if (OWNER(stuff) == victim) {
             switch (Typeof(stuff)) {
-            case TYPE_PROGRAM:
-                dequeue_prog(stuff, 0); /* dequeue player's progs */
-                FLAGS(stuff) &= ~(ABODE | W1 | W2 | W3);
-                SetMLevel(stuff, 0);
-            case TYPE_ROOM:
-            case TYPE_THING:
-            case TYPE_EXIT:
-                OWNER(stuff) = recipient;
-                DBDIRTY(stuff);
-                break;
+                case TYPE_PROGRAM:
+                    dequeue_prog(stuff, 0); /* dequeue player's progs */
+                    FLAGS(stuff) &= ~(ABODE | W1 | W2 | W3);
+                    SetMLevel(stuff, 0);
+                case TYPE_ROOM:
+                case TYPE_THING:
+                case TYPE_EXIT:
+                    OWNER(stuff) = recipient;
+                    DBDIRTY(stuff);
+                    break;
             }
         }
         if (Typeof(stuff) == TYPE_THING &&
@@ -822,26 +826,26 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
     for (thing = 2; thing < db_top; thing++)
         if (victim == OWNER(thing)) {
             switch (Typeof(thing)) {
-            case TYPE_GARBAGE:
-                anotify_fmt(player, CFAIL "Player owns garbage object #%d.",
-                            thing);
-            case TYPE_PLAYER:
-                break;
-            case TYPE_ROOM:
-                if (thing == tp_player_start || thing == GLOBAL_ENVIRONMENT) {
-                    anotify_nolisten2(player, CFAIL
-                                      "Cannot recycle player start or global environment.");
+                case TYPE_GARBAGE:
+                    anotify_fmt(player, CFAIL "Player owns garbage object #%d.",
+                                thing);
+                case TYPE_PLAYER:
                     break;
-                }
-            case TYPE_THING:
-            case TYPE_EXIT:
-            case TYPE_PROGRAM:
-                recycle(descr, player, thing);
-                count++;
-                break;
-            default:
-                anotify_fmt(player, CFAIL "Unknown object type for #%d.",
-                            thing);
+                case TYPE_ROOM:
+                    if (thing == tp_player_start || thing == GLOBAL_ENVIRONMENT) {
+                        anotify_nolisten2(player, CFAIL
+                                          "Cannot recycle player start or global environment.");
+                        break;
+                    }
+                case TYPE_THING:
+                case TYPE_EXIT:
+                case TYPE_PROGRAM:
+                    recycle(descr, player, thing);
+                    count++;
+                    break;
+                default:
+                    anotify_fmt(player, CFAIL "Unknown object type for #%d.",
+                                thing);
             }
         }
     anotify_fmt(player, CSUCC "%d objects purged.", count);

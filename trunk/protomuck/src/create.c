@@ -256,44 +256,45 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
             continue;
 
         switch (Typeof(dest)) {
-        case TYPE_PLAYER:
-        case TYPE_ROOM:
-        case TYPE_PROGRAM:
-            if (prdest) {
-                sprintf(buf,
-                        CFAIL
-                        "One non-thing link allowed. Destination %s ignored.",
-                        unparse_object(player, dest));
-                anotify_nolisten2(player, buf);
+            case TYPE_PLAYER:
+            case TYPE_ROOM:
+            case TYPE_PROGRAM:
+                if (prdest) {
+                    sprintf(buf,
+                            CFAIL
+                            "One non-thing link allowed. Destination %s ignored.",
+                            unparse_object(player, dest));
+                    anotify_nolisten2(player, buf);
+                    if (dryrun)
+                        error = 1;
+                    continue;
+                }
+                dest_list[ndest++] = dest;
+                prdest = 1;
+                break;
+            case TYPE_THING:
+                dest_list[ndest++] = dest;
+                break;
+            case TYPE_EXIT:
+                if (exit_loop_check(exit, dest)) {
+                    sprintf(buf,
+                            CFAIL
+                            "Destination %s would create a loop, ignored.",
+                            unparse_object(player, dest));
+                    anotify_nolisten2(player, buf);
+                    if (dryrun)
+                        error = 1;
+                    continue;
+                }
+                dest_list[ndest++] = dest;
+                break;
+            default:
+                anotify_nolisten2(player, CFAIL "Weird object type.");
+                log_status("*BUG: weird object: Typeof(%d) = %d\n",
+                           dest, Typeof(dest));
                 if (dryrun)
                     error = 1;
-                continue;
-            }
-            dest_list[ndest++] = dest;
-            prdest = 1;
-            break;
-        case TYPE_THING:
-            dest_list[ndest++] = dest;
-            break;
-        case TYPE_EXIT:
-            if (exit_loop_check(exit, dest)) {
-                sprintf(buf,
-                        CFAIL "Destination %s would create a loop, ignored.",
-                        unparse_object(player, dest));
-                anotify_nolisten2(player, buf);
-                if (dryrun)
-                    error = 1;
-                continue;
-            }
-            dest_list[ndest++] = dest;
-            break;
-        default:
-            anotify_nolisten2(player, CFAIL "Weird object type.");
-            log_status("*BUG: weird object: Typeof(%d) = %d\n",
-                       dest, Typeof(dest));
-            if (dryrun)
-                error = 1;
-            break;
+                break;
         }
         if (!dryrun) {
             if (dest == HOME) {
@@ -361,121 +362,127 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
         return;
 
     switch (Typeof(thing)) {
-    case TYPE_EXIT:
-        /* we're ok, check the usual stuff */
-        if (DBFETCH(thing)->sp.exit.ndest != 0) {
-            if (controls(player, thing)) {
-                anotify_nolisten2(player, CINFO "That exit is already linked.");
-                return;
+        case TYPE_EXIT:
+            /* we're ok, check the usual stuff */
+            if (DBFETCH(thing)->sp.exit.ndest != 0) {
+                if (controls(player, thing)) {
+                    anotify_nolisten2(player,
+                                      CINFO "That exit is already linked.");
+                    return;
+                } else {
+                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                    return;
+                }
+            }
+            /* handle costs */
+            if (OWNER(thing) == OWNER(player)) {
+                if (!payfor(player, tp_link_cost)) {
+                    anotify_fmt(player,
+                                CFAIL "It costs %d %s to link this exit.",
+                                tp_link_cost,
+                                (tp_link_cost == 1) ? tp_penny : tp_pennies);
+                    return;
+                }
             } else {
+                if (!payfor(player, tp_link_cost + tp_exit_cost)) {
+                    anotify_fmt(player,
+                                CFAIL "It costs %d %s to link this exit.",
+                                (tp_link_cost + tp_exit_cost),
+                                (tp_link_cost + tp_exit_cost ==
+                                 1) ? tp_penny : tp_pennies);
+                    return;
+                } else if (!Builder(player)) {
+                    anotify_nolisten2(player, CFAIL NOBBIT_MESG);
+                    return;
+                } else {
+                    /* pay the owner for his loss */
+                    dbref owner = OWNER(thing);
+
+                    DBFETCH(owner)->sp.player.pennies += tp_exit_cost;
+                    DBDIRTY(owner);
+                }
+            }
+
+            /* link has been validated and paid for; do it */
+            OWNER(thing) = OWNER(player);
+            ndest =
+                link_exit(descr, player, thing, (char *) dest_name, good_dest);
+            if (ndest == 0) {
+                anotify_nolisten2(player, CFAIL "No destinations linked.");
+                DBFETCH(player)->sp.player.pennies += tp_link_cost; /* Refund! */
+                DBDIRTY(player);
+                break;
+            }
+            DBFETCH(thing)->sp.exit.ndest = ndest;
+            if (DBFETCH(thing)->sp.exit.dest) {
+                free(DBFETCH(thing)->sp.exit.dest);
+            }
+            DBFETCH(thing)->sp.exit.dest =
+                (dbref *) malloc(sizeof(dbref) * ndest);
+            for (i = 0; i < ndest; i++) {
+                (DBFETCH(thing)->sp.exit.dest)[i] = good_dest[i];
+            }
+            break;
+        case TYPE_THING:
+        case TYPE_PLAYER:
+            init_match(descr, player, dest_name, TYPE_ROOM, &md);
+            match_neighbor(&md);
+            match_absolute(&md);
+            match_registered(&md);
+            match_me(&md);
+            match_here(&md);
+            if (Typeof(thing) == TYPE_THING)
+                match_possession(&md);
+            if ((dest = noisy_match_result(&md)) == NOTHING)
+                return;
+            if (!controls(player, thing)
+                || !can_link_to(player, Typeof(thing), dest)) {
                 anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
                 return;
             }
-        }
-        /* handle costs */
-        if (OWNER(thing) == OWNER(player)) {
-            if (!payfor(player, tp_link_cost)) {
-                anotify_fmt(player, CFAIL "It costs %d %s to link this exit.",
-                            tp_link_cost,
-                            (tp_link_cost == 1) ? tp_penny : tp_pennies);
+            if (parent_loop_check(thing, dest)) {
+                anotify_nolisten2(player,
+                                  CFAIL "That would cause a parent paradox.");
                 return;
             }
-        } else {
-            if (!payfor(player, tp_link_cost + tp_exit_cost)) {
-                anotify_fmt(player, CFAIL "It costs %d %s to link this exit.",
-                            (tp_link_cost + tp_exit_cost),
-                            (tp_link_cost + tp_exit_cost ==
-                             1) ? tp_penny : tp_pennies);
-                return;
-            } else if (!Builder(player)) {
-                anotify_nolisten2(player, CFAIL NOBBIT_MESG);
-                return;
-            } else {
-                /* pay the owner for his loss */
-                dbref owner = OWNER(thing);
-
-                DBFETCH(owner)->sp.player.pennies += tp_exit_cost;
-                DBDIRTY(owner);
-            }
-        }
-
-        /* link has been validated and paid for; do it */
-        OWNER(thing) = OWNER(player);
-        ndest = link_exit(descr, player, thing, (char *) dest_name, good_dest);
-        if (ndest == 0) {
-            anotify_nolisten2(player, CFAIL "No destinations linked.");
-            DBFETCH(player)->sp.player.pennies += tp_link_cost; /* Refund! */
-            DBDIRTY(player);
-            break;
-        }
-        DBFETCH(thing)->sp.exit.ndest = ndest;
-        if (DBFETCH(thing)->sp.exit.dest) {
-            free(DBFETCH(thing)->sp.exit.dest);
-        }
-        DBFETCH(thing)->sp.exit.dest = (dbref *) malloc(sizeof(dbref) * ndest);
-        for (i = 0; i < ndest; i++) {
-            (DBFETCH(thing)->sp.exit.dest)[i] = good_dest[i];
-        }
-        break;
-    case TYPE_THING:
-    case TYPE_PLAYER:
-        init_match(descr, player, dest_name, TYPE_ROOM, &md);
-        match_neighbor(&md);
-        match_absolute(&md);
-        match_registered(&md);
-        match_me(&md);
-        match_here(&md);
-        if (Typeof(thing) == TYPE_THING)
-            match_possession(&md);
-        if ((dest = noisy_match_result(&md)) == NOTHING)
-            return;
-        if (!controls(player, thing)
-            || !can_link_to(player, Typeof(thing), dest)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-            return;
-        }
-        if (parent_loop_check(thing, dest)) {
-            anotify_nolisten2(player,
-                              CFAIL "That would cause a parent paradox.");
-            return;
-        }
-        /* do the link */
-        if (Typeof(thing) == TYPE_THING) {
-            DBFETCH(thing)->sp.thing.home = dest;
-        } else
-            DBFETCH(thing)->sp.player.home = dest;
-        sprintf(buf, CSUCC "%s's home set to %s.",
-                NAME(thing), unparse_object(player, dest));
-        anotify_nolisten2(player, buf);
-        break;
-    case TYPE_ROOM:            /* room dropto's */
-        init_match(descr, player, dest_name, TYPE_ROOM, &md);
-        match_neighbor(&md);
-        match_possession(&md);
-        match_registered(&md);
-        match_absolute(&md);
-        match_home(&md);
-        if ((dest = noisy_match_result(&md)) == NOTHING)
-            break;
-        if (!controls(player, thing)
-            || !can_link_to(player, Typeof(thing), dest)
-            || (thing == dest)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-        } else {
-            DBFETCH(thing)->sp.room.dropto = dest; /* dropto */
-            sprintf(buf, CSUCC "%s's dropto set to %s.",
+            /* do the link */
+            if (Typeof(thing) == TYPE_THING) {
+                DBFETCH(thing)->sp.thing.home = dest;
+            } else
+                DBFETCH(thing)->sp.player.home = dest;
+            sprintf(buf, CSUCC "%s's home set to %s.",
                     NAME(thing), unparse_object(player, dest));
             anotify_nolisten2(player, buf);
-        }
-        break;
-    case TYPE_PROGRAM:
-        anotify_nolisten2(player, CFAIL "You can't link programs to things!");
-        break;
-    default:
-        anotify_nolisten2(player, CFAIL "Weird object type.");
-        log_status("*BUG: weird object: Typeof(%d) = %d\n",
-                   thing, Typeof(thing));
-        break;
+            break;
+        case TYPE_ROOM:        /* room dropto's */
+            init_match(descr, player, dest_name, TYPE_ROOM, &md);
+            match_neighbor(&md);
+            match_possession(&md);
+            match_registered(&md);
+            match_absolute(&md);
+            match_home(&md);
+            if ((dest = noisy_match_result(&md)) == NOTHING)
+                break;
+            if (!controls(player, thing)
+                || !can_link_to(player, Typeof(thing), dest)
+                || (thing == dest)) {
+                anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+            } else {
+                DBFETCH(thing)->sp.room.dropto = dest; /* dropto */
+                sprintf(buf, CSUCC "%s's dropto set to %s.",
+                        NAME(thing), unparse_object(player, dest));
+                anotify_nolisten2(player, buf);
+            }
+            break;
+        case TYPE_PROGRAM:
+            anotify_nolisten2(player,
+                              CFAIL "You can't link programs to things!");
+            break;
+        default:
+            anotify_nolisten2(player, CFAIL "Weird object type.");
+            log_status("*BUG: weird object: Typeof(%d) = %d\n",
+                       thing, Typeof(thing));
+            break;
     }
     DBDIRTY(thing);
     return;
@@ -1102,17 +1109,17 @@ void
 set_source(dbref player, dbref action, dbref source)
 {
     switch (Typeof(source)) {
-    case TYPE_ROOM:
-    case TYPE_THING:
-    case TYPE_PLAYER:
-        PUSH(action, DBFETCH(source)->exits);
-        break;
-    default:
-        anotify_nolisten2(player, CFAIL "Weird object type.");
-        log_status("*BUG: tried to source %d to %d: type: %d\n",
-                   action, source, Typeof(source));
-        return;
-        break;
+        case TYPE_ROOM:
+        case TYPE_THING:
+        case TYPE_PLAYER:
+            PUSH(action, DBFETCH(source)->exits);
+            break;
+        default:
+            anotify_nolisten2(player, CFAIL "Weird object type.");
+            log_status("*BUG: tried to source %d to %d: type: %d\n",
+                       action, source, Typeof(source));
+            return;
+            break;
     }
     DBDIRTY(source);
     DBSTORE(action, location, source);
@@ -1135,18 +1142,18 @@ unset_source(dbref player, dbref loc, dbref action)
                              action));
     } else {
         switch (Typeof(oldsrc)) {
-        case TYPE_PLAYER:
-        case TYPE_ROOM:
-        case TYPE_THING:
-            DBSTORE(oldsrc, exits,
-                    remove_first(DBFETCH(oldsrc)->exits, action));
-            break;
-        default:
-            log_status("PANIC: source of action #%d was type: %d.\n",
-                       action, Typeof(oldsrc));
-            return 0;
-            /* NOTREACHED */
-            break;
+            case TYPE_PLAYER:
+            case TYPE_ROOM:
+            case TYPE_THING:
+                DBSTORE(oldsrc, exits,
+                        remove_first(DBFETCH(oldsrc)->exits, action));
+                break;
+            default:
+                log_status("PANIC: source of action #%d was type: %d.\n",
+                           action, Typeof(oldsrc));
+                return 0;
+                /* NOTREACHED */
+                break;
         }
     }
     return 1;
