@@ -255,6 +255,8 @@ flag_set_perms2(dbref ref, int flag, int mlev)
         return 0;
     if (flag == F2NO_COMMAND)
         return (mlev >= LMAGE);
+    if (flag == F2PROTECT)
+        return 0;
 
     return 1;
 }
