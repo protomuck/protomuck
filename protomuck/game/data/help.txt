@@ -1,4 +1,4 @@
-Welcome to the ProtoMuck 1.7 User's Guide!
+Welcome to the ProtoMuck 1.8 User's Guide!
 
 You can get more help on the following topics:
 -----------------------------------------------------
@@ -86,7 +86,7 @@ Locks and Message Setting:
 Object Ownership and Manipulation:
 @attach            @chown             @link               @unlink             
 @contents          @entrances         @find               @stats
-@trace             drop-to            parents
+@trace             drop-to            parents             @relink
 
 Type 'help <command>' to get more help on a command.
 ~
@@ -100,7 +100,7 @@ on how to program, and manage and moniter running processes.
 @edit              @kill              @list               @program
 @ps                man                @mcpedit            @proginfo
 @mpitops           @muftops           @tops               mpi
-propqueues
+propqueues         @mcpprogram 
 Type 'help <command>' to get more help on a command.
 ~
 Administrative Commands|index4|INDEX 4
@@ -122,7 +122,7 @@ Server and Data Base tools:
 'Player Relations' Tools:
 @boot              @frob              dboot               @toad
 dinfo              @purge             @newpassword        @pcreate
-@force             @powers            Player-Lockouts
+@force             @powers            Player-Lockouts     Site-Blocks
 
 Type 'help <command>' to get more help on a command.
 ~
@@ -885,7 +885,20 @@ Exit   = If the exit is unlinked, then the player becomes the owner
          Exit   - Exits can be linked to multiple exits. This is called
                   METALINKING. Using the original exit will activate all
                   of the exits it is linked to.
-~
+
+See: @RELINK
+~~
+@RELINK|
+
+@relink <object1>=<object2>
+---------------------------
+Permissions: !GUEST
+
+@relink works the same as @link, except that it will perform any necessary
+@unlink step if the object1 is already linked to something.
+
+See: @LINK
+~~
 @odrop
 @odrop <object> [=<text>]
 -------------------------
@@ -1138,16 +1151,23 @@ to display the editor help file.
 See @PROGRAM
 ~
 @list
-@list <program>  [=[!][line1] [- line2]]
+@list <program>  [=[!][#][@][line1] [- line2]]
 ---------------------------------------
 Permissions: !GUEST
 
 This command is used to view the lines of a program. The player must
 either control the program, or the program must be set = VIEWABLE in
-order to @list it. By placing a ! right after the = sign, then the
-'%n lines listed' message at the end of the output will be encased in
-( ) marks, thus making it a comment. This is primarially for use with
-@archive type programs.
+order to @list it. 
+By placing a ! right after the = sign, the '%n lines listed' message 
+at the end of the output will be encased in ( ) marks, thus making it 
+a comment. This is primarially for use with @archive type programs.
+
+By placing a '#' mark after the = sign, the line numbers will
+be prepended to the program's lines no matter what.
+
+By placing a '@' mark after the = sign, the line numbers will not
+be prepened to the program's lines no matter what. 
+
 @list <program>           -- Lists an entire program.
 @list <program> =n        -- Lists just the one line of a program.
 @list <program> =n1 - n2  -- Lists the lines of a program between n1 and n2.
@@ -1174,6 +1194,19 @@ Permissions: M1 Apprentice
 If the player is using a client that handles MCP protocol, and 
 @tune enable_mcp=yes, the player is able to edit the MUF code in
 a seperate window similiar to notepad on windows.
+
+See: @MCPPROGRAM
+~~
+@MCPPROGRAM|
+@mcpprogram <program>
+---------------------
+Permissions: M1 Apprentice
+
+If the player is using a client that handles MCP protocol, and
+@tune enable_mcp=yes, the player is able to edit the MUF code in
+a seperate window similiar to notepad on windows.
+
+See: @MCPEDIT
 ~~
 @PROGINFO
 @proginfo [<dbref>]
@@ -1387,25 +1420,26 @@ See: POWERS
 POWERS|POWERS LIST|
 Powers List
 
-ALL_MUF_PRIMS   - Gives full access to MUF primitives
-ANNOUNCE        - Can use @wall and dwall commands
-BOOT            - Can use @boot and dboot commands
-CHOWN_ANYTHING  - Can @chown anything, unless it is PROTECTed
-CONTROL_ALL     - Has control over any object.
-CONTROL_MUF     - Has control over any MUF object.
-EXPANDED_WHO    - Gets the wizard version of WHO
-HIDE            - Can set themselves DARK or login HIDDEN
-IDLE            - Not effected by the idle limit
-LINK_ANYWHERE   - Can @link an exit to anywhere
-LONG_FINGERS    - Can do anything from a long distance
-NO_PAY          - Infinite money
-OPEN_ANYWHERE   - Can @open an exit from any location
-PLAYER_CREATE   - Can use @pcreate, @frob, and @toad
-SEARCH          - Can use @find, @entrances, @own, and @contents
-SEE_ALL         - Can examine any object, and @list any program
-STAFF           - No function, but useful for MUF checks
-SHUTDOWN        - Can run @shutdown or @restart
-TELEPORT        - Unrestricted use of @teleport
+ALL_MUF_PRIMS   - [m] Gives full access to MUF primitives
+ANNOUNCE        - [a] Can use @wall and dwall commands
+BOOT            - [b] Can use @boot and dboot commands
+CHOWN_ANYTHING  - [c] Can @chown anything, unless it is PROTECTed
+CONTROL_ALL     - [r] Has control over any object.
+CONTROL_MUF     - [f] Has control over any MUF object.
+EXPANDED_WHO    - [x] Gets the wizard version of WHO
+HIDE            - [h] Can set themselves DARK or login HIDDEN
+IDLE            - [i] Not effected by the idle limit
+LINK_ANYWHERE   - [l] Can @link an exit to anywhere
+LONG_FINGERS    - [g] Can do anything from a long distance
+NO_PAY          - [n] Infinite money
+OPEN_ANYWHERE   - [o] Can @open an exit from any location
+PLAYER_CREATE   - [p] @pcreate, @newpassword, @name
+PLAYER_PURGE    - [u] @toad and @purge power.
+SEARCH          - [s] Can use @find, @entrances, @own, and @contents
+SEE_ALL         - [e] Can examine any object, and @list any program
+STAFF           - [w] Special staff bit for use in MUF
+SHUTDOWN        - [d] Can run @shutdown or @restart
+TELEPORT        - [t] Unrestricted use of @teleport
 
 See: @POWERS
 ~~~
@@ -1582,6 +1616,9 @@ NO_COMMAND (N)
 Setting this flag on something will prevent it from processing its
 command prop directories, except for the @command propdir.
 
+Setting this flag on Program objects will keep them from being
+optimized during compile time, if optimize_muf is @tune to yes.
+
 See: COMMAND, COMMAND PROPS
 ~~
 GUEST|G
@@ -1622,6 +1659,7 @@ but only affects the versions of these commands built into the MUCK.
 @fail              @osuccess            give
 @find              @owned               gripe 
 @flock             @pecho               whisper
+@relink
 ~~~~
 LOGWALL|!
 LOGWALL (!)
@@ -1631,7 +1669,7 @@ The LOGWALL flag allows wizard characters to watch the connection and
 status logs; however, it will not reveal player passwords to them so do
 not worry about any kind of security issues.  This flag is merely for
 the paranoid or cautious. Only ArchWizards or higher can set the
-LOGWALL flag.
+LOGWALL flag, but it will work for any character that has it set.
 ~
 ABODE|AUTOSTART|ABATE|A
 ABODE or AUTOSTART or ABATE (A)
@@ -1819,8 +1857,6 @@ If a program is set to OLDCOMMENT, then the comments in it will be parsed
 using the traditional comment parser. This allows backwards compatability
 for any programs that are having problems compiling under the new comment
 parser. 
-
-Only W2 players and higher can set the LIGHT flag.
 ~~~~
 LISTENER
 LISTENER
@@ -2029,6 +2065,14 @@ If the XFORCIBLE flag is set on a program object, it becomes the
 EXPANDED_DEBUG flag, which means that if the program is put into debug
 mode, it's debug output will show a lot more data than it does in its
 default setting.
+~~~
+INTERNAL|
+INTERNAL
+--------
+This is a flag used by the server for a number of things. 
+When programs are being edited by the in-MUCK MUF editor, they are
+set INTERNAL.
+
 ~~~
 MEEPER|M
 MEEPER (M)
@@ -3240,7 +3284,7 @@ For example, the following command props are all valid:
 @propset #0=dbref:@command/i:#33   -- When someone on the muck types 'i', 
                                       program #33 gets called.
 
-See: COMMAND PROPS2
+See: COMMAND PROPS2, LOGINCOMMAND
 ~~~~~~
 COMMAND PROPS2
 Command Props -- Continued
@@ -3255,6 +3299,26 @@ tells the server to check that object for the presense of command props
 when processing player input. By setting a NO_COMMAND flag on an object,
 that object will only be checked for the @command/ propdir, but not
 the other two. 
+~~~~
+LOGINCOMMAND|LOGINCOMMANDPROPS|LOGINCOMMANDPROP|LOGIN COMMAND|LOGIN COMMAND PROP
+
+Login Command Props
+-------------------
+Similiar to the in-game @command/ props, there is also a @logincommand/ 
+prop directory that can be set on #0. These allow one to add 'actions' 
+to the login screen. 
+The syntax is:
+@logincommand/<command>:<action to perform>
+
+The <command> will then be available from the login screen as if it 
+were a normal command. Everything the user enters after the 'command'
+will be the starting argument on the stack.
+
+me @ will return #-1 in the case of login programs, but descr can
+be used to notify via notify_descriptor. Players can be logged in
+via @login commands by using the DESCR_SETUSER prim.
+
+See: COMMAND PROPS
 ~~~~
 CONTAINERS|CONTAINER
 Containers
@@ -3327,6 +3391,45 @@ This would prevent the player from connecting to the MUCK until after the
 date indicated by the suspend-until prop. The date is in seconds, per the
 usual Unix manner of telling time. When the player gets booted from the 
 login screen, they get displayed the contents of the suspend-msg prop.
+~~~~
+SITE-BLOCKS|
+In-Server Site Banning support
+------------------------------
+
+It is possible to block specific IP addresses from establishing connections
+to your MUCK by setting the proper props on #0. The sytax is:
+@/sites/###.###.###.### <flag>:<reason>
+
+For example:
+@/sites/123.123.123.123 G:Problem guest connecting from this address. 
+
+Where ###.###.###.### is the numerical IP address. The IP address can include
+a little bit of pattern matching in each subset, but there must be 4 subsets
+total.
+'*' to represent zero or more unspecified characters, and '|', OR, for
+alternate patterns. For a few valid exampls:
+123.333.456.678, 1*.*.456.678, 123|321.333.456.678 
+are all valid formats whereas
+123*678, 123.456.789.789|123.321.123.321
+are not.
+
+The flag can be one of the following:
+L = The LOCKOUT flag means characters are not able to login from that site 
+    unless excused. 
+G = The GUEST flag means that connections cannot be made to characters set
+    GUEST from that address.
+X = The BLOCKED flag prevents any connection from that address whatsoever. 
+    It will be dropped immediately upon connection, without even ever seeing
+    the login screen. 
+
+Note that no matter what, localhost cannot be blocked out, so one
+can always connected from it. 
+
+Excusal from the (L) flag is done by setting the following prop on the
+character to be excused:
+@/sites/###.###.###.### U:<reason>
+For example:
+@set *Akari=@/sites/123.123.123.123 U:Excused from the siteban.
 ~~~~
 PROGRAMS|PRIMS|FUNCTIONS|MUF
 MUCK PROGRAMS
@@ -3438,6 +3541,8 @@ unidle     - When a player unidles.
 look       - When something is looked at.
 login      - When a connection is made to the login screen.
 disclogin  - When a connection drops from the login screen.
+@dump      - On #0 only as @dump/, triggered when the MUCK saves the db.
+@dumpwarn  - On #0 only as @dumpwarn/, triggered when the MUCK warns of saves.
 ~~~~
 SCORE|
 score
@@ -3512,7 +3617,7 @@ connection to a player, at which point, the player's connection mode changes
 from MUF port to a normal text port connection.
 
 There are some other prims that may be useful in working with MUF ports, such
-as ANSI_NOTIFY_DESCRIPTOR, DESCR, DESCR_SETFLAG, and DESCR_FLAG?
+as ANSI_NOTIFY_DESCRIPTOR, DESCR, DESCR_SET, and DESCR_FLAG?
 ~~~~
 @AUTOARCHIVE|AUTOARCHIVE
 
