@@ -135,11 +135,20 @@ free_timenode(timequeue ptr)
         }
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                        ptr->subtyp == TQ_MUF_TREAD)) {
-            FLAGS(ptr->uid) &= ~INTERACTIVE;
-            FLAGS(ptr->uid) &= ~READMODE;
-            anotify_nolisten(ptr->uid, CINFO
-                             "Data input aborted.  The command you were using was killed.",
-                             1);
+            if (OkObj(ptr->uid)) {
+                FLAGS(ptr->uid) &= ~INTERACTIVE;
+                FLAGS(ptr->uid) &= ~READMODE;
+                anotify_nolisten(ptr->uid,
+                                 CINFO
+                                 "Data input aborted.  The command you were using was killed.",
+                                 1);
+            } else {
+                if ((curdescr = get_descr(ptr->fr->descr, NOTHING))) {
+                    DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
+                    curdescr->interactive = 0;
+                    curdescr->block = 0;
+                }
+            }
         }
     }
     if (free_timenode_count < tp_free_frames_pool) {
