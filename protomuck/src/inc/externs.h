@@ -296,6 +296,9 @@ extern char *escape_ansi(char *buf, const char *input);
 extern char *parse_mush_ansi( char *buf, char *from );
 extern char *unparse_mush_ansi( char *buf, char *from );
 extern char *mush_tct( const char *in, char out[BUFFER_LEN] );
+extern char *parse_tilde_ansi( char *buf, char *from );
+extern char *unparse_tilde_ansi(char *buf, char *from );
+extern char *tilde_tct( const char *in, char out[BUFFER_LEN] );
 
 #if !defined(MALLOC_PROFILING)
 extern char *string_dup(const char *s);

@@ -1869,8 +1869,8 @@ prim_parse_ansi(PRIM_PROTOTYPE)
    if (oper2->type != PROG_STRING)
       abort_interp("Not a string argument.");
 
-   if (oper1->data.number < 0 || oper1->data.number > 2)
-      abort_interp("Integer out of range of 0-2.");
+   if (oper1->data.number < 0 || oper1->data.number > 3)
+      abort_interp("Integer out of range of 0 - 3.");
    if (!oper2->data.string || oper2->data.string->length < 1) {
       CLEAR(oper1);
       CLEAR(oper2);
@@ -1883,11 +1883,13 @@ prim_parse_ansi(PRIM_PROTOTYPE)
       CLEAR(oper2);
 
       if (ctype == 0)
-        sprintf(buf4, "%s", buf3);
-      if (ctype == 1)
-         sprintf(buf4, "%s", parse_ansi(player, buf, buf3, ANSINORMAL));
-      if (ctype == 2)
-        sprintf(buf4, "%s", parse_mush_ansi(buf, buf3));
+          sprintf(buf4, "%s", buf3);
+      else if (ctype == 1)
+          sprintf(buf4, "%s", parse_ansi(player, buf, buf3, ANSINORMAL));
+      else if (ctype == 2)
+          sprintf(buf4, "%s", parse_mush_ansi(buf, buf3));
+      else if (ctype == 3)
+          sprintf(buf4, "%s", parse_tilde_ansi(buf, buf3));
 
       PushString(buf4);
    }
@@ -1953,8 +1955,8 @@ prim_unparse_ansi(PRIM_PROTOTYPE)
    if (oper2->type != PROG_STRING)
       abort_interp("Not a string argument.");
 
-   if (oper1->data.number < 0 || oper1->data.number > 2)
-      abort_interp("Integer out of range of 0-2.");
+   if (oper1->data.number < 0 || oper1->data.number > 3)
+      abort_interp("Integer out of range of 0-3.");
    if (!oper2->data.string || oper2->data.string->length < 1) {
       CLEAR(oper1);
       CLEAR(oper2);
@@ -1973,12 +1975,14 @@ prim_unparse_ansi(PRIM_PROTOTYPE)
          strip_ansi(buf, buf3);
          sprintf(buf4, "%s", buf);
       }
-      if (ctype == 1) {
+      else if (ctype == 1) {
          unparse_ansi(buf, buf3);
          sprintf(buf4, "%s", buf);
       }
-      if (ctype == 2)
+      else if (ctype == 2)
          sprintf(buf4, "%s", unparse_mush_ansi(buf, buf3));
+      else if (ctype == 3)
+         sprintf(buf4, "%s", unparse_tilde_ansi(buf, buf3));
 
       PushString(buf4);
    }
@@ -2001,8 +2005,8 @@ prim_escape_ansi(PRIM_PROTOTYPE)
    if (oper2->type != PROG_STRING)
       abort_interp("Not a string argument.");
 
-   if (oper1->data.number < 0 || oper1->data.number > 2)
-      abort_interp("Integer out of range of 0-2.");
+   if (oper1->data.number < 0 || oper1->data.number > 3)
+      abort_interp("Integer out of range of 0-3.");
    if (!oper2->data.string || oper2->data.string->length < 1) {
       CLEAR(oper1);
       CLEAR(oper2);
@@ -2016,11 +2020,13 @@ prim_escape_ansi(PRIM_PROTOTYPE)
 
       if (ctype == 0)
          sprintf(buf4, "%s", escape_ansi(buf, buf3));
-      if (ctype == 1) {
+      else if (ctype == 1) {
          sprintf(buf4, "%s", tct(buf3, buf));
       }
-      if (ctype == 2)
+      else if (ctype == 2)
          sprintf(buf4, "%s", mush_tct(buf3, buf));
+      else if (ctype == 3)
+         sprintf(buf4, "%s", tilde_tct(buf3, buf));
 
       PushString(buf4);
    }
