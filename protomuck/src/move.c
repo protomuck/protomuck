@@ -645,6 +645,15 @@ do_get(int descr, dbref player, const char *what, const char *obj)
 		    cando=can_doit(descr, player, thing, "You can't pick that up.");
 		}
 		if (cando) {
+                    if (GETSUCC(thing)){
+                        exec_or_notify(descr, player, thing, GETSUCC(thing), 
+				       "(@Succ)");
+		    }
+		    if (GETOSUCC(thing)){
+			parse_omessage(descr, player, getloc(thing), thing,
+					GETOSUCC(thing), NAME(player), 
+					"(@Osucc)");
+		    }
 		    moveto(thing, player);
 		    anotify_nolisten2(player, CSUCC "Taken.");
 		}
