@@ -22,20 +22,24 @@ extern void prim_getseed(PRIM_PROTOTYPE);
 extern void prim_setseed(PRIM_PROTOTYPE);
 extern void prim_plusplus(PRIM_PROTOTYPE);
 extern void prim_minusminus(PRIM_PROTOTYPE);
+extern void prim_dist2d(PRIM_PROTOTYPE);
+extern void prim_2ddist(PRIM_PROTOTYPE);
+extern void prim_3ddist(PRIM_PROTOTYPE);
 
 #define PRIMS_MATH_FUNCS prim_add, prim_subtract, prim_multiply, prim_divide, \
     prim_mod, prim_bitor, prim_bitxor, prim_bitand, prim_bitshift, prim_and,  \
     prim_or, prim_not, prim_lessthan, prim_greathan, prim_equal, prim_lesseq, \
     prim_greateq, prim_random, prim_int, prim_srand, prim_setseed,            \
-    prim_getseed, prim_plusplus, prim_minusminus
+    prim_getseed, prim_plusplus, prim_minusminus, prim_dist2d, prim_2ddist,   \
+    prim_3ddist
 
 #define PRIMS_MATH_NAMES  "+",  "-",  "*",  "/",          \
     "%", "BITOR", "BITXOR", "BITAND", "BITSHIFT", "AND",  \
     "OR",  "NOT",  "<",  ">",  "=",  "<=",                \
     ">=", "RANDOM", "INT", "SRAND", "SETSEED", "GETSEED", \
-    "++", "--"
+    "++", "--", "DIST2D", "2DDIST", "3DDIST"
  
-#define PRIMS_MATH_CNT 24
+#define PRIMS_MATH_CNT 27
 
 
 

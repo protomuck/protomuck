@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.7 2000-09-18 03:15:28 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.8 2000-09-18 03:21:51 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands
@@ -235,8 +235,9 @@ extern void do_wall(dbref player, const char *message);
 extern void do_gripe(dbref player, const char *message);
 extern void do_say(int descr, dbref player, const char *message);
 extern void do_page(int descr, dbref player, const char *arg1, const char *arg2);
-extern void notify_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
-extern void notify_html_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
+extern int  notify_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
+extern int  ansi_notify_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
+extern int  notify_html_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
 extern void notify_except(dbref first, dbref exception, const char *msg, dbref who);
 extern void notify_html_except(dbref first, dbref exception, const char *msg, dbref who);
 extern void anotify_except(dbref first, dbref exception, const char *msg, dbref who);

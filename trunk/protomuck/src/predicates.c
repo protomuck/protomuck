@@ -315,7 +315,7 @@ restricted(dbref player, dbref thing, object_flag_type flag)
 	    }
 	    return(0);
 	case DARK:
-            if (!Arch(OWNER(player)) || !(POWERS(player) & POW_HIDE)) {
+            if (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE)) {
 		if (Typeof(thing) == TYPE_PLAYER)
 		    return(1);
 		if (!tp_exit_darking && Typeof(thing) == TYPE_EXIT)
@@ -355,7 +355,7 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
 	case F2LOGWALL:
 	    return (!Arch(OWNER(player)));
 	case F2HIDDEN:
-	    if (Typeof(thing) == TYPE_PLAYER) { return (!Arch(OWNER(player)) || !(POWERS(player) & POW_HIDE)); } else { return 1; }
+	    if (Typeof(thing) == TYPE_PLAYER) { return (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE)); } else { return 1; }
       case F2ANTIPROTECT:
           if (Typeof(thing) == TYPE_PLAYER) { return (!Boy(OWNER(player))); } else { return 1; }
 

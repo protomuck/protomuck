@@ -234,7 +234,7 @@ do_page(int descr, dbref player, const char *arg1, const char *arg2)
     }
 }
 
-void 
+int 
 notify_listeners(dbref who, dbref xprog, dbref obj,
 		 dbref room, const char *msg, int isprivate)
 {
@@ -279,12 +279,15 @@ notify_listeners(dbref who, dbref xprog, dbref obj,
 	}
     }
 
-    if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING)
+    if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
 	notify_nolisten(obj, msg, isprivate);
+    } else {
+      return 0;
+    }
 }
 
 
-void 
+int 
 ansi_notify_listeners(dbref who, dbref xprog, dbref obj,
 		 dbref room, const char *msg, int isprivate)
 {
@@ -331,11 +334,14 @@ ansi_notify_listeners(dbref who, dbref xprog, dbref obj,
 	}
     }
 
-    if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING)
-	anotify_nolisten(obj, msg, isprivate);
+    if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
+	return anotify_nolisten(obj, msg, isprivate);
+    } else {
+      return 0;
+    }
 }
 
-void 
+int 
 notify_html_listeners(dbref who, dbref xprog, dbref obj,
 		 dbref room, const char *msg, int isprivate)
 {
@@ -382,8 +388,11 @@ notify_html_listeners(dbref who, dbref xprog, dbref obj,
 	}
     }
 
-    if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING)
+    if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
 	notify_html_nolisten(obj, msg, isprivate);
+    } else {
+      return 0;
+    }
 }
 
 

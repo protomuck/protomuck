@@ -25,6 +25,8 @@ extern void prim_timer_start(PRIM_PROTOTYPE);
 extern void prim_timer_stop(PRIM_PROTOTYPE);
 extern void prim_event_count(PRIM_PROTOTYPE);
 extern void prim_event_send(PRIM_PROTOTYPE);
+extern void prim_pnameokp(PRIM_PROTOTYPE);
+extern void prim_nameokp(PRIM_PROTOTYPE);
 
 /* From p_html.c */
 extern void prim_commandtext(PRIM_PROTOTYPE);
@@ -44,9 +46,10 @@ extern void prim_sockcheck(PRIM_PROTOTYPE);
     prim_abort, prim_ispidp, prim_parselock, prim_unparselock,           \
     prim_prettylock, prim_testlock, prim_sysparm, prim_logstatus,        \
     prim_commandtext, prim_playmidi, prim_stopmidi,                      \
-    prim_socksend, prim_sockrecv, prim_sockclose, prim_setsysparm,       \
-    prim_cancallp, prim_timer_start, prim_timer_stop, prim_event_count,  \
-    prim_event_send, prim_nbsockopen, prim_sockcheck
+    prim_socksend, prim_sockrecv, prim_sockclose,                        \
+    prim_setsysparm, prim_cancallp, prim_timer_start, prim_timer_stop,   \
+    prim_event_count, prim_event_send, prim_nbsockopen, prim_sockcheck,  \
+    prim_pnameokp, prim_nameokp
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET",    \
     "SYSTIME", "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL",  \
@@ -57,8 +60,10 @@ extern void prim_sockcheck(PRIM_PROTOTYPE);
     "SOCKSEND", "SOCKRECV", "SOCKCLOSE",                 \
     "SETSYSPARM", "CANCALL?", "TIMER_START",             \
     "TIMER_STOP", "EVENT_COUNT", "EVENT_SEND",           \
-    "NBSOCKOPEN", "SOCKCHECK" 
+    "NBSOCKOPEN", "SOCKCHECK", "PNAME-OK?", "NAME-OK?"
 
-#define PRIMS_MISC_CNT 36
+#define PRIMS_MISC_CNT 38
+
+
 
 

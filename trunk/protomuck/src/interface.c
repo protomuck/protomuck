@@ -1,34 +1,3 @@
-/*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/interface.c,v 1.7 2000-09-18 03:15:28 akari Exp $
- *
- * $Log: not supported by cvs2svn $
- *
- * Revision 1.2   2000/06/27 22:12:34  moose
- * A lot of updates for ProtoMUCK
- *
- * Revision 1.11  1996/10/24 20:14:50  loki
- * Fixed annoying web-bug
- *
- * Revision 1.10  1996/10/14 06:53:04  loki
- * Fixed stupid typo.
- *
- * Revision 1.9  1996/10/14 06:50:06  loki
- * Fixed web server bug.
- *
- * Revision 1.8  1996/10/08 23:47:14  jtraub
- * Quickpatch to remove a serious security hole.
- * ./
- *
- * Revision 1.7  1996/10/03 19:51:31  loki
- * Took out some debugging info...
- * One more attempt at fixing NT timeslicing/socket bug.
- *
- * Revision 1.5  1996/10/02 21:35:16  loki
- * Preliminary fix to timeslicing via really cheeseball hack.
- * This fix is for the NT port of Neon.
- *
- */
-
 #include <sys/types.h>
 #ifdef WIN32
 # include <fcntl.h>
@@ -66,11 +35,11 @@
 #include "interp.h"
 #endif
 
-/* Cynbe stuff added to help decode corefiles: */
+/* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
 char crt_last_command[ CRT_LAST_COMMAND_MAX ];
 int  crt_last_len;
-int  crt_last_player;
+int  crt_last_player; */
 int  crt_connect_count = 0;
 
 
@@ -135,12 +104,13 @@ char   *time_format_1(time_t);
 char   *time_format_2(time_t);
 void    init_descriptor_lookup();
 void    init_descr_count_lookup();
-void    remember_descriptor(struct descriptor_data *);
+int     remember_descriptor(struct descriptor_data *);
 void    remember_player_descr(dbref player, int);
 void    update_desc_count_table();
 int*    get_player_descrs(dbref player, int* count);
 void    forget_player_descr(dbref player, int);
 void    forget_descriptor(struct descriptor_data *);
+struct  descriptor_data* descrdata_by_index(int index);
 struct descriptor_data* descrdata_by_descr(int i);
 struct  descriptor_data* lookup_descriptor(int);
 int     online(dbref player);
@@ -171,6 +141,8 @@ extern FILE *input_file;
 extern FILE *delta_infile;
 extern FILE *delta_outfile;
 #endif
+
+#define MAX_SOCKETS 800
 
 static unsigned short resolver_myport;
 short db_conversion_flag = 0;
@@ -531,14 +503,14 @@ main(int argc, char **argv)
 /* CGI decoder */
 
 void
-notify_descriptor(int c, const char *msg)
+notify_descriptor(int descr, const char *msg)
 {
    char *ptr1;
    const char *ptr2;
    char buf[BUFFER_LEN + 2];
    struct descriptor_data *d;
 
-   d = descrdata_by_descr(c);
+   for (d = descriptor_list; d && (d->descriptor != descr); d = d->next);
 
     ptr2 = msg;
     while (ptr2 && *ptr2) {
@@ -551,7 +523,7 @@ notify_descriptor(int c, const char *msg)
 	if (*ptr2 == '\r')
 	    ptr2++;
    }
-   queue_ansi(d, buf);
+   queue_string(d, buf);
    process_output(d);   
 }
 
@@ -665,7 +637,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 	darr = get_player_descrs(player, &dcount);
 
         for (di = 0; di < dcount; di++) {
-          d = descrdata_by_descr(darr[di]);
+	    d = descrdata_by_index(darr[di]);
 	    if (d->connected && d->player == player) {
 		if (Html(player))
 		{
@@ -679,9 +651,9 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 		if((d->linelen > 0) && !(FLAGS(player)&CHOWN_OK)) {
 		    lwp = buf;
 		    len = strlen(buf);
-		    queue_ansi(descrdata_by_descr(darr[di]), buf);
+		    queue_ansi(d, buf);
 		} else
-		    queue_ansi(descrdata_by_descr(darr[di]), buf);
+		    queue_ansi(d, buf);
 
 		if (firstpass) retval++;
 	    }
@@ -720,9 +692,10 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 				darr = get_player_descrs(OWNER(player), &dcount);
 
                         for (di = 0; di < dcount; di++) {
+			    d = descrdata_by_index(darr[di]);
 				    if (Html(OWNER(player)))
-                                       queue_ansi(descrdata_by_descr(darr[di]), html_escape(buf2)); else
-                            queue_ansi(descrdata_by_descr(darr[di]), buf2);
+                                       queue_ansi(d, html_escape(buf2)); else
+                            queue_ansi(d, buf2);
                             if (firstpass) retval++;
                         }
 		    }
@@ -773,17 +746,17 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 	darr = get_player_descrs(player, &dcount);
 
         for (di = 0; di < dcount; di++) {
-            d = descrdata_by_descr(darr[di]);
+	    d = descrdata_by_index(darr[di]);
 		if((d->linelen > 0) && (d->player == player)
 		      && !(FLAGS(d->player)&CHOWN_OK) && 
 			  (Html(d->player))) 
 		{
 		    lwp = buf;
 		    len = strlen(buf);
-		    queue_ansi(descrdata_by_descr(darr[di]), buf);
+		    queue_ansi(d, buf);
 		} else if ((Html(d->player)) && (d->player == player))
 		{
-		    queue_ansi(descrdata_by_descr(darr[di]), buf);
+		    queue_ansi(d, buf);
 		    if (NHtml(d->player)) queue_ansi(d, "<BR>");
 		}
 		if (firstpass) retval++;
@@ -824,7 +797,8 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 				darr = get_player_descrs(OWNER(player), &dcount);
 
                         for (di = 0; di < dcount; di++) {
-                            queue_ansi(descrdata_by_descr(darr[di]), buf2);
+				    d = descrdata_by_index(darr[di]);
+                            queue_ansi(d, buf2);
                             if (firstpass) retval++;
                         }
 		    }
@@ -840,142 +814,12 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 int 
 notify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
-    const char *ptr;
-
-#ifdef COMPRESS
-    extern const char *uncompress(const char *);
-    ptr = uncompress(msg);
-#else
-    ptr = msg;
-#endif                          /* COMPRESS */
-
-    if (tp_listeners) {
-	if (tp_listeners_obj || Typeof(player) == TYPE_ROOM) {
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"@listen", ptr, tp_listen_mlev, 1, 0);
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"~listen", ptr, tp_listen_mlev, 1, 1);
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"~olisten", ptr, tp_listen_mlev, 0, 1);
-#ifdef ALLOW_OLD_TRIGGERS
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"_listen", ptr, tp_listen_mlev, 1, 1);
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"_olisten", ptr, tp_listen_mlev, 0, 1);
-#endif
-	}
-    }
-
-    if (Typeof(player) == TYPE_THING && (FLAGS(player) & VEHICLE) &&
-	    ( /* !(FLAGS(player) & DARK) || */ Mage(OWNER(player)))
-    ) {
-	dbref ref;
-	ref = getloc(player);
-	if (Mage(OWNER(player)) || ref == NOTHING ||
-		Typeof(ref) != TYPE_ROOM || !(FLAGS(ref) & VEHICLE)
-	) {
-	    if (!isprivate && getloc(from) == getloc(player)) {
-		char buf[BUFFER_LEN];
-		char pbuf[BUFFER_LEN];
-		const char *prefix;
-
-		prefix = GETOECHO(player);
-		if (prefix && *prefix) {
-		    char ch = *match_args;
-
-		    *match_args = '\0';
-		    prefix = do_parse_mesg(-1, from, player, prefix,
-				    "(@Oecho)", pbuf, MPI_ISPRIVATE
-			    );
-		    *match_args = ch;
-		}
-		if (!prefix || !*prefix)
-		    prefix = "Outside>";
-		sprintf(buf, "%s %.*s",
-			prefix,
-			(int)(BUFFER_LEN - (strlen(prefix) + 2)),
-			msg
-		);
-		ref = DBFETCH(player)->contents;
-		while (ref != NOTHING) {
-		    notify_nolisten(ref, buf, isprivate);
-		    ref = DBFETCH(ref)->next;
-		}
-	    }
-	}
-    }
-
-    return notify_nolisten(player, msg, isprivate);
+    return notify_listeners(from, NOTHING, player, getloc(from), msg, isprivate);
 }
+
 int 
-notify_html_from_echo(dbref from, dbref player, const char *msg, int 
-isprivate) {
-    const char *ptr;
-
-#ifdef COMPRESS
-    extern const char *uncompress(const char *);
-    ptr = uncompress(msg);
-#else
-    ptr = msg;
-#endif                          /* COMPRESS */
-
-    if (tp_listeners) {
-	if (tp_listeners_obj || Typeof(player) == TYPE_ROOM) {
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"@listen", ptr, tp_listen_mlev, 1, 0);
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"~listen", ptr, tp_listen_mlev, 1, 1);
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"~olisten", ptr, tp_listen_mlev, 0, 1);
-#ifdef ALLOW_OLD_TRIGGERS
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"_listen", ptr, tp_listen_mlev, 1, 1);
-	    listenqueue(-1, from, getloc(from), player, player, NOTHING,
-			"_olisten", ptr, tp_listen_mlev, 0, 1);
-#endif
-	}
-    }
-
-    if (Typeof(player) == TYPE_THING && (FLAGS(player) & VEHICLE) &&
-	    ( /* !(FLAGS(player) & DARK) || */ Mage(OWNER(player)))
-    ) {
-	dbref ref;
-	ref = getloc(player);
-	if (Mage(OWNER(player)) || ref == NOTHING ||
-		Typeof(ref) != TYPE_ROOM || !(FLAGS(ref) & VEHICLE)
-	) {
-	    if (!isprivate && getloc(from) == getloc(player)) {
-		char buf[BUFFER_LEN];
-		char pbuf[BUFFER_LEN];
-		const char *prefix;
-
-		prefix = GETOECHO(player);
-		if (prefix && *prefix) {
-		    char ch = *match_args;
-
-		    *match_args = '\0';
-		    prefix = do_parse_mesg(-1, from, player, prefix,
-				    "(@Oecho)", pbuf, MPI_ISPRIVATE
-			    );
-		    *match_args = ch;
-		}
-		if (!prefix || !*prefix)
-		    prefix = "Outside>";
-		sprintf(buf, "%s %.*s",
-			prefix,
-			(int)(BUFFER_LEN - (strlen(prefix) + 2)),
-			msg
-		);
-		ref = DBFETCH(player)->contents;
-		while (ref != NOTHING) {
-		    notify_html_nolisten(ref, buf, isprivate);
-		    ref = DBFETCH(ref)->next;
-		}
-	    }
-	}
-    }
-
-    return notify_html_nolisten(player, msg, isprivate);
+notify_html_from_echo(dbref from, dbref player, const char *msg, int isprivate) {
+    return notify_html_listeners(from, NOTHING, player, getloc(from), msg, isprivate);
 }
 
 int 
@@ -1037,16 +881,7 @@ anotify_nolisten(dbref player, const char *msg, int isprivate)
 int 
 anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
-    char    buf[BUFFER_LEN + 500];
-
-    if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
-	&& !(FLAG2(OWNER(player)) & F2HTML)) {
-	parse_ansi(player, buf, msg);
-    } else {
-	unparse_ansi(buf, msg);
-    }
-
-    return notify_from_echo(from, player, buf, isprivate);
+    return ansi_notify_listeners(from, NOTHING, player, getloc(from), msg, isprivate);
 }
 
 
@@ -1279,8 +1114,8 @@ shovechars(int port)
 	next_slice = msec_add(last_slice, tp_command_time_msec);
 	slice_timeout = timeval_sub(next_slice, current_time);
 
-	FD_ZERO(&input_set);
 	FD_ZERO(&output_set);
+	FD_ZERO(&input_set);
 	if (ndescriptors < avail_descriptors) {
 	    FD_SET(sock, &input_set);
 	    FD_SET(sock_html, &input_set);
@@ -1417,23 +1252,19 @@ shovechars(int port)
 void 
 wall_and_flush(const char *msg)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
     char    buf[BUFFER_LEN + 2];
 
 #ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
     msg = uncompress(msg);
-#endif                          /* COMPRESS */
+#endif				/* COMPRESS */
 
     if (!msg || !*msg) return;
     strcpy(buf, msg);
     strcat(buf, "\r\n");
 
-    for (d = descriptor_list; d; d = dnext) {
-	dnext = d->next;
+    for (d = descriptor_list; d; d = d->next) {
 	queue_ansi(d, buf);
-	/* queue_write(d, "\r\n", 2); */
 	if (!process_output(d)) {
 	    d->booted = 1;
 	}
@@ -1484,24 +1315,22 @@ wall_logwizards(const char *msg)
 void 
 wall_arches(const char *msg)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
     char    buf[BUFFER_LEN + 2];
 
 #ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
     msg = uncompress(msg);
-#endif                          /* COMPRESS */
+#endif				/* COMPRESS */
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
 
-    for (d = descriptor_list; d; d = dnext) {
-	dnext = d->next;
-	if ( d->connected && TArch(d->player)) {
+    for (d = descriptor_list; d; d = d->next) {
+	if ( d->connected && /* (d->player >= 0) && */ TArch(d->player)) {
 	    queue_ansi(d, buf);
-	    if (!process_output(d))
+	    if (!process_output(d)) {
 		d->booted = 1;
+	    }
 	}
     }
 }
@@ -1510,24 +1339,22 @@ wall_arches(const char *msg)
 void 
 wall_wizards(const char *msg)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
     char    buf[BUFFER_LEN + 2];
 
 #ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
     msg = uncompress(msg);
-#endif                          /* COMPRESS */
+#endif				/* COMPRESS */
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
 
-    for (d = descriptor_list; d; d = dnext) {
-	dnext = d->next;
-	if ( d->connected && Mage(d->player)) {
+    for (d = descriptor_list; d; d = d->next) {
+	if ( d->connected && /* (d->player >= 0) && */ TMage(d->player)) {
 	    queue_ansi(d, buf);
-	    if (!process_output(d))
+	    if (!process_output(d)) {
 		d->booted = 1;
+	    }
 	}
     }
 }
@@ -1567,14 +1394,12 @@ ansi_wall_wizards(const char *msg)
 void 
 show_wizards(dbref player)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
 
     anotify(player, CINFO "WizChatters:");
-    for (d = descriptor_list; d; d = dnext) {
-	dnext = d->next;
-	if ( d->connected && Mage(d->player))
+    for (d = descriptor_list; d; d = d->next)
+	if ( d->connected && /* (d->player >= 0) && */ Mage(d->player))
 	    notify(player, NAME(d->player));
-    }
 }
 
 
@@ -1589,7 +1414,7 @@ flush_user_output(dbref player)
 
     darr = get_player_descrs(OWNER(player), &dcount);
     for (di = 0; di < dcount; di++) {
-        d = descrdata_by_descr(darr[di]);
+        d = descrdata_by_index(darr[di]);
         if (d && !process_output(d)) {
             d->booted = 1;
         }
@@ -1600,20 +1425,17 @@ flush_user_output(dbref player)
 void 
 wall_all(const char *msg)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
     char    buf[BUFFER_LEN + 2];
 
 #ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
     msg = uncompress(msg);
-#endif                          /* COMPRESS */
+#endif				/* COMPRESS */
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
 
-    for (d = descriptor_list; d; d = dnext) {
-	dnext = d->next;
+    for (d = descriptor_list; d; d = d->next) {
 	queue_ansi(d, buf);
 	if (!process_output(d))
 	    d->booted = 1;
@@ -1883,17 +1705,25 @@ clearstrings(struct descriptor_data * d)
 void 
 shutdownsock(struct descriptor_data * d)
 {
-    if (d->connected) {
-	log_status("DISC: %2d %s %s(%s) %s\n",
+    if (d->type != CT_HTML) { /* Ignore HTTP */
+      if (d->connected) {
+	log_status("DISC: %2d %s %s(%s) %s, %d cmds\n",
 		d->descriptor, unparse_object(d->player, d->player),
 		d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->commands);
 	announce_disconnect(d);
-    } else {
-	if(d->type != CT_HTML)
-	log_status("DISC: %2d %s(%s) %s (never connected)\n",
+      } else {
+	log_status("DISC: %2d %s(%s) %s, %d cmds (never connected)\n",
 		d->descriptor, d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->commands);
+      }
+    }
+
+    if(d->connected && OkObj(d->player) && (Typeof(d->player) == TYPE_PLAYER)) {
+	forget_player_descr(d->player, d->descriptor);
+	d->connected = 0;
+	d->player = NOTHING;
+	update_desc_count_table();
     }
     if (d->identify)
       FREE(d->identify);
@@ -1910,10 +1740,12 @@ shutdownsock(struct descriptor_data * d)
     if (d->username)
 	free((void *)d->username);
     mcp_frame_clear(&d->mcpframe);
-#ifdef HTTPDELAY
+#ifdef HTTPD
+ #ifdef HTTPDELAY
     if (d->httpdata)
 	free((void *)d->httpdata);
-#endif
+ #endif /* HTTPDELAY */
+#endif /* HTTPD */
     FREE(d);
     ndescriptors--;
 }
@@ -1942,8 +1774,6 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype)
     struct descriptor_data *d;
     char buf[128];
 
-    
-
     ndescriptors++;
     MALLOC(d, struct descriptor_data, 1);
     d->descriptor = s;
@@ -1952,7 +1782,7 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype)
     d->booted = 0;
     d->fails = 0;
     d->con_number = 0;
-    d->connected_at = time((time_t *)NULL);
+    d->connected_at = current_systime;
     make_nonblocking(s);
     d->output_prefix = 0;
     d->output_suffix = 0;
@@ -1987,9 +1817,9 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype)
     d->next = descriptor_list;
     d->prev = &descriptor_list;
     descriptor_list = d;
-    remember_descriptor(d);
-
-    
+    if(remember_descriptor(d) < 0)
+	d->booted = 1; /* Drop the connection ASAP */
+   
 
     welcome_user(d);
     return d;
@@ -3079,16 +2909,12 @@ parse_connect(const char *msg, char *command, char *user, char *pass)
 int 
 boot_off(dbref player)
 {
-    int* darr;
-    int dcount;
     struct descriptor_data *d;
     struct descriptor_data *last = NULL;
 
-	darr = get_player_descrs(player, &dcount);
-	if (darr) {
-        last = descrdata_by_descr(darr[0]);
-	}
-
+    for (d = descriptor_list; d; d = d->next)
+	if (d->connected && d->player == player && !d->booted)
+	    last = d;
 
     if (last) {
 	process_output(last);
@@ -3115,6 +2941,19 @@ boot_player_off(dbref player)
             d->booted = 1;
         }
     }
+
+    /* We need to be a tad more brutal as this player may be getting @toaded */
+    for (di = 0; di < dcount; di++) {
+        d = descrdata_by_index(darr[di]);
+	if(d) {
+	    forget_player_descr(d->player, d->descriptor);
+	    d->connected = 0;
+	    d->player = NOTHING;
+            if (!d->booted)
+		d->booted = 1;
+        }
+    }
+    update_desc_count_table();
 }
 
 void 
@@ -3274,9 +3113,20 @@ do_dwall(dbref player, const char *name, const char *msg)
 	case ';':
 		sprintf(buf, MARK "%s %s\r\n", NAME(player), msg+1);
 		break;
-	case '#':
+	case '@':
 		sprintf(buf, MARK "%s\r\n", msg+1);
 		break;
+	case '#':
+  		notify(player, "DWall Help");
+  		notify(player, "~~~~~~~");
+  		notify(player, "dwall player=msg -- tell player 'msg'");
+  		notify(player, "dwall 14=message -- tell ds 14 'message'");
+  		notify(player, "dwall 14=:yerfs  -- pose 'yerfs' to ds 14");
+		notify(player, "dwall 14=@boo    -- spoof 'boo' to ds 14");
+		notify(player, "dwall 14=!boo    -- same as @ with no 'mark'");
+		notify(player, "dwall 14=#       -- this help list");
+		notify(player, "Use WHO or WHO! to find ds numbers for players online.");
+		return;
 	case '!':
 		sprintf(buf, "%s\r\n", msg+1);
 		break;
@@ -3842,8 +3692,9 @@ announce_disconnect(struct descriptor_data *d)
     char    buf[BUFFER_LEN];
     object_flag_type f=0;
 
-    if ((loc = getloc(player)) == NOTHING)
-	return;
+    if (!d->connected || !OkObj(player) || (Typeof(player) != TYPE_PLAYER) ||
+	((loc = getloc(player)) == NOTHING)
+    )	return;
 
 	total_loggedin_connects--;
 
@@ -3865,9 +3716,9 @@ announce_disconnect(struct descriptor_data *d)
 	anotify_except(DBFETCH(loc)->contents, player, buf, player);
     }
 
+    forget_player_descr(d->player, d->descriptor);
     d->connected = 0;
     d->player = NOTHING;
-    forget_player_descr(player, d->descriptor);
     update_desc_count_table();
 
     /* trigger local disconnect action */
@@ -3918,16 +3769,15 @@ do_setuid(char *name)
 
 #endif				/* MUD_ID */
 
-struct descriptor_data *descr_count_table[FD_SETSIZE];
+struct descriptor_data *descr_count_table[MAX_SOCKETS];
 int current_descr_count = 0;
 
 void
 init_descr_count_lookup()
 {
     int i;
-    for (i = 0; i < FD_SETSIZE; i++) {
+    for (i = 0; i < MAX_SOCKETS; i++)
 	descr_count_table[i] = NULL;
-    }
 }
 
 void
@@ -3949,24 +3799,46 @@ update_desc_count_table()
 }
 
 struct descriptor_data *
-descrdata_by_count(int c)
+descrdata_by_count(int count)
 {
-    c--;
-    if (c >= current_descr_count || c < 0) {
+    count--;
+    if (count >= current_descr_count || count < 0)
         return NULL;
-    }
-    return descr_count_table[c];
+
+    return descr_count_table[count];
 }
 
-struct descriptor_data *descr_lookup_table[FD_SETSIZE];
+struct descriptor_data *descr_lookup_table[MAX_SOCKETS];
 
 void
 init_descriptor_lookup()
 {
     int i;
-    for (i = 0; i < FD_SETSIZE; i++) {
+    for (i = 0; i < MAX_SOCKETS; i++)
 	descr_lookup_table[i] = NULL;
-    }
+}
+
+int
+index_descr(int index)
+{
+    if((index < 0) || (index >= MAX_SOCKETS))
+	return -1;
+	if(descr_lookup_table[index] == NULL)
+	return -1;
+
+	return descr_lookup_table[index]->descriptor;
+}
+
+int
+descr_index(int descr)
+{
+    int i;
+    
+    for(i = 0; i < MAX_SOCKETS; i++)
+	if(descr_lookup_table[i] && (descr_lookup_table[i]->descriptor == descr))
+	    return i;
+
+    return -1;
 }
 
 int*
@@ -3992,17 +3864,20 @@ remember_player_descr(dbref player, int descr)
 {
     int  count = DBFETCH(player)->sp.player.descr_count;
     int* arr   = DBFETCH(player)->sp.player.descrs;
+    int index;
+    
+    index = descr_index(descr);
 
-    if (Typeof(player) != TYPE_PLAYER)
-       return;
+    if((index < 0) || (index >= MAX_SOCKETS))
+	return;
 
     if (!arr) {
         arr = (int*)malloc(sizeof(int));
-        arr[0] = descr;
+        arr[0] = index;
         count = 1;
     } else {
         arr = (int*)realloc(arr,sizeof(int) * (count+1));
-        arr[count] = descr;
+        arr[count] = index;
         count++;
     }
     DBFETCH(player)->sp.player.descr_count = count;
@@ -4043,35 +3918,59 @@ forget_player_descr(dbref player, int descr)
     DBFETCH(player)->sp.player.descrs = arr;
 }
 
-void
+int
 remember_descriptor(struct descriptor_data *d)
 {
-    if (d) {
-	descr_lookup_table[d->descriptor] = d;
+    int i;
+
+    if(!d)
+	return -1;
+    
+    for(i = 0; i < MAX_SOCKETS; i++)
+    {
+	if(descr_lookup_table[i] == NULL)
+	{
+	    descr_lookup_table[i] = d;
+	    return i;
+	}
     }
+
+    return -1;
 }
 
 void
 forget_descriptor(struct descriptor_data *d)
 {
-    if (d) {
-	descr_lookup_table[d->descriptor] = NULL;
-    }
+    int i;
+
+    if(!d)
+	return;
+
+    for(i = 0; i < MAX_SOCKETS; i++)
+	if(descr_lookup_table[i] == d)
+	    descr_lookup_table[i] = NULL;
 }
 
 struct descriptor_data *
-lookup_descriptor(int c)
+lookup_descriptor(int index)
 {
-    if (c >= FD_SETSIZE || c < 0) {
-        return NULL;
-    }
-    return descr_lookup_table[c];
+    if (index >= MAX_SOCKETS || index < 0)
+	return NULL;
+
+    return descr_lookup_table[index];
+}
+
+
+struct descriptor_data *
+descrdata_by_index(int index)
+{
+    return lookup_descriptor(index);
 }
 
 struct descriptor_data *
-descrdata_by_descr(int i)
+descrdata_by_descr(int descr)
 {
-    return lookup_descriptor(i);
+    return lookup_descriptor(descr_index(descr));
 }
 
 
@@ -4085,19 +3984,19 @@ online(dbref player)
 int 
 pcount()
 {
-    return total_loggedin_connects;
+    return current_descr_count;
 }
 
 int 
-pidle(int c)
+pidle(int count)
 {
     struct descriptor_data *d;
-    long    now;
+    time_t    now;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
-    (void) time(&now);
     if (d) {
+	(void) time(&now);
 	return (now - d->last_time);
     }
 
@@ -4105,59 +4004,55 @@ pidle(int c)
 }
 
 dbref 
-pdbref(int c)
+pdbref(int count)
 {
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
-    if (d) {
+    if (d)
 	return (d->player);
-    }
 
     return NOTHING;
 }
 
 int 
-pontime(int c)
+pontime(int count)
 {
     struct descriptor_data *d;
-    long    now;
+    time_t    now;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
     (void) time(&now);
-    if (d) {
+    if (d)
 	return (now - d->connected_at);
-    }
 
     return -1;
 }
 
 char   *
-phost(int c)
+phost(int count)
 {
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
-    if (d) {
+    if (d)
 	return ((char *) d->hostname);
-    }
 
     return (char *) NULL;
 }
 
 char   *
-puser(int c)
+puser(int count)
 {
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
-    if (d) {
+    if (d)
 	return ((char *) d->username);
-    }
 
     return (char *) NULL;
 }
@@ -4188,13 +4083,13 @@ least_idle_player_descr(dbref who)
 
 
 char   *
-pipnum(int c)
+pipnum(int count)
 {
     static char ipnum[40];
     const char *p;
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
     if (d) {
 	p = host_as_hex(d->hostaddr);
@@ -4206,12 +4101,12 @@ pipnum(int c)
 }
 
 char   *
-pport(int c)
+pport(int count)
 {
     static char port[40];
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
     if (d) {
 	sprintf(port, "%d", d->port);
@@ -4238,11 +4133,11 @@ pfirstconn(dbref who)
 
 
 void 
-pboot(int c)
+pboot(int count)
 {
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
     if (d) {
 	process_output(d);
@@ -4253,11 +4148,11 @@ pboot(int c)
 
 
 void 
-pnotify(int c, char *outstr)
+pnotify(int count, char *outstr)
 {
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
     if (d) {
 	queue_ansi(d, outstr);
@@ -4267,29 +4162,33 @@ pnotify(int c, char *outstr)
 
 
 int 
-pdescr(int c)
+pdescr(int count)
 {
     struct descriptor_data *d;
 
-    d = descrdata_by_count(c);
+    d = descrdata_by_count(count);
 
     if (d)
-	return (d->descriptor);
+	return d->descriptor;
 
     return -1;
 }
 
 
 int 
-pnextdescr(int c)
+pnextdescr(int descr)
 {
     struct descriptor_data *d;
 
-    d = descrdata_by_descr(c);
-    if (d) d = d->next;
-    while (d && (!d->connected)) d = d->next;
-    if (d) return (d->descriptor);
-    return (0);
+    d = descrdata_by_descr(descr);
+    if (d)
+	d = d->next;
+    while (d && (!d->connected))
+	d = d->next;
+    if (d)
+	return d->descriptor;
+
+    return 0;
 }
 
 
@@ -4309,20 +4208,17 @@ pdescrcon(int c)
 
 
 int 
-pset_user(int c, dbref who)
+pset_user(struct descriptor_data *d, dbref who)
 {
-    struct descriptor_data *d;
-
-    d = descrdata_by_descr(c);
     if (d && d->connected) {
 	announce_disconnect(d);
 	if (who != NOTHING) {
 	    d->player = who;
 	    d->connected = 1;
+          d->connected_at = current_systime;
 	    update_desc_count_table();
             remember_player_descr(who, d->descriptor);
             announce_connect(d->descriptor, who);
-	}
         if (d->type == CT_PUEBLO) {
            FLAG2(d->player) |= F2PUEBLO;
         } else {
@@ -4333,56 +4229,53 @@ pset_user(int c, dbref who)
         } else {
            FLAG2(d->player) &= ~F2HTML;
         }
+	}
 	return 1;
     }
     return 0;
 }
 
 int
-plogin_user(int c, dbref who) {
-   struct descriptor_data *d;
-
-   d = descrdata_by_descr(c);
-   if(!(d && d->connected))
+plogin_user(struct descriptor_data *d, dbref who)
+{
+   if(!d || d->connected)
       return 0;
 
-   d->connected = 1;
-   d->connected_at = current_systime;
-   d->player = who;
-   if (d->type == CT_PUEBLO) 
-   {
-      FLAG2(d->player) |= F2PUEBLO;
-   }
-   else
-   {
-      FLAG2(d->player) &= ~F2PUEBLO;
-   }
-   if (d->type == CT_HTML)
-   {
-      FLAG2(d->player) |= F2HTML;
-   }
-   else
-   {
-      FLAG2(d->player) &= ~F2HTML;
-   }
-   spit_file(d->player, MOTD_FILE);
-   if ( TArch(d->player) ) {
-      char buf[ 128 ];
-      int count = hop_count();
-      sprintf( buf, CNOTE
-         "There %s %d registration%s in the hopper.",
-         (count==1)?"is":"are", count, (count==1)?"":"s" );
-      anotify( d->player, buf );
-    }
-    interact_warn(d->player);
-    if (sanity_violated && TMage(d->player)) {
-       notify(d->player, MARK "WARNING!  The DB appears to be corrupt!");
-    }
-    announce_connect(d->descriptor, d->player);
-    update_desc_count_table();
-    remember_player_descr(who, d->descriptor);
-    DBFETCH(d->player)->sp.player.block = 0;
-    return 1;
+   if (who == NOTHING)
+      return 0;
+
+	if (who != NOTHING) {
+	    d->player = who;
+	    d->connected = 1;
+          d->connected_at = current_systime;
+	   spit_file(d->player, MOTD_FILE);
+	   if ( TArch(d->player) ) {
+	      char buf[ 128 ];
+	      int count = hop_count();
+	      sprintf( buf, CNOTE
+	         "There %s %d registration%s in the hopper.",
+	         (count==1)?"is":"are", count, (count==1)?"":"s" );
+	      anotify( d->player, buf );
+	    }
+	    interact_warn(d->player);
+	    if (sanity_violated && TMage(d->player)) {
+	       notify(d->player, MARK "WARNING!  The DB appears to be corrupt!");
+          }
+	    update_desc_count_table();
+            remember_player_descr(who, d->descriptor);
+            announce_connect(d->descriptor, who);
+        if (d->type == CT_PUEBLO) {
+           FLAG2(d->player) |= F2PUEBLO;
+        } else {
+           FLAG2(d->player) &= ~F2PUEBLO;
+        }
+        if (d->type == CT_HTML) {
+           FLAG2(d->player) |= F2HTML;
+        } else {
+           FLAG2(d->player) &= ~F2HTML;
+        }
+	}
+	return 1;
 }
 
 int 
@@ -4392,13 +4285,13 @@ pset_user2(int c, dbref who)
    int result;
 
    d = descrdata_by_descr(c);
-   if(!(d && d->connected))
+   if(!d)
       return 0;
 
    if(d->connected)
-      result = pset_user(c, who);
+      result = pset_user(d, who);
    else
-      result = plogin_user(c, who);
+      result = plogin_user(d, who);
 
    return result;
 }
@@ -4499,14 +4392,14 @@ pdescr_logout(int c)
     struct descriptor_data *d, *dnext;
 
     d = descrdata_by_descr(c);
-    if (d && d->descriptor == c) {
+    if (d && d->descriptor == c && d->player != NOTHING) {
        log_status("LOGOUT: %2d %s %s(%s) %s\n",
 		d->descriptor, unparse_object(d->player, d->player),
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr));
        announce_disconnect(d);
        d->connected = 0;
-       d->player = (dbref) -1;
+       d->player = NOTHING;
     }
     return;
 }
@@ -4655,6 +4548,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 
