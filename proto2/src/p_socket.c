@@ -194,8 +194,7 @@ prim_socksend(PRIM_PROTOTYPE)
         fcntl(oper1->data.sock->socknum, F_SETFL, 0);
 #endif
 
-        strcpy(buf, oper2->data.string->data);
-        strcat(buf, "\n");
+        sprintf(buf, "%s\n", oper2->data.string->data);
 
         result = send(oper1->data.sock->socknum, buf, strlen(buf) + 1, 0);
 
