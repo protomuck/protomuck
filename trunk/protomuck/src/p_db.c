@@ -123,6 +123,9 @@ int check_flag2(char *flag, int *nbol)
       *nbol = F2HTML;
       return F2PUEBLO;
    }
+   if (string_prefix("trueidle", flag)) {
+      return F2TRUEIDLE;
+   }
    return 0;
 }
 
@@ -217,7 +220,9 @@ flag_set_perms2(dbref ref, int flag, int mlev)
       return 0;
    if(flag == F2PROTECT && mlev < LBOY)
       return 0;
-   if(flag == F2IDLE)
+   if((flag == F2IDLE) && (Typeof(ref) != TYPE_PLAYER))
+      return 0;
+   if (flag == F2TRUEIDLE)
       return 0;
    if(flag == F2COMMAND)
       return 0;
@@ -919,9 +924,15 @@ prim_set(PRIM_PROTOTYPE)
           ts_modifyobject(ref);
           FLAG2(ref) |= tmp2;
           DBDIRTY(ref);
+/*          if ((tmp2 == F2IDLE) && (Typeof(ref) == TYPE_PLAYER))
+             if (online(ref))
+                DR_CON_ADD_FLAGS(least_idle_player_descr(ref), DF_IDLE); */
        } else {
           ts_modifyobject(ref);
           FLAG2(ref) &= ~tmp2;
+/*          if ((tmp2 == F2IDLE) && (Typeof(ref) == TYPE_PLAYER))
+             if (online(ref))
+                DR_CON_REM_FLAGS(least_idle_player_descr(ref), DF_IDLE); */
           DBDIRTY(ref);
        }
     }
@@ -1752,161 +1763,6 @@ prim_pmatch(PRIM_PROTOTYPE)
 }
 
 void
-prim_nextowned(PRIM_PROTOTYPE)
-{
-	dbref ownr;
-
-	CHECKOP(1);
-	oper1 = POP();
-	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
-		abort_interp("Invalid object.");
-	if (mlev < LMAGE)
-		abort_interp("Mage only prim.");
-	ref = oper1->data.objref;
-	CHECKREMOTE(ref);
-
-	ownr = OWNER(ref);
-	if (Typeof(ref) == TYPE_PLAYER) {
-		ref = 0;
-	} else {
-		ref++;
-	}
-	while (ref < db_top && (OWNER(ref) != ownr || ref == ownr))
-		ref++;
-
-	if (ref >= db_top) {
-		ref = NOTHING;
-	}
-	CLEAR(oper1);
-	PushObject(ref);
-}
-
-void
-prim_nextplayer(PRIM_PROTOTYPE)
-{
-	CHECKOP(1);
-	oper1 = POP();
-	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
-		abort_interp("Invalid object.");
-	if (mlev < 3)
-		abort_interp(tp_noperm_mesg);
-	ref = oper1->data.objref;
-	CHECKREMOTE(ref);
-
-	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_PLAYER) {
-		ref++;
-	}
-	while (ref < db_top && (Typeof(ref) != TYPE_PLAYER))
-		ref++;
-
-	if (ref >= db_top) {
-		ref = NOTHING;
-	}
-	CLEAR(oper1);
-	PushObject(ref);
-}
-
-void
-prim_nextprogram(PRIM_PROTOTYPE)
-{
-	CHECKOP(1);
-	oper1 = POP();
-	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
-		abort_interp("Invalid object.");
-	if (mlev < 3)
-		abort_interp(tp_noperm_mesg);
-	ref = oper1->data.objref;
-	CHECKREMOTE(ref);
-
-	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_PROGRAM) {
-		ref++;
-	}
-	while (ref < db_top && (Typeof(ref) != TYPE_PROGRAM))
-		ref++;
-
-	if (ref >= db_top) {
-		ref = NOTHING;
-	}
-	CLEAR(oper1);
-	PushObject(ref);
-}
-
-void
-prim_nextexit(PRIM_PROTOTYPE)
-{
-	CHECKOP(1);
-	oper1 = POP();
-	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
-		abort_interp("Invalid object.");
-	if (mlev < 3)
-		abort_interp(tp_noperm_mesg);
-	ref = oper1->data.objref;
-	CHECKREMOTE(ref);
-
-	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_EXIT) {
-		ref++;
-	}
-	while (ref < db_top && (Typeof(ref) != TYPE_EXIT))
-		ref++;
-
-	if (ref >= db_top) {
-		ref = NOTHING;
-	}
-	CLEAR(oper1);
-	PushObject(ref);
-}
-
-void
-prim_nextroom(PRIM_PROTOTYPE)
-{
-	CHECKOP(1);
-	oper1 = POP();
-	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
-		abort_interp("Invalid object.");
-	if (mlev < 3)
-		abort_interp(tp_noperm_mesg);
-	ref = oper1->data.objref;
-	CHECKREMOTE(ref);
-
-	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_ROOM) {
-		ref++;
-	}
-	while (ref < db_top && (Typeof(ref) != TYPE_ROOM))
-		ref++;
-
-	if (ref >= db_top) {
-		ref = NOTHING;
-	}
-	CLEAR(oper1);
-	PushObject(ref);
-}
-
-void
-prim_nextthing(PRIM_PROTOTYPE)
-{
-	CHECKOP(1);
-	oper1 = POP();
-	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
-		abort_interp("Invalid object.");
-	if (mlev < 3)
-		abort_interp(tp_noperm_mesg);
-	ref = oper1->data.objref;
-	CHECKREMOTE(ref);
-
-	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_THING) {
-         (void) ref++;
-	}
-	while (ref < db_top && (Typeof(ref) != TYPE_THING))
-	   (void) ref++;
-
-	if (ref >= db_top) {
-		ref = NOTHING;
-	}
-	CLEAR(oper1);
-	PushObject(ref);
-}
-
-void
 prim_nextentrance(PRIM_PROTOTYPE)
 {
       dbref linkref, ref;
@@ -2435,223 +2291,6 @@ prim_newpassword(PRIM_PROTOTYPE)
 }
 
 void
-prim_next_flag(PRIM_PROTOTYPE)
-{
-    char *flag;
-
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (mlev < LMAGE)
-       abort_interp("W1 or better only.");
-    if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
-	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper2))
-	abort_interp("Invalid object");
-    ref = oper2->data.objref;
-    flag = oper1->data.string->data;
-    CHECKREMOTE(ref);
-    result = has_flagp(ref, flag, mlev);
-    if (result == -1)
-       abort_interp("Unknown flag");
-    if (result == -2)
-       abort_interp("Permission denied");
-    result = 0;
-    ref++;
-    for(; ref < db_top; ref++) {
-       result = has_flagp(ref, flag, mlev);
-       if (result == -1)
-          abort_interp("Unknown flag");
-       if (result == -2)
-          abort_interp("Permission denied");
-       if (result)
-          break;
-    }
-    if(result == 0 || ref >= db_top)
-       ref = NOTHING;
-    PushObject(ref);
-    CLEAR(oper1);
-    CLEAR(oper2);
-}
-
-void
-prim_nextowned_flag(PRIM_PROTOTYPE)
-{
-    char *flag;
-    dbref ownr;
-
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (mlev < LMAGE)
-       abort_interp("W1 or better only.");
-    if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
-	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper2))
-	abort_interp("Invalid object");
-    ref = oper2->data.objref;
-    flag = oper1->data.string->data;
-    CHECKREMOTE(ref);
-    result = has_flagp(ref, flag, mlev);
-    if (result == -1)
-       abort_interp("Unknown flag");
-    if (result == -2)
-       abort_interp("Permission denied");
-    result = 0;
-    ownr = OWNER(ref);
-    if (Typeof(ref) == TYPE_PLAYER) {
-       ref = 0;
-    } else {
-       ref++;
-    }
-    for(; ref < db_top; ref++) {
-       result = has_flagp(ref, flag, mlev);
-       if (result == -1)
-          abort_interp("Unknown flag");
-       if (result == -2)
-          abort_interp("Permission denied");
-       if (result && OWNER(ref) == ownr && ref != ownr)
-          break;
-    }
-    if(result == 0 || ref >= db_top)
-       ref = NOTHING;
-    PushObject(ref);
-    CLEAR(oper1);
-    CLEAR(oper2);
-}
-
-void
-prim_nextplayer_flag(PRIM_PROTOTYPE)
-{
-    char *flag;
-
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (mlev < LMAGE)
-       abort_interp("W1 or better only.");
-    if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
-	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper2))
-	abort_interp("Invalid object");
-    ref = oper2->data.objref;
-    flag = oper1->data.string->data;
-    CHECKREMOTE(ref);
-    result = has_flagp(ref, flag, mlev);
-    if (result == -1)
-       abort_interp("Unknown flag");
-    if (result == -2)
-       abort_interp("Permission denied");
-    result = 0;
-    ref++;
-    for(; ref < db_top; ref++) {
-       result = has_flagp(ref, flag, mlev);
-       if (result == -1)
-          abort_interp("Unknown flag");
-       if (result == -2)
-          abort_interp("Permission denied");
-       if (result && Typeof(ref) == TYPE_PLAYER)
-          break;
-    }
-    if(result == 0 || ref >= db_top)
-       ref = NOTHING;
-    PushObject(ref);
-    CLEAR(oper1);
-    CLEAR(oper2);
-}
-
-
-void
-prim_nextplayer_power(PRIM_PROTOTYPE)
-{
-    int pow = 0;
-
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (mlev < LMAGE)
-       abort_interp("W1 or better only.");
-    if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
-    if (!valid_object(oper2))
-	abort_interp("Invalid object");
-    if (Typeof(oper2->data.objref) != TYPE_PLAYER)
-      ref = 0;
-    else
-      ref = oper2->data.objref;
-    if(oper1->data.string) {
-       pow = check_power(oper1->data.string->data);
-       if(!pow)
-         abort_interp("Not a valid power");
-    }
-    for(; ref < db_top; ref++) {
-      result = 0;
-      if (pow) {
-         if (POWERS(ref) & pow)
-            result = 1;
-      } else {
-         if (POWERS(ref))
-            result = 1;
-      }
-      if (result && Typeof(ref) == TYPE_PLAYER)
-         break;
-    }
-    if(ref >= db_top)
-      ref = NOTHING;
-    CLEAR(oper1);
-    CLEAR(oper2);
-    PushObject(ref);
-}
-
-void
-prim_nextthing_flag(PRIM_PROTOTYPE)
-{
-    char *flag;
-
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (mlev < LMAGE)
-       abort_interp("W1 or better only.");
-    if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
-	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper2))
-	abort_interp("Invalid object");
-    ref = oper2->data.objref;
-    flag = oper1->data.string->data;
-    CHECKREMOTE(ref);
-    result = has_flagp(ref, flag, mlev);
-    if (result == -1)
-       abort_interp("Unknown flag");
-    if (result == -2)
-       abort_interp("Permission denied");
-    result = 0;
-    ref++;
-    for(; ref < db_top; ref++) {
-       result = has_flagp(ref, flag, mlev);
-       if (result == -1)
-          abort_interp("Unknown flag");
-       if (result == -2)
-          abort_interp("Permission denied");
-       if (result && Typeof(ref) == TYPE_THING)
-          break;
-    }
-    if(result == 0 || ref >= db_top)
-       ref = NOTHING;
-    PushObject(ref);
-    CLEAR(oper1);
-    CLEAR(oper2);
-}
-
-void
 prim_findnext(PRIM_PROTOTYPE)
 {
         struct flgchkdat check;
@@ -3166,6 +2805,7 @@ prim_getobjinfo(PRIM_PROTOTYPE)
 	CLEAR(oper1);
 	PushArrayRaw(nw);
 }
+
 
 
 

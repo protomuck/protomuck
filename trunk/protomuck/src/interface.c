@@ -358,7 +358,7 @@ main(int argc, char **argv)
 	mcp_initialize();
 	gui_initialize();
 
-    sel_prof_start_time = time(NULL); /* Set useful starting time */
+    sel_prof_start_time = current_systime; /* Set useful starting time */
     sel_prof_idle_sec = 0;
     sel_prof_idle_usec = 0;
     sel_prof_idle_use = 0;
@@ -1336,7 +1336,7 @@ shovechars(void)
 	      sel_prof_idle_sec += 1;
 	    }
 	    sel_prof_idle_use++;
-	    (void) time(&now);
+          now = current_systime;
           for (i = 0; i < numsocks; i++) {
 	       if (FD_ISSET(sock[i], &input_set)) {
 		   if ((newd = new_connection(listener_port[i], sock[i])) <= 0) {
@@ -1370,7 +1370,22 @@ shovechars(void)
 		    d->last_time = now;
 		    if (!process_input(d)) {
 			d->booted = 1;
-		    }
+		    } else {
+                   if (OkObj(d->player) ? Typeof(d->player) == TYPE_PLAYER : 0) {
+                      if (FLAG2(d->player) & F2TRUEIDLE)
+                         announce_unidle(d);
+                      if (FLAG2(d->player) & F2IDLE)
+                         FLAG2(d->player) &= ~F2IDLE;
+                      DBFETCH(d->player)->sp.player.last_descr = d->descriptor;
+                   } else {
+                      if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
+                         announce_unidle(d);
+                   }
+                   if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
+                      DR_RAW_REM_FLAGS(d, DF_TRUEIDLE);
+                   if (DR_RAW_FLAGS(d, DF_IDLE))
+                      DR_RAW_REM_FLAGS(d, DF_IDLE);
+                }
 		}
 		if (FD_ISSET(d->descriptor, &output_set)) {
 		    if (!process_output(d)) {
@@ -1378,17 +1393,59 @@ shovechars(void)
 		    }
 		}
 		if (d->connected) {
+                int dr_idletime = (now - d->last_time);
+
 		    cnt++;
-		    if (tp_idleboot&&((now - d->last_time) > tp_maxidle)&&
+		    if (tp_idleboot && (dr_idletime > tp_maxidle) &&
 			    !TMage(d->player) && !(POWERS(d->player) & POW_IDLE)
 		    ) {
 			idleboot_user(d);
 		    }
-                if (((now - d->last_time) >= tp_idletime) && !(FLAG2(d->player) & F2IDLE)) {
-                   FLAG2(d->player) |= F2IDLE;
-                   announce_idle(d);
+                if (FLAG2(d->player) & F2IDLE) {
+                   if (!(DR_RAW_FLAGS(d, DF_IDLE)))
+                      DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                }
+                if (DBFETCH(d->player)->sp.player.last_descr == d->descriptor) {
+                   int idx_idletime = get_property_value(d->player, "/_Prefs/IdleTime") * 60;
+                   if (idx_idletime < 120)
+                      idx_idletime = tp_idletime;
+                   if (d->idletime_set != idx_idletime)
+                      pset_idletime(d->player, idx_idletime);
+                   if ((dr_idletime >= tp_idletime) && !(FLAG2(d->player) & F2TRUEIDLE)) {
+                      announce_idle(d);
+                   }
+                } else {
+                   if (FLAG2(d->player) & F2TRUEIDLE) {
+                      if (!(DR_RAW_FLAGS(d, DF_TRUEIDLE)))
+                         DR_RAW_ADD_FLAGS(d, DF_TRUEIDLE);
+                   } else {
+                      if ((DR_RAW_FLAGS(d, DF_TRUEIDLE)))
+                         DR_RAW_REM_FLAGS(d, DF_TRUEIDLE);
+                   }
+                }
+                if (!(FLAG2(d->player) & F2IDLE)) {
+                   int idx_idletime;
+                   if (!idx_idletime)
+                      idx_idletime = tp_idletime;
+                   if (dr_idletime >= d->idletime_set) {
+                      FLAG2(d->player) |= F2IDLE;
+                      if (!(DR_RAW_FLAGS(d, DF_IDLE)))
+                         DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                   } else {
+                      if ((DR_RAW_FLAGS(d, DF_IDLE)))
+                         DR_RAW_REM_FLAGS(d, DF_IDLE);
+                   }
+                } else {
+                   if (!(DR_RAW_FLAGS(d, DF_IDLE)))
+                      DR_RAW_ADD_FLAGS(d, DF_IDLE);
                 }
 		} else {
+                int dr_idletime = (now - d->last_time);
+                if ((dr_idletime >= tp_idletime)) {
+                   if (!(DR_RAW_FLAGS(d, DF_IDLE)))
+                      DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                   announce_idle(d);
+                }
                 if (!((d->type == CT_HTML) || (d->type == CT_MUF))) {
                    int curidle;
                    char buff[BUFFER_LEN];
@@ -1416,7 +1473,7 @@ shovechars(void)
 	    con_players_curr = cnt;
 	}
     }
-    (void) time(&now);
+    now = current_systime;
 
     add_property((dbref)0, "~sys/lastdumptime", NULL, (int)now);
     add_property((dbref)0, "~sys/shutdowntime", NULL, (int)now);
@@ -2063,6 +2120,11 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, i
     sprintf(buf, "%d", port);
     d->username = alloc_string(buf);
     d->linelen = 0;
+    d->flags = 0;
+    d->prog = NULL;
+    d->block = 0;
+    d->interactive = 0;
+    d->idletime_set = tp_idletime;
 #ifdef HTTPDELAY
     d->httpdata = NULL;
 #endif
@@ -2461,14 +2523,6 @@ do_command(struct descriptor_data * d, char *command)
     struct frame *tmpfr;
     char cmdbuf[BUFFER_LEN];
 
-    if (d->connected) {
-	ts_lastuseobject(d->player);
-      if (FLAG2(d->player) & F2IDLE) {
-        FLAG2(d->player) &= ~F2IDLE;
-        announce_unidle(d);
-      }
-    }
-
     if (!mcp_frame_process_input(&d->mcpframe, command, cmdbuf, sizeof(cmdbuf)))
 	return 1;
 
@@ -2671,37 +2725,6 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	sprintf(buf, "<title>%s Web Login</title>\n", tp_muckname);
 
         queue_ansi(d, buf);
-        queue_ansi(d, "<SCRIPT language=\"JavaScript1.1\">
-<!-- hide javascript
-scrollID=0;
-vPos=0;
-manualScroll=0;
-
-function onWard() {
-   cpuScroll=true;
-   if (manualScroll > 0) {
-     manualScroll+=1;
-     if (manualScroll > 1000) {
-       manualScroll = 0;
-     }
-   } else {
-     window.scrollBy(0,1);
-   }
-   scrollID=setTimeout(\"onWard()\",40);
-}
-
-function scrollalert() {
-  if (cpuScroll==false) {
-/    alert(\"Manual scroll.\");
-    manualScroll=1;
-  }
-  cpuScroll=false;
-}
-/ done hiding -->
-</script>
-
-<BODY onLoad=\"if(window.scroll)onWard()\" onScroll=\"scrollalert()\">");	
-
 	
         sprintf(buf, "%s.%d", d->hostname, (int)current_systime);
 	
@@ -2738,7 +2761,7 @@ function scrollalert() {
 	int found = 0;
         time_t now;
 
-        time(&now);
+        now = current_systime;
         foundit = 1;
 	identify = strdup(getcgivar(params, "id"));
 
@@ -3101,7 +3124,7 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    queue_ansi(d, connect_fail);
           player = lookup_player(user);
           if (player > 0) {
-             time(&now);
+             now = current_systime;
              result = get_property_value(player, "@/Failed/Count") + 1;
              SETMESG(player,"@/Failed/Host",d->hostname);
              add_property(player, "@/Failed/Time", NULL, now);
@@ -3314,7 +3337,8 @@ boot_player_off(dbref player)
     for (di = 0; di < dcount; di++) {
         d = descrdata_by_index(darr[di]);
 	if(d) {
-	    forget_player_descr(d->player, d->descriptor);
+          announce_disconnect(d);
+/*	    forget_player_descr(d->player, d->descriptor); */
 	    d->connected = 0;
 	    d->player = NOTHING;
             if (!d->booted)
@@ -3331,9 +3355,11 @@ close_sockets(const char *msg)
     struct descriptor_data *d, *dnext;
     int i;
 
+    (void) pdescrflush(-1);
     for (d = descriptor_list; d; d = dnext) {
 	dnext = d->next;
 	writesocket(d->descriptor, msg, strlen(msg));
+	announce_disconnect(d);
 	clearstrings(d);                        /** added to clean up **/
 	if (shutdown(d->descriptor, 2) < 0)
 	    perror("shutdown");
@@ -3383,7 +3409,7 @@ do_dinfo(dbref player, const char *arg)
 	anotify(player, CINFO "Usage: dinfo descriptor  or  dinfo name");
 	return;
     }
-    (void) time(&now);
+    now = current_systime;
     if(strcmp(arg, "me"))
 	who = lookup_player(arg);
     else who = player;
@@ -3737,8 +3763,8 @@ dump_users(struct descriptor_data *d, char *user)
 					if (tp_who_doing) {
 						sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
 							ANSIGREEN, plyrbuf, ANSIPURPLE, time_format_1(now - dlist->connected_at),
-							((dlist->connected && OkObj(dlist->player)) ?
-								((FLAG2(d->player) & F2IDLE) ? "I" : " ") : " "),
+							(1 ?
+								((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ") : " "),
 							ANSIYELLOW, time_format_2(now - dlist->last_time),
 							((dlist->connected && OkObj(dlist->player)) ?
 								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), ANSICYAN,
@@ -3752,8 +3778,8 @@ dump_users(struct descriptor_data *d, char *user)
 					} else {
 						sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
 							ANSIGREEN, plyrbuf, ANSIPURPLE, time_format_1(now - dlist->connected_at),
-							((dlist->connected && OkObj(dlist->player)) ?
-								((FLAG2(dlist->player) & F2IDLE) ? "I" : " ") : " "),
+							(1 ?
+								((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ") : " "),
 							ANSIYELLOW, time_format_2(now - dlist->last_time),
 							((dlist->connected && OkObj(dlist->player)) ?
 								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "));
@@ -3764,8 +3790,8 @@ dump_users(struct descriptor_data *d, char *user)
 					sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
 						ANSIRED, dlist->descriptor, ANSIGREEN, plyrbuf, ANSICYAN, dlist->cport, ANSIPURPLE,
 						time_format_1(now - dlist->connected_at),
-						((dlist->connected && OkObj(dlist->player)) ?
-							((FLAG2(dlist->player) & F2IDLE) ? "I" : " ") : " "), ANSIYELLOW,
+						(1 ?
+							((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ") : " "), ANSIYELLOW,
 						time_format_2(now - dlist->last_time),
 						((dlist->connected && OkObj(dlist->player)) ?
 							((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), ANSIBLUE,
@@ -3890,6 +3916,8 @@ announce_connect(int descr, dbref player)
 	FLAGS(player) &= ~CHOWN_OK;
     }
 
+    DBFETCH(player)->sp.player.last_descr = descr;
+
     /*
      * See if there's a connect action.  If so, and the player is the first to
      * connect, send the player through it.  If the connect action is set
@@ -3992,6 +4020,10 @@ announce_disconnect(struct descriptor_data *d)
        FLAG2(player) &= ~F2IDLE;
     }
 
+    if (!online(player) && (FLAG2(player) & F2TRUEIDLE)) {
+       FLAG2(player) &= ~F2TRUEIDLE;
+    }
+
     /* trigger local disconnect action */
     if (!online(player)) {
 	/* queue up all _connect programs referred to by properties */
@@ -4028,8 +4060,16 @@ announce_idle(struct descriptor_data *d)
     dbref   loc;
     char    buf[BUFFER_LEN];
 
+    if (!(DR_RAW_FLAGS(d, DF_TRUEIDLE)))
+       DR_RAW_ADD_FLAGS(d, DF_TRUEIDLE);
+
     if (!d->connected || (loc = getloc(player)) == NOTHING)
 	return;
+
+    if ((FLAG2(player) & F2TRUEIDLE))
+      return;
+
+    FLAG2(player) |= F2TRUEIDLE;
 
     if ((!Dark(player)) && (!Dark(loc)) && (tp_enable_idle_msgs)) {
 	sprintf(buf, CMOVE "%s has become terminally idle.", PNAME(player));
@@ -4060,12 +4100,24 @@ announce_unidle(struct descriptor_data *d)
     dbref   loc;
     char    buf[BUFFER_LEN];
 
+    if ((DR_RAW_FLAGS(d, DF_TRUEIDLE)))
+       DR_RAW_REM_FLAGS(d, DF_TRUEIDLE);
+
     if (!d->connected || (loc = getloc(player)) == NOTHING)
 	return;
+
+    if (!(FLAG2(player) & F2TRUEIDLE))
+      return;
+
+    FLAG2(player) &= !F2TRUEIDLE;
 
     if ((!Dark(player)) && (!Dark(loc)) && (tp_enable_idle_msgs)) {
 	sprintf(buf, CMOVE "%s has unidled.", PNAME(player));
 	anotify_except(DBFETCH(loc)->contents, player, buf, player);
+    }
+
+    if (OkObj(d->player) ? (Typeof(d->player) & TYPE_PLAYER) : 0) {
+       DBFETCH(d->player)->sp.player.last_descr = d->descriptor;
     }
 
     /* queue up all _unidle programs referred to by properties */
@@ -4387,7 +4439,7 @@ pidle(int count)
     d = descrdata_by_count(count);
 
     if (d) {
-	(void) time(&now);
+	now = current_systime;
 	return (now - d->last_time);
     }
 
@@ -4415,7 +4467,7 @@ pontime(int count)
 
     d = descrdata_by_count(count);
 
-    (void) time(&now);
+    now = current_systime;
     if (d)
 	return (now - d->connected_at);
 
@@ -4665,6 +4717,23 @@ pnextdescr(int descr)
     return 0;
 }
 
+int
+pset_idletime(dbref player, int idle_time)
+{
+   int                      dcount;
+   int                     *darr;
+   struct descriptor_data  *d;
+
+   darr = get_player_descrs(player, &dcount);
+   if (dcount > 0) {
+      d = descrdata_by_index(darr[dcount - 1]);
+      d->idletime_set = idle_time;
+   } else {
+      dcount = 0;
+   }
+   return dcount;
+}
+
 
 int 
 pdescrcon(int c)
@@ -4764,16 +4833,16 @@ pset_user2(int c, dbref who)
 int
 dbref_first_descr(dbref c)
 {
- int dcount;
- int* darr;
- struct descriptor_data *d;
- darr = get_player_descrs(c, &dcount);
- if (dcount > 0) {
-  d = descrdata_by_index(darr[dcount - 1]);
-            return d->descriptor;
- } else {
-  return NOTHING;
- }
+   int dcount;
+   int* darr;
+   struct descriptor_data *d;
+   darr = get_player_descrs(c, &dcount);
+   if (dcount > 0) {
+      d = descrdata_by_index(darr[dcount - 1]);
+      return d->descriptor;
+   } else {
+      return NOTHING;
+   }
 }
 
 McpFrame *
@@ -5014,6 +5083,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

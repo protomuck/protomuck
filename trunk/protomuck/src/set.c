@@ -1261,6 +1261,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	f2 = F2NO_COMMAND;
     } else if (string_prefix("HIDDEN", p) || !string_compare("#", p)) {
 	f2 = F2HIDDEN;
+    } else if (string_prefix("IDLE", p) || !string_compare("I", p)) {
+	f2 = F2IDLE;
 /*    } else if (string_prefix("PUEBLO", p)) {
         anotify_nolisten2(player, CFAIL "This flag can't be user-set."); */ /* Why did we have this here? It is unrequired */
     } else {
@@ -1283,12 +1285,18 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	ts_modifyobject(thing);
 	FLAG2(thing) &= ~f2;
 	DBDIRTY(thing);
+/*	if ((f2 == F2IDLE) && (Typeof(thing) == TYPE_PLAYER))
+		if (online(thing))
+			DR_CON_REM_FLAGS(least_idle_player_descr(thing), DF_IDLE); */
 	anotify_nolisten2(player, CSUCC "Flag reset.");
     } else {
 	/* set the flag */
 	ts_modifyobject(thing);
 	FLAG2(thing) |= f2;
 	DBDIRTY(thing);
+/*	if ((f2 == F2IDLE) && (Typeof(thing) == TYPE_PLAYER))
+		if (online(thing))
+			DR_CON_ADD_FLAGS(least_idle_player_descr(thing), DF_IDLE); */
 	anotify_nolisten2(player, CSUCC "Flag set.");
     }
   } else {
@@ -1423,6 +1431,7 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
     }
     anotify_nolisten2(player, CSUCC "Property set.");
 }
+
 
 
 

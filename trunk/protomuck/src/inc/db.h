@@ -189,6 +189,7 @@ typedef int dbref;		/* offset into db */
 #define F2IDLE           0x2000     /* To watch if someone is idle or not. */
 #define F2NO_COMMAND     0x4000     /* Set on an object to prevent command props from being ran */
 #define F2LIGHT          0x8000     /* The LIGHT flag to counteract against the DARK flag */
+#define F2TRUEIDLE      0x10000     /* To watch if someone is idle past the @tune'd idletime */
 
 /* Proto @Powers */
 
@@ -214,7 +215,7 @@ typedef int dbref;		/* offset into db */
 
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
-#define DUM2_MASK	(F2IDLE | F2COMMAND)
+#define DUM2_MASK	(F2IDLE | F2COMMAND | F2TRUEIDLE)
 #define DUM3_MASK (0)
 #define DUM4_MASK (0)
 
@@ -634,6 +635,7 @@ union specific {      /* I've been railroaded! */
 	const char *password;
         int*    descrs;
         short   descr_count;
+        int     last_descr;
     }       player;
     struct {			      /* PROGRAM-specific fields */
 	short   curr_line;	      /* current-line */
@@ -816,6 +818,7 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 

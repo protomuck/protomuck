@@ -227,6 +227,8 @@ scopedvar_get(struct frame *fr, int varnum)
 void 
 RCLEAR(struct inst * oper, char *file, int line)
 {
+	if (oper == NULL)
+         return;
 	switch (oper->type) {
 	case PROG_CLEARED:
 		fprintf(stderr, "Attempt to re-CLEAR() instruction from %s:%hd "
@@ -1724,6 +1726,7 @@ do_abort_silent(void)
 	 * be caught in a TRY-CATCH block.  This may be undesirable. */
     err++;
 }
+
 
 
 
