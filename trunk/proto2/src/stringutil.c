@@ -782,14 +782,22 @@ color_lookup(dbref player, const char *color, const char *defcolor,
     }                           //End of player != NOTHING check. Too lazy to indent all that.
     if (!strcasecmp("NORMAL", color)) {
         return ANSINORMAL;
+    } else if (!strcasecmp("BOLD", color) || !strcasecmp("BRIGHT", color)) {
+        return ANSIBOLD;
+    } else if (!strcasecmp("DIM", color) || !strcasecmp("HALFBRIGHT", color)) {
+        return ANSIDIM;
+    } else if (!strcasecmp("ITALIC", color) || !strcasecmp("ITALICS", color)) {
+        return ANSIITALIC;
+    } else if (!strcasecmp("UNDERLINE", color) || !strcasecmp("UNDERSCORE", color)) {
+        return ANSIUNDERLINE;
     } else if (!strcasecmp("FLASH", color) || !strcasecmp("BLINK", color)) {
         return ANSIFLASH;
+    } else if (!strcasecmp("FLASH2", color) || !strcasecmp("BLINK2", color)) {
+        return ANSIFLASH2;
     } else if (!strcasecmp("INVERT", color) || !strcasecmp("REVERSE", color)) {
         return ANSIINVERT;
-    } else if (!strcasecmp("UNDERLINE", color)) {
-        return ANSIUNDERLINE;
-    } else if (!strcasecmp("BOLD", color)) {
-        return ANSIBOLD;
+    } else if (!strcasecmp("INVISIBLE", color) || !strcasecmp("HIDDEN", color)) {
+        return ANSIINVISIBLE;
     } else if (!strcasecmp("BLACK", color)) {
         return ANSIBLACK;
     } else if (!strcasecmp("CRIMSON", color)) {
@@ -854,6 +862,22 @@ color_lookup(dbref player, const char *color, const char *defcolor,
         return ANSIBCYAN;
     } else if (!strcasecmp("BGRAY", color)) {
         return ANSIBGRAY;
+    } else if (!strcasecmp("HBLACK", color)) {
+        return ANSIHBLACK;
+    } else if (!strcasecmp("HRED", color)) {
+        return ANSIHRED;
+    } else if (!strcasecmp("HGREEN", color)) {
+        return ANSIHGREEN;
+    } else if (!strcasecmp("HYELLOW", color) || !strcasecmp("HBROWN", color)) {
+        return ANSIHYELLOW;
+    } else if (!strcasecmp("HBLUE", color)) {
+        return ANSIHBLUE;
+    } else if (!strcasecmp("HPURPLE", color)) {
+        return ANSIHPURPLE;
+    } else if (!strcasecmp("HCYAN", color)) {
+        return ANSIHCYAN;
+    } else if (!strcasecmp("HWHITE", color) || !strcasecmp("HGRAY", color)) {
+        return ANSIHWHITE;
     } else {
         return defcolor;
     }

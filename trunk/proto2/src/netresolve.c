@@ -213,7 +213,9 @@ host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
     if (!tp_hostnames)
         return;
 
+#ifdef HOSTCACHE_DEBUG
     log_status("Hostname request: %X\n", h->a); 
+#endif
 
 #ifdef SPAWN_HOST_RESOLVER
     if (!host_get_oldres(h, lport, prt))
@@ -249,7 +251,9 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         if (h->a == a) {
             h->links++;
             h->uses++;
+#ifdef HOSTCACHE_DEBUG
             log_status("Hostname in cache: %X, %s\n", h->a, h->name);
+#endif
             if (current_systime - h->wupd > 80)
                 host_request(h, lport, prt);
             hu->h = h;
@@ -257,8 +261,9 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         }
     }
 
+#ifdef HOSTCACHE_DEBUG
     log_status("New hostname (not in cache): %X\n", a);
-
+#endif
     h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
     h->links = 1;
     h->uses = 1;
