@@ -147,6 +147,21 @@ free_timenode(timequeue ptr)
     }
 }
 
+void
+purge_timenode_free_pool()
+{
+    timequeue ptr = free_timenode_list;
+    timequeue nxt = NULL;
+
+    while (ptr) {
+        nxt = ptr->next;
+        free((void*)ptr);
+        ptr = nxt;
+    }
+    free_timenode_count = 0;
+    free_timenode_list = NULL;
+}
+
 int
 control_process(dbref player, int count)
 {
@@ -811,124 +826,137 @@ get_pids(dbref ref)
 	return nw;
 }
 
+/* Used with the GETPIDINFO prim, this function packs a 
+ * dictionary array with information about the PID in
+ * question and returns it to the stack. The GETPIDINFO
+ * prim is in p_misc.c
+ */
 stk_array *
 get_pidinfo(int pid)
 {
-	struct inst temp1, temp2;
-	stk_array  *nw;
-	time_t      rtime = current_systime;
-	time_t      etime = 0;
-	double      pcnt  = 0.0;
+    struct inst temp1, temp2;
+    stk_array  *nw;
+    time_t      rtime = current_systime;
+    time_t      etime = 0;
+    double      pcnt  = 0.0;
 
-	timequeue ptr = tqhead;
-	nw = new_array_dictionary();
-      while (ptr && (ptr->eventnum != pid)) {
-		ptr = ptr->next;
-	}
-	if (ptr && (ptr->eventnum == pid)) {
-		if (ptr->fr) {
-			etime = rtime - ptr->fr->started;
-			if (etime > 0) {
-				pcnt = ptr->fr->totaltime.tv_sec;
-				pcnt += ptr->fr->totaltime.tv_usec / 1000000;
-				pcnt = pcnt * 100 / etime;
-				if (pcnt > 100.0) {
-					pcnt = 100.0;
-				}
-			} else {
-				pcnt = 0.0;
-			}
-		}
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("PID");
-		temp2.type = PROG_INTEGER;
-		temp2.data.number = ptr->eventnum;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("CALLED_PROG");
-		temp2.type = PROG_OBJECT;
-		temp2.data.objref = ptr->called_prog;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("TRIG");
-		temp2.type = PROG_OBJECT;
-		temp2.data.objref = ptr->trig;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("PLAYER");
-		temp2.type = PROG_OBJECT;
-		temp2.data.objref = ptr->uid;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("CALLED_DATA");
-		temp2.type = PROG_STRING;
-		temp2.data.string = alloc_prog_string(ptr->called_data);
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("INSTCNT");
-		temp2.type = PROG_INTEGER;
-		temp2.data.number = ptr->fr->instcnt;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("DESCR");
-		temp2.type = PROG_INTEGER;
-		temp2.data.number = ptr->descr;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("CPU");
-		temp2.type = PROG_FLOAT;
-		temp2.data.fnumber = (float) pcnt;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("NEXTRUN");
-		temp2.type = PROG_INTEGER;
-		temp2.data.number = (int) ptr->when;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("STARTED");
-		temp2.type = PROG_INTEGER;
-		temp2.data.number = (int) ptr->fr->started;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("TYPE");
-		temp2.type = PROG_STRING;
-		temp2.data.string = 	(ptr->typ == TQ_MUF_TYP) ? alloc_prog_string("MUF") :
-						(ptr->typ == TQ_MPI_TYP) ? alloc_prog_string("MPI") : alloc_prog_string("UNK") ;
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-		temp1.type = PROG_STRING;
-		temp1.data.string = alloc_prog_string("SUBTYPE");
-		temp2.type = PROG_STRING;
-		temp2.data.string = 	(ptr->typ == TQ_MUF_READ) ? alloc_prog_string("READ") :
-						(ptr->typ == TQ_MUF_TREAD) ? alloc_prog_string("TREAD") :
-						(ptr->typ == TQ_MUF_TIMER) ? alloc_prog_string("TIMER") :
-						(ptr->typ == TQ_MUF_DELAY) ? alloc_prog_string("DELAY") : alloc_prog_string("");
-		array_setitem(&nw, &temp1, &temp2);
-		CLEAR(&temp1);
-		CLEAR(&temp2);
-	}
-	return nw;
+    timequeue ptr = tqhead;
+    nw = new_array_dictionary();
+    while (ptr) {
+        if (ptr->eventnum == pid) {
+            if (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER) {
+                break;
+            }
+        }
+        ptr = ptr->next;
+    }
+    if (ptr && (ptr->eventnum == pid)) {
+        if (ptr->fr) {
+            etime = rtime - ptr->fr->started;
+            if (etime > 0) {
+                pcnt = ptr->fr->totaltime.tv_sec;
+                pcnt += ptr->fr->totaltime.tv_usec / 1000000;
+                pcnt = pcnt * 100 / etime;
+                if (pcnt > 100.0) {
+                    pcnt = 100.0;
+                }
+            } else {
+                pcnt = 0.0;
+            }
+        }
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("PID");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = ptr->eventnum;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("CALLED_PROG");
+        temp2.type = PROG_OBJECT;
+        temp2.data.objref = ptr->called_prog;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("TRIG");
+        temp2.type = PROG_OBJECT;
+        temp2.data.objref = ptr->trig;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("PLAYER");
+        temp2.type = PROG_OBJECT;
+        temp2.data.objref = ptr->uid;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("CALLED_DATA");
+        temp2.type = PROG_STRING;
+        temp2.data.string = alloc_prog_string(ptr->called_data);
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("INSTCNT");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = ptr->fr->instcnt;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("DESCR");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = ptr->descr;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("CPU");
+        temp2.type = PROG_FLOAT;
+        temp2.data.fnumber = (float) pcnt;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("NEXTRUN");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = (int) ptr->when;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("STARTED");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = (int) ptr->fr->started;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("TYPE");
+        temp2.type = PROG_STRING;
+        temp2.data.string = (ptr->typ == TQ_MUF_TYP) ? alloc_prog_string("MUF"):
+                    (ptr->typ == TQ_MPI_TYP) ? alloc_prog_string("MPI") : 
+                    alloc_prog_string("UNK") ;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("SUBTYPE");
+        temp2.type = PROG_STRING;
+        temp2.data.string = (ptr->typ == TQ_MUF_READ) ?
+                                               alloc_prog_string("READ") :
+                  (ptr->typ == TQ_MUF_TREAD) ? alloc_prog_string("TREAD") :
+		  (ptr->typ == TQ_MUF_TIMER) ? alloc_prog_string("TIMER") :
+		  (ptr->typ == TQ_MUF_DELAY) ? alloc_prog_string("DELAY") : 
+                  alloc_prog_string("");
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+    }
+    return nw;
 }
 
 /*

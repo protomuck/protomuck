@@ -288,58 +288,75 @@ scopedvar_getnum(struct frame *fr, int level, const char* varname)
     }
     return -1;
 }
+
+/* RCLEAR() is the function that is used to free memory 
+ * resources used for various MUF data types. -Every- 
+ * MUF string, socket, function, address, etc., should
+ * be cleared through this function, as it also maintains
+ * the link counters for such things that keep them from
+ * being freed early. It also handles auto-closing of
+ * MUF sockets if they are not closed elsewhere. 
+ */
 void 
 RCLEAR(struct inst * oper, char *file, int line)
 {
     int varcnt, j;
-	if (oper == NULL)
-         return;
-	switch (oper->type) {
-	case PROG_CLEARED:
-		fprintf(stderr, "Attempt to re-CLEAR() instruction from %s:%hd "
-				"previously CLEAR()ed at %s:%d\n", file, line, (char *) oper->data.addr,
-				oper->line);
-		return;
-	case PROG_ADD:
-		DBFETCH(oper->data.addr->progref)->sp.program.instances--;
-		oper->data.addr->links--;
-		break;
-	case PROG_STRING:
-		if (oper->data.string && --oper->data.string->links == 0) 
-			free((void *) oper->data.string);
-		break;
-	case PROG_FUNCTION:
-		if (oper->data.mufproc) {
-			free((void *) oper->data.mufproc->procname);
-                        varcnt = oper->data.mufproc->vars;
-                        for (j = 0; j < varcnt; ++j) {
-                            free((void*)oper->data.mufproc->varnames[j]);
-                        }
-                        free((void*) oper->data.mufproc->varnames); 
-			free((void *) oper->data.mufproc);
-		}
-		break;
-	case PROG_ARRAY:
-		array_free(oper->data.array);
-		break;
-	case PROG_LOCK:
-		if (oper->data.lock != TRUE_BOOLEXP)
-			free_boolexp(oper->data.lock);
-		break;
-      case PROG_SOCKET:
-                oper->data.sock->links = oper->data.sock->links - 1;
-                if (oper->data.sock && oper->data.sock->links == 0) {
-                        if (oper->data.sock->host) {
-				shutdown(oper->data.sock->socknum,2);
-				close(oper->data.sock->socknum);
-	                }
-			free((void *) oper->data.sock);
-		}
+    if (oper == NULL)
+        return;
+
+    switch (oper->type) {
+        case PROG_CLEARED: {
+            time_t lt;
+            char buf[40];
+
+            lt = time(NULL);
+            format_time(buf, 32, "%c", localtime(&lt));
+            fprintf(stderr, "%.32s:", buf);
+            fprintf(stderr, "Attempt to re-CLEAR() instruction from %s:%hd "
+                "previously CLEAR()ed at %s:%d\n", file, line, 
+                (char *) oper->data.addr, oper->line);
+            return;
+        }
+        case PROG_ADD:
+            DBFETCH(oper->data.addr->progref)->sp.program.instances--;
+            oper->data.addr->links--;
             break;
-	}
-	oper->line = line;
-        oper->data.addr = (struct prog_addr *) file;
-	oper->type = PROG_CLEARED;
+        case PROG_STRING:
+            if (oper->data.string && --oper->data.string->links == 0) 
+                free((void *) oper->data.string);
+            break;
+        case PROG_FUNCTION:
+            if (oper->data.mufproc) {
+                free((void *) oper->data.mufproc->procname);
+                varcnt = oper->data.mufproc->vars;
+                for (j = 0; j < varcnt; ++j) {
+                    free((void*)oper->data.mufproc->varnames[j]);
+                }
+                free((void*) oper->data.mufproc->varnames); 
+                free((void *) oper->data.mufproc);
+            }
+            break;
+        case PROG_ARRAY:
+            array_free(oper->data.array);
+            break;
+        case PROG_LOCK:
+            if (oper->data.lock != TRUE_BOOLEXP)
+                free_boolexp(oper->data.lock);
+            break;
+        case PROG_SOCKET:
+            oper->data.sock->links = oper->data.sock->links - 1;
+            if (oper->data.sock && oper->data.sock->links == 0) {
+                if (oper->data.sock->host) {
+                    shutdown(oper->data.sock->socknum,2);
+                    close(oper->data.sock->socknum);
+                }
+                free((void *) oper->data.sock);
+            }
+            break;
+    } 
+    oper->line = line;
+    oper->data.addr = (struct prog_addr *) file;
+    oper->type = PROG_CLEARED;
 }
 
 void    push(struct inst * stack, int *top, int type, voidptr res);
@@ -771,8 +788,14 @@ prog_clean(struct frame * fr)
 
     for(ptr = free_frames_list; ptr; ptr = ptr->next) {
 	if (ptr == fr) {
+            time_t lt;
+            char buf[40];
+            
+            lt = time(NULL);
+            format_time(buf, 32, "%c", localtime(&lt));
+            fprintf(stderr, "%.32s:", buf);
 	    fprintf(stderr, "prog_clean(): Tried to free an already freed program frame!\n");
-	    abort();
+	    abort(); /* abort, since this is a critical error */
 	}
     }
 
@@ -795,7 +818,9 @@ prog_clean(struct frame * fr)
 	struct forvars **loop = &(fr->fors.st);
 
 	while (*loop) {
-	  loop = &((*loop)->next);
+            CLEAR(&((*loop)->cur));
+            CLEAR(&((*loop)->end));
+	    loop = &((*loop)->next);
 	}
 	*loop = for_pool;
 	if (last_for == &for_pool) {
@@ -806,20 +831,20 @@ prog_clean(struct frame * fr)
 	fr->fors.top = 0;
     }
 
-	if (fr->trys.st) {
-		struct tryvars **loop = &(fr->trys.st);
+    if (fr->trys.st) {
+        struct tryvars **loop = &(fr->trys.st);
 
-		while (*loop) {
-			loop = &((*loop)->next);
-		}
-		*loop = try_pool;
-		if (last_try == &try_pool) {
-			last_try = loop;
-		}
-		try_pool = fr->trys.st;
-		fr->trys.st = NULL;
-		fr->trys.top = 0;
-	}
+        while (*loop) {
+            loop = &((*loop)->next);
+        }
+        *loop = try_pool;
+        if (last_try == &try_pool) {
+            last_try = loop;
+        }
+        try_pool = fr->trys.st;
+        fr->trys.st = NULL;
+        fr->trys.top = 0;
+    }
 
     fr->argument.top = 0;
     fr->pc = 0;

@@ -487,6 +487,7 @@ main(int argc, char **argv)
 	db_free();
 	free_old_macros();
 	purge_all_free_frames();
+	purge_timenode_free_pool();
         purge_for_pool();
         purge_for_pool(); /* 2nd time is needed to completely purge */
         purge_try_pool();
