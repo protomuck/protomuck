@@ -430,7 +430,7 @@ prim_moveto(PRIM_PROTOTYPE)
         abort_interp("Interp call loops not allowed");
     if (!(valid_object(oper2)))
         abort_interp("Non-object argument (1)");
-    if (!(valid_object(oper1)) && !is_home(oper1))
+    if (!(valid_object(oper1)) && !is_home(oper1) && (!oper1->data.objref == NIL))
         abort_interp("Non-object argument (2)");
     {
         dbref victim, dest;
@@ -442,6 +442,15 @@ prim_moveto(PRIM_PROTOTYPE)
         CLEAR(oper2);
         nargs -= 2;
 
+        if (dest == NIL) {
+	    switch(Typeof(victim)) {
+            case TYPE_PLAYER:    dest = tp_player_start; break;
+            case TYPE_THING:     dest = OWNER(victim); break;
+            case TYPE_ROOM:      dest = tp_default_parent; break;
+            case TYPE_EXIT:      abort_interp("Invalid destination for an exit (1)"); break;
+            case TYPE_PROGRAM:   dest = OWNER(victim); break;
+            }
+        }
 
         if (Typeof(dest) == TYPE_EXIT)
             abort_interp("Destination argument is an exit");
@@ -827,6 +836,7 @@ prim_match(PRIM_PROTOTYPE)
             match_me(&md);
             match_here(&md);
             match_home(&md);
+            match_null(&md);
         }
         if (mlev >= LMAGE) {
             match_absolute(&md);
@@ -1358,7 +1368,7 @@ prim_getlinks(PRIM_PROTOTYPE)
 int
 prog_can_link_to(int mlev, dbref who, object_flag_type what_type, dbref where)
 {
-    if (where == HOME)
+    if (where == HOME || where == NIL)
         return 1;
     if (where < 0 || where >= db_top)
         return 0;
@@ -1396,7 +1406,7 @@ prim_setlink(PRIM_PROTOTYPE)
     oper2 = POP();              /* dbref: source */
     if ((oper1->type != PROG_OBJECT) || (oper2->type != PROG_OBJECT))
         abort_interp("setlink requires two dbrefs");
-    if (!valid_object(oper2) && oper2->data.objref != HOME)
+    if (!valid_object(oper2))
         abort_interp("Invalid object (1)");
     if (tp_db_readonly)
         abort_interp(DBRO_MESG);
@@ -1421,8 +1431,10 @@ prim_setlink(PRIM_PROTOTYPE)
                 abort_interp("Invalid object (1)");
         }
     } else {
-        if (!valid_object(oper1))
+        if (!valid_object(oper1) && oper1->data.objref != HOME && oper1->data.objref != NIL)
             abort_interp("Invalid object (2)");
+        if (!(Typeof(ref) == TYPE_THING || Typeof(ref) == TYPE_PLAYER || Typeof(ref) == TYPE_EXIT))
+            abort_interp("Programs and rooms cannot be linked to NIL (1)");
         if (Typeof(ref) == TYPE_PROGRAM)
             abort_interp("Program objects are not linkable (1)");
         if (!prog_can_link_to(mlev, ProgUID, Typeof(ref), oper1->data.objref))
@@ -1432,7 +1444,8 @@ prim_setlink(PRIM_PROTOTYPE)
                 if (DBFETCH(ref)->sp.exit.ndest != 0) {
                     if (!permissions(mlev, ProgUID, ref))
                         abort_interp(tp_noperm_mesg);
-                    abort_interp("Exit is already linked");
+                    if ((DBFETCH(ref)->sp.exit.dest)[0] != NIL)
+                        abort_interp("Exit is already linked");
                 }
                 if (exit_loop_check(ref, oper1->data.objref))
                     abort_interp("Link would cause a loop");
@@ -1644,6 +1657,14 @@ prim_newexit(PRIM_PROTOTYPE)
         /* link it in */
         PUSH(ref, DBFETCH(oper2->data.objref)->exits);
         DBDIRTY(oper2->data.objref);
+
+        /* If autolinking, link it to NIL */
+        if (tp_autolinking) {
+	    DBFETCH(ref)->sp.exit.ndest = 1;
+            DBFETCH(ref)->sp.exit.dest = (dbref *) malloc(sizeof(dbref));
+    	    (DBFETCH(ref)->sp.exit.dest)[0] = NIL;
+        }
+
 
         CLEAR(oper1);
         CLEAR(oper2);

@@ -20,6 +20,9 @@ can_link_to(register dbref who, object_flag_type what_type,
     if (where == HOME)
         return 1;
 
+    if (where == NIL)
+        return 1;
+
     if (!OkObj(who) || !OkObj(where))
         return 0;
 
@@ -86,6 +89,9 @@ could_doit(int descr, register dbref player, register dbref thing)
         owner = OWNER(thing);
         source = DBFETCH(player)->location;
         dest = *(DBFETCH(thing)->sp.exit.dest);
+ 
+        if (dest == NIL) /* unless its locked, anyone can use #-4 */
+           return (eval_boolexp(descr, player, GETLOCK(thing), thing));
 
         if (Typeof(dest) == TYPE_PLAYER) {
             dbref destplayer = dest;

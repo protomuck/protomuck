@@ -38,11 +38,17 @@ extern void match_registered(struct match_data *md);
 /* match (NUMBER_TOKEN)number */
 extern void match_absolute(struct match_data *md);
 
+extern void match_absoluteEx(struct match_data *md);
+
 extern void match_me(struct match_data *md);
 
 extern void match_here(struct match_data *md);
 
 extern void match_home(struct match_data *md);
+
+extern void match_null(struct match_data *md);
+
+extern void match_ambiguous(struct match_data *md);
 
 /* match something player is carrying */
 extern void match_possession(struct match_data *md);

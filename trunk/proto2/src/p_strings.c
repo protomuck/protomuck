@@ -1741,9 +1741,12 @@ prim_unparseobj(PRIM_PROTOTYPE)
             case HOME:
                 sprintf(buf, "*HOME*");
                 break;
+            case NIL:
+                sprintf(buf, "*NIL*");
+                break;
             default:
                 if (result < 0 || result >= db_top)
-                    sprintf(buf, "*INVALID*");
+                    sprintf(buf, "*INVALID(#%d)*", result);
                 else
                     sprintf(buf, "%s(#%d%s)", RNAME(result), result,
                             unparse_flags(result, tbuf));
@@ -3040,9 +3043,12 @@ prim_ansi_unparseobj(PRIM_PROTOTYPE)
         case HOME:
             strcpy(buf, SYSWHITE "*HOME*");
             break;
+        case NIL:
+            strcpy(buf, SYSCYAN "*NIL*");
+            break;
         default:
             if (result < 0 || result >= db_top) {
-                strcpy(buf, SYSRED "*INVALID*");
+                sprintf(buf, SYSRED "*INVALID(#%d)*", result);
             } else {
                 sprintf(buf, "%s" SYSYELLOW "(#%d%s)", ansiname(result, tbuf),
                         result, unparse_flags(result, tbuf2));

@@ -135,8 +135,8 @@ find_registered_obj(dbref player, const char *name)
             break;
         case PROP_REFTYP:
             match = PropDataRef(ptr);
-            if ((match >= 0) && (match < db_top)
-                && (Typeof(match) != TYPE_GARBAGE))
+            if (((match >= 0) && (match < db_top)
+                && (Typeof(match) != TYPE_GARBAGE)) || (match == -4) )
                 return (match);
             break;
         case PROP_INTTYP:
@@ -192,6 +192,30 @@ match_absolute(struct match_data *md)
     }
 }
 
+/* returns nnn if name = #nnn, else NOTHING */
+static dbref
+absoluteEx_name(struct match_data *md)
+{
+    dbref match;
+
+    if (*(md->match_name) == NUMBER_TOKEN) {
+        match = parse_dbref((md->match_name) + 1);
+        return match;
+    } else {
+        return NOTHING;
+    }
+}
+
+void
+match_absoluteEx(struct match_data *md)
+{
+    dbref match;
+
+    if ((match = absoluteEx_name(md)) != NOTHING) {
+        md->exact_match = match;
+    }
+}
+
 void
 match_me(struct match_data *md)
 {
@@ -212,8 +236,22 @@ match_here(struct match_data *md)
 void
 match_home(struct match_data *md)
 {
-    if (!string_compare(md->match_name, "home"))
+    if (!string_compare(md->match_name, "home") || !string_compare(md->match_name, "#-3"))
         md->exact_match = HOME;
+}
+
+void
+match_null(struct match_data *md)
+{
+    if (!string_compare(md->match_name, "nil") || !string_compare(md->match_name, "#-4"))
+        md->exact_match = NIL;
+}
+
+void
+match_ambiguous(struct match_data *md)
+{
+    if (!string_compare(md->match_name, "#-2"))
+        md->exact_match = AMBIGUOUS;
 }
 
 
@@ -268,7 +306,7 @@ match_exits(dbref first, struct match_data *md)
 {
     dbref exit, absolute;
     const char *exitname, *p;
-    int i, exitprog, lev;
+    int /* i, */ exitprog, lev;
 
     if (first == NOTHING)
         return;                 /* Easy fail match */
@@ -284,14 +322,18 @@ match_exits(dbref first, struct match_data *md)
             md->exact_match = exit;
             continue;
         }
-        exitprog = 0;
-        if (FLAGS(exit) & HAVEN) {
+        exitprog = 1;
+        /*
+        if (FLAGS(exit) & HAVEN || !tp_require_has_mpi_arg) {
             exitprog = 1;
         } else if (DBFETCH(exit)->sp.exit.dest) {
-            for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++)
+            for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++) {
+                if ((DBFETCH(exit)->sp.exit.dest)[i] != NIL)
                 if (Typeof((DBFETCH(exit)->sp.exit.dest)[i]) == TYPE_PROGRAM)
                     exitprog = 1;
+                }
         }
+        */
         exitname = NAME(exit);
         while (*exitname) {     /* for all exit aliases */
             for (p = md->match_name; /* check out 1 alias */

@@ -323,6 +323,8 @@ unparse_object(dbref player, dbref loc)
             return "*AMBIGUOUS*";
         case HOME:
             return "*HOME*";
+        case NIL:
+            return "*NIL*";
         default:
             if (loc < 0 || loc >= db_top)
 #ifdef SANITY
@@ -399,9 +401,13 @@ ansi_unparse_object(dbref player, dbref loc)
             return SYSPURPLE "*AMBIGUOUS*";
         case HOME:
             return SYSWHITE "*HOME*";
+        case NIL:
+            return SYSCYAN "*NIL*";
         default:
-            if (loc < 0 || loc >= db_top)
-                return SYSRED "*INVALID*";
+            if (loc < 0 || loc >= db_top) {
+                sprintf(upb, SYSRED "*INVALID(#%d)*", loc);
+                return upb;
+            }
 #ifndef SANITY
             if (!(FLAGS(player) & STICKY) &&
                 (TMage(player) || POWERS(player) & POW_SEE_ALL ||
