@@ -519,3 +519,34 @@ this is, you may just leave it off.
 logwall_www
 Turns off all Webserver logwalling to cut down on lots
 of webserver related spam.
+~~~
+compatible_muf_perms
+Turning this on makes it so that every new MUF object
+that is created is automatically set HARDUID and QUELL
+so that it will run at the level of the Flag on it
+(like in Fuzzball) rather than the level of the program's
+owner (like in Neon).
+~~~
+max_wiz_preempt_count
+Sets a hard max instruction count on PREEMPT programs that not 
+even wiz-owned programs can exceed. If left at 0, there is no
+max limit for PREEMPT programs running under Mage permissions
+or higher.
+~~~
+unidle_command
+This is a string that players can enter into the MUCK without
+actually unidling. Designed to allow players to set up unidle
+triggers to keep connections behind routers and firewalls from
+getting dropped when they idle. If they set up an idle trigger
+that sends the word that this @tune setting is set to, then
+they can keep their connection from dropping without unidling
+their characters on the MUCK. Note that whatever this command
+is, it does not get processed as input by the player, so do not
+use anything that is already a command players can use. The
+allow_unidle @tune option must be set to yes.
+~~~
+allow_unidle
+Allows players to use whatever the unidle_command is set to
+without making their character unidle. See the information under
+'@tune unidle_command' for an explanation. 
+~~~
