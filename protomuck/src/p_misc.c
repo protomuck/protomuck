@@ -923,3 +923,24 @@ prim_debugger_break(PRIM_PROTOTYPE)
     }
 }
         
+void 
+prim_debug_on(PRIM_PROTOTYPE)
+{
+    FLAGS(program) |= DARK;
+}
+
+void
+prim_debug_off(PRIM_PROTOTYPE)
+{
+    FLAGS(program) &= ~DARK;
+}
+
+void
+prim_debug_line(PRIM_PROTOTYPE)
+{
+    if ( !(FLAGS(program) & DARK) && controls(player, program)) {
+        char *mesg = debug_inst(fr, 0, pc, fr->pid, arg, buf, sizeof(buf),
+                     *top, program);
+        notify_nolisten(player, mesg, 1);
+    }
+}
