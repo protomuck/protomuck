@@ -198,6 +198,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     struct sockaddr_in name;
     int addr_len = 0;
     int turnon = 1;
+    int validHost = 0;
 
     CHECKOP(2);
     oper2 = POP();
@@ -216,15 +217,15 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     strcpy(buf, oper1->data.string->data);
     myhost = gethostbyname(buf);
     if (myhost == 0) {
-      strcpy(myresult, "Invalid host."); 
+        strcpy(myresult, "Invalid host."); 
     } else {
-
-    name.sin_port = (int)htons(oper2->data.number);
-    name.sin_family = AF_INET;                                         
-    bcopy((char *)myhost->h_addr, (char *)&name.sin_addr,
-           myhost->h_length);
-    mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
-    addr_len = sizeof(name);
+        validHost = 1;
+        name.sin_port = (int)htons(oper2->data.number);
+        name.sin_family = AF_INET;                                         
+        bcopy((char *)myhost->h_addr, (char *)&name.sin_addr,
+               myhost->h_length);
+        mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
+        addr_len = sizeof(name);
 
 #if !defined(O_NONBLOCK) || defined(ULTRIX)     /* POSIX ME HARDER */
 # ifdef FNDELAY         /* SUN OS */
@@ -241,11 +242,11 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 #else
         fcntl(mysock, F_SETFL, O_NONBLOCK);
 #endif
-    if (connect(mysock, (struct sockaddr *)&name, addr_len) == -1)
+        if (connect(mysock, (struct sockaddr *)&name, addr_len) == -1)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
-                sprintf(myresult, "ERROR: %d", errnosocket);
+            sprintf(myresult, "ERROR: %d", errnosocket);
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+            strcpy(myresult, sys_errlist[errnosocket]);
 #endif
         else strcpy(myresult, "noerr");
     }
@@ -259,7 +260,14 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     result->data.sock->links = 1;
     result->data.sock->lastchar = '0';
     result->data.sock->listening = 0;
-
+    /* Right now, this is just a temp fix to prevent a crasher with
+     * invalid hosts. Eventually it will actually store the long int
+     * value of the host. There will be no need to change other references
+     * in the code once this change is made, since any host int will
+     * be 'true', which corresponds with the '1' being set manually 
+     * for right now.
+     */
+    result->data.sock->host = validHost; 
     if(tp_log_sockets)
       log2filetime( "logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n", 
                     program, unparse_object(player, player), 
