@@ -40,9 +40,9 @@ set SYSPARMS = $GAMEDIR/data/sysparms.txt
 #
 ################################################################
 
-echo "--------------------------------------------------"
-echo "  ProtoMUCK 1.x --->    ProtoMUCK 1.6  AutoUpgrade"
-echo "--------------------------------------------------"
+echo "----------------------------------------------------"
+echo "  ProtoMUCK 1.x --->    ProtoMUCK 1.6.1  AutoUpgrade"
+echo "----------------------------------------------------"
 
 if (! -r $PROTODIR ) then
     echo "Cannot find main muck directory. See comments in script."
@@ -100,7 +100,7 @@ echo "`date` - `who am i` ran the Proto1.x --> Proto1.6 upgrade script." >> $GAM
 echo " "
 echo " "
 echo "-------------------------------------------------"
-echo "             Welcome to ProtoMUCK v1.6           "
+echo "             Welcome to ProtoMUCK v1.61          "
 echo "-------------------------------------------------"
 echo " "
 echo "If you are seeing this message, then your upgrade"

@@ -1,3 +1,35 @@
+ProtoMUCK 1.61 was intended to be mostly just a bug fix release, 
+though there's a few new features in it as well. Think of it as
+a cleaned up version of Proto 1.60. 
+
+Changes from Proto 1.60 -> Proto 1.61
+INTERNAL:
+April 11, 2001
+- Added wiz_zombies @tuneable. Setting this to yes makes it so that
+    only wizzes can @set the Z flag on objects of type thing.
+- Added min_progbreak_lev @tuneable. Setting this to 0 allows all
+    players to use @Q (Or whatever you have made the break command to) 
+    to kill foreground or read processes. Increasing this @tuneable 
+    will make it so that players with lower than that M or W level
+    cannot use it. W2+ can always use the program break command, 
+    regardless of how high this @tunable gets set.
+- Fixed a minor bug where players set = V could not enter rooms with a
+    V flag on it.
+- Made it so that DARK players no longer trip @odrop messages like they were.
+- Made it so that any program set = GUEST cannot be run by a player set GUEST.
+- Made it so that any action set = GUEST cannot be used by a player set GUEST.
+- Made it so that things set ZOMBIE cannot use actions set ZOMBIE.
+- Fixed it so that @osucc and @succ messages don't get called when puppets
+    and vehicles try to move into rooms they are banned from.
+- Fixed a bug with the 'lastused' timestamp not getting updated on players 
+    except for when they connected.
+
+MUF
+April 12, 2001
+- Fixed a crasher from RCLEAR()ing locally declared opers in CHECKOP() checks.
+
+***********************************************************************
+
 This file details all the changes made in the ProtoMUCK server in going
     from ProtoMUCK 1.5 to ProtoMUCK 1.6. Even though there isn't a major
     jump in numbers between these two versions, there are a ton of changes

@@ -272,7 +272,6 @@ prim_sockcheck(PRIM_PROTOTYPE)
    }
    if (connected == 1) {
       getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, (socklen_t *) &len);
-notify(1, "Doing check.");
       if ( optval != 0 )
          connected = -1;
    }
