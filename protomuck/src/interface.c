@@ -3434,6 +3434,29 @@ get_descr(int descr, int player)
     return NULL;
 }
 
+static const char *
+descr_flag_description(int descr)
+{
+    static char dbuf[BUFFER_LEN];
+    struct descriptor_data *d = descrdata_by_descr(descr);
+    strcpy(dbuf, GREEN "Descr Flags:" YELLOW);
+    if (DR_RAW_FLAGS(d, DF_HTML))
+        strcat(dbuf, " DF_HTML");
+    if (DR_RAW_FLAGS(d, DF_PUEBLO))
+        strcat(dbuf, " DF_PUEBLO");
+    if (DR_RAW_FLAGS(d, DF_MUF))
+       strcat(dbuf, " DF_MUF");
+    if (DR_RAW_FLAGS(d, DF_IDLE))
+       strcat(dbuf, " DF_IDLE");
+    if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
+       strcat(dbuf, " DF_TRUEIDLE");
+    if (DR_RAW_FLAGS(d, DF_INTERACTIVE))
+       strcat(dbuf, " DF_INTERACTIVE");
+    if (DR_RAW_FLAGS(d, DF_COLOR))
+       strcat(dbuf, " DF_COLOR");
+    return dbuf;
+}
+    
 void
 do_dinfo(dbref player, const char *arg)
 {
@@ -3475,6 +3498,10 @@ do_dinfo(dbref player, const char *arg)
 	d->connected ? ansi_unparse_object(player, d->player) : GREEN
 	"[Connecting]", d->descriptor, ctype
     );
+
+    if (d->flags) 
+        //need to print out the flags
+        anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
 
     if(Arch(player))
 	anotify_fmt(player, AQUA "Host: " CYAN "%s" BLUE "@" CYAN "%s",
