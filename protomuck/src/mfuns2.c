@@ -607,13 +607,13 @@ mfn_with(MFUNARGS)
 
     ptr = MesgParse(argv[0], argv[0]);
     CHECKRETURN(ptr,"WITH","arg 1");
+    valptr = MesgParse(argv[1], argv[1]);
+    CHECKRETURN(valptr,"WITH","arg 2");
     v = new_mvar(ptr, vbuf);
     if (v == 1)
         ABORT_MPI("WITH","Variable name too long.");
     if (v == 2)
         ABORT_MPI("WITH","Too many variables already defined.");
-    valptr = MesgParse(argv[1], argv[1]);
-    CHECKRETURN(valptr,"WITH","arg 2");
     *buf = '\0';
     strcpy(vbuf, valptr);
     for (cnt = 2; cnt < argc; cnt++) {

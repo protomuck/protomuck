@@ -1211,9 +1211,6 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                         }
                 }
         }
-        if (!maxcount) {
-                maxcount = 511;
-        }
 
         nw = new_array_packed(0);
         while (1) {
@@ -1227,10 +1224,21 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                                 prptr = get_property(ref, propname);
                         }
                 }
-                if (!prptr || count > maxcount) {
-                        break;
+                if (maxcount > 1023) {
+                    maxcount = 1023;
                 }
+                if (maxcount) {
+                    if (count > maxcount)
+                        break;
+                } else if (!prptr) {
+                    break;
+                }
+
                 if (prop_read_perms(ProgUID, ref, propname, mlev)) {
+                    if (!prptr) {
+                        temp2.type = PROG_INTEGER;
+                        temp2.data.number = 0;
+                    } else {
 #ifdef DISKBASE
                         propfetch(ref, prptr);
 #endif
@@ -1264,7 +1272,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                                 temp2.data.number = 0;
                                 break;
                         }
-
+                        }
                         temp1.type = PROG_INTEGER;
                         temp1.data.number = count;
                         array_appenditem(&nw, &temp2);

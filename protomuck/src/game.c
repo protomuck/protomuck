@@ -194,7 +194,6 @@ dump_database_internal(void)
 
 #ifdef DISKBASE
 
-#ifdef FLUSHCHANGED
 	fclose(input_file);
 	free((void *)in_filename);
 	in_filename = string_dup(dumpfile);
@@ -210,7 +209,6 @@ dump_database_internal(void)
 	fclose(delta_infile);
 	if ((delta_infile = fopen(DELTAFILE_NAME, "r")) == NULL)
 	    perror(DELTAFILE_NAME);
-#endif
 #endif
 #endif
 
@@ -335,8 +333,14 @@ void fork_and_dump(void)
 
     last_monolithic_time = current_systime;
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
-
+#ifdef DISKBASE
     dump_database_internal();
+#else
+    if (!fork()) {
+        dump_database_internal();
+        _exit(0);
+    }
+#endif
     time(&current_systime);
     host_save();
 }

@@ -404,7 +404,6 @@ dirtyprops(dbref obj)
     addobject_ringqueue(obj, PROPS_CHANGED);
 }
 
-#ifdef FLUSHCHANGED
 void 
 undirtyprops(dbref obj)
 {
@@ -418,8 +417,6 @@ undirtyprops(dbref obj)
     addobject_ringqueue(obj, PROPS_LOADED);
     disposeprops(obj);
 }
-
-#endif				/* FLUSHCHANGED */
 
 int
 propfetch(dbref obj, PropPtr p)
