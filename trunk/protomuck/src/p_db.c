@@ -2338,16 +2338,10 @@ prim_findnext(PRIM_PROTOTYPE)
                 abort_interp("Expected dbref argument. (2)");
         if (oper2->data.objref < NOTHING || oper2->data.objref >= db_top)
                 abort_interp("Bad object. (2)");
-        if (Typeof(oper2->data.objref) == TYPE_GARBAGE &&
-                oper2->data.objref != NOTHING)
-                abort_interp("Garbage object. (2)");
-        if (oper1->type != PROG_OBJECT)
+if (oper1->type != PROG_OBJECT)
                 abort_interp("Expected dbref argument. (1)");
         if (oper1->data.objref < NOTHING || oper1->data.objref >= db_top)
                 abort_interp("Bad object. (1)");
-        if (Typeof(oper1->data.objref) == TYPE_GARBAGE)
-                abort_interp("Garbage object. (1)");
-
         item = oper1->data.objref;
         who = oper2->data.objref;
         name = DoNullInd(oper3->data.string);
