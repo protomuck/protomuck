@@ -243,12 +243,11 @@ int
 has_flagp(dbref ref, char *flag, int mlev)
 {
    int     truwiz = 0, tmp1 = 0, tmp2 = 0, lev = 0, tmp3 = 0, rslt = 0;
-
+   int result = 0;
    tmp = 0;
-   result = 0;
    while (*flag == '!') {
       flag++;
-      result = (!result);
+      rslt = (!rslt);
    }
    if (!*flag)
       return -2;
@@ -285,10 +284,10 @@ has_flagp(dbref ref, char *flag, int mlev)
                   result = (FLAG2(ref) & tmp2);
       }
    }
-   if (result) {
-      return (!(rslt));
+   if (rslt) {
+      return (!(result));
    } else {
-      return (rslt);
+      return (result);
    }
 }
 

@@ -39,6 +39,8 @@ extern void prim_descrleastidle(PRIM_PROTOTYPE);
 extern void prim_descrmostidle(PRIM_PROTOTYPE);
 extern void prim_descrboot(PRIM_PROTOTYPE);
 extern void prim_getdescrinfo(PRIM_PROTOTYPE);
+extern void prim_descr_set(PRIM_PROTOTYPE);
+extern void prim_descr_flagp(PRIM_PROTOTYPE);
 
 #define PRIMS_CONNECTS_FUNCS prim_awakep, prim_online, prim_concount,      \
     prim_condbref, prim_conidle, prim_contime, prim_conhost, prim_conuser, \
@@ -51,7 +53,7 @@ extern void prim_getdescrinfo(PRIM_PROTOTYPE);
     prim_descrhost, prim_descruser, prim_descripnum, prim_descrport,       \
     prim_descrconport, prim_firstdescr, prim_lastdescr,                    \
     prim_descrleastidle, prim_descrmostidle, prim_descrboot,               \
-    prim_getdescrinfo
+    prim_getdescrinfo, prim_descr_set, prim_descr_flagp
 
 #define PRIMS_CONNECTS_NAMES "AWAKE?", "ONLINE", "CONCOUNT",  \
     "CONDBREF", "CONIDLE", "CONTIME", "CONHOST", "CONUSER",   \
@@ -64,11 +66,7 @@ extern void prim_getdescrinfo(PRIM_PROTOTYPE);
     "DESCRHOST", "DESCRUSER", "DESCRIPNUM", "DESCRPORT",      \
     "DESCRCONPORT", "FIRSTDESCR", "LASTDESCR",                \
     "DESCRLEASTIDLE", "DESCRMOSTIDLE", "DESCRBOOT",           \
-    "GETDESCRINFO"
+    "GETDESCRINFO", "DESCR_SET", "DESCR_FLAG?"
 
-#define PRIMS_CONNECTS_CNT 41
-
-
-
-
+#define PRIMS_CONNECTS_CNT 43
 
