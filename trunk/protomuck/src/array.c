@@ -69,6 +69,7 @@ array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
                 return -1;
             }
         } else if (a->type == PROG_FLOAT && b->type == PROG_INTEGER) {
+            if (a->data.fnumber == b->data.fnumber) { return 0; } else
             if (fabs((a->data.fnumber - b->data.number) / a->data.fnumber) <
                 DBL_EPSILON) {
                 return 0;
@@ -121,6 +122,7 @@ array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
             return 0;
     }
     if (a->type == PROG_FLOAT) {
+    if (a->data.fnumber == b->data.fnumber) { return 0; } else
         if (fabs((a->data.fnumber - b->data.fnumber) / a->data.fnumber) <
             DBL_EPSILON) {
             return 0;
@@ -145,10 +147,15 @@ array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
         /* in a perfect world, we'd compare the array elements recursively. */
         return (a->data.array - b->data.array);
     } else if (a->type == PROG_LOCK) {
-        /* Sort locks by memory address. */
-        /* This is a bug, really. */
-        /* in a perfect world, we'd compare the locks by element. */
-        return (a->data.lock - b->data.lock);
+        char* la;
+        char* lb;
+        int retval = 0;
+        la = (char *)unparse_boolexp((dbref)1, a->data.lock, 0);
+        la = string_dup(la);
+        lb = (char *)unparse_boolexp((dbref)1, b->data.lock, 0);
+        retval = strcmp(la, lb);
+        free(la);
+        return retval;
     } else if (a->type == PROG_ADD) {
         int result = (a->data.addr->progref - b->data.addr->progref);
 
