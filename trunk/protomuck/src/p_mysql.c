@@ -175,7 +175,7 @@ void prim_sqlquery(PRIM_PROTOTYPE)
         num_fields = mysql_num_fields(res);
         fields = mysql_fetch_fields(res);
         counter = 0;
-        fieldsList = new_array_packed(0);
+        fieldsList = new_array_packed(num_fields);
         while ((row = mysql_fetch_row(res))) { //fetch all rows, push limit
             nw = new_array_dictionary();
             if (counter++ < num_rows) {
