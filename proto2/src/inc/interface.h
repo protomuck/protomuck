@@ -276,8 +276,8 @@ extern void close_sockets(const char *msg);
 extern void kill_resolver(void);
 
 #ifdef IGNORE_SUPPORT
-extern char ignorance(register dbref src, register dbref tgt);
-extern void init_ignore(register dbref tgt);
+extern char ignorance(register dbref src, dbref tgt);
+extern void init_ignore(dbref tgt);
 #endif
 
 /* the following symbols are provided by game.c */

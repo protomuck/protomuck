@@ -765,6 +765,10 @@ create_lostandfound(dbref *player, dbref *room)
         DBFETCH(*player)->sp.player.password = rand_password();
         DBFETCH(*player)->sp.player.curr_prog = NOTHING;
         DBFETCH(*player)->sp.player.insert_mode = 0;
+#ifdef IGNORE_SUPPORT
+        DBFETCH(*player)->sp.player.ignoretime = 0;
+#endif /* IGNORE_SUPPORT */
+
         PUSH(*player, DBFETCH(*room)->contents);
         add_player(*player);
         log2file("logs/sanfixed", "Using %s (with password %s) to resolve "
