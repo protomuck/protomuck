@@ -125,7 +125,7 @@ void
 muf_socket_events()
 {
     fd_set reads;
-    char littleBuf[] = "SOCKET.READ\0"; 
+    char littleBuf[50]; 
     int maxDescr = 0;
     struct timeval t_val;
     struct muf_socket_queue *curr = socket_list;
@@ -163,6 +163,10 @@ muf_socket_events()
             temp1.type = PROG_SOCKET;
             temp1.data.sock = curr->theSock;
             curr->theSock->links += 1; /* manual pointer copy */
+            if (curr->theSock->listening)
+                strcpy(littleBuf, "SOCKET.LISTEN");
+            else
+                strcpy(littleBuf, "SOCKET.READ");
             muf_event_add(curr->fr, littleBuf, &temp1, 1); /* 1 = exclusive */ 
             CLEAR(&temp1);
         } /* if */
@@ -342,11 +346,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         if(gotmessage)
             log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program, 
                            unparse_object(player, player), sockval);
-    //*bufpoint = '\0';
-/* If readme is 0, it got dropped. If it's less than -1, there was
- * an error and it should be dropped anyway. 
- * If it's -1, then it's just a empty non-blocking call.
- */
+    
     if (readme < 1 && readme != -1)
         readme = 0;
     CHECKOFLOW(2);

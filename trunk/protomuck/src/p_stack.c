@@ -569,6 +569,8 @@ prim_socketp(PRIM_PROTOTYPE)
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_SOCKET);
+    if (result && oper1->data.sock->listening)
+        result = -1; /* return -1 for listening sockets */
     CLEAR(oper1);
     PushInt(result);
 }

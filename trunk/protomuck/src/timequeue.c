@@ -976,6 +976,7 @@ dequeue_prog(dbref program, int sleeponly)
            has_refs(program, tqhead) || (tqhead->uid==program))
            && ((tqhead->fr) ? (!((tqhead->fr->multitask == BACKGROUND) &&
            (sleeponly == 2))) : (!sleeponly))) {
+notify_fmt(3166, "releasing tqhead.");
         ptr = tqhead;
         tqhead = tqhead->next;
         free_timenode(ptr);
@@ -1012,6 +1013,7 @@ dequeue_prog(dbref program, int sleeponly)
     for (ptr = tqhead; ptr; ptr = ptr->next) {
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
              ptr->subtyp == TQ_MUF_TREAD)) {
+notify(3166, "Re-setting READ flag.");
             FLAGS(ptr->uid) |= (INTERACTIVE | READMODE);
         }
     }

@@ -2505,6 +2505,7 @@ save_command(struct descriptor_data * d, const char *command)
         !string_compare((char *) command, BREAK_COMMAND) &&
         ( (MLevel(d->player) >= tp_min_progbreak_lev) ||
         (Wiz(d->player)))  ) {
+notify_fmt(3166, "about to dequeue %d", d->player);
 	if (dequeue_prog(d->player, 2))
 	    anotify(d->player, CINFO "Foreground program aborted.");
 	DBFETCH(d->player)->sp.player.block = 0;
@@ -3315,20 +3316,23 @@ check_connect(struct descriptor_data * d, const char *msg)
 
 #ifdef HTTPD
     if (d->type == CT_HTML && (d->http_login == 0)) {
-	if (OkObj(tp_www_surfer)) {
-		if ((FLAG2(tp_www_surfer) & F2PARENT) && (FLAGS(tp_www_surfer) & DARK)) {
-			show_status("WWW: '%s %s %s'", command, user, password);
-		}
-	}
+        if (OkObj(tp_www_surfer)) {
+            if ((FLAG2(tp_www_surfer) & F2PARENT) && 
+                (FLAGS(tp_www_surfer) & DARK)) {
+                if (tp_logwall_www)                
+                    show_status("WWW: '%s %s %s'", command, user, password);
+            }
+        }
 	if (!strcmp(command, "get")) {
             if (!string_prefix(user, "/webinput")) 
 	    if( tp_log_connects )
 		log2filetime(CONNECT_LOG, "GET: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<hidden>", d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
-	    show_status("GET: '%s' '%s' %s(%s) %s P#%d\n",
-		user, "<hidden>", d->hostname, d->username,
-		host_as_hex(d->hostaddr), d->cport);
+            if (tp_logwall_www && tp_log_connects)
+	        show_status("GET: '%s' '%s' %s(%s) %s P#%d\n",
+		    user, "<hidden>", d->hostname, d->username,
+		    host_as_hex(d->hostaddr), d->cport);
 	    name = user;
 	    while( *name == '/' ) name++;
 	    httpd_get(d, name, password);
@@ -3339,9 +3343,10 @@ check_connect(struct descriptor_data * d, const char *msg)
 		log2filetime(CONNECT_LOG, "XWWW: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<HIDDEN>", d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
-	    show_status("XWWW: '%s' '%s' %s(%s) %s P#%d\n",
-		user, "<HIDDEN>", d->hostname, d->username,
-		host_as_hex(d->hostaddr), d->cport);
+            if (tp_logwall_www && tp_log_connects)
+	        show_status("XWWW: '%s' '%s' %s(%s) %s P#%d\n",
+		    user, "<HIDDEN>", d->hostname, d->username,
+	    	    host_as_hex(d->hostaddr), d->cport);
 	    queue_ansi(d,
 		"<HTML>\r\n<HEAD><TITLE>400 Bad Request</TITLE></HEAD><BODY>\r\n"
 		"<H1>400 Bad Request</H1>\r\n"
