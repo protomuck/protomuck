@@ -211,8 +211,11 @@ sig_reap_resolver(int i)
 #if defined(SPAWN_HOST_RESOLVER) && defined(RESTART_RESOLVER)
     extern void spawn_resolver(void);
     extern void log_status(char *format, ...);
-    spawn_resolver();
-    log_status("RES: Resolver restarted.");
+    extern int resolverpid;
+    if (resolverpid == pid) {
+       spawn_resolver();
+       log_status("RES: Resolver restarted.");
+    }
 #endif
 
 /* #if defined(SPAWN_HOST_RESOLVER)
