@@ -2669,8 +2669,39 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	queue_ansi(d, "<html>");
 	
 	sprintf(buf, "<title>%s Web Login</title>\n", tp_muckname);
-	
-	queue_ansi(d, buf);
+
+        queue_ansi(d, buf);
+        queue_ansi(d, "<SCRIPT language=\"JavaScript1.1\">
+<!-- hide javascript
+scrollID=0;
+vPos=0;
+manualScroll=0;
+
+function onWard() {
+   cpuScroll=true;
+   if (manualScroll > 0) {
+     manualScroll+=1;
+     if (manualScroll > 1000) {
+       manualScroll = 0;
+     }
+   } else {
+     window.scrollBy(0,1);
+   }
+   scrollID=setTimeout(\"onWard()\",40);
+}
+
+function scrollalert() {
+  if (cpuScroll==false) {
+/    alert(\"Manual scroll.\");
+    manualScroll=1;
+  }
+  cpuScroll=false;
+}
+/ done hiding -->
+</script>
+
+<BODY onLoad=\"if(window.scroll)onWard()\" onScroll=\"scrollalert()\">");	
+
 	
         sprintf(buf, "%s.%d", d->hostname, (int)current_systime);
 	
@@ -3278,12 +3309,6 @@ boot_player_off(dbref player)
  
 	darr = get_player_descrs(player, &dcount);
 
-    for (di = 0; di < dcount; di++) {
-        d = descrdata_by_descr(darr[di]);
-        if (d) {
-            d->booted = 1;
-        }
-    }
 
     /* We need to be a tad more brutal as this player may be getting @toaded */
     for (di = 0; di < dcount; di++) {
