@@ -143,12 +143,37 @@ How many pennies newly made characters begin with.
 ~~~
 command_burst_size
 Commands allowed per user in a burst.
+This controls how much input will be read from a user on
+a single iteration of the main MUCK process. Setting it
+high will speed up input processing for a single user,
+since their input will be handled in larger pieces, but
+might cause the MUCK to hang periodically if a user is
+inputing a lot of lines at a time (such as pasting in 
+a large program).  Setting this number lower will cause
+the user input to be handled a little slower, but reduces
+the chance of the MUCK hanging on the input processing
+portion of the main loop. 
 ~~~
 commands_per_time
 Commands per time slice after burst.
+This controls how many commands from a user are actually
+executed on a single iteration of the main MUCK loop. 
+Setting this higher will allow a single user to have
+more commands executed on each loop. Setting this lower
+will reduce the chance of a user who is entering a ton
+of commands from hanging or stalling the MUCK for
+other users.
 ~~~
 command_time_msec
 Number of milliseconds in each time slice.
+This controls how much time is allocated to each user
+to have their commands executed on each iteration of 
+the MUCK's main loop. Setting it higher will give
+a higher priority to user input, but will make the
+delays between handling the processes in the time
+queue longer. Setting this lower will make user
+input take less time, and the MUCK multitasking
+will execute faster. 
 ~~~
 max_delta_objs
 The maximum percentage of the data base that can be changed before
@@ -187,6 +212,9 @@ to allocate them.  Helps prevent memory fragmentation.
 ~~~
 max_output
 Max amount of output text before the <Flushed output> is forced.
+This exists to keep someone from locking up the MUCK or overloading
+system resources by being able to queue an infinite amount of
+output. 
 ~~
 rand_screens
 Number of random welcome screens in game/data/welcome directory. 
@@ -357,7 +385,13 @@ do_mpi_parsing
 Turning this off prevents text from being sent through the MPI parser.
 ~~
 look_propqueues
-Turning this on allows _look/ propqueue hooks.
+Turning this on allows _lookq/ propqueue hooks to be called when
+looking at something.
+They will only be called if you are using the in-server look 
+support, or if the soft coded look on your site has support
+for them coded in and is designed to check this sysparm.
+_lookq/ propqueues are searched for up the environment tree,
+just like any other type of propqueue. 
 ~~
 lock_envcheck
 Turning this on allows locks to check down the environment for props.
@@ -504,6 +538,8 @@ by program basis by setting the program = N.
 ~~~
 dump_propqueues
 This enables a @dumpwarn and @dump propqueue to be used on #0.
+These propqueues will be executed whenever the MUCK database
+is dumped according to its dump_interval.
 ~~~
 mysql_result_limit
 Restricts the number of rows that can be returned from
@@ -570,3 +606,7 @@ conditions.
 wizhidden_access_bit
 Values 1-5 change the level of bit it takes to access wizhidden
 '@' props, W1 (Mage) to W5(the MAN).  Read and Write are given.
+~~~
+wiz_puppets
+Setting this 'yes' makes it so that only W1 or above can set
+the Z flag on objects for the purpose of creating puppets. 
