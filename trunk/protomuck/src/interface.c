@@ -902,6 +902,8 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
     msg = uncompress(msg);
 #endif                          /* COMPRESS */
 
+    if (player < 0)
+        return retval; /* no one to notify */
     ptr2 = msg;
     while (ptr2 && *ptr2) {
 	ptr1 = buf;
@@ -1003,6 +1005,8 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
     msg = uncompress(msg);
 #endif                          /* COMPRESS */
 
+    if (player < 0)
+        return retval; /* no one to notify */
     ptr2 = msg;
     while (ptr2 && *ptr2) {
 	ptr1 = buf;
