@@ -182,7 +182,6 @@ check_cron_time (void)
     struct inst *temp;
     struct frame *tempfr;
     time_t currtime = time((time_t *) NULL);
-
     if (!last_cron_time)
         last_cron_time = time((time_t *)NULL);
 
