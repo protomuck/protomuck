@@ -3254,7 +3254,6 @@ do_command(struct descriptor_data *d, char *command)
 {
     struct frame *tmpfr;
     char cmdbuf[BUFFER_LEN];
-    char tmpbuf[BUFFER_LEN];
 
 #ifdef NEWHTTPD
     if (d->type == CT_HTTP)     /* hinoserm */
@@ -3274,24 +3273,24 @@ do_command(struct descriptor_data *d, char *command)
         ts_lastuseobject(d->player);
 
     if (!string_compare(command, BREAK_COMMAND)) {
-        if (dequeue_prog(d->player, 2)) {
-            if (d->output_prefix) {
-                queue_ansi(d, d->output_prefix);
-                queue_write(d, "\r\n", 2);
+        if (!d->connected || !OkObj(d->player)) {
+            return 0; /* don't bother dealing with #-1 READ programs, just QUIT */
+        } else if (Wiz(d->player) || MLevel(d->player) >= tp_min_progbreak_lev) {
+            if (dequeue_prog(d->player, 2)) {
+                if (d->output_prefix) {
+                    queue_ansi(d, d->output_prefix);
+                    queue_write(d, "\r\n", 2);
+                }
+                anotify(d->player, CINFO "Foreground program aborted.");
+                if ((FLAGS(d->player) & INTERACTIVE))
+                    if ((FLAGS(d->player) & READMODE))
+                        process_command(d->descriptor, d->player, command);
+                if (d->output_suffix) {
+                    queue_ansi(d, d->output_suffix);
+                    queue_write(d, "\r\n", 2);
+                }
+                DBFETCH(d->player)->sp.player.block = 0;
             }
-        }
-        parse_ansi(d->player, tmpbuf, CINFO "Foreground program aborted.\r\n",
-                   ANSINORMAL);
-        queue_ansi(d, tmpbuf);
-        if ((FLAGS(d->player) & INTERACTIVE))
-            if ((FLAGS(d->player) & READMODE))
-                process_command(d->descriptor, d->player, command);
-        if (d->output_suffix) {
-            queue_ansi(d, d->output_suffix);
-            queue_write(d, "\r\n", 2);
-        }
-        if (valid_obj(d->player)) {
-            DBFETCH(d->player)->sp.player.block = 0;
         }
     } else if (!strcmp(command, QUIT_COMMAND)) {
         return 0;
