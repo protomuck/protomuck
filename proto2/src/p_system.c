@@ -105,6 +105,8 @@ prim_version(PRIM_PROTOTYPE)
 void
 prim_force(PRIM_PROTOTYPE)
 {
+    char *str;
+
     /* d s -- */
     CHECKOP(2);
     oper1 = POP();              /* string to @force */
@@ -118,6 +120,7 @@ prim_force(PRIM_PROTOTYPE)
     if (oper2->type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
     ref = oper2->data.objref;
+    str = oper1->data.string->data;
     if (ref < 0 || ref >= db_top)
         abort_interp("Invalid object to force (1)");
     if (Typeof(ref) != TYPE_PLAYER && Typeof(ref) != TYPE_THING)
@@ -129,15 +132,15 @@ prim_force(PRIM_PROTOTYPE)
     if (Man(oper2->data.objref) && !(Man(OWNER(program)) && Boy(program)))
         abort_interp("Cannot force the man (1)");
 
+    CLEAR(oper1);
+    CLEAR(oper2);
+
     force_level++;
     interp_set_depth(fr);
-    process_command(dbref_first_descr(oper2->data.objref), oper2->data.objref,
-                    oper1->data.string->data);
+    process_command(dbref_first_descr(ref), ref, str);
     fr->level--;
     interp_set_depth(fr);
     force_level--;
-    CLEAR(oper1);
-    CLEAR(oper2);
 }
 
 void
