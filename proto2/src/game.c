@@ -1307,27 +1307,23 @@ process_command(int descr, dbref player, char *command)
 #if defined(WIN32) || defined(WIN_VC)
                     anotify_nolisten2(player, SYSCRIMSON "WinProto "
                                       PROTOBASE
-                                      SYSPURPLE " (" SYSRED VERSION SYSWHITE
-                                      " -- " SYSAQUA NEONVER SYSPURPLE ")");
+                                      SYSPURPLE " (" SYSRED VERSION SYSPURPLE
+                                      ")");
 #else
 # ifdef CYGWIN
                     anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK-Cygwin "
                                       PROTOBASE SYSPURPLE " (" SYSRED
-                                      VERSION
-                                      SYSWHITE " -- " SYSAQUA NEONVER SYSPURPLE
-                                      ")");
+                                      VERSION SYSPURPLE ")");
 # else
 #  ifdef APPLE
                     anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK OS-X "
                                       PROTOBASE SYSPURPLE " (" SYSRED
-                                      VERSION SYSWHITE
-                                      " -- " SYSAQUA NEONVER SYSPURPLE ")");
+                                      VERSION SYSPURPLE ")");
 #  else
                     anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK "
                                       PROTOBASE
                                       SYSPURPLE " (" SYSRED VERSION
-                                      SYSWHITE " -- " SYSAQUA NEONVER SYSPURPLE
-                                      ")");
+                                      SYSPURPLE ")");
 #  endif
 # endif
 #endif
