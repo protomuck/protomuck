@@ -159,15 +159,15 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
        while (readme > 0 && charCount < BUFFER_LEN)
        {
            if ((*mystring == '\0') || (((*mystring == '\n') ||
-               (*mystring == '\r') || (unsigned int) *mystring > 127 )))
+               (*mystring == '\r') )))
                break;
            gotmessage = 1;
 	   ++charCount;
-	   if (isprint(*mystring))
+	   if (isascii(*mystring))
                *bufpoint++=*mystring;
            readme = recv(oper1->data.sock->socknum,mystring,1,0);
        }
-       if(isprint(*mystring))
+       if(isascii(*mystring))
            oper1->data.sock->lastchar = *mystring;
     }
     CLEAR(oper1);
