@@ -1,0 +1,16 @@
+PuebloMUCK changes merged into TinyMUCKfb5.xpk to form Neon.
+---
+Support for the Pueblo multimedia protocol.
+
+* notify_html, notify_html_exclude, html_nocr, html_exclude_nocr
+* {html} and {ohtml}
+* PUEBLO ('$') flag.
+---
+Changes made to TinyMUCKfb5.xpk before merge.
+
+Added the ability to use MUF files as 'cgi' scripts on web server.
+* notify_descriptor (Mage-only primitive)
+
+Added the ability to use lsedit lists / propdirs to set up a homepage
+tree for each user.
+
