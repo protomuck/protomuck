@@ -1,5 +1,5 @@
 ==================================================================
-                     ProtoMUCK 1.7 MUF Manual
+                     ProtoMUCK 1.8 MUF Manual
 
 Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
@@ -15,6 +15,7 @@ PRIMS3 - Time, Data Conversion, Notifying (I/O)
 PRIMS4 - Connections, Locks, Strings
 PRIMS5 - Data Base, System, Sockets
 PRIMS6 - Arrays, Files, MCP Prims
+PRIMS7 - MUF editing prims, MySQL prims
 
 To view a list of prim topics: PRIMS LIST
 ~~~~~
@@ -37,8 +38,8 @@ Math and Logic Prims:
   SIN        COS       TAN        ASIN         ACOS   ATAN
   ATAN2      DIST3D    XYZ_TO_POLAR     POLAR_TO_XYZ  
   EXP        LOG       LOG10      FABS         POW    FRAND
-  FMOD       MODF      AND     OR     NOT
-  SRAND      GETSEED   SETSEED
+  FMOD       MODF      AND        OR           NOT    ABS
+  SRAND      GETSEED   SETSEED    SIGN
 
 See: PRIMS2
 ~~~~
@@ -58,7 +59,7 @@ Control Structures:
   BEGIN      UNTIL    REPEAT      WHILE     BREAK       CONTINUE
   COMPILED?  TREAD    FOREACH     FOR       PROPQUEUE   ENVPROPQUEUE         
   INSTANCES  MAGECALL WIZCALL     ARCHCALL  BOYCALL     GETPIDINFO
-  GETPIDS    TRY      CATCH       ENDCATCH  JMP
+  GETPIDS    TRY      CATCH       ENDCATCH  JMP         READ_WANTS_BLANKS
 
 Property Prims:
   ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
@@ -105,7 +106,7 @@ Connection Prims:
   DESCRHOST        DESCRIPNUM        DESCRPORT    DESCRCONPORT
   DESCRLEASTIDLE   DESCRMOSTIDLE     FIRSTDESCR   LASTDESCR
   DESCRUSER        GETDESCRINFO      DESCRBOOT    DESCR_SET
-  DESCR_FLAG?
+  DESCR_FLAG?      DESCRBUFSIZE
 
 Locks Management:
   SETLOCKSTR     GETLOCKSTR     LOCKED?     PARSELOCK
@@ -172,7 +173,7 @@ Array Prims:
   ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
   ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
   EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
-  ARRAY_CUT            ARRAY_COMPARE
+  ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
@@ -185,6 +186,16 @@ MCP Prims:
   GUI_DLOG_CLOSE  GUI_CTRL_CREATE      GUI_VALUES_SET     GUI_VALUES_GET
   GUI_VALUE_GET   GUI_CTRL_COMMAND
 
+~~~~~
+PRIMS7|PRIM7
+
+MUF Editing Prims:
+  KILL_MACRO          INSERT_MACRO      GET_MACROS_ARRAY 
+  PROGRAM_LINECOUNT   PROGRAM_GETLINES  PROGRAM_DELETELINES  
+  PROGRAM_INSERTLINES
+
+MySQL Prims:
+  SQLQUERY    SQLCONNECT    SQLCLOSE    SQLPING
 ~~~~~
 PRIMSLIST|PRIMS LIST|LIST PRIMS
 MATH PRIMS         - Prims that handle math.
@@ -206,6 +217,8 @@ SOCKET PRIMS       - Prims for working with ProtoMUCK socket control.
 FILE PRIMS         - Prims for managing files on the server level.
 ARRAY PRIMS        - Prims for working with MUF arrays.
 MCP PRIMS          - Prims for working with graphical MUF protocal.
+MUF EDIT PRIMS     - Prims for making MUF editors.
+SQL PRIMS          - Prims for working with MySQL databases. 
 
 See: TOPIC LIST for different discussions of topics.
 ~
@@ -246,7 +259,7 @@ INF        CEIL      FLOOR      SQRT         PI     ROUND
 SIN        COS       TAN        ASIN         ACOS   ATAN
 ATAN2      DIST3D    XYZ_TO_POLAR     POLAR_TO_XYZ  
 EXP        LOG       LOG10      FABS         POW    FRAND
-FMOD       MODF
+FMOD       MODF      ABS        SIGN
 SRAND      GETSEED   SETSEED
 See: FLOAT PRIMS
 ~~~~
@@ -366,7 +379,7 @@ TRIG       PROG     PARSEMPI    PARSEPROP             CANCALL?
 BEGIN      UNTIL    REPEAT      WHILE     BREAK       CONTINUE
 COMPILED?  TREAD    FOREACH     FOR       PROPQUEUE   ENVPROPQUEUE         
 INSTANCES  MAGECALL WIZCALL     ARCHCALL  BOYCALL     GETPIDINFO
-GETPIDS    TRY      CATCH       ENDCATCH  JMP
+GETPIDS    TRY      CATCH       ENDCATCH  JMP         READ_WANTS_BLANKS
 
 See: LOOPS, MULTITASKING
 ~~~~
@@ -414,7 +427,7 @@ For working with Descriptors:
   DESCRIDLE        DESCRTIME         DESCRHOST     DESCRIPNUM
   DESCRPORT        DESCRCONPORT      FIRSTDESCR    LASTDESCR
   DESCRLEASTIDLE   DESCRMOSTIDLE     DESCRUSER     GETDESCRINFO
-  DESCRBOOT        DESCR_SET         DESCR_FLAG?
+  DESCRBOOT        DESCR_SET         DESCR_FLAG?   DESCRBUFSIZE
 ~~~~~~
 LOCK PRIMS
 
@@ -928,11 +941,12 @@ HIDDEN                  (#)MOBILE
 
 Non-Settable Flags:
 EXIT                    (E)     FORTH PROGRAM           (F)
-TRUIDLE                         PLAYER                  (P)
+TRUEIDLE                        PLAYER                  (P)
 ROOM                    (R)     THING                   (T)
 UNLINKED                (U)     LISTENER                (N/A)
 COMMAND                 (N/A)   PUEBLO                  ($)
 HTML                    (&)     UNUSED/OLD              (@)
+INTERNAL                
 
 Permissions Bits:
 MEEPER                  (M)     MUCKER1                 (M1)
@@ -1482,7 +1496,7 @@ well as programs run via the MUF port. In both of these cases, the READ prim
 can be used in the same way it is used in in-MUCK programs. The running the
 program will be blocked, and the next input from the descriptor will be pushed
 onto the stack. 
-See: BACKGROUND, TREAD
+See: BACKGROUND, TREAD, READ_WANTS_BLANKS
 ~
 REMOVE_PROP
 
@@ -3128,6 +3142,7 @@ nextthing           ( d -- d )
 descrdbref          ( i -- d )
 watchpid            ( i -- )
 getobjinfo          ( d -- dict )
+descrbufsize        ( d -- i )
 
 See: M3, MUCKER LEVELS, individual prim entries for more details
 ~~~~~
@@ -4574,8 +4589,8 @@ on the stack while debugging, so it is important to keep track of which
 is which while working on a program. 
 
 When a program aborts or ends with any sockets still open, all open 
-sockets are closed, so there is not the problem of leaving open sockets
-like there was in NeonMUCK.
+sockets are closed. 
+NOTE: Socket prims are a compile time option and may not be present.
 SOCKOPEN is included strictly for backwards compatability, though now
 returns a non-blocking socket as well.
 
@@ -4840,6 +4855,9 @@ shortcut tokens given. See SHORTCUTS for a list of the files and
 directories that can be accessed. Note that when file prims are used
 in the secure mode, they will only work if the directories and location
 of the MUCK are in the default arrangement that the MUCK comes in.
+
+Note: File prims are a compile time option and may not actually be 
+      present.
 
 A list of the file prims:
 FWRITE, FREAD, FREADN, FREADTO, FAPPEND, FCR - For use with characters.
@@ -5546,7 +5564,7 @@ ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
 ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
 ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
 EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
-ARRAY_CUT            ARRAY_COMPARE
+ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED
 
 See: Individual entries for more information.
 ~~~~~~
@@ -5613,20 +5631,23 @@ dbref numbers.
 
 See: ARRAY PRIMS
 ~
-}DICT|}ARRAY
+}DICT|}ARRAY|}join
 ------------
 }dict ( { x1 x2 x3 ... xn -- dict )
 }array( { x1 x2 x3 ... xn -- array )
+}join ( { s1 s2 s3 ... xn -- s4 )
 --------------------------------------
 Level: M1 Apprentice
 {  = The opening stack marker.
 x1 ... xn = A range of items on the stack.
 dict = A dictionary array.
 array = A list array.
+s4 = A string of the concated values s1 through sn
 
-These are both in-server $defines for:
+These are all in-server $defines for:
 } array_make
 } array_make_dict
+} array_make "" array_join
 
 See: ARRAY PRIMS
 ~~~
@@ -8689,3 +8710,323 @@ has the STAFF @power set on them.
 
 Inserver define for:
 dup player? if dup "W" flag? swap "STAFF" power? or else pop 0 then
+~~~~
+ARRAY_SORT_INDEXED|
+
+array_sort_indexed ( a1 i ? -- a2 )
+-----------------------------------
+Level: M1 Apprentice
+a1 = A list array of arrays (a stack range of arrays turned into a single array )
+i  = Sort type. Can be a #define listed below.
+?  = An index key value.
+a2 = A list array of sorted arrays
+
+Given a list array of arrays, this will sort all of the contained arrays
+according to the contents of one of their index values as specified by the
+? parameter in the arguments.  The types of sorting available are:
+
+    SORTTYPE_CASE_ASCEND     Case sensitive and ascending order.
+    SORTTYPE_NOCASE_ASCEND   Case insensitive and ascending order.
+    SORTTYPE_CASE_DESCEND    Case sensitive and descending order.
+    SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
+    SORTTYPE_SHUFFLE         Randomize the order of the array elements.
+
+Once the sorting is done, the contents of a2 will be a sequence of arrays
+sorted according to the element value corresponding to the index indicated
+by the ? argument.
+~~~
+ABS
+
+abs ( i1 -- i1 )
+----------------
+Level: M1 Apprentice
+i1 = Any integer
+i1 = Absolute value of that integer
+
+Simply returns the absolute value of the integer. Note that in ProtoMUCK,
+this can be done with the FABS prim as well. 
+
+Ex. Both -1 and 1 would return 1.
+~~~~~~~~
+SIGN
+
+sign ( i1 -- i2 )
+-----------------
+Level: M1 Apprentice
+i1 = Any integer
+i2 = The sign of the integer.
+
+Just added this prim for compatibility reasons with FB6, but it seems to
+be the most pointless prim ever. 
+
+If i1 is negative, i2 will be -1.
+If i1 is zero, i2 will be 0.
+If i1 is positive, i2 will be 1.
+
+Letting you do:
+<number> sign -1 = if   ( branch if <number> is negative. 4 steps. )
+For the record, you could do the same thing in 2 steps anyway:
+<number> 0 < if
+
+In other words, don't use the prim. :P
+~~~~
+DESCRBUFSIZE
+
+descrbufsize ( i1 -- i2 )
+-------------------------
+Level: M3 Master
+i1 = A valid descr number.
+i2 = The space in bytes left.
+
+Returns the number of bytes left in that descriptor's output buffer
+before <Flushed> gets displayed and the buffer purged. 
+~~~~
+READ_WANTS_BLANKS
+
+read_wants_blanks ( -- )
+------------------------
+Level: M1 Apprentice
+
+When used, it will toggle whether or not blank entries from the user
+will be caught by the READ prim or not. Initally, READ will ignore
+blank strings sent by the user, but after this prim is used once, it
+will make it so that empty input from the user will be caught by 
+READ, causing a empty string to be pushed onto the stack.
+Note that if READ_WANTS_BLANKS is used a second time, it will turn
+off the behavior (i.e., it will toggle it each time it is used. ).
+Also, this behavior affects all 'read events', so TREAD, or 
+EVENT_WAITFOR can also be affected.
+
+See: READ, TREAD, EVENT_WAITFOR
+~~~~
+MUF EDIT PRIMS|MUF EDITING PRIMS|MUF EDIT|
+These prims are used for editing MUF and macros. Tools needed for
+writing custom MUF editors. They are a compile time option and
+may not be present.
+
+For macros: KILL_MACRO, INSERT_MACRO, GET_MACROS_ARRAY
+For code: PROGRAM_LINECOUNT, PROGRAM_GETLINES, PROGRAM_DELETELINES, 
+          PROGRAM_INSERTLINES
+~~~~~
+KILL_MACRO
+
+kill_macro ( s -- i )
+---------------------
+Level: W2 Wizard
+s = Name of the macro to delete.
+i = Indicator of success.
+
+Given the name of a macro in the macro table, deletes it. Returns
+1 if the macro was deleted, or 0 if the macro was not found.
+
+See: MUF EDITING PRIMS
+~~~~
+INSERT_MACRO
+
+insert_macro( s1 s2 -- i )
+--------------------------
+Level: W2 Wizard
+s1 = Name of the macro to add.
+s2 = Definition of the macro to add.
+i  = Indicator of success.
+
+Given the name of a macro, and its definition, inserts the macro
+into the macro table. Returns 1 if the macro was added or 0 if not.
+
+See: MUF EDITING PRIMS
+~~~~
+GET_MACROS_ARRAY
+
+get_macros_array ( -- dict )
+----------------------------
+Level: W1 Mage
+dict = Contains all the macros and their definitions.
+
+Returns a dictionary array where the key values are macro names,
+and the data values are the definitions of the corresponding macros.
+
+See: MUF EDITING PRIMS
+~~~~
+PROGRAM_LINECOUNT
+
+program_linecount ( d -- i )
+----------------------------
+Level: W2 Wizard
+d = dbref of a valid program object.
+i = The number of lines in that program.
+
+Returns the number of lines found in the program.
+Note that in order to do this, the MUCK must load the entire
+program into memory from the disk, so it is not recommended that
+this prim be used frequently as longer programs could pause 
+the MUCK while being loaded.
+
+See: MUF EDITING PRIMS
+~~~~
+PROGRAM_GETLINES
+
+program_getlines ( d i1 i2 -- arr )
+-----------------------------------
+Level: M1 to W2 Apprentice to Wizard
+d  = dbref of the program to get the lines from.
+i1 = Starting line to retrieve.
+i2 = Last line to retrieve.
+arr = List array containing the requested lines of code.
+
+Given a dbref, and a starting and end point, returns a list
+array containing those lines of code. 
+
+Under W2 permissions, it can retrieve lines from any program
+that is not set PROTECT.
+An owner of a program can always retrieve their own program's
+lines.
+Anyone can retrieve lines from any program set VIEWABLE, unless
+the program is set PROTECT.
+
+See: MUF EDITING PRIMS
+~~~
+PROGRAM_DELETELINES
+
+program_deletelines ( d i1 i2 -- i3 )
+-------------------------------------
+Level: W4 Boy
+d  = dbref of the program to delete the lines from.
+i1 = First line to delete.
+i2 = Last line to delete.
+i3 = Number of lines actually deleted.
+
+Given a program, a range of lines to delete, will delete
+those lines from the program. i3 contains the actual 
+number of lines deleted in case there were fewer lines
+in the program than in the range to be deleted.
+
+Note that this prim will error out if the program d is
+already being edited by someone. To avoid this error,
+check for the INTERNAL flag with the flag? prim. If a
+program is INTERNAL, then it is being edited by the 
+in-server MUF editor. 
+See: MUF EDITING PRIMS
+~~~
+PROGRAM_INSERTLINES
+
+program_insertlines( d i1 arr -- i2 )
+-------------------------------------
+Level: W4 Boy
+d  = dbref of the program to insert the lines into.
+i1 = Starting line to insert at.
+arr = List array containing the strings of code to insert.
+i2 = The line number that the last line of code was inserted at.
+
+Given a dbref d, a starting point of 1 or greater, and an array
+of strings of code, inserts them into the MUF code at that point
+if possible.  If the start number is higher than the actual number
+of lines in the program, it will insert the lines at the end of
+the code. It returns i2, the line number that the last line was
+inserted at. 
+
+Note that this prim will error out if the program d is
+already being edited by someone. To avoid this error,
+check for the INTERNAL flag with the flag? prim. If a
+program is INTERNAL, then it is being edited by the 
+in-server MUF editor. 
+See: MUF EDITING PRIMS
+~~~~
+SQL PRIMS|SQLPRIMS
+
+This is a set of prims for working with MySQL data bases.
+They are a compile time option and may not actually be
+available.
+
+SQLCONNECT, SQLQUERY, SQLPING, SQLCLOSE
+~~~~
+SQLCONNECT
+
+sqlconnect ( s1 s2 s3 s4 i1 -- (MYSQL) i2 )
+        or ( s1 s2 s3 s4 i1 -- s5 i2      )
+-------------------------------------------
+Level: W3 ArchWizard
+s1 = hostname to connect to.
+s2 = username to login as.
+s3 = password to use.
+s4 = database to use after connecting.
+i1 = Timeout in seconds to wait before giving up.
+i2 = Success or failure.
+s5 = Error message.
+
+This prim is used to establish a MYSQL connection.
+Note that the entire MUCK will be halted while waiting
+for the connection to be made, so it is recommended that
+the database be on the same machine or that the timeout
+be set to very low. 
+
+s1, s3, s4 can be blank, but s2 must have a user name.
+If hostname (s1) is blank, it is assumed to be localhost.
+
+If the connection is successful, a -0- is pushed onto the
+stack along with a (MYSQL) data structure. 
+If the connection was unsuccessful, an error number is pushed
+along with a string containing the error message. 
+
+See: SQL PRIMS
+~~~~~
+SQLQUERY
+
+sqlquery ( (MYSQL) s1 -- dict1 ... dictn n arr )
+      or ( (MYSQL) s1 -- s2 i )
+------------------------------------------------
+Level: W3 ArchMage
+(MYSQL) - A MySQL socket.
+s1 = The query to send to the data base. 
+dict1 ... dictn = Each row of the result is pushed on as a dict.
+arr = A list array of the field names in order.
+n = Number of rows returned.
+s2 = Error string.
+i = Error number.
+
+Used to make a query to a MySQL data base.
+The result is pushed onto the stack as a series of dictionaries,
+where the key values are the names of the fields, and the data
+values are the contents of the fields for that row. Next a number
+indicating the number of rows returned is pushed. 
+A list array is pushed onto the stack containing the names of the 
+fields in the order that they appear in the data base.
+
+The max number of results can be set by an @tune (defaults to 40),
+to keep it from trying to push rows up to the stack limit.
+
+If there is an error with the query, an error number and a string
+containing the error message are pushed onto the stack instead.
+Thus it is best to check the -second- argument returned for success
+for failure when using this prim.
+
+See: SQL PRIMS
+~~~~
+SQLPING
+
+sqlping ( (MYSQL) -- i )
+------------------------
+Level: W3 ArchWizard
+(MYSQL) = SQL data socket.
+i = open or closed connection.
+
+Checks the status of the MySQL connection. Pushes 1 onto
+the stack if it is open, and 0 if it is closed. Note that
+once a MySQL connection is found to be closed via 
+SQLPING, it is no longer usable for queries and a new
+connection must be made.
+
+See: SQL PRIMS
+~~~~
+SQLCLOSE
+
+sqlclose ( (MYSQL) -- ) 
+-----------------------
+Level: W3 ArchWizard
+(MYSQL) = SQL data socket.
+
+Closes a MySQL connection. Note that once a connection has
+been closed using SQLCLOSE, it is no longer usable with
+SQLQUERY and a new connection must be made.
+
+See: SQL PRIMS
+~~~~ 
