@@ -81,6 +81,17 @@ prim_socksend(PRIM_PROTOTYPE)
     outputbuf = bigbuffer;
     sprintf(bigbuffer, "%s\n",oper2->data.string->data);
 
+/* In order to keep the socket's sendqueue from overloading, we change
+ * it to blocking (fixes an old old bug). In nbsockrecv, we change 
+ * the socket to non-blocking to prevent hangups from certain programs
+ * (MS Telnet). 
+ */
+#ifdef WIN_VC
+    ioctl(oper1->data.sock->socknum, FIONBIO, 0);
+#else
+    fcntl(oper1->data.sock->socknum, F_SETFL, 0);
+#endif
+
     myresult = send(oper1->data.sock->socknum, outputbuf,
                     (int) strlen(outputbuf), (unsigned int) 0);
     if(tp_log_sockets)
@@ -105,6 +116,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     fd_set reads;
     struct timeval t_val;
     int charCount = 0;
+    int turnon = 1;
 
     CHECKOP(1);
     /* socket -- */
@@ -127,6 +139,16 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     loop = 0;
     sockval = oper1->data.sock->socknum;
     *mystring = '\0';
+
+/* In order to keep this from hanging on certain packets,
+ * we need to change the socket to non-blocking
+ */
+#ifdef WIN_VC
+    ioctl(sockval, FIONBIO, &turnon);
+#else
+    fcntl(sockval, F_SETFL, O_NONBLOCK);
+#endif
+
     FD_ZERO(&reads);                                                    
     FD_SET(oper1->data.sock->socknum, &reads);
 
@@ -154,8 +176,13 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
             log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program, 
                            unparse_object(player, player), sockval);
     *bufpoint = '\0';
-    if (readme < 1)
+/* If readme is 0, it got dropped. If it's less than -1, there was
+ * an error and it should be dropped anyway. 
+ * If it's -1, then it's just a empty non-blocking call.
+ */
+    if (readme < 1 && readme != -1)
         readme = 0;
+
     PushInt(readme);
     PushString(bigbuf);
     free((void *)mystring);
