@@ -211,6 +211,13 @@ ANSI Prims:
  ANSI_STRCUT            ANSI_STRIP             ANSI_STRLEN
  ANSI_UNPARSEOBJ        ARRAY_ANSI_NOTIFY      ESCAPE_ANSI
  PARSE_ANSI             UNPARSE_ANSI
+
+Webserver Prims:
+ BASE64ENCODE           BASE64DECODE
+
+Ignore Support Prims:
+ MAX_IGNORES            IGNORE			UNIGNORE
+ IGNORING?		IGNORE_ARRAY
     
 ~~~~~
 PRIMSLIST|PRIMS LIST|LIST PRIMS
@@ -9608,6 +9615,8 @@ ARRAY_INTERPRET|}CAT
 array_interpret ( a -- s )
 ---------------
 Level: M1 Apprentice
+a = array of nearly any datatypes
+s = concated string of converted datatypes
 
 This primitive takes the array given, converts all floats to strings with
 the least significant zeros truncated, converts all integers to strings, 
@@ -9626,9 +9635,104 @@ FTOSTRC
 ftostrc ( f -- s )
 -------
 Level: M1 Apprentice
+f = a floating point number
+s = a sane representation of the number as a string
 
 Takes the float on the stack, and converts it to a string representation of the
 float with all significant digits removed.   So 1.000000 becomes '1', and 
 0.666000 becomes "0.666".
 
 It should also in most cases round 5.9999999999... right up to "6" for you.
+~~~~
+TRUECONTROLS
+
+truecontrols ( d1 d2 -- i )
+------------
+Level: M1 Apprentice
+d1 = a player or players object
+d2 = any other object
+ i = binary true or false if d1 truly controls d2
+
+Returns true if player d1 would have control over d2 even if it were not set
+CONTROLS.
+~~~
+BASE64ENCODE|BASE64DECODE|BASE64
+
+BASE64ENCODE BASE64DECODE ( s1 -- s2 )
+-------------------------
+Level: M1 Apprentice
+s1 = string to be converted one way or the other
+s2 = string result from conversion
+
+Converts raw binary data to base 64 ASCII text, for storage in props or to
+be sent over a connection that is not 8 bit clean.
+
+Base64Encode converts binary to Base64 ASCII ...
+Base64Decode converts it back to binary
+~~~
+SQUELCH
+
+SQUELCH ( d1 d2 -- )
+-------
+Level: W3 Archwizard
+d1 = playing wanting to ignore someone
+d2 = player to be ignored
+
+Adds d2 to d1's ignore list.
+
+See: HELP IGNORE
+~~~
+UNSQUELCH
+
+unsquelch ( d1 d2 -- )
+---------
+Level: W3 Archwizard
+d1 = player wanting to remove the ignore
+d2 = player to be removed from ignore
+
+Removes d2 from d1's ignore list.
+
+See: HELP IGNORE
+~~~
+IGNORING?
+
+squelched? ( d1 d2 -- )
+----------
+Level: W3 Archwizard
+d1 = player to be tested
+d2 = player being checked
+
+Returns >0 (or TRUE) if d2 is on d1's ignore list, or 0 (false) if not.
+The returned value corresponds to its exact position in the string. 
+
+See: HELP IGNORE
+~~~
+IGNORE_ARRAY 
+
+squelch_array ( d -- a )
+-------------
+Level: W3 Archwizard
+d = player to get the ignore array from
+a = array of players on the list
+
+Returns an array of people being ignored by the player indicated by d.
+This array can be modified and written back by a W3 archwizard by using
+<player> "/@/ignore" <array> ARRAY_PUT_REFLIST
+
+See: HELP IGNORE
+~~~
+MAX_IGNORES
+
+max_ignores ( -- i )
+-----------
+Level: M1 Apprentice
+i = number of ignores compiled into the MUCK, or 0 if not compiled on
+
+Returns the maximum number of ignores that have been compiled in.
+Usually this is 16.  More or less may be added to the ignore list but only
+the first ones up to MAX_IGNORES will actually work.
+
+If MAX_IGNORES is 0, ignore support isnt compiled in, setting @/ignore will
+do nothing, and none of the ignore prims but this one will work.
+
+See: HELP IGNORE

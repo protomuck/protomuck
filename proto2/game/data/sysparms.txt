@@ -297,7 +297,16 @@ players.
 realms_control
 Makes it so that if a parent room is set WIZARD, the owner of that
 parent room becomes a like a 'wizard' for all objects within that
-parent room. 
+parent room.  NOTE: As of Proto 2.0b4, if the new tune wiz_realms
+is off, players are allowed to set B on their own environments to
+give it realms control.  Also see "CONTROLS" flag in help
+~~~
+wiz_realms
+Only means anything if realms_control is on.  If set on, this tune
+restricts realms control to wizards setting them on rooms. If set
+off, then any player can set BUILDER on their environment and get
+realms control.  This also applies to those who pass the chown lock
+if CONTROLS is also set on the environment room. 
 ~~~
 allow_listeners
 Allow listen properties to execute when something is notified to

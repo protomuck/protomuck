@@ -79,7 +79,7 @@ const char *infotext[] =
         "contributed ideas for the MUCK as we worked on it, and helped",
     SYSWHITE "us out along the way.",
     SYSCYAN "Feel free to check ProtoMUCK's webpage at the following address:",
-    SYSAQUA "http://protomuck.sourceforge.net/",
+    SYSAQUA "http://www.protomuck.org/",
     " ",
     SYSBLUE "The Pueblo multimedia protocol is (C)Chaco Communications.",
     SYSBLUE "http://www.chaco.com/pueblo for more information.",
