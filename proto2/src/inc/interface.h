@@ -13,6 +13,8 @@
 #  include <ssl/ssl.h>
 # elif defined (HAVE_SSL_H)
 #  include <ssl.h>
+# else
+#  error "USE_SSL defined but ssh.h not found. Make sure you used the --with-ssl configure option."
 # endif
 #endif
 
@@ -139,10 +141,12 @@ struct descriptor_data {
 #define DF_TRUEIDLE     0x10 /* Set if the descriptor goes past the @tune idletime. Also triggers the propqueues if connected. */
 #define DF_INTERACTIVE  0x20 /* If the player is in the MUF editor or the READ prim is used, etc. */
 #define DF_COLOR        0x40 /* Used in conjunction with ansi_notify_descriptor */
+#ifdef NEWHTTPD
 #define DF_HALFCLOSE    0x80 /* Used by the webserver to tell if a descr is halfclosed. hinoserm */
+#endif /* NEWHTTPD */
 #ifdef USE_SSL
 #define DF_SSL         0x100 /* Indicates that this connection is SSL - Alynna */
-#endif
+#endif /* USE_SSL */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
@@ -157,7 +161,9 @@ struct descriptor_data {
 #define DR_RAW_REM_FLAGS(x,y) ((x)->flags &= ~y)
 
 #define CT_MUCK		0
+#ifdef NEWHTTPD
 #define CT_HTTP         1 /* hinoserm */
+#endif
 #define CT_PUEBLO	2
 #define CT_MUF          3
 #define CT_OUTBOUND     4

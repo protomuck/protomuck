@@ -81,16 +81,7 @@ ssize_t socket_read(struct descriptor_data *d, char *buf, size_t count);
 ssize_t socket_write(struct descriptor_data *d, const char *buf, size_t count);
 #endif
 
-#ifdef USE_SSL
-# if defined (HAVE_OPENSSL_SSL_H)
-#  include <openssl/ssl.h>
-# elif defined (HAVE_SSL_SSL_H)
-#  include <ssl/ssl.h>
-# elif defined (HAVE_SSL_H)
-#  include <ssl.h>
-# endif
-#endif
-
+/* ssl.h is included in interface.h */
 
 #ifdef COMPRESS
 extern const char *uncompress(const char *);
@@ -197,26 +188,29 @@ check_password(dbref player, const char *check_pw)
 {
 /* Alynna's new toy to load DBs with FB6 passwords in them!
  */
-char md5buf[64];
+    char md5buf[64];
 
     if (player != NOTHING) {
         const char *password = DBFETCH(player)->sp.player.password;
 
         /*
-        Note. We wanted to detect here whether we were running
-        a FB6 DB (type 8) or a Proto DB (type 7), but it turns 
-        out the passwords have to stay encrypted (because you cant
-        decrypt an MD5 hash, and the DB will be saved as type 7,
-        thus breaking the detection.  Therefore we must ALWAYS
-        check if the password is an MD5 hash. 
-        */
+           Note. We wanted to detect here whether we were running
+           a FB6 DB (type 8) or a Proto DB (type 7), but it turns 
+           out the passwords have to stay encrypted (because you cant
+           decrypt an MD5 hash, and the DB will be saved as type 7,
+           thus breaking the detection.  Therefore we must ALWAYS
+           check if the password is an MD5 hash. 
+         */
 
-        if (password == NULL) return 1;
-        if (!strcmp(check_pw, password)) return 1;
+        if (password == NULL)
+            return 1;
+        if (!strcmp(check_pw, password))
+            return 1;
         MD5base64(md5buf, check_pw, strlen(check_pw));
-        if (!strcmp(md5buf, password)) return 1;
+        if (!strcmp(md5buf, password))
+            return 1;
     }
-    return 0; 
+    return 0;
 }
 
 int
@@ -224,22 +218,23 @@ set_password(dbref player, const char *set_pw)
 {
 /* Proto now sets passwords encrypted.
  */
-char md5buf[64];
+    char md5buf[64];
 
     if (player != NOTHING) {
-     if (set_pw == NULL) {
-        free((void *) DBFETCH(player)->sp.player.password);
-        DBSTORE(player, sp.player.password, alloc_string(""));
-        return 1;
-     }
-     if (!ok_password(set_pw)) return 0;
+        if (set_pw == NULL) {
+            free((void *) DBFETCH(player)->sp.player.password);
+            DBSTORE(player, sp.player.password, alloc_string(""));
+            return 1;
+        }
+        if (!ok_password(set_pw))
+            return 0;
 
-     MD5base64(md5buf, set_pw, strlen(set_pw));
-     free((void *) DBFETCH(player)->sp.player.password);
-     DBSTORE(player, sp.player.password, alloc_string(md5buf));
-     return 1;
+        MD5base64(md5buf, set_pw, strlen(set_pw));
+        free((void *) DBFETCH(player)->sp.player.password);
+        DBSTORE(player, sp.player.password, alloc_string(md5buf));
+        return 1;
     }
-    return 0; 
+    return 0;
 }
 
 
@@ -275,16 +270,13 @@ show_program_usage(char *prog)
             "       -insanity         load db, then enter interactive sanity editor.\n");
     fprintf(stderr,
             "       -sanfix           attempt to auto-fix a corrupt db after loading.\n");
-    fprintf(stderr, 
-            "       -wizonly          only allow wizards to login.\n");
+    fprintf(stderr, "       -wizonly          only allow wizards to login.\n");
     fprintf(stderr,
             "       -version          display this server's version.\n");
-    fprintf(stderr, 
-            "       -verboseload      show messages while loading.\n");
-    fprintf(stderr, 
+    fprintf(stderr, "       -verboseload      show messages while loading.\n");
+    fprintf(stderr,
             "       -godpw            dump #1's password or MD5 hash (you can log in with it)\n");
-    fprintf(stderr, 
-            "       -help             display this message.\n");
+    fprintf(stderr, "       -help             display this message.\n");
     exit(1);
 }
 
@@ -292,12 +284,14 @@ show_program_usage(char *prog)
 extern int sanity_violated;
 
 #ifdef USE_SSL
-int pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
+int
+pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 {
-        const char *pw = (const char*)userdata;
-        int pwlen = strlen(pw);
-        strncpy(buf, pw, size);
-        return ((pwlen > size)? size : pwlen);
+    const char *pw = (const char *) userdata;
+    int pwlen = strlen(pw);
+
+    strncpy(buf, pw, size);
+    return ((pwlen > size) ? size : pwlen);
 }
 #endif
 
@@ -531,7 +525,7 @@ main(int argc, char **argv)
 #ifdef USE_SSL
     if ((tp_sslport > 1) && (tp_sslport < 65536)) /* Alynna */
         ssl_listener_port = tp_sslport;
-        ssl_numsocks = 1;
+    ssl_numsocks = 1;
 #endif
 
     if (!numsocks)
@@ -586,7 +580,9 @@ main(int argc, char **argv)
         dump_database();
         tune_save_parmsfile();
 
-        if (dump_godpw) fprintf(stderr, "#1's password or MD5 hash: %s\n", DBFETCH(1)->sp.player.password);
+        if (dump_godpw)
+            fprintf(stderr, "#1's password or MD5 hash: %s\n",
+                    DBFETCH(1)->sp.player.password);
 
 #ifdef SPAWN_HOST_RESOLVER
         kill_resolver();
@@ -747,37 +743,37 @@ html_escape(const char *msg)
     tempstr = buff;
     while (*msg) {
         switch (*msg) {
-        case '&':{
-            *tempstr++ = '&';
-            *tempstr++ = 'a';
-            *tempstr++ = 'm';
-            *tempstr++ = 'p';
-            *tempstr++ = ';';
-            break;
-        }
-        case '\"':{
-            *tempstr++ = '&';
-            *tempstr++ = 'q';
-            *tempstr++ = 'u';
-            *tempstr++ = 'o';
-            *tempstr++ = 't';
-            *tempstr++ = ';';
-            break;
-        }
-        case '<':{
-            *tempstr++ = '&';
-            *tempstr++ = 'l';
-            *tempstr++ = 't';
-            *tempstr++ = ';';
-            break;
-        }
-        case '>':{
-            *tempstr++ = '&';
-            *tempstr++ = 'g';
-            *tempstr++ = 't';
-            *tempstr++ = ';';
-            break;
-        }
+            case '&':{
+                *tempstr++ = '&';
+                *tempstr++ = 'a';
+                *tempstr++ = 'm';
+                *tempstr++ = 'p';
+                *tempstr++ = ';';
+                break;
+            }
+            case '\"':{
+                *tempstr++ = '&';
+                *tempstr++ = 'q';
+                *tempstr++ = 'u';
+                *tempstr++ = 'o';
+                *tempstr++ = 't';
+                *tempstr++ = ';';
+                break;
+            }
+            case '<':{
+                *tempstr++ = '&';
+                *tempstr++ = 'l';
+                *tempstr++ = 't';
+                *tempstr++ = ';';
+                break;
+            }
+            case '>':{
+                *tempstr++ = '&';
+                *tempstr++ = 'g';
+                *tempstr++ = 't';
+                *tempstr++ = ';';
+                break;
+            }
 /*			case ' ': {
 				*tempstr++ = '&';
 				*tempstr++ = '#';
@@ -786,11 +782,11 @@ html_escape(const char *msg)
 				*tempstr++ = ';';
 				break;
 			} */
-        case '\n':{
-            break;
-        }
-        default:
-            *tempstr++ = *msg;
+            case '\n':{
+                break;
+            }
+            default:
+                *tempstr++ = *msg;
         }
         (void) msg++;
     }
@@ -1235,38 +1231,38 @@ int
 notify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
 #ifdef IGNORE_SUPPORT
-if (!ignorance(from,player))
+    if (!ignorance(from, player))
 #endif
-    return notify_listeners(dbref_first_descr(from), from, NOTHING, player,
-                            getloc(from), msg, isprivate);
+        return notify_listeners(dbref_first_descr(from), from, NOTHING, player,
+                                getloc(from), msg, isprivate);
 }
 
 int
 notify_html_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
 #ifdef IGNORE_SUPPORT
-if (!ignorance(from,player))
+    if (!ignorance(from, player))
 #endif
-    return notify_html_listeners(dbref_first_descr(from), from, NOTHING, player,
-                                 getloc(from), msg, isprivate);
+        return notify_html_listeners(dbref_first_descr(from), from, NOTHING,
+                                     player, getloc(from), msg, isprivate);
 }
 
 int
 notify_from(dbref from, dbref player, const char *msg)
 {
 #ifdef IGNORE_SUPPORT
-if (!ignorance(from,player))
+    if (!ignorance(from, player))
 #endif
-    return notify_from_echo(from, player, msg, 1);
+        return notify_from_echo(from, player, msg, 1);
 }
 
 int
 notify_html_from(dbref from, dbref player, const char *msg)
 {
 #ifdef IGNORE_SUPPORT
-if (!ignorance(from,player))
+    if (!ignorance(from, player))
 #endif
-    return notify_html_from_echo(from, player, msg, 1);
+        return notify_html_from_echo(from, player, msg, 1);
 }
 
 
@@ -1305,10 +1301,10 @@ int
 anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
 #ifdef IGNORE_SUPPORT
-if (!ignorance(from,player))
+    if (!ignorance(from, player))
 #endif
-    return ansi_notify_listeners(dbref_first_descr(from), from, NOTHING, player,
-                                 getloc(from), msg, isprivate);
+        return ansi_notify_listeners(dbref_first_descr(from), from, NOTHING,
+                                     player, getloc(from), msg, isprivate);
 }
 
 
@@ -1316,9 +1312,9 @@ int
 anotify_from(dbref from, dbref player, const char *msg)
 {
 #ifdef IGNORE_SUPPORT
-if (!ignorance(from,player))
+    if (!ignorance(from, player))
 #endif
-    return anotify_from_echo(from, player, msg, 1);
+        return anotify_from_echo(from, player, msg, 1);
 }
 
 
@@ -1450,15 +1446,15 @@ void
 goodbye_user(struct descriptor_data *d)
 {
 #ifdef USE_SSL
-if (d->ssl_session) {
-    SSL_write(d->ssl_session, "\r\n", 2);
-    SSL_write(d->ssl_session, tp_leave_message, strlen(tp_leave_message));
-    SSL_write(d->ssl_session, "\r\n\r\n", 4);
-} else {
-    writesocket(d->descriptor, "\r\n", 2);
-    writesocket(d->descriptor, tp_leave_message, strlen(tp_leave_message));
-    writesocket(d->descriptor, "\r\n\r\n", 4);
-}
+    if (d->ssl_session) {
+        SSL_write(d->ssl_session, "\r\n", 2);
+        SSL_write(d->ssl_session, tp_leave_message, strlen(tp_leave_message));
+        SSL_write(d->ssl_session, "\r\n\r\n", 4);
+    } else {
+        writesocket(d->descriptor, "\r\n", 2);
+        writesocket(d->descriptor, tp_leave_message, strlen(tp_leave_message));
+        writesocket(d->descriptor, "\r\n\r\n", 4);
+    }
 #else
     writesocket(d->descriptor, "\r\n", 2);
     writesocket(d->descriptor, tp_leave_message, strlen(tp_leave_message));
@@ -1470,15 +1466,15 @@ void
 idleboot_user(struct descriptor_data *d)
 {
 #ifdef USE_SSL
-if (d->ssl_session) {
-    SSL_write(d->ssl_session, "\r\n", 2);
-    SSL_write(d->ssl_session, tp_idleboot_msg, strlen(tp_idleboot_msg));
-    SSL_write(d->ssl_session, "\r\n\r\n", 4);
-} else {
-    writesocket(d->descriptor, "\r\n", 2);
-    writesocket(d->descriptor, tp_idleboot_msg, strlen(tp_idleboot_msg));
-    writesocket(d->descriptor, "\r\n\r\n", 4);
-}
+    if (d->ssl_session) {
+        SSL_write(d->ssl_session, "\r\n", 2);
+        SSL_write(d->ssl_session, tp_idleboot_msg, strlen(tp_idleboot_msg));
+        SSL_write(d->ssl_session, "\r\n\r\n", 4);
+    } else {
+        writesocket(d->descriptor, "\r\n", 2);
+        writesocket(d->descriptor, tp_idleboot_msg, strlen(tp_idleboot_msg));
+        writesocket(d->descriptor, "\r\n\r\n", 4);
+    }
 #else
     writesocket(d->descriptor, "\r\n", 2);
     writesocket(d->descriptor, tp_idleboot_msg, strlen(tp_idleboot_msg));
@@ -1515,43 +1511,48 @@ shovechars(void)
     struct timeval sel_in, sel_out;
     int openfiles_max;
     int i;
+
 #ifdef USE_SSL
     int ssl_status_ok = 1;
 #endif
 
 #ifdef USE_SSL
-        SSL_load_error_strings ();
-        OpenSSL_add_ssl_algorithms ();
-        ssl_ctx = SSL_CTX_new (SSLv23_server_method ());
+    SSL_load_error_strings();
+    OpenSSL_add_ssl_algorithms();
+    ssl_ctx = SSL_CTX_new(SSLv23_server_method());
 
-        if (!SSL_CTX_use_certificate_file (ssl_ctx, SSL_CERT_FILE, SSL_FILETYPE_PEM)) {
-                log_status("SSLX: Could not load certificate file %s\n", SSL_CERT_FILE);
-                ssl_status_ok = 0;
-        }
-        if (ssl_status_ok) {
-                SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
-                SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx, (void*)tp_ssl_keyfile_passwd);
+    if (!SSL_CTX_use_certificate_file(ssl_ctx, SSL_CERT_FILE, SSL_FILETYPE_PEM)) {
+        log_status("SSLX: Could not load certificate file %s\n", SSL_CERT_FILE);
+        ssl_status_ok = 0;
+    }
+    if (ssl_status_ok) {
+        SSL_CTX_set_default_passwd_cb(ssl_ctx, pem_passwd_cb);
+        SSL_CTX_set_default_passwd_cb_userdata(ssl_ctx,
+                                               (void *) tp_ssl_keyfile_passwd);
 
-                if (!SSL_CTX_use_PrivateKey_file (ssl_ctx, SSL_KEY_FILE, SSL_FILETYPE_PEM)) {
-                        log_status("SSLX: Could not load private key file %s\n", SSL_KEY_FILE);
-                        ssl_status_ok = 0;
-                }
+        if (!SSL_CTX_use_PrivateKey_file
+            (ssl_ctx, SSL_KEY_FILE, SSL_FILETYPE_PEM)) {
+            log_status("SSLX: Could not load private key file %s\n",
+                       SSL_KEY_FILE);
+            ssl_status_ok = 0;
         }
-        if (ssl_status_ok) {
-                if (!SSL_CTX_check_private_key (ssl_ctx)) {
-                        log_status("SSLX: Private key does not check out and appears to be invalid.\n");
-                        ssl_status_ok = 0;
-                }
+    }
+    if (ssl_status_ok) {
+        if (!SSL_CTX_check_private_key(ssl_ctx)) {
+            log_status
+                ("SSLX: Private key does not check out and appears to be invalid.\n");
+            ssl_status_ok = 0;
         }
+    }
 
-        if (ssl_status_ok) {
-                ssl_sock = make_socket(tp_sslport);
-                maxd = ssl_sock + 1;
-                log_status("SSLX: SSL initialized OK\n");    
-                ssl_numsocks = 1;
-        } else {
-                ssl_numsocks = 0;
-        }
+    if (ssl_status_ok) {
+        ssl_sock = make_socket(tp_sslport);
+        maxd = ssl_sock + 1;
+        log_status("SSLX: SSL initialized OK\n");
+        ssl_numsocks = 1;
+    } else {
+        ssl_numsocks = 0;
+    }
 #endif
 
 
@@ -1597,13 +1598,16 @@ shovechars(void)
                     || (d->type == CT_MUF
                         && !descr_running_queue(d->descriptor))
                     || (d->type == CT_INBOUND && d->booted == 1)) { /* hinoserm */
+#ifdef NEWHTTPD
                     if (!(d->flags & DF_HALFCLOSE)) { /* hinoserm */
+#endif /* NEWHTTPD */
                         process_output(d); /* send the queued notifies */
-                        if (d->booted == 2) { /* booted == 2 means QUIT command */
+                        if (d->booted == 2) /* booted == 2 means QUIT command */
                             goodbye_user(d);
-                        }
                         process_output(d); /* send QUIT related notifies */
+#ifdef NEWHTTPD
                     }           /* hinoserm */
+#endif /* NEWHTTPD */
                     d->booted = 0;
 #ifdef NEWHTTPD                 /* hinoserm */
                     if (d->type == CT_HTTP) { /* hinoserm */
@@ -1614,16 +1618,18 @@ shovechars(void)
                             dequeue_process(d->http.pid); /* hinoserm */
                         dequeue_prog_descr(d->descriptor, 2); /* hinoserm */
                     }           /* hinoserm */
-#endif  /* NEWHTTPD */               /* hinoserm */
                     if (!d->connected && d->type != CT_HTTP) /* quit from login screen (hinoserm changed) */
+#else /* !NEWHTTPD */
+                    if (!d->connected)
+#endif /* NEWHTTPD */
                         announce_disclogin(d);
-
+#ifdef NEWHTTPD
                     if (d->type == CT_HTTP && !(d->flags & DF_HALFCLOSE)) { /* hinoserm */
                         d->flags |= DF_HALFCLOSE; /* hinoserm */
                         shutdown(d->descriptor, 1); /* hinoserm */
-                    } else {    /* hinoserm */
-                        shutdownsock(d); /* hinoserm */
-                    }           /* hinoserm */
+                    } else
+#endif /* NEWHTTP */
+                        shutdownsock(d);
                 }               /* if d->booted != 3 */
             }                   /* if (d->booted) */
         }                       /* for (d) */
@@ -1645,7 +1651,8 @@ shovechars(void)
             }
         }
 #ifdef USE_SSL
-        if (ssl_numsocks > 0) FD_SET(ssl_sock, &input_set);
+        if (ssl_numsocks > 0)
+            FD_SET(ssl_sock, &input_set);
 #endif
 
         for (d = descriptor_list; d; d = d->next) {
@@ -1656,18 +1663,18 @@ shovechars(void)
             if (d->output.head) /* Prepare write pool */
                 FD_SET(d->descriptor, &output_set);
 #ifdef USE_SSL
-                        if (d->ssl_session) {
-                        /* SSL may want to write even if the output queue is empty */
-                                if ( ! SSL_is_init_finished(d->ssl_session) ) {
-                                        /* log_status("SSLX: Init not finished.\n", "version"); */
-                                        FD_CLR(d->descriptor, &output_set);
-                                        FD_SET(d->descriptor, &input_set);
-                                }
-                                if ( SSL_want_write(d->ssl_session) ) {
-                                        /* log_status("SSLX: Need write.\n", "version"); */
-                                        FD_SET(d->descriptor, &output_set);
-                                }
-                        }
+            if (d->ssl_session) {
+                /* SSL may want to write even if the output queue is empty */
+                if (!SSL_is_init_finished(d->ssl_session)) {
+                    /* log_status("SSLX: Init not finished.\n", "version"); */
+                    FD_CLR(d->descriptor, &output_set);
+                    FD_SET(d->descriptor, &input_set);
+                }
+                if (SSL_want_write(d->ssl_session)) {
+                    /* log_status("SSLX: Need write.\n", "version"); */
+                    FD_SET(d->descriptor, &output_set);
+                }
+            }
 #endif
         }
 
@@ -1733,7 +1740,7 @@ shovechars(void)
                         if (newd->descriptor >= maxd)
                             maxd = newd->descriptor + 1;
 #ifdef USE_SSL
-                            newd->ssl_session = NULL;
+                        newd->ssl_session = NULL;
 #endif
                     }
                 }               /* if FD_ISET... */
@@ -1745,34 +1752,33 @@ shovechars(void)
 #endif
 
 #ifdef USE_SSL
-                                if (FD_ISSET(ssl_sock, &input_set)) {
-                                        if (!(newd = new_connection(ssl_listener_port,ssl_sock))) {
+            if (FD_ISSET(ssl_sock, &input_set)) {
+                if (!(newd = new_connection(ssl_listener_port, ssl_sock))) {
 #ifndef WIN32
-                                                if (errno
-                                                        && errno != EINTR
-                                                        && errno != EMFILE
-                                                        && errno != ENFILE
-                                                        ) {
-                                                        perror("new_connection");
-                                                        /* return; */
-                                                }
+                    if (errno
+                        && errno != EINTR
+                        && errno != EMFILE && errno != ENFILE) {
+                        perror("new_connection");
+                        /* return; */
+                    }
 #else
-                                                if (WSAGetLastError() != WSAEINTR && WSAGetLastError() != EMFILE) {
-                                                        perror("new_connection");
-                                                        /* return; */
-                                                }
+                    if (WSAGetLastError() != WSAEINTR
+                        && WSAGetLastError() != EMFILE) {
+                        perror("new_connection");
+                        /* return; */
+                    }
 #endif
-                                        } else {
-                                                if (newd->descriptor >= maxd)
-                                                        maxd = newd->descriptor + 1;
-                                                newd->ssl_session = SSL_new (ssl_ctx);
-                                                SSL_set_fd(newd->ssl_session, newd->descriptor);
-                                                cnt = SSL_accept(newd->ssl_session);
-						newd->type = CT_SSL;
-						newd->flags += DF_SSL;
-                                                log_status("SSL accept: %i\n", cnt );
-                                        }
-                                }
+                } else {
+                    if (newd->descriptor >= maxd)
+                        maxd = newd->descriptor + 1;
+                    newd->ssl_session = SSL_new(ssl_ctx);
+                    SSL_set_fd(newd->ssl_session, newd->descriptor);
+                    cnt = SSL_accept(newd->ssl_session);
+                    newd->type = CT_SSL;
+                    newd->flags += DF_SSL;
+                    log_status("SSL accept: %i\n", cnt);
+                }
+            }
 #endif
 
 
@@ -1806,9 +1812,12 @@ shovechars(void)
                         if (DR_RAW_FLAGS(d, DF_IDLE))
                             DR_RAW_REM_FLAGS(d, DF_IDLE);
                     }           /* else */
-                } else if (d->flags & DF_HALFCLOSE) { /* hinoserm */
+                }
+#ifdef NEWHTTPD
+                else if (d->flags & DF_HALFCLOSE) { /* hinoserm */
                     d->booted = 1; /* hinoserm */
                 }               /* hinoserm */
+#endif /* NEWHTTPD */
                 if (FD_ISSET(d->descriptor, &output_set)) {
                     if (!process_output(d)) { /* send text */
                         d->booted = 1; /* connection lost */
@@ -1880,7 +1889,11 @@ shovechars(void)
                         announce_idle(d);
                     }
                     /* check connidle times for normal and pueblo login */
-                    if (!((d->type == CT_HTTP) || (d->type == CT_MUF))) {
+                    if (!(
+#ifdef NEWHTTPD
+                             d->type == CT_HTTP ||
+#endif /* NEWHTTPD */
+                             d->type == CT_MUF)) {
                         int curidle;
                         char buff[BUFFER_LEN];
 
@@ -2121,30 +2134,29 @@ int
 get_ctype(int port)
 {
     char buf[BUFFER_LEN];
-    int ctype = 0;
+    short ctype = 0;
 
     sprintf(buf, "@Ports/%d/Type", port);
     if (get_property((dbref) 0, buf)) {
         ctype = get_property_value((dbref) 0, buf);
         switch (ctype) {
-        case 0:
-            ctype = CT_MUCK;
-            break;
-        case 1:
-            ctype = CT_HTTP;
-            break;
-        case 2:
-            ctype = CT_MUCK;
-            break;
-        case 3:
-            ctype = CT_MUF;
-            break;
-        case 4:
-            ctype = CT_SSL;
-            break;
-        default:
-            ctype = CT_MUCK;
-            break;
+            case 0:
+                ctype = CT_MUCK;
+                break;
+#ifdef NEWHTTPD
+            case 1:
+                ctype = CT_HTTP;
+                break;
+#endif /* NEWHTTPD */
+            case 2:
+                ctype = CT_MUCK;
+                break;
+            case 3:
+                ctype = CT_MUF;
+                break;
+            default:
+                ctype = CT_MUCK;
+                break;
         }
     } else {
         if (port == tp_puebloport) {
@@ -2152,32 +2164,16 @@ get_ctype(int port)
 #ifdef NEWHTTPD
         } else if (port == tp_wwwport) { /* hinoserm */
             ctype = CT_HTTP;    /* hinoserm */
-#endif
+#endif /* NEWHTTPD */
 #ifdef USE_SSL
         } else if (port == tp_sslport) { /* alynna */
-            ctype = CT_SSL;   
-#endif
+            ctype = CT_SSL;
+#endif /* USE_SSL */
         } else
             ctype = CT_MUCK;
     }
 
-    switch (ctype) {            /* This switch seems useless to me. -hinoserm */
-    case CT_MUCK:
-        return CT_MUCK;
-#ifdef NEWHTTPD
-    case CT_HTTP:
-        return CT_HTTP;
-#endif
-#ifdef USE_SSL
-    case CT_SSL:
-        return CT_SSL;
-#endif
-    case CT_PUEBLO:
-        return CT_PUEBLO;
-    case CT_MUF:
-        return CT_MUF;
-    }
-    return CT_MUCK;
+    return ctype;
 }
 
 struct descriptor_data *
@@ -2207,31 +2203,45 @@ new_connection(int port, int sock)
             closesocket(newsock);
             return 0;
         }
+#ifdef NEWHTTPD
         if (ctype != CT_HTTP) { /* hinoserm */
+#endif /* NEWHTTPD */
             show_status("ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
                         hostname, ntohs(addr.sin_port),
                         host_as_hex(ntohl(addr.sin_addr.s_addr)),
                         ++crt_connect_count, port,
-                        ctype == CT_MUCK ? "TEXT" : 
-                         (ctype == CT_HTTP ? "WWW" : 
-                          (ctype == CT_PUEBLO ? "PUEBLO" :
-                           (ctype == CT_MUF ? "MUF" :
-                            (ctype == CT_SSL ? "SSL" :
-                             ("UNKNOWN")))))
+                        ctype == CT_MUCK ? "TEXT" :
+                        (ctype == CT_PUEBLO ? "PUEBLO" :
+                         (ctype == CT_MUF ? "MUF" :
+#ifdef USE_SSL
+                          (ctype == CT_SSL ? "SSL" :
+#endif /* USE_SSL */
+                           ("UNKNOWN")
+#ifdef USE_SSL
+                          )
+#endif /* USE_SSL */
+                         ))
                 );
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "ACPT: %2d %s(%d) %s C#%d P#%d %s\n",
                              newsock, hostname, ntohs(addr.sin_port),
                              host_as_hex(ntohl(addr.sin_addr.s_addr)),
                              ++crt_connect_count, port,
-                        ctype == CT_MUCK ? "TEXT" : 
-                         (ctype == CT_HTTP ? "WWW" : 
-                          (ctype == CT_PUEBLO ? "PUEBLO" :
-                           (ctype == CT_MUF ? "MUF" :
-                            (ctype == CT_SSL ? "SSL" :
-                             ("UNKNOWN")))))
+                             ctype == CT_MUCK ? "TEXT" :
+                             (ctype == CT_PUEBLO ? "PUEBLO" :
+                              (ctype == CT_MUF ? "MUF" :
+#ifdef USE_SSL
+                               (ctype == CT_SSL ? "SSL" :
+#endif /* USE_SSL */
+                                ("UNKNOWN")
+#ifdef USE_SSL
+                               )
+#endif /* USE_SSL */
+                              ))
                     );
+#ifdef NEWHTTPD
         }
+#endif /* NEWHTTPD */
         result = get_property_value((dbref) 0, "~sys/concount");
         result++;
         add_property((dbref) 0, "~sys/concount", NULL, result);
@@ -2445,7 +2455,9 @@ clearstrings(struct descriptor_data *d)
 void
 shutdownsock(struct descriptor_data *d)
 {
+#ifdef NEWHTTPD
     if (d->type != CT_HTTP) {   /* hinoserm */
+#endif /* NEWHTTPD */
         if (d->connected) {
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG,
@@ -2469,7 +2481,9 @@ shutdownsock(struct descriptor_data *d)
                              d->descriptor, d->hostname, d->username,
                              host_as_hex(d->hostaddr), d->commands, d->cport);
         }
+#ifdef NEWHTTPD
     }
+#endif /* NEWHTTPD */
     bytesIn += d->input_len;
     bytesOut += d->output_len;
     commandTotal += d->commands;
@@ -2601,7 +2615,11 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     if (remember_descriptor(d) < 0)
         d->booted = 1;          /* Drop the connection ASAP */
 
-    if (welcome && ctype != CT_HTTP) { /* hinoserm */
+    if (welcome
+#ifdef NEWHTTPD
+        && ctype != CT_HTTP
+#endif /* NEWHTTPD */
+        ) {
         announce_login(d);
         welcome_user(d);
     }
@@ -2733,10 +2751,10 @@ process_output(struct descriptor_data *d)
         log_status("process_output: bad descriptor or connect struct!\n"); /* hinoserm */
         return 0;               /* hinoserm */
     }
-
+#ifdef NEWHTTPD
     if (d->flags & DF_HALFCLOSE) /* hinoserm */
         return 1;               /* hinoserm */
-
+#endif /* NEWHTTPD */
 
     if (d->output.lines == 0) {
         return 1;
@@ -2744,10 +2762,10 @@ process_output(struct descriptor_data *d)
 
     for (qp = &d->output.head; (cur = *qp);) {
 #ifdef USE_SSL
-        if (d->ssl_session) 
-         cnt = SSL_write(d->ssl_session, cur->start, cur->nchars);
+        if (d->ssl_session)
+            cnt = SSL_write(d->ssl_session, cur->start, cur->nchars);
         else
-         cnt = writesocket(d->descriptor, cur->start, cur->nchars);
+            cnt = writesocket(d->descriptor, cur->start, cur->nchars);
 #else
         cnt = writesocket(d->descriptor, cur->start, cur->nchars);
 #endif
@@ -2894,24 +2912,24 @@ process_input(struct descriptor_data *d)
     if (d->type == CT_INBOUND)
         return -1;
 #ifdef USE_SSL
-    if (d->ssl_session) 
-     got = SSL_read(d->ssl_session, buf, sizeof buf);
+    if (d->ssl_session)
+        got = SSL_read(d->ssl_session, buf, sizeof buf);
     else
-     got = readsocket(d->descriptor, buf, sizeof buf);
+        got = readsocket(d->descriptor, buf, sizeof buf);
 #else
     got = readsocket(d->descriptor, buf, sizeof buf);
 #endif
 #ifndef WIN32
 # ifdef USE_SSL
-        if ( (got <= 0) && errno != EWOULDBLOCK )
+    if ((got <= 0) && errno != EWOULDBLOCK)
 # else
-        if (got <= 0)
+    if (got <= 0)
 # endif
 #else
 # ifdef USE_SSL
-        if ( (got <= 0) && WSAGetLastError() != EWOULDBLOCK )
+    if ((got <= 0) && WSAGetLastError() != EWOULDBLOCK)
 # else
-        if (got <= 0)
+    if (got <= 0)
 # endif
 #endif
     {
@@ -2948,24 +2966,25 @@ process_input(struct descriptor_data *d)
         if (*q == '\n') {
             *p = '\0';
             if (p > d->raw_input) {
+#ifdef NEWHTTPD
                 if (d->type == CT_HTTP) { /* hinoserm */
                     /* There's a reason why I don't do this with  *//* hinoserm */
                     /* the pre-existing queuing stuff. If I did,  *//* hinoserm */
                     /* the content data stuff wouldn't work. This *//* hinoserm */
                     /* might change if it becomes a problem.      *//* hinoserm */
-#ifdef NEWHTTPD
                     http_process_input(d, d->raw_input); /* hinoserm */
+                } else
 #endif /* NEWHTTPD */
-                } else if (save_command(d, d->raw_input) != -1) { /* hinoserm */
+                if (save_command(d, d->raw_input) != -1)
                     d->last_time = time(NULL);
-                }               /* hinoserm */
             } else {
                 /* BARE NEWLINE! */
-                if (d->type == CT_HTTP) { /* hinoserm */
 #ifdef NEWHTTPD
+                if (d->type == CT_HTTP) { /* hinoserm */
                     http_process_input(d, ""); /* hinoserm */
+                } else
 #endif /* NEWHTTPD */
-                } else if (p == d->raw_input) {
+                if (p == d->raw_input) {
                     /* Blank lines get sent on to be caught by MUF */
                     save_command(d, d->raw_input);
                 }
@@ -2973,56 +2992,56 @@ process_input(struct descriptor_data *d)
             p = d->raw_input;
         } else if (d->inIAC == 1) {
             switch (*q) {
-            case '\361':       /* NOP */
-                d->inIAC = 0;
-                break;
-            case '\363':       /* Break */
-            case '\364':       /* Interrupt Processes */
-                save_command(d, BREAK_COMMAND);
-                d->inIAC = 0;
-                break;
-            case '\365':       /* Abort output */
-                d->inIAC = 0;
-                break;
-            case '\366':{      /* AYT */
-                char sendbuf[] = "[Yes]\r\n";
+                case '\361':   /* NOP */
+                    d->inIAC = 0;
+                    break;
+                case '\363':   /* Break */
+                case '\364':   /* Interrupt Processes */
+                    save_command(d, BREAK_COMMAND);
+                    d->inIAC = 0;
+                    break;
+                case '\365':   /* Abort output */
+                    d->inIAC = 0;
+                    break;
+                case '\366':{  /* AYT */
+                    char sendbuf[] = "[Yes]\r\n";
 
-                writesocket(d->descriptor, sendbuf, strlen(sendbuf));
-                d->inIAC = 0;
-                break;
-            }
-            case '\367':       /* Erase character */
-                if (p > d->raw_input)
-                    --p;
-                d->inIAC = 0;
-                break;
-            case '\370':       /* Erase line */
-                p = d->raw_input;
-                d->inIAC = 0;
-                break;
-            case '\372':       /* Go ahead. Treat as NOP */
-                d->inIAC = 0;
-                break;
-            case '\373':       /* Will option offer */
-                d->inIAC = 2;
-                break;
-            case '\374':       /* won't option */
-                d->inIAC = 4;
-                break;
-            case '\375':       /* DO option request */
-            case '\376':       /* DONT option request */
-                d->inIAC = 3;
-                break;
-            case '\377':       /* IAC a second time */
+                    writesocket(d->descriptor, sendbuf, strlen(sendbuf));
+                    d->inIAC = 0;
+                    break;
+                }
+                case '\367':   /* Erase character */
+                    if (p > d->raw_input)
+                        --p;
+                    d->inIAC = 0;
+                    break;
+                case '\370':   /* Erase line */
+                    p = d->raw_input;
+                    d->inIAC = 0;
+                    break;
+                case '\372':   /* Go ahead. Treat as NOP */
+                    d->inIAC = 0;
+                    break;
+                case '\373':   /* Will option offer */
+                    d->inIAC = 2;
+                    break;
+                case '\374':   /* won't option */
+                    d->inIAC = 4;
+                    break;
+                case '\375':   /* DO option request */
+                case '\376':   /* DONT option request */
+                    d->inIAC = 3;
+                    break;
+                case '\377':   /* IAC a second time */
 #if 0
-                /* for future 8 bit clean code, perhaps */
-                *p++ = *q;
+                    /* for future 8 bit clean code, perhaps */
+                    *p++ = *q;
 #endif
-                d->inIAC = 0;
-                break;
-            default:
-                d->inIAC = 0;
-                break;
+                    d->inIAC = 0;
+                    break;
+                default:
+                    d->inIAC = 0;
+                    break;
             }
         } else if (d->inIAC == 2) {
             /* send back DONT option in all cases */
@@ -3052,7 +3071,7 @@ process_input(struct descriptor_data *d)
             d->inIAC = 1;
         } else if (p < pend) {
             if ((*q == '\t')
-                       && (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
+                && (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = ' ';
             } else if ((*q == 8 || *q == 127)
                        && (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
@@ -3137,7 +3156,7 @@ process_commands(void)
                         && strncmp(t->start, SUFFIX_COMMAND,
                                    sizeof(SUFFIX_COMMAND) - 1)
 #ifdef MCP_SUPPORT
-                        && strncmp(t->start, "#$#", 3) /* MCP mesg. */ 
+                        && strncmp(t->start, "#$#", 3) /* MCP mesg. */
 #endif
                         ) {
                         read_event_notify(d->descriptor, d->player);
@@ -3194,8 +3213,10 @@ do_command(struct descriptor_data *d, char *command)
     struct frame *tmpfr;
     char cmdbuf[BUFFER_LEN];
 
+#ifdef NEWHTTPD
     if (d->type == CT_HTTP)     /* hinoserm */
         return 1;               /* hinoserm */
+#endif /* NEWHTTPD */
 
     if (d->connected)
         ts_lastuseobject(d->player);
@@ -3578,12 +3599,12 @@ close_sockets(const char *msg)
     for (d = descriptor_list; d; d = dnext) {
         dnext = d->next;
 #ifdef USE_SSL
-    if (d->ssl_session)
-     SSL_write(d->ssl_session, msg, strlen(msg));
-    else
-     writesocket(d->descriptor, msg, strlen(msg));
+        if (d->ssl_session)
+            SSL_write(d->ssl_session, msg, strlen(msg));
+        else
+            writesocket(d->descriptor, msg, strlen(msg));
 #else
-     writesocket(d->descriptor, msg, strlen(msg));
+        writesocket(d->descriptor, msg, strlen(msg));
 #endif
         announce_disconnect(d);
         clearstrings(d);                 /** added to clean up **/
@@ -3592,12 +3613,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                         /****/
+        if (d->next)                                                                         /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                     /****/
+        if (d->hostname)                                                                     /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                     /****/
+        if (d->username)                                                                     /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
@@ -3611,7 +3632,7 @@ close_sockets(const char *msg)
         closesocket(sock[i]);
     }
 #ifdef USE_SSL
-                close(ssl_sock);
+    close(ssl_sock);
 #endif
 
 }
@@ -3637,8 +3658,10 @@ descr_flag_description(int descr)
     struct descriptor_data *d = descrdata_by_descr(descr);
 
     strcpy(dbuf, SYSGREEN "Descr Flags:" SYSYELLOW);
+#ifdef NEWHTTPD
     if (DR_RAW_FLAGS(d, DF_HTML))
         strcat(dbuf, " DF_HTML");
+#endif /* NEWHTTPD */
     if (DR_RAW_FLAGS(d, DF_PUEBLO))
         strcat(dbuf, " DF_PUEBLO");
     if (DR_RAW_FLAGS(d, DF_MUF))
@@ -3651,8 +3674,10 @@ descr_flag_description(int descr)
         strcat(dbuf, " DF_INTERACTIVE");
     if (DR_RAW_FLAGS(d, DF_COLOR))
         strcat(dbuf, " DF_COLOR");
+#ifdef USE_SSL
     if (DR_RAW_FLAGS(d, DF_SSL))
         strcat(dbuf, " DF_SSL");
+#endif /* USE_SSL */
     return dbuf;
 }
 
@@ -3684,20 +3709,24 @@ do_dinfo(dbref player, const char *arg)
     }
 
     switch (d->type) {
-    case CT_MUCK:
-        ctype = "muck";
-        break;
-    case CT_HTTP:
-        ctype = "http";
-        break;
-    case CT_PUEBLO:
-        ctype = "pueblo";
-        break;
-    case CT_SSL:
-        ctype = "ssl";
-        break;
-    default:
-        ctype = "unknown";
+        case CT_MUCK:
+            ctype = "muck";
+            break;
+#ifdef NEWHTTPD
+        case CT_HTTP:
+            ctype = "http";
+            break;
+#endif /* NEWHTTPD */
+        case CT_PUEBLO:
+            ctype = "pueblo";
+            break;
+#ifdef USE_SSL
+        case CT_SSL:
+            ctype = "ssl";
+            break;
+#endif /* USE_SSL */
+        default:
+            ctype = "unknown";
     }
 
     anotify_fmt(player, "%s" SYSAQUA " descr " SYSYELLOW "%d" SYSBLUE " (%s)",
@@ -3753,31 +3782,31 @@ do_dwall(dbref player, const char *name, const char *msg)
     }
 
     switch (msg[0]) {
-    case ':':
-    case ';':
-        sprintf(buf, MARK "%s %s\r\n", NAME(player), msg + 1);
-        break;
-    case '@':
-        sprintf(buf, MARK "%s\r\n", msg + 1);
-        break;
-    case '#':
-        notify(player, "DWall Help");
-        notify(player, "~~~~~~~");
-        notify(player, "dwall player=msg -- tell player 'msg'");
-        notify(player, "dwall 14=message -- tell ds 14 'message'");
-        notify(player, "dwall 14=:poses  -- pose 'poses' to ds 14");
-        notify(player, "dwall 14=@boo    -- spoof 'boo' to ds 14");
-        notify(player, "dwall 14=!boo    -- same as @ with no 'mark'");
-        notify(player, "dwall 14=#       -- this help list");
-        notify(player,
-               "Use WHO or WHO! to find ds numbers for players online.");
-        return;
-    case '!':
-        sprintf(buf, "%s\r\n", msg + 1);
-        break;
-    default:
-        sprintf(buf, MARK "%s tells you, \"%s\"\r\n", NAME(player), msg);
-        break;
+        case ':':
+        case ';':
+            sprintf(buf, MARK "%s %s\r\n", NAME(player), msg + 1);
+            break;
+        case '@':
+            sprintf(buf, MARK "%s\r\n", msg + 1);
+            break;
+        case '#':
+            notify(player, "DWall Help");
+            notify(player, "~~~~~~~");
+            notify(player, "dwall player=msg -- tell player 'msg'");
+            notify(player, "dwall 14=message -- tell ds 14 'message'");
+            notify(player, "dwall 14=:poses  -- pose 'poses' to ds 14");
+            notify(player, "dwall 14=@boo    -- spoof 'boo' to ds 14");
+            notify(player, "dwall 14=!boo    -- same as @ with no 'mark'");
+            notify(player, "dwall 14=#       -- this help list");
+            notify(player,
+                   "Use WHO or WHO! to find ds numbers for players online.");
+            return;
+        case '!':
+            sprintf(buf, "%s\r\n", msg + 1);
+            break;
+        default:
+            sprintf(buf, MARK "%s tells you, \"%s\"\r\n", NAME(player), msg);
+            break;
     }
 
     queue_ansi(d, buf);
@@ -3933,85 +3962,86 @@ dump_users(struct descriptor_data *d, char *user)
     }
     sprintf(plyrbuf, "%-*s", namelimit + 6, "Player Name");
     switch (wizwho) {
-    case 0:{
-        if (tp_who_doing) {
-            sprintf(buf,
-                    "%s%s%sOn For %sIdle  %s%-.43s\r\n",
-                    SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW, SYSCYAN, dobuf);
-        } else {
-            sprintf(buf, "%s%s%sOn For %sIdle\r\n",
-                    SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW);
+        case 0:{
+            if (tp_who_doing) {
+                sprintf(buf,
+                        "%s%s%sOn For %sIdle  %s%-.43s\r\n",
+                        SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW, SYSCYAN,
+                        dobuf);
+            } else {
+                sprintf(buf, "%s%s%sOn For %sIdle\r\n",
+                        SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW);
+            }
+            break;
         }
-        break;
-    }
-    case 1:{
-        sprintf(buf,
-                "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
-                SYSRED, SYSGREEN, plyrbuf, SYSCYAN, SYSPURPLE,
-                SYSYELLOW, SYSBLUE);
-        break;
-    }
-    case 2:{
-        sprintf(buf,
-                "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
-                SYSRED, SYSGREEN, plyrbuf, SYSWHITE,
-                SYSYELLOW, SYSCYAN, SYSBLUE);
-        break;
-    }
+        case 1:{
+            sprintf(buf,
+                    "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
+                    SYSRED, SYSGREEN, plyrbuf, SYSCYAN, SYSPURPLE,
+                    SYSYELLOW, SYSBLUE);
+            break;
+        }
+        case 2:{
+            sprintf(buf,
+                    "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
+                    SYSRED, SYSGREEN, plyrbuf, SYSWHITE,
+                    SYSYELLOW, SYSCYAN, SYSBLUE);
+            break;
+        }
     }
     queue_unhtml(d, buf);
     for (dlist = descriptor_list; dlist; dlist = dlist->next) {
         strcpy(plyrbuf, "");
         strcpy(typbuf, "");
         switch (dlist->type) {
-        case CT_MUCK:{
-            if (dlist->connected && OkObj(dlist->player)) {
-                strcpy(plyrbuf, NAME(dlist->player));
-            } else {
-                strcpy(plyrbuf, "[Connecting]");
+            case CT_MUCK:{
+                if (dlist->connected && OkObj(dlist->player)) {
+                    strcpy(plyrbuf, NAME(dlist->player));
+                } else {
+                    strcpy(plyrbuf, "[Connecting]");
+                }
+                strcpy(typbuf, "Text Port");
+                break;
             }
-            strcpy(typbuf, "Text Port");
-            break;
-        }
 #ifdef USE_SSL
-        case CT_SSL:{
-            if (dlist->connected && OkObj(dlist->player)) {
-                strcpy(plyrbuf, NAME(dlist->player));
-            } else {
-                strcpy(plyrbuf, "[Connecting]");
+            case CT_SSL:{
+                if (dlist->connected && OkObj(dlist->player)) {
+                    strcpy(plyrbuf, NAME(dlist->player));
+                } else {
+                    strcpy(plyrbuf, "[Connecting]");
+                }
+                strcpy(typbuf, "SSL Port");
+                break;
             }
-            strcpy(typbuf, "SSL Port");
-            break;
-        }
 #endif
-        case CT_PUEBLO:{
-            if (dlist->connected && OkObj(dlist->player)) {
-                strcpy(plyrbuf, NAME(dlist->player));
-            } else {
-                strcpy(plyrbuf, "[Connecting]");
+            case CT_PUEBLO:{
+                if (dlist->connected && OkObj(dlist->player)) {
+                    strcpy(plyrbuf, NAME(dlist->player));
+                } else {
+                    strcpy(plyrbuf, "[Connecting]");
+                }
+                strcpy(typbuf, "Pueblo Port");
+                break;
             }
-            strcpy(typbuf, "Pueblo Port");
-            break;
-        }
-        case CT_MUF:{
-            strcpy(plyrbuf, "[MUF]");
-            strcpy(typbuf, "MUF Port");
-            break;
-        }
-        case CT_INBOUND:{
-            strcpy(plyrbuf, "[Inbound]");
-            strcpy(typbuf, "MUF Inbound");
-            break;
-        }
-        case CT_OUTBOUND:{
-            strcpy(plyrbuf, "[Outbound]");
-            strcpy(typbuf, "MUF Outbound");
-            break;
-        }
-        default:{
-            strcpy(plyrbuf, "[Unknown]");
-            strcpy(typbuf, "Unknown Port Type");
-        }
+            case CT_MUF:{
+                strcpy(plyrbuf, "[MUF]");
+                strcpy(typbuf, "MUF Port");
+                break;
+            }
+            case CT_INBOUND:{
+                strcpy(plyrbuf, "[Inbound]");
+                strcpy(typbuf, "MUF Inbound");
+                break;
+            }
+            case CT_OUTBOUND:{
+                strcpy(plyrbuf, "[Outbound]");
+                strcpy(typbuf, "MUF Outbound");
+                break;
+            }
+            default:{
+                strcpy(plyrbuf, "[Unknown]");
+                strcpy(typbuf, "Unknown Port Type");
+            }
         }
         if ((!wizwho) && !((dlist->connected && OkObj(dlist->player)) ?
                            !((FLAGS(dlist->player) & DARK) ||
@@ -4046,67 +4076,71 @@ dump_users(struct descriptor_data *d, char *user)
             strcpy(buf, "");
             sprintf(plyrbuf, "%-*s", namelimit + (wizwho ? 5 : 1), plyrbuf);
             switch (wizwho) {
-            case 0:{
-                if (tp_who_doing) {
-                    sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
-                            SYSGREEN, plyrbuf, SYSPURPLE,
-                            time_format_1(now - dlist->connected_at),
-                            (1 ?
-                             ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ") :
-                             " "), SYSYELLOW,
-                            time_format_2(now - dlist->last_time),
-                            ((dlist->connected
-                              && OkObj(dlist->
-                                       player)) ? ((FLAGS(dlist->
-                                                          player) & INTERACTIVE)
-                                                   ? "*" : " ") : " "),
-                            SYSCYAN, GETDOING(dlist->player) ?
+                case 0:{
+                    if (tp_who_doing) {
+                        sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
+                                SYSGREEN, plyrbuf, SYSPURPLE,
+                                time_format_1(now - dlist->connected_at),
+                                (1 ?
+                                 ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ") :
+                                 " "), SYSYELLOW,
+                                time_format_2(now - dlist->last_time),
+                                ((dlist->connected
+                                  && OkObj(dlist->
+                                           player)) ? ((FLAGS(dlist->
+                                                              player) &
+                                                        INTERACTIVE)
+                                                       ? "*" : " ") : " "),
+                                SYSCYAN, GETDOING(dlist->player) ?
 #ifdef COMPRESS
-                            uncompress(GETDOING(dlist->player))
+                                uncompress(GETDOING(dlist->player))
 #else
-                            GETDOING(dlist->player)
+                                GETDOING(dlist->player)
 #endif
-                            : "");
-                } else {
-                    sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
-                            SYSGREEN, plyrbuf, SYSPURPLE,
+                                : "");
+                    } else {
+                        sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
+                                SYSGREEN, plyrbuf, SYSPURPLE,
+                                time_format_1(now - dlist->connected_at),
+                                (1
+                                 ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ")
+                                 : " "), SYSYELLOW,
+                                time_format_2(now - dlist->last_time),
+                                ((dlist->connected
+                                  && OkObj(dlist->
+                                           player)) ? ((FLAGS(dlist->
+                                                              player) &
+                                                        INTERACTIVE)
+                                                       ? "*" : " ") : " "));
+                    }
+                    break;
+                }
+                case 1:{
+                    sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
+                            SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
+                            SYSCYAN, dlist->cport, SYSPURPLE,
                             time_format_1(now - dlist->connected_at),
-                            (1 ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ")
+                            (1
+                             ? ((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ")
                              : " "), SYSYELLOW,
                             time_format_2(now - dlist->last_time),
                             ((dlist->connected
                               && OkObj(dlist->
                                        player)) ? ((FLAGS(dlist->
                                                           player) & INTERACTIVE)
-                                                   ? "*" : " ") : " "));
+                                                   ? "*" : " ") : " "), SYSBLUE,
+                            ArchPerms ? dlist->username : "",
+                            ArchPerms ? "@" : "", dlist->hostname);
+                    break;
                 }
-                break;
-            }
-            case 1:{
-                sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
-                        SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
-                        SYSCYAN, dlist->cport, SYSPURPLE,
-                        time_format_1(now - dlist->connected_at),
-                        (1 ? ((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ")
-                         : " "), SYSYELLOW,
-                        time_format_2(now - dlist->last_time),
-                        ((dlist->connected
-                          && OkObj(dlist->
-                                   player)) ? ((FLAGS(dlist->
-                                                      player) & INTERACTIVE)
-                                               ? "*" : " ") : " "), SYSBLUE,
-                        ArchPerms ? dlist->username : "",
-                        ArchPerms ? "@" : "", dlist->hostname);
-                break;
-            }
-            case 2:{
-                sprintf(buf, "%s%-3d %s%s %s[%7d] %s[%7d] %s[%7d] %s%s\r\n",
-                        SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
-                        SYSWHITE, dlist->output_len / 1024, SYSYELLOW,
-                        dlist->input_len / 1024, SYSCYAN, dlist->commands,
-                        SYSBLUE, typbuf);
-                break;
-            }
+                case 2:{
+                    sprintf(buf, "%s%-3d %s%s %s[%7d] %s[%7d] %s[%7d] %s%s\r\n",
+                            SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
+                            SYSWHITE, dlist->output_len / 1024, SYSYELLOW,
+                            dlist->input_len / 1024, SYSCYAN, dlist->commands,
+                            SYSBLUE, typbuf);
+                    break;
+                }
             }
             players++;
             queue_unhtml(d, buf);
@@ -5041,16 +5075,16 @@ int
 pdescrsecure(int c)
 {
 #ifdef USE_SSL
-        struct descriptor_data *d;
+    struct descriptor_data *d;
 
-        d = descrdata_by_descr(c);
+    d = descrdata_by_descr(c);
 
-        if (d && d->ssl_session)
-                return 1;
-        else
-                return 0;
-#else
+    if (d && d->ssl_session)
+        return 1;
+    else
         return 0;
+#else
+    return 0;
 #endif
 }
 
@@ -5353,7 +5387,11 @@ welcome_user(struct descriptor_data *d)
             queue_unhtml(d, "\r\n");
         }
     }
-    if (d->type == CT_MUCK || d->type == CT_SSL) {
+    if (d->type == CT_MUCK
+#ifdef USE_SSL
+        || d->type == CT_SSL
+#endif /* USE_SSL */
+        ) {
         fname = reg_site_welcome(d->hostaddr);
         if (fname && (*fname == '.')) {
             strcpy(buf, WELC_FILE);
@@ -5447,12 +5485,13 @@ init_ignore(dbref tgt)
     struct object *pobj = DBFETCH(tgt);
 
     rawstr = get_property_class(tgt, "/@/ignore");
-    if (rawstr) rawstr = get_uncompress(rawstr);
+    if (rawstr)
+        rawstr = get_uncompress(rawstr);
 
     /* initialize the array */
     count = 0;
     while (count < MAX_IGNORES)
-      pobj->sp.player.ignore[count++] = -1;
+        pobj->sp.player.ignore[count++] = -1;
     count = 1;
 
     /* extract dbrefs from the prop */
@@ -5466,16 +5505,17 @@ init_ignore(dbref tgt)
                 break;
             pobj->sp.player.ignore[count] = atoi(rawstr);
             count++;
-            if (count >= MAX_IGNORES) break;
+            if (count >= MAX_IGNORES)
+                break;
             while (*rawstr && (*rawstr != ' '))
                 rawstr++;
             while (*rawstr && (*rawstr == ' '))
                 rawstr++;
         }
     }
- /* and set the timestamp */
- pobj->sp.player.ignoretime = current_systime;
- return;
+    /* and set the timestamp */
+    pobj->sp.player.ignoretime = current_systime;
+    return;
 }
 
 int
@@ -5483,36 +5523,41 @@ ignorance(dbref src, dbref tgt)
 {
     struct object *tobj = DBFETCH(tgt);
     int count = 1;
- 
+
     /* We leave ignorance negatively if the dbref is invalid or the source is a wizard or theirselves. 
        This catches 99.999% of the cases where the system calls something through a standard player
        notify routine (with the src and target equal or the src being a random number), and wastes
        little time returning in that case.  We catch this case first so we can back out fast.
      */
-    if ( (src == tgt) ||
-         (src < 0) || (src >= db_top) ||
-         (tgt < 0) || (tgt >= db_top) ||
-         (Wizard(src))
-         ) return 0; 
+    if ((src == tgt) ||
+        (src < 0) || (src >= db_top) ||
+        (tgt < 0) || (tgt >= db_top) || (Wizard(src))
+        )
+        return 0;
 
     /* Ignorance cache and initialization 
      * Save time, only do the target, and only if it's been 10 secs from the last check or its not initialized.
      */
-    if ( (tobj->sp.player.ignoretime + 10 <= current_systime) || (tobj->sp.player.ignore[0] != -1) ) {
-       init_ignore(tgt);
-       tobj = DBFETCH(tgt);
+    if ((tobj->sp.player.ignoretime + 10 <= current_systime)
+        || (tobj->sp.player.ignore[0] != -1)) {
+        init_ignore(tgt);
+        tobj = DBFETCH(tgt);
     }
 
     /* If ignore[1] is -1, its not even worth doing an ignore scan. */
-    if ( tobj->sp.player.ignore[1] == -1 ) return 0;
+    if (tobj->sp.player.ignore[1] == -1)
+        return 0;
 
     /* if we got this far, lets check it out, get out ASAP, BTW. */
     while (count < MAX_IGNORES) {
-     if ( tobj->sp.player.ignore[count] == src ) return 1;
-     if ( tobj->sp.player.ignore[count] == OWNER(src) ) return 1;
-     if ( tobj->sp.player.ignore[count] == -1 ) return 0;
-     count++;
+        if (tobj->sp.player.ignore[count] == src)
+            return 1;
+        if (tobj->sp.player.ignore[count] == OWNER(src))
+            return 1;
+        if (tobj->sp.player.ignore[count] == -1)
+            return 0;
+        count++;
     }
-return 0;
+    return 0;
 }
 #endif
