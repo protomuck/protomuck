@@ -404,7 +404,6 @@ handle_read_event(int descr, dbref player, const char *command,
         lastevent = ptr;
         ptr = ptr->next;
     }
-
     if (event)
         ptr = event; //pointer now points to the passed TREAD event. 
     /* When execution gets to here, either ptr will point to the
@@ -470,9 +469,10 @@ handle_read_event(int descr, dbref player, const char *command,
                     return;
                 }
             }
-        } else if (command) {
+        } else if (command || event) {
+notify(3166, "This is a MUF READ event.");
             /* This is a MUF READ event. */
-            if (!string_compare(command, BREAK_COMMAND) &&
+            if (command && !string_compare(command, BREAK_COMMAND) &&
                        ( (MLevel(player) >= tp_min_progbreak_lev)||
                        (Wiz(player))) ) {
                     /* Whoops!  The user typed @Q.  Free the frame and exit. */
