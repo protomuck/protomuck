@@ -253,9 +253,7 @@ can_doit(int descr, register dbref player, register dbref thing,
         return 0;
 
     if (OkObj(thing)) {
-        dbref dest =
-            DBFETCH(thing)->sp.exit.ndest ? DBFETCH(thing)->sp.exit.
-            dest[0] : NOTHING;
+        dbref dest = Typeof(thing) == TYPE_EXIT ? (DBFETCH(thing)->sp.exit.ndest ? DBFETCH(thing)->sp.exit.dest[0] : NOTHING) : NOTHING;
 
         if (((FLAG2(player) & F2IMMOBILE) && !(FLAG2(thing) & F2IMMOBILE)) &&
             (!OkObj(dest) || Typeof(dest) != TYPE_PROGRAM)
