@@ -292,6 +292,8 @@ check_power(char *power)
          tmp = POW_BOOT;
       } else if (string_prefix("chown_anything", power)) {
          tmp = POW_CHOWN_ANYTHING;
+      } else if (string_prefix("control_muf", power)) {
+         tmp = POW_CONTROL_MUF;
       } else if (string_prefix("expanded_who", power)) {
          tmp = POW_EXPANDED_WHO;
       } else if (string_prefix("hide", power)) {
@@ -314,6 +316,8 @@ check_power(char *power)
          tmp = POW_SEE_ALL;
       } else if (string_prefix("teleport", power)) {
          tmp = POW_TELEPORT;
+      } else if (string_prefix("shutdown", power)) {
+         tmp = POW_SHUTDOWN;
       }
 
       return tmp;

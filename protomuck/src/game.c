@@ -67,7 +67,7 @@ do_delta(dbref player)
 void 
 do_shutdown(dbref player, const char *msg)
 {
-    if (Arch(player)) {
+    if ( (Arch(player)) || (POWERS(player) & POW_SHUTDOWN) ) {
       if( *msg == '\0' || strcmp(msg, tp_muckname))
       {
 	notify(player, "Usage: @shutdown muckname" );
@@ -85,7 +85,7 @@ do_shutdown(dbref player, const char *msg)
 void 
 do_restart(dbref player, const char *msg)
 {
-    if (Arch(player)) {
+    if ( (Arch(player)) || (POWERS(player) & POW_SHUTDOWN) ) {
       if( *msg == '\0' || strcmp(msg, tp_muckname))
       {
 	notify(player, "Usage: @restart muckname" );

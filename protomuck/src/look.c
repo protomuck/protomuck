@@ -628,6 +628,8 @@ power_description(dbref thing)
           strcat(buf, "BOOT ");
       if (POWERS(thing) & POW_CHOWN_ANYTHING)
           strcat(buf, "CHOWN_ANYTHING ");
+      if (POWERS(thing) & POW_CONTROL_MUF)
+          strcat(buf, "CONTROL_MUF");
       if (POWERS(thing) & POW_EXPANDED_WHO)
           strcat(buf, "EXPANDED_WHO ");
       if (POWERS(thing) & POW_HIDE)
@@ -649,7 +651,9 @@ power_description(dbref thing)
       if (POWERS(thing) & POW_SEE_ALL)
           strcat(buf, "SEE_ALL ");
       if (POWERS(thing) & POW_TELEPORT)
-          strcat(buf, "TELEPORT");
+          strcat(buf, "TELEPORT ");
+      if (POWERS(thing) & POW_SHUTDOWN)
+          strcat(buf, "SHUTDOWN ");
     return buf;
 }
 
