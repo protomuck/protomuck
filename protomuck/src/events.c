@@ -279,7 +279,6 @@ time_t
 next_muckevent_time(void)
 {
     time_t nexttime = 1000L;
-
     nexttime = mintime(next_event_time(), nexttime);
     nexttime = mintime(next_dump_time(), nexttime);
     nexttime = mintime(next_clean_time(), nexttime);
