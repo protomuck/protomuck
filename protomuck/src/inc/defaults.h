@@ -245,6 +245,9 @@
  * be controlled by the player, or else be set JUMP_OK */
 #define SECURE_TELEPORT 0
 
+/* Allow MUF to perform bytecode optimizations */
+#define OPTIMIZE_MUF 0 
+
 /* With this defined to 1, exits that aren't on TYPE_THING objects will */
 /* always act as if they have at least a Priority Level of 1.  */
 /* Define this if you want to use this server with an old db, and don't want */

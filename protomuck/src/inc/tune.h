@@ -165,6 +165,7 @@ extern int tp_fb_controls;
 extern int tp_allow_old_trigs;
 extern int tp_multi_wizlevels;
 extern int tp_auto_archive;
+extern int tp_optimize_muf;
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
