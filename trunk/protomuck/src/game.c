@@ -1261,6 +1261,10 @@ process_command(int descr, dbref player, char *command)
 	    case 'h':
 	    case 'H':
 		switch (command[1]) {
+                    case 'a':
+                    case 'A':
+                        Matched("hand");
+                        do_drop(descr, player, arg1, arg2);
 		    case 'e':
 		    case 'E':
 			Matched("help");
