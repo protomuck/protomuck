@@ -110,8 +110,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
             }
             if (!(Wiz(player) || POWERS(player) & POW_PLAYER_CREATE)
                 || TMage(thing) || strcmp(password, "yes")) {
-                if (strcmp(password,
-                           DoNull(DBFETCH(thing)->sp.player.password))) {
+                if (!check_password(thing,password)) {
                     anotify_nolisten2(player, CFAIL "Incorrect password.");
                     return;
                 }

@@ -25,7 +25,7 @@ dbref
 connect_player(const char *name, const char *password)
 {
     dbref player;
-
+    
     if (*name == NUMBER_TOKEN && number(name + 1) && atoi(name + 1)) {
         player = (dbref) atoi(name + 1);
         if ((player < 0) || (player >= db_top)
@@ -36,9 +36,7 @@ connect_player(const char *name, const char *password)
     }
     if (player == NOTHING)
         return NOTHING;
-    if (DBFETCH(player)->sp.player.password
-        && *DBFETCH(player)->sp.player.password
-        && strcmp(DBFETCH(player)->sp.player.password, password))
+    if (!check_password(player,password)) 
         return NOTHING;
 
     return player;
@@ -125,8 +123,7 @@ do_password(dbref player, const char *old, const char *newobj)
         return;
     }
 
-    if (!DBFETCH(player)->sp.player.password
-        || strcmp(old, DBFETCH(player)->sp.player.password)) {
+    if (!check_password(player,old)) {
         anotify_nolisten2(player,
                           CFAIL "Syntax: @password <oldpass>=<newpass>");
     } else if (!ok_password(newobj)) {

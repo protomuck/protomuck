@@ -254,6 +254,7 @@ extern void do_look_around(int descr, dbref player);
 extern int init_game(const char *infile, const char *outfile);
 extern void dump_database(void);
 extern void panic(const char *);
+extern int check_password(dbref player, const char *pw);
 
 /* Ansi Colors */
 #define ANSINORMAL      "\033[0m"

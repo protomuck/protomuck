@@ -1599,7 +1599,7 @@ db_read(FILE * f)
                    !strcmp(special, "**Foxen6 TinyMUCK DUMP Format***") ||
                    !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ||
                    !strcmp(special, "**NeonMuck V2 DUMP Format***")) {
-            db_load_format = 7;
+            db_load_format = !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ? 8 : 7;
             i = getref(f);
             dbflags = getref(f);
             if (dbflags & DB_PARMSINFO) {
@@ -1629,7 +1629,7 @@ db_read(FILE * f)
                    !strcmp(special, "***Foxen6 Deltas Dump Extention***") ||
                    !strcmp(special, "***Foxen7 Deltas Dump Extention***") ||
                    !strcmp(special, "***NeonMuck V2 Deltas Dump Format***")) {
-            db_load_format = 7;
+            db_load_format = !strcmp(special, "***Foxen7 Deltas Dump Extention***") ? 8 : 7;
             doing_deltas = 1;
         }
         if (doing_deltas && !db) {
@@ -1676,6 +1676,10 @@ db_read(FILE * f)
                         db_read_object_foxen(f, o, thisref,
                                              db_load_format, doing_deltas);
                         break;
+                    case 8:
+                        db_read_object_foxen(f, o, thisref,
+                                             db_load_format, doing_deltas);
+                        break;
                 }
                 if (Typeof(thisref) == TYPE_PLAYER) {
                     OWNER(thisref) = thisref;
@@ -1704,11 +1708,15 @@ db_read(FILE * f)
                                     || strcmp(special,
                                               "***Foxen5 Deltas Dump Extention***")
                                     || strcmp(special,
+                                              "***Foxen6 Deltas Dump Extention***")
+                                    || strcmp(special,
+                                              "***Foxen7 Deltas Dump Extention***")
+                                    || strcmp(special,
                                               "***NeonMuck V2 Deltas Dump Format***"))
                                 {
                                     if (special)
                                         free((void *) special);
-                                    if (main_db_format == 7
+                                    if ((main_db_format == 7 || main_db_format == 8) 
                                         && (dbflags & DB_PARMSINFO)) {
                                         rewind(f);
                                         free((void *) getstring(f));
@@ -1728,7 +1736,7 @@ db_read(FILE * f)
                                     return db_top;
                                 } else {
                                     free((void *) special);
-                                    db_load_format = 7;
+                                    db_load_format = !strcmp(special, "***Foxen7 Deltas Dump Extention***") ? 8 : 7;
                                     doing_deltas = 1;
                                 }
                             } else {
