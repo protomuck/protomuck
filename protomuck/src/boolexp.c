@@ -152,6 +152,7 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp * b, dbref thing, int 
 		}
 		return 0;
 	    default:
+                fprintf(stderr, "PANIC: Unknown type of bool expression.\n");
 		abort();	/* bad type */
 	}
     }
@@ -441,6 +442,7 @@ size_boolexp(struct boolexp * b)
 		    result += strlen(PropDataStr(b->prop_check)) + 1;
 		break;
 	    default:
+                fprintf(stderr, "PANIC: Unknown type of bool.\n");
 		abort();	/* bad type */
 	}
 	return (result);
@@ -481,6 +483,7 @@ getboolexp1(FILE * f)
 	    return TRUE_BOOLEXP;
 	    /* break; */
 	case EOF:
+            fprintf(stderr, "PANIC: Unexpected EOF in reading bool.\n");
 	    abort();		/* unexpected EOF in boolexp */
 	    break;
 	case '(':
@@ -515,8 +518,10 @@ getboolexp1(FILE * f)
 	    /* obsolete NOTHING key */
 	    /* eat it */
 	    while ((c = getc(f)) != '\n')
-		if (c == EOF)
+		if (c == EOF) {
+                    fprintf(stderr, "PANIC: Unexpected EOF in bool exp.\n");
 		    abort();	/* unexp EOF */
+                }
 	    ungetc(c, f);
 	    return TRUE_BOOLEXP;
 	    /* break */
@@ -570,6 +575,7 @@ getboolexp1(FILE * f)
     }
 
 error:
+    fprintf(stderr, "PANIC: Database error in reading bool expression.\n");
     abort();			/* bomb out */
 }
 
@@ -579,8 +585,10 @@ getboolexp(FILE * f)
     struct boolexp *b;
 
     b = getboolexp1(f);
-    if (getc(f) != '\n')
+    if (getc(f) != '\n') {
+        fprintf(stderr, "PANIC: Parse error in bool expression.\n");
 	abort();		/* parse error, we lose */
+    }
     return b;
 }
 

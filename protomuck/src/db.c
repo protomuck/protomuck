@@ -95,7 +95,8 @@ db_grow(dbref newtop)
 	    while (db_top > db_size) db_size += 1000;
 	    if ((db = (struct object *)
 		 malloc(db_size * sizeof(struct object))) == 0) {
-		abort();
+                 fprintf(stderr, "PANIC: Unable to allocate new object.\n");
+		 abort();
 	    }
 	}
 	/* maybe grow it */
@@ -105,6 +106,7 @@ db_grow(dbref newtop)
 	    if ((newdb = (struct object *)
 		 realloc((void *) db,
 			 db_size * sizeof(struct object))) == 0) {
+                fprintf(stderr, "PANIC: Unable to reallocate object.\n");
 		abort();
 	    }
 	    db = newdb;
@@ -125,6 +127,7 @@ db_grow(dbref newtop)
 	    if ((newdb = (struct object *)
 		 realloc((void *) db,
 			 db_top * sizeof(struct object))) == 0) {
+                fprintf(stderr, "PANIC: Unable to reallocate object.\n");
 		abort();
 	    }
 	    db = newdb;
@@ -134,6 +137,7 @@ db_grow(dbref newtop)
 			     newtop : DB_INITIAL_SIZE;
 	    if ((db = (struct object *)
 	          malloc(startsize * sizeof(struct object))) == 0) {
+                fprintf(stderr, "PANIC: Unable to allocate new object.\n");
                 abort();
 	    }
 	}
@@ -193,6 +197,7 @@ void
 putref(FILE * f, dbref ref)
 {
     if (fprintf(f, "%d\n", ref) < 0) {
+        fprintf(stderr, "PANIC: Unable to write to db file.\n");
 	abort();
     }
 }
@@ -201,6 +206,7 @@ void
 putfref(FILE * f, dbref ref, dbref ref2, dbref ref3, dbref ref4, dbref pow1, dbref pow2)
 {
     if (fprintf(f, "%d %d %d %d %d %d\n", ref, ref2, ref3, ref4, pow1, pow2) == EOF) {
+        fprintf(stderr, "PANIC: Unable write to db file.\n");
 	abort();
     }
 }
@@ -210,10 +216,12 @@ putstring(FILE * f, const char *s)
 {
     if (s) {
 	if (fputs(s, f) == EOF) {
+            fprintf(stderr, "PANIC: Unable to write to db file.\n");
 	    abort();
 	}
     }
     if (putc('\n', f) == EOF) {
+        fprintf(stderr, "PANIC: Unable to write to db file.\n");
         abort();
     }
 }
@@ -311,10 +319,16 @@ putprops_copy(FILE *f, dbref obj)
     if (DBFETCH(obj)->propsfpos) {
 	fseek(g, DBFETCH(obj)->propsfpos, 0);
         ptr = fgets(buf, sizeof(buf), g);
-	if (!ptr) abort();
+	if (!ptr) {
+            fprintf(stderr, "PANIC: Error reading prop from db file.\n");
+            abort();
+        }
 	for (;;) {
 	    ptr = fgets(buf, sizeof(buf), g);
-	    if (!ptr) abort();
+	    if (!ptr) {
+                fprintf(stderr, "PANIC: Error reading propvalue from db.\n");
+                abort();
+            }
 	    if (!string_compare(ptr, "*End*\n")) break;
 	    fputs(buf, f);
 	}
@@ -460,9 +474,11 @@ write_program(struct line * first, dbref i)
 	if (!first->this_line)
 	    continue;
 	if (fputs(first->this_line, f) == EOF) {
+            fprintf(stderr, "PANIC: Unable to write to db file.\n");
 	    abort();
 	}
 	if (fputc('\n', f) == EOF) {
+            fprintf(stderr, "PANIC: Unable to write to db file.\n");
 	    abort();
 	}
 	first = first->next;
@@ -563,8 +579,10 @@ db_write_list(FILE *f, int mode)
 
     for (i = db_top; i-->0; ) {
 	if (mode == 1 || (FLAGS(i) & OBJECT_CHANGED)) {
-	    if (fprintf(f, "#%d\n", i) < 0)
+	    if (fprintf(f, "#%d\n", i) < 0) {
+                fprintf(stderr, "PANIC: Error writing changed objects.\n");
 	        abort();
+            }
 	    db_write_object(f, i);
 #ifdef DISKBASE
 	    if (mode == 1) {
