@@ -689,6 +689,8 @@ prim_array_n_difference(PRIM_PROTOTYPE)
         new_mash = new_array_dictionary();
 
         oper1 = POP();
+        if (oper1->type != PROG_ARRAY)
+            abort_interp("Arguement not an array.");
         array_mash(oper1->data.array, &new_mash, 1);
         CLEAR(oper1);
 
