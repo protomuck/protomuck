@@ -20,7 +20,7 @@ extern void prim_ftostr(PRIM_PROTOTYPE);
 extern void prim_fmod(PRIM_PROTOTYPE);
 extern void prim_modf(PRIM_PROTOTYPE);
 extern void prim_pi(PRIM_PROTOTYPE);
-extern void prim_inf(PRIM_PROTOTYPE);
+// extern void prim_inf(PRIM_PROTOTYPE);
 extern void prim_round(PRIM_PROTOTYPE);
 extern void prim_xyz_to_polar(PRIM_PROTOTYPE);
 extern void prim_polar_to_xyz(PRIM_PROTOTYPE);
@@ -32,14 +32,14 @@ extern void prim_epsilon(PRIM_PROTOTYPE);
         prim_pow, prim_frand, prim_sin, prim_cos, prim_tan, prim_asin,   \
         prim_acos, prim_atan, prim_atan2, prim_exp, prim_log, prim_log10,\
 	prim_fabs, prim_strtof, prim_ftostr, prim_fmod, prim_modf,       \
-	prim_pi, prim_inf, prim_round, prim_dist3d, prim_xyz_to_polar,  \
+	prim_pi, prim_round, prim_dist3d, prim_xyz_to_polar,  \
 	prim_polar_to_xyz, prim_pow, prim_diff3, prim_epsilon
 
 #define PRIMS_FLOAT_NAMES "CEIL", "FLOOR", "FLOAT", "SQRT", \
         "POW", "FRAND", "SIN", "COS", "TAN", "ASIN",        \
 	"ACOS", "ATAN", "ATAN2", "EXP", "LOG", "LOG10",     \
 	"FABS", "STRTOF", "FTOSTR", "FMOD", "MODF",         \
-	"PI", "INF", "ROUND", "DIST3D", "XYZ_TO_POLAR",     \
+	"PI", "ROUND", "DIST3D", "XYZ_TO_POLAR",     \
 	"POLAR_TO_XYZ", "^", "DIFF3", "EPSILON"
 
-#define PRIMS_FLOAT_CNT 30 
+#define PRIMS_FLOAT_CNT 29
