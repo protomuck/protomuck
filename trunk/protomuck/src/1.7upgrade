@@ -1,0 +1,117 @@
+#!/bin/csh -f
+#
+# Just check to make sure that the proto1.7.0/src/inc/config.h
+# file is set to your preferences, then run this script to
+# upgrade your previous version of ProtoMUCK. Shutting down
+# your existing MUCK is not necessary, though you may do so
+# if you prefer before running this script.
+#
+# NOTE: This script is from upgrading from an older version of
+# ProtoMUCK to Proto1.75. If you are not doing an upgrade, or
+# do not even know what this is refering to, do not run this script.
+#
+# Change PROTODIR to point towards the directory that contains
+# your game/ directory of your current ProtoMUCK. If you did
+# not change anything from the default installation, this should
+# just be $HOME/proto/ . Make sure GAMEDIR points to your game/
+# directory. ( The directory that contains data/ )
+set HOME = $HOME
+set PROTODIR = $HOME/proto/
+set GAMEDIR = $PROTODIR/game/
+
+#
+# If you have not changed anything from the standard ProtoMUCK
+# distribution, you should not need to change anything below.
+# Otherwise, make sure it points to where you store the 
+# relevant file. 
+#
+
+set DOCSDIR = $PROTODIR
+set HELP = $GAMEDIR/data/help.txt
+set MAN = $GAMEDIR/data/man.txt
+set MPI = $GAMEDIR/data/mpihelp.txt
+set PROTO = $PROTODIR/proto
+set RESTART = $GAMEDIR/restart
+set ARCHIVE = $GAMEDIR/archive
+set SYSPARMS = $GAMEDIR/data/sysparms.txt
+
+################################################################
+# 
+# You should not have to change anything below here.
+#
+################################################################
+
+echo "----------------------------------------------------"
+echo "  ProtoMUCK 1.x --->    ProtoMUCK 1.75 AutoUpgrade"
+echo "----------------------------------------------------"
+
+if (! -r $PROTODIR ) then
+    echo "Cannot find main muck directory. See comments in script."
+    exit 0
+endif
+
+if (! -r $GAMEDIR ) then
+    echo "Cannot find game/ directory. See instructions."
+    exit 0
+endif
+
+echo " "
+echo "Copying updated documentation over..."
+echo " "
+
+cp -f -r docs/ $DOCSDIR
+cp -f help.txt $HELP
+cp -f man.txt $MAN
+cp -f mpihelp.txt $MPI
+cp -f sysparms.txt $SYSPARMS
+
+echo " "
+echo "Copying updated script files."
+echo " "
+
+cp -f restart $RESTART
+cp -f proto $PROTO
+cp -f archive $ARCHIVE
+
+echo " "
+echo "Copying new source into $PROTODIR"
+echo " "
+
+cp -f -r src/ $PROTODIR
+
+echo "Running configuration script."
+
+cd $PROTODIR/src/
+./configure
+
+echo " "
+echo "Compiling and installing new source..."
+echo " "
+make 
+if (! -r protomuck ) then
+    echo "Error in compiling. Binary not created." 
+    exit 0
+endif
+
+make install
+
+touch $GAMEDIR/logs/status
+echo "`date` - `who am i` ran the Proto1.x --> Proto1.6 upgrade script." >> $GAMEDIR/logs/status
+
+
+echo " "
+echo " "
+echo "-------------------------------------------------"
+echo "             Welcome to ProtoMUCK v1.75          "
+echo "-------------------------------------------------"
+echo " "
+echo "If you are seeing this message, then your upgrade"
+echo "from an older version of ProtoMUCK to Proto1.75  "
+echo "has gone smoothly. You should -NEVER- run this   "
+echo "script again, once seeing this message, or there "
+echo "may be data lost.                                "
+echo "At this point, simply check the restart script to"
+echo "make sure the parameters in the top are correct, "
+echo "then @restart your MUCK, or change to            "
+echo "PROTODIR and type ./proto start to come up on the"
+echo "new version."
