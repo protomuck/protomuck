@@ -28,7 +28,7 @@ static int epoch = 0;
 FILE   *input_file;
 FILE   *delta_infile;
 FILE   *delta_outfile;
-char   *in_filename;
+char   *in_filename = NULL;
 
 void 
 do_dump(dbref player, const char *newfile)
@@ -467,6 +467,14 @@ init_game(const char *infile, const char *outfile)
     return 0;
 }
 
+void
+cleanup_game()
+{
+    if (dumpfile)
+        free((void *)dumpfile);
+    free ((void*) in_filename);
+
+}
 
 extern short wizonly_mode;
 void

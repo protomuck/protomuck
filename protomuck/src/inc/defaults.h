@@ -197,6 +197,10 @@
  * by the owner of that room, as well as by the object owner, and Wizards. */
 #define REALMS_CONTROL 0
 
+/* Forbid MCP and MCP-GUI calls at less than given mucker level. 4 = wiz */ 
+#define MCP_MUF_MLEV 3 
+
+
 /* Allows 'listeners' (see CHANGES file) */
 #define LISTENERS 0
 

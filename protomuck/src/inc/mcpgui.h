@@ -77,7 +77,7 @@
     const char * dlogid,         \
     const char * id,             \
     const char * event,          \
-    const char * data,   \
+    McpMesg * msg,   \
     int   did_dismiss,    \
     void* context
 

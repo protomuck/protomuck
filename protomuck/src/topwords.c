@@ -28,6 +28,13 @@ hash_tab wordhash[WORD_HASH_SIZE];
 
 struct queue_node *sizehash[100000];
 
+int 
+notify(int player, const char *msg) 
+{ 
+    return printf("%s\n", msg); 
+} 
+    
+
 
 int
 string_compare(const char *s1, const char *s2)

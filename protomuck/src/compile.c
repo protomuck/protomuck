@@ -794,6 +794,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 
 	set_start(&cstat);
 	cleanup(&cstat);
+        DBFETCH(cstat.program)->sp.program.instances = 0;
 
 	/* restart AUTOSTART program. */
 	if ((FLAGS(cstat.program) & ABODE) && TMage(OWNER(cstat.program)))
@@ -1312,9 +1313,9 @@ process_special(COMPSTATE * cstat, const char *token)
 
 					nw->in.data.mufproc->vars++;
 					nw->in.data.mufproc->args++;
-					if (varspec)
-						free((void *) varspec);
 				}
+                                if (varspec)
+                                    free((void *) varspec);
 			} while(!argsdone);
 		}
 

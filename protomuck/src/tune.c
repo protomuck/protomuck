@@ -156,6 +156,7 @@ int tp_playermax_limit          = PLAYERMAX_LIMIT;
 int tp_process_timer_limit      = 4;
 int tp_dump_copies		  = 10;
 int tp_min_progbreak_lev        = 0;
+int tp_mcp_muf_mlev             = MCP_MUF_MLEV;
 struct tune_val_entry {
     const char *name;
     int *val;
@@ -198,6 +199,7 @@ struct tune_val_entry tune_val_list[] =
     {"process_timer_limit",   &tp_process_timer_limit, LARCH, LMUF },
     {"dump_copies",           &tp_dump_copies,         WBOY,  LMUF },
     {"min_progbreak_lev",     &tp_min_progbreak_lev,   LARCH, LMAGE},
+    {"mcp_muf_mlev",           &tp_mcp_muf_mlev,         LARCH, LMAGE},
     {NULL, NULL, 0, 0}
 };
 
@@ -745,6 +747,22 @@ tune_get_parmstring(const char *name, int mlev)
 #define TUNESET_SYNTAX 2
 #define TUNESET_BADVAL 3
 #define TUNESET_NOPERM 4
+
+/* Added in beta5 to help with shutdown memory profiling. From fb6 */
+void 
+tune_freeparms() 
+{ 
+        struct tune_str_entry *tstr = tune_str_list; 
+        while (tstr->name) { 
+                if (!tstr->isdefault) { 
+                        free((char *) *tstr->str); 
+                } 
+                tstr++; 
+        } 
+} 
+    
+
+
 
 int
 tune_setparm(const dbref player, const char *parmname, const char *val)

@@ -544,7 +544,7 @@ new_array_dictionary(void)
 
 
 stk_array *
-array_clone(stk_array * arr)
+array_decouple(stk_array * arr)
 {
 	stk_array *new2;
 
@@ -562,6 +562,7 @@ array_clone(stk_array * arr)
 			new2->data.packed = (array_data *) malloc(sizeof(array_data) * arr->items);
 			for (i = arr->items; i-- > 0;) {
 				copyinst(&arr->data.packed[i], &new2->data.packed[i]);
+                                CLEAR(&arr->data.packed[i]);
 			}
 			return new2;
 			break;
@@ -569,10 +570,11 @@ array_clone(stk_array * arr)
 
 	case ARRAY_DICTIONARY:{
 			array_iter idx;
-
+                        array_data *val;
 			if (array_first(arr, &idx)) {
 				do {
-					array_setitem(&new2, &idx, array_getitem(arr, &idx));
+                                    val = array_getitem(arr, &idx);
+                                    array_setitem(&new2, &idx, val);
 				} while (array_next(arr, &idx));
 			}
 			return new2;
@@ -813,6 +815,7 @@ array_prev(stk_array * arr, array_iter * item)
 			int idx;
 
 			if (item->type == PROG_STRING) {
+                                CLEAR(item);
 				return 0;
 			} else if (item->type == PROG_FLOAT) {
 				if (item->data.fnumber >= arr->items) {
@@ -823,12 +826,12 @@ array_prev(stk_array * arr, array_iter * item)
 			} else {
 				idx = item->data.number - 1;
 			}
+                        CLEAR(item);
 			if (idx >= arr->items) {
 				idx = arr->items - 1;
 			} else if (idx < 0) {
 				return 0;
 			}
-			CLEAR(item);
 			item->type = PROG_INTEGER;
 			item->data.number = idx;
 			return 1;
@@ -838,9 +841,9 @@ array_prev(stk_array * arr, array_iter * item)
 			array_tree *p;
 
 			p = array_tree_prev_node(arr->data.dict, item);
+                        CLEAR(item);
 			if (!p)
 				return 0;
-			CLEAR(item);
 			copyinst(&p->key, item);
 			return 1;
 		}
@@ -863,6 +866,7 @@ array_next(stk_array * arr, array_iter * item)
 			int idx;
 
 			if (item->type == PROG_STRING) {
+                                CLEAR(item);
 				return 0;
 			} else if (item->type == PROG_FLOAT) {
 				if (item->data.fnumber < 0.0) {
@@ -873,12 +877,12 @@ array_next(stk_array * arr, array_iter * item)
 			} else {
 				idx = item->data.number + 1;
 			}
+                        CLEAR(item); 
 			if (idx >= arr->items) {
 				return 0;
 			} else if (idx < 0) {
 				idx = 0;
 			}
-			CLEAR(item);
 			item->type = PROG_INTEGER;
 			item->data.number = idx;
 			return 1;
@@ -888,9 +892,9 @@ array_next(stk_array * arr, array_iter * item)
 			array_tree *p;
 
 			p = array_tree_next_node(arr->data.dict, item);
+                        CLEAR(item);
 			if (!p)
 				return 0;
-			CLEAR(item);
 			copyinst(&p->key, item);
 			return 1;
 		}
@@ -941,19 +945,22 @@ array_setitem(stk_array ** harr, array_iter * idx, array_data * item)
 {
 	stk_array *arr;
 
-	if (!harr || !*harr || !idx) {
-		return -1;
-	}
+        if (!harr)
+            return -1;
+        if ( !*harr)
+            return -2;
+        if (!idx)
+            return -3;
 	arr = *harr;
 	switch (arr->type) {
 	case ARRAY_PACKED:{
 			if (idx->type != PROG_INTEGER) {
-				return -1;
+				return -4;
 			}
 			if (idx->data.number >= 0 && idx->data.number < arr->items) {
 				if (arr->links > 1) {
 					arr->links--;
-					arr = *harr = array_clone(arr);
+					arr = *harr = array_decouple(arr);
 				}
 				CLEAR(&arr->data.packed[idx->data.number]);
 				copyinst(item, &arr->data.packed[idx->data.number]);
@@ -961,14 +968,14 @@ array_setitem(stk_array ** harr, array_iter * idx, array_data * item)
 			} else if (idx->data.number == arr->items) {
 				if (arr->links > 1) {
 					arr->links--;
-					arr = *harr = array_clone(arr);
+					arr = *harr = array_decouple(arr);
 				}
 				arr->data.packed = (array_data *)
 						realloc(arr->data.packed, sizeof(array_data) * (arr->items + 1));
 				copyinst(item, &arr->data.packed[arr->items]);
 				return (++arr->items);
 			} else {
-				return -1;
+				return -5;
 			}
 			break;
 		}
@@ -978,7 +985,7 @@ array_setitem(stk_array ** harr, array_iter * idx, array_data * item)
 
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			p = array_tree_find(arr->data.dict, idx);
 			if (p) {
@@ -995,7 +1002,7 @@ array_setitem(stk_array ** harr, array_iter * idx, array_data * item)
 	default:
 		break;
 	}
-	return -1;
+	return -6;
 }
 
 
@@ -1020,7 +1027,7 @@ array_insertitem(stk_array ** harr, array_iter * idx, array_data * item)
 			}
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			arr->data.packed = (array_data *)
 					realloc(arr->data.packed, sizeof(array_data) * (arr->items + 1));
@@ -1038,7 +1045,7 @@ array_insertitem(stk_array ** harr, array_iter * idx, array_data * item)
 
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			p = array_tree_find(arr->data.dict, idx);
 			if (p) {
@@ -1196,7 +1203,7 @@ array_setrange(stk_array ** harr, array_iter * start, stk_array * inarr)
 			}
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			if (array_first(inarr, &idx)) {
 				do {
@@ -1211,7 +1218,7 @@ array_setrange(stk_array ** harr, array_iter * start, stk_array * inarr)
 	case ARRAY_DICTIONARY:{
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			if (array_first(inarr, &idx)) {
 				do {
@@ -1257,7 +1264,7 @@ array_insertrange(stk_array ** harr, array_iter * start, stk_array * inarr)
 			}
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			arr->data.packed = (array_data *)
 					realloc(arr->data.packed,
@@ -1288,7 +1295,7 @@ array_insertrange(stk_array ** harr, array_iter * start, stk_array * inarr)
 	case ARRAY_DICTIONARY:{
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			if (array_first(inarr, &idx)) {
 				do {
@@ -1348,7 +1355,7 @@ array_delrange(stk_array ** harr, array_iter * start, array_iter * end)
 			}
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			start->data.number = sidx;
 			end->data.number = eidx;
@@ -1391,7 +1398,7 @@ array_delrange(stk_array ** harr, array_iter * start, array_iter * end)
 			}
 			if (arr->links > 1) {
 				arr->links--;
-				arr = *harr = array_clone(arr);
+				arr = *harr = array_decouple(arr);
 			}
 			copyinst(&s->key, &idx);
 			while (s && array_tree_compare(&s->key, &e->key, 0, 0) <= 0) {

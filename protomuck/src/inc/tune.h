@@ -86,6 +86,7 @@ extern int tp_playermax_limit;
 
 extern int tp_dump_copies;
 extern int tp_min_progbreak_lev;
+extern int tp_mcp_muf_mlev;
 /* dbrefs */
 extern dbref tp_quit_prog;
 extern dbref tp_login_who_prog;

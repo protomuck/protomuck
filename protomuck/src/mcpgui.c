@@ -250,7 +250,6 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 	} else if (!string_compare(msg->mesgname, "ctrl-event")) {
 		const char *evt = mcp_mesg_arg_getline(msg, "event", 0);
 		const char *dismissed = mcp_mesg_arg_getline(msg, "dismissed", 0);
-                const char *data = mcp_mesg_arg_getline(msg, "data", 0);
 		int did_dismiss = 1;
 
 		if (!id || !*id) {
@@ -272,7 +271,7 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
                 } 
 
 		if (dat->callback) {
-			dat->callback(dat->descr, dlogid, id, evt, data, did_dismiss, dat->context);
+			dat->callback(dat->descr, dlogid, id, evt, msg, did_dismiss, dat->context);
 		}
 	} else if (!string_compare(msg->mesgname, "error")) {
 		const char *err  = mcp_mesg_arg_getline(msg, "errcode", 0);
@@ -362,6 +361,7 @@ int
 gui_dlog_closeall_descr(int descr) 
 { 
     DlogData *ptr; 
+    McpMesg msg;
 
     ptr = dialog_list; 
     while (ptr) { 
@@ -375,7 +375,12 @@ gui_dlog_closeall_descr(int descr)
             return 0; 
         } 
         if (ptr->callback) { 
+            mcp_mesg_arg_append(&msg, "dlogid", ptr->id); 
+            mcp_mesg_arg_append(&msg, "id", "_closed"); 
+            mcp_mesg_arg_append(&msg, "dismissed", "1"); 
+            mcp_mesg_arg_append(&msg, "event", "buttonpress"); 
             ptr->callback(ptr->descr, ptr->id, "_closed", "buttonpress", NULL, 1, ptr->context); 
+            mcp_mesg_clear(&msg);
         } 
         ptr = ptr->next; 
     } 

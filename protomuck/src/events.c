@@ -68,7 +68,8 @@ check_dump_time (void)
 
         if (tp_periodic_program_purge)
             free_unused_programs();
-
+        purge_for_pool();
+        purge_try_pool();
 #ifdef DELTADUMPS
         dump_deltas();
 #else
@@ -145,6 +146,7 @@ check_clean_time (void)
         if (tp_allow_old_trigs) {
            add_property((dbref)0, "_sys/lastcleantime", NULL, (int)currtime);
         }
+        purge_for_pool();
         if (tp_periodic_program_purge)
             free_unused_programs();
 #ifdef DISKBASE                          

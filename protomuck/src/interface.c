@@ -300,9 +300,12 @@ main(int argc, char **argv)
     if (!sanity_interactive) {
 
 #ifdef DETACH
-	/* Go into the background */
-	fclose(stdin); fclose(stdout); fclose(stderr);
-	if (fork() != 0) exit(0);
+	/* Go into the background unless improper mode to */
+       if (!sanity_interactive && !db_conversion_flag) {
+	    fclose(stdin); fclose(stdout); fclose(stderr);
+    	    if (fork() != 0) 
+                exit(0);
+       }
 #endif
 
 	/* save the PID for future use */
@@ -326,6 +329,7 @@ main(int argc, char **argv)
 	#endif
 
 #ifdef DETACH
+    if (!sanity_interactive && !db_conversion_flag) {
 	/* Detach from the TTY, log whatever output we have... */
 	freopen(LOG_ERR_FILE,"a",stderr);
 	setbuf(stderr, NULL);
@@ -350,6 +354,7 @@ main(int argc, char **argv)
 	}
 #  endif /* TIOCNOTTY */
 # endif /* !SYS_POSIX */
+      }
 #endif /* DETACH */
 
     }
@@ -440,7 +445,14 @@ main(int argc, char **argv)
 	db_free();
 	free_old_macros();
 	purge_all_free_frames();
+        purge_for_pool();
+        purge_for_pool(); /* 2nd time is needed to completely purge */
+        purge_try_pool();
+        purge_try_pool(); /* 2nd time is needed to completely purge */
 	purge_mfns();
+        cleanup_game();
+        tune_freeparms();
+        free_compress_dictionary();
 #endif
 
 #ifdef DISKBASE

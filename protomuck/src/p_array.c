@@ -358,8 +358,12 @@ prim_array_setitem(PRIM_PROTOTYPE)
                 abort_interp("Argument not an array. (1)");
 
         result = array_setitem(&oper2->data.array, oper1, oper3);
-        if (result < 0)
-                abort_interp("Index out of array bounds. (3)");
+        if (result < 0) {
+                char tBuf[BUFFER_LEN];
+                sprintf(tBuf, "Array_setitem ERROR code: %d", result);
+                abort_interp(tBuf);
+                //abort_interp("Index out of array bounds. (3)");
+        }        
 
         nw = oper2->data.array;
         oper2->data.array = NULL;
