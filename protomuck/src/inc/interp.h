@@ -75,7 +75,7 @@ extern void do_abort_loop(dbref player, dbref program, const char *msg,
   
 extern void interp_err(dbref player, dbref program, struct inst *pc,
                        struct inst *arg, int atop, dbref origprog,
-                       const char *msg1, const char *msg2);
+                       const char *msg1, const char *msg2, int pid);
   
 extern void push (struct inst *stack, int *top, int type, voidptr res);
   
@@ -91,8 +91,6 @@ extern int arith_type(struct inst *op1, struct inst *op2);
 
 extern void interp_set_depth(struct frame * fr);
   
-/* #define CHECKOP(N) { if ((*top) < (N)) { char* errbuf = (char*)malloc(128); interp_err(player, program, pc, arg, *top, fr->caller.st[1], insttotext(pc, errbuf, 128, 30, program), "Stack underflow."); free(errbuf); return; } nargs = (N); } */
-
 #define CHECKOP_READONLY(N) \
 { \
 	nargs = (N); \

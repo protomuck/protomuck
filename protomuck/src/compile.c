@@ -567,6 +567,20 @@ include_internal_defs(COMPSTATE * cstat)
         /* For REG Expression support */
         insert_def(cstat, "reg_icase", MUF_RE_ICASE_STR);
         insert_def(cstat, "reg_all", MUF_RE_ALL_STR);	
+
+/* $defs for specific MUF prim sets */
+#ifdef SQL_SUPPPORT
+        insert_def(cstat, "HAVE_SQL", "1");
+#endif
+#ifdef FILE_PRIMS
+        insert_def(cstat, "HAVE_FILE_PRIMS", "1");
+#endif
+#ifdef MUF_SOCKETS
+        insert_def(cstat, "HAVE_SOCKET_PRIMS", "1");
+#endif
+#ifdef MUF_EDIT_PRIMS
+        insert_def(cstat, "HAVE_MUF_EDIT_PRIMS", "1");
+#endif
       
 }
 

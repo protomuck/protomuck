@@ -758,8 +758,6 @@ prim_propdirp(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
-
-
 void 
 prim_parsempi(PRIM_PROTOTYPE)
 {

@@ -983,6 +983,7 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
 	struct inst temp1, temp2;
 	stk_array *nw;
 	struct descriptor_data *d;
+        int curLen = 0;
 
 	CHECKOP(1);
 	oper1 = POP();
@@ -1151,6 +1152,12 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
 	array_setitem(&nw, &temp1, &temp2);
 	CLEAR(&temp1);
 	CLEAR(&temp2);
+        temp1.type = PROG_STRING;
+        temp1.data.string = alloc_prog_string("OUTPUTQUEUE");
+        temp2.type = PROG_INTEGER;
+        curLen = (int) d->output.lines;
+        temp2.data.number = curLen;
+	array_setitem(&nw, &temp1, &temp2);
 
 	PushArrayRaw(nw);
 }

@@ -26,8 +26,8 @@ static char buf[BUFFER_LEN];
 typedef struct
 {
 	struct shared_string*	pattern;
-	int						flags;
-	regex_t					re;
+	int    flags;
+	regex_t re;
 }
 muf_re;
 

@@ -959,6 +959,7 @@ prim_getdir(PRIM_PROTOTYPE)
 {
     char tempDir[BUFFER_LEN];
     char *directoryName;
+    char curName[BUFFER_LEN];
     stk_array *nu;
     struct inst temp1; 
     DIR *df;
@@ -980,7 +981,7 @@ prim_getdir(PRIM_PROTOTYPE)
     CHECKOFLOW(1);
 
     directoryName = oper1->data.string->data;
-
+    result = 1;
 
 #ifdef SECURE_FILE_PRIMS
     if ( !(valid_name(directoryName)) )
@@ -993,31 +994,37 @@ prim_getdir(PRIM_PROTOTYPE)
         if ( directoryName == NULL )
             result = 0;
     }
+    if (!result)
+        abort_interp("Invalid file name.");
 #endif 
-
+    result = 1;
     nu = new_array_packed(0);
     if ((df = (DIR *) opendir(directoryName))) {
         while ((dp = readdir(df))) {
             if (*(dp->d_name) != '.') {
-                temp1.type = PROG_STRING;
-                temp1.data.string = alloc_prog_string((dp->d_name));
+                strcpy(curName, dp->d_name);
                 strcpy(tempDir, directoryName);
+                strcat(tempDir, "/");
                 strcat(tempDir, dp->d_name);
                 if ((tempDf = (DIR *) opendir(tempDir))) {
                     closedir(tempDf);
-                    strcat(temp1.data.string->data, "/");
-                    temp1.data.string->length = 
-                                           strlen(temp1.data.string->data);
-                }
+                    strcat(curName, "/");
+                } 
+                temp1.type = PROG_STRING;
+                temp1.data.string = alloc_prog_string(curName);             
                 array_appenditem(&nu, &temp1);
+                CLEAR(&temp1);
             }
         }
         closedir(df);
-    }
+    } else /* no directory */
+        result = 0;
 
-    CLEAR(&temp1);
     CLEAR(oper1);
-    PushArrayRaw(nu);
+    if (!result)
+        PushInt(result);
+    else
+        PushArrayRaw(nu);
 }
 
 #endif /* FILE_PRIMS */
