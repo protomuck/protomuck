@@ -374,6 +374,7 @@ playermax
 Turning this on will enforce the max_players @tune by booting
 players who connect once the limit has been reached.
 ~~
+db_readonly
 Turning this on prevents most changes to be made to the data base. 
 @newpasswording and @frobbing can still be done, however.
 ~~
@@ -403,6 +404,10 @@ administration can set this propdir.
 quiet_moves
 Setting this to yes turns off the '%N has arrived/left.' messages 
 when players enter or leave rooms.
+~~
+expanded_debug
+Setting this to yes causes the MUF debugger to display the contents
+of MUF arrays.  It also expands the strings.
 ~~
 proplist_int_counter
 Used to specify whether the system standard for proplist storage is
@@ -467,20 +472,7 @@ allow_old_trigs
 Setting this to no disables all _ prefixed propqueues. For example, 
 _connect, _disconnect, etc., will not work if this is set to no.
 Setting it to yes leaves all of those propqueues enabled.
-~~~~~~
-multi_wizlevels   
-By turning this parameter off, all wizards of W2, W3, and W4 have   
-permissions equivalent with Neon's W3 bit, or FB's W bit. Only #1   
-has the permissions of the W4 level when this is tuned off. And   
-finally, W1's will be treated as M3's, losing all of their mage   
-perks. NOTE: Once this is @tuned to 'no', only #1 can @tune it back   
-to 'yes'. Otherwise, it's a W4+ only @tuneable.   
-~~~   
-wiz_puppets   
-By setting this to yes, only players of W1 or higher can set the   
-Z flag on things. Puppets will still work as normal, all that is   
-restricted is the actual setting of the Z flag. 
-~~~~~~
+~~~~
 auto_archive
 Setting this to 'no' shuts down all use of the @autoarchive support,
 either by the command or by the @tune. Setting it to yes allows W4
@@ -488,3 +480,14 @@ and above to run @autoarchive and to set the archive_interval
 @tune setting. 
 See: 'help @autoarchive' for details.
 ~~~~
+default_parent
+Set this to the room that the in-server @dig should select when no
+alternative parent room is located when a new room is made.
+~~~
+min_progbreak_lev
+This determines the lowest level that can use the @Q command to 
+break a foreground program. W2 and above can always do it.
+~~~
+mcp_muf_lev
+This determines the M level that a player must have to write 
+programs that take advantage of MCP related prims.

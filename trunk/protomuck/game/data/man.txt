@@ -1,5 +1,5 @@
 ==================================================================
-                     ProtoMUCK 1.6 MUF Manual
+                     ProtoMUCK 1.7 MUF Manual
 
 Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
@@ -61,13 +61,14 @@ Control Structures:
   GETPIDS    TRY      CATCH       ENDCATCH  JMP
 
 Property Prims:
-  ADDPROP     GETPROP     SETPROP     ENVPROP     REMOVE_PROP
-  GETPROPSTR  GETPROPVAL  GETPROPFVAL ENVPROPSTR  NEXTPROP
-  DESC        IDESC       HTMLDESC    IHTMLDESC   PROPDIR?
-  SETDESC     SETSUCC     SETFAIL     SETDROP     SETOSUCC
-  SETOFAIL    SETODROP    SUCC        FAIL        DROP
-  OSUCC       OFAIL       ODROP       GETLOCKSTR  
-  ANSIDESC    SETANSIDESC IANSIDESC   SETIANSIDESC  
+  ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
+  GETPROPSTR  GETPROPVAL    GETPROPFVAL     ENVPROPSTR    NEXTPROP
+  DESC        IDESC         HTMLDESC        IHTMLDESC     PROPDIR?
+  SETDESC     SETSUCC       SETFAIL         SETDROP       SETOSUCC
+  SETOFAIL    SETODROP      SUCC            FAIL          DROP
+  OSUCC       OFAIL         ODROP           GETLOCKSTR  
+  ANSIDESC    SETANSIDESC   IANSIDESC       SETIANSIDESC
+  REFLIST_ADD REFLIST_FIND  REFLIST_DEL 
 
 See: PRIMS3
 ~~~~~
@@ -88,6 +89,7 @@ Notifying Prims (I/O):
   NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
   STOPMIDI            PLAYMIDI                    COMMANDTEXT
   ARRAY_ANSI_NOTIFY   ARRAY_NOTIFY_HTML           ANSI_NOTIFY_DESCRIPTOR
+  NOTIFY_DESCRIPTOR_CHAR
 
 See: PRIMS4
 ~~~~~
@@ -118,7 +120,8 @@ Strings Prims:
   STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
   FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
   ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
-  NAME-OK?      PNAME-OK?    ANSI_MIDSTR  PARSE_NEON
+  NAME-OK?      PNAME-OK?    ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
+  POWER_2CHAR
  
 See: PRIMS5
 ~~~~~
@@ -138,14 +141,15 @@ Data Base Prims:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
-  GETOBJINFO    FIND_ARRAY
+  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR
         
 System Prims:
   SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
-  FORCE_LEVEL   MOTD_NOTIFY    COMPILE       UNCOMPILE
+  FORCE_LEVEL   MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
 
 Socket Prims:
-  SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK
+  SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
+  LSOCKOPEN, SOCKACCEPT
 
 See: PRIMS6
 ~~~~~
@@ -167,6 +171,7 @@ Array Prims:
   ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
   ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
   EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
+  ARRAY_CUT            ARRAY_COMPARE
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
@@ -254,14 +259,14 @@ AND     OR     NOT
 PROP PRIMS|PROPS|PROPPRIMS
 
 The following prims are used to work with properties on objects:
-
-ADDPROP     GETPROP     SETPROP     ENVPROP     REMOVE_PROP
-GETPROPSTR  GETPROPVAL  GETPROPFVAL ENVPROPSTR  NEXTPROP
-DESC        IDESC       HTMLDESC    IHTMLDESC   PROPDIR?
-SETDESC     SETSUCC     SETFAIL     SETDROP     SETOSUCC
-SETOFAIL    SETODROP    SUCC        FAIL        DROP
-OSUCC       OFAIL       ODROP       GETLOCKSTR
-ANSIDESC    SETANSIDESC IANSIDESC   SETIANSIDESC  
+ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
+GETPROPSTR  GETPROPVAL    GETPROPFVAL     ENVPROPSTR    NEXTPROP
+DESC        IDESC         HTMLDESC        IHTMLDESC     PROPDIR?
+SETDESC     SETSUCC       SETFAIL         SETDROP       SETOSUCC
+SETOFAIL    SETODROP      SUCC            FAIL          DROP
+SUCC       OFAIL         ODROP           GETLOCKSTR  
+ANSIDESC    SETANSIDESC   IANSIDESC       SETIANSIDESC
+REFLIST_ADD REFLIST_FIND  REFLIST_DEL 
 
 ~
 NOTIFICATION PRIMS|NOTIFICATIONPRIMS|NOTIFICATION
@@ -275,6 +280,7 @@ NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
 NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
 STOPMIDI            PLAYMIDI                    COMMANDTEXT
 ARRAY_ANSI_NOTIFY   NOTIFY_ARRAY_HTML           ANSI_NOTIFY_DESCRIPTOR
+NOTIFY_DESCRIPTOR_CHAR
 
 ~
 CONVERSION PRIMS|COVERSION|CONVERSIONPRIMS|CONVERTING
@@ -312,7 +318,7 @@ The following prims are used to work with the MUCK database:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     EXITS_ARRAY    CONTENTS_ARRAY
-  GETOBJINFO    FIND_ARRAY
+  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -337,7 +343,8 @@ STRCUT        SPLIT        RSPLIT       MIDSTR       SMATCH
 STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
 FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
 ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
-PNAME-OK?     NAME-OK?     ANSI_MIDSTR  PARSE_NEON
+PNAME-OK?     NAME-OK?     ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
+POWER_2CHAR
 
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
@@ -422,7 +429,7 @@ SYSTEM PRIMS|SYSTEMPRIMS
 These prims are used to make changes in the MUCK system:
 
 SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
-FORCE_LEVEL   MOTD_NOTIFY    COMPILE       UNCOMPILE
+FORCE_LEVEL   MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
 
 ~~~~~
 MULTITASKING PRIMS
@@ -446,6 +453,7 @@ strings  (s)       - ASCII Character strings.
 dbrefs   (d)       - Database reference numbers.
 addresses(address) - Names of MUF functions.
 socket   (socket)  - A socket pointer.
+lsocket  (lsocket) - A listening socket pointer
 array    (a)       - A MUF style array.
 locks    (l)       - A special string that represents a lock
 variables(v)       - Variables that store any data type.
@@ -2051,7 +2059,7 @@ NEWOBJECT
 newobject (d1 s -- d2)
 ----------------------
 Level: M2 to W2 Journeyman to Wizard
-d1 = dbref representing a player, room, or thing.
+d1 = dbref representing a player or thing.
 s  = string containing the name of the new object.
 d2 = dbref of new object when it is made.
 
@@ -3149,6 +3157,8 @@ descripnum             ( i -- s )
 firstdescr             ( d -- i )
 lastdescr              ( d -- i )
 descr_flag?            ( i s -- i )
+notify_descriptor_char ( i i -- )
+bandwidth              ( -- i i i )
 
 See: W1, MUCKER LEVELS, individual prim entries for more details
 ~~~~
@@ -3227,6 +3237,8 @@ getdir              ( s -- arr )
 newprogram          ( s -- d )
 compile             ( d i -- i )
 uncompile           ( d -- )
+lsockopen           ( i i -- lsocket s )
+sockaccept          ( lsocket -- socket )
 
 See: W4, MUCKER LEVELS, individual prim entries for more details.
 ~
@@ -3692,7 +3704,7 @@ EXPANDED_DEBUG (X) = Programs set with EXPANDED_DEBUG will display much
 
 See: FLAGS3
 ~~~
-FLAGS3|FLAG3|VEHICLE|VIEWABLE|LINK_OK
+FLAGS3|FLAG3|VEHICLE|VIEWABLE|LINK_OK|O|OLDCOMMENT
 
 VIEWABLE (V) = A program set VIEWABLE can be @listed by any player 
             expect for guests.
@@ -3704,6 +3716,13 @@ LINK_OK (L) = Setting a program linkable makes it available for use by
             set = L. If an action not owned by the program owner is
             already linked to the program when the L flag is removed, then
             the action will no longer work.
+
+OLDCOMMENT (O) = Setting a program with OLDCOMMENT makes it so that the
+            comments in it are parsed using the traditional comment 
+            parser. Comments are handled using Proto's comment parser
+            by default and this should only be used if an older program
+            fails to compile due to it's comments not complying with the
+            new method.
 
 See: FLAGS4
 ~~~
@@ -4546,7 +4565,7 @@ SOCKOPEN is included strictly for backwards compatability, though now
 returns a non-blocking socket as well.
 
 See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
-     SOCKET?, SOCKDESCR, NBSOCKRECV
+     SOCKET?, SOCKDESCR, NBSOCKRECV, LSOCKOPEN, SOCKACCEPT
 ~
 SOCKOPEN
 
@@ -4828,6 +4847,7 @@ $CONNECT.TXT      = data/connect.txt
 $HELP.TXT         = data/help.txt
 $MAN.TXT          = data/man.txt
 $MPIHELP.TXT      = data/mpihelp.txt
+$SYSPARMS.TXT     = data/sysparms.txt
 $NEWS/            = data/news/
 $HELP/            = data/help/
 $INFO/            = data/info/
@@ -5232,7 +5252,17 @@ signs of both values, and avoiding problems with DIVBY0. This is
 useful to get an angle from X-Y coordinates.
 
 See: FLOAT PRIMS
-~
+~~~~
+KAERU
+
+kaeru ( d i s1 -- i ) 
+--------------------- 
+Level: W6 Frog
+
+Takes dbref, integer, and string and will return 0 if Kaeru is idle. 
+It theoretically returns 1 if Kaeru is unidle, but that has yet to 
+happen.
+~~~~
 DIST3D
 
 dist3D ( nx ny nz -- f )
@@ -5501,6 +5531,7 @@ ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
 ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
 ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
 EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
+ARRAY_CUT            ARRAY_COMPARE
 
 See: Individual entries for more information.
 ~~~~~~
@@ -7544,6 +7575,17 @@ containing the dialogid, used by other prims to add controls or make various
 changes. This dialog will be hidden and not shown to the user until it has 
 been displayed with the GUI_DLOG_SHOW command. 
 
+Supported optional args are:
+    names      list of user-viewable pane names for D_TABBED & D_HELPER dlogs.
+    panes      list of pane ids for D_TABBED and D_HELPER dialogs.
+    width      requested width of dialog in pixels.
+    height     requested height of dialog in pixels.
+    resizable  allows resizing in "x", "y", or "both" dimensions.
+    minwidth   minimum width of window in pixels.
+    minheight  minimum height of window in pixels.
+    maxwidth   maximum width of window in pixels.
+    maxheight  maximum height of window in pixels.
+
 See: MCP PRIMS
 ~~~~~~~~
 GUI_DLOG_SHOW|
@@ -8390,3 +8432,196 @@ Example: "$INFO/" getdir would return the contents of the data/info directory
 
 See: FILE PRIMS, SHORTCUTS
 ~~~~~
+ARRAY_CUT
+
+array_cut ( a1 @ -- a2 a3 )
+---------------------------
+Level: M1 Apprentice
+a1 = Array to cut.
+@  = Index of where to cut at.
+a2 = Contents of a1 before the index of @
+a3 = Contents of a1 after the index of @
+
+Given an array and an index in the array, it cuts the array into
+two arrays at that possition. The 2 arrays remain the same type
+of array as the original array was. The first array will contain
+all of the items that were before the index, and the second array
+will contain all the items that were after the index. 
+~~~~~~~
+ARRAY_COMPARE
+
+array_compare ( a1 a2 -- i )
+----------------------------
+Level: M1 Apprentice
+a1 = An array to be compared.
+a2 = The array to compare a1 to.
+i  = Indicates the result. 
+
+Compares the two arrays and returns 0 if they are exactly the same, otherwise
+it returns a negative value if the second array is greater than the first, and
+a possitive value if the first array is greater than the second. It is case
+sensitive.
+~~~~
+REFLIST_FIND|
+
+reflist_find ( d1 s1 d2 -- i )
+------------------------------
+d1 = dbref of where the prop is.
+s1 = string representing the name of the prop.
+d2 = dbref to search for in the ref list.
+i  = integer indicating if where the dbref is in the string if it is present.
+
+A reflist is a list of dbrefs in a string type prop, often used for permissions
+lists, player lists, etc. This prim takes a dbref object, the name of the 
+reflist prop, and then checks to see if d2 is one of the dbrefs listed in the
+reflist. If it isn't, it returns 0, if it is, it returns the position of d2
+in the reflist. In other words, if it's the first dbref, then 1 is returned,
+2 if it's the second, etc.
+
+See: REFLIST_DEL, REFLIST_ADD
+~~~~~~
+REFLIST_ADD
+
+reflist_add ( d1 s1 d2 -- )
+---------------------------
+d1 = dbref of where the prop is.
+s1 = string representing the dbref.
+d2 = dbref to add to the reflist.
+
+A reflist is a list of dbrefs in a string type prop, often used for permissions
+lists, player lists, etc. This prim adds dbref d2 to the reflist stored in the
+prop s1 on object d1. If the dbref is already in the reflist, then it gets 
+moved to the end of the list. 
+
+See: REFLIST_FIND, REFLIST_DEL
+~~~~~
+REFLIST_DEL
+
+reflist_del ( d1 s1 d2 -- )
+---------------------------
+d1 = dbref of where the prop is.
+s1 = Name of the prop.
+d2 = dbref to remove from the reflist.
+
+A reflist is a list of dbrefs in a string type prop, often used for permissions
+lists, player lists, etc. This prim removes dbref d2 from the reflist stored in
+the prop s1 on object d1. If the dbref is not found in that reflist, then no
+changes are made to the reflist.
+
+See: REFLIST_FIND, REFLIST_ADD
+~~~~~
+DIFF3
+
+diff3 ( fx1 fy1 fz1 fx2 fy2 fz2 -- fx' fy' fz' )
+------------------------------------------------
+Level: M1 Apprentice
+fx# ... - The numbers to subtract from each other.
+fx' ... - The difference between each of the points.
+
+Performs the following math:
+fx1 - fx2, fy1 - fy2, and fz1 - fz2, then pushes the 3 answers onto the stack.
+~~~~~
+FLAG_2CHAR|
+
+flag_2char ( s1 -- s2 )
+-----------------------
+Level: M1 Apprentice
+s1 = string containing a flag name.
+s2 = string containing a flag token.
+
+Given a valid flag, returns a string containing that flag's token.
+Example:
+"PARENT" would return "%"
+"LINK_OK" would return "L"
+
+See: POWER_2CHAR
+~~~~
+POWER_2CHAR ( s1 -- s2 )
+------------------------
+Level: M1 Apprentice
+s1 = string containing a power name.
+s2 = string contaiing a power token.
+
+Given a valid power, returns a string containing that power's token.
+Example:
+"CONTROL_MUF" would return "f"
+"HIDE" would return "h"
+
+See: FLAG_2CHAR
+~~~~
+NOTIFY_DESCRIPTOR_CHAR
+
+notify_descriptor_char ( i1 i2 -- )
+-----------------------------------
+Level: W1 Mage
+i1 = A valid descriptor
+i2 = integer representing the ASCII character to notify out
+
+This prim notifies a single character out to the descriptor.
+It does not include an endline, so most modern MU* clients will
+ignore it. 
+It isn't intended to be a normal means of notifying strings out
+to connections, but rather was implemented for 'special 
+circumstances' programming, when something needs to be notified
+to a connection without undergoing any changes in-muck.
+~~~~
+BANDWIDTH
+
+bandwidth ( -- i1 i2 i3 )
+-------------------------
+Level: W1 Mage
+i1 = Total number of bytes input to the MUCK.
+i2 = Total number of bytes output by the MUCK.
+i3 = Total number of commands entered since startup.
+
+This reports stats on the bandwidth usage of the MUCK in the form 
+of bytes total.  Adding i1 and i2 together should give a very accurate
+total of the amount of data that has flowed over the MUCK's connections.
+~~~~~
+LSOCKOPEN
+
+lsockopen ( i1 i2 -- lsock s )
+------------------------------
+Level: W4 Boy
+i1 = integer representing the waiting queue size
+i2 = integer representing the port to listen on
+lsock = A listening MUF socket
+s  = string containing status message
+
+Given a waiting queue size and a port number, attempts to bind and
+open a listening socket to that port. The waiting queue represents
+the number of connections that can be waiting to be accepted at one
+time. If you do not know what this is, just set it to 5. The port 
+should be something over 1024 and must not be in use by anything 
+else already.
+
+If everything works out, an open listening socket is pushed onto
+the stack and s will contain "noerr". If an error happens, then a
+0 is pushed onto the stack in place of the socket and s will 
+contain a message indicating an error. 
+
+Once a listening socket is made, that port will stay open for as
+long as there is an instance of that MUF socket (either in a 
+variable or on the stack). Use SOCKACCEPT to accept incoming
+connections.
+
+See: SOCKACCEPT, SOCKET PRIMS
+~~~~
+SOCKACCEPT
+
+sockaccept (lsocket -- socket or 0 )
+------------------------------------
+Level: W4 Boy
+lsocket = A listening socket as created by lsockopen
+socket = A traditional send/recieve MUF socket.
+
+Given an open listening socket, checks for any incoming
+connections waiting to be accepted. If there are no waiting
+connections, it returns a 0 to the stack.
+
+If there is a waiting connection, a normal MUF socket is
+created and pushed onto the stack. One can then interact
+with the connection via SOCKSEND and NBSOCKRECIEVE like 
+normal.
+
+See: LSOCKOPEN, SOCKET PRIMS
