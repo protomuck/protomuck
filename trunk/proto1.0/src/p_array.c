@@ -19,7 +19,7 @@
 #include "props.h"
 
 static struct inst *oper1, *oper2, *oper3, *oper4;
-static struct inst temp1, temp2;
+static struct inst temp1, temp2, temp3;
 static int result;
 static dbref ref;
 static char buf[BUFFER_LEN];
@@ -1308,7 +1308,6 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
         const char *rawstr;
         char dir[BUFFER_LEN];
         int count = 0;
-        int val = 0;
 
         /* dbref strPropDir -- array */
         CHECKOP(2);
@@ -1327,105 +1326,104 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
         strcpy(dir, oper2->data.string->data);
 
         if (!prop_read_perms(ProgUID, ref, dir, mlev))
-                abort_interp("Permission denied.");
+                abort_interp(tp_noperm_mesg);
 
         new = new_array_packed(0);
         rawstr = get_property_class(ref, dir);
-/*This if clause added by Akari to fix crasher */
-      if(!(rawstr == NULL))
-      {
-        while (isspace(*rawstr))
-                rawstr++;
-        while (*rawstr) {
-                if (*rawstr == '#')
-                        rawstr++;
-                if (!isdigit(*rawstr))
-                        break;
-                result = atoi(rawstr);
-                while (*rawstr && !isspace(*rawstr))
-                        rawstr++;
+        rawstr = get_uncompress(rawstr);
+
+        if (rawstr) {
                 while (isspace(*rawstr))
                         rawstr++;
+                while (*rawstr) {
+                        if (*rawstr == '#')
+                                rawstr++;
+                        if (!isdigit(*rawstr))
+                                break;
+                        result = atoi(rawstr);
+                        while (*rawstr && !isspace(*rawstr))
+                                rawstr++;
+                        while (isspace(*rawstr))
+                                rawstr++;        
 
-                temp1.type = PROG_INTEGER;
-                temp1.data.number = count;
+                        temp1.type = PROG_INTEGER;
+                        temp1.data.number = count;
 
-                temp2.type = PROG_OBJECT;
-                temp2.data.number = result;
+                        temp2.type = PROG_OBJECT;
+                        temp2.data.number = result;
 
-                array_setitem(&new, &temp1, &temp2);
-                count++;
+                        array_setitem(&new, &temp1, &temp2);
+                        count++;
 
-                CLEAR(&temp1);
-                CLEAR(&temp2);
+                        CLEAR(&temp1);
+                        CLEAR(&temp2);
+                }
         }
-      }
-        PushArrayRaw(new);
-}
 
+        PushArrayRaw(new);
+}   
 
 void
 prim_array_put_reflist(PRIM_PROTOTYPE)
 {
-        stk_array *arr;
-        char buf2[BUFFER_LEN];
-        char dir[BUFFER_LEN];
-        char *out;
-/*      PData propdat; */
-        int len;
-      int protoflags;
+	stk_array *arr;
+	char buf2[BUFFER_LEN];
+	char dir[BUFFER_LEN];
+	char *out;
+	int protoflags;
+	int len;
 
-        /* dbref strPropDir array -- */
-        CHECKOP(3);
-        oper3 = POP();
-        oper2 = POP();
-        oper1 = POP();
-        if (oper1->type != PROG_OBJECT)
-                abort_interp("Dbref required. (1)");
-        if (!valid_object(oper1))
-                abort_interp("Invalid dbref. (1)");
-        if (oper2->type != PROG_STRING)
-                abort_interp("String required. (2)");
-        if (oper3->type != PROG_ARRAY)
-                abort_interp("Argument must be a list array of dbrefs. (3)");
-        if (oper3->data.array && oper3->data.array->type != ARRAY_PACKED)
-                abort_interp("Argument must be a list array of dbrefs. (3)");
-        if (!array_is_homogenous(oper3->data.array, PROG_OBJECT))
-                abort_interp("Argument must be a list array of dbrefs. (3)");
+	/* dbref strPropDir array -- */
+	CHECKOP(3);
+	oper3 = POP();
+	oper2 = POP();
+	oper1 = POP();
+	if (oper1->type != PROG_OBJECT)
+		abort_interp("Dbref required. (1)");
+	if (!valid_object(oper1))
+		abort_interp("Invalid dbref. (1)");
+	if (oper2->type != PROG_STRING)
+		abort_interp("String required. (2)");
+	if (!oper2->data.string)
+		abort_interp("Non-null string required. (2)");
+	if (oper3->type != PROG_ARRAY)
+		abort_interp("Argument must be a list array of dbrefs. (3)");
+	if (oper3->data.array && oper3->data.array->type != ARRAY_PACKED)
+		abort_interp("Argument must be a list array of dbrefs. (3)");
+	if (!array_is_homogenous(oper3->data.array, PROG_OBJECT))
+		abort_interp("Argument must be a list array of dbrefs. (3)");
 
-        ref = oper1->data.objref;
-        strcpy(dir, DoNullInd(oper2->data.string));
-/*The following added by Akari */
-        remove_property(ref, dir);
-        arr = oper3->data.array;
-        buf[0] = '\0';
+	ref = oper1->data.objref;
+	strcpy(dir, DoNullInd(oper2->data.string));
+	arr = oper3->data.array;
+	buf[0] = '\0';
 
-        out = buf;
-        if (array_first(arr, &temp1)) {
-                do {
-                        oper4 = array_getitem(arr, &temp1);
-                        len = sprintf(buf2, "#%d", oper4->data.objref);
+	if (!prop_write_perms(ProgUID, ref, dir, mlev))
+		abort_interp("Permission denied.");
 
-                        if (out + len - buf >= BUFFER_LEN - 3)
-                                abort_interp("Operation would result in string length overflow.");
+	out = buf;
+	if (array_first(arr, &temp1)) {
+		do {
+			oper4 = array_getitem(arr, &temp1);
+			len = sprintf(buf2, "#%d", oper4->data.objref);
 
-                        if (*buf)
-                                *out++ = ' ';
-                        strcat(out, buf2);
-                        out += len;
-                } while (array_next(arr, &temp1));
-        }
+			if (out + len - buf >= BUFFER_LEN - 3)
+				abort_interp("Operation would result in string length overflow.");
 
-        if (!prop_write_perms(ProgUID, ref, dir, mlev))
-                abort_interp("Permission denied while trying to set protected property.");
+			if (*buf)
+				*out++ = ' ';
+			strcpy(out, buf2);
+			out += len;
+		} while (array_next(arr, &temp1));
+	}
 
-        protoflags = PROP_STRTYP;
-/*      propdat.data.str = buf; */
-        set_property(ref, dir, protoflags, buf);
+	remove_property(ref, dir);
+	protoflags = PROP_STRTYP;
+	set_property(ref, dir, protoflags, buf);
 
-        CLEAR(oper1);
-        CLEAR(oper2);
-        CLEAR(oper3);
+	CLEAR(oper1);
+	CLEAR(oper2);
+	CLEAR(oper3);
 }
 
 
@@ -1494,4 +1492,59 @@ prim_array_excludeval(PRIM_PROTOTYPE)
         PushArrayRaw(new);
 }
 
-
+void
+prim_explode_array(PRIM_PROTOTYPE)
+{
+    stk_array *new;
+    char *tempPtr;
+    CHECKOP(2);
+    temp1 = *(oper1 = POP());
+    temp2 = *(oper2 = POP());
+    oper1 = &temp1;
+    oper2 = &temp2;
+    if (temp1.type != PROG_STRING)
+        abort_interp("Non-string argument (2)");
+    if (temp2.type != PROG_STRING)
+        abort_interp("Non-string argument (1)");
+    if (!temp1.data.string)
+        abort_interp("Empty string argument (2)");
+    {
+        int     i;
+        const char *delimit = temp1.data.string->data;
+        new = new_array_packed(0);  
+        if (!temp2.data.string) {
+            result = 1;
+            CLEAR(&temp1);
+            CLEAR(&temp2);
+            temp3.type = PROG_STRING;
+            temp3.data.string = alloc_prog_string("");
+            array_appenditem(&new, &temp3);
+            CLEAR(&temp3);
+            PushArrayRaw(new);  
+            return;
+        } else {
+            result = 0;
+            bcopy(temp2.data.string->data, buf, temp2.data.string->length + 1);
+            for (i = temp2.data.string->length - 1; i >= 0; i--) {
+                if (!strncmp(buf + i, delimit, temp1.data.string->length)) {
+                    buf[i] = '\0';
+                    temp3.type = PROG_STRING;
+                    tempPtr = (buf + i + temp1.data.string->length);
+                    temp3.data.string = alloc_prog_string(tempPtr);
+                    array_appenditem(&new, &temp3 ); 
+                    result++;
+                }
+            }
+            CHECKOFLOW(1);
+            tempPtr = buf;
+            temp3.type = PROG_STRING;
+            temp3.data.string = alloc_prog_string(tempPtr);
+            array_appenditem(&new, &temp3);
+            PushArrayRaw(new);
+            result++;
+        }
+    }
+    CLEAR(&temp1);
+    CLEAR(&temp2);
+    CLEAR(&temp3);
+} 

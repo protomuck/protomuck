@@ -68,19 +68,22 @@ create_player(const char *name, const char *password)
        FLAGS(player) = FLAGS(tp_player_prototype);
        FLAG2(player) = FLAG2(tp_player_prototype);
 
-       daprops = (struct plist*) copy_prop(tp_player_prototype);
-       newp->properties = daprops;
-       newp->exits = NOTHING;
-       newp->contents = NOTHING;
-       newp->next = NOTHING;
+       if (tp_pcreate_copy_props) {
+          daprops = (struct plist*) copy_prop(tp_player_prototype);
+          newp->properties = daprops;
+          newp->exits = NOTHING;
+          newp->contents = NOTHING;
+          newp->next = NOTHING;
 #ifdef DISKBASE
-       newp->propsfpos = 0;
-       newp->propsmode = PROPS_UNLOADED;
-       newp->propstime = 0;
-       newp->nextold = NOTHING;
-       newp->prevold = NOTHING;
-       dirtyprops(player);
+          newp->propsfpos = 0;
+          newp->propsmode = PROPS_UNLOADED;
+          newp->propstime = 0;
+          newp->nextold = NOTHING;
+          newp->prevold = NOTHING;
+          dirtyprops(player);
 #endif
+       }
+       newp->location = tp_player_start;
        DBDIRTY(player);
     } else {
        struct object *newp = DBFETCH(player);
@@ -119,13 +122,13 @@ do_password(dbref player, const char *old, const char *newobj)
     }
 
     if (!DBFETCH(player)->sp.player.password || strcmp(old, DBFETCH(player)->sp.player.password)) {
-	anotify(player, CFAIL "Sorry.");
+	anotify_nolisten2(player, CFAIL "Sorry.");
     } else if (!ok_password(newobj)) {
-	anotify(player, CFAIL "Bad new password.");
+	anotify_nolisten2(player, CFAIL "Bad new password.");
     } else {
 	free((void *) DBFETCH(player)->sp.player.password);
 	DBSTORE(player, sp.player.password, alloc_string(newobj));
-	anotify(player, CFAIL "Password changed.");
+	anotify_nolisten2(player, CFAIL "Password changed.");
     }
 }
 

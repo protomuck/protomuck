@@ -35,7 +35,7 @@ extern void prim_array_put_proplist(PRIM_PROTOTYPE);
 
 extern void prim_array_get_reflist(PRIM_PROTOTYPE);
 extern void prim_array_put_reflist(PRIM_PROTOTYPE);
-
+extern void prim_explode_array(PRIM_PROTOTYPE);
 #define PRIMS_ARRAY_FUNCS prim_array_make, prim_array_make_dict, \
         prim_array_explode, prim_array_vals, prim_array_keys, \
         prim_array_first, prim_array_last, prim_array_next, prim_array_prev, \
@@ -48,7 +48,7 @@ extern void prim_array_put_reflist(PRIM_PROTOTYPE);
 		prim_array_get_proplist, prim_array_put_propvals, \
 		prim_array_put_proplist, prim_array_get_reflist, \
 		prim_array_put_reflist, prim_array_appenditem, prim_array_findval, \
-		prim_array_excludeval
+		prim_array_excludeval, prim_explode_array
 
 #define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT", \
         "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS", \
@@ -62,6 +62,6 @@ extern void prim_array_put_reflist(PRIM_PROTOTYPE);
 		"ARRAY_GET_PROPLIST", "ARRAY_PUT_PROPVALS", \
 		"ARRAY_PUT_PROPLIST", "ARRAY_GET_REFLIST", \
 		"ARRAY_PUT_REFLIST", "ARRAY_APPENDITEM", "ARRAY_FINDVAL", \
-		"ARRAY_EXCLUDEVAL"
+		"ARRAY_EXCLUDEVAL", "EXPLODE_ARRAY"
 
-#define PRIMS_ARRAY_CNT 41
+#define PRIMS_ARRAY_CNT 42

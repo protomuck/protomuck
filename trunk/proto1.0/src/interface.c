@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/interface.c,v 1.1.1.1 2000-09-20 18:26:07 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/interface.c,v 1.2 2000-09-20 18:34:09 akari Exp $
  *
  * $Log: not supported by cvs2svn $
  *
@@ -167,14 +167,24 @@ short wizonly_mode = 0;
 void
 show_program_usage(char *prog)
 {
-    fprintf(stderr, "Usage: %s [<options>] infile dumpfile [portnum]\n", prog);
-    fprintf(stderr, "            -convert       load db, save in current format, and quit.\n");
-    fprintf(stderr, "            -decompress    when saving db, save in uncompressed format.\n");
-    fprintf(stderr, "            -nosanity      don't do db sanity checks at startup time.\n");
-    fprintf(stderr, "            -insanity      load db, then enter interactive sanity editor.\n");
-    fprintf(stderr, "            -sanfix        attempt to auto-fix a corrupt db after loading.\n");
-    fprintf(stderr, "            -wizonly       only allow wizards to login.\n");
-    fprintf(stderr, "            -help          display this message.\n");
+    fprintf(stderr, "Usage: %s [<options>] [infile [dumpfile [portnum]]]\n", prog);
+    fprintf(stderr, "   Arguments:\n");
+    fprintf(stderr, "       infile            db loaded at startup. optional with -dbin.\n");
+    fprintf(stderr, "       outfile           output db to save to. optional with -dbout.\n");
+    fprintf(stderr, "       portnum           port number to listen for connections on.\n");
+    fprintf(stderr, "   Options:\n");
+    fprintf(stderr, "       -dbin INFILE      uses INFILE as the database to load at startup.\n");
+    fprintf(stderr, "       -dbout OUTFILE    uses OUTFILE as the output database to save to.\n");
+    fprintf(stderr, "       -port NUMBER      sets the port number to listen for connections on.\n");
+    fprintf(stderr, "       -gamedir PATH     changes directory to PATH before starting up.\n");
+    fprintf(stderr, "       -convert          load db, save in current format, and quit.\n");
+    fprintf(stderr, "       -decompress       when saving db, save in uncompressed format.\n");
+    fprintf(stderr, "       -nosanity         don't do db sanity checks at startup time.\n");
+    fprintf(stderr, "       -insanity         load db, then enter interactive sanity editor.\n");
+    fprintf(stderr, "       -sanfix           attempt to auto-fix a corrupt db after loading.\n");
+    fprintf(stderr, "       -wizonly          only allow wizards to login.\n");
+    fprintf(stderr, "       -version          display this server's version.\n");
+    fprintf(stderr, "       -help             display this message.\n");
     exit(1);
 }
 
@@ -209,6 +219,7 @@ main(int argc, char **argv)
 	show_program_usage(*argv);
     }
 
+    resolver_myport = whatport = tp_textport;
 
     plain_argnum = 0;
     nomore_options = 0;
@@ -229,6 +240,34 @@ main(int argc, char **argv)
 		wizonly_mode = 1;
 	    } else if (!strcmp(argv[i], "-sanfix")) {
 		sanity_autofix = 1;
+          } else if (!strcmp(argv[i], "-version")) {
+            printf("ProtoMUCK %s (%s -- %s)\n", PROTOBASE, VERSION, NEONVER);
+            exit(0);
+          } else if (!strcmp(argv[i], "-dbin")) {
+            if (i + 1 >= argc) {
+               show_program_usage(*argv);
+            }
+            infile_name = argv[++i];
+
+          } else if (!strcmp(argv[i], "-dbout")) {
+            if (i + 1 >= argc) {
+               show_program_usage(*argv);
+		}
+            outfile_name = argv[++i];
+
+          } else if (!strcmp(argv[i], "-port")) {
+            if (i + 1 >= argc) {
+               show_program_usage(*argv);
+            }
+            resolver_myport = whatport = atoi(argv[++i]);
+          } else if (!strcmp(argv[i], "-gamedir")) {
+            if (i + 1 >= argc) {
+               show_program_usage(*argv);
+            }
+            if (chdir(argv[++i])) {
+               perror("cd to gamedir");
+               exit(4);
+            }
 	    } else if (!strcmp(argv[i], "--")) {
 		nomore_options = 1;
 	    } else {
@@ -321,13 +360,13 @@ main(int argc, char **argv)
 
     }
 
-
     if (init_game(infile_name, outfile_name) < 0) {
 	fprintf(stderr, "Couldn't load %s!\n", infile_name);
 	exit(2);
     }
 
-    resolver_myport = whatport = tp_textport;
+    if (tp_textport)
+       resolver_myport = whatport = tp_textport;
 
 #ifdef SPAWN_HOST_RESOLVER
 	if (!db_conversion_flag) {
@@ -361,7 +400,7 @@ main(int argc, char **argv)
 
 	if (restart_flag) {
 	    close_sockets(
-		"\r\nServer restarting, be back in a few!.");
+		"\r\nServer restarting, be back in a few!\r\n.");
 	} else {
 	    close_sockets(shutdown_message);
 	}
@@ -1091,6 +1130,21 @@ unparse_ansi( char *buf, const char *from )
 }
 
 int 
+anotify_nolisten2(dbref player, const char *msg)
+{
+    char    buf[BUFFER_LEN + 2];
+
+    if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
+	&& !(FLAG2(OWNER(player)) & F2HTML)) {
+	parse_ansi(buf, msg);
+    } else {
+	unparse_ansi(buf, msg);
+    }
+
+    return notify_nolisten(player, buf, 1);
+}
+
+int 
 anotify_nolisten(dbref player, const char *msg, int isprivate)
 {
     char    buf[BUFFER_LEN + 2];
@@ -1141,7 +1195,7 @@ anotify(dbref player, const char *msg)
 	unparse_ansi(buf, msg);
     }
 
-    return notify_nolisten(player, buf, 1);
+    return notify(player, buf);
 }
 
 struct timeval 
@@ -2346,7 +2400,29 @@ process_commands(void)
 	       && (!(d->connected && DBFETCH(d->player)->sp.player.block))) {
 		d->quota--;
 		nprocessed++;
-		if (!do_command(d, t->start)) d->booted = 2;
+		if (!do_command(d, t->start)) {
+               if (Typeof(tp_quit_prog) == TYPE_PROGRAM) {
+                  char *full_command, xbuf[BUFFER_LEN], buf[BUFFER_LEN], *msg, *command;
+                  struct frame *tmpfr;
+
+                  command = QUIT_COMMAND;
+                  strcpy(match_cmdname, QUIT_COMMAND);
+                  strcpy(buf, command + sizeof(QUIT_COMMAND) -1);
+                  msg = buf;
+                  full_command = strcpy(xbuf, msg);
+                  for (; *full_command && !isspace(*full_command); full_command++);
+                  if (*full_command)
+                     full_command++;
+                  strcpy(match_args, full_command);
+                  tmpfr = interp(d->descriptor, d->player, DBFETCH(d->player)->location,
+                                 tp_quit_prog, (dbref) -5, FOREGROUND, STD_REGUID);
+                  if (tmpfr) {
+                     interp_loop(d->player, tp_quit_prog, tmpfr, 0);
+                  }
+               } else {
+                  d->booted = 2;
+               }
+            }
 		/* start former else block */
 		d->input.head = t->nxt;
 		d->input.lines--;
@@ -2725,7 +2801,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	}
     }
     if ( lines > 1 ) { 
-	sprintf(buf, "<HR><font size=-1>ProtoMUCK %s - Moose, Akari (Web support by Loki)", PROTOBASE);
+        sprintf(buf, "<META NAME=\"server\" VALUE=\"ProtoMUCK %s -- Moose, Akari (Web support by Loki)\">", PROTOBASE); 
 	queue_string(d, buf);
     }
     if ( lines <= 1 ) {
@@ -2760,13 +2836,13 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		strcpy(match_args, buf);
 		strcpy(match_cmdname, "(WWW)");
 		tmpfr = interp(d->descriptor, tp_www_surfer, what, PropDataRef(prpt),
-		       tp_www_root, FOREGROUND, STD_HARDUID);
+		       tp_www_root, PREEMPT, STD_HARDUID);
 		if (tmpfr) {
 			interp_loop(tp_www_surfer, PropDataRef(prpt), tmpfr, 1);
 		}
 		strcpy(match_args,"");
 		strcpy(match_cmdname,"");
-		sprintf(buf, "<HR><font size=-1>ProtoMUCK %s - Moose, Akari (Web support by Loki)", PROTOBASE);
+		sprintf(buf, "<META NAME=\"server\" VALUE=\"ProtoMUCK %s -- Moose, Akari (Web support by Loki)\">", PROTOBASE);
             d->httpdata = string_dup(buf);
 	      } else
 	      {
@@ -2854,7 +2930,7 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    );
 	    d->booted = 1;
 	}
-    } else if (index(msg,':')) { /* Ignore */ } else
+   } else if (d->type == CT_HTML && (index(msg,':'))) { /* Ignore */ }
 #endif
 	   if (( string_prefix("connect", command) && !string_prefix("c", command) ) || !string_compare(command, "ch")) {
 	player = connect_player(user, password);
@@ -3298,7 +3374,7 @@ request( dbref player, struct descriptor_data *d, const char *msg )
 	    queue_string(d, "To request a character type:\r\n\r\n"
 		"   request <char name> <e-mail> <your name>   (Don't type the <> signs)\r\n\r\n"
 		"<char name> is the name you'd like for your character\r\n"
-		"   <e-mail> is your email address, ie: artie@sl.tcp.com\r\n"
+		"   <e-mail> is your email address, ie: user@host.com\r\n"
 		"<your name> is your first and last name in real life\r\n"
 	    );
 	    return 0;
@@ -3595,6 +3671,19 @@ dump_users(struct descriptor_data * e, char *user)
      if ((e->type == CT_HTML)) queue_string(e, "</pre>");
 }
 
+void 
+pdump_who_users(int c, char *user)
+{
+   struct descriptor_data *e;
+
+   e = descriptor_list;
+   while(e && e->descriptor != c) {
+      e = e->next;
+   }
+   if(e->descriptor == c)
+      dump_users(e, user);
+}
+
 char   *
 time_format_1(time_t dt)
 {
@@ -3727,13 +3816,15 @@ announce_connect(int descr, dbref player)
     if ((loc = getloc(player)) == NOTHING)
 	return;
 
-    if ((!Dark(player)) && (!Dark(loc)) && (!Hidden(player))) {
-	sprintf(buf, CMOVE "%s has connected.", PNAME(player));
-	anotify_except(DBFETCH(loc)->contents, player, buf, player);
-    }
+    if (!tp_quiet_connects) {
+       if ((!Dark(player)) && (!Dark(loc)) && (!Hidden(player))) {
+	   sprintf(buf, CMOVE "%s has connected.", PNAME(player));
+	   anotify_except(DBFETCH(loc)->contents, player, buf, player);
+       }
 
-    if (online(player) == 1 && (!Hidden(player))) {
-	announce_puppets(player, "wakes up.", "_/pcon");
+       if (online(player) == 1 && (!Hidden(player))) {
+	   announce_puppets(player, "wakes up.", "_/pcon");
+       }
     }
 
     ts_useobject(player);
@@ -4187,6 +4278,24 @@ pdescr_welcome_user(int c)
     for (d = descriptor_list; d && d->descriptor != c; d = dnext) dnext = d->next;
     if (d && d->descriptor == c)
        welcome_user(d);
+    return;
+}
+
+void
+pdescr_logout(int c)
+{
+    struct descriptor_data *d, *dnext;
+
+    for (d = descriptor_list; d && d->descriptor != c; d = dnext) dnext = d->next;
+    if (d && d->descriptor == c) {
+       log_status("LOGOUT: %2d %s %s(%s) %s\n",
+		d->descriptor, unparse_object(d->player, d->player),
+		d->hostname, d->username,
+		host_as_hex(d->hostaddr));
+       announce_disconnect(d);
+       d->connected = 0;
+       d->player = (dbref) -1;
+    }
     return;
 }
 

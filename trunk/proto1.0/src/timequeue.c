@@ -760,7 +760,7 @@ dequeue_process(int pid)
     }
 
     tmp = ptr;
-    while ((ptr) && (pid != ptr->eventnum)) {
+    while (ptr) {
 	if (pid == ptr->eventnum) {
 		if (tmp == ptr) {
 			tqhead = tmp = tmp->next;

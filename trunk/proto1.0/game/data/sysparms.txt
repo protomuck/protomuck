@@ -366,3 +366,12 @@ when players enter or leave rooms.
 expanded_debug
 Setting this to yes causes the MUF debugger to display the contents
 of MUF arrays.  It also expands the strings.
+~~
+proplist_int_counter
+Used to specify whether the system standard for proplist storage is to use integer or string props for the counter.
+~~
+proplist_entry_fmt
+Used to specify the system standard format for proplists. Any instance of P in the string will be replaced by the proplist name. Any instance of N in the string will be replaced by the item's number. The default is "P#/N".
+~~
+proplist_counter_fmt
+Used to display the system standard naming format for proplists. This string specifies the format of the namee of the property that the count of list items is stored in. Any instance of P will be replaced by the proplist name. The default is "P#".
