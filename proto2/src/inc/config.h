@@ -51,7 +51,7 @@
 /* Alynna - Define this for SSL support */
 /* Note: Use ./configure --with-ssl */
 /* Todo: Rename this to SSL_SUPPORT */
-#undef USE_SSL
+#define USE_SSL
 
 /* Alynna - Define this to have support for the @/ignore prop, a reflist
    on a player which will drop notifies from the players in the prop to
@@ -104,7 +104,7 @@
  *
  * See http://www.protomuck.org/ for an example of this. :)
  */
-#undef PROTO_AS_ROOT
+#define PROTO_AS_ROOT
 
 /* Define MUF_SOCKETS to include the MUF socket prims.
  * MUF socket support is necessary for any MUF programs
@@ -155,7 +155,7 @@
 
 /* Use to compress string data (recomended)
  */
-#define COMPRESS
+#undef COMPRESS
 
 /* To use a simple disk basing scheme where properties aren't loaded
  * from the input file until they are needed, define this. 

@@ -41,6 +41,7 @@ const char *tp_pennies = PENNIES;
 const char *tp_cpenny = CPENNY;
 const char *tp_cpennies = CPENNIES;
 const char *tp_muckname = MUCKNAME;
+const char *tp_userflag_name = "";
 const char *tp_reg_email = "admin@your.host.here";
 const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt = "P#/N";
@@ -75,6 +76,7 @@ struct tune_str_entry tune_str_list[] = {
     {"Currency", "cpenny", &tp_cpenny, LARCH, LMUF, 1},
     {"Currency", "cpennies", &tp_cpennies, LARCH, LMUF, 1},
     {"Identity", "muckname", &tp_muckname, WBOY, LMUF, 1},
+    {"Identity", "userflag_name", &tp_userflag_name, LARCH, LMUF, 1},
 #ifdef MAILSERVER
     {"Legacy", "mailserver", &tp_mailserver, WBOY, LWIZ, 1},
 #endif
@@ -165,6 +167,7 @@ int tp_mcp_muf_mlev = MCP_MUF_MLEV;
 #endif
 int tp_max_wiz_preempt_count = 0;
 int tp_wizhidden_access_bit = 3;
+int tp_userflag_mlev = 0;
 
 #ifdef NEWHTTPD                 /* hinoserm */
 int tp_wwwport = TINYPORT - 1;  /* hinoserm */
@@ -210,6 +213,7 @@ struct tune_val_entry tune_val_list[] = {
     {"Database", "max_delta_objs", &tp_max_delta_objs, LARCH, LMUF},
     {"Database", "max_loaded_objs", &tp_max_loaded_objs, LARCH, LMUF},
     {"Database", "wizhidden_access_bit", &tp_wizhidden_access_bit, WBOY, LMAGE},
+    {"Database", "userflag_mlev", &tp_userflag_mlev, LARCH, LMUF},
     {"MUF", "max_process_limit", &tp_max_process_limit, LARCH, LMUF},
     {"MUF", "max_plyr_processes", &tp_max_plyr_processes, LARCH, LMUF},
     {"MUF", "max_instr_count", &tp_max_instr_count, LARCH, LMUF},

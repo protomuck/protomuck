@@ -20,6 +20,7 @@ extern const char *tp_cpenny;
 extern const char *tp_cpennies;
 
 extern const char *tp_muckname;
+extern const char *tp_userflag_name;
 
 extern const char *tp_reg_email;
 
@@ -83,6 +84,7 @@ extern int tp_rand_screens;
 
 extern int tp_listen_mlev;
 extern int tp_wizhidden_access_bit;
+extern int tp_userflag_mlev;
 extern int tp_playermax_limit;
 
 extern int tp_dump_copies;
