@@ -196,6 +196,9 @@ nuke:
 
 install: all
 	${MV} ${TARGETS} ${DEST}
+	echo "To prepare a database for use, use 'make setup'."
+
+setup:
 	./setup
 
 # #######################################################################
