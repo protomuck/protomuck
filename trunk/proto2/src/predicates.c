@@ -20,7 +20,7 @@ can_link_to(register dbref who, object_flag_type what_type,
     if (where == HOME)
         return 1;
 
-    if (!OkObj(where))
+    if (!OkObj(who) || !OkObj(where))
         return 0;
 
     switch (what_type) {
