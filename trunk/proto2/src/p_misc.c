@@ -379,24 +379,24 @@ prim_stats(PRIM_PROTOTYPE)
         for (i = 0; i < db_top; i++) {
             if (ref == NOTHING || OWNER(i) == ref) {
                 switch (Typeof(i)) {
-                    case TYPE_ROOM:
-                        rooms++;
-                        break;
-                    case TYPE_EXIT:
-                        exits++;
-                        break;
-                    case TYPE_THING:
-                        things++;
-                        break;
-                    case TYPE_PLAYER:
-                        players++;
-                        break;
-                    case TYPE_PROGRAM:
-                        programs++;
-                        break;
-                    case TYPE_GARBAGE:
-                        garbage++;
-                        break;
+                case TYPE_ROOM:
+                    rooms++;
+                    break;
+                case TYPE_EXIT:
+                    exits++;
+                    break;
+                case TYPE_THING:
+                    things++;
+                    break;
+                case TYPE_PLAYER:
+                    players++;
+                    break;
+                case TYPE_PROGRAM:
+                    programs++;
+                    break;
+                case TYPE_GARBAGE:
+                    garbage++;
+                    break;
                 }
             }
         }
@@ -965,4 +965,44 @@ prim_systime_precise(PRIM_PROTOTYPE)
     CHECKOFLOW(1);
     dbltime = fulltime.tv_sec + (((double) fulltime.tv_usec) / 1.0e6);
     PushFloat(dbltime);
+}
+
+void
+prim_htoi(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    result = 0;
+
+    if (oper1->data.string) {
+        for (tmp = 0; oper1->data.string->data[tmp]; ++tmp) {
+            result +=
+                (oper1->data.string->data[tmp] >=
+                 'A' ? ((oper1->data.string->data[tmp] & 0xdf) - 'A') +
+                 10 : (oper1->data.string->data[tmp] - '0'));
+
+            if (oper1->data.string->data[tmp + 1] != '\0')
+                result *= 16;
+        }
+    }
+
+    CLEAR(oper1);
+    PushInt(result);
+}
+
+void
+prim_itoh(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument. (1)");
+
+    sprintf(buf, "%0.2X", oper1->data.number);
+
+    CLEAR(oper1);
+    PushString(buf);
 }

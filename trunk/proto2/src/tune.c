@@ -33,7 +33,6 @@ const char *tp_servername = "localhost";
 const char *tp_noperm_mesg = NOPERM_MESSAGE;
 const char *tp_noguest_mesg = NOGUEST_MESSAGE;
 const char *tp_idleboot_msg = IDLE_MESG;
-const char *tp_dummy_midi = DUMMYMIDI;
 const char *tp_penny = PENNY;
 const char *tp_pennies = PENNIES;
 const char *tp_cpenny = CPENNY;
@@ -69,7 +68,6 @@ struct tune_str_entry tune_str_list[] = {
     {"Currency", "cpenny", &tp_cpenny, LARCH, LMUF, 1},
     {"Currency", "cpennies", &tp_cpennies, LARCH, LMUF, 1},
     {"Identity", "muckname", &tp_muckname, WBOY, LMUF, 1},
-    {"Legacy", "dummy_midi", &tp_dummy_midi, WBOY, LMUF, 1},
     {"Legacy", "mailserver", &tp_mailserver, WBOY, LWIZ, 1},
     {"Identity", "servername", &tp_servername, WBOY, LMUF, 1},
     {"Legacy", "reg_email", &tp_reg_email, WBOY, LARCH, 1},
@@ -116,7 +114,6 @@ struct tune_time_entry tune_time_list[] = {
 
 /* integers */
 int tp_textport = TINYPORT;
-int tp_wwwport = TINYPORT - 1;
 int tp_puebloport = TINYPORT - 2;
 int tp_max_object_endowment = MAX_OBJECT_ENDOWMENT;
 int tp_object_cost = OBJECT_COST;
@@ -150,6 +147,15 @@ int tp_mcp_muf_mlev = MCP_MUF_MLEV;
 int tp_max_wiz_preempt_count = 0;
 int tp_wizhidden_access_bit = 3;
 
+#ifdef NEWHTTPD                 /* hinoserm */
+int tp_wwwport = TINYPORT - 1;  /* hinoserm */
+int tp_web_logfile_lvl = 2;     /* hinoserm */
+int tp_web_logwall_lvl = 1;     /* hinoserm */
+int tp_web_htmuf_mlvl = LM2;    /* hinoserm */
+int tp_web_max_files = 4;       /* hinoserm */
+int tp_web_max_filesize = 4096; /* 4mb, in kb -hinoserm */
+int tp_web_max_users = 10;      /* hinoserm */
+#endif /* hinoserm */
 #ifdef SQL_SUPPORT
 int tp_mysql_result_limit = 40;
 #endif
@@ -163,7 +169,7 @@ struct tune_val_entry {
 
 struct tune_val_entry tune_val_list[] = {
     {"System", "mainport", &tp_textport, WBOY, LMUF},
-#ifdef HTTPD
+#ifdef NEWHTTPD
     {"System", "wwwport", &tp_wwwport, WBOY, LMUF},
 #endif
     {"System", "puebloport", &tp_puebloport, WBOY, LMUF},
@@ -201,6 +207,14 @@ struct tune_val_entry tune_val_list[] = {
 #ifdef SQL_SUPPORT
     {"MUF", "mysql_result_limit", &tp_mysql_result_limit, LBOY, LARCH},
 #endif
+#ifdef NEWHTTPD                 /* hinoserm */
+    {"HTTPD", "web_logfile_lvl", &tp_web_logfile_lvl, WBOY, LMUF}, /* hinoserm */
+    {"HTTPD", "web_logwall_lvl", &tp_web_logwall_lvl, LARCH, LMUF}, /* hinoserm */
+    {"HTTPD", "web_htmuf_mlvl", &tp_web_htmuf_mlvl, LARCH, LMUF}, /* hinoserm */
+    {"HTTPD", "web_max_files", &tp_web_max_files, WBOY, LMUF}, /* hinoserm */
+    {"HTTPD", "web_max_filesize", &tp_web_max_filesize, WBOY, LMUF}, /* hinoserm */
+    {"HTTPD", "web_max_users", &tp_web_max_users, LARCH, LMUF}, /* hinoserm */
+#endif /* hinoserm */
     {NULL, NULL, NULL, 0, 0}
 };
 
@@ -213,11 +227,9 @@ dbref tp_player_prototype = -1;
 dbref tp_cron_prog = -1;
 dbref tp_default_parent = GLOBAL_ENVIRONMENT;
 
-#ifdef HTTPD
-dbref tp_www_root = -1;
-dbref tp_www_surfer = -1;
-#endif
-
+#ifdef NEWHTTPD
+dbref tp_www_root = -1;         /* hinoserm */
+#endif /* hinoserm */
 
 struct tune_ref_entry {
     const char *group;
@@ -236,10 +248,9 @@ struct tune_ref_entry tune_ref_list[] = {
      LMAGE},
     {"MUF", "cron_prog", TYPE_PROGRAM, &tp_cron_prog, LARCH, LMAGE},
     {"Building", "default_parent", TYPE_ROOM, &tp_default_parent, LARCH, LMAGE},
-#ifdef HTTPD
-    {"System", "www_root", TYPE_ROOM, &tp_www_root, LARCH, LMAGE},
-    {"System", "www_surfer", TYPE_PLAYER, &tp_www_surfer, LARCH, LMAGE},
-#endif
+#ifdef NEWHTTPD                 /* hinoserm */
+    {"System", "www_root", TYPE_ROOM, &tp_www_root, LARCH, LMAGE}, /* hinoserm */
+#endif /* hinoserm */
     {NULL, NULL, 0, NULL, 0, 0}
 };
 
@@ -254,7 +265,6 @@ int tp_log_guests = LOG_GUESTS;
 int tp_log_files = LOG_FILES;
 int tp_log_sockets = LOG_SOCKETS;
 int tp_log_failedhelp = LOG_FAILEDHELP;
-int tp_logwall_www = 1;
 int tp_dbdump_warning = DBDUMP_WARNING;
 int tp_deltadump_warning = DELTADUMP_WARNING;
 int tp_periodic_program_purge = PERIODIC_PROGRAM_PURGE;
@@ -311,6 +321,15 @@ int tp_compatible_muf_perms = 0;
 int tp_allow_unidle = 0;
 int tp_alt_infinity_handler = 1;
 
+#ifdef NEWHTTPD                 /* hinoserm */
+int tp_web_allow_players = 1;   /* hinoserm */
+int tp_web_allow_playerhtmuf = 0; /* hinoserm */
+int tp_web_allow_htmuf = 1;     /* hinoserm */
+int tp_web_allow_vhosts = 1;    /* hinoserm */
+int tp_web_allow_files = 1;     /* hinoserm */
+int tp_web_allow_dirlist = 1;   /* hinoserm */
+#endif /* hinoserm */
+
 struct tune_bool_entry {
     const char *group;
     const char *name;
@@ -330,7 +349,6 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Logs", "log_files", &tp_log_files, WBOY, LWIZ},
     {"Logs", "log_sockets", &tp_log_sockets, WBOY, LWIZ},
     {"Logs", "log_failedhelp", &tp_log_failedhelp, WBOY, LWIZ},
-    {"Logs", "logwall_www", &tp_logwall_www, LARCH, LWIZ},
     {"Database", "dbdump_warning", &tp_dbdump_warning, LARCH, LMUF},
     {"Database", "deltadump_warning", &tp_deltadump_warning, LARCH, LMUF},
     {"System", "periodic_program_purge", &tp_periodic_program_purge, LARCH,
@@ -387,6 +405,14 @@ struct tune_bool_entry tune_bool_list[] = {
     {"MUF", "compatible_muf_perms", &tp_compatible_muf_perms, LBOY, LMAGE},
     {"Idletime", "allow_unidle", &tp_allow_unidle, LARCH, LMUF},
     {"Math", "alt_infinity_handler", &tp_alt_infinity_handler, LARCH, LMUF},
+#ifdef NEWHTTPD
+    {"HTTPD", "web_allow_players", &tp_web_allow_players, LARCH, LMUF},
+    {"HTTPD", "web_allow_playerhtmuf", &tp_web_allow_playerhtmuf, LARCH, LMUF},
+    {"HTTPD", "web_allow_htmuf", &tp_web_allow_htmuf, LARCH, LMUF},
+    {"HTTPD", "web_allow_vhosts", &tp_web_allow_vhosts, LARCH, LMUF},
+    {"HTTPD", "web_allow_files", &tp_web_allow_files, LARCH, LMUF},
+    {"HTTPD", "web_allow_dirlist", &tp_web_allow_dirlist, LARCH, LMUF},
+#endif
     {NULL, NULL, NULL, 0, 0}
 };
 

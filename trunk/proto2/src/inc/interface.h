@@ -19,6 +19,54 @@ struct text_queue {
     struct text_block **tail;
 };
 
+/*- Start hinoserm new code -*/
+
+#ifdef NEWHTTPD
+struct descriptor_data;
+
+struct http_method {
+    const char *method;
+    int         flags;
+    void       (*handler)(struct descriptor_data *d);
+};
+
+struct http_field {
+    char *field;
+    char *data;
+    struct http_field *next;
+};
+
+struct http_struct {        /* hinoserm */  /************************************/
+    struct {                                /* File struct.                     */
+        FILE                *fp;            /* File handle for file transfers.  */
+        int                  size;          /* File size for file transfers.    */
+        int                  sent;          /* File amount sent for file trans. */
+        int                  ishttp;        /* Being used by the HTTP server.   */
+        int                  pid;           /* Pid of process that sent the file*/
+    } file;                                 /************************************/
+    struct http_method      *smethod;       /* The method, in struct form.      */
+    struct http_field       *fields;        /* The fields linked-list.          */
+    char                    *rootdir;       /* The propdir the data is in.      */
+    char                    *cgidata;       /* Stuff after the '?' in the URI.  */
+    char                    *newdest;       /* The URI after parsing.           */
+    char                    *method;        /* The method, in string form.      */
+    char                    *dest;          /* The destination URI. String.     */
+    char                    *ver;           /* The HTTP version. String.        */
+    struct {                                /************************************/
+        char                *data;          /* Pointer for message body data.   */
+        int                  elen;          /* Expected length of body data.    */
+        int                  len;           /* Current length of body data.     */
+        int                  curr;          /* Current char. Used by prims.     */
+    } body;                                 /* Body struct.                     */
+    int                      flags;         /* Various flags.                   */
+    int                      pid;           /* HTMuf pid.                       */
+    dbref                    rootobj;       /* The root object dbref number.    */
+};                          /* hinoserm */  /************************************/
+
+#endif /* NEWHTTPD */
+
+/*- End hinoserm new code -*/
+
 struct descriptor_data {
     int                      descriptor;    /* Descriptor number */
     int                      connected;     /* Connected as a player? */
@@ -51,18 +99,15 @@ struct descriptor_data {
     int                      linelen;
     int                      type;          /* Connection type */
     int                      cport;         /* Connected on this port if inbound, text, pueblo, web, etc. */
-    int                      http_login;    /* Logged in to the MUCK through the web port? */
     int                      idletime_set;  /* Time [in minutes] until the IDLE flag must be set */
     object_flag_type         flags;         /* The descriptor flags */
     dbref                    mufprog;       /* If it is one of the MUF-type ports, then this points to the program. -- UNIMPLEMENTED */
-    char                    *identify;
-    char                    *lastmidi;
-#ifdef HTTPDELAY
-    const char              *httpdata;
-#endif
     struct descriptor_data  *next;          /* Next descriptor information */
     struct descriptor_data **prev;          /* Previous descriptor information */
     McpFrame                 mcpframe;      /* Muck-To-Client protocal information */
+#ifdef NEWHTTPD
+    struct http_struct       http;          /* hinoserm: Struct for webserver stuff */
+#endif /* NEWHTTPD */
 };
 
 
@@ -73,6 +118,7 @@ struct descriptor_data {
 #define DF_TRUEIDLE     0x10 /* Set if the descriptor goes past the @tune idletime. Also triggers the propqueues if connected. */
 #define DF_INTERACTIVE  0x20 /* If the player is in the MUF editor or the READ prim is used, etc. */
 #define DF_COLOR        0x40 /* Used in conjunction with ansi_notify_descriptor */
+#define DF_HALFCLOSE    0x80 /* Used by the webserver to tell if a descr is halfclosed. hinoserm */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
@@ -87,12 +133,13 @@ struct descriptor_data {
 #define DR_RAW_REM_FLAGS(x,y) ((x)->flags &= ~y)
 
 #define CT_MUCK		0
-#define CT_HTML		1
-#define CT_PUEBLO	      2
+#define CT_HTTP         1 /* hinoserm */
+#define CT_PUEBLO	    2
 #define CT_MUF          3
 #define CT_OUTBOUND     4
 #define CT_LISTEN       5
 #define CT_INBOUND      6
+
 
 /* these symbols must be defined by the interface */
 
@@ -101,13 +148,8 @@ extern char shutdown_message[BUFFER_LEN];
 extern unsigned int bytesIn;
 extern unsigned int bytesOut;
 extern unsigned int commandTotal;
-#ifdef HTTPD
-extern void httpd(struct descriptor_data *d, const char *name, const char *http);
-extern void httpd_unknown(struct descriptor_data *d, const char *name);
-#endif
-
-void shutdownsock(struct descriptor_data *d);
-void check_maxd(struct descriptor_data *d);
+extern void shutdownsock(struct descriptor_data *d);
+extern void check_maxd(struct descriptor_data *d);
 extern struct descriptor_data * initializesock(int s, const char *hostname, int port, int hostaddr, int ctyp, int cport, int welcome);
 extern struct descriptor_data* descrdata_by_index(int index);
 extern struct descriptor_data* descrdata_by_descr(int i);
@@ -118,6 +160,8 @@ extern void notify_descriptor_raw(int descr, const char *msg, int lenght);
 extern void notify_descriptor_char(int d, char c);
 extern int anotify(dbref player, const char *msg);
 extern int notify_html(dbref player, const char *msg);
+extern void add_to_queue(struct text_queue *q, const char *b, int n); /* hinoserm */
+extern int queue_write(struct descriptor_data *, const char *, int);  /* hinoserm */
 extern int queue_string(struct descriptor_data *d, const char *s);
 extern int notify_nolisten(dbref player, const char *msg, int isprivate);
 extern int anotify_nolisten2(dbref player, const char *msg);

@@ -24,39 +24,16 @@ extern dbref ref;
 extern char buf[BUFFER_LEN];
 
 /* struct tm *time_tm; */
-
-extern struct descriptor_data *descriptor_list;
-
-char *
-p_getidstring(dbref player)
-{
-    struct descriptor_data *d;
-    static char buf[BUFFER_LEN];
-
-    strcpy(buf, "");
-
-    for (d = descriptor_list; d && (d->player != player); d = d->next) ;
-
-    if (d)
-        strcpy(buf, d->identify);
-    return (buf);
-}
+/* extern struct descriptor_data *descriptor_list; */
 
 char *
 p_commandtext(dbref player, char *command, char *text)
 {
     static char buf[BUFFER_LEN];
-    char buf2[BUFFER_LEN];
 
-    strcpy(buf2, "");
+    strcpy(buf, "");
 
-    strcpy(buf, text);
-    if (FLAG2(player) & F2HTML) {
-        escape_url(buf2, command);
-        sprintf(buf,
-                "<a href=\"/webinput?id=%s&muckinput=%s\" target=\"input\">%s</a>",
-                p_getidstring(player), buf2, text);
-    } else if (FLAG2(player) & F2PUEBLO) {
+    if (FLAG2(player) & F2PUEBLO) {
         sprintf(buf, "<a xch_cmd=\"%s\">%s</a>", command, text);
     }
 
@@ -70,11 +47,7 @@ p_playmidi(dbref player, char *musicurl, char *volume)
 
     strcpy(buf, "");
 
-    if (FLAG2(player) & F2HTML) {
-        sprintf(buf,
-                "<embed src=\"%s\" hidden=true autostart=true name=\"muckmidi\" volume=%s mastersound>",
-                musicurl, volume);
-    } else if (FLAG2(player) & F2PUEBLO) {
+    if (FLAG2(player) & F2PUEBLO) {
         sprintf(buf, "<img xch_sound=play href=\"%s\" xch_volume=%s>",
                 musicurl, volume);
     }
@@ -156,46 +129,6 @@ prim_commandtext(PRIM_PROTOTYPE)
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
-    PushString(buf);
-}
-
-void
-prim_htoi(PRIM_PROTOTYPE)
-{
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
-        abort_interp("Non-string argument. (1)");
-
-    result = 0;
-
-    if (oper1->data.string) {
-        for (tmp = 0; oper1->data.string->data[tmp]; ++tmp) {
-            result +=
-                (oper1->data.string->data[tmp] >=
-                 'A' ? ((oper1->data.string->data[tmp] & 0xdf) - 'A') +
-                 10 : (oper1->data.string->data[tmp] - '0'));
-
-            if (oper1->data.string->data[tmp + 1] != '\0')
-                result *= 16;
-        }
-    }
-
-    CLEAR(oper1);
-    PushInt(result);
-}
-
-void
-prim_itoh(PRIM_PROTOTYPE)
-{
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
-        abort_interp("Non-integer argument. (1)");
-
-    sprintf(buf, "%0.2X", oper1->data.number);
-
-    CLEAR(oper1);
     PushString(buf);
 }
 

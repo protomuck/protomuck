@@ -186,5 +186,5 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 #include "p_mysql.h"
 #include "p_muf.h"
 #include "p_regex.h"
-
+#include "p_http.h" /* hinoserm */
 
