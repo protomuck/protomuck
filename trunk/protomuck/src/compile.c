@@ -649,23 +649,26 @@ do_proginfo(dbref player, const char *arg)
     int tcnt=0, tsize=0, tinst=0, timem=0, ccnt, csize, cinst, cimem;
 
     if( *arg != '#' ) {
-	anotify_nolisten(player, YELLOW "Usage: @proginfo #prognum", 1);
+	anotify_nolisten(player, SYSYELLOW "Usage: @proginfo #prognum", 1);
 	if (Mage(OWNER(player))) {
-	    anotify_nolisten(player, AQUA "Inst Object ProgSz Insts " BROWN "Name", 1);
+	    anotify_nolisten(player, SYSAQUA "Inst Object ProgSz Insts " 
+                             SYSBROWN 
+                             "Name", 1);
 	    for(i=0;i<db_top;i++) {
 		if(Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.siz) {
 		    tcnt  += ccnt  = DBFETCH(i)->sp.program.instances;
 		    tsize += csize = size_object(i, 0);
 		    timem += cimem = size_prog(i);
 		    tinst += cinst = DBFETCH(i)->sp.program.siz;
-		    sprintf(buf, CYAN "%4d %6d %6d %5d %s " RED "by " GREEN "%s",
+		    sprintf(buf, SYSCYAN "%4d %6d %6d %5d %s " SYSRED "by " 
+                        SYSGREEN "%s",
 			ccnt, csize, cimem, cinst,
 			ansi_unparse_object(player, i), NAME(OWNER(i))
 		    );
 		    anotify_nolisten(player, buf, 1);
 		}
 	    }
-	    sprintf(buf, AQUA "%4d %6d %6d %5d " BROWN "Total",
+	    sprintf(buf, SYSAQUA "%4d %6d %6d %5d " SYSBROWN "Total",
 			tcnt, tsize, timem, tinst);
 	    anotify_nolisten(player, buf, 1);
 	}
@@ -674,11 +677,12 @@ do_proginfo(dbref player, const char *arg)
 
     thing = (dbref) atoi(arg+1);
     if( Typeof(thing) != TYPE_PROGRAM || !controls(player,thing)) {
-	anotify_nolisten(player, RED NOPERM_MESG, 1);
+	anotify_nolisten(player, SYSRED NOPERM_MESG, 1);
 	return;
     }
 
-    anotify_nolisten(player, YELLOW "Age: 1 = cleanable, 0 = used recently", 1);
+    anotify_nolisten(player, SYSYELLOW 
+		    "Age: 1 = cleanable, 0 = used recently", 1);
     sprintf( buf, "AI: %d Age: %d Instances: %d",
 	(FLAGS(thing) & (ABODE|INTERNAL)),
 	(now - DBFETCH(thing)->ts.lastused) > tp_clean_interval,
@@ -1311,11 +1315,11 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
                 sprintf(buf2, "Program optimized by %d instructions "
                               "in %d %s. (%#.4lg%%)", optimcount, passcount,
                               passcount == 1 ? "pass" : "passes", percent);
-                strcpy(buf, CGREEN);
+                strcpy(buf, SYSFOREST);
 		strcat(buf, buf2);
                 anotify_nolisten(cstat.player, buf, 1);
             } else if (force_err_display) {
-                anotify_nolisten(cstat.player, CYELLOW
+                anotify_nolisten(cstat.player, SYSBROWN 
                         "No optimization possible.", 1);
             }
         }

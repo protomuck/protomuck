@@ -100,14 +100,14 @@ do_shutdown(dbref player, const char *muckname, const char *msg)
     if ( (Arch(player)) || (POWERS(player) & POW_SHUTDOWN) ) {
       if( *muckname == '\0' || strcmp(muckname, tp_muckname))
       {
-		notify(player, ANSICYAN "Usage: " ANSIAQUA "@shutdown muckname[=message]" );
+		notify(player, SYSCYAN "Usage: " SYSAQUA "@shutdown muckname[=message]" );
 		return;
       }
 	log_status("SHUT: by %s\n", unparse_object(player, player));
 	shutdown_flag = 1;
 	restart_flag = 0;
 	if (*msg != '\0') {
-		strcat(shutdown_message, ANSIWHITE MARK ANSINORMAL);
+		strcat(shutdown_message, SYSWHITE MARK SYSNORMAL);
 		strcat(shutdown_message, msg);
 		strcat(shutdown_message, "\r\n");
 	}
@@ -123,14 +123,14 @@ do_restart(dbref player, const char *muckname, const char *msg)
     if ( (Arch(player)) || (POWERS(player) & POW_SHUTDOWN) ) {
       if( *muckname == '\0' || strcmp(muckname, tp_muckname))
       {
-		notify(player, ANSICYAN "Syntax: " ANSIAQUA "@restart muckname[=message]" );
+		notify(player, SYSCYAN "Syntax: " SYSAQUA "@restart muckname[=message]" );
 		return;
       }
 	log_status("REST: by %s\n", unparse_object(player, player));
 	shutdown_flag = 1;
 	restart_flag = 1;
 	if (*msg != '\0') {
-		strcat(restart_message, ANSIWHITE MARK ANSINORMAL);
+		strcat(restart_message, SYSWHITE MARK SYSNORMAL);
 		strcat(restart_message, msg);
 		strcat(restart_message, "\r\n");
 	}
@@ -1274,23 +1274,31 @@ process_command(int descr, dbref player, char *command)
 		    case 'V':
 			Matched("@version");
                         #if defined(WIN32) || defined(WIN_VC)
-			anotify_nolisten2(player, CRIMSON "WinProto " PROTOBASE 
-                                          PURPLE " (" RED VERSION WHITE " -- " 
-                                          AQUA NEONVER PURPLE ")" );
+			anotify_nolisten2(player, SYSCRIMSON "WinProto " 
+                                          PROTOBASE 
+                                          SYSPURPLE " (" SYSRED VERSION SYSWHITE
+					  " -- " 
+                                          SYSAQUA NEONVER SYSPURPLE ")" );
 			#else
 			# ifdef CYGWIN
-			anotify_nolisten2(player, CRIMSON "ProtoMUCK-Cygwin "
-                                          PROTOBASE PURPLE " (" RED VERSION 
-                                          WHITE " -- " AQUA NEONVER PURPLE ")" );
+			anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK-Cygwin "
+                                          PROTOBASE SYSPURPLE " (" SYSRED 
+					  VERSION 
+                                          SYSWHITE " -- " SYSAQUA NEONVER 
+					  SYSPURPLE ")" );
 			# else
                         #  ifdef APPLE
-                        anotify_nolisten2(player, CRIMSON "ProtoMUCK OS-X " 
-                                          PROTOBASE PURPLE " (" RED VERSION WHITE 
-                                          " -- " AQUA NEONVER PURPLE ")" );
+                        anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK OS-X " 
+                                          PROTOBASE SYSPURPLE " (" SYSRED 
+					  VERSION SYSWHITE 
+                                          " -- " SYSAQUA NEONVER SYSPURPLE ")" 
+					  );
                         #  else
-			anotify_nolisten2(player, CRIMSON "ProtoMUCK " PROTOBASE 
-                                          PURPLE " (" RED VERSION WHITE " -- " 
-                                          AQUA NEONVER PURPLE ")" );
+			anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK " 
+                                          PROTOBASE 
+                                          SYSPURPLE " (" SYSRED VERSION 
+					  SYSWHITE " -- " 
+                                          SYSAQUA NEONVER SYSPURPLE ")" );
                         #  endif
 			# endif
 			#endif			

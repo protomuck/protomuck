@@ -111,7 +111,8 @@ do_name(int descr, dbref player, const char *name, char *newname)
                   CNOTE "E.g.: name player = newname password");
                 if( Wiz(OWNER(player)) || POWERS(player) & POW_PLAYER_CREATE)
                     anotify_nolisten2(player,
-                        YELLOW "Wizards may use 'yes' for non-wizard players.");
+                        SYSYELLOW 
+			"Wizards may use 'yes' for non-wizard players.");
                 return;
             }
             if(!(Wiz(player) || POWERS(player) & POW_PLAYER_CREATE)

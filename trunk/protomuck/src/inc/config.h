@@ -48,8 +48,13 @@
 /* Define this to disable the colors used in many of the in-server
  * commands. Leave it undefined for traditional in-server ANSI 
  * in the MUCK's commands.
+ * System colors are defined at the end of interface.h as SYS<color>
+ * tags. If you would like to make it so that only certain colors
+ * are used in-server, you could define this, and then go define
+ * specifically which colors you want used. Otherwise, pretty much
+ * all the color used in in-server commands will be disabled by
+ * #defining this. 
  */
-/* Not implemented yet */
 #undef NO_SYSCOLOR
 
 /* Define this to compile with MySQL support. MySQL must be installed

@@ -89,27 +89,31 @@ do_wizchat(dbref player, const char *arg)
 
 	if( !Mage(OWNER(player)) )
 	{
-		anotify_nolisten2( player, RED NOPERM_MESG );
+		anotify_nolisten2( player, SYSRED NOPERM_MESG );
 		return;
 	}
 
 	switch( arg[0] ){
 
-        case '|': sprintf( buf, BLUE "WizChat" PURPLE "> " AQUA "%s", tct(arg+1, buf2) );
+        case '|': sprintf( buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA "%s", 
+                  tct(arg+1, buf2) );
                   break;
 
-	  case '#':	sprintf( buf, BLUE "WizChat" PURPLE "> " AQUA "%s", tct(arg+1, buf2) );
+	  case '#':	sprintf( buf, SYSBLUE "WizChat" SYSPURPLE "> " 
+                        SYSAQUA "%s", tct(arg+1, buf2) );
 			break;
 
 	  case ':':
-	  case ';':	sprintf( buf, BLUE "WizChat" PURPLE "> " AQUA "%s %s", tct(NAME(player), buf2), tct(arg+1, buf3) );
+	  case ';':	sprintf( buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA 
+                          "%s %s", tct(NAME(player), buf2), tct(arg+1, buf3) );
 			break;
 
 	  case '?':
 	  		show_wizards( player );
 	  		return;
 
-	  default:	sprintf( buf, BLUE "WizChat" PURPLE "> " AQUA "%s says, \"" YELLOW "%s" AQUA "\"",
+	  default:	sprintf( buf, SYSBLUE "WizChat" SYSPURPLE "> " SYSAQUA 
+                        "%s says, \"" SYSYELLOW "%s" SYSAQUA "\"",
 	  			tct(NAME(player), buf2), tct(arg, buf3) );
 			break;
 	}
@@ -516,23 +520,23 @@ do_stats(dbref player, const char *name)
 		}
 	}
 
-	anotify_fmt(player, YELLOW "%7d room%s        %7d exit%s        %7d thing%s",
+	anotify_fmt(player, SYSYELLOW "%7d room%s        %7d exit%s        %7d thing%s",
 		   rooms, (rooms == 1) ? " " : "s",
 		   exits, (exits == 1) ? " " : "s",
 		   things, (things == 1) ? " " : "s");
 
-	anotify_fmt(player, YELLOW "%7d program%s     %7d player%s      %7d garbage",
+	anotify_fmt(player, SYSYELLOW "%7d program%s     %7d player%s      %7d garbage",
 		   programs, (programs == 1) ? " " : "s",
 		   players, (players == 1) ? " " : "s",
 		   garbage);
 
-	anotify_fmt(player, BLUE
+	anotify_fmt(player, SYSBLUE
 		   "%7d total object%s                     %7d old & unused",
 		   total, (total == 1) ? " " : "s", oldobjs);
 
 #ifdef DISKBASE
 	if (Mage(OWNER(player))) {
-	    anotify_fmt(player, WHITE
+	    anotify_fmt(player, SYSWHITE
 		   "%7d proploaded object%s                %7d propchanged object%s",
 		   loaded, (loaded == 1) ? " " : "s",
 		   changed, (changed == 1) ? "" : "s");
@@ -552,24 +556,24 @@ do_stats(dbref player, const char *name)
 #else
             (void)format_time(buf, 40, "%a %b %e %T\0", time_tm);
 #endif
-            anotify_fmt(player, RED "%7d unsaved object%s     Last dump: %s",
+            anotify_fmt(player, SYSRED "%7d unsaved object%s     Last dump: %s",
 	        altered, (altered == 1) ? "" : "s", buf);
         }
 /* #endif */
 
 	if( garbage > 0 )
-	    anotify_fmt(player, NORMAL
+	    anotify_fmt(player, SYSNORMAL
 		"%7d piece%s of garbage %s using %d bytes of RAM.",
 		garbage, (garbage == 1) ? "" : "s",
 		(garbage == 1) ? "is" : "are", tgsize );
 
 	if( tpcnt > 0 )
-	    anotify_fmt(player, PURPLE
+	    anotify_fmt(player, SYSPURPLE
 		"%7d active program%s %s using %d bytes of RAM.",
 		tpcnt, (tpcnt == 1) ? "" : "s",
 		(tpcnt == 1) ? "is" : "are", tpsize );
 
-	anotify_fmt(player, GREEN
+	anotify_fmt(player, SYSGREEN
 	    "%7d %sobject%s %s using %d bytes of RAM.",
 		tocnt, tpcnt ? "other " : "",
 		(tocnt == 1) ? "" : "s",
@@ -578,16 +582,16 @@ do_stats(dbref player, const char *name)
 	if (Mage(OWNER(player))) {
             memtemp = bytesIn / 1000;
 	    memtemp2 = bytesOut / 1000;
-	    anotify_fmt(player, BROWN
-                "%7d %s input             " AQUA "%7d %s output", 
+	    anotify_fmt(player, SYSBROWN
+                "%7d %s input             " SYSAQUA "%7d %s output", 
 		memtemp < 100000 ? memtemp : memtemp / 1000,
 		memtemp < 100000 ? "Kbytes" : "Mbytes",
 		memtemp2 < 100000 ? memtemp2 : memtemp2 / 1000, 
 		memtemp2 < 100000 ? "Kbytes" : "Mbytes");
 	    memtemp = bytesIn + bytesOut;
 	    memtemp = memtemp / 1000;
-	    anotify_fmt(player, FOREST
-	        "%7d %s total traffic     " VIOLET "%7d %s",
+	    anotify_fmt(player, SYSFOREST 
+	        "%7d %s total traffic     " SYSVIOLET "%7d %s",
 		memtemp < 100000 ? memtemp : memtemp / 1000,
 		memtemp < 100000 ? "KBytes" : "Mbytes",
 		commandTotal < 100000 ? commandTotal : commandTotal / 1000,
@@ -629,7 +633,7 @@ do_boot(dbref player, const char *name)
 	return;
     }
 
-	anotify_nolisten2(victim, BLUE "Shaaawing!  See ya!");
+	anotify_nolisten2(victim, SYSBLUE "Shaaawing!  See ya!");
 	if (boot_off(victim)) {
 	    log_status("BOOT: %s(%d) by %s(%d)\n", NAME(victim),
 		victim, NAME(player), player);
@@ -709,7 +713,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
 	}
 	dequeue_prog(victim, 0);  /* dequeue progs that player's running */
 
-	anotify_nolisten2(victim, BLUE "You have been frobbed!  Been nice knowing you.");
+	anotify_nolisten2(victim, SYSBLUE "You have been frobbed!  Been nice knowing you.");
 	anotify_fmt(player, CSUCC "You frob %s.", PNAME(victim));
 	log_status("FROB: %s(%d) by %s(%d)\n", NAME(victim),
 		   victim, NAME(player), player);
@@ -874,7 +878,7 @@ power_description(dbref thing)
 {
     static char buf[BUFFER_LEN];
 
-    strcpy(buf, GREEN "Powers: " YELLOW );
+    strcpy(buf, SYSGREEN "Powers: " SYSYELLOW );
 	if (POWERS(thing) & POW_ALL_MUF_PRIMS)
 	    strcat(buf, "ALL_MUF_PRIMS ");
       if (POWERS(thing) & POW_ANNOUNCE)

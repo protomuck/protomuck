@@ -41,9 +41,9 @@ const char *version = PATCHLEVEL;
 const char *infotext[] =
 {
     " ",
-    RED "ProtoMUCK " PROTOBASE " " WHITE "-- " CRIMSON VERSION,
+    SYSRED "ProtoMUCK " PROTOBASE " " SYSWHITE "-- " SYSCRIMSON VERSION,
 #if defined(WIN32) || (WIN_VC)
-    YELLOW "WINDOWS" BROWN
+    SYSYELLOW "WINDOWS" SYSBROWN
 # ifdef WIN_VC
         ": Visual C++"
 # else
@@ -53,31 +53,31 @@ const char *infotext[] =
 # endif
 #endif
     " ",
-    CYAN "Based on the original code written by these programmers:",
-    "  " AQUA "David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",
+    SYSCYAN "Based on the original code written by these programmers:",
+    "  " SYSAQUA "David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",
     " ",
-    CYAN "Others who have done major coding work along the way:",
-    "  " AQUA "Lachesis, ChupChups, FireFoot, Russ 'Random' Smith, Dr. Cat,",
-    "  " AQUA "Revar, Points, Loki, PakRat, Nodaitsu",
+    SYSCYAN "Others who have done major coding work along the way:",
+    "  " SYSAQUA "Lachesis, ChupChups, FireFoot, Russ 'Random' Smith, Dr. Cat,",
+    "  " SYSAQUA "Revar, Points, Loki, PakRat, Nodaitsu",
     " ",
-    BROWN "ProtoMuck is derived from TinyMUCK, which was itself an extension",
-    BROWN "of TinyMUD.  Proto is an updated version of the NeonMUCK code base,",
-    BROWN "which originaly came from the FuzzBall distribution, by Foxen/Revar,",
-    BROWN "of TinyMUCK.",
+    SYSBROWN "ProtoMuck is derived from TinyMUCK, which was itself an extension",
+    SYSBROWN "of TinyMUD.  Proto is an updated version of the NeonMUCK code base,",
+    SYSBROWN "which originaly came from the FuzzBall distribution, by Foxen/Revar,",
+    SYSBROWN "of TinyMUCK.",
     " ",
-    GREEN "And, here is the list of the programmers for ProtoMUCK:",
-    FOREST "  Moose and Akari: protomuck@bigfoot.com",
+    SYSGREEN "And, here is the list of the programmers for ProtoMUCK:",
+    SYSFOREST "  Moose and Akari: protomuck@bigfoot.com",
     " ",
-    BROWN "Thanks are also due towards the multiple people who had also",
-    BROWN "contributed ideas for the MUCK as we worked on it, and even tried to",
-    BROWN "help us out along the way.",
-    CYAN "Feel free to check ProtoMUCK's webpage at the following address:",
-    AQUA "http://protomuck.sourceforge.net/",
+    SYSBROWN "Thanks are also due towards the multiple people who had also",
+    SYSBROWN "contributed ideas for the MUCK as we worked on it, and even tried to",
+    SYSBROWN "help us out along the way.",
+    SYSCYAN "Feel free to check ProtoMUCK's webpage at the following address:",
+    SYSAQUA "http://protomuck.sourceforge.net/",
     " ",
-    BLUE "The Pueblo multimedia protocol is (C)Chaco Communications.",
-    BLUE "http://www.chaco.com/pueblo for more information.",
-    BLUE "The recommended client by us for any mu* server is BeipMU*.",
-    BLUE "http://beipmu.twu.net/ for more information.",
+    SYSBLUE "The Pueblo multimedia protocol is (C)Chaco Communications.",
+    SYSBLUE "http://www.chaco.com/pueblo for more information.",
+    SYSBLUE "The recommended client by us for any mu* server is BeipMU*.",
+    SYSBLUE "http://beipmu.twu.net/ for more information.",
     CINFO "Done.",
     0,
 };

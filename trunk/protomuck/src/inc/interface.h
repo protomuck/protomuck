@@ -343,6 +343,12 @@ extern void panic(const char *);
 #define SYSPURPLE       "\033[1;35m"
 #define SYSCYAN         "\033[1;36m"
 #define SYSWHITE        "\033[1;37m"
+/* These are defined in defaults.h */
+#define CFAIL "^FAIL^"
+#define CSUCC "^SUCC^"  
+#define CINFO "^INFO^"  
+#define CNOTE "^NOTE^"
+#define CMOVE "^MOVE^"  
 #else
 #define SYSNORMAL       ""
 #define SYSBLACK        ""
@@ -361,6 +367,12 @@ extern void panic(const char *);
 #define SYSPURPLE       ""
 #define SYSCYAN         ""
 #define SYSWHITE        ""
+/* These are defined in defaults.h */
+#define CFAIL ""
+#define CSUCC ""  
+#define CINFO ""  
+#define CNOTE ""
+#define CMOVE ""  
 #endif
 
 #define TildeAnsiDigit(x)       (((x) == '-') || (((x) >= '0') && ((x) <= '9')))

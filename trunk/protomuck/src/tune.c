@@ -578,9 +578,10 @@ tune_show_strings(dbref player, char *name)
     while (tstr->name) {
 	strcpy(buf, tstr->name);
 	if (MLevel(OWNER(player)) >= tstr->readmlev) {
-	     sprintf(buf, CYAN "(str)  " CRED "%c" GREEN "%-24s" RED " = " CYAN "%.4096s", 
-           (WLevel(OWNER(player)) >= tstr->writemlev) ? ' ' : '-', 
-           tstr->name, tct(*tstr->str,tbuf));
+	     sprintf(buf, SYSCYAN "(str)  " SYSRED "%c" SYSGREEN "%-24s" 
+                     SYSRED " = " SYSCYAN "%.4096s", 
+                     (WLevel(OWNER(player)) >= tstr->writemlev) ? ' ' : '-', 
+                     tstr->name, tct(*tstr->str,tbuf));
            lastname = tstr->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -601,11 +602,12 @@ tune_show_times(dbref player, char *name)
     while (ttim->name) {
 	strcpy(buf, ttim->name);
 	if (MLevel(OWNER(player)) >= ttim->readmlev) {
-	    sprintf(buf, PURPLE "(time) " CRED "%c" GREEN "%-24s" RED " = " PURPLE "%s", 
-           (WLevel(OWNER(player)) >= ttim->writemlev) ? ' ' : '-',
-           ttim->name, timestr_full(*ttim->tim));
+	    sprintf(buf, SYSPURPLE "(time) " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED " = " SYSPURPLE "%s", 
+                    (WLevel(OWNER(player)) >= ttim->writemlev) ? ' ' : '-',
+                    ttim->name, timestr_full(*ttim->tim));
             lastname = ttim->name;
-	     anotify_nolisten2(player, buf);
+	    anotify_nolisten2(player, buf);
             total++;
 	}
 	ttim++;
@@ -624,9 +626,10 @@ tune_show_vals(dbref player, char *name)
     while (tval->name) {
 	strcpy(buf, tval->name);
 	if (MLevel(OWNER(player)) >= tval->readmlev) {
-	    sprintf(buf, GREEN "(int)  " CRED "%c" GREEN "%-24s" RED " = " YELLOW "%d", 
-           (WLevel(OWNER(player)) >= tval->writemlev) ? ' ' : '-',
-           tval->name, *tval->val);
+	    sprintf(buf, SYSGREEN "(int)  " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED " = " SYSYELLOW "%d", 
+                    (WLevel(OWNER(player)) >= tval->writemlev) ? ' ' : '-',
+                    tval->name, *tval->val);
            lastname = tval->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -647,9 +650,10 @@ tune_show_refs(dbref player, char *name)
     while (tref->name) {
 	strcpy(buf, tref->name);
 	if (MLevel(OWNER(player)) >= tref->readmlev) {
-	    sprintf(buf, YELLOW "(ref)  " CRED "%c" GREEN "%-24s" RED " = %s", 
-           (WLevel(OWNER(player)) >= tref->writemlev) ? ' ' : '-', 
-           tref->name, ansi_unparse_object(player, *tref->ref));
+	    sprintf(buf, SYSYELLOW "(ref)  " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED " = %s", 
+                    (WLevel(OWNER(player)) >= tref->writemlev) ? ' ' : '-', 
+                    tref->name, ansi_unparse_object(player, *tref->ref));
            lastname = tref->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -670,9 +674,10 @@ tune_show_bool(dbref player, char *name)
     while (tbool->name) {
 	strcpy(buf, tbool->name);
 	if (MLevel(OWNER(player)) >= tbool->readmlev) {
-	    sprintf(buf, WHITE "(bool) " CRED "%c" GREEN "%-24s" RED " = " BLUE "%s", 
-           (WLevel(OWNER(player)) >= tbool->writemlev) ? ' ' : '-',
-           tbool->name, ((*tbool->boolv)? "yes" : "no"));
+	    sprintf(buf, SYSWHITE "(bool) " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED " = " SYSBLUE "%s", 
+                    (WLevel(OWNER(player)) >= tbool->writemlev) ? ' ' : '-',
+                    tbool->name, ((*tbool->boolv)? "yes" : "no"));
            lastname = tbool->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -699,9 +704,10 @@ tune_display_parms(dbref player, char *name)
 	strcpy(buf, tstr->name);
 	if ((MLevel(OWNER(player)) >= tstr->readmlev) && 
           (!*name || equalstr(name, buf))) {
-	    sprintf(buf, CYAN "(str)  " CRED "%c" GREEN "%-24s" RED " = " CYAN "%.4096s", 
-           (WLevel(OWNER(player)) >= tstr->writemlev) ? ' ' : '-', 
-           tstr->name, tct(*tstr->str,tbuf));
+	    sprintf(buf, SYSCYAN "(str)  " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED " = " SYSCYAN "%.4096s", 
+                    (WLevel(OWNER(player)) >= tstr->writemlev) ? ' ' : '-', 
+                    tstr->name, tct(*tstr->str,tbuf));
            lastname = tstr->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -713,9 +719,10 @@ tune_display_parms(dbref player, char *name)
 	strcpy(buf, ttim->name);
 	if ((MLevel(OWNER(player)) >= ttim->readmlev) && 
           (!*name || equalstr(name, buf))) {
-	    sprintf(buf, PURPLE "(time) " CRED "%c" GREEN "%-24s" RED " = " PURPLE "%s", 
-           (WLevel(OWNER(player)) >= ttim->writemlev) ? ' ' : '-',
-           ttim->name, timestr_full(*ttim->tim));
+	    sprintf(buf, SYSPURPLE "(time) " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED " = " SYSPURPLE "%s", 
+                    (WLevel(OWNER(player)) >= ttim->writemlev) ? ' ' : '-',
+                    ttim->name, timestr_full(*ttim->tim));
             lastname = ttim->name;
 	    anotify_nolisten2(player, buf);
             total++;
@@ -727,9 +734,10 @@ tune_display_parms(dbref player, char *name)
 	strcpy(buf, tval->name);
 	if ((MLevel(OWNER(player)) >= tval->readmlev) && 
           (!*name || equalstr(name, buf))) {
-	    sprintf(buf, GREEN "(int)  " CRED "%c" GREEN "%-24s" RED " = " YELLOW "%d", 
-           (WLevel(OWNER(player)) >= tval->writemlev) ? ' ' : '-',
-           tval->name, *tval->val);
+	    sprintf(buf, SYSGREEN "(int)  " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED " = " SYSYELLOW "%d", 
+                    (WLevel(OWNER(player)) >= tval->writemlev) ? ' ' : '-',
+                    tval->name, *tval->val);
            lastname = tval->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -740,9 +748,10 @@ tune_display_parms(dbref player, char *name)
 	strcpy(buf, tref->name);
 	if ((MLevel(OWNER(player)) >= tref->readmlev) && 
           (!*name || equalstr(name, buf))) {
-	    sprintf(buf, YELLOW "(ref)  " CRED "%c" GREEN "%-24s" RED " = %s", 
-           (WLevel(OWNER(player)) >= tref->writemlev) ? ' ' : '-', 
-           tref->name, ansi_unparse_object(player, *tref->ref));
+	    sprintf(buf, SYSYELLOW "(ref)  " SYSRED "%c" SYSGREEN "%-24s" 
+                    SYSRED" = %s", 
+                    (WLevel(OWNER(player)) >= tref->writemlev) ? ' ' : '-', 
+                    tref->name, ansi_unparse_object(player, *tref->ref));
            lastname = tref->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -754,9 +763,10 @@ tune_display_parms(dbref player, char *name)
 	strcpy(buf, tbool->name);
 	if ((MLevel(OWNER(player)) >= tbool->readmlev) && 
           (!*name || equalstr(name, buf))) {
-	    sprintf(buf, WHITE "(bool) " CRED "%c" GREEN "%-24s" RED " = " BLUE "%s", 
-           (WLevel(OWNER(player)) >= tbool->writemlev) ? ' ' : '-',
-           tbool->name, ((*tbool->boolv)? "yes" : "no"));
+	    sprintf(buf, SYSWHITE "(bool) " SYSRED "%c" SYSGREEN "%-24s" SYSRED 
+                    " = " SYSBLUE "%s", 
+                    (WLevel(OWNER(player)) >= tbool->writemlev) ? ' ' : '-',
+                    tbool->name, ((*tbool->boolv)? "yes" : "no"));
            lastname = tbool->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -769,7 +779,7 @@ tune_display_parms(dbref player, char *name)
         anotify_fmt(player, CINFO "%d sysparm%s listed.", total,
             (total==1) ? "" : "s"
         );
-        anotify(player, YELLOW "@tune str, time, int, ref, or bool to list by data types.");
+        anotify(player, SYSYELLOW "@tune str, time, int, ref, or bool to list by data types.");
     } 
 }
 
@@ -1174,8 +1184,4 @@ do_tune(dbref player, char *parmname, char *parmval)
 	return;
     }
 }
-
-
-
-
 

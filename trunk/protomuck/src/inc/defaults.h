@@ -1,3 +1,5 @@
+#include "config.h"
+
 #define DUMPWARN_MESG   MARK "Save soon."
 #define DELTAWARN_MESG  MARK "Save soon."
 #define DUMPDELTAS_MESG MARK "Saving..."
@@ -7,11 +9,19 @@
 /* Change the default color scheme of the server */
 /* It could be possible to include both BG and FG color combos here, */
 /* just separate them by spaces */
+#ifndef NO_SYSCOLOR
 #define CCFAIL "RED"
 #define CCSUCC "GREEN"
 #define CCINFO "YELLOW"
 #define CCNOTE "WHITE"
 #define CCMOVE "CYAN"
+#else
+#define CCFAIL ""
+#define CCSUCC ""
+#define CCINFO ""
+#define CCNOTE ""
+#define CCMOVE ""
+#endif
 
 /* Change this to the name of your muck.  ie: FurryMUCK, or AnimeMUCK, etc */
 #define MUCKNAME "ProtoMuck"

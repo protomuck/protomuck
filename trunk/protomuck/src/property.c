@@ -814,7 +814,7 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
     PropPtr p = get_property(obj, name);
 
     if (!p) {
-	sprintf(buf, GLOOM "%s: No such property.", name);
+	sprintf(buf, SYSGLOOM "%s: No such property.", name);
 	return buf;
     }
 #ifdef DISKBASE
@@ -826,29 +826,34 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
     tct(tbuf, mybuf);
     switch (PropType(p)) {
 	case PROP_STRTYP:
-	    sprintf(buf, AQUA "str " GREEN "%s" RED ":" CYAN "%.*s", mybuf, (BUFFER_LEN/2),
+	    sprintf(buf, SYSAQUA "str " SYSGREEN "%s" SYSRED ":" SYSCYAN 
+                    "%.*s", mybuf, (BUFFER_LEN/2),
 		    tct(PropDataStr(p),tbuf));
 	    break;
 	case PROP_REFTYP:
-	    sprintf(buf, BROWN "ref " GREEN "%s" RED ":%s", mybuf,
+	    sprintf(buf, SYSBROWN "ref " SYSGREEN "%s" SYSRED ":%s", mybuf,
 		    ansi_unparse_object(player, PropDataRef(p)));
 	    break;
 	case PROP_INTTYP:
-	    sprintf(buf, FOREST "int " GREEN "%s" RED ":" YELLOW "%d", mybuf, PropDataVal(p));
+	    sprintf(buf, SYSFOREST "int " SYSGREEN "%s" SYSRED ":" SYSYELLOW 
+                    "%d", mybuf, PropDataVal(p));
 	    break;
       case PROP_FLTTYP:
-          sprintf(buf, NAVY "flt " GREEN "%s" RED ":" BROWN "%.16lg", mybuf, PropDataFVal(p));
+          sprintf(buf, SYSNAVY "flt " SYSGREEN "%s" SYSRED ":" SYSBROWN 
+                  "%.16lg", mybuf, PropDataFVal(p));
           break;
 	case PROP_LOKTYP:
 	    if (PropFlags(p) & PROP_ISUNLOADED) {
-		sprintf(buf, CRIMSON "lok " GREEN "%s" RED ":" PURPLE "*UNLOCKED*", mybuf);
+		sprintf(buf, SYSCRIMSON "lok " SYSGREEN "%s" SYSRED ":" 
+                        SYSPURPLE "*UNLOCKED*", mybuf);
 	    } else {
-		sprintf(buf, CRIMSON "lok " GREEN "%s" RED ":" PURPLE "%.*s", mybuf, (BUFFER_LEN/2),
+		sprintf(buf, SYSCRIMSON "lok " SYSGREEN "%s" SYSRED ":" 
+                        SYSPURPLE "%.*s", mybuf, (BUFFER_LEN/2),
 			tct(unparse_boolexp(player, PropDataLok(p), 1),tbuf));
 	    }
 	    break;
 	case PROP_DIRTYP:
-	    sprintf(buf, WHITE "dir " GREEN "%s" RED ":", mybuf);
+	    sprintf(buf, SYSWHITE "dir " SYSGREEN "%s" SYSRED ":", mybuf);
 	    break;
     }
     return buf;
