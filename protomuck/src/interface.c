@@ -1585,6 +1585,7 @@ wall_and_flush(const char *msg)
 {
     struct descriptor_data *d;
     char    buf[BUFFER_LEN + 2];
+    char    abuf[BUFFER_LEN + 2];
 
 #ifdef COMPRESS
     msg = uncompress(msg);
@@ -1595,7 +1596,12 @@ wall_and_flush(const char *msg)
     strcat(buf, "\r\n");
 
     for (d = descriptor_list; d; d = d->next) {
-	queue_ansi(d, buf);
+        if (d->player != NOTHING) {
+            parse_ansi(d->player, abuf, buf, ANSINORMAL); 
+            queue_ansi(d, abuf);
+        } else {
+	    queue_ansi(d, buf);
+        }
 	if (!process_output(d)) {
 	    d->booted = 1;
 	}
@@ -1758,17 +1764,8 @@ wall_all(const char *msg)
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
-/*    temp = html_escape(buf);
-    strcpy(buf2, "<code>");
-    strcat(buf2, temp);
-    strcat(buf2, "</code>"); */
 
     for (d = descriptor_list; d; d = d->next) {
-/*      if((d->type == CT_HTML) || (d->type == CT_PUEBLO)) {
-           queue_ansi(d, buf2);
-      } else {
-           queue_ansi(d, buf);
-      } */
 	queue_unhtml(d, buf);
 	if (!process_output(d))
 	    d->booted = 1;
