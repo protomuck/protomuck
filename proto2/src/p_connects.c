@@ -726,7 +726,6 @@ prim_descr_sslp(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
-
 void
 prim_welcome_user(PRIM_PROTOTYPE)
 {

@@ -121,3 +121,9 @@
 
 /* Define if you have the <openssl/ssl.h> header file.  */
 #undef HAVE_OPENSSL_SSL_H
+
+/* Define this to enable SSL support. */
+#undef USE_SSL
+
+/* Define this to enable MySQL support. */
+#undef SQL_SUPPORT

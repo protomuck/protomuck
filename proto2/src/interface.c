@@ -1447,45 +1447,32 @@ max_open_files(void)
 #endif /* !POSIX */
 }
 
+int
+sockwrite(struct descriptor_data *d, const char *str, int len)
+{
+#ifdef USE_SSL
+    if (d->ssl_session)
+        return SSL_write(d->ssl_session, str, len);
+    else
+#endif
+        return writesocket(d->descriptor, str, len);
+}
+
 void
 goodbye_user(struct descriptor_data *d)
 {
-#ifdef USE_SSL
-    if (d->ssl_session) {
-        SSL_write(d->ssl_session, "\r\n", 2);
-        SSL_write(d->ssl_session, tp_leave_message, strlen(tp_leave_message));
-        SSL_write(d->ssl_session, "\r\n\r\n", 4);
-    } else {
-        writesocket(d->descriptor, "\r\n", 2);
-        writesocket(d->descriptor, tp_leave_message, strlen(tp_leave_message));
-        writesocket(d->descriptor, "\r\n\r\n", 4);
-    }
-#else
-    writesocket(d->descriptor, "\r\n", 2);
-    writesocket(d->descriptor, tp_leave_message, strlen(tp_leave_message));
-    writesocket(d->descriptor, "\r\n\r\n", 4);
-#endif
+    queue_write(d, "\r\n", 2);
+    queue_write(d, tp_leave_message, strlen(tp_leave_message));
+    queue_write(d, "\r\n\r\n", 4);
 }
 
 void
 idleboot_user(struct descriptor_data *d)
 {
-#ifdef USE_SSL
-    if (d->ssl_session) {
-        SSL_write(d->ssl_session, "\r\n", 2);
-        SSL_write(d->ssl_session, tp_idleboot_msg, strlen(tp_idleboot_msg));
-        SSL_write(d->ssl_session, "\r\n\r\n", 4);
-    } else {
-        writesocket(d->descriptor, "\r\n", 2);
-        writesocket(d->descriptor, tp_idleboot_msg, strlen(tp_idleboot_msg));
-        writesocket(d->descriptor, "\r\n\r\n", 4);
-    }
-#else
-    writesocket(d->descriptor, "\r\n", 2);
-    writesocket(d->descriptor, tp_idleboot_msg, strlen(tp_idleboot_msg));
-    writesocket(d->descriptor, "\r\n\r\n", 4);
+    queue_write(d, "\r\n", 2);
+    queue_write(d, tp_idleboot_msg, strlen(tp_idleboot_msg));
+    queue_write(d, "\r\n\r\n", 4);
     d->booted = 1;
-#endif
 }
 
 void
@@ -2771,14 +2758,8 @@ process_output(struct descriptor_data *d)
     }
 
     for (qp = &d->output.head; (cur = *qp);) {
-#ifdef USE_SSL
-        if (d->ssl_session)
-            cnt = SSL_write(d->ssl_session, cur->start, cur->nchars);
-        else
-            cnt = writesocket(d->descriptor, cur->start, cur->nchars);
-#else
-        cnt = writesocket(d->descriptor, cur->start, cur->nchars);
-#endif
+        cnt = sockwrite(d, cur->start, cur->nchars);
+
         if (cnt < 0) {
 #ifdef DEBUGPROCESS
             fprintf(stderr, "process_output: write failed errno %d %s\n", errno,
@@ -2925,10 +2906,9 @@ process_input(struct descriptor_data *d)
     if (d->ssl_session)
         got = SSL_read(d->ssl_session, buf, sizeof buf);
     else
-        got = readsocket(d->descriptor, buf, sizeof buf);
-#else
-    got = readsocket(d->descriptor, buf, sizeof buf);
 #endif
+        got = readsocket(d->descriptor, buf, sizeof buf);
+
 #ifndef WIN32
 # ifdef USE_SSL
     if ((got <= 0) && errno != EWOULDBLOCK)
@@ -3014,9 +2994,7 @@ process_input(struct descriptor_data *d)
                     d->inIAC = 0;
                     break;
                 case '\366':{  /* AYT */
-                    char sendbuf[] = "[Yes]\r\n";
-
-                    writesocket(d->descriptor, sendbuf, strlen(sendbuf));
+                    sockwrite(d, "[Yes]\r\n", 7);
                     d->inIAC = 0;
                     break;
                 }
@@ -3043,8 +3021,9 @@ process_input(struct descriptor_data *d)
                     d->inIAC = 3;
                     break;
                 case '\377':   /* IAC a second time */
-#if 0
+#if 1
                     /* for future 8 bit clean code, perhaps */
+                    /* the future, is NOW! -hinoserm */
                     *p++ = *q;
 #endif
                     d->inIAC = 0;
@@ -3055,23 +3034,13 @@ process_input(struct descriptor_data *d)
             }
         } else if (d->inIAC == 2) {
             /* send back DONT option in all cases */
-            char sendbuf[4];
-
-            sendbuf[0] = '\377';
-            sendbuf[1] = '\376';
-            sendbuf[2] = *q;
-            sendbuf[3] = '\0';
-            writesocket(d->descriptor, sendbuf, 3);
+            sockwrite(d, "\377\376", 2);
+            sockwrite(d, q, 1);
             d->inIAC = 0;
         } else if (d->inIAC == 3) {
             /* Send back WONT in all cases */
-            char sendbuf[4];
-
-            sendbuf[0] = '\377';
-            sendbuf[1] = '\374';
-            sendbuf[2] = *q;
-            sendbuf[3] = '\0';
-            writesocket(d->descriptor, sendbuf, 3);
+            sockwrite(d, "\377\374", 2);
+            sockwrite(d, q, 1);
             d->inIAC = 0;
         } else if (d->inIAC == 4) {
             /* ignore WON'T option */
@@ -3110,6 +3079,7 @@ set_userstring(char **userstring, const char *command)
         FREE(*userstring);
         *userstring = 0;
     }
+
     while (*command && isascii(*command) && isspace(*command))
         command++;
     if (*command)
@@ -3608,14 +3578,8 @@ close_sockets(const char *msg)
     (void) pdescrflush(-1);
     for (d = descriptor_list; d; d = dnext) {
         dnext = d->next;
-#ifdef USE_SSL
-        if (d->ssl_session)
-            SSL_write(d->ssl_session, msg, strlen(msg));
-        else
-            writesocket(d->descriptor, msg, strlen(msg));
-#else
-        writesocket(d->descriptor, msg, strlen(msg));
-#endif
+
+        sockwrite(d, msg, strlen(msg));
         announce_disconnect(d);
         clearstrings(d);                 /** added to clean up **/
         if (shutdown(d->descriptor, 2) < 0)

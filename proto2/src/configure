@@ -4115,7 +4115,7 @@ _ACEOF
 #define HAVE_MYSQL_H 1
 _ACEOF
 
-        INCL="-Imysql $INCL"
+        INCL="-Imysql -L/usr/lib/mysql $INCL"
         found_mysql="1"
 
 fi
@@ -4264,7 +4264,7 @@ _ACEOF
 #define HAVE_MYSQL_H 1
 _ACEOF
 
-        INCL="-I$MYSQLTOP $INCL"
+        INCL="-I$MYSQLTOP -L$MYSQLTOP -L/usr/lib/mysql $INCL"
         found_mysql="1"
 
 fi
@@ -4278,6 +4278,11 @@ if test "$found_mysqlh" = "0"; then
 echo "$as_me: error: cannot locate mysql.h header file." >&2;}
    { (exit 1); exit 1; }; }
 fi
+
+cat >>confdefs.h <<\_ACEOF
+#define SQL_SUPPORT 1
+_ACEOF
+
 
 LIBS="-lmysqlclient $LIBS"
 
