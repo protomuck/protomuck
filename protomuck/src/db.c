@@ -33,7 +33,6 @@ struct macrotable *macrotop;
 extern char *alloc_string(const char *);
 #endif
 
-#define VERBOSELOAD
 
 extern short db_conversion_flag;
 extern short db_decompression_flag;
