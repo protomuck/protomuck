@@ -616,37 +616,37 @@ html_escape(const char *msg)
     tempstr = buff;
     while (*msg) {
         switch (*msg) {
-            case '&':{
-                *tempstr++ = '&';
-                *tempstr++ = 'a';
-                *tempstr++ = 'm';
-                *tempstr++ = 'p';
-                *tempstr++ = ';';
-                break;
-            }
-            case '\"':{
-                *tempstr++ = '&';
-                *tempstr++ = 'q';
-                *tempstr++ = 'u';
-                *tempstr++ = 'o';
-                *tempstr++ = 't';
-                *tempstr++ = ';';
-                break;
-            }
-            case '<':{
-                *tempstr++ = '&';
-                *tempstr++ = 'l';
-                *tempstr++ = 't';
-                *tempstr++ = ';';
-                break;
-            }
-            case '>':{
-                *tempstr++ = '&';
-                *tempstr++ = 'g';
-                *tempstr++ = 't';
-                *tempstr++ = ';';
-                break;
-            }
+        case '&':{
+            *tempstr++ = '&';
+            *tempstr++ = 'a';
+            *tempstr++ = 'm';
+            *tempstr++ = 'p';
+            *tempstr++ = ';';
+            break;
+        }
+        case '\"':{
+            *tempstr++ = '&';
+            *tempstr++ = 'q';
+            *tempstr++ = 'u';
+            *tempstr++ = 'o';
+            *tempstr++ = 't';
+            *tempstr++ = ';';
+            break;
+        }
+        case '<':{
+            *tempstr++ = '&';
+            *tempstr++ = 'l';
+            *tempstr++ = 't';
+            *tempstr++ = ';';
+            break;
+        }
+        case '>':{
+            *tempstr++ = '&';
+            *tempstr++ = 'g';
+            *tempstr++ = 't';
+            *tempstr++ = ';';
+            break;
+        }
 /*			case ' ': {
 				*tempstr++ = '&';
 				*tempstr++ = '#';
@@ -655,11 +655,11 @@ html_escape(const char *msg)
 				*tempstr++ = ';';
 				break;
 			} */
-            case '\n':{
-                break;
-            }
-            default:
-                *tempstr++ = *msg;
+        case '\n':{
+            break;
+        }
+        default:
+            *tempstr++ = *msg;
         }
         (void) msg++;
     }
@@ -1871,21 +1871,21 @@ get_ctype(int port)
     if (get_property((dbref) 0, buf)) {
         ctype = get_property_value((dbref) 0, buf);
         switch (ctype) {
-            case 0:
-                ctype = CT_MUCK;
-                break;
-            case 1:
-                ctype = CT_HTML;
-                break;
-            case 2:
-                ctype = CT_MUCK;
-                break;
-            case 3:
-                ctype = CT_MUF;
-                break;
-            default:
-                ctype = CT_MUCK;
-                break;
+        case 0:
+            ctype = CT_MUCK;
+            break;
+        case 1:
+            ctype = CT_HTML;
+            break;
+        case 2:
+            ctype = CT_MUCK;
+            break;
+        case 3:
+            ctype = CT_MUF;
+            break;
+        default:
+            ctype = CT_MUCK;
+            break;
         }
     } else {
         if (port == tp_wwwport) {
@@ -1896,14 +1896,14 @@ get_ctype(int port)
             ctype = CT_MUCK;
     }
     switch (ctype) {
-        case CT_MUCK:
-            return CT_MUCK;
-        case CT_HTML:
-            return CT_HTML;
-        case CT_PUEBLO:
-            return CT_PUEBLO;
-        case CT_MUF:
-            return CT_MUF;
+    case CT_MUCK:
+        return CT_MUCK;
+    case CT_HTML:
+        return CT_HTML;
+    case CT_PUEBLO:
+        return CT_PUEBLO;
+    case CT_MUF:
+        return CT_MUF;
     }
     return CT_MUCK;
 }
@@ -2221,6 +2221,8 @@ shutdownsock(struct descriptor_data *d)
     }
     if (d->identify)
         FREE(d->identify);
+    if (d->lastmidi)
+        FREE(d->lastmidi);
     clearstrings(d);
     shutdown(d->descriptor, 2);
     closesocket(d->descriptor);
@@ -2656,56 +2658,56 @@ process_input(struct descriptor_data *d)
             p = d->raw_input;
         } else if (d->inIAC == 1) {
             switch (*q) {
-                case '\361':   /* NOP */
-                    d->inIAC = 0;
-                    break;
-                case '\363':   /* Break */
-                case '\364':   /* Interrupt Processes */
-                    save_command(d, BREAK_COMMAND);
-                    d->inIAC = 0;
-                    break;
-                case '\365':   /* Abort output */
-                    d->inIAC = 0;
-                    break;
-                case '\366':{  /* AYT */
-                    char sendbuf[] = "[Yes]\r\n";
+            case '\361':       /* NOP */
+                d->inIAC = 0;
+                break;
+            case '\363':       /* Break */
+            case '\364':       /* Interrupt Processes */
+                save_command(d, BREAK_COMMAND);
+                d->inIAC = 0;
+                break;
+            case '\365':       /* Abort output */
+                d->inIAC = 0;
+                break;
+            case '\366':{      /* AYT */
+                char sendbuf[] = "[Yes]\r\n";
 
-                    writesocket(d->descriptor, sendbuf, strlen(sendbuf));
-                    d->inIAC = 0;
-                    break;
-                }
-                case '\367':   /* Erase character */
-                    if (p > d->raw_input)
-                        --p;
-                    d->inIAC = 0;
-                    break;
-                case '\370':   /* Erase line */
-                    p = d->raw_input;
-                    d->inIAC = 0;
-                    break;
-                case '\372':   /* Go ahead. Treat as NOP */
-                    d->inIAC = 0;
-                    break;
-                case '\373':   /* Will option offer */
-                    d->inIAC = 2;
-                    break;
-                case '\374':   /* won't option */
-                    d->inIAC = 4;
-                    break;
-                case '\375':   /* DO option request */
-                case '\376':   /* DONT option request */
-                    d->inIAC = 3;
-                    break;
-                case '\377':   /* IAC a second time */
+                writesocket(d->descriptor, sendbuf, strlen(sendbuf));
+                d->inIAC = 0;
+                break;
+            }
+            case '\367':       /* Erase character */
+                if (p > d->raw_input)
+                    --p;
+                d->inIAC = 0;
+                break;
+            case '\370':       /* Erase line */
+                p = d->raw_input;
+                d->inIAC = 0;
+                break;
+            case '\372':       /* Go ahead. Treat as NOP */
+                d->inIAC = 0;
+                break;
+            case '\373':       /* Will option offer */
+                d->inIAC = 2;
+                break;
+            case '\374':       /* won't option */
+                d->inIAC = 4;
+                break;
+            case '\375':       /* DO option request */
+            case '\376':       /* DONT option request */
+                d->inIAC = 3;
+                break;
+            case '\377':       /* IAC a second time */
 #if 0
-                    /* for future 8 bit clean code, perhaps */
-                    *p++ = *q;
+                /* for future 8 bit clean code, perhaps */
+                *p++ = *q;
 #endif
-                    d->inIAC = 0;
-                    break;
-                default:
-                    d->inIAC = 0;
-                    break;
+                d->inIAC = 0;
+                break;
+            default:
+                d->inIAC = 0;
+                break;
             }
         } else if (d->inIAC == 2) {
             /* send back DONT option in all cases */
@@ -3747,14 +3749,19 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                 /****/
+        if (d->next)                                     /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                             /****/
+        if (d->hostname)                                 /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                             /****/
+        if (d->username)                                 /****/
             free((void *) d->username);
                                    /****/
+        if (d->lastmidi)
+            free((void *) d->lastmidi);
+        if (d->identify)
+            free((void *) d->identify);
+
         FREE(d);                         /****/
         ndescriptors--;                  /****/
     }
@@ -3829,17 +3836,17 @@ do_dinfo(dbref player, const char *arg)
     }
 
     switch (d->type) {
-        case CT_MUCK:
-            ctype = "muck";
-            break;
-        case CT_HTML:
-            ctype = "html";
-            break;
-        case CT_PUEBLO:
-            ctype = "pueblo";
-            break;
-        default:
-            ctype = "unknown";
+    case CT_MUCK:
+        ctype = "muck";
+        break;
+    case CT_HTML:
+        ctype = "html";
+        break;
+    case CT_PUEBLO:
+        ctype = "pueblo";
+        break;
+    default:
+        ctype = "unknown";
     }
 
     anotify_fmt(player, "%s" SYSAQUA " descr " SYSYELLOW "%d" SYSBLUE " (%s)",
@@ -3895,31 +3902,31 @@ do_dwall(dbref player, const char *name, const char *msg)
     }
 
     switch (msg[0]) {
-        case ':':
-        case ';':
-            sprintf(buf, MARK "%s %s\r\n", NAME(player), msg + 1);
-            break;
-        case '@':
-            sprintf(buf, MARK "%s\r\n", msg + 1);
-            break;
-        case '#':
-            notify(player, "DWall Help");
-            notify(player, "~~~~~~~");
-            notify(player, "dwall player=msg -- tell player 'msg'");
-            notify(player, "dwall 14=message -- tell ds 14 'message'");
-            notify(player, "dwall 14=:poses  -- pose 'poses' to ds 14");
-            notify(player, "dwall 14=@boo    -- spoof 'boo' to ds 14");
-            notify(player, "dwall 14=!boo    -- same as @ with no 'mark'");
-            notify(player, "dwall 14=#       -- this help list");
-            notify(player,
-                   "Use WHO or WHO! to find ds numbers for players online.");
-            return;
-        case '!':
-            sprintf(buf, "%s\r\n", msg + 1);
-            break;
-        default:
-            sprintf(buf, MARK "%s tells you, \"%s\"\r\n", NAME(player), msg);
-            break;
+    case ':':
+    case ';':
+        sprintf(buf, MARK "%s %s\r\n", NAME(player), msg + 1);
+        break;
+    case '@':
+        sprintf(buf, MARK "%s\r\n", msg + 1);
+        break;
+    case '#':
+        notify(player, "DWall Help");
+        notify(player, "~~~~~~~");
+        notify(player, "dwall player=msg -- tell player 'msg'");
+        notify(player, "dwall 14=message -- tell ds 14 'message'");
+        notify(player, "dwall 14=:poses  -- pose 'poses' to ds 14");
+        notify(player, "dwall 14=@boo    -- spoof 'boo' to ds 14");
+        notify(player, "dwall 14=!boo    -- same as @ with no 'mark'");
+        notify(player, "dwall 14=#       -- this help list");
+        notify(player,
+               "Use WHO or WHO! to find ds numbers for players online.");
+        return;
+    case '!':
+        sprintf(buf, "%s\r\n", msg + 1);
+        break;
+    default:
+        sprintf(buf, MARK "%s tells you, \"%s\"\r\n", NAME(player), msg);
+        break;
     }
 
     queue_ansi(d, buf);
@@ -4077,89 +4084,88 @@ dump_users(struct descriptor_data *d, char *user)
     }
     sprintf(plyrbuf, "%-*s", namelimit + 6, "Player Name");
     switch (wizwho) {
-        case 0:{
-            if (tp_who_doing) {
-                sprintf(buf,
-                        "%s%s%sOn For %sIdle  %s%-.43s\r\n",
-                        SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW, SYSCYAN,
-                        dobuf);
-            } else {
-                sprintf(buf, "%s%s%sOn For %sIdle\r\n",
-                        SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW);
-            }
-            break;
-        }
-        case 1:{
+    case 0:{
+        if (tp_who_doing) {
             sprintf(buf,
-                    "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
-                    SYSRED, SYSGREEN, plyrbuf, SYSCYAN, SYSPURPLE,
-                    SYSYELLOW, SYSBLUE);
-            break;
+                    "%s%s%sOn For %sIdle  %s%-.43s\r\n",
+                    SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW, SYSCYAN, dobuf);
+        } else {
+            sprintf(buf, "%s%s%sOn For %sIdle\r\n",
+                    SYSGREEN, plyrbuf, SYSPURPLE, SYSYELLOW);
         }
-        case 2:{
-            sprintf(buf,
-                    "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
-                    SYSRED, SYSGREEN, plyrbuf, SYSWHITE,
-                    SYSYELLOW, SYSCYAN, SYSBLUE);
-            break;
-        }
+        break;
+    }
+    case 1:{
+        sprintf(buf,
+                "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
+                SYSRED, SYSGREEN, plyrbuf, SYSCYAN, SYSPURPLE,
+                SYSYELLOW, SYSBLUE);
+        break;
+    }
+    case 2:{
+        sprintf(buf,
+                "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
+                SYSRED, SYSGREEN, plyrbuf, SYSWHITE,
+                SYSYELLOW, SYSCYAN, SYSBLUE);
+        break;
+    }
     }
     queue_unhtml(d, buf);
     for (dlist = descriptor_list; dlist; dlist = dlist->next) {
         strcpy(plyrbuf, "");
         strcpy(typbuf, "");
         switch (dlist->type) {
-            case CT_MUCK:{
-                if (dlist->connected && OkObj(dlist->player)) {
+        case CT_MUCK:{
+            if (dlist->connected && OkObj(dlist->player)) {
+                strcpy(plyrbuf, NAME(dlist->player));
+            } else {
+                strcpy(plyrbuf, "[Connecting]");
+            }
+            strcpy(typbuf, "Text Port");
+            break;
+        }
+        case CT_PUEBLO:{
+            if (dlist->connected && OkObj(dlist->player)) {
+                strcpy(plyrbuf, NAME(dlist->player));
+            } else {
+                strcpy(plyrbuf, "[Connecting]");
+            }
+            strcpy(typbuf, "Pueblo Port");
+            break;
+        }
+        case CT_HTML:{
+            if (dlist->http_login) {
+                if ((dlist->connected) && (OkObj(d->player))) {
                     strcpy(plyrbuf, NAME(dlist->player));
                 } else {
                     strcpy(plyrbuf, "[Connecting]");
                 }
-                strcpy(typbuf, "Text Port");
-                break;
+                strcpy(typbuf, "Http Login");
+            } else {
+                strcpy(plyrbuf, "[WWW]");
+                strcpy(typbuf, "Webport");
             }
-            case CT_PUEBLO:{
-                if (dlist->connected && OkObj(dlist->player)) {
-                    strcpy(plyrbuf, NAME(dlist->player));
-                } else {
-                    strcpy(plyrbuf, "[Connecting]");
-                }
-                strcpy(typbuf, "Pueblo Port");
-                break;
-            }
-            case CT_HTML:{
-                if (dlist->http_login) {
-                    if ((dlist->connected) && (OkObj(d->player))) {
-                        strcpy(plyrbuf, NAME(dlist->player));
-                    } else {
-                        strcpy(plyrbuf, "[Connecting]");
-                    }
-                    strcpy(typbuf, "Http Login");
-                } else {
-                    strcpy(plyrbuf, "[WWW]");
-                    strcpy(typbuf, "Webport");
-                }
-                break;
-            }
-            case CT_MUF:{
-                strcpy(plyrbuf, "[MUF]");
-                strcpy(typbuf, "MUF Port");
-                break;
-            }
-            case CT_INBOUND:{
-                strcpy(plyrbuf, "[Inbound]");
-                strcpy(typbuf, "MUF Inbound");
-                break;
-            }
-            case CT_OUTBOUND:{
-                strcpy(plyrbuf, "[Outbound]");
-                strcpy(typbuf, "MUF Outbound");
-                break;
-            }
-            default:{
-                strcpy(plyrbuf, "[Unknown]");
-                strcpy(typbuf, "Unknown Port Type");
-            }
+            break;
+        }
+        case CT_MUF:{
+            strcpy(plyrbuf, "[MUF]");
+            strcpy(typbuf, "MUF Port");
+            break;
+        }
+        case CT_INBOUND:{
+            strcpy(plyrbuf, "[Inbound]");
+            strcpy(typbuf, "MUF Inbound");
+            break;
+        }
+        case CT_OUTBOUND:{
+            strcpy(plyrbuf, "[Outbound]");
+            strcpy(typbuf, "MUF Outbound");
+            break;
+        }
+        default:{
+            strcpy(plyrbuf, "[Unknown]");
+            strcpy(typbuf, "Unknown Port Type");
+        }
         }
         if ((!wizwho) && !((dlist->connected && OkObj(dlist->player)) ?
                            !((FLAGS(dlist->player) & DARK) ||
@@ -4194,71 +4200,67 @@ dump_users(struct descriptor_data *d, char *user)
             strcpy(buf, "");
             sprintf(plyrbuf, "%-*s", namelimit + (wizwho ? 5 : 1), plyrbuf);
             switch (wizwho) {
-                case 0:{
-                    if (tp_who_doing) {
-                        sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
-                                SYSGREEN, plyrbuf, SYSPURPLE,
-                                time_format_1(now - dlist->connected_at),
-                                (1 ?
-                                 ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ") :
-                                 " "), SYSYELLOW,
-                                time_format_2(now - dlist->last_time),
-                                ((dlist->connected
-                                  && OkObj(dlist->
-                                           player)) ? ((FLAGS(dlist->
-                                                              player) &
-                                                        INTERACTIVE)
-                                                       ? "*" : " ") : " "),
-                                SYSCYAN, GETDOING(dlist->player) ?
-#ifdef COMPRESS
-                                uncompress(GETDOING(dlist->player))
-#else
-                                GETDOING(dlist->player)
-#endif
-                                : "");
-                    } else {
-                        sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
-                                SYSGREEN, plyrbuf, SYSPURPLE,
-                                time_format_1(now - dlist->connected_at),
-                                (1
-                                 ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ")
-                                 : " "), SYSYELLOW,
-                                time_format_2(now - dlist->last_time),
-                                ((dlist->connected
-                                  && OkObj(dlist->
-                                           player)) ? ((FLAGS(dlist->
-                                                              player) &
-                                                        INTERACTIVE)
-                                                       ? "*" : " ") : " "));
-                    }
-                    break;
-                }
-                case 1:{
-                    sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
-                            SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
-                            SYSCYAN, dlist->cport, SYSPURPLE,
+            case 0:{
+                if (tp_who_doing) {
+                    sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
+                            SYSGREEN, plyrbuf, SYSPURPLE,
                             time_format_1(now - dlist->connected_at),
-                            (1
-                             ? ((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ")
+                            (1 ?
+                             ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ") :
+                             " "), SYSYELLOW,
+                            time_format_2(now - dlist->last_time),
+                            ((dlist->connected
+                              && OkObj(dlist->
+                                       player)) ? ((FLAGS(dlist->
+                                                          player) & INTERACTIVE)
+                                                   ? "*" : " ") : " "),
+                            SYSCYAN, GETDOING(dlist->player) ?
+#ifdef COMPRESS
+                            uncompress(GETDOING(dlist->player))
+#else
+                            GETDOING(dlist->player)
+#endif
+                            : "");
+                } else {
+                    sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
+                            SYSGREEN, plyrbuf, SYSPURPLE,
+                            time_format_1(now - dlist->connected_at),
+                            (1 ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ")
                              : " "), SYSYELLOW,
                             time_format_2(now - dlist->last_time),
                             ((dlist->connected
                               && OkObj(dlist->
                                        player)) ? ((FLAGS(dlist->
                                                           player) & INTERACTIVE)
-                                                   ? "*" : " ") : " "), SYSBLUE,
-                            ArchPerms ? dlist->username : "",
-                            ArchPerms ? "@" : "", dlist->hostname);
-                    break;
+                                                   ? "*" : " ") : " "));
                 }
-                case 2:{
-                    sprintf(buf, "%s%-3d %s%s %s[%7d] %s[%7d] %s[%7d] %s%s\r\n",
-                            SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
-                            SYSWHITE, dlist->output_len / 1024, SYSYELLOW,
-                            dlist->input_len / 1024, SYSCYAN, dlist->commands,
-                            SYSBLUE, typbuf);
-                    break;
-                }
+                break;
+            }
+            case 1:{
+                sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
+                        SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
+                        SYSCYAN, dlist->cport, SYSPURPLE,
+                        time_format_1(now - dlist->connected_at),
+                        (1 ? ((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ")
+                         : " "), SYSYELLOW,
+                        time_format_2(now - dlist->last_time),
+                        ((dlist->connected
+                          && OkObj(dlist->
+                                   player)) ? ((FLAGS(dlist->
+                                                      player) & INTERACTIVE)
+                                               ? "*" : " ") : " "), SYSBLUE,
+                        ArchPerms ? dlist->username : "",
+                        ArchPerms ? "@" : "", dlist->hostname);
+                break;
+            }
+            case 2:{
+                sprintf(buf, "%s%-3d %s%s %s[%7d] %s[%7d] %s[%7d] %s%s\r\n",
+                        SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
+                        SYSWHITE, dlist->output_len / 1024, SYSYELLOW,
+                        dlist->input_len / 1024, SYSCYAN, dlist->commands,
+                        SYSBLUE, typbuf);
+                break;
+            }
             }
             players++;
             queue_unhtml(d, buf);

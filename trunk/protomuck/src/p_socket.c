@@ -480,7 +480,8 @@ prim_sockshutdown(PRIM_PROTOTYPE)
 {
     int myresult = 0;
     int how = 0;
-    CHECKOP(2); /* socket int */
+
+    CHECKOP(2);                 /* socket int */
     oper2 = POP();
     oper1 = POP();
 
@@ -491,7 +492,7 @@ prim_sockshutdown(PRIM_PROTOTYPE)
     if (oper2->type != PROG_INTEGER)
         abort_interp("Integer of 0 - 2 expected.");
     how = oper2->data.number;
-    if (oper1->data.sock->is_player && how == 2) { /* don't close descrs*/
+    if (oper1->data.sock->is_player && how == 2) { /* don't close descrs */
         CLEAR(oper1);
         CLEAR(oper2);
         PushInt(myresult);
@@ -506,7 +507,7 @@ prim_sockshutdown(PRIM_PROTOTYPE)
         myresult = errnosocket;
 #endif
     else
-        myresult =0;
+        myresult = 0;
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n", program,
                      unparse_object(player, player), oper1->data.sock->socknum);
@@ -619,6 +620,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     copyinst(result, &arg[(*top)++]);
     CLEAR(result);
     PushString(myresult);
+    if (result)
+        free((void *) result);
 }
 
 
@@ -811,6 +814,8 @@ prim_lsockopen(PRIM_PROTOTYPE)
     copyinst(result, &arg[(*top)++]);
     PushString(myresult);
     CLEAR(result);
+    if (result)
+        free((void *) result);
 }
 
 void
@@ -909,6 +914,8 @@ prim_sockaccept(PRIM_PROTOTYPE)
     CLEAR(oper1);
     copyinst(result, &arg[(*top)++]);
     CLEAR(result);
+    if (result)
+        free((void *) result);
 }
 
 void
