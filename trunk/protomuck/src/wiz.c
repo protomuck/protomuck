@@ -766,7 +766,12 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
     free((void *) NAME(victim));
     NAME(victim) = alloc_string(buf);
     DBDIRTY(victim);
-    FLAGS(victim) = (FLAGS(victim) & ~TYPE_MASK) | TYPE_THING;
+    FLAGS(victim) = TYPE_THING;
+    FLAG2(victim) = 0;
+    FLAG3(victim) = 0;
+    FLAG4(victim) = 0;  
+    POWERSDB(victim) = 0;
+    POWER2DB(victim) = 0;
     OWNER(victim) = player;     /* you get it */
     DBFETCH(victim)->sp.thing.value = 1;
 
