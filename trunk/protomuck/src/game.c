@@ -990,7 +990,8 @@ process_command(int descr, dbref player, char *command)
                                     case 'p':
                                     case 'P':
                                         Matched("@mcpprogram");
-                                        //(void) do_mcpprog(descr, player, arg1);
+                                        (void) do_mcpprogram(descr, player, 
+					                      arg1);
                                         break;
                                     default:
                                         goto bad;

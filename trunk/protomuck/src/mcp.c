@@ -697,11 +697,11 @@ mcp_frame_output_mesg(McpFrame * mfr, McpMesg * msg)
 
 	/* Create the message name from the package and message subnames */
 	strncpy(mesgname, msg->package, sizeof(mesgname));
-	mesgname[sizeof(mesgname)] = '\0';
+	mesgname[sizeof(mesgname) - 1] = '\0';
 	if (msg->mesgname && *msg->mesgname) {
 		strcat(mesgname, MCP_MESG_DELIMITER);
 		strncat(mesgname, msg->mesgname, sizeof(mesgname) - strlen(mesgname));
-		mesgname[sizeof(mesgname)] = '\0';
+		mesgname[sizeof(mesgname) -1] = '\0';
 	}
 
 	strcpy(outbuf, MCP_MESG_PREFIX);
@@ -794,6 +794,7 @@ mcp_frame_output_mesg(McpFrame * mfr, McpMesg * msg)
 
 	/* If the message is multi-line, make sure it has a _data-tag field. */
 	if (mlineflag) {
+                strcat(out, MCP_SEPARATOR);
 		strcat(out, MCP_DATATAG);
 		strcat(out, MCP_ARG_DELIMITER);
 		strcat(out, MCP_SEPARATOR);

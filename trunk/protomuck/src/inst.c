@@ -197,6 +197,13 @@ insttotext(struct frame *fr, int lev, struct inst * theinst, char *buffer, int b
 	case PROG_LVAR:
 	    sprintf(buffer, "LV%d", theinst->data.number);
 	    break;
+        case PROG_LVAR_AT:
+        case PROG_LVAR_AT_CLEAR:
+            sprintf(buffer, "LV%d @", theinst->data.number);
+            break;
+        case PROG_LVAR_BANG:
+            sprintf(buffer, "LV%d !", theinst->data.number);
+            break;
         case PROG_SOCKET:
             sprintf(buffer, "(%sSOCKET[%d])", 
 			    theinst->data.sock->listening ? "L" : "",
