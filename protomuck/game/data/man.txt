@@ -1,5 +1,5 @@
 ==================================================================
-                     ProtoMUCK 1.01 MUF Manual
+                     ProtoMUCK 1.5 MUF Manual
 
 Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
@@ -14,7 +14,7 @@ PRIMS2 - Stacks, Control Structures, Props
 PRIMS3 - Time, Data Conversion, Notifying (I/O)
 PRIMS4 - Connections, Locks, Strings
 PRIMS5 - Data Base, System, Sockets
-PRIMS6 - Arrays, Files
+PRIMS6 - Arrays, Files, MCP Prims
 
 To view a list of prim topics: PRIMS LIST
 ~~~~~
@@ -112,27 +112,31 @@ Strings Prims:
   STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
   FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
   ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
-
+  NAME-OK?      PNAME-OK?    ANSI_MIDSTR
+ 
 See: PRIMS5
 ~~~~~
 PRIMS5|PRIM5
 
 Data Base Prims:
-  CONTENTS    EXITS       NEXT         NEXTOWNED      NEXTPLAYER
-  SETNAME     SET         SETOWN       SETLINK        GETLINKS
-  MATCH       RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
-  NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
-  GETLINK     LOCATION    OWNER        CONTROLS       NEXT_FLAG 
-  FLAG?       MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
-  NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
-  PENNIES     ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
-  COPYOBJ     RECYCLE     MOVETO       STATS          DBTOP
-  OK?         THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
-  NEXTPROGRAM NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
-  NEXTENTRANCE
+  CONTENTS      EXITS       NEXT         NEXTOWNED      NEXTPLAYER
+  SETNAME       SET         SETOWN       SETLINK        GETLINKS
+  MATCH         RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
+  NEWPLAYER     COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
+  GETLINK       LOCATION    OWNER        CONTROLS       NEXT_FLAG 
+  FLAG?         MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
+  NEWROOM       NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
+  PENNIES       ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
+  COPYOBJ       RECYCLE     MOVETO       STATS          DBTOP
+  OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
+  NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
+  NEXTENTRANCE  POWER?      ISPOWER?                    NEXTPLAYER_POWER   
+  PNAME-OK?     NAME-OK?
+        
 System Prims:
   SYSPARM     SETSYSPARM     LOGSTATUS     VERSION     FORCE
   MOTD_NOTIFY
+
 Socket Prims:
   SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK
 
@@ -157,7 +161,13 @@ Array Prims:
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR
   BWRITE    BREAD    BAPPEND   FRM        FREN
-  FPUBLISH    FSINFO   FSTATS    CURID      FSIZE
+  FPUBLISH  FSINFO   FSTATS    CURID      FSIZE
+
+MCP Prims:
+  MCP_REGISTER    MCP_REGISTER EVENT   MCP_SUPPORTS       MCP_BIND
+  MCP_SEND        GUI_AVAILABLE        GUI_DLOG_CREATE    GUI_DLOG_SHOW
+  GUI_DLOG_CLOSE  GUI_CTRL_CREATE      GUI_VALUES_SET     GUI_VALUES_GET
+
 ~~~~~
 PRIMSLIST|PRIMS LIST|LIST PRIMS
 MATH PRIMS         - Prims that handle math.
@@ -178,6 +188,7 @@ MULTITASKING PRIMS - Prims that handle MUF multitasking levels.
 SOCKET PRIMS       - Prims for working with ProtoMUCK socket control.
 FILE PRIMS         - Prims for managing files on the server level.
 ARRAY PRIMS        - Prims for working with MUF arrays.
+MCP PRIMS          - Prims for working with graphical MUF protocal.
 
 See: TOPIC LIST for different discussions of topics.
 ~
@@ -274,19 +285,19 @@ DATABASE PRIMS|DATA BASE PRIMS|DATABASEPRIMS|DATA BASEPRIMS
 
 The following prims are used to work with the MUCK database:
 
-CONTENTS    EXITS       NEXT         NEXTOWNED      NEXTPLAYER
-SETNAME     SET         SETOWN       SETLINK        GETLINKS
-MATCH       RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
-NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
-GETLINK     LOCATION    OWNER        CONTROLS       NEXT_FLAG 
-FLAG?       MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
-NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
-PENNIES     ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
-COPYOBJ     RECYCLE     MOVETO       STATS          DBTOP
-OK?         THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
-NEXTPROGRAM NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
-NEXTENTRANCE
-
+  CONTENTS      EXITS       NEXT         NEXTOWNED      NEXTPLAYER
+  SETNAME       SET         SETOWN       SETLINK        GETLINKS
+  MATCH         RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
+  NEWPLAYER     COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
+  GETLINK       LOCATION    OWNER        CONTROLS       NEXT_FLAG 
+  FLAG?         MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
+  NEWROOM       NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
+  PENNIES       ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
+  COPYOBJ       RECYCLE     MOVETO       STATS          DBTOP
+  OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
+  NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
+  NEXTENTRANCE  POWER?      ISPOWER?                    NEXTPLAYER_POWER   
+  PNAME-OK?     NAME-OK?
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -311,6 +322,7 @@ STRCUT        SPLIT        RSPLIT       MIDSTR       SMATCH
 STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
 FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
 ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
+PNAME-OK?     NAME-OK?     ANSI_MIDSTR
 
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
@@ -1004,7 +1016,10 @@ d = Any valid dbref.
 s = String representing the name of the dbref.
 
 Takes object d and returns its true name string field.
-This is the same as name if the MUCK doesn't use anoniminity.
+In ProtoMUCK, this is the exact same thing as the NAME 
+prim and has just been left in for legacy code.
+
+See: NAME
 ~
 INSTR
 
@@ -1116,9 +1131,10 @@ d = Any valid dbref.
 s = string containing the name.
 
 Given any valid dbref number, it will return the name of that object
-as a string.
+as a string. If the dbref is of a recycled object, the name returned
+will be '<garbage>'.
 
-See: TRUENAME, SETNAME
+See: SETNAME
 ~
 NEXT
 
@@ -3040,6 +3056,7 @@ next_flag           ( d s -- d )
 nextowned_flag      ( d s -- d )
 nextplayer_flag     ( d s -- d )
 nextthing_flag      ( d s -- d )
+nextplayer_power    ( d s -- d )
 
 See: W1, MUCKER LEVELS, individual prim entries for more details
 ~~~~
@@ -3383,7 +3400,7 @@ This version of the MUF manual has been edited, and rewritten for use with
 
   ProtoMUCK is the result of the combined efforts of programmers: 
                              Van and Akari
-                 and is based on NeonMUCK version 2.17
+       and is based initially on NeonMUCK version 2.17 and FB6.
 
 See: CREDITS2 for a list of contributors
 ~~
@@ -3392,7 +3409,7 @@ CREDITS2
 The following names are known for contributing to the MUF support in MUCK:
 
 Lachesis  - Wrote the MUF compiler, introduced MUF to MUCKS.
-Foxen     - A lot of the original work on the FB and FB6 code base.
+Foxen     - A lot of the original work on the FB and FB6 code base and docs.
 Whitefire - Some of the older MUF prims.
 Points    - Author of the float support for FB6.
 Loki      - Many bug fixes and new prims added in NeonMUCK
@@ -3404,9 +3421,7 @@ No doubt many others have added their own contributions to MUF over
 the years. Sending a message to Nakoruru08@hotmail.com with the name
 of those left out of this list, and what they contributed, will result
 in a more accurate list with time.
-~
-
-~
+~~~~~~~~~~~~~
 FLAGS|FLAG1|FLAGS1|DEBUG|ZOMBIE|DEBUG-EDITOR|DARK|PARENT|PROG_DEBUG
 The following flags have a certain affect on MUF when set on the 
 program object itself:
@@ -4336,8 +4351,8 @@ See: RSPLIT
 ~
 RSPLIT
 
-split ( s1 s2 -- s3 s4 )
-------------------------
+rsplit ( s1 s2 -- s3 s4 )
+-------------------------
 Level: M1 Apprentice
 s1 = string to split.
 s2 = string representing the point at which to split s1.
@@ -4347,7 +4362,7 @@ Given a string, s1, and another string, s2, will split s1
 just after the last instance of s2 in s1. Note that the 
 s2 is not included in either string after it the split
 is done, so
-"Some String" " " split will produce "Some" "String"
+"Some Sample String" " " split will produce "Some Sample" "String"
 If s2 is not found, it returns the original string, plus
 an empty string to the stack.
 
@@ -6910,4 +6925,326 @@ x = Any data tyle
 This is a short cut to declare a variable and initialize it with something
 from the top of the stack all in one step. It is a $def for:
 var <name> <name> !
+~~~~~
+ISPOWER?
 
+ispower? ( s -- i )
+-------------------
+Level: M1 Apprentice
+s = A string representing a possible @power.
+i = Integer indicating true or false.
+ 
+Given a string, returns 1 if that string represents a valid
+@power and 0 if string represents an invalid @power.
+~~~
+POWER?
+
+power? ( d s -- i )
+-------------------
+Level: M1 Apprentice
+d = Any valid player dbref.
+s = String representing the @power to check for.
+i = Integer indicating true or false.
+ 
+Given a valid player dbref and a string containing a valid
+@power to check for, returns 1 if that player has been given
+that @power, and 0 if not.
+~~~
+NEXTPLAYER_POWER
+
+nextplayer_power ( d1 s -- d2 )
+-------------------------------
+Level: W1 Mage
+d1 = Valid player dbref.
+s  = String representing the power to search for.
+d2 = Dbref of next player in the data base, or #-1.
+ 
+Given a valid player dbref, and a string representing the @power
+to search for, returns the dbref# of the next player in the
+data base that has that @power set, or #-1 if no players were
+found with that power set.
+
+See: NEXTPLAYER_FLAG
+~~~~
+PNAME-OK?
+
+pname-ok? ( s -- i )
+-----------------
+Level: M1 Apprentice
+s = Any string.
+i = Integer indicating valid or not.
+
+Given a string, will return a 1 if s contains a valid player name, 
+otherwise returns 0.
+
+See: NAME-OK?
+~~~~
+NAME-OK?
+
+name-ok? ( s -- i )
+-------------------
+Level: M1 Apprentice
+s = Any string.
+i = Integer indicating valid or not.
+
+Given a string, will return a 1 if s contains a valid name for
+any object, otherwise returns 0.
+
+See: PNAME-OK?
+~~
+ANSI_MIDSTR
+
+ansi_midstr ( s1 i1 i2 -- s2 )
+------------------------------
+Level: M1 Apprentice
+s1 = Original string.
+i1 = integer representing the start point.
+i2 = integer representing the length.
+s2 = string representing the contents of s1 from i1 to i2.
+
+Returns a sub-string of s1, starting at position i1, of length
+i2. The first character is considered position 1, so that:
+"testing" 2 3 midstr will return the value "est"
+The difference between this and the normal midstr is that 
+ANSI codes will be ignored when determining the string positions
+from which to take the mid-string from. This applies only to the 
+real ANSI escape codes. Use parse_ansi to convert other ANSI to
+real ANSI.
+
+If s1 is shorter than the range given by i2, then the maximum number
+of character that could be returned will still be put on the stack.
+If s1 is an empty string, returns an empty string no matter what.
+If i1 is a point that is beyond the range of s1, returns a null string.
+~~~~~
+MCP PRIMS|MCP|MCPPRIMS
+
+GUI MCP from FB6. 
+At the time this version of the manual was completed, I had no idea
+how to use the MCP prims. Below is a list of the MCP prims that are
+in Proto, and each one is documented within this manual. Further
+documentation regarding the use of this prims will be provided once
+the way they are to be used becomes more clear. All of the manual
+entries for them were taken straight from the FB6 MUF Manual.
+
+MCP: MCP_REGISTER, MCP_REGISTER_EVENT, MCP_SUPPORTS, MCP_BIND, MCP_SEND
+GUI: GUI_AVAILABLE, GUI_DLOG_CREATE, GUI_DLOG_SHOW, GUI_DLOG_CLOSE
+     GUI_CTRL_CREATE, GUI_VALUES_SET, GUI_VALUES_GET
+
+~~~~~~~~~~~~~~
+MCP_REGISTER|
+
+mcp_register ( s f1 f2 -- )
+---------------------------
+Level: M1 Apprentice
+s  = String containing the name of an MCP package to register.
+f1 = Float representing minimum version number supported.
+f2 = Float representing maximum version number supported.
+
+Registers an MCP package so that clients can know what is supported. 
+The minimum and maximum versions supported are represented as floating 
+point numbers, with the minor version number being divided by 1000. For 
+example, an MCP package of version 1.1 is represented as 1.001, and a 
+version of 1.23 is represented as 1.023. This lets you use mathematical 
+compares to check version numbers. 
+
+See: MCP PRIMS
+~~~~~~~
+MCP_REGISTER_EVENT|
+
+mcp_register_event ( s f1 f2 -- )
+---------------------------------
+Level: M1 Apprentice
+s  = string containing package name to register.
+f1 = Float representing the minimum version package supported.
+f2 = Float representing the maximum version package supported.
+
+Registers an MCP package so that clients can know what is supported, 
+and marks this process as wanting to receive MCP messages as Muf Events. 
+These events can be read with EVENT_WAIT, and will have event ids 
+starting with "MCP.", followed by the package and message names. The 
+event data will be a dictionary, containing "descr", "package", 
+"message", and "args" elements. The args element will have a dictionary 
+of message arguments as it's value. The minimum and maximum package
+versions supported are represented as floating point numbers, with the 
+minor version number being divided by 1000. For example, an MCP package 
+of version 1.1 is represented as 1.001, and a version of 1.23 is 
+represented as 1.023. This lets you use arithmetic compares to check 
+version numbers. Since this primitive arranges for MCP messages to be 
+received as muf events, there is no need to use the MCP_BIND primitive 
+with this. A side benefit is that _any_ MCP message sent for this package 
+can be caught, not just the ones you bound. Also, the process that will 
+handle the events is kept alive, so your data stored in variables, or on 
+the stack, is kept.
+
+See: MCP PRIMS
+~~~~~~~~~~~~
+MCP_SUPPORTS|
+
+mcp_supports ( i s -- f )
+-------------------------
+Level: M1 Apprentice
+i = integer representing a valid descriptor.
+s = string representing a MCP package name.
+f = float representing the packet version number supported.
+
+Returns the version number of this package that is supported by this 
+connection descriptor. If this package isn't supported, returns 0.0 
+The version number is represented as a floating point number, with 
+the minor version number being divided by 1000. For example, an MCP 
+package of version 1.1 is represented as 1.001, and a version of 1.23 
+is represented as 1.023. This lets you use mathematical compares to 
+check version numbers. 
+
+See: MCP PRIMS
+~~~~~~~~~~~
+MCP_BIND|
+
+mcp_bind ( s1 s2 a -- )
+-----------------------
+Level: M1 Apprentice
+s1 = string containing a package name.
+s2 = string containing a specific message.
+a  = A function address.
+
+Binds a specific message, so if it is received, the given function is called. The callback function is assumed to accept the args: ( intDescr dictArgs -- ) where dictArgs is a dictionary array contain- ing key-value pairs that represent the arguments of the message. Each argument can either have a string value, or a list array of strings, where the list array is used for multi-line values. 
+
+See: MCP PRIMS
+~~~~~ 
+MCP_SEND|
+
+mcp_send ( i s1 s2 dict -- )
+----------------------------
+Level: M1 Apprentice
+i  = integer representing valid descriptor.
+s1 = string representing package name.
+s2 = string containing MCP message.
+dict = Dictionary array.
+
+Sends an MCP message for the given package to the given connection 
+descriptor. dictArgs contains key-value pairs, where each key is an 
+argument name, and the value is the argument value. Values can be 
+strings, floats, dbrefs, integers, or array lists of strings. They 
+all get translated into an appropriate string format before getting 
+sent. 
+
+See: MCP PRIMS
+~~~~~
+GUI_AVAILABLE|
+
+gui_available ( i -- f )
+------------------------
+Level: M1 Apprentice
+i = integer containing valid descriptor.
+f = float representing a version number.
+
+Returns the floating point version number of the MCP GUI protocol 
+supported by the given descriptor's connection. The version is 
+encoded in the number such that major version 8, minor version 12 
+is represented as 8.012. If the MCP protocol is not available on 
+that descriptor, then 0.0 is returned. 
+
+See: MCP PRIMS
+~~~~~~~~
+GUI_DLOG_CREATE|
+
+gui_dlog_create ( i s1 s2 dict -- s3 )
+--------------------------------------
+Level: M1 Apprentice
+i  = integer representing a valid descriptor.
+s1 = string representing the type of dialog to show user.
+s2 = string representing title to appear in the title bar.
+dict = dictionary array.
+s3 = string representing dialogid.
+
+If a user has a client that can support the MCP GUI protocol, then 
+this primitive can be used to generate a dialog on their screen. The 
+intDescr is the integer descriptor of the connection to show the dialog 
+on. The strType is the type of the dialog to create. Currently, the only 
+options for strType are D_SIMPLE, D_TABBED, or D_HELPER. The strTitle 
+argument is the title to show in the titlebar of the dialog. dictArgs 
+is a dictionary array that contains extra optional arguments for creating 
+the dialog. In general, dictArgs is only used to specify "panes" and "names"
+ for D_TABBED and D_HELPER dialogs. This primitive returns a string 
+containing the dialogid, used by other prims to add controls or make various 
+changes. This dialog will be hidden and not shown to the user until it has 
+been displayed with the GUI_DLOG_SHOW command. 
+
+See: MCP PRIMS
+~~~~~~~~
+GUI_DLOG_SHOW|
+
+gui_dlog_show ( s -- )
+----------------------
+Level: M1 Apprentice
+s = string containing a MCP dialog to be shown to user.
+
+Forces a given dialog to be shown to the user. The strDlogId 
+is what was returned by the GUI_DLOG_CREATE (or similar) command. 
+
+See: MCP PRIMS
+~~~~~~
+GUI_DLOG_CLOSE
+
+gui_dlog_close ( s -- )
+-----------------------
+Level: M1 Apprentice
+s = string containing a dialog id.
+
+Forces a given dialog to be closed and destroyed. The strDlogId 
+is what was returned by the GUI_DLOG_CREATE (or similar) command. 
+
+See: MCP PRIMS, GUI_DLOG_CREATE
+~~~~~ 
+GUI_CTRL_CREATE|
+
+gui_ctrl_create ( s1 s2 s3 dict -- )
+------------------------------------
+Level: M1 Apprentice
+s1 = string containing a dialog ID.
+s2 = string containing dialog type.
+s3 = string containing control ID.
+dict - dictionary array.
+
+Creates a new control in a given dialog. strDlogID contains the 
+dlogid returned from a GUI_DLOG_SIMPLE (or similar) command. 
+strType contains the control type. To make debugging easier and 
+faster, MUF $defs have been provided for each control type. They 
+are: C_DATUM, C_LABEL, C_HRULE, C_VRULE, C_BUTTON, C_CHECKBOX, 
+C_EDIT, C_MULTIEDIT, C_COMBOBOX, C_SPINNER, C_SCALE, C_LISTBOX, 
+C_FRAME, C_NOTEBOOK. If you use these instead of the actual type 
+name strings, then if you mistype one, it will throw an error when 
+trying to compile, instead of when you try to run it. The strCtrlID 
+arg is the id to give the control, for use in reading the values 
+back later, or modifying the control. dictArgs is used to pass any 
+other arguments needed to create the control. This will be used by 
+almost all controls. It is a dictionary array that contains argnames 
+as keys, each with an argument value. 
+
+See: MCP PRIMS
+~~~~~ 
+GUI_VALUES_GET|
+
+gui_values_get ( s -- dict )
+----------------------------
+Level: M1 Apprentice
+s = string containing a dialog ID.
+dict = dictionary array.
+
+Returns a dictionary containing all the control values for the given 
+dialog. The keys are the control ids. 
+
+See: MCP PRIMS
+~~~~~~~~~
+GUI_VALUE_SET|
+
+gui_value_set ( s1 s2 s3 -- )
+-----------------------------
+Level: M1 Apprentice
+s1 = string containing dialog ID.
+s2 = string containing control ID.
+s3 = string containing value to assign to control id.
+
+Sets the value of a given control in a given dialog.
+
+See: MCP PRIMS
+~~~~~~~~~~~

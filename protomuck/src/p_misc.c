@@ -747,6 +747,8 @@ prim_pnameokp(PRIM_PROTOTYPE)
    oper1 = POP();
    if (oper1->type != PROG_STRING)
       abort_interp("Player name string expected.");
+   if (!oper1->data.string)
+      abort_interp("Cannot be an empty string.");
    result = ok_player_name(oper1->data.string->data);
    PushInt(result);
 }
@@ -758,6 +760,8 @@ prim_nameokp(PRIM_PROTOTYPE)
    oper1 = POP();
    if (oper1->type != PROG_STRING)
       abort_interp("Object name string expected.");
+   if (!oper1->data.string)
+      abort_interp("Cannot be an empty string.");
    result = ok_name(oper1->data.string->data);
    PushInt(result);
 }

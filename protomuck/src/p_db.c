@@ -508,41 +508,57 @@ prim_next(PRIM_PROTOTYPE)
 void 
 prim_truename(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    oper1 = POP();
-    if (!valid_object(oper1))
-	abort_interp("Invalid argument type");
-    ref = oper1->data.objref;
-    CHECKREMOTE(ref);
-    if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-	ts_lastuseobject(ref);
-    if (NAME(ref)) {
-	strcpy(buf, NAME(ref));
-    } else {
-	buf[0] = '\0';
-    }
-    CLEAR(oper1);
-    PushString(buf);
+	CHECKOP(1);
+	oper1 = POP();
+	if (oper1->type != PROG_OBJECT)
+		abort_interp("Invalid argument type.");
+
+	ref = oper1->data.objref;
+	if (ref < 0 || ref >= db_top)
+		abort_interp("Invalid object.");
+
+	if (Typeof(ref) == TYPE_GARBAGE) {
+		strcpy(buf, "<garbage>");
+	} else {
+		CHECKREMOTE(ref);
+		if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
+			ts_lastuseobject(ref);
+		if (NAME(ref)) {
+			strcpy(buf, NAME(ref));
+		} else {
+			buf[0] = '\0';
+		}
+	}
+	CLEAR(oper1);
+	PushString(buf);
 }
 
 void 
 prim_name(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    oper1 = POP();
-    if (!valid_object(oper1))
-	abort_interp("Invalid argument type");
-    ref = oper1->data.objref;
-    CHECKREMOTE(ref);
-    if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-	ts_lastuseobject(ref);
-    if (NAME(ref)) {
-	strcpy(buf, PNAME(ref));
-    } else {
-	buf[0] = '\0';
-    }
-    CLEAR(oper1);
-    PushString(buf);
+	CHECKOP(1);
+	oper1 = POP();
+	if (oper1->type != PROG_OBJECT)
+		abort_interp("Invalid argument type.");
+
+	ref = oper1->data.objref;
+	if (ref < 0 || ref >= db_top)
+		abort_interp("Invalid object.");
+
+	if (Typeof(ref) == TYPE_GARBAGE) {
+		strcpy(buf, "<garbage>");
+	} else {
+		CHECKREMOTE(ref);
+		if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
+			ts_lastuseobject(ref);
+		if (NAME(ref)) {
+			strcpy(buf, PNAME(ref));
+		} else {
+			buf[0] = '\0';
+		}
+	}
+	CLEAR(oper1);
+	PushString(buf);
 }
 
 void 
@@ -1046,7 +1062,7 @@ prim_powerp(PRIM_PROTOTYPE)
     oper1 = POP();
     oper2 = POP();
     if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
+	abort_interp("Arguement is not a string. (2)");
     if (!(oper1->data.string))
 	abort_interp("Empty string argument (2)");
     if (!valid_object(oper2))
@@ -1071,9 +1087,9 @@ prim_ispowerp(PRIM_PROTOTYPE)
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
-	abort_interp("Invalid argument type (2)");
+	abort_interp("Arguement is not a string. (1)");
     if (!(oper1->data.string))
-	abort_interp("Empty string argument (2)");
+	abort_interp("Empty string argument (1)");
     pow = check_power(oper1->data.string->data);
     result = !(!pow);
     CLEAR(oper1);
@@ -2568,6 +2584,8 @@ prim_nextplayer_power(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
+    if (mlev < LMAGE)
+       abort_interp("W1 or better only.");
     if (oper1->type != PROG_STRING)
 	abort_interp("Invalid argument type (2)");
     if (!valid_object(oper2))
