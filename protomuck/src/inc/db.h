@@ -417,10 +417,10 @@ struct stack_addr {             /* for the system calstack */
 
 struct stk_array_t;
 
-struct muf_socket {             /* placeholder so more data can be */
-   int socknum;                 /* added at a later date  --Loki   */
-   int connected;
-   int links;
+struct muf_socket {             /* struct for MUF socket data */
+   int socknum;                 /* The descriptor number for the socket */
+   int connected;               /* Set to 1 if ever connected */
+   int links;                   /* Number of instances of the socket. */
    char lastchar;
 };
 
@@ -564,6 +564,7 @@ struct frame {
     short   already_created;        /* this prog already created an object */
     short   been_background;        /* this prog has run in the background */
     short   skip_declare;           /* tells interp to skip next scoped var decl */
+    short   wantsblanks;            /* tells interps to accept blank reads */
     dbref   trig;                   /* triggering object */
     dbref   prog;                   /* program dbref */
     dbref   player;                 /* person who ran the program */

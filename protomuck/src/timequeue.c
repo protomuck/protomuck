@@ -371,13 +371,14 @@ handle_read_event(int descr, dbref player, const char *command)
 {
     struct frame *fr;
     timequeue ptr, lastevent;
-    int flag, typ, nothing_flag;
+    int flag, typ, nothing_flag, oldflags;
     dbref prog;
     struct descriptor_data *curdescr = NULL;
     nothing_flag = 0;
     if (command == NULL) {
 	  nothing_flag = 1;
     }
+    oldflags = FLAGS(player);
     if ( player != NOTHING )
         FLAGS(player) &= ~(INTERACTIVE | READMODE);
     else {
@@ -407,6 +408,21 @@ handle_read_event(int descr, dbref player, const char *command)
     if (ptr) {
 	/* remember our program, and our execution frame. */
 	fr = ptr->fr;
+        /* To allow read to catch blank lines */
+        if (!fr->brkpt.debugging || fr->brkpt.isread) 
+            if (!fr->wantsblanks && command && !*command) {
+                /* put flags back on player and return */ 
+                if ( player != NOTHING )
+                    FLAGS(player) = oldflags;
+                else {
+                    curdescr = get_descr(descr, NOTHING);
+                    if (curdescr) {
+                        curdescr->interactive = 2; 
+                        DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
+                    }
+                }
+                return;
+            }
 	typ = ptr->subtyp;
 	prog = ptr->called_prog;
       if (command) {

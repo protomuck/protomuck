@@ -2494,7 +2494,9 @@ process_input(struct descriptor_data * d)
 		    }
 #endif
 		    d->booted = 1;
-		}
+		} else if ( p == d->raw_input)
+                  /* Blank lines get sent on to be caught by MUF */
+                    save_command(d, d->raw_input);
 	    }
 	    p = d->raw_input;
 	} else if (p < pend && (isascii(*q) || !((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML)))) {
@@ -2628,7 +2630,9 @@ do_command(struct descriptor_data * d, char *command)
         ts_lastuseobject(d->player);
 
     if (!mcp_frame_process_input(&d->mcpframe, command, cmdbuf, sizeof(cmdbuf)))
+    {   d->quota++;
 	return 1;
+    }
 
     command = cmdbuf;
     if (!strcmp(command, QUIT_COMMAND)) {
