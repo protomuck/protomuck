@@ -334,11 +334,11 @@ http_sendheader(struct descriptor_data *d, int statcode,
                 const char *content_type, int content_length)
 {
     char tbuf[BUFFER_LEN];
-    int i;
+    time_t i;
 
     i = time(NULL) + get_tz_offset();
     format_time(tbuf, BUFFER_LEN, "%a, %d %b %Y %T GMT",
-                localtime((time_t *) (&i)));
+                localtime(&i));
 
     queue_text(d, "HTTP/1.1 %d %s\r\nDate: %s\r\n"
                "Server: ProtoMUCK/%s\r\n"
@@ -361,14 +361,14 @@ http_sendredirect(struct descriptor_data *d, const char *url)
 {
     const char *statmsg = http_statlookup(301);
     char *host = alloc_string(http_gethost(d));
-    int i = time(NULL) + get_tz_offset();
+    time_t i = time(NULL) + get_tz_offset();
     char tbuf[50];
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
 
     escape_url(buf2, (char *) url);
     http_split(host, ':');
-    format_time(tbuf, 48, "%a, %d %b %Y %T GMT", localtime((time_t *) (&i)));
+    format_time(tbuf, 48, "%a, %d %b %Y %T GMT", localtime(&i));
 
     sprintf(buf, "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\r\n"
             "<html><head>\r\n  <title>%d %s</title>\r\n  </head><body>\r\n"
