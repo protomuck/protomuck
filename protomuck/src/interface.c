@@ -870,7 +870,7 @@ anotify_nolisten2(dbref player, const char *msg)
 
     if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
 	&& !(FLAG2(OWNER(player)) & F2HTML)) {
-	parse_ansi(player, buf, msg);
+	parse_ansi(player, buf, msg, ANSINORMAL);
     } else {
 	unparse_ansi(buf, msg);
     }
@@ -885,7 +885,7 @@ anotify_nolisten(dbref player, const char *msg, int isprivate)
 
     if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
 	&& !(FLAG2(OWNER(player)) & F2HTML)) {
-	parse_ansi(player, buf, msg);
+	parse_ansi(player, buf, msg, ANSINORMAL);
     } else {
 	unparse_ansi(buf, msg);
     }
@@ -915,7 +915,7 @@ anotify(dbref player, const char *msg)
 
     if((Typeof(player) == TYPE_PLAYER || (Typeof(player) == TYPE_THING && FLAGS(player) & ZOMBIE)) && (FLAGS(OWNER(player)) & CHOWN_OK)
 	&& !(FLAG2(OWNER(player)) & F2HTML)) {
-	parse_ansi(player, buf, msg);
+	parse_ansi(player, buf, msg, ANSINORMAL);
     } else {
 	unparse_ansi(buf, msg);
     }
@@ -1411,7 +1411,7 @@ ansi_wall_wizards(const char *msg)
 	dnext = d->next;
 	if ( d->connected && Mage(d->player)) {
         if (FLAGS(d->player) & CHOWN_OK) {
-            parse_ansi(d->player, buf2, buf);
+            parse_ansi(d->player, buf2, buf, ANSINORMAL);
         } else {
             unparse_ansi(buf2, buf);
         }
@@ -3250,8 +3250,8 @@ dump_users(struct descriptor_data * e, char *user)
 	ansi = ( FLAGS(e->player) & CHOWN_OK ) ? 1 : 0 ;
     } else ansi = 0;
 
-    if ((e->type == CT_PUEBLO)) queue_ansi(e, "<code>");
-    if ((e->type == CT_HTML)) queue_ansi(e, "<pre>");
+    if ((e->type == CT_PUEBLO)) queue_string(e, "<code>");
+    if ((e->type == CT_HTML)) queue_string(e, "<pre>");
 
     while (*user && isspace(*user)) user++;
 
@@ -3270,7 +3270,7 @@ dump_users(struct descriptor_data * e, char *user)
     (void) time(&now);
     if (wizard) {
       if(ansi)
-	queue_ansi(e,
+	queue_string(e,
 		ANSIRED    "DS "
 		ANSIGREEN "Player Name            "
 		ANSICYAN "Room    " 
@@ -3279,7 +3279,7 @@ dump_users(struct descriptor_data * e, char *user)
 		ANSIBLUE "Host"
 		ANSINORMAL "\r\n");
       else
-	queue_ansi(e, "DS Player Name            Room    On For Idle Host\r\n");
+	queue_string(e, "DS Player Name            Room    On For Idle Host\r\n");
     } else {
 	if (tp_who_doing) {
 	    if( (p = get_property_class((dbref)0, "_poll")) )
@@ -3297,29 +3297,29 @@ dump_users(struct descriptor_data * e, char *user)
 		else
 		  sprintf( buf,
 		    "Player Name           On For Idle  %-.43s\r\n",p);
-		queue_ansi(e, buf);
+		queue_string(e, buf);
 	    } else
 		if(ansi)
-		  queue_ansi(e,
+		  queue_string(e,
 		    ANSIGREEN "Player Name           "
 		    ANSIPURPLE "On For "
 		    ANSIYELLOW "Idle  "
 		    ANSICYAN "Doing..."
 		    ANSINORMAL "\r\n");
 		else
-		  queue_ansi(e,
+		  queue_string(e,
 		    "Player Name           On For Idle  Doing...\r\n" );
 	} else
 	    if(ansi)
-		queue_ansi(e,
+		queue_string(e,
 		  ANSIGREEN "Player Name           "
 		  ANSIPURPLE "On For "
 		  ANSIYELLOW "Idle"
 		  ANSINORMAL "\r\n");
 	    else
-		queue_ansi(e, "Player Name           On For Idle\r\n");
+		queue_string(e, "Player Name           On For Idle\r\n");
     }
-    if (e->type == CT_PUEBLO) queue_ansi(e, "<code>");
+    if (e->type == CT_PUEBLO) queue_string(e, "<code>");
 
     d = descriptor_list;
     players = 0;
@@ -3395,7 +3395,7 @@ dump_users(struct descriptor_data * e, char *user)
 	    }
 	    if( e->type == CT_PUEBLO) strcat(buf, "<code>");
 	    if( d->connected || wizard )
-		queue_ansi(e, buf);
+		queue_string(e, buf);
 	}
 	d = d->next;
     }
@@ -3409,10 +3409,10 @@ dump_users(struct descriptor_data * e, char *user)
 	players_max,
 	ansi ? ANSINORMAL : ""
     );
-    queue_ansi(e, buf);
-     if ((e->type == CT_PUEBLO)) queue_ansi(e, 
+    queue_string(e, buf);
+     if ((e->type == CT_PUEBLO)) queue_string(e, 
        "</code>"); 
-     if ((e->type == CT_HTML)) queue_ansi(e, "</pre>");
+     if ((e->type == CT_HTML)) queue_string(e, "</pre>");
 }
 
 void 
@@ -3612,6 +3612,10 @@ announce_disconnect(struct descriptor_data *d)
     d->connected = 0;
     d->player = NOTHING;
     update_desc_count_table();
+
+    if (!online(player) && (FLAG2(player) & F2IDLE)) {
+       FLAG2(player) &= ~F2IDLE;
+    }
 
     /* trigger local disconnect action */
     if (!online(player)) {

@@ -40,6 +40,7 @@ extern void prim_strdecrypt(PRIM_PROTOTYPE);
 extern void prim_tokensplit(PRIM_PROTOTYPE);
 extern void prim_fmtstring(PRIM_PROTOTYPE);
 extern void prim_parse_ansi(PRIM_PROTOTYPE);
+extern void prim_parse_neon(PRIM_PROTOTYPE);
 extern void prim_unparse_ansi(PRIM_PROTOTYPE);
 extern void prim_escape_ansi(PRIM_PROTOTYPE);
 extern void prim_ansi_strlen(PRIM_PROTOTYPE);
@@ -60,7 +61,7 @@ extern void prim_textattr(PRIM_PROTOTYPE);
     prim_stod, prim_split, prim_rsplit, prim_ansi_notify_exclude, prim_dtos,  \
     prim_tokensplit, prim_fmtstring, prim_parse_ansi, prim_unparse_ansi,      \
     prim_escape_ansi, prim_ansi_strlen, prim_ansi_strcut, prim_ansi_strip,    \
-    prim_ansi_midstr, prim_textattr
+    prim_ansi_midstr, prim_textattr, prim_parse_neon
 
 #define PRIMS_STRINGS_NAMES "NUMBER?", "STRINGCMP", "STRCMP",        \
     "STRNCMP", "STRCUT", "STRLEN", "STRCAT", "ATOI",                 \
@@ -72,9 +73,11 @@ extern void prim_textattr(PRIM_PROTOTYPE);
     "HTML_EXCLUDE_NOCR", "MIDSTR", "CTOI", "ITOC", "STOD", "SPLIT",  \
     "RSPLIT", "ANSI_NOTIFY_EXCLUDE", "DTOS", "TOKENSPLIT",           \
     "FMTSTRING", "PARSE_ANSI", "UNPARSE_ANSI", "ESCAPE_ANSI",        \
-    "ANSI_STRLEN", "ANSI_STRCUT", "ANSI_STRIP", "ANSI_MIDSTR", "TEXTATTR"
+    "ANSI_STRLEN", "ANSI_STRCUT", "ANSI_STRIP", "ANSI_MIDSTR",       \
+    "TEXTATTR", "PARSE_NEON"
 
-#define PRIMS_STRINGS_CNT 50
+#define PRIMS_STRINGS_CNT 51
+
 
 
 
