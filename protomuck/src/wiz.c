@@ -583,10 +583,11 @@ do_stats(dbref player, const char *name)
 	    memtemp = bytesIn + bytesOut;
 	    memtemp = memtemp / 1000;
 	    anotify_fmt(player, FOREST
-	        "%7d %s total traffic     " VIOLET "%7d commands",
+	        "%7d %s total traffic     " VIOLET "%7d %s",
 		memtemp < 100000 ? memtemp : memtemp / 1000,
 		memtemp < 100000 ? "KBytes" : "Mbytes",
-		commandTotal);
+		commandTotal < 100000 ? commandTotal : commandTotal / 1000,
+		commandTotal < 100000 ? "commands" : "thousand commands");
 	}
 
 }
