@@ -189,6 +189,8 @@ const char *
 reg_user_is_suspended( int user ) {
     int i;
     const char *m;
+    if (Mage((dbref) user))
+        return NULL;
 
     m = get_property_class( user, "@/lockout-msg" );
 #ifdef COMPRESS
@@ -201,14 +203,12 @@ reg_user_is_suspended( int user ) {
     if (time(NULL) > i)   return NULL;
 
     /* Player is suspended.  Is there a suspend msg? */
-    if(get_property_class( user, "@/suspend-msg" )) {
+    m = get_property_class( user, "@/suspend-msg" );
 #ifdef COMPRESS
 	if (m) m = uncompress(m);
 #endif
-	return m;
-    }
-
-    return "Temporary suspension.";
+	if (m) return m;
+        else return "Temporary suspension.";
 }
 
 /* reg_email_is_a_jerk -- TRUE iff email is listed in #0/@/jerks/ */
