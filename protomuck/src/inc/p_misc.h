@@ -60,7 +60,7 @@ extern void prim_sockaccept(PRIM_PROTOTYPE);
     prim_event_count, prim_event_send, prim_nbsockopen, prim_sockcheck,  \
     prim_pnameokp, prim_nameokp, prim_force_level, prim_event_exists,    \
     prim_watchpid, prim_getpids, prim_getpidinfo, prim_read_wants_blanks,\
-    prim_lsockopen, prim_sockaccept
+    prim_lsockopen, prim_sockaccept, prim_logstatus
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET",    \
     "SYSTIME", "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL",  \
@@ -74,9 +74,9 @@ extern void prim_sockaccept(PRIM_PROTOTYPE);
     "NBSOCKOPEN", "SOCKCHECK", "PNAME-OK?", "NAME-OK?",  \
     "FORCE_LEVEL", "EVENT_EXISTS", "WATCHPID",           \
     "GETPIDS", "GETPIDINFO", "READ_WANTS_BLANKS",        \
-    "LSOCKOPEN", "SOCKACCEPT"
+    "LSOCKOPEN", "SOCKACCEPT", "LOGSTATUS"
 
-#define PRIMS_MISC_CNT 47
+#define PRIMS_MISC_CNT 48
 
 
 
