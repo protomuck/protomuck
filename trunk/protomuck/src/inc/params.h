@@ -72,6 +72,7 @@
 #define INSERT_COMMAND 'i'
 #define DELETE_COMMAND 'd'
 #define QUIT_EDIT_COMMAND   'q'
+#define CANCEL_EDIT_COMMAND 'x'
 #define COMPILE_COMMAND 'c'
 #define LIST_COMMAND   'l'
 #define EDITOR_HELP_COMMAND 'h'

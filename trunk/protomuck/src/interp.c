@@ -240,9 +240,8 @@ RCLEAR(struct inst * oper, char *file, int line)
 		oper->data.addr->links--;
 		break;
 	case PROG_STRING:
-		if (oper->data.string && --oper->data.string->links == 0) {
+		if (oper->data.string && --oper->data.string->links == 0) 
 			free((void *) oper->data.string);
-        }
 		break;
 	case PROG_FUNCTION:
 		if (oper->data.mufproc) {

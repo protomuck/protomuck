@@ -148,7 +148,7 @@ struct INTERMEDIATE *lvar_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *svar_word(COMPSTATE *, const char *);
 const char *do_string(COMPSTATE *);
 void do_comment(COMPSTATE *);
-void do_directive(COMPSTATE *, char *direct);
+int do_directive(COMPSTATE *, char *direct);
 struct prog_addr *alloc_addr(COMPSTATE *, int, struct inst *);
 struct INTERMEDIATE *prealloc_inst(COMPSTATE * cstat);
 struct INTERMEDIATE *new_inst(COMPSTATE *);
@@ -762,7 +762,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 		new_word = next_word(&cstat, token);
 
 		/* test for errors */
-		if (cstat.compile_err)
+		if (cstat.compile_err) 
 			return;
 
 		if (new_word) {
@@ -778,6 +778,9 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 
 		free((void *) token);
 	}
+
+        if (cstat.compile_err) 
+            return; /* Added to abort cleanly from directive errors. */
 
 	if (cstat.curr_proc)
 		v_abort_compile(&cstat, "Unexpected end of file.");
@@ -916,14 +919,19 @@ const char *
 next_token(COMPSTATE * cstat)
 {
 	char *expansion, *temp;
+        int result = 0;
 
 	temp = (char *) next_token_raw(cstat);
 	if (!temp)
 		return NULL;
 
 	if (temp[0] == BEGINDIRECTIVE) {
-		do_directive(cstat, temp);
-		free(temp);
+		result = do_directive(cstat, temp);
+		free(temp);  
+                if (!result) { /* changed to abort compiling on directive errors. -Akari */
+                    cstat->compile_err = 1;
+                    return NULL;
+                }
 		return next_token(cstat);
 	}
 	if (temp[0] == BEGINESCAPE) {
@@ -984,7 +992,7 @@ do_comment(COMPSTATE * cstat)
 }
 
 /* handle compiler directives */
-void
+int
 do_directive(COMPSTATE * cstat, char *direct)
 {
 	struct match_data md;
@@ -997,12 +1005,12 @@ do_directive(COMPSTATE * cstat, char *direct)
 	strcpy(temp, ++direct);
 
 	if (!(temp[0])) {
-		v_abort_compile(cstat, "I don't understand that compiler directive!");
+		abort_compile(cstat, "I don't understand that compiler directive!");
 	}
 	if (!string_compare(temp, "define")) {
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file looking for $define name.");
+			abort_compile(cstat, "Unexpected end of file looking for $define name.");
 		i = 0;
 		while ((tmpptr = (char *) next_token_raw(cstat)) &&
 			   (string_compare(tmpptr, "$enddef"))) {
@@ -1020,13 +1028,13 @@ do_directive(COMPSTATE * cstat, char *direct)
 			temp[i++] = ' ';
 			free(tmpptr);
 			if (i > (BUFFER_LEN / 2))
-				v_abort_compile(cstat, "$define definition too long.");
+				abort_compile(cstat, "$define definition too long.");
 		}
 		if (i)
 			i--;
 		temp[i] = '\0';
 		if (!tmpptr)
-			v_abort_compile(cstat, "Unexpected end of file in $define definition.");
+			abort_compile(cstat, "Unexpected end of file in $define definition.");
 		free(tmpptr);
 		(void) insert_def(cstat, tmpname, temp);
 		free(tmpname);
@@ -1040,7 +1048,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 			progver = atoi(tmpname);
 		}
 		if (progver <= 0) {
-			v_abort_compile(cstat, "You must provide a valid beta version number of 1 or greater.");
+			abort_compile(cstat, "You must provide a valid beta version number of 1 or greater.");
 		}
                 while (*cstat->next_char)
                         cstat->next_char++;
@@ -1057,7 +1065,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 			progver = atoi(tmpname);
 		}
 		if (progver <= 0) {
-			v_abort_compile(cstat, "You must provide a valid alpha version number of 1 or greater.");
+			abort_compile(cstat, "You must provide a valid alpha version number of 1 or greater.");
 		}
                 while (*cstat->next_char)
                         cstat->next_char++;
@@ -1070,11 +1078,11 @@ do_directive(COMPSTATE * cstat, char *direct)
                     cstat->next_char++; /* eating leading spaces */
 		tmpname = (char *) cstat->next_char;
 		if (!(MLevel(OWNER(cstat->program)) >= LWIZ))
-			v_abort_compile(cstat, "Permission denied for $log_status");
+			abort_compile(cstat, "Permission denied for $log_status");
 		if (tmpname && *tmpname) {
 			log_status("%s", tmpname);
 		} else {
-			v_abort_compile(cstat, "No data given for the status log and show to LOGWALL admin.");
+			abort_compile(cstat, "No data given for the status log and show to LOGWALL admin.");
 		}
                 while (*cstat->next_char)
                         cstat->next_char++;
@@ -1084,11 +1092,11 @@ do_directive(COMPSTATE * cstat, char *direct)
                     cstat->next_char++; /* eating leading spaces */
 		tmpname = (char *) cstat->next_char;
 		if (!(MLevel(OWNER(cstat->program)) >= LWIZ))
-			v_abort_compile(cstat, "Permission denied for $show_status");
+			abort_compile(cstat, "Permission denied for $show_status");
 		if (tmpname && *tmpname) {
 			show_status("%s", tmpname);
 		} else {
-			v_abort_compile(cstat, "No data given to show to LOGWALL admin.");
+			abort_compile(cstat, "No data given to show to LOGWALL admin.");
 		}
                 while (*cstat->next_char)
                         cstat->next_char++;
@@ -1099,9 +1107,9 @@ do_directive(COMPSTATE * cstat, char *direct)
                     cstat->next_char++; /* eating leading spaces */
                 tmpname = (char *) cstat->next_char;
 		if (tmpname && *tmpname) {
-			v_abort_compile(cstat, tmpname);
+			abort_compile(cstat, tmpname);
 		} else {
-			v_abort_compile(cstat, "Forced abort for the compile.");
+			abort_compile(cstat, "Forced abort for the compile.");
 		}
 
 	} else if (!string_compare(temp, "cleardefs")) {
@@ -1122,12 +1130,12 @@ do_directive(COMPSTATE * cstat, char *direct)
 		cstat->use_macros = 0;
 
 	} else if (!string_compare(temp, "enddef")) {
-		v_abort_compile(cstat, "$enddef without a previous matching $define.");
+		abort_compile(cstat, "$enddef without a previous matching $define.");
 
 	} else if (!string_compare(temp, "def")) {
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file looking for $def name.");
+			abort_compile(cstat, "Unexpected end of file looking for $def name.");
 		(void) insert_def(cstat, tmpname, cstat->next_char);
 		while (*cstat->next_char)
 			cstat->next_char++;
@@ -1137,7 +1145,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 	} else if (!string_compare(temp, "version")) {
 		tmpname = (char *) next_token_raw(cstat); 
 		if (!ifloat(tmpname))
-			v_abort_compile(cstat, "Not a floating point number for the version.");
+			abort_compile(cstat, "Not a floating point number for the version.");
 		add_property(cstat->program, "_Version", tmpname, 0);
                 while (*cstat->next_char)
                         cstat->next_char++;
@@ -1146,7 +1154,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 	} else if (!string_compare(temp, "lib-version")) {
 		tmpname = (char *) next_token_raw(cstat);
 		if (!ifloat(tmpname))
-			v_abort_compile(cstat, "Not a floating point number for the version.");
+			abort_compile(cstat, "Not a floating point number for the version.");
                 while (*cstat->next_char)
                     cstat->next_char++;
                 advance_line(cstat);
@@ -1171,12 +1179,11 @@ do_directive(COMPSTATE * cstat, char *direct)
 		add_property(cstat->program, "_Note", tmpname, 0);
 
 	} else if (!string_compare(temp, "ifcancall") || !string_compare(temp, "ifncancall")) {
-		int dofalse = 0;
 		struct match_data md;
 
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file while doing $include.");
+			abort_compile(cstat, "Unexpected end of file for ifcancall.");
 		if (string_compare(tmpname, "this"))
 		{
 			char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
@@ -1196,12 +1203,12 @@ do_directive(COMPSTATE * cstat, char *direct)
 		free(tmpname);
 		if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
 			|| (Typeof(i) == TYPE_GARBAGE))
-			v_abort_compile(cstat, "I don't understand what object you want to $include.");
-		tmpname = (char *) cstat->next_char;
+			abort_compile(cstat, "I don't understand what program you want to check in ifcancall.");
+		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname || !*tmpname)
 		{
 			free(tmpptr);
-			v_abort_compile(cstat, "I don't understand what version you want to compare to.");
+		        abort_compile(cstat, "I don't understand what function you want to check for.");
 		}
 		while (*cstat->next_char)
 			cstat->next_char++;
@@ -1215,7 +1222,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 			free_prog_text(DBFETCH(i)->sp.program.first);
 			DBFETCH(i)->sp.program.first = tmpline;
 		}
-
 		j = 0;
 		if (MLevel(OWNER(i)) > 0 &&
 			(MLevel(OWNER(cstat->program)) >= 4 || OWNER(i) == OWNER(cstat->program) || Linkable(i))
@@ -1231,9 +1237,10 @@ do_directive(COMPSTATE * cstat, char *direct)
 			if (pbs && MLevel(OWNER(cstat->program)) >= pbs->mlev)
 				j = 1;
 		}
+                free(tmpname);
 		if (!string_compare(temp, "ifncancall"))
-			dofalse = 1;
-		if (dofalse ? !j : j) {
+                        j = !j;
+		if (!j) {
 			i = 0;
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
@@ -1266,8 +1273,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 					i++;
 				else if (!string_compare(tmpptr, "$ifnauthor"))
 					i++;
-				else if (!string_compare(tmpptr, "$ifnote"))
-					i++;
 				else if (!string_compare(tmpptr, "$ifnnote"))
 					i++;
 				else if (!string_compare(tmpptr, "$endif"))
@@ -1275,18 +1280,18 @@ do_directive(COMPSTATE * cstat, char *direct)
 				free(tmpptr);
 			}
 			if (!tmpptr) {
-				v_abort_compile(cstat, "Unexpected end of file in $ifcancall clause.");
+				abort_compile(cstat, "Unexpected end of file in $ifcancall clause.");
 			}
 			free(tmpptr);
 		}
 
 	} else if (!string_compare(temp, "ifauthor") || !string_compare(temp, "ifnauthor")) {
-		int dofalse = 0;
+		int needFree = 0;
 		struct match_data md;
 
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file while doing $include.");
+			abort_compile(cstat, "Unexpected end of file while doing $include.");
 		if (string_compare(tmpname, "this"))
 		{
 			char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
@@ -1306,27 +1311,30 @@ do_directive(COMPSTATE * cstat, char *direct)
 		free(tmpname);
 		if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
 			|| (Typeof(i) == TYPE_GARBAGE))
-			v_abort_compile(cstat, "I don't understand what object you want to $include.");
+			abort_compile(cstat, "I don't understand what object you want to check with $ifauthor.");
 		tmpptr = (char *) get_property_class(i, "_Author");
 		if (!tmpptr || !*tmpptr)
 		{
-			tmpptr = malloc(7);
+			tmpptr = malloc(8);
 			strcpy(tmpptr, "Unknown");
-		}
+                        needFree = 1;
+		} else 
+                        uncompress(tmpptr);
 		tmpname = (char *) cstat->next_char;
 		if (!tmpname || !*tmpname)
 		{
 			free(tmpptr);
-			v_abort_compile(cstat, "I don't understand what version you want to compare to.");
+			abort_compile(cstat, "I don't understand what author you are checking for with $ifauthor.");
 		}
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
-		free(tmpptr);
+		if (needFree)
+                        free(tmpptr);
 		j = equalstr(tmpptr, tmpname);
 		if (!string_compare(temp, "ifnauthor"))
-			dofalse = 1;
-		if (dofalse ? !j : j) {
+                        j = !j;
+		if (j) {
 			i = 0;
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
@@ -1359,8 +1367,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 					i++;
 				else if (!string_compare(tmpptr, "$ifnauthor"))
 					i++;
-				else if (!string_compare(tmpptr, "$ifnote"))
-					i++;
 				else if (!string_compare(tmpptr, "$ifnnote"))
 					i++;
 				else if (!string_compare(tmpptr, "$endif"))
@@ -1368,113 +1374,21 @@ do_directive(COMPSTATE * cstat, char *direct)
 				free(tmpptr);
 			}
 			if (!tmpptr) {
-				v_abort_compile(cstat, "Unexpected end of file in $ifauthor clause.");
-			}
-			free(tmpptr);
-		}
-
-	} else if (!string_compare(temp, "ifnote") || !string_compare(temp, "ifnnote")) {
-		int dofalse = 0;
-		struct match_data md;
-
-		tmpname = (char *) next_token_raw(cstat);
-		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file while doing $include.");
-		if (string_compare(tmpname, "this"))
-		{
-			char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
-
-			strcpy(tempa, match_args);
-			strcpy(tempb, match_cmdname);
-			init_match(cstat->descr, cstat->player, tmpname, NOTYPE, &md);
-			match_registered(&md);
-			match_absolute(&md);
-			match_me(&md);
-			i = (int) match_result(&md);
-			strcpy(match_args, tempa);
-			strcpy(match_cmdname, tempb);
-		} else {
-			i = cstat->program;
-		}
-		free(tmpname);
-		if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
-			|| (Typeof(i) == TYPE_GARBAGE))
-			v_abort_compile(cstat, "I don't understand what object you want to $include.");
-		tmpptr = (char *) get_property_class(i, "_Note");
-		if (!tmpptr || !*tmpptr)
-		{
-			tmpptr = malloc(4);
-			strcpy(tmpptr, "None");
-		}
-		tmpname = (char *) cstat->next_char;
-		if (!tmpname || !*tmpname)
-		{
-			free(tmpptr);
-			v_abort_compile(cstat, "I don't understand what version you want to compare to.");
-		}
-		while (*cstat->next_char)
-			cstat->next_char++;
-		advance_line(cstat);
-		free(tmpptr);
-		j = equalstr(tmpptr, tmpname);
-		if (!string_compare(temp, "ifnnote"))
-			dofalse = 1;
-		if (dofalse ? !j : j) {
-			i = 0;
-			while ((tmpptr = (char *) next_token_raw(cstat)) &&
-				   (i || ((string_compare(tmpptr, "$else"))
-						  && (string_compare(tmpptr, "$endif"))))) {
-				if (!string_compare(tmpptr, "$ifdef"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifndef"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifver"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifbeta"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifalpha"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifcancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifncancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnote"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnnote"))
-					i++;
-				else if (!string_compare(tmpptr, "$endif"))
-					i--;
-				free(tmpptr);
-			}
-			if (!tmpptr) {
-				v_abort_compile(cstat, "Unexpected end of file in $ifnote clause.");
+				abort_compile(cstat, "Unexpected end of file in $ifauthor clause.");
 			}
 			free(tmpptr);
 		}
 
 	} else if (!string_compare(temp, "ifver") || !string_compare(temp, "iflibver") ||
 			!string_compare(temp, "ifnver") || !string_compare(temp, "ifnlibver")) {
-		int dofalse = 0;
 		struct match_data md;
-		float verflt, checkflt;
+		float verflt = 0;
+                float checkflt = 0;
+                int needFree = 0;
 
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file while doing $ifver.");
+			abort_compile(cstat, "Unexpected end of file while doing $ifver.");
 		if (string_compare(tmpname, "this"))
 		{
 			char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
@@ -1494,7 +1408,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 		free(tmpname);
 		if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
 			|| (Typeof(i) == TYPE_GARBAGE))
-			v_abort_compile(cstat, "I don't understand what object you want to check with $ifver.");
+			abort_compile(cstat, "I don't understand what object you want to check with $ifver.");
 		if (!string_compare(temp, "ifver") || !string_compare(temp, "ifnver")) {
 			tmpptr = (char *) get_property_class(i, "_Version");
 		} else {
@@ -1502,35 +1416,41 @@ do_directive(COMPSTATE * cstat, char *direct)
 		}
 		if (!tmpptr || !*tmpptr)
 		{
-			tmpptr = malloc(3);
+			tmpptr = malloc(4);
 			strcpy(tmpptr, "0.0");
-		}
-		tmpname = (char *) cstat->next_char;
+                        needFree = 1;
+	        } else { 
+                        uncompress(tmpptr);	
+                }
+		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname || !*tmpname)
 		{
 			free(tmpptr);
-			v_abort_compile(cstat, "I don't understand what version you want to compare to with $ifver.");
+                        free(tmpname);
+			abort_compile(cstat, "I don't understand what version you want to compare to with $ifver.");
 		}
 		if (!tmpptr || !ifloat(tmpptr))
 		{
 			verflt = 0.0;
 		} else {
-			sscanf(tmpptr, "%g", verflt);
+			sscanf(tmpptr, "%g", &verflt);
 		}
-		free(tmpptr);
+                if ( needFree )
+                    free(tmpptr);
 		if (!tmpname || !ifloat(tmpname))
 		{
 			checkflt = 0.0;
 		} else {
-			sscanf(tmpname, "%g", checkflt);
+			sscanf(tmpname, "%g", &checkflt);
 		}
+                free(tmpname);
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
-		j = checkflt >= verflt;
+		j = checkflt <= verflt;
 		if (!string_compare(temp, "ifnver") || !string_compare(temp, "ifnlibver"))
-			dofalse = 1;
-		if (dofalse ? !j : j) {
+                        j = !j;
+		if (!j) {
 			i = 0;
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
@@ -1563,8 +1483,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 					i++;
 				else if (!string_compare(tmpptr, "$ifnauthor"))
 					i++;
-				else if (!string_compare(tmpptr, "$ifnote"))
-					i++;
 				else if (!string_compare(tmpptr, "$ifnnote"))
 					i++;
 				else if (!string_compare(tmpptr, "$endif"))
@@ -1572,20 +1490,19 @@ do_directive(COMPSTATE * cstat, char *direct)
 				free(tmpptr);
 			}
 			if (!tmpptr) {
-				v_abort_compile(cstat, "Unexpected end of file in $ifver clause.");
+				abort_compile(cstat, "Unexpected end of file in $ifver clause.");
 			}
 			free(tmpptr);
 		}
 
 	} else if (!string_compare(temp, "ifbeta") || !string_compare(temp, "ifalpha") ||
 			!string_compare(temp, "ifnbeta") || !string_compare(temp, "ifnalpha")) {
-		int dofalse = 0;
 		struct match_data md;
 		int vernum, checknum;
 
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file while doing $ifver.");
+			abort_compile(cstat, "Unexpected end of file while doing $ifver.");
 		if (string_compare(tmpname, "this"))
 		{
 			char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
@@ -1605,47 +1522,36 @@ do_directive(COMPSTATE * cstat, char *direct)
 		free(tmpname);
 		if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
 			|| (Typeof(i) == TYPE_GARBAGE))
-			v_abort_compile(cstat, "I don't understand what object you want to check with $ifver.");
+			abort_compile(cstat, "I don't understand what object you want to check with $ifbeta or $ifalpha.");
 		if (!string_compare(temp, "ifbeta") || !string_compare(temp, "ifnbeta")) {
-			tmpptr = (char *) get_property_class(i, "_Beta");
+			vernum = get_property_value(i, "_Beta");
 		} else {
-			tmpptr = (char *) get_property_class(i, "_Alpha");
+			vernum = get_property_value(i, "_Alpha");
 		}
-		if (!tmpptr || !*tmpptr)
-		{
-			tmpptr = malloc(3);
-			strcpy(tmpptr, "0");
-		}
-		tmpname = (char *) cstat->next_char;
+		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname || !*tmpname)
 		{
 			free(tmpptr);
-			v_abort_compile(cstat, "I don't understand what version you want to compare to with $ifver.");
+			abort_compile(cstat, "I don't understand what version you want to compare to with $alpha or $beta.");
 		}
-		if (!tmpptr || !number(tmpptr))
-		{
-			vernum = 0;
-		} else {
-			vernum = atoi(tmpptr);
-			if (vernum < 0)
-				vernum = 0;
-		}
-		free(tmpptr);
+	        if (vernum < 0)
+	            vernum = 0;
 		if (!tmpname || !number(tmpname))
 		{
 			checknum = 1;
 		} else {
 			checknum = atoi(tmpname);
 			if (checknum <= 0)
-				checknum = 1;
+				checknum = 0;
 		}
+                free(tmpname);
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
-		j = (checknum >= vernum);
+		j = (checknum <= vernum); /* check to see if versions are the same */
 		if (!string_compare(temp, "ifnbeta") || !string_compare(temp, "ifnalpha"))
-			dofalse = 1;
-		if (dofalse ? !j : j) {
+                        j = !j; /* ifnbeta or ifnalpha we want the opposite */
+		if (!j) {
 			i = 0;
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
@@ -1678,8 +1584,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 					i++;
 				else if (!string_compare(tmpptr, "$ifnauthor"))
 					i++;
-				else if (!string_compare(tmpptr, "$ifnote"))
-					i++;
 				else if (!string_compare(tmpptr, "$ifnnote"))
 					i++;
 				else if (!string_compare(tmpptr, "$endif"))
@@ -1687,7 +1591,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 				free(tmpptr);
 			}
 			if (!tmpptr) {
-				v_abort_compile(cstat, "Unexpected end of file in $ifver clause.");
+				abort_compile(cstat, "Unexpected end of file in $ifbeta or $ifalpha clause.");
 			}
 			free(tmpptr);
 		}
@@ -1696,11 +1600,11 @@ do_directive(COMPSTATE * cstat, char *direct)
 		tmpname = (char *) next_token_raw(cstat);
                 holder = tmpname;
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file looking for $pubdef name.");
+			abort_compile(cstat, "Unexpected end of file looking for $pubdef name.");
 		if (string_compare(tmpname, ":") ? index(tmpname, '/') || index(tmpname, ':') : 0)
 		{
 			free(tmpname);
-			v_abort_compile(cstat, "Invalid $pubdef name.  No / nor : are allowed.");
+			abort_compile(cstat, "Invalid $pubdef name.  No / nor : are allowed.");
 		} else {
 	            if (!string_compare(tmpname, ":"))
 			{
@@ -1749,12 +1653,11 @@ do_directive(COMPSTATE * cstat, char *direct)
 		free(holder);
 
 	} else if (!string_compare(temp, "iflib") || !string_compare(temp, "ifnlib")) {
-		int dofalse = 0;
 		struct match_data md;
 
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file while doing $include.");
+			abort_compile(cstat, "Unexpected end of file while doing $include.");
 		{
 			char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
 
@@ -1777,8 +1680,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 			j = 0;
 		}
 		if (!string_compare(temp, "ifnlib"))
-			dofalse = 1;
-		if (dofalse ? !j : j) {
+                        j = !j;
+		if (!j) {
 			i = 0;
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
@@ -1811,8 +1714,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 					i++;
 				else if (!string_compare(tmpptr, "$ifnauthor"))
 					i++;
-				else if (!string_compare(tmpptr, "$ifnote"))
-					i++;
 				else if (!string_compare(tmpptr, "$ifnnote"))
 					i++;
 				else if (!string_compare(tmpptr, "$endif"))
@@ -1820,7 +1721,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 				free(tmpptr);
 			}
 			if (!tmpptr) {
-				v_abort_compile(cstat, "Unexpected end of file in $iflib clause.");
+				abort_compile(cstat, "Unexpected end of file in $iflib clause.");
 			}
 			free(tmpptr);
 		}
@@ -1829,14 +1730,17 @@ do_directive(COMPSTATE * cstat, char *direct)
                 char *holder = NULL;
                 while(*cstat->next_char && isspace(*cstat->next_char))
                     cstat->next_char++; /* eating leading spaces */
-		anotify_nolisten(cstat->player, cstat->next_char, 1);
+                if (((FLAGS(cstat->player) & INTERACTIVE) && 
+                   !(FLAGS(cstat->player) & READMODE)) ||
+                   cstat->force_err_display) 
+		    anotify_nolisten(cstat->player, cstat->next_char, 1);
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
 	} else if (!string_compare(temp, "include")) {
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file while doing $include.");
+			abort_compile(cstat, "Unexpected end of file while doing $include.");
 		if (!number(tmpname))
 		{
 			{
@@ -1855,7 +1759,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 			free(tmpname);
 			if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
 				|| (Typeof(i) == TYPE_GARBAGE))
-				v_abort_compile(cstat, "I don't understand what object you want to $include.");
+				abort_compile(cstat, "I don't understand what object you want to $include.");
 			include_defs(cstat, (dbref) i);
 		} else {
 			int inc_type;
@@ -1877,14 +1781,17 @@ do_directive(COMPSTATE * cstat, char *direct)
 	} else if (!string_compare(temp, "undef")) {
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file looking for name to $undef.");
+			abort_compile(cstat, "Unexpected end of file looking for name to $undef.");
 		kill_def(cstat, tmpname);
 		free(tmpname);
 
 	} else if (!string_compare(temp, "echo")) {
                 while(*cstat->next_char && isspace(*cstat->next_char))
                     cstat->next_char++; /* eating leading spaces */
-		notify_nolisten(cstat->player, cstat->next_char, 1);
+                if (((FLAGS(cstat->player) & INTERACTIVE) && 
+                   !(FLAGS(cstat->player) & READMODE)) ||
+		   cstat->force_err_display) 
+		      notify_nolisten(cstat->player, cstat->next_char, 1);
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
@@ -1893,7 +1800,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 		int dofalse = 0;
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
-			v_abort_compile(cstat, "Unexpected end of file looking for $ifdef condition.");
+			abort_compile(cstat, "Unexpected end of file looking for $ifdef condition.");
 		strcpy(temp, tmpname);
 		free(tmpname);
 		for (i = 1; temp[i] && (temp[i] != '=') && (temp[i] != '>') && (temp[i] != '<'); i++) ;
@@ -1950,8 +1857,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 					i++;
 				else if (!string_compare(tmpptr, "$ifnauthor"))
 					i++;
-				else if (!string_compare(tmpptr, "$ifnote"))
-					i++;
 				else if (!string_compare(tmpptr, "$ifnnote"))
 					i++;
 				else if (!string_compare(tmpptr, "$endif"))
@@ -1959,7 +1864,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 				free(tmpptr);
 			}
 			if (!tmpptr) {
-				v_abort_compile(cstat, "Unexpected end of file in $ifdef clause.");
+				abort_compile(cstat, "Unexpected end of file in $ifdef clause.");
 			}
 			free(tmpptr);
 		}
@@ -1996,8 +1901,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 				i++;
 			else if (!string_compare(tmpptr, "$ifnauthor"))
 				i++;
-			else if (!string_compare(tmpptr, "$ifnote"))
-				i++;
 			else if (!string_compare(tmpptr, "$ifnnote"))
 				i++;
 			else if (!string_compare(tmpptr, "$endif"))
@@ -2005,15 +1908,16 @@ do_directive(COMPSTATE * cstat, char *direct)
 			free(tmpptr);
 		}
 		if (!tmpptr) {
-			v_abort_compile(cstat, "Unexpected end of file in $else clause.");
+			abort_compile(cstat, "Unexpected end of file in $else clause.");
 		}
 		free(tmpptr);
 
 	} else if (!string_compare(temp, "endif")) {
 
 	} else {
-		v_abort_compile(cstat, "Unrecognized compiler directive.");
+		abort_compile(cstat, "Unrecognized compiler directive.");
 	}
+        return 1;
 }
 
 

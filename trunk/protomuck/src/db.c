@@ -763,44 +763,59 @@ number(const char *s)
 
 /* returns true for floats of form  [+|-]<digits>.<digits>[E[+|-]<digits>] */
 int
-ifloat(const char *s)
+ifloat (const char *s)
 {
-	const char *hold;
+    const char *hold = NULL;
+    int decFound = 0; /* bool to indicate if a decimal is found yet */
+    int expFound = 0; /* bool to indicate if exponent is found yet */
 
-	if (!s)
-		return 0;
-	while (isspace(*s))
-		s++;
-	if (*s == '+' || *s == '-')
-		s++;
-	hold = s;
-	while ((*s) && (*s >= '0' && *s <= '9'))
-		s++;
-	if ((!*s) || (s == hold))
-		return 0;
-	if (*s != '.')
-		return 0;
-	s++;
-	hold = s;
-	while ((*s) && (*s >= '0' && *s <= '9'))
-		s++;
-	if (hold == s)
-		return 0;
-	if (!*s)
-		return 1;
-	if ((*s != 'e') && (*s != 'E'))
-		return 0;
-	s++;
-	if (*s == '+' || *s == '-')
-		s++;
-	hold = s;
-	while ((*s) && (*s >= '0' && *s <= '9'))
-		s++;
-	if (s == hold)
-		return 0;
-	if (*s)
-		return 0;
-	return 1;
+    if (!s)
+        return 0; /* no string at all */
+    while (isspace(*s))
+        s++; /* remove leading spaces */
+    if (*s == '+' || *s == '-')
+        s++;  
+    if (*s == '.') {
+        decFound = 1;
+        s++;  /* valid format = .#e# and .# */
+    }
+    hold = s;
+    while ((*s) && (*s >= '0' && *s <= '9'))
+        s++;
+    if (s == hold) /* Blank or non-numbers at start. Boo */
+        return 0;
+    if (!*s) /* means it was a # or a .# number */
+        return 1;
+    if (*s == '.' && decFound )
+        return 0; /* prevent 2 decimal marks */
+    if (*s == '.')
+        s++; /* skip valid decimal point */
+    if (*s == 'e' || *s == 'E' ) {
+        expFound = 1;
+        s++; /* could be #.#e# or .#e# */
+    }
+    if (expFound && (*s == '+' || *s == '-'))
+        s++; /* skip + or - for exponent */
+    hold = s;
+    while ((*s) && (*s >= '0' && *s <= '9'))
+        s++; /* eat more numbers */
+    if (s == hold)
+        return 0; /* no numbers or non-numbers after token */
+    if (!*s)
+        return 1; /* normal ending at this point */
+    if (expFound)
+        return 0; /* more characters following exponent already */
+    if (*s != 'e' && *s != 'E')
+        return 0; /* Invalid token following numbers */
+    s++; /* skip 'e' or 'E' */
+    hold = s;
+    while ((*s) && (*s >= '0' && *s <= '9'))
+        s++; /* eat final numbers */
+    if (s == hold)
+        return 0; /* no numbers after token */
+    if (*s)
+        return 0; /* more characters after numbers = bad */
+    return 1;
 }
 
 /*** CHANGED:

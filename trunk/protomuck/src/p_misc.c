@@ -470,6 +470,13 @@ prim_getpids(PRIM_PROTOTYPE)
 	if (oper1->type != PROG_OBJECT)
 		abort_interp("Non-object argument (1)");
 	nw = get_pids(oper1->data.objref);
+        if (oper1->data.objref == -1 || oper1->data.objref == program) {
+            /* We need to include current PID instance too */
+            temp1.type = PROG_INTEGER;
+            temp1.data.number = fr->pid;
+            array_appenditem(&nw, &temp1);
+            CLEAR(&temp1);
+        }
 	CLEAR(oper1);
 	PushArrayRaw(nw);
 }

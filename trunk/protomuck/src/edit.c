@@ -19,6 +19,7 @@ void    editor(int descr, dbref player, const char *command);
 void    do_insert(dbref player, dbref program, int arg[], int argc);
 void    do_delete(dbref player, dbref program, int arg[], int argc);
 void    do_quit(dbref player, dbref program);
+void    do_cancel(dbref player, dbref program);
 void    do_list(dbref player, dbref program, int arg[], int argc, int commentit);
 void    insert(dbref player, const char *line);
 struct line *get_new_line(void);
@@ -352,6 +353,11 @@ editor(int descr, dbref player, const char *command)
                 do_quit(player, program);
                 anotify_nolisten(player, CINFO "Editor exited.", 1);
                 break;
+            case CANCEL_EDIT_COMMAND:
+                /* Just figured this was due. We'll see how it goes. -Akari */
+                do_cancel(player, program);
+                anotify_nolisten(player, BLUE "Changes cancelled.", 1);
+                break;
             case COMPILE_COMMAND: 
                 /* compile code belongs in compile.c, not in the editor */
                 notify(player, "Compiling..."); 
@@ -473,6 +479,21 @@ do_quit(dbref player, dbref program)
     DBDIRTY(player);
     DBDIRTY(program);
 }
+
+/* quit from edit mode, but don't write the code out and uncompile -Akari */
+void
+do_cancel(dbref player, dbref program)
+{  
+    uncompile_program(program);
+    free_prog_text(DBFETCH(program)->sp.program.first);
+    DBFETCH(program)->sp.program.first = NULL;
+    FLAGS(program) &= ~INTERNAL;
+    FLAGS(player) &= ~INTERACTIVE;
+    DBFETCH(player)->sp.player.curr_prog = NOTHING;
+    DBDIRTY(player);
+
+}
+
 
 void 
 match_and_list(int descr, dbref player, const char *name, char *linespec, int editor)
