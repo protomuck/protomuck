@@ -1181,4 +1181,46 @@ prim_getdir(PRIM_PROTOTYPE)
         PushArrayRaw(nu);
 }
 
+void
+prim_mkdir(PRIM_PROTOTYPE)
+{
+    char *directoryName;
+
+    CHECKOP(1);
+    oper1 = POP();              /* string */
+
+    /* Permissions and type checks */
+    if (getuid() == 0)
+        abort_interp("Muck is running under root privs, file prims disabled.");
+    if (mlev < LBOY)
+        abort_interp("BOY primitive only.");
+    if (oper1->type != PROG_STRING)
+        abort_interp("String arguement expected.");
+    if (!oper1->data.string)
+        abort_interp("Arguement is an empty string.");
+    CHECKOFLOW(1);
+
+    directoryName = oper1->data.string->data;
+    result = 1;
+
+#ifdef SECURE_FILE_PRIMS
+    if (!(valid_name(directoryName)))
+        result = 0;
+    else {
+        if (strchr(directoryName, '$') == NULL)
+            directoryName = set_directory(directoryName);
+        else
+            directoryName = parse_token(directoryName);
+        if (directoryName == NULL)
+            result = 0;
+    }
+    if (!result)
+        abort_interp("Invalid file name.");
+#endif
+    /* Everything has been checked, make the directory now */
+    result = mkdir(directoryName, S_IRWXU); 
+
+    PushInt(result);
+}
+
 #endif /* FILE_PRIMS */
