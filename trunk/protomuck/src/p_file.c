@@ -18,6 +18,8 @@
 #include "params.h"
 #include "strings.h"
 #include "interp.h"
+#include <dirent.h>//May be a problem in non-linux systems.
+
 extern struct inst *oper1, *oper2, *oper3, *oper4;
 extern int tmp, result;
 extern dbref ref;
@@ -908,7 +910,7 @@ prim_fnameokp(PRIM_PROTOTYPE)
     oper1 = POP();  /* string */
     /* Permissions and Type checks */
     if (getuid() == 0)
-        abort_interp ("Muck is running under rot privs, file prims disabled.");
+        abort_interp ("Muck is running under root privs, file prims disabled.");
     if (mlev < LBOY) 
         abort_interp( "BOY primitive only.");
     if (oper1->type != PROG_STRING) 
@@ -931,5 +933,69 @@ prim_fnameokp(PRIM_PROTOTYPE)
 #endif
     CLEAR(oper1);
     PushInt(result);
+}
+
+void
+prim_getdir(PRIM_PROTOTYPE)
+{
+    char tempDir[BUFFER_LEN];
+    char *directoryName;
+    stk_array *nu;
+    struct inst temp1; 
+    DIR *df;
+    DIR *tempDf;
+    struct dirent *dp;
+
+    CHECKOP(1);
+    oper1 = POP(); /* string */
+
+    /* Permissions and type checks */
+    if (getuid() == 0)
+        abort_interp ("Muck is running under root privs, file prims disabled.");
+    if (mlev < LBOY)
+        abort_interp( "BOY primitive only.");
+    if (oper1->type != PROG_STRING)
+        abort_interp( "String arguement expected." );
+    if (!oper1->data.string)
+        abort_interp( "Arguement is an empty string." );
+    CHECKOFLOW(1);
+
+    directoryName = oper1->data.string->data;
+
+
+#ifdef SECURE_FILE_PRIMS
+    if ( !(valid_name(directoryName)) )
+        result = 0;
+    else {
+        if ( strchr( directoryName, '$' ) == NULL )
+            directoryName = set_directory(directoryName);
+        else
+            directoryName = parse_token( directoryName);
+        if ( directoryName == NULL )
+            result = 0;
+    }
+#endif 
+
+    nu = new_array_packed(0);
+    if ((df = (DIR *) opendir(directoryName))) {
+        while ((dp = readdir(df))) {
+            if (*(dp->d_name) != '.') {
+                temp1.type = PROG_STRING;
+                temp1.data.string = alloc_prog_string((dp->d_name));
+                strcpy(tempDir, directoryName);
+                strcat(tempDir, dp->d_name);
+                if ((tempDf = (DIR *) opendir(tempDir))) {
+                    closedir(tempDf);
+                    strcat(temp1.data.string->data, "/");
+                }
+                array_appenditem(&nu, &temp1);
+            }
+        }
+        closedir(df);
+    }
+
+    CLEAR(&temp1);
+    CLEAR(oper1);
+    PushArrayRaw(nu);
 }
 
