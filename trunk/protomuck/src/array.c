@@ -56,7 +56,7 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens)
 			}
 		} else if (a->type == PROG_OBJECT && b->type == PROG_STRING) {
                   char pad_char[] = "";
-                  char *astr = (char *) unparse_object(MAN, a->data.objref);
+                  char *astr = (char *) NAME(a->data.objref);
 		      char *bstr = (b->data.string) ? b->data.string->data : pad_char;
                   if(case_sens) {
                        return strcmp(astr, bstr);
@@ -66,7 +66,7 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens)
 		} else if (a->type == PROG_STRING && b->type == PROG_OBJECT) {
                   char pad_char[] = "";
 		      char *astr = (a->data.string) ? a->data.string->data : pad_char;
-                  char *bstr = (char *) unparse_object(MAN, b->data.objref);
+                  char *bstr = (char *) NAME(b->data.objref);
                   if(case_sens) {
                        return strcmp(astr, bstr);
                   } else {
@@ -77,8 +77,8 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens)
 	}
 	/* Indexes are of same type if we reached here. */
       if (a->type == PROG_OBJECT) {
-         char *astr = (char *) unparse_object(MAN, a->data.objref);
-         char *bstr = (char *) unparse_object(MAN, b->data.objref);
+         char *astr = (char *) NAME(a->data.objref);
+         char *bstr = (char *) NAME( b->data.objref);
          if(case_sens) {
              return strcmp(astr, bstr);
          } else {
