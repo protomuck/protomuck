@@ -334,6 +334,8 @@ check_power(char *power)
          tmp = POW_OPEN_ANYWHERE;
       } else if (string_prefix("player_create", power)) {
          tmp = POW_PLAYER_CREATE;
+      } else if (string_prefix("player_purge", power)) {
+         tmp = POW_PLAYER_PURGE;
       } else if (string_prefix("search", power)) {
          tmp = POW_SEARCH;
       } else if (string_prefix("see_all", power)) {

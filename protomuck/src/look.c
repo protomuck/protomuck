@@ -661,6 +661,8 @@ power_description(dbref thing)
           strcat(buf, "OPEN_ANYWHERE ");
       if (POWERS(thing) & POW_PLAYER_CREATE)
           strcat(buf, "PLAYER_CREATE ");
+      if (POWERS(thing) & POW_PLAYER_PURGE)
+          strcat(buf, "PLAYER_PURGE ");
       if (POWERS(thing) & POW_SEARCH)
           strcat(buf, "SEARCH ");
       if (POWERS(thing) & POW_SEE_ALL)
@@ -1569,6 +1571,12 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
             else
 		    check->setpowers |= POW_PLAYER_CREATE;
             break;
+            case 'u':
+                check->anypower = 0;
+                if (mode)
+                    check->clearpowers |= POW_PLAYER_PURGE;
+                else
+                    check->setpowers |= POW_PLAYER_PURGE;
 	    case 's':
 		check->anypower = 0;
 		if (mode)

@@ -116,6 +116,8 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
             *p++ = 'o';
         if (POWERS(thing) & POW_PLAYER_CREATE)
             *p++ = 'p';
+	if (POWERS(thing) & POW_PLAYER_PURGE)
+	    *p++ = 'u';
         if (POWERS(thing) & POW_SEARCH)
             *p++ = 's';
         if (POWERS(thing) & POW_SEE_ALL)
