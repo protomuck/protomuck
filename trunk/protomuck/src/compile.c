@@ -1105,11 +1105,13 @@ OptimizeIntermediate(COMPSTATE *cstat)
 
                         /* int int / into Div */
                         if (IntermediateIsPrimitive(curr->next->next, DivNo)) {
+                         if (curr->next->in.data.number != 0) {
                             curr->in.data.number /= curr->next->in.data.number;
                             RemoveNextIntermediate(cstat, curr);
                             RemoveNextIntermediate(cstat, curr);
                             advance = 0;
                             break;
+                         }
                         }
 
                         /* int int % into Result */
