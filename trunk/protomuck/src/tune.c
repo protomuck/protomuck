@@ -208,7 +208,9 @@ struct tune_val_entry tune_val_list[] =
     {"Database",  "dump_copies",       &tp_dump_copies,          WBOY,  LMUF },
     {"MUF",       "min_progbreak_lev", &tp_min_progbreak_lev,    LARCH, LMAGE},
     {"MUF",       "mcp_muf_mlev",      &tp_mcp_muf_mlev,         LARCH, LMAGE},
+#ifdef SQL_SUPPORT
     {"MUF",       "mysql_result_limit",&tp_mysql_result_limit,   LBOY , LARCH},
+#endif
     {NULL, NULL, NULL, 0, 0}
 };
 
