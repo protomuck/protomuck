@@ -25,10 +25,10 @@ Variable Prims:
   DESCR   VAR!
 
 Multitasking Prims:
-  PREEMPT       FOREGROUND     BACKGROUND     MODE     SETMODE
+  PREEMPT       FOREGROUND     BACKGROUND     MODE         SETMODE
   PR_MODE       FG_MODE        BG_MODE        SLEEP
-  EVENT_WAIT    EVENT_SEND     EVENT_COUNT
-  TIMER_START   TIMER_STOP
+  EVENT_WAIT    EVENT_SEND     EVENT_COUNT    EVENT_EXISTS
+  TIMER_START   TIMER_STOP     EVENT_WAITFOR
 
 Math and Logic Prims:
   +     -     *     /     %     <     >     =     <=     >=  
@@ -86,6 +86,7 @@ Notifying Prims (I/O):
   NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
   NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
   STOPMIDI            PLAYMIDI                    COMMANDTEXT
+  ANSI_ARRAY_NOTIFY   ARRAY_NOTIFY_HTML
 
 See: PRIMS4
 ~~~~~
@@ -157,6 +158,7 @@ Array Prims:
   ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
   ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
   ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
+  ANSI_ARRAY_NOTIFY    NOTIFY_ARRAY_HTML
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR
@@ -167,6 +169,7 @@ MCP Prims:
   MCP_REGISTER    MCP_REGISTER EVENT   MCP_SUPPORTS       MCP_BIND
   MCP_SEND        GUI_AVAILABLE        GUI_DLOG_CREATE    GUI_DLOG_SHOW
   GUI_DLOG_CLOSE  GUI_CTRL_CREATE      GUI_VALUES_SET     GUI_VALUES_GET
+  GUI_VALUE_GET   GUI_CTRL_COMMAND
 
 ~~~~~
 PRIMSLIST|PRIMS LIST|LIST PRIMS
@@ -214,6 +217,7 @@ FLOAT PRIMS        - A note explaining float support in MUF.
 ARRAY PRIMS        - Some notes on using arrays with MUF. 
 FUNCTION HEADERS   - Notes about using function headers in MUF.
 MUF EVENTS         - Notes on how to use events in MUF.
+MCP PRIMS          - Notes on the graphical MUF prims.
 WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
 CREDITS            - Who to blame this mess on!
 ~~~~
@@ -261,6 +265,7 @@ NOTIFY_HTML         NOTIFY_HTML_EXCLUDE         NOTIFY_HTML_EXCLUDE
 NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
 NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
 STOPMIDI            PLAYMIDI                    COMMANDTEXT
+ANSI_NOTIFY_ARRAY   NOTIFY_ARRAY_HTML
 
 ~
 CONVERSION PRIMS|COVERSION|CONVERSIONPRIMS|CONVERTING
@@ -5168,6 +5173,7 @@ ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS
 ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
 ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
 ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
+ANSI_NOTIFY_ARRAY    ARRAY_NOTIFY_HTML
 
 See: Individual entries for more information.
 ~~~~~~
@@ -6419,8 +6425,8 @@ following event prims are available:
 
 Timers: TIMER_START, TIMER_STOP
 User Events: EVENT_SEND
-Receiving Events: EVENT_WAIT
-Misc: EVENT_COUNT
+Receiving Events: EVENT_WAIT, EVENT_WAITFOR
+Misc: EVENT_COUNT, EVENT_EXISTS
 ~~
 TEXTATTR
 
@@ -7016,7 +7022,7 @@ of character that could be returned will still be put on the stack.
 If s1 is an empty string, returns an empty string no matter what.
 If i1 is a point that is beyond the range of s1, returns a null string.
 ~~~~~
-MCP PRIMS|MCP|MCPPRIMS
+MCP PRIMS|MCP|MCPPRIMS|GUI PRIMS|GUIPRIMS|GUI
 
 GUI MCP from FB6. 
 At the time this version of the manual was completed, I had no idea
@@ -7028,7 +7034,8 @@ entries for them were taken straight from the FB6 MUF Manual.
 
 MCP: MCP_REGISTER, MCP_REGISTER_EVENT, MCP_SUPPORTS, MCP_BIND, MCP_SEND
 GUI: GUI_AVAILABLE, GUI_DLOG_CREATE, GUI_DLOG_SHOW, GUI_DLOG_CLOSE
-     GUI_CTRL_CREATE, GUI_VALUES_SET, GUI_VALUES_GET
+     GUI_CTRL_CREATE, GUI_VALUES_SET, GUI_VALUES_GET, GUI_CTRL_COMMAND
+     GUI_VALUE_GET
 
 ~~~~~~~~~~~~~~
 MCP_REGISTER|
@@ -7284,3 +7291,61 @@ the following inserver muf macro $defines:
     SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
 See: ARRAY PRIMS, SORT
 ~~~~~
+EVENT_WAITFOR
+
+event_waitfor ( a -- x s )
+--------------------------
+Level: M1 Apprentice
+a = an array of string IDs.
+x = The return value from the event found.
+s = string containing the ID of the event found.
+
+This will wait for an event to occur that matches one of the eventid 
+strings in the given string list array.  The first event in the event 
+queue that matches will be removed from the event queue, and will be 
+returned, with the apropriate context data.  If there is no matching 
+event, then this process will pause until a matching event becomes 
+available.  The eventIDs are case sensitive.
+
+See: MUF EVENTS
+~~~~~
+EVENT_EXISTS
+
+event_exists ( s -- i )
+-----------------------
+Level: M1 Apprentice
+s = string containing a MUF event ID.
+i = integer representing the number of pending events with that ID.
+
+Returns the number of pending events that have the given eventID type.
+
+See: MUF EVENTS
+~~~~~
+GUI_CTRL_COMMAND
+
+gui_ctrl_command ( s1 s2 s3 a -- )
+----------------------------------
+Level: M1 Apprentice
+s1 = string with the Dialogue ID.
+s2 = string with the control ID.
+s3 = string with the specific GUI command.
+a  = dictionary style array with the arguements of the command.
+
+This is the generic primitive for executing a GUI control specific 
+command. The dictionary contains the arguments for the given command.
+
+See: MCP PRIMS
+~~~~~~~~
+GUI_VALUE_GET
+
+gui_value_get ( s1 s2 -- a )
+----------------------------
+Level: M1 Apprentice
+s1 = string with the dialogue ID.
+s2 = string with the control ID.
+a  = A string list array representing the current value of the given control.
+
+This gets the current value of the given GUI control, and returns it 
+as a string list array. 
+
+See: MCP PRIMS
