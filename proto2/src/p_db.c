@@ -1890,16 +1890,12 @@ prim_nextentrance(PRIM_PROTOTYPE)
 void
 prim_newplayer(PRIM_PROTOTYPE)
 {
-    dbref newplayer;
-    char *name, *password;
-    struct object *newp;
-
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
 
-    if (mlev < 6)
-        abort_interp(tp_noperm_mesg);
+    if (mlev < LARCH)
+        abort_interp("Arch prim.");
     if (oper1->type != PROG_STRING)
         abort_interp("Non-string argument.");
     if (!oper1->data.string)
@@ -1908,73 +1904,20 @@ prim_newplayer(PRIM_PROTOTYPE)
         abort_interp("Non-string argument.");
     if (!oper2->data.string)
         abort_interp("Empty string argument.");
-
-    name = oper2->data.string->data;
-    password = oper1->data.string->data;
-
-    if (!ok_player_name(name) || !ok_password(password))
+    if (!ok_player_name(oper2->data.string->data)
+        || !ok_password(oper1->data.string->data))
         abort_interp("Invalid player name or password.");
-    if (!tp_building || tp_db_readonly)
-        abort_interp("The muck is read only.");
+    if (tp_db_readonly)
+        abort_interp("The MUCK is read only.");
 
-    /* else he doesn't already exist, create him */
-    newplayer = new_object();
-    newp = DBFETCH(newplayer);
-
-    /* initialize everything */
-    NAME(newplayer) = alloc_string(name);
-    DBFETCH(newplayer)->location = tp_player_start; /* home */
-    FLAGS(newplayer) = TYPE_PLAYER;
-    if (OkObj(tp_player_prototype) &&
-        (Typeof(tp_player_prototype) == TYPE_PLAYER)) {
-        FLAGS(newplayer) = FLAGS(tp_player_prototype);
-        FLAG2(newplayer) = FLAG2(tp_player_prototype);
-
-        if (tp_pcreate_copy_props) {
-            newp->properties = copy_prop(tp_player_prototype);
-            newp->exits = NOTHING;
-            newp->contents = NOTHING;
-            newp->next = NOTHING;
-#ifdef DISKBASE
-            newp->propsfpos = 0;
-            newp->propsmode = PROPS_UNLOADED;
-            newp->propstime = 0;
-            newp->nextold = NOTHING;
-            newp->prevold = NOTHING;
-            dirtyprops(newplayer);
-#endif
-        }
-        DBDIRTY(newplayer);
-    }
-    OWNER(newplayer) = newplayer;
-    DBFETCH(newplayer)->sp.player.home = tp_player_start;
-    DBFETCH(newplayer)->exits = NOTHING;
-    DBFETCH(newplayer)->sp.player.pennies = tp_start_pennies;
-    DBFETCH(newplayer)->sp.player.password = NULL;
-    DBFETCH(newplayer)->sp.player.curr_prog = NOTHING;
-    DBFETCH(newplayer)->sp.player.insert_mode = 0;
-#ifdef IGNORE_SUPPORT
-    DBFETCH(newplayer)->sp.player.ignoretime = 0;
-#endif /* IGNORE_SUPPORT */
-
-    /* Alynna's setpassword again */
-    set_password(newplayer, password);
-
-    /* link him to tp_player_start */
-    PUSH(newplayer, DBFETCH(tp_player_start)->contents);
-    add_player(newplayer);
-    newp->location = tp_player_start;
-    DBDIRTY(newplayer);
-    DBDIRTY(tp_player_start);
-    if (MLevel(newplayer) > LM3)
-        SetMLevel(newplayer, LM3);
-    log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
-               NAME(newplayer), (int) newplayer,
-               OkObj(player) ? NAME(player) : "(Login)", player);
+    ref = create_player(oper2->data.string->data, oper1->data.string->data);
+    if (ref != NOTHING)
+        log_status("PCRE[MUF]: %s(%d) by %s(%d)\n", NAME(ref), (int) ref,
+                   OkObj(player) ? NAME(player) : "(Login)", player);
 
     CLEAR(oper1);
     CLEAR(oper2);
-    PushObject(newplayer);
+    PushObject(ref);
 }
 
 void
@@ -1989,8 +1932,8 @@ prim_copyplayer(PRIM_PROTOTYPE)
     oper2 = POP();
     oper3 = POP();
 
-    if (mlev < 6)
-        abort_interp(tp_noperm_mesg);
+    if (mlev < LARCH)
+        abort_interp("Arch prim.");
     if (oper1->type != PROG_STRING)
         abort_interp("Non-string argument.");
     if (!oper1->data.string)
@@ -2009,8 +1952,8 @@ prim_copyplayer(PRIM_PROTOTYPE)
 
     if (!ok_player_name(name) || !ok_password(password))
         abort_interp("Invalid player name or password.");
-    if (!tp_building || tp_db_readonly)
-        abort_interp("The muck is read only.");
+    if (tp_db_readonly)
+        abort_interp("The MUCK is read only.");
 
     /* else he doesn't already exist, create him */
     newplayer = new_object();
@@ -2018,18 +1961,13 @@ prim_copyplayer(PRIM_PROTOTYPE)
 
     /* initialize everything */
     NAME(newplayer) = alloc_string(name);
-    DBFETCH(newplayer)->location = DBFETCH(ref)->location; /* home */
     FLAGS(newplayer) = TYPE_PLAYER;
-/*    if ((ref != NOTHING) && (Typeof(ref) == TYPE_PLAYER))
-    { */
+
     FLAGS(newplayer) = FLAGS(ref);
     FLAG2(newplayer) = FLAG2(ref);
 
-    /* if (1) { */
     newp->properties = copy_prop(ref);
     newp->exits = NOTHING;
-    newp->contents = NOTHING;
-    newp->next = NOTHING;
 #ifdef DISKBASE
     newp->propsfpos = 0;
     newp->propsmode = PROPS_UNLOADED;
@@ -2038,16 +1976,12 @@ prim_copyplayer(PRIM_PROTOTYPE)
     newp->prevold = NOTHING;
     dirtyprops(newplayer);
 #endif
-    /* } */
-    DBDIRTY(newplayer);
-/*    } */
+
     OWNER(newplayer) = newplayer;
-    DBFETCH(newplayer)->sp.player.home = DBFETCH(ref)->sp.player.home;
-    DBFETCH(newplayer)->exits = NOTHING;
-    DBFETCH(newplayer)->owner = newplayer;
-    DBFETCH(newplayer)->sp.player.pennies = DBFETCH(ref)->sp.player.pennies;
-    DBFETCH(newplayer)->sp.player.password = alloc_string("");
-    DBFETCH(newplayer)->sp.player.curr_prog = NOTHING;
+    newp->sp.player.home = DBFETCH(ref)->sp.player.home;
+    newp->sp.player.pennies = DBFETCH(ref)->sp.player.pennies;
+    newp->sp.player.password = NULL;
+    newp->sp.player.curr_prog = NOTHING;
     DBFETCH(newplayer)->sp.player.insert_mode = 0;
 
     /* Yet again, set_password */
@@ -2061,9 +1995,11 @@ prim_copyplayer(PRIM_PROTOTYPE)
     DBDIRTY(tp_player_start);
     if (MLevel(newplayer) > LM3)
         SetMLevel(newplayer, LM3);
+
     log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
                NAME(newplayer), (int) newplayer,
                OkObj(player) ? NAME(player) : "(Login)", player);
+
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -2083,8 +2019,8 @@ prim_toadplayer(PRIM_PROTOTYPE)
     oper2 = POP();
 
     victim = oper1->data.objref;
-    if (mlev < 6)
-        abort_interp(tp_noperm_mesg);
+    if (mlev < LARCH)
+        abort_interp("Arch prim.");
     if ((ref != NOTHING && !valid_player(oper1)) || ref == NOTHING)
         abort_interp("Player dbref expected for player to be toaded (1)");
     recipient = oper2->data.objref;
@@ -2184,8 +2120,6 @@ prim_objmem(PRIM_PROTOTYPE)
     i = size_object(ref, 0);
     PushInt(i);
 }
-
-
 
 void
 prim_movepennies(PRIM_PROTOTYPE)
