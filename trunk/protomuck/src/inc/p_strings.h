@@ -19,6 +19,7 @@ extern void prim_notify(PRIM_PROTOTYPE);
 extern void prim_notify_html(PRIM_PROTOTYPE);
 extern void prim_notify_html_nocr(PRIM_PROTOTYPE);
 extern void prim_notify_descriptor(PRIM_PROTOTYPE);
+extern void prim_ansi_notify_descriptor(PRIM_PROTOTYPE);
 extern void prim_notify_exclude(PRIM_PROTOTYPE);
 extern void prim_notify_html_exclude(PRIM_PROTOTYPE);
 extern void prim_notify_html_exclude_nocr(PRIM_PROTOTYPE);
@@ -52,6 +53,7 @@ extern void prim_textattr(PRIM_PROTOTYPE);
 #define PRIMS_STRINGS_FUNCS prim_numberp, prim_stringcmp, prim_strcmp,        \
     prim_strncmp, prim_strcut, prim_strlen, prim_strcat, prim_atoi,           \
     prim_ansi_notify, prim_notify, prim_notify_descriptor,                    \
+    prim_ansi_notify_descriptor,                                              \
     prim_notify_exclude, prim_intostr,                                        \
     prim_explode, prim_subst, prim_instr, prim_rinstr, prim_pronoun_sub,      \
     prim_toupper, prim_tolower, prim_unparseobj, prim_smatch, prim_striplead, \
@@ -65,7 +67,8 @@ extern void prim_textattr(PRIM_PROTOTYPE);
 
 #define PRIMS_STRINGS_NAMES "NUMBER?", "STRINGCMP", "STRCMP",        \
     "STRNCMP", "STRCUT", "STRLEN", "STRCAT", "ATOI",                 \
-    "ANSI_NOTIFY", "NOTIFY", "NOTIFY_DESCRIPTOR", "NOTIFY_EXCLUDE",  \
+    "ANSI_NOTIFY", "NOTIFY", "NOTIFY_DESCRIPTOR",                    \
+    "ANSI_NOTIFY_DESCRIPTOR", "NOTIFY_EXCLUDE",                      \
     "INTOSTR", "EXPLODE", "SUBST", "INSTR", "RINSTR", "PRONOUN_SUB", \
     "TOUPPER", "TOLOWER", "UNPARSEOBJ", "SMATCH", "STRIPLEAD",       \
     "STRIPTAIL", "STRINGPFX", "STRENCRYPT", "STRDECRYPT",            \
@@ -76,7 +79,7 @@ extern void prim_textattr(PRIM_PROTOTYPE);
     "ANSI_STRLEN", "ANSI_STRCUT", "ANSI_STRIP", "ANSI_MIDSTR",       \
     "TEXTATTR", "PARSE_NEON", "DESCRNOTIFY"
 
-#define PRIMS_STRINGS_CNT 52
+#define PRIMS_STRINGS_CNT 53
 
 
 
