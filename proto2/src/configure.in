@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl TinyMUCK fb5.x auto-config script writen by: Peter "WhiteFire" Torkelson
 dnl
-AC_REVISION($Revision: 1.6 $)dnl
+AC_REVISION($Revision: 1.7 $)dnl
 AC_INIT(game.c)
 AC_CONFIG_HEADER(inc/autoconf.h)
 echo " "
@@ -129,6 +129,14 @@ fi
 AC_DEFINE(SQL_SUPPORT)
 AC_SUBST(INCL)
 LIBS="-lmysqlclient $LIBS"
+])
+
+AC_ARG_ENABLE(asroot,
+[  --enable-asroot         allow file primitives under root user],
+[
+if test "$enableval" != "no"; then
+    AC_DEFINE(PROTO_AS_ROOT)
+fi
 ])
 
 AC_ARG_ENABLE(compress,

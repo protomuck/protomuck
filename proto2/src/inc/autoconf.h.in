@@ -130,3 +130,6 @@
 
 /* Define this to disable DB compress support. */
 #undef NO_COMPRESS
+
+/* Define this to allow file primitive support as root. */
+#undef PROTO_AS_ROOT
