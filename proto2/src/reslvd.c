@@ -12,10 +12,17 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
-#include <sys/errno.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <signal.h>
+
+#if defined(HAVE_ERRNO_H)
+# include <errno.h>
+#elif defined(HAVE_SYS_ERRNO_H)
+# include <sys/errno.h>
+#else
+  extern int errno;
+#endif
 
 #ifdef SOLARIS
 #  ifndef _POSIX_SOURCE
@@ -25,10 +32,6 @@
 
 #if defined(HAVE_SYS_SIGNAL_H) && !defined(SUN_OS)
 # include <sys/signal.h>
-#endif
-
-#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__APPLE__)
-typedef int socklen_t;
 #endif
 
 #define MAX_COMMAND_LEN 1024
