@@ -333,6 +333,9 @@ int tp_proplist_int_counter = 0;
 #ifdef MCP_SUPPORT
 int tp_enable_mcp = 1;
 #endif
+#ifdef CONTROLS_SUPPORT
+int tp_wiz_realms = 1;
+#endif
 int tp_enable_commandprops = 1;
 int tp_old_parseprop = 0;
 int tp_mpi_needflag = 0;
@@ -383,6 +386,9 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Commands", "secure_who", &tp_secure_who, LARCH, LMUF},
     {"Commands", "who_doing", &tp_who_doing, LARCH, LMUF},
     {"Building", "realms_control", &tp_realms_control, WBOY, LMUF},
+#ifdef CONTROLS_SUPPORT
+    {"Building", "wiz_realms", &tp_wiz_realms, WBOY, LMUF},
+#endif
     {"Building", "allow_listeners", &tp_listeners, LARCH, LMUF},
     {"Building", "allow_listeners_obj", &tp_listeners_obj, LARCH, LMUF},
     {"Building", "allow_listeners_env", &tp_listeners_env, LARCH, LMUF},

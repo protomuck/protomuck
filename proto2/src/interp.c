@@ -2097,7 +2097,7 @@ is_home(struct inst *oper)
 
 
 int
-permissions(int mlev, dbref player, dbref thing)
+newpermissions(int mlev, dbref player, dbref thing, int true_c)
 {
     if (mlev < 0 || mlev > LMAN)
         return 0;
@@ -2125,10 +2125,14 @@ permissions(int mlev, dbref player, dbref thing)
     case TYPE_PROGRAM:
         return (OWNER(thing) == OWNER(player));
     }
-
-    return 0;
+    return newcontrols(OWNER(player), OWNER(thing), true_c);
 }
 
+int
+permissions(int mlev, dbref player, dbref thing)
+{
+ return newpermissions(mlev, player, thing, 0); 
+}
 
 int
 find_mlev(dbref prog, struct frame *fr, int st)

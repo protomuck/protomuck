@@ -170,6 +170,9 @@ extern int tp_proplist_int_counter;
 #ifdef MCP_SUPPORT
 extern int tp_enable_mcp;
 #endif
+#ifdef CONTROLS_SUPPORT
+extern int tp_wiz_realms;
+#endif
 extern int tp_enable_commandprops;
 extern int tp_old_parseprop;
 extern int tp_mpi_needflag;

@@ -299,6 +299,8 @@ extern int can_doit(int descr, dbref player, dbref thing,
                     const char *default_fail_msg);
 extern int can_see(dbref player, dbref thing, int can_see_location);
 extern int controls(dbref who, dbref what);
+extern int truecontrols(dbref who, dbref what);
+extern int newcontrols(dbref who, dbref what, int true_c);
 extern int controls_link(dbref who, dbref what);
 extern int restricted(dbref player, dbref thing, object_flag_type flag);
 extern int restricted2(dbref player, dbref thing, object_flag_type flag);
