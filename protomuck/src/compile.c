@@ -557,7 +557,7 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "c_notebook", "\"notebook\"");
 
 	/* Backwards compatibility for old GUI dialog creation prims */
-	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict");
+	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_tabbed", "d_tabbed swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_helper", "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
 

@@ -2086,7 +2086,8 @@ mfn_descr(MFUNARGS)
 {
 	/* {descr} */
 	/* Return the integer of the running descriptor */
-	strcpy(buf, intostr(descr));
+        char num[16];
+	strcpy(buf, intostr(num, descr));
 	return buf;
 }
 

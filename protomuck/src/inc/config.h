@@ -121,7 +121,7 @@
 
 /* Set this to your mark for shouts, dumps, etc.  Also change @tunes */
 
-#define MARK ">> "
+#define MARK "[!]"
 
 /* Make the `examine' command display full names for types and flags */
 #define VERBOSE_EXAMINE

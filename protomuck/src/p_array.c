@@ -123,7 +123,6 @@ prim_array_explode(PRIM_PROTOTYPE)
                 } while (array_next(arr, &temp1));
         }
 
-        CLEAR(&temp1);
         CLEAR(&temp2);
         PushInt(result);
 }
@@ -180,7 +179,6 @@ prim_array_keys(PRIM_PROTOTYPE)
                 } while (array_next(arr, &temp1));
         }
 
-        CLEAR(&temp1);
         CLEAR(&temp2);
         PushInt(result);
 }
@@ -269,11 +267,11 @@ prim_array_prev(PRIM_PROTOTYPE)
 
         if (result) {
                 copyinst(&temp1, &arg[((*top)++)]);
+                CLEAR(&temp1);
         } else {
                 result = 0;
                 PushInt(result);
         }
-        CLEAR(&temp1);
         PushInt(result);
 }
 
@@ -299,11 +297,11 @@ prim_array_next(PRIM_PROTOTYPE)
 
         if (result) {
                 copyinst(&temp1, &arg[((*top)++)]);
+                CLEAR(&temp1);
         } else {
                 result = 0;
                 PushInt(result);
         }
-        CLEAR(&temp1);
         PushInt(result);
 }
 

@@ -247,7 +247,6 @@ stuff_dict_in_mesg(stk_array* arr, McpMesg* msg)
 					}
 					contd = array_next(argval->data.array, &subname);
 				}
-				CLEAR(&subname);
 				break;
 			}
 		case PROG_STRING:

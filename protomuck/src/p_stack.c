@@ -1123,6 +1123,10 @@ prim_foriter(PRIM_PROTOTYPE)
 				tmp = 0;		/* tell following IF to branch out of loop */
 			}
 		} else {
+                        fr->fors.st->cur.type = PROG_INTEGER; 
+                        fr->fors.st->cur.line = 0; 
+                        fr->fors.st->cur.data.number = 0; 
+
 			tmp = 0;			/* tell following IF to branch out of loop */
 		}
 	} else {

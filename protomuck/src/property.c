@@ -984,6 +984,7 @@ void
 db_putprop(FILE *f, const char *dir, PropPtr p)
 {
     char buf[BUFFER_LEN*2];
+    char num[16];
     char *ptr;
     const char *ptr2;
 #ifdef WIN32
@@ -999,7 +1000,7 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
     *ptr++ = PROP_DELIMITER;
 
 #ifndef WIN32
-    ptr2 = intostr(PropFlagsRaw(p) & ~(PROP_TOUCHED | PROP_ISUNLOADED));
+    ptr2 = intostr(num, PropFlagsRaw(p) & ~(PROP_TOUCHED | PROP_ISUNLOADED));
 #else
 	/* Fix for stupid case where VC++ spits back 'kz' for intostr(10) */
 	ptr2 = &buf2[0];
@@ -1012,7 +1013,7 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
     switch (PropType(p)) {
         case PROP_INTTYP:
 	    if (!PropDataVal(p)) return;
-	    ptr2 = intostr(PropDataVal(p));
+	    ptr2 = intostr(num, PropDataVal(p));
 	    break;
         case PROP_FLTTYP:
           if (!PropDataFVal(p)) return;
@@ -1022,7 +1023,7 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
           break;
         case PROP_REFTYP:
 	    if (PropDataRef(p) == NOTHING) return;
-	    ptr2 = intostr((int)PropDataRef(p));
+	    ptr2 = intostr(num, (int)PropDataRef(p));
 	    break;
         case PROP_STRTYP:
 	    if (!*PropDataStr(p)) return;
