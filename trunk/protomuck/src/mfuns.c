@@ -112,7 +112,7 @@ mfn_store(MFUNARGS)
     pname = argv[1];
     ptr = argv[0];
     if (argc > 2) {
-        obj = mesg_dbref_strict(descr, player, what, perms, argv[2]);
+        obj = mesg_dbref_mage(descr, player, what, perms, argv[2]);
     }
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("STORE", "Match failed.");
