@@ -1985,25 +1985,25 @@ new_connection(int port, int sock)
 
 #ifdef SPAWN_HOST_RESOLVER
 
+int resolverpid;
+
 void
 kill_resolver(void)
 {
     int i;
     pid_t p;
 
+    resolverpid = 0;
     write(resolver_sock[1], "QUIT\n", 5);
     p = wait(&i);
 }
-
-int resolverpid;
 
 void
 spawn_resolver(void)
 {
     socketpair(AF_UNIX, SOCK_STREAM, 0, resolver_sock);
     make_nonblocking(resolver_sock[1]);
-    resolverpid = fork();
-    if (!resolverpid) {
+    if (!(resolverpid = fork())) {
         close(0);
         close(1);
         dup(resolver_sock[0]);
