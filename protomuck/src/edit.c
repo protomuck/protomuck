@@ -504,6 +504,8 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
     int     range[2];
     int     argc;
     int     commentit = 0;
+    int     haveNumbers = 0; /* 1 = numbers, -1 = no numbers, 0 = no pref */
+    int     tempFlags;
     struct match_data md;
     struct line *tmpline;
 
@@ -527,10 +529,22 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
-    while(*linespec == '!' && *linespec) {
-       commentit = (!commentit);
+    while((*linespec == '!' || *linespec == '#' || *linespec == '@') 
+          && *linespec) {
+       if (*linespec == '!')
+           commentit = (!commentit);
+       if (*linespec == '#')
+           haveNumbers = 1;
+       if (*linespec == '@')
+           haveNumbers = -1;
        (void) *linespec++;
     }
+    tempFlags = FLAGS(player);
+    if (haveNumbers == -1) /* no numbers no matter what */
+        FLAGS(player) &= ~INTERNAL;
+    if (haveNumbers == 1) /* force number displaying */
+        FLAGS(player) |= INTERNAL;
+
     if (!*linespec) {
         range[0] = 1;
         range[1] = -1;
@@ -567,6 +581,8 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
     do_list(player, thing, range, argc, commentit);
     free_prog_text(DBFETCH(thing)->sp.program.first);
     DBSTORE(thing, sp.program.first, tmpline);
+    if (haveNumbers)
+        FLAGS(player) = tempFlags;
     return;
 }
 
