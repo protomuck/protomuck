@@ -720,7 +720,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
     }
 
     /* we're ok, do it */
-    send_contents(descr, player, HOME);
+    send_contents(descr, victim, HOME);
     for (stuff = 0; stuff < db_top; stuff++) {
         if (OWNER(stuff) == victim) {
             switch (Typeof(stuff)) {

@@ -2066,7 +2066,7 @@ prim_toadplayer(PRIM_PROTOTYPE)
     }
 
     /* we're ok, do it */
-    send_contents(fr->descr, player, HOME);
+    send_contents(fr->descr, victim, HOME);
     for (stuff = 0; stuff < db_top; stuff++) {
         if (OWNER(stuff) == victim) {
             switch (Typeof(stuff)) {
