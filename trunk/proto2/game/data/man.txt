@@ -272,6 +272,7 @@ FLOAT PRIMS        - A note explaining float support in MUF.
 ARRAY PRIMS        - Some notes on using arrays with MUF. 
 FUNCTION HEADERS   - Notes about using function headers in MUF.
 MUF EVENTS         - Notes on how to use events in MUF.
+MUF LABELS         - Notes on how to use the new MUF label points system.
 MCP PRIMS          - Notes on the graphical MUF prims.
 WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
 EXCEPTION HANDLING - Notes on exception handling in MUF.
@@ -9948,6 +9949,48 @@ in the array, the result will be float, even if the result is not
 fractional.
 
 If any other datatypes are in the array, it will abort in an error.
+~~~~~
+LABELS|MUF LABELS|LABEL|MUFLABELS|LABELS1|LABEL1
+
+MUF Labels
+----------
+Introduced with ProtoMUCK 2.0, MUF labels allow programmers to mark and
+ jump to specific points within an MUF function.  MUF labels are handled
+ during compile time and are pre-processed, meaning a program can get the
+ address of a specific label within a function before that label is even
+ defined.
+ 
+MUF labels are simply used to mark an address to a specific point in a
+ function.  You cannot jump to a label inside a different function than
+ the one that is currently executing, nor can you pass label addresses
+ to different programs or functions.
+ 
+In order to jump to a label address you must first get the address of the
+ label using the ' method, just as you would get the address of a function,
+ and then use the JMP primitive to move execution of the program to that
+ address.  However, unlike a function call, it does NOT store a return
+ address on the system stack, so you cannot EXIT back to the execution point
+ from where the JMP was called.
+ 
+For an example, see: LABELS2
+ 
+See: JMP, EXIT, ADDRESS
+~~~~~
+LABELS2|MUF LABELS2|LABEL2|MUFLABELS2|LABELS2|LABEL2
+
+MUF Labels, example
+-------------------
+An example of MUF label use:
+ 
+: main ( i -- )
+   me @ "Hello "
+   'skipover jmp
+      "Planet!"
+   skipover:
+      "World!" strcat notify
+;
+ 
+The result, is to print "Hello World!" to the user.
 ~~~~~
 INTERRUPTS|INTERRUPT|MUF INTERRUPTS|MUFINTERRUPTS|INTERRUPTS1|INTERRUPT1
 
