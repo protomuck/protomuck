@@ -952,7 +952,6 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     int newsock = 0;
     int sockdescr = 0;
     struct inst *result;
-    char hostname[128];
     char username[10];
     char myresult[255];
     struct sockaddr_in remoteaddr; // client's address
