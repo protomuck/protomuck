@@ -1988,6 +1988,14 @@ prim_array_interpret(PRIM_PROTOTYPE)
                     text = "*NOTHING*";
                     break;
                 }
+                if (in->data.number == -2) {
+                    text = "*AMBIGUOUS*";
+                    break;
+                }
+                if (in->data.number == -3) {
+                    text = "*HOME*";
+                    break;
+                }
                 if (in->data.number < -1) {
                     text = "*INVALID*";
                     break;
