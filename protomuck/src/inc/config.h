@@ -1,7 +1,4 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.14 2000-11-12 08:37:12 akari Exp $
- * $Log: not supported by cvs2svn $
- *
  * Revision 1.3  2000/06/27 22:32:17  moose
  * Edited for ProtoMUCK
  *
@@ -55,16 +52,15 @@
  * TinyMUD Classic ran on that port.  It was the office number of James
  * Aspnes, who wrote TinyMUD from which TinyMUCK eventually was derived.
  *
- * Please note: ProtoMUCK will use up to 4 ports:
+ * Please note: ProtoMUCK will use up to 3 ports:
  *
- * The internal port (don't worry about this, just make sure it's a free 
- *  port.)
+ * The main port (set it here or in restart or in parmfile.cfg  or at startup)
  *
- * The main port (set it here or in config or at startup)
+ * The HTTPD port (Defaults to 1 below main port. Can be changed in
+ *                 parmfile.cfg) 
  *
- * The HTTPD port (set it here or in config or at startup)
- *
- * The Pueblo port (set it here or in config or at startup)
+ * The Pueblo port (Defaults to 2 below main port. Can be changed in 
+ *                  parmfile.cfg) 
  *
  */
 
@@ -89,7 +85,7 @@
 
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
-/* all @tune options as befire. */
+/* all @tune options as before. */
 
 #undef W4_TUNEABLES
 
@@ -114,8 +110,21 @@
 /* The _/www:http://... links won't work on some clients without it. */
 #define HTTPDELAY
 
-/* Define this to compile the old FB-style PARSEPROP in.
- * If undefined, PARSEPROP is an internal alias to Proto's PARSEMPI
+/* Use this to choose a version of the parseprop prim that you want
+ * want to use. 
+  #define OLDPARSE:
+      The permissions level of the MPI parsed by the parseprop prim
+      are set according to the permissions bit on the MUF program 
+      that contains the parseprop prim. I.e., a w-bitted program will
+      parse MPI at w-levels when using the parseprop prim.
+ * OR
+  #undef OLDPARSE:
+      The permissions level of the MPI parsed by the parseprop prim
+      are set according to the permissions on the object itself that
+      the prop is located on. I.e., a non-wiz player's props would
+      be parsed at non-wiz levels, whereas the props on a wiz would
+      be parsed at wiz levels. 
+ * This will be an @tuneable option in future versions.
  */
 #define OLDPARSE
 
