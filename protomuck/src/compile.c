@@ -450,7 +450,12 @@ init_defs(COMPSTATE * cstat)
 	insert_intdef(cstat, "bg_mode", BACKGROUND);
 	insert_intdef(cstat, "fg_mode", FOREGROUND);
 	insert_intdef(cstat, "pr_mode", PREEMPT);
-	insert_intdef(cstat, "max_variable_count", MAX_VAR);
+ 	insert_intdef(cstat, "max_variable_count", MAX_VAR);
+        insert_intdef(cstat, "sorttype_case_ascend", SORTTYPE_CASE_ASCEND);
+        insert_intdef(cstat, "sorttype_nocase_ascend", SORTTYPE_NOCASE_ASCEND);
+        insert_intdef(cstat, "sorttype_case_descend", SORTTYPE_CASE_DESCEND);
+        insert_intdef(cstat, "sorttype_nocase_descend", SORTTYPE_NOCASE_DESCEND);
+
 
 	/* Make defines for compatability to removed primitives */
 	insert_def(cstat, "desc", "\"_/de\" getpropstr");

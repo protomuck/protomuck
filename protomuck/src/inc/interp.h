@@ -128,6 +128,11 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
                        struct inst *pc, struct inst *arg, int *top, \
                        struct frame *fr
 
+#define SORTTYPE_CASE_ASCEND    0
+#define SORTTYPE_NOCASE_ASCEND  1
+#define SORTTYPE_CASE_DESCEND   2
+#define SORTTYPE_NOCASE_DESCEND 3
+
 extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 
 #include "p_connects.h"
