@@ -1481,9 +1481,6 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         f2 = F2LIGHT;
     } else if (string_prefix("MUFCOUNT", p) || !string_compare("+", p)) {
         f2 = F2MUFCOUNT;
-    } else if (string_prefix("MOBILE", p) || string_prefix("OFFER", p) ||
-               string_prefix("?", p)) {
-        f2 = F2MOBILE;
     } else if (string_prefix("PROTECT", p) || !string_compare("*", p)) {
         f2 = F2PROTECT;
     } else if (string_prefix("ANTIPROTECT", p) || !string_compare("K", p)) {
@@ -1497,8 +1494,11 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         f2 = F2HIDDEN;
     } else if (string_prefix("IDLE", p) || !string_compare("I", p)) {
         f2 = F2IDLE;
-/*    } else if (string_prefix("PUEBLO", p)) {
-                                                        anotify_nolisten2(player, CFAIL "This flag can't be user-set."); *//* Why did we have this here? It is unrequired */
+    } else if (string_prefix("MOBILE", p) || string_prefix("OFFER", p) ||
+               string_prefix("?", p) || (*tp_userflag_name
+                                         && string_prefix(tp_userflag_name,
+                                                          p))) {
+        f2 = F2MOBILE;
     } else {
         anotify_nolisten2(player, CINFO "I don't recognize that flag.");
         return;

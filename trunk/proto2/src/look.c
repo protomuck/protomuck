@@ -573,12 +573,19 @@ flag_description(register dbref thing)
                     TYPE_PROGRAM) ? " NO_OPTIMIZE" : " NO_COMMAND");
         if (FLAG2(thing) & F2EXAMINE_OK)
             strcat(buf, " EXAMINE_OK");
-        if (FLAG2(thing) & F2MOBILE)
-            strcat(buf, (Typeof(thing) == TYPE_ROOM) ? " OFFER" : " MOBILE");
         if (FLAG2(thing) & F2PUEBLO)
             strcat(buf, " PUEBLO");
         if (FLAG2(thing) & F2HTML)
             strcat(buf, " HTML");
+        if (FLAG2(thing) & F2MOBILE) {
+            if (!*tp_userflag_name) {
+                strcat(buf,
+                       (Typeof(thing) == TYPE_ROOM) ? " OFFER" : " MOBILE");
+            } else {
+                strcat(buf, " ");
+                strcat(buf, tp_userflag_name);
+            }
+        }
     }
     return buf;
 }

@@ -175,8 +175,6 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
 char
 flag_2char(char *flag)
 {
-    if (string_prefix("mobile", flag))
-        return '?';
     if (string_prefix("m", flag))
         return 'M';
     if (string_prefix("w", flag))
@@ -259,6 +257,8 @@ flag_2char(char *flag)
         return (tp_multi_wizlevels ? LBOY : LARCH) + '0';
     if (string_prefix("man", flag) || string_prefix("W5", flag))
         return LMAN + '0';
+    if (string_prefix("mobile", flag) || string_prefix("offer", flag))
+        return '?';
 
     return 0;
 }

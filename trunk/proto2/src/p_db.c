@@ -113,19 +113,20 @@ check_flag2(char *flag, int *nbol)
         return F2LOGWALL;
     if (string_prefix("light", flag) || string_prefix("oldcomment", flag))
         return F2LIGHT;
-    if (string_prefix("mufcount", flag))
+    if (string_prefix("mufcount", flag) || string_prefix("+", flag))
         return F2MUFCOUNT;
-    if (string_prefix("protect", flag))
+    if (string_prefix("protect", flag) || string_prefix("*", flag))
         return F2PROTECT;
     if (string_prefix("antiprotect", flag))
         return F2ANTIPROTECT;
-    if (string_prefix("parent", flag) || string_prefix("prog_debug", flag))
+    if (string_prefix("parent", flag) || string_prefix("prog_debug", flag)
+        || string_prefix("%", flag))
         return F2PARENT;
 #ifdef CONTROLS_SUPPORT
-    if (string_prefix("controls", flag))
+    if (string_prefix("controls", flag) || string_prefix("~", flag))
         return F2CONTROLS;
 #endif
-    if (string_prefix("hidden", flag))
+    if (string_prefix("hidden", flag) || string_prefix("#", flag))
         return F2HIDDEN;
     if (string_prefix("command", flag))
         return F2COMMAND;
@@ -135,9 +136,6 @@ check_flag2(char *flag, int *nbol)
         return F2NO_COMMAND;
     if (string_prefix("examine_ok", flag))
         return F2EXAMINE_OK;
-    if (string_prefix("mobile", flag) || string_prefix("offer", flag) ||
-        string_prefix("?", flag))
-        return F2MOBILE;
     if (string_prefix("pueblo", flag))
         return F2PUEBLO;
     if (string_prefix("nhtml", flag))
@@ -148,6 +146,15 @@ check_flag2(char *flag, int *nbol)
     }
     if (string_prefix("trueidle", flag)) {
         return F2TRUEIDLE;
+    }
+    if (!*tp_userflag_name) {
+        if (string_prefix("mobile", flag) || string_prefix("offer", flag) ||
+            string_prefix("?", flag))
+            return F2MOBILE;
+    } else {
+        if (string_prefix("mobile", flag) || string_prefix("offer", flag) ||
+            string_prefix("?", flag) || string_prefix(tp_userflag_name, flag))
+            return F2MOBILE;
     }
     return 0;
 }
@@ -265,7 +272,8 @@ flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
         return 0;
     if (flag == F2NO_COMMAND)
         return (mlev >= LMAGE);
-
+    if (flag == F2MOBILE)
+        return (mlev >= tp_userflag_mlev);
     return 1;
 }
 

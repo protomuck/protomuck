@@ -475,6 +475,9 @@ restricted2(register dbref player, register dbref thing, object_flag_type flag)
             return !truecontrols(player, thing);
             break;
 #endif
+        case F2MOBILE:
+            return !(MLevel(OWNER(player)) >= tp_userflag_mlev);
+            break;
         default:
             return 0;
             break;

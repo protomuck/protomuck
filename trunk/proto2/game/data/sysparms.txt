@@ -563,8 +563,6 @@ without making their character unidle. See the information under
 '@tune unidle_command' for an explanation. 
 ~~~
 alt_infinity_handler
-(By Alynna, if you have error with this email
- alynna@animaltracks.net)
 Turns on IEEE style handling of infinity and not_a_number 
 conditions, so that inf 5 + returns inf (instead of zero), 3 asin 
 returns nan (not 0).  
@@ -579,3 +577,20 @@ conditions.
 wizhidden_access_bit
 Values 1-5 change the level of bit it takes to access wizhidden
 '@' props, W1 (Mage) to W5(the MAN).  Read and Write are given.
+~~~~~
+userflag_name
+This is a string that will give the MOBILE flag, an alternate
+name.  You may then set and test for this flag by the name you
+enter here, and it will be displayed as such in 'examine'.  You
+may use this if your MUCK requires a flag for its own use.  The
+'userflag' has no effect on anything it is set on except as 
+defined in your MUF.  In all cases, you may still test for the
+userflag using MOBILE, OFFER, or ?, and it parses to '?' in
+your dbref.  Also see the 'userflag_mlev' tune and 'help mobile'.
+~~~
+userflag_mlev
+This is the minimum mlevel a player must be or a program must be
+running at to change the userflag (MOBILE).  Change this if your
+MUCK uses the userflags for its own purposes, and you dont want
+unpriveleged players changing it.  Also see the tune 
+'username_flag'.
