@@ -475,10 +475,8 @@ init_game(const char *infile, const char *outfile)
 
     db_free();           log_status("init_game/db_free\n");
     init_primitives();   log_status("init_game/init_primitives: MUF initialized\n"); /* init muf compiler */
-#ifdef MPI
     mesg_init();         log_status("init_game/mesg_init: MPI initialized\n");
     /* init mpi interpreter */
-#endif /* MPI */
     SRANDOM(getpid());   log_status("init_game: random number generator initialized\n"); /* init random number generator */
     tune_load_parmsfile(NOTHING);      /* load @tune parms from file */
     log_status("init_game: loaded parmfile.cfg\n");

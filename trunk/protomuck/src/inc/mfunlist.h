@@ -1,4 +1,3 @@
-#ifdef MPI
 
 typedef struct mfun_dat MFNDAT;
 
@@ -167,7 +166,6 @@ MFNDAT mfun_list[] =
     {NULL, NULL, 0, 0, 0, 0, 0}                    /* Ends the mfun list */
 };
 
-#endif /* MPI */
 
 
 

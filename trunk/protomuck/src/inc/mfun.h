@@ -1,4 +1,3 @@
-#ifdef MPI
 
 const char *mfn_abs(MFUNARGS);
 const char *mfn_add(MFUNARGS);
@@ -148,7 +147,6 @@ const char *mfn_command(MFUNARGS);
 const char *mfn_playmidi(MFUNARGS);
 const char *mfn_stopmidi(MFUNARGS);
 
-#endif /* MPI */
 
 
 

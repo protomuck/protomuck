@@ -1,7 +1,5 @@
 #include "config.h"
 
-#ifdef MPI
-
 #include <math.h>
 #include <ctype.h>
 #include "params.h"
@@ -144,4 +142,3 @@ mfn_stopmidi(MFUNARGS)
     return(stopmidi(player));
 }
 
-#endif /* MPI */

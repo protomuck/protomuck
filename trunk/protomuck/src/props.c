@@ -192,6 +192,7 @@ clear_propnode(PropPtr p)
 	    free_boolexp (PropDataLok(p));
     }
     SetPDataVal(p, 0);
+    SetPDataFVal(p, 0.0);
     SetPFlags(p, (PropFlags(p) & ~PROP_ISUNLOADED));
     SetPType(p, PROP_DIRTYP);
 }

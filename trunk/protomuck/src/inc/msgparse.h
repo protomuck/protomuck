@@ -1,4 +1,3 @@
-#ifdef MPI
 
 #define MAX_MFUN_NAME_LEN 16
 #define MAX_MFUN_LIST_LEN 512
@@ -71,6 +70,5 @@ typedef char argv_typ[10][BUFFER_LEN];
 #define MesgParse(in,out) mesg_parse(descr, player, what, perms, (in), (out), BUFFER_LEN, mesgtyp)
 
 
-#endif /* MPI */
 
 

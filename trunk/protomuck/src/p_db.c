@@ -2633,7 +2633,7 @@ void
 prim_getobjinfo(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
-	float fresult;
+	double fresult;
 	struct inst temp1, temp2;
 	stk_array *nw;
 	int count = 0;
@@ -2828,7 +2828,7 @@ prim_getobjinfo(PRIM_PROTOTYPE)
 			temp1.data.string = alloc_prog_string("PROFTIME");
 			temp2.type = PROG_FLOAT;
 			sprintf(buf, "%ld.%06ld", DBFETCH(ref)->sp.program.proftime.tv_sec, DBFETCH(ref)->sp.program.proftime.tv_usec);
-			fresult = (float) atof(buf);
+			fresult = atof(buf);
 			temp2.data.fnumber = fresult;
 			array_setitem(&nw, &temp1, &temp2);
 			CLEAR(&temp1);
