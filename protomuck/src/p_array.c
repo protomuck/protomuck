@@ -1425,7 +1425,7 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
                             break;
                         case PROG_FLOAT:
                             protoflags = PROP_FLTTYP;
-                            sprintf(buf, "%hg", oper4->data.fnumber);
+                            sprintf(buf, "%.16hg", oper4->data.fnumber);
                             pval = buf;
                             set_property(ref, propname, protoflags, pval);
                             break;
