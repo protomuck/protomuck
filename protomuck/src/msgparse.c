@@ -828,22 +828,32 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
     int literalflag = 0;
 
     mesg_rec_cnt++;
-    if (mesg_rec_cnt > 26) {
-        mesg_rec_cnt--;
-        strncpy(outbuf, inbuf, maxchars);
-        outbuf[maxchars - 1] = '\0';
-        return outbuf;
-    }
-    if (Typeof(player) == TYPE_GARBAGE) {
-        return NULL;
-    }
-    if (Typeof(what) == TYPE_GARBAGE) {
-        if (player < 1)
-            notify_descriptor(descr, "MPI Error: Garbage trigger.");
-        else
-            notify_nolisten(player, "MPI Error: Garbage trigger.", 1);
-        return NULL;
-    }
+        if (mesg_rec_cnt > 26) {
+                char *zptr = get_mvar("how");
+                snprintf(dbuf, sizeof(dbuf), "%s Recursion limit exceeded.", zptr);
+                if (player < 1)
+                    notify_descriptor(descr, dbuf);
+                else
+                    notify_nolisten(player, dbuf, 1);
+                mesg_rec_cnt--;
+                outbuf[0] = '\0';
+                return NULL;
+        }
+        if (Typeof(player) == TYPE_GARBAGE) {
+                mesg_rec_cnt--;
+                outbuf[0] = '\0';
+                return NULL;
+        }
+        if (Typeof(what) == TYPE_GARBAGE) {
+                if (player < 1)
+                    notify_descriptor(descr, "MPI Error: Garbage trigger.");
+                else
+                    notify_nolisten(player, "MPI Error: Garbage trigger.", 1);
+                mesg_rec_cnt--;
+                outbuf[0] = '\0';
+                return NULL;
+        }
+
     strcpy(wbuf, inbuf);
     for (p = q = 0; wbuf[p] && (p < maxchars - 1) && q < (maxchars - 1); p++) {
         if (wbuf[p] == '\\') {
@@ -1133,11 +1143,15 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                         return NULL;
                     }
                 } else {
-                    showtextflag = 1;
-                    p = (int) (ptr - wbuf);
-                    if (q < (maxchars - 1))
-                        outbuf[q++] = MFUN_LEADCHAR;
-                    ptr = "";   /* unknown substitution type */
+                  showtextflag = 1;
+                  ptr--;
+                  i = s + 1;
+                  while (ptr && *ptr && i-- && q < (maxchars - 1)) {
+                         outbuf[q++] = *(ptr++);
+                  }
+                  outbuf[q] = '\0';
+                  p = (int) (ptr - wbuf) - 1;
+                  ptr = "";       /* unknown substitution type */
                 }
                 while (ptr && *ptr && q < (maxchars - 1))
                     outbuf[q++] = *(ptr++);

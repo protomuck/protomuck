@@ -1988,9 +1988,11 @@ prim_array_interpret(PRIM_PROTOTYPE)
                 text = buf;
                 break;
             case PROG_OBJECT:
-                if (in->data.number == -1) { text = "*NOTHING*"; break; }
-                if (in->data.number < -1) { text = "*INVALID*"; break; }
                 if (in->data.number >= db_top) { text = "*INVALID*"; break; }
+                if (in->data.number == -1) { text = "*NOTHING*"; break; }
+                if (in->data.number == -2) { text = "*AMBIGUOUS*"; break; }
+                if (in->data.number == -3) { text = "*HOME*"; break; } 
+                if (in->data.number < -3) { text = "*INVALID*"; break; }
                 sprintf(buf, "%s", NAME(in->data.number));
                 text = buf;
                 break;
