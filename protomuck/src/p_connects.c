@@ -438,11 +438,13 @@ prim_descr_setuser(PRIM_PROTOTYPE)
     if (oper3->type != PROG_STRING)
 	abort_interp("Password string expected");
     ptr = oper3->data.string? oper3->data.string->data : "";
-    if ((ref != NOTHING) && DBFETCH(ref)->sp.player.password &&
-	(*DBFETCH(ref)->sp.player.password) &&
-	strcmp(ptr, DBFETCH(ref)->sp.player.password)
-    )	abort_interp("Incorrect password");
-
+    if (ref != NOTHING) { 
+        const char *passwd = DBFETCH(ref)->sp.player.password; 
+        if (passwd) {
+            if (strcmp(ptr, DBFETCH(ref)->sp.player.password))
+         	abort_interp("Incorrect password");
+        }
+    }
     if (ref != NOTHING) {
 	log_status("SUSR: %d %s(%d) to %s(%d)\n",
 		oper1->data.number, NAME(player), player, NAME(ref), ref);
