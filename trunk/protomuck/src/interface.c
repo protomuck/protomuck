@@ -2703,9 +2703,9 @@ process_commands(void)
     dbref mufprog;
 
     do {
-	nprocessed = 0;
-	for (d = descriptor_list; d; d = dnext) {
-	    dnext = d->next;
+        nprocessed = 0;
+        for (d = descriptor_list; d; d = dnext) {
+            dnext = d->next;
             if (d->type == CT_MUF) {
                 sprintf(buf, "@Ports/%d/MUF", d->cport);
                 mufprog = get_property_dbref((dbref) 0, buf);
@@ -2715,7 +2715,7 @@ process_commands(void)
                     strcpy(match_args, "MUF");
                     strcpy(match_cmdname, "Queued Event.");
                     tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
-                                  (dbref) 0, FOREGROUND, STD_HARDUID, 0);
+                                   (dbref) 0, FOREGROUND, STD_HARDUID, 0);
                     if (tmpfr) {
                         interp_loop(NOTHING, mufprog, tmpfr, 1);
                     }
@@ -2723,63 +2723,68 @@ process_commands(void)
                     continue;
                 }
             } 
-	    if (d->quota > 0 && (t = d->input.head)) {
-		if ( (d->connected && DBFETCH(d->player)->sp.player.block)
-                      || (!d->connected && d->block) ) {
-			char *tmp = t->start;
-			/* dequote MCP quoting. */
-			if (!strncmp(tmp, "#%\"", 3)) {
-				tmp += 3;
-			}
-			if (strncmp(t->start, WHO_COMMAND, sizeof(WHO_COMMAND) - 1) &&
-				strcmp(t->start, QUIT_COMMAND) &&
-				strncmp(t->start, PREFIX_COMMAND, sizeof(PREFIX_COMMAND) - 1) &&
-				strncmp(t->start, SUFFIX_COMMAND, sizeof(SUFFIX_COMMAND) - 1) &&
-				strncmp(t->start, "#$#", 3) /* MCP mesg. */ )
-			{
-				/* WORK: send player's foreground/preempt programs an exclusive READ mufevent */
-				read_event_notify(d->descriptor, d->player);
-			}
-		} else {
-			d->quota--;
-			nprocessed++;
-			if (!do_command(d, t->start)) {
-	               if (Typeof(tp_quit_prog) == TYPE_PROGRAM) {
-	                  char *full_command, xbuf[BUFFER_LEN], buf[BUFFER_LEN], *msg, *command;
-	                  struct frame *tmpfr;
+            if (d->quota > 0 && (t = d->input.head)) {
+                if ( (d->connected && DBFETCH(d->player)->sp.player.block)
+                     || (!d->connected && d->block) ) {
+                    char *tmp = t->start;
+                    /* dequote MCP quoting. */
+                    if (!strncmp(tmp, "#%\"", 3)) {
+                        tmp += 3;
+                    }
+                    if (strncmp(t->start, WHO_COMMAND, sizeof(WHO_COMMAND) - 1)
+                        && strcmp(t->start, QUIT_COMMAND) 
+                        && strcmp(t->start, QUIT_COMMAND)
+                        && strncmp(t->start, PREFIX_COMMAND, 
+                                   sizeof(PREFIX_COMMAND) - 1)
+                        && strncmp(t->start, SUFFIX_COMMAND, 
+                                   sizeof(SUFFIX_COMMAND) - 1)
+                        && strncmp(t->start, "#$#", 3) /* MCP mesg. */ ) 
+                    {
+                        read_event_notify(d->descriptor, d->player);
+                    }
+                } else {
+                    d->quota--;
+                    nprocessed++;
+                    if (!do_command(d, t->start)) {
+                        if (valid_obj(tp_quit_prog) 
+                            && Typeof(tp_quit_prog) == TYPE_PROGRAM) {
+                            char *full_command, xbuf[BUFFER_LEN];
+                            char buf[BUFFER_LEN], *msg, *command;
+                            struct frame *tmpfr;
 
-      	            command = QUIT_COMMAND;
-	                  strcpy(match_cmdname, QUIT_COMMAND);
-	                  strcpy(buf, command + sizeof(QUIT_COMMAND) -1);
-	                  msg = buf;
-	                  full_command = strcpy(xbuf, msg);
-	                  for (; *full_command && !isspace(*full_command); full_command++);
-	                  if (*full_command)
-	                     full_command++;
-	                  strcpy(match_args, full_command);
-	                  tmpfr = interp(d->descriptor, d->player, 
-                                    DBFETCH(d->player)->location,
-	                            tp_quit_prog, (dbref) -5, FOREGROUND, 
-                                    STD_REGUID, 0);
-	                  if (tmpfr) {
-	                     interp_loop(d->player, tp_quit_prog, tmpfr, 0);
-	                  }
-	               } else {
-	                  d->booted = 2;
-	               }
-	            }
-			/* start former else block */
-			d->input.head = t->nxt;
-			d->input.lines--;
-			if (!d->input.head) {
-			    d->input.tail = &d->input.head;
-			    d->input.lines = 0;
-			}
-			free_text_block(t);
-			/* end former else block */
-		}
-          }
-	}
+                            command = QUIT_COMMAND;
+                            strcpy(match_cmdname, QUIT_COMMAND);
+                            strcpy(buf, command + sizeof(QUIT_COMMAND) -1);
+                            msg = buf;
+                            full_command = strcpy(xbuf, msg);
+                            for (; *full_command && !isspace(*full_command); 
+                                 full_command++);
+                            if (*full_command)
+                                full_command++;
+                            strcpy(match_args, full_command);
+                            tmpfr = interp(d->descriptor, d->player, 
+                                          DBFETCH(d->player)->location,
+                                          tp_quit_prog, (dbref) -5, FOREGROUND, 
+                                          STD_REGUID, 0);
+                            if (tmpfr) {
+                                interp_loop(d->player, tp_quit_prog, tmpfr, 0);
+                            }
+                        } else {
+                            d->booted = 2;
+                        }
+                    }
+                    /* start former else block */
+                    d->input.head = t->nxt;
+                    d->input.lines--;
+                    if (!d->input.head) {
+                        d->input.tail = &d->input.head;
+                        d->input.lines = 0;
+                    }
+                    free_text_block(t);
+                    /* end former else block */
+                }
+            }
+        }
     } while (nprocessed > 0);
 }
 
@@ -2826,25 +2831,27 @@ do_command(struct descriptor_data * d, char *command)
 		queue_ansi(d,"Login and find out!\r\n");
 		if (d->type == CT_HTML) queue_ansi(d, "<BR>");
 	    } else {
-            if (Typeof(tp_login_who_prog) == TYPE_PROGRAM) {
-               char *full_command, xbuf[BUFFER_LEN], *msg;
+                if ( valid_obj(tp_player_start)
+                    && Typeof(tp_login_who_prog) == TYPE_PROGRAM) { 
+                    char *full_command, xbuf[BUFFER_LEN], *msg;
 
-               strcpy(match_cmdname, WHO_COMMAND);
-               strcpy(buf, command + sizeof(WHO_COMMAND) -1);
-               msg = buf;
-               full_command = strcpy(xbuf, msg);
-               for (; *full_command && !isspace(*full_command); full_command++);
-               if (*full_command)
-                  full_command++;
-               strcpy(match_args, full_command);
-               tmpfr = interp(d->descriptor, -1, -1, tp_login_who_prog, 
-                              (dbref) -5, FOREGROUND, STD_REGUID, 0);
-		   if (tmpfr) {
-			interp_loop(-1, tp_login_who_prog, tmpfr, 0);
-		   }
-            } else {
-   		   dump_users(d, command + sizeof(WHO_COMMAND) - 1);
-            }
+                    strcpy(match_cmdname, WHO_COMMAND);
+                    strcpy(buf, command + sizeof(WHO_COMMAND) -1);
+                    msg = buf;
+                    full_command = strcpy(xbuf, msg);
+                    for (; *full_command && !isspace(*full_command); 
+                          full_command++);
+                    if (*full_command)
+                        full_command++;
+                    strcpy(match_args, full_command);
+                    tmpfr = interp(d->descriptor, -1, -1, tp_login_who_prog, 
+                                   (dbref) -5, FOREGROUND, STD_REGUID, 0);
+	   	    if (tmpfr) {
+	                interp_loop(-1, tp_login_who_prog, tmpfr, 0);
+		    }
+                } else {
+   		    dump_users(d, command + sizeof(WHO_COMMAND) - 1);
+                }
 	    }
 	} else {
             if (can_move(d->descriptor, d->player, buf, 5)) {

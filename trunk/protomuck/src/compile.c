@@ -2402,10 +2402,11 @@ do_string(COMPSTATE * cstat)
 			buf[i++] = '\r';
 			cstat->next_char++;
 			quoted = 0;
-		} else if (*cstat->next_char == 'n' && quoted) {
+/*		} else if (*cstat->next_char == 'n' && quoted) {
 			buf[i++] = '\n';
 			cstat->next_char++;
 			quoted = 0;
+ Disabled \n in MUF until I can make it safe for the database. */
 		} else if (*cstat->next_char == '[' && quoted) {
 			buf[i++] = ESCAPE_CHAR;
 			cstat->next_char++;
@@ -2516,7 +2517,7 @@ process_special(COMPSTATE * cstat, const char *token)
 		int i, varcnt;
 
 		if (cstat->control_stack)
-			abort_compile(cstat, "Unexpected end of procedure definition.");
+			abort_compile(cstat, "Unexpected end of procedure definition. (Usually unterminated if-then or loops.)");
 		if (!cstat->curr_proc)
 			abort_compile(cstat, "Procedure end without body.");
 		nw = new_inst(cstat);

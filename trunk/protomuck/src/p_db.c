@@ -1869,7 +1869,8 @@ prim_newplayer(PRIM_PROTOTYPE)
     NAME(newplayer) = alloc_string(name);
     DBFETCH(newplayer)->location = tp_player_start;	/* home */
     FLAGS(newplayer) = TYPE_PLAYER;
-    if ((tp_player_prototype != NOTHING) && (Typeof(tp_player_prototype) == TYPE_PLAYER))
+    if ( valid_obj(tp_player_prototype) && 
+        (Typeof(tp_player_prototype) == TYPE_PLAYER))
     {
        FLAGS(newplayer) = FLAGS(tp_player_prototype);
        FLAG2(newplayer) = FLAG2(tp_player_prototype);

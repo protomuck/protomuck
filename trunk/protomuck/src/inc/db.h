@@ -77,7 +77,7 @@ extern char match_cmdname[BUFFER_LEN];
 typedef int dbref;		/* offset into db */
 
 #define TIME_INFINITE ((sizeof(time_t) == 4)? 0xefffffff : 0xefffffffffffffff)
-
+#define valid_obj(a) (a > -1 && a < db_top)
 #define DB_READLOCK(x)
 #define DB_WRITELOCK(x)
 #define DB_RELEASE(x)

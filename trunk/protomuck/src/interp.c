@@ -490,6 +490,8 @@ interp(int descr, dbref player, dbref location, dbref program,
     struct frame *fr;
     int     i;
     PropPtr tptr;
+//    if (program == -1)
+//        return NULL;
 
     if (!MLevel(program) || !MLevel(OWNER(program)) ||
 	    ((source != NOTHING) && !TMage(OWNER(source)) &&
