@@ -1006,6 +1006,8 @@ prim_getdir(PRIM_PROTOTYPE)
                 if ((tempDf = (DIR *) opendir(tempDir))) {
                     closedir(tempDf);
                     strcat(temp1.data.string->data, "/");
+                    temp1.data.string->length = 
+                                           strlen(temp1.data.string->data);
                 }
                 array_appenditem(&nu, &temp1);
             }
