@@ -2595,7 +2595,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	}
     }
     if ( lines > 1 ) { 
-	sprintf(buf, "<HR><font size=-1>ProtoMUCK %s - Moose, Akari (Web support by Loki)", PROTOBASE);
+        sprintf(buf, "<META NAME=\"server\" VALUE=\"ProtoMUCK %s -- Moose, Akari (Web support by Loki)\">", PROTOBASE);
 	queue_ansi(d, buf);
     }
     if ( lines <= 1 ) {
@@ -2781,9 +2781,10 @@ check_connect(struct descriptor_data * d, const char *msg)
 		queue_ansi(d, "\r\n");
 		d->booted = 1;
 	} else {
-          if (!string_compare(command, "ch") && !Arch(player))
+          if (!string_compare(command, "ch") && 
+             !(Arch(player) || POWERS(player) & POW_HIDE))
           {
-                queue_ansi(d, "Only wizards can connect hidden.") ;
+                queue_ansi(d, "Only wizards can connect hidden.\r\n") ;
                 d->fails++;
 	          log_status("FAIL[CH]: %2d %s pw '%s' %s(%s) %s\n",
 		      d->descriptor, user, "<hidden>",
