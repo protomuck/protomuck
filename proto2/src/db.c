@@ -43,6 +43,23 @@ int ifloat(const char *s);
 void putproperties(FILE * f, int obj);
 void getproperties(FILE * f, int obj);
 
+#ifdef DBDEBUG
+/* This function is a total quickhack, mostly because of how */
+/*  DBFETCH works.  -Hinoserm.                               */
+short
+dbcheck(const char *file, int line, dbref item)
+{
+    if (!OkObj(item)) {
+        log_status
+            ("DB FATAL ERROR! Attempt to access a bad object at %s:%d. Object was %d.\n",
+             file, line, item);
+        abort();
+    }
+
+    return 0;
+}
+#endif /* DBDEBUG */
+
 dbref
 getparent(dbref obj)
 {
@@ -1349,7 +1366,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     POWERSDB(objno) = 0;
     POWER2DB(objno) = 0;
 
-    if (verboseload) fprintf(stderr, "#%d [object_info] ", objno);
+    if (verboseload)
+        fprintf(stderr, "#%d [object_info] ", objno);
 
     NAME(objno) = getstring(f);
     if (dtype <= 3) {
@@ -1363,7 +1381,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     }
     if (dtype == 3) {
 
-        if (verboseload) fprintf(stderr, "[timestamps v3] ");
+        if (verboseload)
+            fprintf(stderr, "[timestamps v3] ");
         /* Mage timestamps */
         o->ts.created = getref(f);
         o->ts.modified = getref(f);
@@ -1379,7 +1398,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         LOADOSUCC(objno, getstring_oldcomp_noalloc(f));
         LOADODROP(objno, getstring_oldcomp_noalloc(f));
     }
-    if (verboseload) fprintf(stderr, "[flags] ");
+    if (verboseload)
+        fprintf(stderr, "[flags] ");
 
     tmp = getfref(f, &f2, &f3, &f4, &p1, &p2);
     if (dtype >= 4) {
@@ -1402,7 +1422,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
 
 
     if (dtype != 3) {
-        if (verboseload) fprintf(stderr, "[timestamps v4] ");
+        if (verboseload)
+            fprintf(stderr, "[timestamps v4] ");
         /* Foxen and WhiteFire timestamps */
         o->ts.created = getref(f);
         o->ts.lastused = getref(f);
@@ -1411,7 +1432,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     }
     c = getc(f);
     if (c == '*') {
-        if (verboseload) fprintf(stderr, "[properties] ");
+        if (verboseload)
+            fprintf(stderr, "[properties] ");
 #ifdef DISKBASE
         o->propsfpos = ftell(f);
         if (o->propsmode == PROPS_CHANGED) {
@@ -1471,20 +1493,23 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     }
     switch (FLAGS(objno) & TYPE_MASK) {
         case TYPE_THING:
-            if (verboseload) fprintf(stderr, "[type: THING] ");
+            if (verboseload)
+                fprintf(stderr, "[type: THING] ");
             o->sp.thing.home = prop_flag ? getref(f) : j;
             o->exits = getref(f);
             OWNER(objno) = getref(f);
             o->sp.thing.value = getref(f);
             break;
         case TYPE_ROOM:
-            if (verboseload) fprintf(stderr, "[type: ROOM] ");
+            if (verboseload)
+                fprintf(stderr, "[type: ROOM] ");
             o->sp.room.dropto = prop_flag ? getref(f) : j;
             o->exits = getref(f);
             OWNER(objno) = getref(f);
             break;
         case TYPE_EXIT:
-            if (verboseload) fprintf(stderr, "[type: EXIT] ");
+            if (verboseload)
+                fprintf(stderr, "[type: EXIT] ");
             o->sp.exit.ndest = prop_flag ? getref(f) : j;
             if (o->sp.exit.ndest) /* only allocate space for linked exits */
                 o->sp.exit.dest =
@@ -1495,7 +1520,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             OWNER(objno) = getref(f);
             break;
         case TYPE_PLAYER:
-            if (verboseload) fprintf(stderr, "[type: PLAYER] ");
+            if (verboseload)
+                fprintf(stderr, "[type: PLAYER] ");
             o->sp.player.home = prop_flag ? getref(f) : j;
             o->exits = getref(f);
             o->sp.player.pennies = getref(f);
@@ -1509,7 +1535,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
 #endif /* IGNORE_SUPPORT */
             break;
         case TYPE_PROGRAM:
-            if (verboseload) fprintf(stderr, "[type: PROGRAM] ");
+            if (verboseload)
+                fprintf(stderr, "[type: PROGRAM] ");
             OWNER(objno) = getref(f);
             FLAGS(objno) &= ~INTERNAL;
             o->sp.program.curr_line = 0;
@@ -1532,10 +1559,12 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
 
             break;
         case TYPE_GARBAGE:
-            if (verboseload) fprintf(stderr, "[type: GARBAGE] ");
+            if (verboseload)
+                fprintf(stderr, "[type: GARBAGE] ");
             break;
     }
-    if (verboseload) fprintf(stderr, "OK\n");
+    if (verboseload)
+        fprintf(stderr, "OK\n");
 }
 
 void
@@ -1603,7 +1632,8 @@ db_read(FILE * f)
                    !strcmp(special, "**Foxen6 TinyMUCK DUMP Format***") ||
                    !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ||
                    !strcmp(special, "**NeonMuck V2 DUMP Format***")) {
-            db_load_format = !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ? 8 : 7;
+            db_load_format =
+                !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ? 8 : 7;
             i = getref(f);
             dbflags = getref(f);
             if (dbflags & DB_PARMSINFO) {
@@ -1633,7 +1663,8 @@ db_read(FILE * f)
                    !strcmp(special, "***Foxen6 Deltas Dump Extention***") ||
                    !strcmp(special, "***Foxen7 Deltas Dump Extention***") ||
                    !strcmp(special, "***NeonMuck V2 Deltas Dump Format***")) {
-            db_load_format = !strcmp(special, "***Foxen7 Deltas Dump Extention***") ? 8 : 7;
+            db_load_format =
+                !strcmp(special, "***Foxen7 Deltas Dump Extention***") ? 8 : 7;
             doing_deltas = 1;
         }
         if (doing_deltas && !db) {
@@ -1720,7 +1751,8 @@ db_read(FILE * f)
                                 {
                                     if (special)
                                         free((void *) special);
-                                    if ((main_db_format == 7 || main_db_format == 8) 
+                                    if ((main_db_format == 7
+                                         || main_db_format == 8)
                                         && (dbflags & DB_PARMSINFO)) {
                                         rewind(f);
                                         free((void *) getstring(f));
@@ -1740,7 +1772,10 @@ db_read(FILE * f)
                                     return db_top;
                                 } else {
                                     free((void *) special);
-                                    db_load_format = !strcmp(special, "***Foxen7 Deltas Dump Extention***") ? 8 : 7;
+                                    db_load_format =
+                                        !strcmp(special,
+                                                "***Foxen7 Deltas Dump Extention***")
+                                        ? 8 : 7;
                                     doing_deltas = 1;
                                 }
                             } else {
