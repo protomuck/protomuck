@@ -1327,6 +1327,10 @@ array_delrange(stk_array ** harr, array_iter * start, array_iter * end)
 			if (end->type != PROG_INTEGER) {
 				return -1;
 			}
+                        if (arr->items == 0) { /* nothing to do here */ 
+                                return 0; 
+                        } 
+
 			sidx = start->data.number;
 			eidx = end->data.number;
 			if (sidx < 0) {

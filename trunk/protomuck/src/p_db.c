@@ -49,6 +49,12 @@ copyobj(dbref player, dbref old, dbref nw)
     dirtyprops(nw);
 #endif
 
+    newp->ts.created = current_systime;
+    newp->ts.modified = current_systime;
+    newp->ts.lastused = current_systime;
+    newp->ts.usecount = 0;
+
+
     DBDIRTY(nw);
 }
 

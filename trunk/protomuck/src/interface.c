@@ -4047,7 +4047,7 @@ announce_disconnect(struct descriptor_data *d)
 	if (can_move(d->descriptor, player, "disconnect", 1)) {
 	    do_move(d->descriptor, player, "disconnect", 1);
 	}
-	gui_dlog_freeall_descr(d->descriptor);
+	gui_dlog_closeall_descr(d->descriptor);
 
       if (!Hidden(player)) {
  	   announce_puppets(player, "falls asleep.", "_/pdcon");
