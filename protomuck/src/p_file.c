@@ -1,6 +1,7 @@
 #define SECURE_FILE_PRIMS
 #include "copyright.h"
 #include "config.h"
+#ifdef FILE_PRIMS
 #include <sys/types.h>
 #include <sys/stat.h> 
 #include <unistd.h>
@@ -1017,3 +1018,4 @@ prim_getdir(PRIM_PROTOTYPE)
     PushArrayRaw(nu);
 }
 
+#endif /* FILE_PRIMS */

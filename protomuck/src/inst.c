@@ -25,7 +25,9 @@ const char *base_inst[] = {
     PRIMS_STRINGS_NAMES,
     PRIMS_FLOAT_NAMES,
     PRIMS_ERROR_NAMES,
+#ifdef FILE_PRIMS
     PRIMS_FILE_NAMES,
+#endif
     PRIMS_ARRAY_NAMES,
     PRIMS_MCP_NAMES,
     PRIMS_SOCKET_NAMES,
