@@ -38,6 +38,15 @@
 # include <unistd.h>
 #endif
 
+#if defined(HAVE_ERRNO_H)
+# include <errno.h>
+#elif defined(HAVE_SYS_ERRNO_H)
+# include <sys/errno.h>
+#else
+  extern int errno;
+#endif
+#include <ctype.h>
+
 #include "db.h"
 #include "inst.h"
 #include "externs.h"
@@ -50,10 +59,6 @@
 #include "cgi.h"
 #include "mufevent.h"
 #include "netresolve.h"
-
-#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__APPLE__)
-typedef int socklen_t;
-#endif
 
 extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern struct inst temp1, temp2, temp3;

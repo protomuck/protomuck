@@ -2,9 +2,8 @@
 /*  int main() is in this file  */
 #include "copyright.h"
 #include "config.h"
+
 #include <sys/types.h>
-#include <fcntl.h>
-#include <ctype.h>
 #ifdef WIN_VC
 # include <string.h>
 #else
@@ -12,10 +11,20 @@
 # include <sys/ioctl.h>
 # include <sys/wait.h>
 # include <sys/socket.h>
-# include <sys/errno.h>
 # include <netinet/in.h>
 # include <netdb.h>
 #endif
+
+#include <fcntl.h>
+#if defined(HAVE_ERRNO_H)
+# include <errno.h>
+#elif defined(HAVE_SYS_ERRNO_H)
+# include <sys/errno.h>
+#else
+  extern int errno;
+#endif
+#include <ctype.h>
+
 #include "cgi.h"
 #include "defaults.h"
 #include "db.h"
@@ -35,10 +44,6 @@
 #include "interp.h"
 #include "newhttp.h"            /* hinoserm */
 #include "netresolve.h"         /* hinoserm */
-
-#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__APPLE__)
-typedef int socklen_t;
-#endif
 
 /* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
