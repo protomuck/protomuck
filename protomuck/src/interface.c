@@ -1335,11 +1335,8 @@ shovechars(void)
 	    }
 	    sel_prof_idle_use++;
           now = current_systime;
-    fprintf(stderr, "Checking for connections.\n");
           for (i = 0; i < numsocks; i++) {
-    fprintf(stderr, "Checking %d\n", sock[i]);
 	       if (FD_ISSET(sock[i], &input_set)) {
-    fprintf(stderr, "Checking 2nd %d\n", sock[i]);
 		   if ((newd = new_connection(listener_port[i], sock[i])) <= 0) {
 		       if ((newd < 0) && errnosocket
 #ifndef WIN32
@@ -1765,7 +1762,6 @@ new_connection(int port, int sock)
     int     addr_len;
     int     ctype;
     char    hostname[128];
-    fprintf(stderr, "Connecting port: %d\n", port);
 
     addr_len = sizeof(addr);
     newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
