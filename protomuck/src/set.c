@@ -1377,15 +1377,15 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
 	return;
     }
 
-    if (Prop_SysPerms(thing, type)) {
+    if (Prop_SysPerms(thing, pname)) {
       anotify_nolisten2(player, CFAIL "That property is already used as a system property.");
     }
 
-    if (!Arch(OWNER(player)) && Prop_Hidden(type)){
+    if (!Arch(OWNER(player)) && Prop_Hidden(pname)){
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
-    if (!Wiz(OWNER(player)) && Prop_SeeOnly(type)){
+    if (!Wiz(OWNER(player)) && Prop_SeeOnly(pname)){
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }

@@ -4085,13 +4085,14 @@ announce_disconnect(struct descriptor_data *d)
 
     if (dequeue_prog(player, 2))
 	anotify(player, CINFO "Foreground program aborted.");
-
-    if ((!Dark(player)) && (!Dark(loc)) && (!Hidden(player))) {
-      if (online(player) == 1)
- 	   sprintf(buf, CMOVE "%s has disconnected.", PNAME(player));
-      else
-         sprintf(buf, CMOVE "%s has dropped a connection.", PNAME(player));
+    if (!tp_quiet_connects) {
+        if ((!Dark(player)) && (!Dark(loc)) && (!Hidden(player))) {
+            if (online(player) == 1)
+ 	         sprintf(buf, CMOVE "%s has disconnected.", PNAME(player));
+            else
+                 sprintf(buf, CMOVE "%s has dropped a connection.", PNAME(player));
 	anotify_except(DBFETCH(loc)->contents, player, buf, player);
+        }
     }
 
     forget_player_descr(d->player, d->descriptor);
