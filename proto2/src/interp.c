@@ -507,7 +507,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     if (!MLevel(program) || !MLevel(OWNER(program)) ||
         ((OkObj(source)) && !TMage(OWNER(source)) &&
          !can_link_to(OWNER(source), TYPE_EXIT, program))) {
-        anotify_nolisten(player, CFAIL "Program call: Permission denied.", 1);
+        anotify_nolisten(PSafe, CFAIL "Program call: Permission denied.", 1);
         return 0;
     }
     if (free_frames_list) {
@@ -1095,7 +1095,7 @@ do_abort_loop(dbref player, dbref program, const char *msg,
     fr->pc = pc;
     if (!fr->trys.top) {
         if (pc) {
-            interp_err(OWNER(player), program, pc, fr->argument.st,
+            interp_err(OWNER(PSafe), program, pc, fr->argument.st,
                        fr->argument.top, fr->caller.st[1], insttotext(fr, 0, pc,
                                                                       buffer,
                                                                       sizeof
@@ -1103,13 +1103,14 @@ do_abort_loop(dbref player, dbref program, const char *msg,
                                                                       30,
                                                                       program),
                        msg, fr->pid);
-            if (controls(OWNER(player), program)
-                || (FLAG2(OWNER(player)) & F2PARENT))
+            if (OkObj(player) && (controls(OWNER(player), program)
+                                  || (FLAG2(OWNER(player)) & F2PARENT)))
                 muf_backtrace(player, program, STACK_SIZE, fr);
             else if (FLAG2(program) & F2PARENT && player != OWNER(program))
                 muf_backtrace(OWNER(program), program, STACK_SIZE, fr);
         } else {
-            notify_nolisten(player, msg, 1);
+            if (OkObj(player))
+                notify_nolisten(player, msg, 1);
         }
         fr->level--;
         fr->aborted = 1;
@@ -1260,7 +1261,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
             notify_nolisten(player, m, 1);
         }
         if (FLAGS(program) & DARK && FLAG2(program) & F2PARENT
-            && (OWNER(program) != player || OkObj(player))) {
+            && (OWNER(program) != player || !OkObj(player))) {
             char *m = debug_inst(fr, 0, pc, fr->pid, arg, dbuf, sizeof(dbuf),
                                  atop, program);
 
@@ -2029,7 +2030,7 @@ interp_err(dbref player, dbref program, struct inst *pc,
     char tbuf[40];
 
     err++;
-    if (OWNER(origprog) == player && player != -1) {
+    if (OkObj(player) && OWNER(origprog) == player) {
         strcpy(buf,
                "Program Error.  Your program just got the following error.");
     } else {
@@ -2037,7 +2038,10 @@ interp_err(dbref player, dbref program, struct inst *pc,
                 "Programmer Error.  Please tell %s what you typed, and the following message.",
                 NAME(OWNER(origprog)));
     }
-    notify_nolisten(player, buf, 1);
+
+    if (OkObj(player))
+        notify_nolisten(player, buf, 1);
+
     if (FLAG2(origprog) & F2PARENT && player != OWNER(origprog))
         notify_nolisten(OWNER(origprog),
                         "Program Error.  Your program just got the following error.",
@@ -2045,7 +2049,9 @@ interp_err(dbref player, dbref program, struct inst *pc,
 
     sprintf(buf, "%s(#%d), line %d; %s: %s", NAME(program), program, pc->line,
             msg1, msg2);
-    notify_nolisten(player, buf, 1);
+
+    if (OkObj(player))
+        notify_nolisten(player, buf, 1);
     if (FLAG2(origprog) & F2PARENT && OWNER(origprog) != player)
         notify_nolisten(OWNER(origprog), buf, 1);
 

@@ -177,7 +177,7 @@ muf_event_dequeue_pid(int pid)
         tmp = proc;
         proc = proc->next;
         if (tmp->fr->pid == pid) {
-            if (!tmp->fr->been_background)
+            if (OkObj(tmp->player) && !tmp->fr->been_background)
                 DBFETCH(tmp->player)->sp.player.block = 0;
             muf_event_purge(tmp->fr);
             muf_event_process_free(tmp);
@@ -230,7 +230,7 @@ muf_event_dequeue(dbref prog)
         proc = proc->next;
         if (prog == NOTHING || tmp->player == prog || tmp->prog == prog ||
             event_has_refs(prog, tmp->fr)) {
-            if (!tmp->fr->been_background)
+            if (OkObj(tmp->player) && !tmp->fr->been_background)
                 DBFETCH(tmp->player)->sp.player.block = 0;
             muf_event_purge(tmp->fr);
             muf_event_process_free(tmp);
@@ -605,7 +605,9 @@ muf_event_process(void)
                      * Uh oh! That MUF program's stack is full!
                      * Print an error, free the frame, and exit.
                      */
-                    notify_nolisten(proc->player, "Program stack overflow.", 1);
+                    if (OkObj(proc->player))
+                        notify_nolisten(proc->player, "Program stack overflow.",
+                                        1);
                     prog_clean(proc->fr);
                 } else {
                     dbref current_program = NOTHING;
@@ -686,9 +688,9 @@ get_mufevent_pidinfo(stk_array *nw, int pid)
 
     struct mufevent_process *proc = mufevent_processes;
 
-    while (proc && (proc->fr->pid != pid)) {
+    while (proc && (proc->fr->pid != pid))
         proc = proc->next;
-    }
+
     if (proc && (proc->fr->pid == pid)) {
         if (proc->fr) {
             etime = rtime - proc->fr->started;
