@@ -132,6 +132,9 @@ resolver:	resolver.o
 reslvd:	reslvd.o
 	${PRE} ${CC} ${CFLAGS} -o reslvd reslvd.o ${LIBR}
 
+mancheck:	mancheck.o
+	${PRE} ${CC} ${CFLAGS} -o mancheck mancheck.o ${LIBR}
+
 topwords: topwords.o hashtab.o
 	${RM} topwords
 	${CC} ${CFLAGS} -o topwords topwords.o hashtab.o
