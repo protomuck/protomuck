@@ -1022,7 +1022,8 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
         while (propadr) {
                 sprintf(buf, "%s%c%s", dir, PROPDIR_DELIMITER, propname);
                 if (prop_read_perms(ProgUID, ref, buf, mlev)) {
-                        prptr = get_property(ref, propname);
+                    prptr = get_property(ref, buf);
+//Changed to above line -Akari  prptr = get_property(ref, propname);
                         if (prptr) {
 #ifdef DISKBASE
                                 propfetch(ref, prptr);
@@ -1035,10 +1036,8 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
 
                                         temp2.type = PROG_STRING;
                                         temp2.data.string = alloc_prog_string(propname);
-
                                         temp1.type = PROG_INTEGER;
                                         temp1.data.number = count++;
-
                                         array_setitem(&new, &temp1, &temp2);
                                         CLEAR(&temp1);
                                         CLEAR(&temp2);
@@ -1268,7 +1267,10 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
         char propname[BUFFER_LEN];
         char dir[BUFFER_LEN];
         int protoflags;
-/*      PData propdat; */
+        struct boolexp *lok;
+        PTYPE pval;
+        dbref obj;
+        int result;
 
         /* dbref strPropDir array -- */
         CHECKOP(3);
@@ -1311,30 +1313,33 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
 
                         switch (oper4->type) {
                         case PROG_STRING:
-                                protoflags = PROP_STRTYP;
-                                sprintf(buf, "%s", oper4->data.string ? oper4->data.string->data : "");
-                                break;
+                            protoflags = PROP_STRTYP;
+                            pval = (oper4->data.string ? oper4->data.string->data : 0 );
+                            set_property(ref, propname, protoflags, pval);
+                            break;
                         case PROG_INTEGER:
-                                protoflags = PROP_INTTYP;
-                                sprintf(buf, "%d", oper4->data.number);
-                                break;
+                            protoflags = PROP_INTTYP;
+                            result = oper4->data.number;
+                            set_property(ref, propname, protoflags, (char *) result); 
+                            break;
                         case PROG_FLOAT:
-                                protoflags = PROP_FLTTYP;
-                                sprintf(buf, "%h", oper4->data.fnumber);
-                                break;
+                            protoflags = PROP_FLTTYP;
+                            sprintf(buf, "%hg", oper4->data.fnumber);
+                            pval = buf;
+                            set_property(ref, propname, protoflags, pval);
+                            break;
                         case PROG_OBJECT:
-                                protoflags = PROP_REFTYP;
-                                sprintf(buf, "%d", oper4->data.objref);
-                                break;
+                            protoflags = PROP_REFTYP;
+                            obj = oper4->data.objref;
+                            set_property(ref, propname, protoflags, (char *) obj);
+                            break;               
                         case PROG_LOCK:
-                                protoflags = PROP_LOKTYP;
-                                sprintf(buf, "%s", unparse_boolexp(player, copy_bool(oper4->data.lock), 1));
-                                break;
+                            protoflags = PROP_LOKTYP;
+                            pval = (PTYPE) copy_bool(oper4->data.lock);
+                            set_property(ref, propname, protoflags, pval);
+                            break;
                         default:
-                                *propname = '\0';
-                        }
-                        if (*propname) {
-                                set_property(ref, propname, protoflags, buf);
+                            *propname = '\0';
                         }
                 } while (array_next(arr, &temp1));
         }
