@@ -437,7 +437,7 @@ struct muf_socket {             /* struct for MUF socket data */
    int connected;               /* Set to 1 if ever connected */
    int listening;               /* Set to 1 if successfully opened listening */
    int links;                   /* Number of instances of the socket. */
-   int host;                    /* will eventually be the host integer */
+   int host;                    /* the host address integer */
    char *raw_input;             /* recieve queue for telnet connections. */
    char *raw_input_at;          /* for use in handling the recieve queue */
    int  inIAC;                  /* For correct telnet negotiations. */
@@ -448,8 +448,8 @@ struct muf_socket {             /* struct for MUF socket data */
    int commands;                /* number of commands entered. */
    int port;                    /* port number that LSOCKET is listening on */
    int usequeue;                /* toggles recieve buffer behavior */
-   char lastchar; /* Does this do anything actually? */
-    
+   int usesmartqueue;          /* makes the socket completely telnet savy */
+   int is_player;               /* means to not close the socket when clearing*/
 };
 
 #ifdef SQL_SUPPORT

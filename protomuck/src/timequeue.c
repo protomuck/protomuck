@@ -470,6 +470,7 @@ handle_read_event(int descr, dbref player, const char *command,
                 }
             }
         } else if (command || event) {
+notify(3166, "This is a MUF READ event.");
             /* This is a MUF READ event. */
             if (command && !string_compare(command, BREAK_COMMAND) &&
                        ( (MLevel(player) >= tp_min_progbreak_lev)||

@@ -114,6 +114,8 @@ extern void httpd(struct descriptor_data *d, const char *name, const char *http)
 extern void httpd_unknown(struct descriptor_data *d, const char *name);
 #endif
 
+void check_maxd(struct descriptor_data *d);
+extern struct descriptor_data * initializesock(int s, const char *hostname, int port, int hostaddr, int ctyp, int cport, int welcome);
 extern struct descriptor_data* descrdata_by_index(int index);
 extern struct descriptor_data* descrdata_by_descr(int i);
 extern int notify(dbref player, const char *msg);
@@ -158,7 +160,9 @@ extern int pontime(int c);
 extern char *phost(int c);
 extern char *puser(int c);
 extern char *pipnum(int c);
+extern const char * addrout( int, int, unsigned short);
 extern char *pport(int c);
+
 extern void pboot(int c);
 extern void pdboot(int c);
 extern void pnotify(int c, char *outstr);

@@ -362,7 +362,11 @@ do_force(int descr, dbref player, const char *what, char *command)
 	anotify_nolisten2(player, CFAIL "You cannot force the man.");
 	return;
     }
-
+    if (MLevel(player) < MLevel(victim)) {
+        anotify_nolisten2(player, 
+                   CFAIL "You cannot force higher level wizards.");
+        return;
+    }
     if (!controls(player, victim)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;

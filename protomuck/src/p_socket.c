@@ -175,8 +175,6 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                charCount = 1;
            bigbuf[0] = '\n';
        }
-       if(isascii(*mystring)) /* TODO: Check if lastchar is ever used. */
-           oper1->data.sock->lastchar = *mystring;
        if (gotmessage && oper1->data.sock->usequeue) { /* special handling */
            char *p, *pend, *q, *qend;
            struct muf_socket *theSock = oper1->data.sock;       
@@ -188,7 +186,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
            pend = theSock->raw_input + BUFFER_LEN - 1;
            gotmessage = 0; /* now it determines if we send or not. */
            for (q = bigbuf, qend = bigbuf + charCount; q < qend; ++q) {
-               if (*q == '\n' || *q == '\r') { /* encountered end of line */
+               if (*q == '\n' || *q == '\r' || p == pend) { /* EOL, or full */ 
                    *p = '\0';
                    if (p > theSock->raw_input) /* have string */
                        strcpy(bigbuf, theSock->raw_input);
@@ -200,17 +198,18 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                    p = NULL;
                    gotmessage = 1; /* to prevent clearing bigbuf later */
                    break;   
-               } else if (p < pend && (isascii(*q))) {
+               } else if (p < pend && isascii(*q) && theSock->usesmartqueue) {
                    if (isprint(*q))
                        *p++ = *q;
-                   else if (*q == '\t') 
+		   else if (*q == '\t') /* tab */
                        *p++ = ' ';
-                   else if (*q == 8 || *q == 127)
+                   else if (*q == 8 || *q == 127)  /* delete */
                        if (p > theSock->raw_input)
-                           --p; /* back cursor up */
-                       else 
-                           *p = '\0'; /* zero string */
-               }
+                           --p;
+                       else
+                           *p = '\0';
+               } else if (p < pend && isascii(*q) && theSock->usequeue)
+                   *p++ = *q;
            } /* for */
            if (p > theSock->raw_input)
                theSock->raw_input_at = p;
@@ -286,7 +285,6 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
            aChar = mystring[0];
            theChar = (int) aChar;
        }
-       oper1->data.sock->lastchar = *mystring;
     }
     oper1->data.sock->last_time = time(NULL); /* time of last command */
     CLEAR(oper1);
@@ -400,22 +398,20 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     result->data.sock->socknum = mysock;
     result->data.sock->connected = 0;
     result->data.sock->links = 1;
-    result->data.sock->lastchar = '0';
     result->data.sock->listening = 0;
     result->data.sock->raw_input = NULL;
     result->data.sock->raw_input_at = NULL;
     result->data.sock->inIAC = 0;
     result->data.sock->commands = 0;
+    result->data.sock->is_player = 0;
     result->data.sock->port = oper2->data.number; /* remote port # */
     result->data.sock->hostname = alloc_string(oper1->data.string->data);
     result->data.sock->host = ntohl(name.sin_addr.s_addr);
     result->data.sock->username = alloc_string(unparse_object(player, player));
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
-    if (tp_enable_sockqueue)
-        result->data.sock->usequeue = 1;
-    else
-        result->data.sock->usequeue = 0; 
+    result->data.sock->usequeue = 0; 
+    result->data.sock->usesmartqueue = 0;
     result->data.sock->host = validHost; 
     if(tp_log_sockets)
       log2filetime( "logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n", 
@@ -586,7 +582,6 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->socknum = sockdescr;
     result->data.sock->connected = 1;
     result->data.sock->links = 1;
-    result->data.sock->lastchar = '0';
     result->data.sock->listening = 1;
     result->data.sock->raw_input = NULL;
     result->data.sock->raw_input_at = NULL;
@@ -594,6 +589,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
     result->data.sock->commands = 0;
+    result->data.sock->is_player = 0;
     result->data.sock->port = oper1->data.number; /* listening port */
     result->data.sock->hostname = alloc_string("localhost");
     result->data.sock->username = alloc_string(tp_muckname);
@@ -619,6 +615,9 @@ prim_sockaccept(PRIM_PROTOTYPE)
     struct inst *result;
     struct muf_socket *mufsock;
     struct hostent *myhost;
+    char hostname[128];
+    char *hptr = hostname;
+    char username[10]; 
     char myresult[255];
     struct sockaddr_in myaddr;
     struct sockaddr_in remoteaddr; // client's address
@@ -668,27 +667,30 @@ prim_sockaccept(PRIM_PROTOTYPE)
     } 
 
     /* We have the new socket, now initialize muf_socket struct */
+    oper1->data.sock->commands += 1; 
     result = (struct inst *) malloc(sizeof(struct inst));
     result->type = PROG_SOCKET;
     result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
     result->data.sock->socknum = newsock;
     result->data.sock->connected = 1;
     result->data.sock->links = 1;
-    result->data.sock->lastchar = '0';
     result->data.sock->listening = 0;
     result->data.sock->raw_input = NULL;
     result->data.sock->raw_input_at = NULL;
     result->data.sock->inIAC = 0;
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
-    result->data.sock->hostname = alloc_string("somesite"); /* not done */
-    result->data.sock->username = alloc_string("someuser"); /* not done */
+    strcpy(hostname, addrout(oper1->data.sock->port, remoteaddr.sin_addr.s_addr,
+                     remoteaddr.sin_port));
+    result->data.sock->hostname = alloc_string(hostname); 
+    sprintf(username, "%d", ntohs(remoteaddr.sin_port));
+    result->data.sock->username = alloc_string(username); /* not done */
     result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
     result->data.sock->port = oper1->data.sock->port; /* port it connected to*/
-    if (tp_enable_sockqueue)
-        result->data.sock->usequeue = 1;
-    else
-        result->data.sock->usequeue = 0;
+    result->data.sock->usequeue = 0;
+    result->data.sock->usesmartqueue = 0;
+    result->data.sock->commands = 0;
+    result->data.sock->is_player = 0;
     if (tp_log_sockets)
         log2filetime( "logs/sockets", "#%d by %s SOCKACCEPT: Port:%d -> %d\n",
                       program, unparse_object(player, (dbref) 1),
@@ -706,6 +708,7 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     stk_array *nw;
     struct muf_socket *theSock;
     /* (SOCKET) -- dict */
+    CHECKOP(1);
     oper1 = POP(); /* socket */
 
     if (mlev < LARCH)
@@ -724,6 +727,7 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     array_set_strkey_intval(&nw, "COMMANDS", theSock->commands);
     array_set_strkey_intval(&nw, "PORT", theSock->port);
     array_set_strkey_intval(&nw, "SOCKQUEUE", theSock->usequeue);
+    array_set_strkey_intval(&nw, "SMARTQUEUE", theSock->usesmartqueue);
     array_set_strkey_strval(&nw, "HOSTNAME", 
                                 theSock->hostname ? theSock->hostname : "" ); 
     array_set_strkey_strval(&nw, "USERNAME", 
@@ -733,5 +737,123 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     PushArrayRaw(nw);
 
 } 
+
+void
+prim_socket_setuser(PRIM_PROTOTYPE)
+{
+    char *ptr;
+    char pad_char[] = "";
+    struct inst *oper1, *oper2, *oper3;
+    struct muf_socket *theSock;
+    const char *password;
+    struct descriptor_data *d;
+    
+    /* (SOCKET) ref pass -- bool */
+    CHECKOP(3);
+    oper3 = POP(); /* password */
+    oper2 = POP(); /* player dbref */
+    oper1 = POP(); /* non-listening socket */
+
+    if (mlev < LARCH)
+        abort_interp("Socket prims are W3.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("Expected MUF socket. (1)");
+    if (oper1->data.sock->listening)
+        abort_interp("Does not work with listening sockets. (1)");
+    if (!oper1->data.sock->connected)
+        abort_interp("This socket is not connected.");
+    theSock = oper1->data.sock;
+    if (oper2->type != PROG_OBJECT || !valid_player(oper2))
+        abort_interp("Expected player dbref. (2)");
+    ref = oper2->data.objref;
+    if (oper3->type != PROG_STRING)
+        abort_interp("Expected string for password. (3)");
+    ptr = oper3->data.string ? oper3->data.string->data : pad_char; 
+
+    password == DBFETCH(ref)->sp.player.password;
+    if (password) { /* check pass since character has one */
+        if (strcmp(ptr, password)) { /* incorrect password */
+            CLEAR(oper1);
+            CLEAR(oper2);
+            CLEAR(oper3);
+            result = 0;
+            PushInt(result);
+        }
+    }
+    /* passed password check. Now to connect. */
+    /* first make sure that the socket is non-blocking */
+#ifdef WIN_VC
+    ioctl(theSock->socknum, FIONBIO, &turnon);
+#else
+   fcntl(theSock->socknum, F_SETFL, O_NONBLOCK);
+#endif
+    /* Now establish a normal telnet connection to the MUCK */
+    d = initializesock(theSock->socknum, theSock->hostname, 
+                       atoi(theSock->username), theSock->host, CT_MUCK, 
+                       theSock->port, 1);   
+
+    /* d is now in the descriptor list and properly initialized. 
+     * Now connect it to a player. */
+    result = plogin_user(d, ref);
+    if (result) /* update global max descr */
+        check_maxd(d);
+
+    if( tp_log_connects && result)
+        log2filetime(CONNECT_LOG, "SOCKET_SETUSER: %2d %s %s(%s) %s P#%d\n",
+             theSock->socknum, unparse_object(ref, ref),
+             theSock->hostname, theSock->username,
+             host_as_hex(theSock->host), theSock->port);
+    if (result)
+        theSock->is_player = 1;
+        
+    CLEAR(oper1);
+    CLEAR(oper2);
+    CLEAR(oper3);
+    PushInt(result);
+}
+
+void
+prim_set_sockopt(PRIM_PROTOTYPE)
+{
+    int flag = 0;
+    struct muf_socket *theSock;
+    /* socket flag -- i */
+    CHECKOP(2);
+    oper2 = POP(); /* int */
+    oper1 = POP(); /* socket */
+
+    if (mlev < LARCH)
+        abort_interp("Permission denied.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("Expected MUF socket. (1)");
+    theSock = oper1->data.sock;
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Expected integer. (2)");
+    flag = oper2->data.number;
+
+    if (flag == 0) { /* remove any queue options */
+        theSock->usequeue = 0;
+        theSock->usesmartqueue = 0;
+        if (theSock->raw_input) {
+            free(theSock->raw_input);
+            theSock->raw_input = NULL;
+            theSock->raw_input_at = NULL;
+        }
+        result = 1;
+    } else if (flag == 1) {
+        theSock->usequeue = 1;
+        theSock->usesmartqueue = 0;
+        result = 1;
+    } else if (flag == 2) {
+        theSock->usequeue = 1;
+        theSock->usesmartqueue = 1;
+        result = 1;
+    } else
+        result = 0;
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
+}
 
 #endif /* MUF_SOCKETS */
