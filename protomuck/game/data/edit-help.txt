@@ -7,9 +7,11 @@ compile             (c)     compile program
 <num> [<num>]delete (d)     delete a single line or range of lines
 <num> insert        (i)     insert at the line number given
 <num> [<num>]list   (l)     list a single line, or a range of lines
-uncompile           (u)     serves no point in current MUCK versions.
+uncompile           (u)     serves no point in current MUCK versions
 numbers             (n)     toggle line numbers in program listings
+public              (p)     list the PUBLIC functions of program
 .                   (.)     enter . to exit insert mode
+quit                (q)     to quit out of the editor
 
 These commands are used to work with the global MUF macros:
 ----------------
