@@ -34,6 +34,12 @@ extern void prim_getpids(PRIM_PROTOTYPE);
 extern void prim_getpidinfo(PRIM_PROTOTYPE);
 extern void prim_read_wants_blanks(PRIM_PROTOTYPE);
 
+extern void prim_dump(PRIM_PROTOTYPE);
+extern void prim_delta(PRIM_PROTOTYPE);
+extern void prim_shutdown(PRIM_PROTOTYPE);
+extern void prim_restart(PRIM_PROTOTYPE);
+extern void prim_armageddon(PRIM_PROTOTYPE);
+
 /* From p_html.c */
 extern void prim_commandtext(PRIM_PROTOTYPE);
 extern void prim_stopmidi(PRIM_PROTOTYPE);
@@ -60,7 +66,8 @@ extern void prim_sockaccept(PRIM_PROTOTYPE);
     prim_event_count, prim_event_send, prim_nbsockopen, prim_sockcheck,  \
     prim_pnameokp, prim_nameokp, prim_force_level, prim_event_exists,    \
     prim_watchpid, prim_getpids, prim_getpidinfo, prim_read_wants_blanks,\
-    prim_lsockopen, prim_sockaccept, prim_logstatus
+    prim_lsockopen, prim_sockaccept, prim_logstatus, prim_dump,          \
+    prim_delta, prim_shutdown, prim_restart, prim_armageddon
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET",    \
     "SYSTIME", "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL",  \
@@ -74,9 +81,10 @@ extern void prim_sockaccept(PRIM_PROTOTYPE);
     "NBSOCKOPEN", "SOCKCHECK", "PNAME-OK?", "NAME-OK?",  \
     "FORCE_LEVEL", "EVENT_EXISTS", "WATCHPID",           \
     "GETPIDS", "GETPIDINFO", "READ_WANTS_BLANKS",        \
-    "LSOCKOPEN", "SOCKACCEPT", "LOGSTATUS"
+    "LSOCKOPEN", "SOCKACCEPT", "LOGSTATUS", "DUMP",      \
+    "DELTA", "SHUTDOWN", "RESTART", "ARMAGEDDON"
 
-#define PRIMS_MISC_CNT 48
+#define PRIMS_MISC_CNT 53
 
 
 
