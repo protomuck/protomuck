@@ -1995,7 +1995,7 @@ prim_array_interpret(PRIM_PROTOTYPE)
                 text = buf;
                 break;
             case PROG_FLOAT:
-                sprintf(buf, "%.16lg", in->data.fnumber);
+                sprintf(buf, "%.15lg", in->data.fnumber);
                 text = buf;
                 break;
             case PROG_LOCK:

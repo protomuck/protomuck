@@ -722,6 +722,21 @@ prim_ftostr(PRIM_PROTOTYPE)
     PushString(buf);
 }
 
+void
+prim_ftostrc(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type == PROG_INTEGER) {
+        oper1->type = PROG_FLOAT;
+        oper1->data.fnumber = oper1->data.number;
+    }
+    if (oper1->type != PROG_FLOAT)
+        abort_interp("Non-float argument. (1)");
+    sprintf(buf, "%.15lg", oper1->data.fnumber);
+    CLEAR(oper1);
+    PushString(buf);
+}
 
 void
 prim_diff3(PRIM_PROTOTYPE)
