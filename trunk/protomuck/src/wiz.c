@@ -844,12 +844,14 @@ power_description(dbref thing)
     static char buf[BUFFER_LEN];
 
     strcpy(buf, GREEN "Powers: " YELLOW );
-	if (POWERS(thing) & POW_ANNOUNCE)
+      if (POWERS(thing) & POW_ANNOUNCE)
 	    strcat(buf, "ANNOUNCE ");
       if (POWERS(thing) & POW_BOOT)
           strcat(buf, "BOOT ");
       if (POWERS(thing) & POW_CHOWN_ANYTHING)
           strcat(buf, "CHOWN_ANYTHING ");
+      if (POWERS(thing) & POW_CONTROL_MUF)
+          strcat(buf, "CONTROL_MUF ");
       if (POWERS(thing) & POW_EXPANDED_WHO)
           strcat(buf, "EXPANDED_WHO ");
       if (POWERS(thing) & POW_HIDE)
@@ -870,8 +872,10 @@ power_description(dbref thing)
           strcat(buf, "SEARCH ");
       if (POWERS(thing) & POW_SEE_ALL)
           strcat(buf, "SEE_ALL ");
+      if (POWERS(thing) & POW_SHUTDOWN)
+          strcat(buf, "SHUTDOWN ");
       if (POWERS(thing) & POW_TELEPORT)
-          strcat(buf, "TELEPORT");
+          strcat(buf, "TELEPORT ");
     return buf;
 }
 
@@ -905,6 +909,7 @@ do_powers(int descr, dbref player, const char *name, const char *power)
       anotify_nolisten2(player,       "ANNOUNCE        - Can use @wall and dwall commands");
       anotify_nolisten2(player,       "BOOT            - Can use @boot and dboot commands");
       anotify_nolisten2(player,       "CHOWN_ANYTHING  - Can @chown anything, unless it is PROTECTed");
+      anotify_nolisten2(player,       "CONTROL_MUF     - Has control over any MUF object.");
       anotify_nolisten2(player,       "EXPANDED_WHO    - Gets the wizard version of WHO");
       anotify_nolisten2(player,       "HIDE            - Can set themselves DARK or login HIDDEN");
       anotify_nolisten2(player,       "IDLE            - Not effected by the idle limit");
@@ -913,8 +918,9 @@ do_powers(int descr, dbref player, const char *name, const char *power)
       anotify_nolisten2(player,       "NO_PAY          - Infinite money");
       anotify_nolisten2(player,       "OPEN_ANYWHERE   - Can @open an exit from any location");
       anotify_nolisten2(player,       "PLAYER_CREATE   - Can use @pcreate, @frob, and @toad");
-      anotify_nolisten2(player,       "SEARCH          - Can use @find, @entrances, and @contents");
+      anotify_nolisten2(player,       "SEARCH          - Can use @find, @entrances, @own, and @contents");
       anotify_nolisten2(player,       "SEE_ALL         - Can examine any object, and @list any program");
+      anotify_nolisten2(player,       "SHUTDOWN        - Can run @shutdown or @restart");
       anotify_nolisten2(player,       "TELEPORT        - Unrestricted use of @teleport");
       anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
       anotify_nolisten2(player,       "Syntax: @power <player>=[!]<power>");
@@ -944,6 +950,8 @@ do_powers(int descr, dbref player, const char *name, const char *power)
        pow = POW_BOOT;
     } else if ( string_prefix("CHOWN_ANYTHING", p) ) {
        pow = POW_CHOWN_ANYTHING;
+    } else if ( string_prefix("CONTROL_MUF", p) ) {
+       pow = POW_CONTROL_MUF;
     } else if ( string_prefix("EXPANDED_WHO", p) ) {
        pow = POW_EXPANDED_WHO;
     } else if ( string_prefix("HIDE", p) ) {
@@ -964,6 +972,8 @@ do_powers(int descr, dbref player, const char *name, const char *power)
        pow = POW_SEARCH;
     } else if ( string_prefix("SEE_ALL", p) ) {
        pow = POW_SEE_ALL;
+    } else if ( string_prefix("SHUTDOWN", p) ) {
+       pow = POW_SHUTDOWN;
     } else if ( string_prefix("TELEPORT", p) ) {
        pow = POW_TELEPORT;
     } else {

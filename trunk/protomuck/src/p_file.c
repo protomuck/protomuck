@@ -871,3 +871,36 @@ prim_freadto(PRIM_PROTOTYPE)
     PushNullStr;
 }
 
+void
+prim_fnameokp(PRIM_PROTOTYPE)
+{
+    char *filename;
+    int result = 1;
+    CHECKOP(1);
+    oper1 = POP();  /* string */
+    /* Permissions and Type checks */
+    if (getuid() == 0)
+        abort_interp ("Muck is running under rot privs, file prims disabled.");
+    if (mlev < LBOY) 
+        abort_interp( "BOY primitive only.");
+    if (oper1->type != PROG_STRING) 
+        abort_interp( "String arguement expected." );
+    if (!oper1->data.string)
+        abort_interp( "Arguement is an empty string." );
+
+    filename = oper1->data.string->data;
+#ifdef SECURE_FILE_PRIMS
+    if ( !(valid_name(filename)) )
+        result = 0;
+    else {
+        if ( strchr( filename, '$' ) == NULL )
+            filename = set_directory(filename);
+        else
+            filename = parse_token( filename );
+        if ( filename == NULL )
+            result = 0;
+    }
+#endif
+    CLEAR(oper1);
+    PushInt(result);
+}

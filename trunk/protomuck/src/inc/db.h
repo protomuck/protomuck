@@ -206,7 +206,8 @@ typedef int dbref;		/* offset into db */
 #define POW_SEARCH          0x800   /* Can use @find, @entrances, and @contents */
 #define POW_SEE_ALL        0x1000   /* Can examine any object, and @list any program */
 #define POW_TELEPORT       0x2000   /* Fee use of @teleport */
-
+#define POW_SHUTDOWN       0x4000   /* Ability to @shutdown and @restart*/
+#define POW_CONTROL_MUF    0x8000   /* Ability to control all MUFs */
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
 #define DUM2_MASK	(F2IDLE | F2COMMAND)

@@ -271,8 +271,14 @@ controls(dbref who, dbref what)
     if (Typeof(what) == TYPE_GARBAGE)
 	return 0;
 
+    /* Puppets are based on owner */
     if (Typeof(who) != TYPE_PLAYER)
 	who = OWNER(who);
+
+    /* CONTROL_MUF power controls all MUF objects */
+    if ( (POWERS(who) & POW_CONTROL_MUF ) && (Typeof(what) == TYPE_PROGRAM) 
+         && (!(Protect(what))) )
+        return 1;
 
     /* Wizard controls (most) everything else */
     if (Wiz(who) && (!(Protect(what) && MLevel(OWNER(what)) >= LBOY) || MLevel(who) >= LBOY))
