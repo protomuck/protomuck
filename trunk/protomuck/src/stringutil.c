@@ -344,8 +344,14 @@ string_dup(const char *s)
 }
 #endif
 
+char *
+intostr(char * buf, int i)
+{
+    sprintf(buf, "%d", i);
+    return(buf);
+}
 
-
+/*
 char *
 intostr(int i)
 {
@@ -366,7 +372,7 @@ intostr(int i)
     if (k < 0) *ptr2-- = '-';
     return (++ptr2);
 }
-
+*/
 
 /*
  * Encrypt one string with another one.

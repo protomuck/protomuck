@@ -562,7 +562,6 @@ array_decouple(stk_array * arr)
 			new2->data.packed = (array_data *) malloc(sizeof(array_data) * arr->items);
 			for (i = arr->items; i-- > 0;) {
 				copyinst(&arr->data.packed[i], &new2->data.packed[i]);
-                                CLEAR(&arr->data.packed[i]);
 			}
 			return new2;
 			break;
@@ -627,12 +626,10 @@ array_free(stk_array * arr)
 	}
 	switch (arr->type) {
 	case ARRAY_PACKED:{
-			array_iter idx;
-
-			if (array_first(arr, &idx)) {
-				do {
-					CLEAR(array_getitem(arr, &idx));
-				} while (array_next(arr, &idx));
+                        int i;
+                        
+                        for (i = arr->items; i-- > 0; ) {
+                            CLEAR(&arr->data.packed[i]);
 			}
 			free(arr->data.packed);
 			break;
@@ -892,7 +889,7 @@ array_next(stk_array * arr, array_iter * item)
 			array_tree *p;
 
 			p = array_tree_next_node(arr->data.dict, item);
-                        CLEAR(item);
+                        //CLEAR(item);
 			if (!p)
 				return 0;
 			copyinst(&p->key, item);

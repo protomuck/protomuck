@@ -1181,6 +1181,7 @@ void
 extract_prop(FILE *f, const char *dir, PropPtr p)
 {
     char buf[BUFFER_LEN*2];
+    char num[16];
     char *ptr;
     const char *ptr2;
 
@@ -1190,7 +1191,7 @@ extract_prop(FILE *f, const char *dir, PropPtr p)
     for (ptr = buf, ptr2 = dir+1; *ptr2;) *ptr++ = *ptr2++;
     for (ptr2 = PropName(p); *ptr2;) *ptr++ = *ptr2++;
     *ptr++ = PROP_DELIMITER;
-    ptr2 = intostr(PropFlagsRaw(p) & ~(PROP_TOUCHED | PROP_ISUNLOADED));
+    ptr2 = intostr(num, PropFlagsRaw(p) & ~(PROP_TOUCHED | PROP_ISUNLOADED));
     while (*ptr2) *ptr++ = *ptr2++;
     *ptr++ = PROP_DELIMITER;
 
@@ -1198,11 +1199,11 @@ extract_prop(FILE *f, const char *dir, PropPtr p)
     switch (PropType(p)) {
 	case PROP_INTTYP:
 	    if (!PropDataVal(p)) return;
-	    ptr2 = intostr(PropDataVal(p));
+	    ptr2 = intostr(num, PropDataVal(p));
 	    break;
 	case PROP_REFTYP:
 	    if (PropDataRef(p) == NOTHING) return;
-	    ptr2 = intostr((int)PropDataRef(p));
+	    ptr2 = intostr(num, (int)PropDataRef(p));
 	    break;
 	case PROP_STRTYP:
 	    if (!*PropDataStr(p)) return;

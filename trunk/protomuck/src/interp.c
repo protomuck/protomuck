@@ -898,6 +898,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	    abort_loop_hard("Program not compilable. Cannot run.", NULL, NULL);
 	}
 	DBFETCH(program)->sp.program.profuses++;
+        DBFETCH(program)->sp.program.instances++;
     }
     ts_useobject(program);
     err = 0;

@@ -286,7 +286,7 @@ extern const char *exit_prefix(register const char *string, register const char 
 extern int string_prefix(const char *string, const char *prefix);
 extern const char *string_match(const char *src, const char *sub);
 extern char *pronoun_substitute(int descr, dbref player, const char *str);
-extern char *intostr(int i);
+extern char * intostr(char * buf, int i);
 extern char *html_escape (const char *str);
 extern char *parse_ansi( dbref player, char *buf, const char *from, const char *defcolor );
 extern char *unparse_ansi( char *buf, const char *from );
