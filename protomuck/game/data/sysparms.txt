@@ -95,7 +95,14 @@ and the _idle/ propqueues get called.
 ~~~
 cron_interval
 Frequency at which to run the MUF set in cron_prog.
-~~~
+~~~~
+archive_interval
+Frequency at which to run full site backups. Needs to at least be
+longer than the #define for ARCHIVE_DELAY (30 minutes by default).
+A good frequency is about once per week, though sites that see a
+lot more changes may prefer more frequent archives. 
+See: 'help @autoarchive' for details
+~~~~
 mainport
 The main telenet port to access the MUCK.
 ~~~
@@ -398,6 +405,10 @@ quiet_moves
 Setting this to yes turns off the '%N has arrived/left.' messages 
 when players enter or leave rooms.
 ~~
+expanded_debug
+Setting this to yes causes the MUF debugger to display the contents
+of MUF arrays.  It also expands the strings.
+~~
 proplist_int_counter
 Used to specify whether the system standard for proplist storage is
 to use integer or string props for the counter.
@@ -461,23 +472,11 @@ allow_old_trigs
 Setting this to no disables all _ prefixed propqueues. For example, 
 _connect, _disconnect, etc., will not work if this is set to no.
 Setting it to yes leaves all of those propqueues enabled.
-~~~
-multi_wizlevels
-By turning this parameter off, all wizards of W2, W3, and W4 have 
-permissions equivalent with Neon's W3 bit, or FB's W bit. Only #1 
-has the permissions of the W4 level when this is tuned off. And 
-finally, W1's will be treated as M3's, losing all of their mage 
-perks. NOTE: Once this is @tuned to 'no', only #1 can @tune it back 
-to 'yes'. Otherwise, it's a W4+ only @tuneable.
-~~~
-wiz_puppets
-By setting this to yes, only players of W1 or higher can set the
-Z flag on things. Puppets will still work as normal, all that is
-restricted is the actual setting of the Z flag.
 ~~~~
-min_progbreak_lev
-Raising this above zero will make it so that only players of that
-M or W level can use the program break command, defaulted to '@Q'
-on most MUCKs. W2+ admin can always use the program break 
-command no matter what. It is recommended to leave this at zero
-unless you really have a good reason for raising it.
+auto_archive
+Setting this to 'no' shuts down all use of the @autoarchive support,
+either by the command or by the @tune. Setting it to yes allows W4
+and above to run @autoarchive and to set the archive_interval
+@tune setting. 
+See: 'help @autoarchive' for details.
+~~~~
