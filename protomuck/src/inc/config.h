@@ -163,9 +163,6 @@
  */
 #define SPAWN_HOST_RESOLVER
 
-/* If this is defined, the resolver will try to restart itself if killed. */
-#define RESTART_RESOLVER
-
 /* Debugging info for database loading */
 #undef VERBOSELOAD
 
@@ -342,7 +339,6 @@
  ************************************************************************/
 #ifdef APPLE
 #define __FreeBSD__
-#define BSD
 #endif
 
 /* If you get problems compiling strftime.c, define this. */
