@@ -13,9 +13,8 @@ typedef void * voidptr;
 #define MIPSCAST
 #endif
 
-extern const char *uppercase, *lowercase;
-#define UPCASE(x) (uppercase[x])
-#define DOWNCASE(x) (lowercase[x])
+#define UPCASE(x) (toupper(x))
+#define DOWNCASE(x) (tolower(x))
 
 #define DoNullInd(x) ((x) ? (x) -> data : "")
   

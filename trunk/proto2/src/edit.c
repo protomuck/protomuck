@@ -11,9 +11,7 @@
 #include "strings.h"
 #include <ctype.h>
 
-extern const char *lowercase, *uppercase;
-
-#define DOWNCASE(x) (lowercase[x])
+#define DOWNCASE(x) (tolower(x))
 
 void editor(int descr, dbref player, const char *command);
 void do_insert(dbref player, dbref program, int arg[], int argc);

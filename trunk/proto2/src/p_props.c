@@ -576,7 +576,7 @@ prim_setprop(PRIM_PROTOTYPE)
 	    set_property(oper3->data.objref, tname, PROP_INTTYP, (char *)result);
 	    break;
         case PROG_FLOAT:
-          sprintf(tbuf, "%.15hg", oper1->data.fnumber);
+          sprintf(tbuf, "%.15lg", oper1->data.fnumber);
           str = tbuf;
           set_property(oper3->data.objref, tname, PROP_FLTTYP, str);
           break;
@@ -971,7 +971,6 @@ prim_envpropqueue(PRIM_PROTOTYPE)
 void
 prim_testlock(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
     /* d d - i */
     CHECKOP(2);
     oper1 = POP();              /* boolexp lock */
@@ -1003,7 +1002,6 @@ void
 prim_lockedp(PRIM_PROTOTYPE)
 {       
     /* d d - i */
-    struct inst *oper1, *oper2;
     CHECKOP(2);
     oper1 = POP();              /* objdbref */
     oper2 = POP();              /* player dbref */
@@ -1268,18 +1266,14 @@ prim_reflist_del(PRIM_PROTOTYPE)
 void
 prim_parsepropex(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2, *oper3, *oper4;
     stk_array *vars;
     const char *mpi;
     char *str = 0;
     array_iter idx;
     extern int varc; /* from msgparse.c */
-    int mvarcnt;
-    char *buffers;
-    int novars;
-    int hashow = 0;
-    int i;
+    char *buffers = NULL;
     char buf[BUFFER_LEN];
+    int mvarcnt = 0, novars, hashow = 0, i;
 
     CHECKOP(4);
     /* ref:Object str:Prop dict:Vars int:Private */
@@ -1362,7 +1356,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
     if (mpi && *mpi) {
         if (novars > 0 ) {
             mvarcnt = varc;
-            if ((buffers = (char *)malloc(novars * BUFFER_LEN)) == NULL)
+            if(!(buffers = (char *)malloc(novars * BUFFER_LEN)))
                 abort_interp("Out of memory.");
 
             if (array_first(vars, &idx)) {
@@ -1379,7 +1373,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
                             break;
                         case PROG_FLOAT:
                             snprintf(var_buf, BUFFER_LEN, "%f", 
-                                      val->data.number);
+                                      val->data.fnumber);
                             break;
                         case PROG_OBJECT:
                             snprintf(var_buf, BUFFER_LEN, "#%i", 
@@ -1480,7 +1474,7 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
                     set_property(destination, buf2, PROP_INTTYP, (char *)PropDataVal(currprop));
                     break;
                 case PROP_FLTTYP:
-                    sprintf(tbuf, "%.15hg", PropDataFVal(currprop));
+                    sprintf(tbuf, "%.15lg", PropDataFVal(currprop));
                     str = tbuf;
                     set_property(destination, buf2, PROP_FLTTYP, str);
                     break;

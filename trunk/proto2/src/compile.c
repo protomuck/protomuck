@@ -158,6 +158,7 @@ struct prog_addr *alloc_addr(COMPSTATE *, int, struct inst *);
 struct INTERMEDIATE *prealloc_inst(COMPSTATE *cstat);
 struct INTERMEDIATE *new_inst(COMPSTATE *);
 void cleanpubs(struct publics *mypub);
+
 #ifdef MCP_SUPPORT
 void clean_mcpbinds(struct mcp_binding *mcpbinds);
 #endif
@@ -604,7 +605,7 @@ include_internal_defs(COMPSTATE *cstat)
 
     /* inserver str .. cat */
     insert_def(cstat, "}cat", "} array_make array_interpret");
-       
+
 
 /* $defs for specific MUF prim sets */
 #ifdef SQL_SUPPPORT
@@ -1132,13 +1133,14 @@ OptimizeIntermediate(COMPSTATE *cstat)
 
                         /* int int / into Div */
                         if (IntermediateIsPrimitive(curr->next->next, DivNo)) {
-                         if (curr->next->in.data.number != 0) {
-                            curr->in.data.number /= curr->next->in.data.number;
-                            RemoveNextIntermediate(cstat, curr);
-                            RemoveNextIntermediate(cstat, curr);
-                            advance = 0;
-                            break;
-                         }
+                            if (curr->next->in.data.number != 0) {
+                                curr->in.data.number /= curr->next->in.data.
+                                    number;
+                                RemoveNextIntermediate(cstat, curr);
+                                RemoveNextIntermediate(cstat, curr);
+                                advance = 0;
+                                break;
+                            }
                         }
 
                         /* int int % into Result */
@@ -1662,8 +1664,7 @@ do_directive(COMPSTATE *cstat, char *direct)
 {
     struct match_data md;
     char temp[BUFFER_LEN];
-    char *tmpname;
-    char *tmpptr;
+    char *tmpname, *tmpptr = NULL;
     int i = 0;
     int j;
 
@@ -2290,14 +2291,14 @@ do_directive(COMPSTATE *cstat, char *direct)
         holder = tmpname;
         if (!tmpname)
             abort_compile(cstat,
-                            "Unexpected end of file looking for $lib/def name.");
+                          "Unexpected end of file looking for $lib/def name.");
 
         if (index(tmpname, '/') ||
             index(tmpname, ':') ||
             Prop_SeeOnly(tmpname) || Prop_Hidden(tmpname)) {
             free(tmpname);
             abort_compile(cstat,
-                            "Invalid $libdef name. No /, :, @, nor ~ allowed.");
+                          "Invalid $libdef name. No /, :, @, nor ~ allowed.");
         } else {                /* okay string */
             char propname[BUFFER_LEN];
             char defstr[BUFFER_LEN];
@@ -3207,21 +3208,26 @@ struct INTERMEDIATE *
 float_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *nw;
+
     nw = new_inst(cstat);
     nw->no = cstat->nowords++;
     nw->in.type = PROG_FLOAT;
     nw->in.line = cstat->lineno;
 #ifdef CYGWIN
     /* What does God neeed with a starship? */
-       nw->in.data.fnumber = 0.0;
-    if (!string_compare(token,"inf")) 
-     { nw->in.data.fnumber = (float) INF; }
-    if (!string_compare(token,"-inf")) 
-     { nw->in.data.fnumber = (float) NINF; }
-    if (!string_compare(token,"nan"))
-     { nw->in.data.fnumber = (float) NAN; }
-    if (!nw->in.data.fnumber) 
-     { sscanf(token, "%lg", &(nw->in.data.fnumber)); }
+    nw->in.data.fnumber = 0.0;
+    if (!string_compare(token, "inf")) {
+        nw->in.data.fnumber = (float) INF;
+    }
+    if (!string_compare(token, "-inf")) {
+        nw->in.data.fnumber = (float) NINF;
+    }
+    if (!string_compare(token, "nan")) {
+        nw->in.data.fnumber = (float) NAN;
+    }
+    if (!nw->in.data.fnumber) {
+        sscanf(token, "%lg", &(nw->in.data.fnumber));
+    }
 #else
     sscanf(token, "%lg", &(nw->in.data.fnumber));
 #endif
@@ -3917,8 +3923,7 @@ copy_program(COMPSTATE *cstat)
                     alloc_prog_string(curr->in.data.string->data) : 0;
                 break;
             case PROG_FUNCTION:
-                code[i].data.mufproc =
-                    (struct muf_proc_data *)
+                code[i].data.mufproc = (struct muf_proc_data *)
                     malloc(sizeof(struct muf_proc_data));
                 code[i].data.mufproc->procname =
                     string_dup(curr->in.data.mufproc->procname);

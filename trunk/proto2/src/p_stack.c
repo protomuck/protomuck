@@ -904,7 +904,7 @@ prim_setmode(PRIM_PROTOTYPE)
 void
 prim_interp(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2, *oper3, *rv = NULL;
+    struct inst *rv = NULL;
     char buf[BUFFER_LEN];
     struct frame *tmpfr;
 

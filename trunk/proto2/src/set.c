@@ -110,7 +110,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
             }
             if (!(Wiz(player) || POWERS(player) & POW_PLAYER_CREATE)
                 || TMage(thing) || strcmp(password, "yes")) {
-                if (!check_password(thing,password)) {
+                if (!check_password(thing, password)) {
                     anotify_nolisten2(player, CFAIL "Incorrect password.");
                     return;
                 }
@@ -944,7 +944,7 @@ do_relink(int descr, dbref player, const char *thing_name,
     dbref dest;
     dbref good_dest[MAX_LINKS];
     struct match_data md;
-    int ndest, i;
+    int ndest;
 
     init_match(descr, player, thing_name, TYPE_EXIT, &md);
     match_all_exits(&md);
@@ -1493,7 +1493,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("IDLE", p) || !string_compare("I", p)) {
         f2 = F2IDLE;
 /*    } else if (string_prefix("PUEBLO", p)) {
-                                anotify_nolisten2(player, CFAIL "This flag can't be user-set."); *//* Why did we have this here? It is unrequired */
+                                                anotify_nolisten2(player, CFAIL "This flag can't be user-set."); *//* Why did we have this here? It is unrequired */
     } else {
         anotify_nolisten2(player, CINFO "I don't recognize that flag.");
         return;

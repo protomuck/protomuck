@@ -872,7 +872,8 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
     switch (PropType(p)) {
         case PROP_STRTYP:
             sprintf(buf, SYSAQUA "str " SYSGREEN "%s" SYSRED ":" SYSCYAN
-                    "%.*s", mybuf, (BUFFER_LEN / 2), tct(get_uncompress(PropDataStr(p)), tbuf));
+                    "%.*s", mybuf, (BUFFER_LEN / 2),
+                    tct(get_uncompress(PropDataStr(p)), tbuf));
             break;
         case PROP_REFTYP:
             sprintf(buf, SYSBROWN "ref " SYSGREEN "%s" SYSRED ":%s", mybuf,

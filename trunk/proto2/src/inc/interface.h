@@ -1,3 +1,5 @@
+#ifndef INTERFACE_H
+#define INTERFACE_H
 
 #include "copyright.h"
 #include "db.h"
@@ -270,9 +272,12 @@ extern void pdescr_logout(int c);
 extern void pdump_who_users(int c, char *user);
 extern const char* host_as_hex( unsigned addr );
 extern int index_descr(int index);
+extern void close_sockets(const char *msg);
+extern void kill_resolver(void);
 
 #ifdef IGNORE_SUPPORT
-extern int ignorance(dbref src, dbref tgt);
+extern char ignorance(register dbref src, register dbref tgt);
+extern void init_ignore(register dbref tgt);
 #endif
 
 /* the following symbols are provided by game.c */
@@ -456,3 +461,4 @@ extern int set_password(dbref player, const char *set_pw);
 
 #define TildeAnsiDigit(x)       (((x) == '-') || (((x) >= '0') && ((x) <= '9')))
 
+#endif /* INTERFACE_H */

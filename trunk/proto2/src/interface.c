@@ -1231,38 +1231,34 @@ int
 notify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
 #ifdef IGNORE_SUPPORT
-    if (!ignorance(from, player))
+    if (ignorance(from, player))
+        return 0;
 #endif
-        return notify_listeners(dbref_first_descr(from), from, NOTHING, player,
-                                getloc(from), msg, isprivate);
+    return notify_listeners(dbref_first_descr(from), from, NOTHING, player,
+                            getloc(from), msg, isprivate);
 }
 
 int
 notify_html_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
 #ifdef IGNORE_SUPPORT
-    if (!ignorance(from, player))
+    if (ignorance(from, player))
+        return 0;
 #endif
-        return notify_html_listeners(dbref_first_descr(from), from, NOTHING,
-                                     player, getloc(from), msg, isprivate);
+    return notify_html_listeners(dbref_first_descr(from), from, NOTHING,
+                                 player, getloc(from), msg, isprivate);
 }
 
 int
 notify_from(dbref from, dbref player, const char *msg)
 {
-#ifdef IGNORE_SUPPORT
-    if (!ignorance(from, player))
-#endif
-        return notify_from_echo(from, player, msg, 1);
+    return notify_from_echo(from, player, msg, 1);
 }
 
 int
 notify_html_from(dbref from, dbref player, const char *msg)
 {
-#ifdef IGNORE_SUPPORT
-    if (!ignorance(from, player))
-#endif
-        return notify_html_from_echo(from, player, msg, 1);
+    return notify_html_from_echo(from, player, msg, 1);
 }
 
 
@@ -1301,20 +1297,18 @@ int
 anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
 #ifdef IGNORE_SUPPORT
-    if (!ignorance(from, player))
+    if (ignorance(from, player))
+        return 0;
 #endif
-        return ansi_notify_listeners(dbref_first_descr(from), from, NOTHING,
-                                     player, getloc(from), msg, isprivate);
+    return ansi_notify_listeners(dbref_first_descr(from), from, NOTHING,
+                                 player, getloc(from), msg, isprivate);
 }
 
 
 int
 anotify_from(dbref from, dbref player, const char *msg)
 {
-#ifdef IGNORE_SUPPORT
-    if (!ignorance(from, player))
-#endif
-        return anotify_from_echo(from, player, msg, 1);
+    return anotify_from_echo(from, player, msg, 1);
 }
 
 
@@ -1515,6 +1509,10 @@ shovechars(void)
 #ifdef USE_SSL
     int ssl_status_ok = 1;
 #endif
+#ifdef MUF_SOCKETS
+    extern struct muf_socket_queue *socket_list;
+    struct muf_socket_queue *curr = socket_list;
+#endif
 
 #ifdef USE_SSL
     SSL_load_error_strings();
@@ -1553,12 +1551,6 @@ shovechars(void)
     } else {
         ssl_numsocks = 0;
     }
-#endif
-
-
-#ifdef MUF_SOCKETS
-    extern struct muf_socket_queue *socket_list;
-    struct muf_socket_queue *curr = socket_list;
 #endif
 
     for (i = 0; i < numsocks; i++) {
@@ -3613,12 +3605,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                         /****/
+        if (d->next)                                                                                     /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                     /****/
+        if (d->hostname)                                                                                 /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                     /****/
+        if (d->username)                                                                                 /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
@@ -4099,7 +4091,7 @@ dump_users(struct descriptor_data *d, char *user)
 #endif
                                 : "");
                     } else {
-                        sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
+                        sprintf(buf, "%s%s %s%10s%s%s%4s%s\r\n",
                                 SYSGREEN, plyrbuf, SYSPURPLE,
                                 time_format_1(now - dlist->connected_at),
                                 (1
@@ -5478,86 +5470,82 @@ gettimeofday(struct timeval *tval, void *tzone)
 #ifdef IGNORE_SUPPORT
 /* Alynna: in-server ignore support */
 void
-init_ignore(dbref tgt)
+init_ignore(register dbref tgt)
 {
-    const char *rawstr;
-    int count;
-    struct object *pobj = DBFETCH(tgt);
+    register struct object *pobj = DBFETCH(tgt);
+    register const char *rawstr;
+    register short i = 0;
 
-    rawstr = get_property_class(tgt, "/@/ignore");
-    if (rawstr)
+    if ((rawstr = get_property_class(tgt, "/@/ignore"))) {
         rawstr = get_uncompress(rawstr);
 
-    /* initialize the array */
-    count = 0;
-    while (count < MAX_IGNORES)
-        pobj->sp.player.ignore[count++] = -1;
-    count = 1;
+        fprintf(stderr, "1: %s\n", rawstr);
 
-    /* extract dbrefs from the prop */
-    if (rawstr != NULL) {
-        while (*rawstr == ' ')
-            rawstr++;
-        while (*rawstr) {
+        for (; *rawstr && isspace(*rawstr); rawstr++) ;
+
+        /* extract dbrefs from the prop */
+        for (; *rawstr && i < MAX_IGNORES; rawstr++) {
             if (*rawstr == '#')
-                rawstr++;
-            if (!((*rawstr >= '0') && (*rawstr <= '9')))
+                continue;
+
+            if (!isdigit(*rawstr))
                 break;
-            pobj->sp.player.ignore[count] = atoi(rawstr);
-            count++;
-            if (count >= MAX_IGNORES)
+
+            pobj->sp.player.ignore[i] = atoi(rawstr);
+            i++;
+
+            for (; *rawstr && !isspace(*rawstr); rawstr++) ;
+            for (; *rawstr && isspace(*rawstr); rawstr++) ;
+
+            if (!*rawstr)
                 break;
-            while (*rawstr && (*rawstr != ' '))
-                rawstr++;
-            while (*rawstr && (*rawstr == ' '))
-                rawstr++;
         }
     }
+
+    /* terminate the array */
+    if (i <= (MAX_IGNORES - 1))
+        pobj->sp.player.ignore[i] = NOTHING;
+
     /* and set the timestamp */
     pobj->sp.player.ignoretime = current_systime;
     return;
 }
 
-int
-ignorance(dbref src, dbref tgt)
+char
+ignorance(register dbref src, dbref tgt)
 {
-    struct object *tobj = DBFETCH(tgt);
-    int count = 1;
+    register struct object *tobj = DBFETCH(tgt);
+    register short i;           /* Never set MAX_IGNORES over 254. */
 
     /* We leave ignorance negatively if the dbref is invalid or the source is a wizard or theirselves. 
        This catches 99.999% of the cases where the system calls something through a standard player
        notify routine (with the src and target equal or the src being a random number), and wastes
        little time returning in that case.  We catch this case first so we can back out fast.
      */
-    if ((src == tgt) ||
-        (src < 0) || (src >= db_top) ||
-        (tgt < 0) || (tgt >= db_top) || (Wizard(src))
-        )
+
+    /* I doubt that these would ever be invalid. If they are, you have bigger problems. -Hinoserm */
+
+    if (src == tgt || !OkObj(src) || Wizard(src))
         return 0;
 
     /* Ignorance cache and initialization 
      * Save time, only do the target, and only if it's been 10 secs from the last check or its not initialized.
      */
-    if ((tobj->sp.player.ignoretime + 10 <= current_systime)
-        || (tobj->sp.player.ignore[0] != -1)) {
+    if (tobj->sp.player.ignoretime + 10 <= current_systime)
         init_ignore(tgt);
-        tobj = DBFETCH(tgt);
-    }
 
-    /* If ignore[1] is -1, its not even worth doing an ignore scan. */
-    if (tobj->sp.player.ignore[1] == -1)
+    /* If ignore[0] is -1, its not even worth doing an ignore scan. */
+    if (tobj->sp.player.ignore[0] == NOTHING)
         return 0;
 
     /* if we got this far, lets check it out, get out ASAP, BTW. */
-    while (count < MAX_IGNORES) {
-        if (tobj->sp.player.ignore[count] == src)
-            return 1;
-        if (tobj->sp.player.ignore[count] == OWNER(src))
-            return 1;
-        if (tobj->sp.player.ignore[count] == -1)
+    for (i = 0; i < MAX_IGNORES; i++) {
+        if (!OkObj(tobj->sp.player.ignore[i]))
             return 0;
-        count++;
+        if (OWNER(tobj->sp.player.ignore[i]) == OWNER(src))
+            return 1;
     }
+
     return 0;
 }
 #endif
