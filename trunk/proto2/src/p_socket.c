@@ -133,8 +133,9 @@ muf_socket_sendevent(struct muf_socket_queue *curr)
             sprintf(littleBuf, "SOCKET.CONNECT.%d", curr->theSock->socknum);
             curr->theSock->readWaiting = 0;
             curr->theSock->last_time = time(NULL);
-            getsockopt(curr->theSock->socknum, SOL_SOCKET, SO_ERROR, &errval, &slen);
-            curr->theSock->connected = (!errval ? 1 : -1); 
+            getsockopt(curr->theSock->socknum, SOL_SOCKET, SO_ERROR, &errval,
+                       &slen);
+            curr->theSock->connected = (!errval ? 1 : -1);
         } else {
             sprintf(littleBuf, "SOCKET.READ.%d", curr->theSock->socknum);
         }
@@ -193,10 +194,15 @@ prim_socksend(PRIM_PROTOTYPE)
         fcntl(oper1->data.sock->socknum, F_SETFL, 0);
 #endif
 
-        result = send(oper1->data.sock->socknum, oper2->data.string->data, (int) (strlen(oper2->data.string->data)+1), 0);
+        strcpy(buf, oper2->data.string->data);
+        strcat(buf, "\n");
+
+        result = send(oper1->data.sock->socknum, buf, strlen(buf) + 1, 0);
+
         if (tp_log_sockets)
             log2filetime("logs/sockets", "#%d by %s SOCKSEND:  %d\n", program,
-                         unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
+                         unparse_object(PSafe, PSafe),
+                         oper1->data.sock->socknum);
 
         if (result < 1)
             result = 0;
@@ -415,7 +421,8 @@ prim_sockclose(PRIM_PROTOTYPE)
 
         if (tp_log_sockets)
             log2filetime("logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program,
-                         unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
+                         unparse_object(PSafe, PSafe),
+                         oper1->data.sock->socknum);
 
         oper1->data.sock->connected = 0;
         remove_socket_from_queue(oper1->data.sock);
@@ -441,7 +448,7 @@ prim_sockshutdown(PRIM_PROTOTYPE)
     tmp = oper2->data.number;
     if (tmp < 0 || tmp > 2)
         abort_interp("Method can only be 0, 1, or 2");
-    
+
     if (oper1->data.sock->is_player && tmp == 2) { /* don't close descrs */
         result = 0;
     } else {
@@ -455,8 +462,9 @@ prim_sockshutdown(PRIM_PROTOTYPE)
             result = 0;
 
         if (tp_log_sockets)
-            log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n", program,
-                         unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
+            log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n",
+                         program, unparse_object(PSafe, PSafe),
+                         oper1->data.sock->socknum);
         if (tmp == 2) {
             oper1->data.sock->connected = 0; /* only say not-connected if */
             remove_socket_from_queue(oper1->data.sock); /* complete shutdown.  */
@@ -517,7 +525,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         /* Socket was made, now initialize the muf_socket struct */
         result = (struct inst *) malloc(sizeof(struct inst));
         result->type = PROG_SOCKET;
-        result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+        result->data.sock =
+            (struct muf_socket *) malloc(sizeof(struct muf_socket));
         result->data.sock->socknum = mysock;
         result->data.sock->connected = 0;
         result->data.sock->links = 1;
@@ -530,7 +539,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->port = oper2->data.number; /* remote port # */
         result->data.sock->hostname = alloc_string(oper1->data.string->data);
         result->data.sock->host = ntohl(name.sin_addr.s_addr);
-        result->data.sock->username = alloc_string(unparse_object(PSafe, PSafe));
+        result->data.sock->username =
+            alloc_string(unparse_object(PSafe, PSafe));
         result->data.sock->connected_at = time(NULL);
         result->data.sock->last_time = time(NULL);
         result->data.sock->usequeue = 0;
@@ -545,7 +555,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
                          result->data.sock->socknum);
     }
 
-        
+
     CLEAR(oper1);
     CLEAR(oper2);
     copyinst(result, &arg[(*top)++]);
