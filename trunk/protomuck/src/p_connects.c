@@ -1246,7 +1246,3 @@ prim_descr_flagp(PRIM_PROTOTYPE)
     CLEAR(oper2);
     PushInt(result);
 }
-    
-
-
-
