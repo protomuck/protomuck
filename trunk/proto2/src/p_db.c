@@ -510,7 +510,7 @@ prim_moveto(PRIM_PROTOTYPE)
                 if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_THING &&
                     Typeof(dest) != TYPE_PLAYER)
                     abort_interp("Bad destination object");
-                if (!unset_source(ProgUID, getloc(player), victim))
+                if (!unset_source(ProgUID, getloc(PSafe), victim))
                     break;
                 set_source(ProgUID, victim, dest);
                 SetMLevel(victim, 0);
@@ -809,7 +809,7 @@ prim_match(PRIM_PROTOTYPE)
 
         (void) strcpy(buf, match_args);
         (void) strcpy(tmppp, match_cmdname);
-        init_match(fr->descr, player, oper1->data.string->data, NOTYPE, &md);
+        init_match(fr->descr, PSafe, oper1->data.string->data, NOTYPE, &md);
         if (oper1->data.string->data[0] == REGISTERED_TOKEN) {
             match_registered(&md);
         } else if (player != NOTHING) {
@@ -854,7 +854,7 @@ prim_rmatch(PRIM_PROTOTYPE)
 
         (void) strcpy(buf, match_args);
         (void) strcpy(tmppp, match_cmdname);
-        init_match(fr->descr, player, DoNullInd(oper1->data.string), TYPE_THING,
+        init_match(fr->descr, PSafe, DoNullInd(oper1->data.string), TYPE_THING,
                    &md);
         match_rmatch(oper2->data.objref, &md);
         ref = match_result(&md);
@@ -892,7 +892,7 @@ prim_copyobj(PRIM_PROTOTYPE)
 
         newobj = new_object();
         *DBFETCH(newobj) = *DBFETCH(ref);
-        copyobj(player, ref, newobj);
+        copyobj(PSafe, ref, newobj);
         CLEAR(oper1);
         PushObject(newobj);
     }
@@ -1474,15 +1474,15 @@ prim_setown(PRIM_PROTOTYPE)
         (mlev < MLevel(OWNER(oper2->data.objref))))
         abort_interp(tp_noperm_mesg);
     if ((mlev < LWIZ) && (!(FLAGS(ref) & CHOWN_OK) ||
-                          !test_lock(fr->descr, player, ref, "_/chlk")))
+                          !test_lock(fr->descr, PSafe, ref, "_/chlk")))
         abort_interp(tp_noperm_mesg);
     switch (Typeof(ref)) {
         case TYPE_ROOM:
-            if ((mlev < LMAGE) && DBFETCH(player)->location != ref)
+            if ((mlev < LMAGE) && DBFETCH(PSafe)->location != ref)
                 abort_interp(tp_noperm_mesg);
             break;
         case TYPE_THING:
-            if ((mlev < LMAGE) && DBFETCH(ref)->location != player)
+            if ((mlev < LMAGE) && DBFETCH(ref)->location != PSafe)
                 abort_interp(tp_noperm_mesg);
             break;
         case TYPE_PLAYER:
@@ -1536,11 +1536,10 @@ prim_newobject(PRIM_PROTOTYPE)
         DBFETCH(ref)->exits = NOTHING;
         FLAGS(ref) = TYPE_THING;
 
-        if ((loc = DBFETCH(player)->location) != NOTHING
-            && controls(player, loc)) {
+        if ((loc = DBFETCH(PSafe)->location) != NOTHING && controls(PSafe, loc)) {
             DBFETCH(ref)->sp.thing.home = loc; /* home */
         } else {
-            DBFETCH(ref)->sp.thing.home = DBFETCH(player)->sp.player.home;
+            DBFETCH(ref)->sp.thing.home = DBFETCH(PSafe)->sp.player.home;
             /* set to player's home instead */
         }
     }
@@ -1586,7 +1585,7 @@ prim_newroom(PRIM_PROTOTYPE)
         OWNER(ref) = OWNER(ProgUID);
         DBFETCH(ref)->exits = NOTHING;
         DBFETCH(ref)->sp.room.dropto = NOTHING;
-        FLAGS(ref) = TYPE_ROOM | (FLAGS(player) & JUMP_OK);
+        FLAGS(ref) = TYPE_ROOM | (FLAGS(PSafe) & JUMP_OK);
         PUSH(ref, DBFETCH(oper2->data.objref)->contents);
         DBDIRTY(ref);
         DBDIRTY(oper2->data.objref);
@@ -1669,15 +1668,16 @@ prim_recycle(PRIM_PROTOTYPE)
         int ii;
 
         for (ii = 0; ii < fr->caller.top; ii++)
-            if ((Typeof(fr->caller.st[ii]) == TYPE_PROGRAM) &&
-                (fr->caller.st[ii] == result))
+            if (OkObj(fr->caller.st[ii])
+                && (Typeof(fr->caller.st[ii]) == TYPE_PROGRAM)
+                && (fr->caller.st[ii] == result))
                 abort_interp("Cannot recycle active program");
     }
     if (Typeof(result) == TYPE_EXIT)
-        if (!unset_source(player, DBFETCH(player)->location, result))
+        if (!unset_source(PSafe, DBFETCH(PSafe)->location, result))
             abort_interp("Cannot recycle old style exits");
     CLEAR(oper1);
-    recycle(fr->descr, player, result);
+    recycle(fr->descr, PSafe, result);
 }
 
 
@@ -1696,7 +1696,7 @@ prim_setlockstr(PRIM_PROTOTYPE)
         abort_interp(tp_noperm_mesg);
     if (tp_db_readonly)
         abort_interp(DBRO_MESG);
-    result = setlockstr(fr->descr, player, ref,
+    result = setlockstr(fr->descr, PSafe, ref,
                         oper1->data.string ? oper1->data.string->
                         data : (char *) "");
     CLEAR(oper1);
@@ -1719,7 +1719,7 @@ prim_getlockstr(PRIM_PROTOTYPE)
     {
         char *tmpstr;
 
-        tmpstr = (char *) unparse_boolexp(player, GETLOCK(ref), 0);
+        tmpstr = (char *) unparse_boolexp(PSafe, GETLOCK(ref), 0);
         CLEAR(oper1);
         PushString(tmpstr);
     }
@@ -1844,7 +1844,7 @@ prim_nextentrance(PRIM_PROTOTYPE)
     if (!valid_object(oper2) && ref != NOTHING)
         abort_interp("Invalid reference object (1)");
     if (linkref == HOME)
-        linkref = DBFETCH(player)->sp.player.home;
+        linkref = DBFETCH(PSafe)->sp.player.home;
     (void) ref++;
     for (; ref < db_top; ref++) {
         oper2->data.objref = ref;
@@ -1919,7 +1919,7 @@ prim_newplayer(PRIM_PROTOTYPE)
     NAME(newplayer) = alloc_string(name);
     DBFETCH(newplayer)->location = tp_player_start; /* home */
     FLAGS(newplayer) = TYPE_PLAYER;
-    if (valid_obj(tp_player_prototype) &&
+    if (OkObj(tp_player_prototype) &&
         (Typeof(tp_player_prototype) == TYPE_PLAYER)) {
         FLAGS(newplayer) = FLAGS(tp_player_prototype);
         FLAG2(newplayer) = FLAG2(tp_player_prototype);
@@ -1964,7 +1964,7 @@ prim_newplayer(PRIM_PROTOTYPE)
         SetMLevel(newplayer, LM3);
     log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
                NAME(newplayer), (int) newplayer,
-               OkObj(player) ? NAME(player) : "(Login)", (int) player);
+               OkObj(player) ? NAME(player) : "(Login)", player);
 
     CLEAR(oper1);
     CLEAR(oper2);
@@ -2019,23 +2019,23 @@ prim_copyplayer(PRIM_PROTOTYPE)
     FLAGS(newplayer) = FLAGS(ref);
     FLAG2(newplayer) = FLAG2(ref);
 
-    if (1) {
-        newp->properties = copy_prop(ref);
-        newp->exits = NOTHING;
-        newp->contents = NOTHING;
-        newp->next = NOTHING;
+    /* if (1) { */
+    newp->properties = copy_prop(ref);
+    newp->exits = NOTHING;
+    newp->contents = NOTHING;
+    newp->next = NOTHING;
 #ifdef DISKBASE
-        newp->propsfpos = 0;
-        newp->propsmode = PROPS_UNLOADED;
-        newp->propstime = 0;
-        newp->nextold = NOTHING;
-        newp->prevold = NOTHING;
-        dirtyprops(newplayer);
+    newp->propsfpos = 0;
+    newp->propsmode = PROPS_UNLOADED;
+    newp->propstime = 0;
+    newp->nextold = NOTHING;
+    newp->prevold = NOTHING;
+    dirtyprops(newplayer);
 #endif
-    }
+    /* } */
     DBDIRTY(newplayer);
 /*    } */
-    OWNER(newplayer) = player;
+    OWNER(newplayer) = newplayer;
     DBFETCH(newplayer)->sp.player.home = DBFETCH(ref)->sp.player.home;
     DBFETCH(newplayer)->exits = NOTHING;
     DBFETCH(newplayer)->owner = newplayer;
@@ -2057,7 +2057,7 @@ prim_copyplayer(PRIM_PROTOTYPE)
         SetMLevel(newplayer, LM3);
     log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
                NAME(newplayer), (int) newplayer,
-               OkObj(player) ? NAME(player) : "(Login)", (int) player);
+               OkObj(player) ? NAME(player) : "(Login)", player);
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -2154,11 +2154,11 @@ prim_toadplayer(PRIM_PROTOTYPE)
     FLAG4(victim) = 0;
     POWERSDB(victim) = 0;
     POWER2DB(victim) = 0;
-    OWNER(victim) = player;     /* you get it */
+    OWNER(victim) = PSafe;      /* you get it */
     DBFETCH(victim)->sp.thing.value = 1;
 
     if (tp_recycle_frobs)
-        recycle(fr->descr, player, victim);
+        recycle(fr->descr, PSafe, victim);
     CLEAR(oper1);
     CLEAR(oper2);
 }
@@ -2433,7 +2433,7 @@ prim_findnext(PRIM_PROTOTYPE)
     strcpy(buf, name);
 
     ref = NOTHING;
-    init_checkflags(player, DoNullInd(oper4->data.string), &check);
+    init_checkflags(PSafe, DoNullInd(oper4->data.string), &check);
     for (i = item; i < db_top; i++) {
         if ((who == NOTHING || OWNER(i) == who) &&
             checkflags(i, check) && NAME(i) &&
@@ -2479,16 +2479,16 @@ prim_newprogram(PRIM_PROTOTYPE)
     sprintf(buf, "A scroll containing a spell called %s",
             oper1->data.string->data);
     SETDESC(newprog, buf);
-    DBFETCH(newprog)->location = player;
+    DBFETCH(newprog)->location = PSafe;
     FLAGS(newprog) = TYPE_PROGRAM;
-    jj = MLevel(player);
+    jj = MLevel(PSafe);
     if (jj < 1)
         jj = 1;
     if (jj > 3)
         jj = 3;
     SetMLevel(newprog, jj);
 
-    OWNER(newprog) = OWNER(player);
+    OWNER(newprog) = OWNER(PSafe);
     DBFETCH(newprog)->sp.program.first = 0;
     DBFETCH(newprog)->sp.program.instances = 0;
     DBFETCH(newprog)->sp.program.curr_line = 0;
@@ -2508,7 +2508,7 @@ prim_newprogram(PRIM_PROTOTYPE)
 
     PUSH(newprog, DBFETCH(player)->contents);
     DBDIRTY(newprog);
-    DBDIRTY(player);
+    DBDIRTY(PSafe);
     CLEAR(oper1);
     PushObject(newprog);
 }
@@ -2536,7 +2536,7 @@ prim_compile(PRIM_PROTOTYPE)
 
     tmpline = DBFETCH(ref)->sp.program.first;
     DBFETCH(ref)->sp.program.first = (struct line *) read_program(ref);
-    do_compile(fr->descr, player, ref, oper2->data.number);
+    do_compile(fr->descr, PSafe, ref, oper2->data.number);
     free_prog_text(DBFETCH(ref)->sp.program.first);
     DBFETCH(ref)->sp.program.first = tmpline;
 
@@ -2936,7 +2936,7 @@ prim_find_array(PRIM_PROTOTYPE)
     name = DoNullInd(oper2->data.string);
 
     strcpy(buf, name);
-    init_checkflags(player, DoNullInd(oper3->data.string), &check);
+    init_checkflags(PSafe, DoNullInd(oper3->data.string), &check);
     nw = new_array_packed(0);
 
     for (ref = (dbref) 0; ref < db_top; ref++) {

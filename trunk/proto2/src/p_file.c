@@ -283,7 +283,7 @@ prim_fwrite(PRIM_PROTOTYPE)
         result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FWRITE: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper2->data.string->data);
     }
     CLEAR(oper1);
@@ -344,7 +344,7 @@ prim_fappend(PRIM_PROTOTYPE)
         result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FAPPEND: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper1->data.string->data);
     }
     CLEAR(oper1);
@@ -403,7 +403,7 @@ prim_fread(PRIM_PROTOTYPE)
             result = 0;
         } else {
             result = 1;
-            buf[0] = (char)tempchr;
+            buf[0] = (char) tempchr;
             buf[1] = '\0';
         }
 
@@ -411,7 +411,7 @@ prim_fread(PRIM_PROTOTYPE)
 
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREAD: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper2->data.string->data);
     }
 
@@ -487,7 +487,7 @@ prim_freadn(PRIM_PROTOTYPE)
             if (tempChr == EOF)
                 found_end = 1;
             else
-                tempBuf[i] = (char)tempChr;
+                tempBuf[i] = (char) tempChr;
         }
         i++;
         tempBuf[i] = '\0';
@@ -496,7 +496,7 @@ prim_freadn(PRIM_PROTOTYPE)
 //            result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREADN: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper3->data.string->data);
     }
     CLEAR(oper1);
@@ -553,7 +553,7 @@ prim_fcr(PRIM_PROTOTYPE)
         result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FCR: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper1->data.string->data);
     }
     CLEAR(oper1);
@@ -595,7 +595,7 @@ prim_fpublish(PRIM_PROTOTYPE)
                S_IXOTH);
     if (tp_log_files)
         log2filetime("logs/files", "#%d by %s FCHMOD: %s \n", program,
-                     unparse_object(player, player), oper1->data.string->data);
+                     unparse_object(PSafe, PSafe), oper1->data.string->data);
     CLEAR(oper1);
     PushInt(result);
 }
@@ -645,7 +645,7 @@ prim_bread(PRIM_PROTOTYPE)
         result = fgetc(fh);
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s BREAD: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper2->data.string->data);
         if (result == EOF) {
             result = -2;
@@ -710,7 +710,7 @@ prim_bwrite(PRIM_PROTOTYPE)
         result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s BWRITE : %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper2->data.string->data);
     }
     CLEAR(oper1);
@@ -763,7 +763,7 @@ prim_bappend(PRIM_PROTOTYPE)
         result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s BAPPEND : %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper1->data.string->data);
     }
     fclose(fh);
@@ -810,7 +810,7 @@ prim_fsize(PRIM_PROTOTYPE)
         offset = ftell(fh);
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FSIZE: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper1->data.string->data);
         fclose(fh);
     }
@@ -850,7 +850,7 @@ prim_fstats(PRIM_PROTOTYPE)
     stat(filename, &fs);
     if (tp_log_files)
         log2filetime("logs/files", "#%d by %s FSTATS : %s \n", program,
-                     unparse_object(player, player), oper1->data.string->data);
+                     unparse_object(PSafe, PSafe), oper1->data.string->data);
     CLEAR(oper1);
     CHECKOFLOW(6);
     PushInt(fs.st_gid);
@@ -873,7 +873,7 @@ prim_curid(PRIM_PROTOTYPE)
         abort_interp("BOY primitive only.");
     if (tp_log_files)
         log2filetime("logs/files", "#%d by %s CURID \n", program,
-                     unparse_object(player, player));
+                     unparse_object(PSafe, PSafe));
     PushInt(curgid);
     PushInt(curuid);
 }
@@ -895,7 +895,7 @@ prim_fsinfo(PRIM_PROTOTYPE)
     statfs("/", &fs);
     if (tp_log_files)
         log2filetime("logs/files", "#%d by %s FSINFO \n", program,
-                     unparse_object(player, player));
+                     unparse_object(PSafe, PSafe));
     CHECKOFLOW(8);
     PushInt(fs.f_type);
     PushInt(fs.f_blocks);
@@ -946,7 +946,7 @@ prim_frm(PRIM_PROTOTYPE)
     result = unlink(filename);
     if (tp_log_files)
         log2filetime("logs/files", "#%d by %s FRM: %s \n", program,
-                     unparse_object(player, player), oper1->data.string->data);
+                     unparse_object(PSafe, PSafe), oper1->data.string->data);
     CLEAR(oper1);
     PushInt(result);
 }
@@ -999,7 +999,7 @@ prim_fren(PRIM_PROTOTYPE)
     result = rename(oldname, newname);
     if (tp_log_files)
         log2filetime("logs/files", "#%d by %s FREN: %s -> %s \n", program,
-                     unparse_object(player, player), oper2->data.string->data,
+                     unparse_object(PSafe, PSafe), oper2->data.string->data,
                      oper1->data.string->data);
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1076,7 +1076,7 @@ prim_freadto(PRIM_PROTOTYPE)
             if (tempChr == EOF || tempChr == checkChar)
                 found_end = 1;
             else
-                tempBuf[i] = (char)tempChr;
+                tempBuf[i] = (char) tempChr;
             if (checkChar == '\n' && tempChr == '\n' && i == 0)
                 tempBuf[i] = ' ';
         }
@@ -1087,7 +1087,7 @@ prim_freadto(PRIM_PROTOTYPE)
 //            result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREADN: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper3->data.string->data);
     }
     CLEAR(oper1);
@@ -1258,7 +1258,7 @@ prim_mkdir(PRIM_PROTOTYPE)
         abort_interp("Invalid file name.");
 #endif
     /* Everything has been checked, make the directory now */
-    result = mkdir(directoryName, S_IRWXU); 
+    result = mkdir(directoryName, S_IRWXU);
     result = !result;
     PushInt(result);
 }
@@ -1271,7 +1271,7 @@ prim_send_binary(PRIM_PROTOTYPE)
     FILE *ftemp;
     int j;
     int zero = 0;
-    char  *filename;
+    char *filename;
     double offset = 0.0;
     double range;
     unsigned char tempBuf[BUFFER_LEN];
@@ -1279,12 +1279,13 @@ prim_send_binary(PRIM_PROTOTYPE)
     int i, theDescr;
     int found_end = 0;
     char tempChar;
+
     /* descr filepath offset size */
     CHECKOP(4);
-    oper4 = POP(); /* block size */
-    oper3 = POP(); /* offset */
-    oper2 = POP(); /* filepath */
-    oper1 = POP(); /* descriptor */ 
+    oper4 = POP();              /* block size */
+    oper3 = POP();              /* offset */
+    oper2 = POP();              /* filepath */
+    oper1 = POP();              /* descriptor */
 
 #ifndef USE_SEND_BINARY
     CLEAR(oper1);
@@ -1295,7 +1296,7 @@ prim_send_binary(PRIM_PROTOTYPE)
     PushInt(zero);
     return;
 #endif
-    
+
 /* Disabling this code until I can get back to it. It's still a work in
  * progress, but might not be available until 1.9 */
 #ifndef PROTO_AS_ROOT
@@ -1306,8 +1307,8 @@ prim_send_binary(PRIM_PROTOTYPE)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_INTEGER)
         abort_interp("Expected descriptor. (1)");
-    theDescr = oper1->data.number; 
-    if (oper2->type != PROG_STRING || !oper2->data.string )
+    theDescr = oper1->data.number;
+    if (oper2->type != PROG_STRING || !oper2->data.string)
         abort_interp("Expected path name. (2)");
     filename = oper2->data.string->data;
     if (oper3->type != PROG_INTEGER)
@@ -1316,11 +1317,11 @@ prim_send_binary(PRIM_PROTOTYPE)
     if (oper4->type != PROG_INTEGER)
         abort_interp("Expected blocksize (4)");
     range = oper4->data.number;
-    if (!pdescrp(theDescr)) /* fail silently in later versions */
+    if (!pdescrp(theDescr))     /* fail silently in later versions */
         abort_interp("Not a valid descriptor. (1)");
     if (offset < 0)
         abort_interp("Invalid offset. Must be 0 or greater. (3)");
-    if (range < 1 || range > 4096 )
+    if (range < 1 || range > 4096)
         abort_interp("Block size must be between 1 and 4096 (4)");
     memset(&(tempBuf), '\0', BUFFER_LEN);
 
@@ -1336,10 +1337,10 @@ prim_send_binary(PRIM_PROTOTYPE)
 #endif
     /* load the block into a buffer, then do a raw descr notify */
     fh = fopen(filename, "rb");
-    ftemp = fopen("files/public_html/binaryout", "a"); 
+    ftemp = fopen("files/public_html/binaryout", "a");
     if (fh == NULL) {
         result = -1;
-    } else { /* file open, now read it */
+    } else {                    /* file open, now read it */
         clearerr(fh);
         for (i = 0; i < range && found_end != 1; ++i, ++offset) {
             fseek(fh, (int) offset, SEEK_SET);
@@ -1357,11 +1358,11 @@ prim_send_binary(PRIM_PROTOTYPE)
         fclose(fh);
         fseek(ftemp, 0, SEEK_END);
         for (j = 0; j < i; j++)
-            fputc(tempBuf[j], ftemp);  
-        fclose(ftemp); 
+            fputc(tempBuf[j], ftemp);
+        fclose(ftemp);
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s SEND_BINARY: %s \n", program,
-                         unparse_object(player, player),
+                         unparse_object(PSafe, PSafe),
                          oper2->data.string->data);
         /* buffer filled, now queue */
         notify_descriptor_raw(theDescr, tempBuf, i);
@@ -1371,10 +1372,10 @@ prim_send_binary(PRIM_PROTOTYPE)
     CLEAR(oper3);
     CLEAR(oper4);
     PushInt(result);
-    result = (int) offset; /* convert offset from double to int */
+    result = (int) offset;      /* convert offset from double to int */
     PushInt(result);
 }
 
-    
+
 
 #endif /* FILE_PRIMS */

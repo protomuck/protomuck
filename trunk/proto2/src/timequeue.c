@@ -123,12 +123,13 @@ free_timenode(timequeue ptr)
         free(ptr->str3);
     if (ptr->fr) {
         if (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER) {
-            if (ptr->fr->multitask != BACKGROUND)
-                DBFETCH(ptr->uid)->sp.player.block = 0;
-            if (ptr->uid == NOTHING) {
-                curdescr = get_descr(ptr->fr->descr, NOTHING);
-                if (curdescr)
-                    curdescr->block = 0;
+            if (ptr->fr->multitask != BACKGROUND) {
+                if (OkObj(ptr->uid)) {
+                    DBFETCH(ptr->uid)->sp.player.block = 0;
+                } else {
+                    if ((curdescr = get_descr(ptr->fr->descr, NOTHING)))
+                        curdescr->block = 0;
+                }
             }
             prog_clean(ptr->fr);
         }
@@ -220,13 +221,14 @@ add_event(int event_typ, int subtyp, int dtime, int descr, dbref player,
     }
     if (!(event_typ == TQ_MUF_TYP && subtyp == TQ_MUF_TREAD)) {
         if (process_count > tp_max_process_limit ||
-            (mypids > tp_max_plyr_processes && !Mage(OWNER(player)))) {
+            (mypids > tp_max_plyr_processes
+             && !Mage(OWNER(OkObj(player) ? player : program)))) {
             if (fr) {
                 if (fr->multitask != BACKGROUND) {
-                    DBFETCH(player)->sp.player.block = 0;
-                    if (player == NOTHING) {
-                        curdescr = get_descr(fr->descr, NOTHING);
-                        if (curdescr)
+                    if (OkObj(player)) {
+                        DBFETCH(player)->sp.player.block = 0;
+                    } else {
+                        if ((curdescr = get_descr(fr->descr, NOTHING)))
                             curdescr->block = 0;
                     }
                 }
@@ -1401,8 +1403,8 @@ propqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
                     the_prog = NOTHING;
                 } else if (Typeof(the_prog) != TYPE_PROGRAM) {
                     the_prog = NOTHING;
-                } else if (OkObj(player) && (OWNER(the_prog) != OWNER(player)) &&
-                           !(FLAGS(the_prog) & LINK_OK)) {
+                } else if (OkObj(player) && (OWNER(the_prog) != OWNER(player))
+                           && !(FLAGS(the_prog) & LINK_OK)) {
                     the_prog = NOTHING;
                 } else if (MLevel(the_prog) < mlev) {
                     the_prog = NOTHING;
@@ -1556,7 +1558,7 @@ listenqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
                     the_prog = NOTHING;
                 } else if (Typeof(the_prog) != TYPE_PROGRAM) {
                     the_prog = NOTHING;
-                } else if (OWNER(the_prog) != OWNER(player) &&
+                } else if (OkObj(player) && OWNER(the_prog) != OWNER(player) &&
                            !(FLAGS(the_prog) & LINK_OK)) {
                     the_prog = NOTHING;
                 } else if (MLevel(the_prog) < mlev) {

@@ -22,6 +22,8 @@ extern void do_abort_silent(void);
 
 extern void RCLEAR(struct inst *oper, char *file, int line);
 
+#define PSafe (OkObj(player) ? player : OWNER(program))
+
 #define CLEAR(oper) RCLEAR(oper, __FILE__, __LINE__)
 extern void push (struct inst *stack, int *top, int type, voidptr res);
 extern int valid_object(struct inst *oper);

@@ -182,272 +182,280 @@ prim_fmtstring(PRIM_PROTOTYPE)
                 }
                 if (sstr[scnt] == '~') {
                     switch (oper2->type) {
-                    case PROG_OBJECT:
-                        sstr[scnt] = 'D';
-                        break;
-                    case PROG_FLOAT:
-                        sstr[scnt] = 'g';
-                        break;
-                    case PROG_INTEGER:
-                        sstr[scnt] = 'i';
-                        break;
-                    case PROG_LOCK:
-                        sstr[scnt] = 'l';
-                        break;
-                    case PROG_STRING:
-                        sstr[scnt] = 's';
-                        break;
-                    default:
-                        sstr[scnt] = '?';
-                        break;
+                        case PROG_OBJECT:
+                            sstr[scnt] = 'D';
+                            break;
+                        case PROG_FLOAT:
+                            sstr[scnt] = 'g';
+                            break;
+                        case PROG_INTEGER:
+                            sstr[scnt] = 'i';
+                            break;
+                        case PROG_LOCK:
+                            sstr[scnt] = 'l';
+                            break;
+                        case PROG_STRING:
+                            sstr[scnt] = 's';
+                            break;
+                        default:
+                            sstr[scnt] = '?';
+                            break;
                     }
                 }
                 switch (sstr[scnt]) {
-                case 'i':
-                    strcat(sfmt, "d");
-                    if (oper2->type != PROG_INTEGER)
-                        abort_interp
-                            ("Format specified integer argument not found.");
-                    sprintf(tbuf, sfmt, oper2->data.number);
-                    tlen = strlen(tbuf);
-                    if (slrj == 2) {
-                        tnum = 0;
-                        while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                            tnum++;
-                        if ((tnum) && (tnum < tlen)) {
-                            temp = tnum / 2;
-                            for (i = tnum; i < tlen; i++)
-                                tbuf[i - temp] = tbuf[i];
-                            for (i = tlen - temp; i < tlen; i++)
-                                tbuf[i] = ' ';
+                    case 'i':
+                        strcat(sfmt, "d");
+                        if (oper2->type != PROG_INTEGER)
+                            abort_interp
+                                ("Format specified integer argument not found.");
+                        sprintf(tbuf, sfmt, oper2->data.number);
+                        tlen = strlen(tbuf);
+                        if (slrj == 2) {
+                            tnum = 0;
+                            while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                tnum++;
+                            if ((tnum) && (tnum < tlen)) {
+                                temp = tnum / 2;
+                                for (i = tnum; i < tlen; i++)
+                                    tbuf[i - temp] = tbuf[i];
+                                for (i = tlen - temp; i < tlen; i++)
+                                    tbuf[i] = ' ';
+                            }
                         }
-                    }
-                    if (tlen + result > BUFFER_LEN)
-                        abort_interp("Resultant string would overflow buffer.");
-                    buf[result] = '\0';
-                    strcat(buf, tbuf);
-                    result += tlen;
-                    CLEAR(oper2);
-                    break;
-                case 'S':
-                case 's':
-                    strcat(sfmt, "s");
-                    if (oper2->type != PROG_STRING)
-                        abort_interp
-                            ("Format specified string argument not found.");
-                    sprintf(tbuf, sfmt,
-                            ((oper2->data.string) ? oper2->data.string->
-                             data : ""));
-                    tlen = strlen(tbuf);
-                    if (slrj == 2) {
-                        tnum = 0;
-                        while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                            tnum++;
-                        if ((tnum) && (tnum < tlen)) {
-                            temp = tnum / 2;
-                            for (i = tnum; i < tlen; i++)
-                                tbuf[i - temp] = tbuf[i];
-                            for (i = tlen - temp; i < tlen; i++)
-                                tbuf[i] = ' ';
+                        if (tlen + result > BUFFER_LEN)
+                            abort_interp
+                                ("Resultant string would overflow buffer.");
+                        buf[result] = '\0';
+                        strcat(buf, tbuf);
+                        result += tlen;
+                        CLEAR(oper2);
+                        break;
+                    case 'S':
+                    case 's':
+                        strcat(sfmt, "s");
+                        if (oper2->type != PROG_STRING)
+                            abort_interp
+                                ("Format specified string argument not found.");
+                        sprintf(tbuf, sfmt,
+                                ((oper2->data.string) ? oper2->data.string->
+                                 data : ""));
+                        tlen = strlen(tbuf);
+                        if (slrj == 2) {
+                            tnum = 0;
+                            while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                tnum++;
+                            if ((tnum) && (tnum < tlen)) {
+                                temp = tnum / 2;
+                                for (i = tnum; i < tlen; i++)
+                                    tbuf[i - temp] = tbuf[i];
+                                for (i = tlen - temp; i < tlen; i++)
+                                    tbuf[i] = ' ';
+                            }
                         }
-                    }
-                    if (strlen(tbuf) + result > BUFFER_LEN)
-                        abort_interp("Resultant string would overflow buffer.");
-                    buf[result] = '\0';
-                    strcat(buf, tbuf);
-                    result += strlen(tbuf);
-                    CLEAR(oper2);
-                    break;
-                case '?':
-                    strcat(sfmt, "s");
-                    switch (oper2->type) {
-                    case PROG_OBJECT:
-                        strcpy(hold, "OBJECT");
+                        if (strlen(tbuf) + result > BUFFER_LEN)
+                            abort_interp
+                                ("Resultant string would overflow buffer.");
+                        buf[result] = '\0';
+                        strcat(buf, tbuf);
+                        result += strlen(tbuf);
+                        CLEAR(oper2);
                         break;
-                    case PROG_FLOAT:
-                        strcpy(hold, "FLOAT");
+                    case '?':
+                        strcat(sfmt, "s");
+                        switch (oper2->type) {
+                            case PROG_OBJECT:
+                                strcpy(hold, "OBJECT");
+                                break;
+                            case PROG_FLOAT:
+                                strcpy(hold, "FLOAT");
+                                break;
+                            case PROG_INTEGER:
+                                strcpy(hold, "INTEGER");
+                                break;
+                            case PROG_LOCK:
+                                strcpy(hold, "LOCK");
+                                break;
+                            case PROG_STRING:
+                                strcpy(hold, "STRING");
+                                break;
+                            case PROG_VAR:
+                                strcpy(hold, "VARIABLE");
+                                break;
+                            case PROG_LVAR:
+                                strcpy(hold, "LOCAL-VARIABLE");
+                                break;
+                            case PROG_ADD:
+                                strcpy(hold, "ADDRESS");
+                                break;
+                            case PROG_ARRAY:
+                                strcpy(hold, "ARRAY");
+                                break;
+                            case PROG_FUNCTION:
+                                strcpy(hold, "FUNCTION-NAME");
+                                break;
+                            case PROG_IF:
+                                strcpy(hold, "IF-STATEMENT");
+                                break;
+                            case PROG_EXEC:
+                                strcpy(hold, "EXECUTE");
+                                break;
+                            case PROG_JMP:
+                                strcpy(hold, "JUMP");
+                                break;
+                            case PROG_PRIMITIVE:
+                                strcpy(hold, "PRIMITIVE");
+                                break;
+                            default:
+                                strcpy(hold, "UNKNOWN");
+                        }
+                        sprintf(tbuf, sfmt, hold);
+                        tlen = strlen(tbuf);
+                        if (slrj == 2) {
+                            tnum = 0;
+                            while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                tnum++;
+                            if ((tnum) && (tnum < tlen)) {
+                                temp = tnum / 2;
+                                for (i = tnum; i < tlen; i++)
+                                    tbuf[i - temp] = tbuf[i];
+                                for (i = tlen - temp; i < tlen; i++)
+                                    tbuf[i] = ' ';
+                            }
+                        }
+                        if (strlen(tbuf) + result > BUFFER_LEN)
+                            abort_interp
+                                ("Resultant string would overflow buffer.");
+                        buf[result] = '\0';
+                        strcat(buf, tbuf);
+                        result += strlen(tbuf);
+                        CLEAR(oper2);
                         break;
-                    case PROG_INTEGER:
-                        strcpy(hold, "INTEGER");
+                    case 'd':
+                        strcat(sfmt, "s");
+                        if (oper2->type != PROG_OBJECT)
+                            abort_interp("Format specified object not found.");
+                        sprintf(hold, "#%d", oper2->data.objref);
+                        sprintf(tbuf, sfmt, hold);
+                        tlen = strlen(tbuf);
+                        if (slrj == 2) {
+                            tnum = 0;
+                            while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                tnum++;
+                            if ((tnum) && (tnum < tlen)) {
+                                temp = tnum / 2;
+                                for (i = tnum; i < tlen; i++)
+                                    tbuf[i - temp] = tbuf[i];
+                                for (i = tlen - temp; i < tlen; i++)
+                                    tbuf[i] = ' ';
+                            }
+                        }
+                        if (strlen(tbuf) + result > BUFFER_LEN)
+                            abort_interp
+                                ("Resultant string would overflow buffer.");
+                        buf[result] = '\0';
+                        strcat(buf, tbuf);
+                        result += strlen(tbuf);
+                        CLEAR(oper2);
                         break;
-                    case PROG_LOCK:
-                        strcpy(hold, "LOCK");
+                    case 'D':
+                        strcat(sfmt, "s");
+                        if (oper2->type != PROG_OBJECT)
+                            abort_interp("Format specified object not found.");
+                        if (!valid_object(oper2))
+                            abort_interp("Format specified object not valid.");
+                        ref = oper2->data.objref;
+                        CHECKREMOTE(ref);
+                        if ((Typeof(ref) != TYPE_PLAYER)
+                            && (Typeof(ref) != TYPE_PROGRAM))
+                            ts_lastuseobject(ref);
+                        if (NAME(ref)) {
+                            strcpy(hold, PNAME(ref));
+                        } else {
+                            hold[0] = '\0';
+                        }
+                        sprintf(tbuf, sfmt, hold);
+                        tlen = strlen(tbuf);
+                        if (slrj == 2) {
+                            tnum = 0;
+                            while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                tnum++;
+                            if ((tnum) && (tnum < tlen)) {
+                                temp = tnum / 2;
+                                for (i = tnum; i < tlen; i++)
+                                    tbuf[i - temp] = tbuf[i];
+                                for (i = tlen - temp; i < tlen; i++)
+                                    tbuf[i] = ' ';
+                            }
+                        }
+                        if (strlen(tbuf) + result > BUFFER_LEN)
+                            abort_interp
+                                ("Resultant string would overflow buffer.");
+                        buf[result] = '\0';
+                        strcat(buf, tbuf);
+                        result += strlen(tbuf);
+                        CLEAR(oper2);
                         break;
-                    case PROG_STRING:
-                        strcpy(hold, "STRING");
+                    case 'l':
+                        strcat(sfmt, "s");
+                        if (oper2->type != PROG_LOCK)
+                            abort_interp("Format specified lock not found.");
+                        strcpy(hold,
+                               unparse_boolexp(ProgUID, oper2->data.lock, 1));
+                        sprintf(tbuf, sfmt, hold);
+                        tlen = strlen(tbuf);
+                        if (slrj == 2) {
+                            tnum = 0;
+                            while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                tnum++;
+                            if ((tnum) && (tnum < tlen)) {
+                                temp = tnum / 2;
+                                for (i = tnum; i < tlen; i++)
+                                    tbuf[i - temp] = tbuf[i];
+                                for (i = tlen - temp; i < tlen; i++)
+                                    tbuf[i] = ' ';
+                            }
+                        }
+                        if (strlen(tbuf) + result > BUFFER_LEN)
+                            abort_interp
+                                ("Resultant string would overflow buffer.");
+                        buf[result] = '\0';
+                        strcat(buf, tbuf);
+                        result += strlen(tbuf);
+                        CLEAR(oper2);
                         break;
-                    case PROG_VAR:
-                        strcpy(hold, "VARIABLE");
-                        break;
-                    case PROG_LVAR:
-                        strcpy(hold, "LOCAL-VARIABLE");
-                        break;
-                    case PROG_ADD:
-                        strcpy(hold, "ADDRESS");
-                        break;
-                    case PROG_ARRAY:
-                        strcpy(hold, "ARRAY");
-                        break;
-                    case PROG_FUNCTION:
-                        strcpy(hold, "FUNCTION-NAME");
-                        break;
-                    case PROG_IF:
-                        strcpy(hold, "IF-STATEMENT");
-                        break;
-                    case PROG_EXEC:
-                        strcpy(hold, "EXECUTE");
-                        break;
-                    case PROG_JMP:
-                        strcpy(hold, "JUMP");
-                        break;
-                    case PROG_PRIMITIVE:
-                        strcpy(hold, "PRIMITIVE");
+                    case 'f':
+                    case 'e':
+                    case 'g':
+                        strcat(sfmt, "l");
+                        sprintf(hold, "%c", sstr[scnt]);
+                        strcat(sfmt, hold);
+                        if (oper2->type != PROG_FLOAT)
+                            abort_interp("Format specified float not found.");
+                        sprintf(tbuf, sfmt, oper2->data.fnumber);
+                        tlen = strlen(tbuf);
+                        if (slrj == 2) {
+                            tnum = 0;
+                            while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                tnum++;
+                            if ((tnum) && (tnum < tlen)) {
+                                temp = tnum / 2;
+                                for (i = tnum; i < tlen; i++)
+                                    tbuf[i - temp] = tbuf[i];
+                                for (i = tlen - temp; i < tlen; i++)
+                                    tbuf[i] = ' ';
+                            }
+                        }
+                        if (strlen(tbuf) + result > BUFFER_LEN)
+                            abort_interp
+                                ("Resultant string would overflow buffer.");
+                        buf[result] = '\0';
+                        strcat(buf, tbuf);
+                        result += strlen(tbuf);
+                        CLEAR(oper2);
                         break;
                     default:
-                        strcpy(hold, "UNKNOWN");
-                    }
-                    sprintf(tbuf, sfmt, hold);
-                    tlen = strlen(tbuf);
-                    if (slrj == 2) {
-                        tnum = 0;
-                        while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                            tnum++;
-                        if ((tnum) && (tnum < tlen)) {
-                            temp = tnum / 2;
-                            for (i = tnum; i < tlen; i++)
-                                tbuf[i - temp] = tbuf[i];
-                            for (i = tlen - temp; i < tlen; i++)
-                                tbuf[i] = ' ';
-                        }
-                    }
-                    if (strlen(tbuf) + result > BUFFER_LEN)
-                        abort_interp("Resultant string would overflow buffer.");
-                    buf[result] = '\0';
-                    strcat(buf, tbuf);
-                    result += strlen(tbuf);
-                    CLEAR(oper2);
-                    break;
-                case 'd':
-                    strcat(sfmt, "s");
-                    if (oper2->type != PROG_OBJECT)
-                        abort_interp("Format specified object not found.");
-                    sprintf(hold, "#%d", oper2->data.objref);
-                    sprintf(tbuf, sfmt, hold);
-                    tlen = strlen(tbuf);
-                    if (slrj == 2) {
-                        tnum = 0;
-                        while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                            tnum++;
-                        if ((tnum) && (tnum < tlen)) {
-                            temp = tnum / 2;
-                            for (i = tnum; i < tlen; i++)
-                                tbuf[i - temp] = tbuf[i];
-                            for (i = tlen - temp; i < tlen; i++)
-                                tbuf[i] = ' ';
-                        }
-                    }
-                    if (strlen(tbuf) + result > BUFFER_LEN)
-                        abort_interp("Resultant string would overflow buffer.");
-                    buf[result] = '\0';
-                    strcat(buf, tbuf);
-                    result += strlen(tbuf);
-                    CLEAR(oper2);
-                    break;
-                case 'D':
-                    strcat(sfmt, "s");
-                    if (oper2->type != PROG_OBJECT)
-                        abort_interp("Format specified object not found.");
-                    if (!valid_object(oper2))
-                        abort_interp("Format specified object not valid.");
-                    ref = oper2->data.objref;
-                    CHECKREMOTE(ref);
-                    if ((Typeof(ref) != TYPE_PLAYER)
-                        && (Typeof(ref) != TYPE_PROGRAM))
-                        ts_lastuseobject(ref);
-                    if (NAME(ref)) {
-                        strcpy(hold, PNAME(ref));
-                    } else {
-                        hold[0] = '\0';
-                    }
-                    sprintf(tbuf, sfmt, hold);
-                    tlen = strlen(tbuf);
-                    if (slrj == 2) {
-                        tnum = 0;
-                        while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                            tnum++;
-                        if ((tnum) && (tnum < tlen)) {
-                            temp = tnum / 2;
-                            for (i = tnum; i < tlen; i++)
-                                tbuf[i - temp] = tbuf[i];
-                            for (i = tlen - temp; i < tlen; i++)
-                                tbuf[i] = ' ';
-                        }
-                    }
-                    if (strlen(tbuf) + result > BUFFER_LEN)
-                        abort_interp("Resultant string would overflow buffer.");
-                    buf[result] = '\0';
-                    strcat(buf, tbuf);
-                    result += strlen(tbuf);
-                    CLEAR(oper2);
-                    break;
-                case 'l':
-                    strcat(sfmt, "s");
-                    if (oper2->type != PROG_LOCK)
-                        abort_interp("Format specified lock not found.");
-                    strcpy(hold, unparse_boolexp(ProgUID, oper2->data.lock, 1));
-                    sprintf(tbuf, sfmt, hold);
-                    tlen = strlen(tbuf);
-                    if (slrj == 2) {
-                        tnum = 0;
-                        while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                            tnum++;
-                        if ((tnum) && (tnum < tlen)) {
-                            temp = tnum / 2;
-                            for (i = tnum; i < tlen; i++)
-                                tbuf[i - temp] = tbuf[i];
-                            for (i = tlen - temp; i < tlen; i++)
-                                tbuf[i] = ' ';
-                        }
-                    }
-                    if (strlen(tbuf) + result > BUFFER_LEN)
-                        abort_interp("Resultant string would overflow buffer.");
-                    buf[result] = '\0';
-                    strcat(buf, tbuf);
-                    result += strlen(tbuf);
-                    CLEAR(oper2);
-                    break;
-                case 'f':
-                case 'e':
-                case 'g':
-                    strcat(sfmt, "l");
-                    sprintf(hold, "%c", sstr[scnt]);
-                    strcat(sfmt, hold);
-                    if (oper2->type != PROG_FLOAT)
-                        abort_interp("Format specified float not found.");
-                    sprintf(tbuf, sfmt, oper2->data.fnumber);
-                    tlen = strlen(tbuf);
-                    if (slrj == 2) {
-                        tnum = 0;
-                        while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                            tnum++;
-                        if ((tnum) && (tnum < tlen)) {
-                            temp = tnum / 2;
-                            for (i = tnum; i < tlen; i++)
-                                tbuf[i - temp] = tbuf[i];
-                            for (i = tlen - temp; i < tlen; i++)
-                                tbuf[i] = ' ';
-                        }
-                    }
-                    if (strlen(tbuf) + result > BUFFER_LEN)
-                        abort_interp("Resultant string would overflow buffer.");
-                    buf[result] = '\0';
-                    strcat(buf, tbuf);
-                    result += strlen(tbuf);
-                    CLEAR(oper2);
-                    break;
-                default:
-                    abort_interp("Invalid format string.");
-                    break;
+                        abort_interp("Invalid format string.");
+                        break;
                 }
                 scnt++;
                 tstop += strlen(tbuf);
@@ -1027,14 +1035,14 @@ prim_notify(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && player != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(player),
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         } else {
             strcpy(buf, oper1->data.string->data);
         }
-        notify_listeners(fr->descr, player, program, oper2->data.objref,
-                         getloc(player), buf, 1);
+        notify_listeners(fr->descr, PSafe, program, oper2->data.objref,
+                         getloc(PSafe), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1062,15 +1070,15 @@ prim_notify_html(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && player != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(player),
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                            BUFFER_LEN - 1, 1);
         } else {
             strcpy(buf, oper1->data.string->data);
         }
         strcat(buf, "\r");
-        notify_html_listeners(fr->descr, player, program, oper2->data.objref,
-                              getloc(player), buf, 1);
+        notify_html_listeners(fr->descr, PSafe, program, oper2->data.objref,
+                              getloc(PSafe), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1097,14 +1105,14 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && player != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(player),
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         } else {
             strcpy(buf, oper1->data.string->data);
         }
-        notify_html_listeners(fr->descr, player, program, oper2->data.objref,
-                              getloc(player), buf, 1);
+        notify_html_listeners(fr->descr, PSafe, program, oper2->data.objref,
+                              getloc(PSafe), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1125,14 +1133,14 @@ prim_ansi_notify(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && player != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(player),
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         } else {
             strcpy(buf, oper1->data.string->data);
         }
-        ansi_notify_listeners(fr->descr, player, program, oper2->data.objref,
-                              getloc(player), buf, 1);
+        ansi_notify_listeners(fr->descr, PSafe, program, oper2->data.objref,
+                              getloc(PSafe), buf, 1);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1154,8 +1162,8 @@ prim_notify_exclude(PRIM_PROTOTYPE)
         abort_interp("Non-string message argument (top)");
 
     if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && player != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(player),
+        mlev < LM2 && PSafe != oper2->data.objref) {
+        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                        BUFFER_LEN, 1);
     } else {
         strcpy(buf, DoNullInd(oper1->data.string));
@@ -1202,18 +1210,18 @@ prim_notify_exclude(PRIM_PROTOTYPE)
                     tmp = 1;
                 }
                 if (!tmp)
-                    notify_listeners(fr->descr, player, program, what, where,
+                    notify_listeners(fr->descr, PSafe, program, what, where,
                                      buf, 0);
                 what = DBFETCH(what)->next;
             }
         }
 
         if (tp_listeners) {
-            notify_listeners(fr->descr, player, program, where, where, buf, 0);
+            notify_listeners(fr->descr, PSafe, program, where, where, buf, 0);
             if (tp_listeners_env) {
                 what = DBFETCH(where)->location;
                 for (; what != NOTHING; what = DBFETCH(what)->location)
-                    notify_listeners(fr->descr, player, program, what, where,
+                    notify_listeners(fr->descr, PSafe, program, what, where,
                                      buf, 0);
             }
         }
@@ -1237,8 +1245,8 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
         abort_interp("Non-string message argument (top)");
 
     if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && player != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(player),
+        mlev < LM2 && PSafe != oper2->data.objref) {
+        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                        BUFFER_LEN, 1);
     } else {
         strcpy(buf, DoNullInd(oper1->data.string));
@@ -1285,19 +1293,19 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
                     tmp = 1;
                 }
                 if (!tmp)
-                    ansi_notify_listeners(fr->descr, player, program, what,
+                    ansi_notify_listeners(fr->descr, PSafe, program, what,
                                           where, buf, 0);
                 what = DBFETCH(what)->next;
             }
         }
 
         if (tp_listeners) {
-            ansi_notify_listeners(fr->descr, player, program, where, where, buf,
+            ansi_notify_listeners(fr->descr, PSafe, program, where, where, buf,
                                   0);
             if (tp_listeners_env) {
                 what = DBFETCH(where)->location;
                 for (; what != NOTHING; what = DBFETCH(what)->location)
-                    ansi_notify_listeners(fr->descr, player, program, what,
+                    ansi_notify_listeners(fr->descr, PSafe, program, what,
                                           where, buf, 0);
             }
         }
@@ -1320,8 +1328,8 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
         abort_interp("Non-string message argument (top)");
 
     if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && player != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(player),
+        mlev < LM2 && PSafe != oper2->data.objref) {
+        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                        BUFFER_LEN, 1);
     } else {
         strcpy(buf, DoNullInd(oper1->data.string));
@@ -1370,19 +1378,19 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
                     tmp = 1;
                 }
                 if (!tmp)
-                    notify_html_listeners(fr->descr, player, program, what,
+                    notify_html_listeners(fr->descr, PSafe, program, what,
                                           where, buf, 0);
                 what = DBFETCH(what)->next;
             }
         }
 
         if (tp_listeners) {
-            notify_html_listeners(fr->descr, player, program, where, where, buf,
+            notify_html_listeners(fr->descr, PSafe, program, where, where, buf,
                                   0);
             if (tp_listeners_env) {
                 what = DBFETCH(where)->location;
                 for (; what != NOTHING; what = DBFETCH(what)->location)
-                    notify_html_listeners(fr->descr, player, program, what,
+                    notify_html_listeners(fr->descr, PSafe, program, what,
                                           where, buf, 0);
             }
         }
@@ -1404,8 +1412,8 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
         abort_interp("Non-string message argument (top)");
 
     if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && player != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(player),
+        mlev < LM2 && PSafe != oper2->data.objref) {
+        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
                        BUFFER_LEN, 1);
     } else {
         strcpy(buf, DoNullInd(oper1->data.string));
@@ -1452,19 +1460,19 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
                     tmp = 1;
                 }
                 if (!tmp)
-                    notify_html_listeners(fr->descr, player, program, what,
+                    notify_html_listeners(fr->descr, PSafe, program, what,
                                           where, buf, 0);
                 what = DBFETCH(what)->next;
             }
         }
 
         if (tp_listeners) {
-            notify_html_listeners(fr->descr, player, program, where, where, buf,
+            notify_html_listeners(fr->descr, PSafe, program, where, where, buf,
                                   0);
             if (tp_listeners_env) {
                 what = DBFETCH(where)->location;
                 for (; what != NOTHING; what = DBFETCH(what)->location)
-                    notify_html_listeners(fr->descr, player, program, what,
+                    notify_html_listeners(fr->descr, PSafe, program, what,
                                           where, buf, 0);
             }
         }
@@ -1727,18 +1735,18 @@ prim_unparseobj(PRIM_PROTOTYPE)
     {
         result = oper1->data.objref;
         switch (result) {
-        case NOTHING:
-            sprintf(buf, "*NOTHING*");
-            break;
-        case HOME:
-            sprintf(buf, "*HOME*");
-            break;
-        default:
-            if (result < 0 || result > db_top)
-                sprintf(buf, "*INVALID*");
-            else
-                sprintf(buf, "%s(#%d%s)", RNAME(result), result,
-                        unparse_flags(result, tbuf));
+            case NOTHING:
+                sprintf(buf, "*NOTHING*");
+                break;
+            case HOME:
+                sprintf(buf, "*HOME*");
+                break;
+            default:
+                if (result < 0 || result > db_top)
+                    sprintf(buf, "*INVALID*");
+                else
+                    sprintf(buf, "%s(#%d%s)", RNAME(result), result,
+                            unparse_flags(result, tbuf));
         }
         CLEAR(oper1);
         PushString(buf);
@@ -1954,7 +1962,7 @@ prim_parse_ansi(PRIM_PROTOTYPE)
         if (ctype == 0)
             sprintf(buf4, "%s", buf3);
         else if (ctype == 1)
-            sprintf(buf4, "%s", parse_ansi(player, buf, buf3, ANSINORMAL));
+            sprintf(buf4, "%s", parse_ansi(PSafe, buf, buf3, ANSINORMAL));
         else if (ctype == 2)
             sprintf(buf4, "%s", parse_mush_ansi(buf, buf3));
         else if (ctype == 3)
@@ -2361,78 +2369,78 @@ prim_textattr(PRIM_PROTOTYPE)
         ptr2 = attr;
         while (!done) {
             switch (*ptr) {
-            case ' ':{
-                ptr++;
-                break;
-            }
-
-            case '\0':
-            case ',':{
-                *ptr2++ = '\0';
-                if (!string_compare(attr, "reset")) {
-                    strcat(buf, ANSI_RESET);
-                } else if (!string_compare(attr, "bold")) {
-                    strcat(buf, ANSI_BOLD);
-                } else if (!string_compare(attr, "dim")) {
-                    strcat(buf, ANSI_DIM);
-                } else if (!string_compare(attr, "uline") ||
-                           !string_compare(attr, "underline")) {
-                    strcat(buf, ANSI_UNDERLINE);
-                } else if (!string_compare(attr, "flash")) {
-                    strcat(buf, ANSI_FLASH);
-                } else if (!string_compare(attr, "reverse")) {
-                    strcat(buf, ANSI_REVERSE);
-
-                } else if (!string_compare(attr, "black")) {
-                    strcat(buf, ANSI_FG_BLACK);
-                } else if (!string_compare(attr, "red")) {
-                    strcat(buf, ANSI_FG_RED);
-                } else if (!string_compare(attr, "yellow")) {
-                    strcat(buf, ANSI_FG_YELLOW);
-                } else if (!string_compare(attr, "green")) {
-                    strcat(buf, ANSI_FG_GREEN);
-                } else if (!string_compare(attr, "cyan")) {
-                    strcat(buf, ANSI_FG_CYAN);
-                } else if (!string_compare(attr, "blue")) {
-                    strcat(buf, ANSI_FG_BLUE);
-                } else if (!string_compare(attr, "magenta")) {
-                    strcat(buf, ANSI_FG_MAGENTA);
-                } else if (!string_compare(attr, "white")) {
-                    strcat(buf, ANSI_FG_WHITE);
-
-                } else if (!string_compare(attr, "bg_black")) {
-                    strcat(buf, ANSI_BG_BLACK);
-                } else if (!string_compare(attr, "bg_red")) {
-                    strcat(buf, ANSI_BG_RED);
-                } else if (!string_compare(attr, "bg_yellow")) {
-                    strcat(buf, ANSI_BG_YELLOW);
-                } else if (!string_compare(attr, "bg_green")) {
-                    strcat(buf, ANSI_BG_GREEN);
-                } else if (!string_compare(attr, "bg_cyan")) {
-                    strcat(buf, ANSI_BG_CYAN);
-                } else if (!string_compare(attr, "bg_blue")) {
-                    strcat(buf, ANSI_BG_BLUE);
-                } else if (!string_compare(attr, "bg_magenta")) {
-                    strcat(buf, ANSI_BG_MAGENTA);
-                } else if (!string_compare(attr, "bg_white")) {
-                    strcat(buf, ANSI_BG_WHITE);
-                } else {
-                    abort_interp
-                        ("Unrecognized attribute tag.  Try one of reset, bold, dim, underline, reverse, black, red, yellow, green, cyan, blue, magenta, white, bg_black, bg_red, bg_yellow, bg_green, bg_cyan, bg_blue, bg_magenta, or bg_white.");
-                }
-
-                ptr2 = attr;
-                if (!*ptr) {
-                    done++;
-                } else {
+                case ' ':{
                     ptr++;
+                    break;
                 }
-                break;
-            }
 
-            default:{
-                *ptr2++ = *ptr++;
-            }
+                case '\0':
+                case ',':{
+                    *ptr2++ = '\0';
+                    if (!string_compare(attr, "reset")) {
+                        strcat(buf, ANSI_RESET);
+                    } else if (!string_compare(attr, "bold")) {
+                        strcat(buf, ANSI_BOLD);
+                    } else if (!string_compare(attr, "dim")) {
+                        strcat(buf, ANSI_DIM);
+                    } else if (!string_compare(attr, "uline") ||
+                               !string_compare(attr, "underline")) {
+                        strcat(buf, ANSI_UNDERLINE);
+                    } else if (!string_compare(attr, "flash")) {
+                        strcat(buf, ANSI_FLASH);
+                    } else if (!string_compare(attr, "reverse")) {
+                        strcat(buf, ANSI_REVERSE);
+
+                    } else if (!string_compare(attr, "black")) {
+                        strcat(buf, ANSI_FG_BLACK);
+                    } else if (!string_compare(attr, "red")) {
+                        strcat(buf, ANSI_FG_RED);
+                    } else if (!string_compare(attr, "yellow")) {
+                        strcat(buf, ANSI_FG_YELLOW);
+                    } else if (!string_compare(attr, "green")) {
+                        strcat(buf, ANSI_FG_GREEN);
+                    } else if (!string_compare(attr, "cyan")) {
+                        strcat(buf, ANSI_FG_CYAN);
+                    } else if (!string_compare(attr, "blue")) {
+                        strcat(buf, ANSI_FG_BLUE);
+                    } else if (!string_compare(attr, "magenta")) {
+                        strcat(buf, ANSI_FG_MAGENTA);
+                    } else if (!string_compare(attr, "white")) {
+                        strcat(buf, ANSI_FG_WHITE);
+
+                    } else if (!string_compare(attr, "bg_black")) {
+                        strcat(buf, ANSI_BG_BLACK);
+                    } else if (!string_compare(attr, "bg_red")) {
+                        strcat(buf, ANSI_BG_RED);
+                    } else if (!string_compare(attr, "bg_yellow")) {
+                        strcat(buf, ANSI_BG_YELLOW);
+                    } else if (!string_compare(attr, "bg_green")) {
+                        strcat(buf, ANSI_BG_GREEN);
+                    } else if (!string_compare(attr, "bg_cyan")) {
+                        strcat(buf, ANSI_BG_CYAN);
+                    } else if (!string_compare(attr, "bg_blue")) {
+                        strcat(buf, ANSI_BG_BLUE);
+                    } else if (!string_compare(attr, "bg_magenta")) {
+                        strcat(buf, ANSI_BG_MAGENTA);
+                    } else if (!string_compare(attr, "bg_white")) {
+                        strcat(buf, ANSI_BG_WHITE);
+                    } else {
+                        abort_interp
+                            ("Unrecognized attribute tag.  Try one of reset, bold, dim, underline, reverse, black, red, yellow, green, cyan, blue, magenta, white, bg_black, bg_red, bg_yellow, bg_green, bg_cyan, bg_blue, bg_magenta, or bg_white.");
+                    }
+
+                    ptr2 = attr;
+                    if (!*ptr) {
+                        done++;
+                    } else {
+                        ptr++;
+                    }
+                    break;
+                }
+
+                default:{
+                    *ptr2++ = *ptr++;
+                }
             }
         }
         totallen = strlen(buf);
@@ -2691,276 +2699,277 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
                         }
                         if (sstr[scnt] == '~') {
                             switch (oper3->type) {
-                            case PROG_OBJECT:
-                                sstr[scnt] = 'D';
-                                break;
-                            case PROG_FLOAT:
-                                sstr[scnt] = 'g';
-                                break;
-                            case PROG_INTEGER:
-                                sstr[scnt] = 'i';
-                                break;
-                            case PROG_LOCK:
-                                sstr[scnt] = 'l';
-                                break;
-                            case PROG_STRING:
-                                sstr[scnt] = 's';
-                                break;
-                            default:
-                                sstr[scnt] = '?';
-                                break;
+                                case PROG_OBJECT:
+                                    sstr[scnt] = 'D';
+                                    break;
+                                case PROG_FLOAT:
+                                    sstr[scnt] = 'g';
+                                    break;
+                                case PROG_INTEGER:
+                                    sstr[scnt] = 'i';
+                                    break;
+                                case PROG_LOCK:
+                                    sstr[scnt] = 'l';
+                                    break;
+                                case PROG_STRING:
+                                    sstr[scnt] = 's';
+                                    break;
+                                default:
+                                    sstr[scnt] = '?';
+                                    break;
                             }
                         }
                         switch (sstr[scnt]) {
-                        case 'i':
-                            strcat(sfmt, "d");
-                            if (oper3->type != PROG_INTEGER)
-                                abort_interp
-                                    ("Format specified integer argument not found.");
-                            sprintf(tbuf, sfmt, oper3->data.number);
-                            tlen = strlen(tbuf);
-                            if (slrj == 2) {
-                                tnum = 0;
-                                while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                                    tnum++;
-                                if ((tnum) && (tnum < tlen)) {
-                                    temp = tnum / 2;
-                                    for (i = tnum; i < tlen; i++)
-                                        tbuf[i - temp] = tbuf[i];
-                                    for (i = tlen - temp; i < tlen; i++)
-                                        tbuf[i] = ' ';
+                            case 'i':
+                                strcat(sfmt, "d");
+                                if (oper3->type != PROG_INTEGER)
+                                    abort_interp
+                                        ("Format specified integer argument not found.");
+                                sprintf(tbuf, sfmt, oper3->data.number);
+                                tlen = strlen(tbuf);
+                                if (slrj == 2) {
+                                    tnum = 0;
+                                    while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                        tnum++;
+                                    if ((tnum) && (tnum < tlen)) {
+                                        temp = tnum / 2;
+                                        for (i = tnum; i < tlen; i++)
+                                            tbuf[i - temp] = tbuf[i];
+                                        for (i = tlen - temp; i < tlen; i++)
+                                            tbuf[i] = ' ';
+                                    }
                                 }
-                            }
-                            if (tlen + result > BUFFER_LEN)
-                                abort_interp
-                                    ("Resultant string would overflow buffer.");
-                            buf[result] = '\0';
-                            strcat(buf, tbuf);
-                            result += tlen;
-                            break;
-                        case 's':
-                            strcat(sfmt, "s");
-                            if (oper3->type != PROG_STRING)
-                                abort_interp
-                                    ("Format specified string argument not found.");
-                            sprintf(tbuf, sfmt, DoNullInd(oper3->data.string));
-                            tlen = strlen(tbuf);
-                            if (slrj == 2) {
-                                tnum = 0;
-                                while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                                    tnum++;
-                                if ((tnum) && (tnum < tlen)) {
-                                    temp = tnum / 2;
-                                    for (i = tnum; i < tlen; i++)
-                                        tbuf[i - temp] = tbuf[i];
-                                    for (i = tlen - temp; i < tlen; i++)
-                                        tbuf[i] = ' ';
+                                if (tlen + result > BUFFER_LEN)
+                                    abort_interp
+                                        ("Resultant string would overflow buffer.");
+                                buf[result] = '\0';
+                                strcat(buf, tbuf);
+                                result += tlen;
+                                break;
+                            case 's':
+                                strcat(sfmt, "s");
+                                if (oper3->type != PROG_STRING)
+                                    abort_interp
+                                        ("Format specified string argument not found.");
+                                sprintf(tbuf, sfmt,
+                                        DoNullInd(oper3->data.string));
+                                tlen = strlen(tbuf);
+                                if (slrj == 2) {
+                                    tnum = 0;
+                                    while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                        tnum++;
+                                    if ((tnum) && (tnum < tlen)) {
+                                        temp = tnum / 2;
+                                        for (i = tnum; i < tlen; i++)
+                                            tbuf[i - temp] = tbuf[i];
+                                        for (i = tlen - temp; i < tlen; i++)
+                                            tbuf[i] = ' ';
+                                    }
                                 }
-                            }
-                            if (strlen(tbuf) + result > BUFFER_LEN)
-                                abort_interp
-                                    ("Resultant string would overflow buffer.");
-                            buf[result] = '\0';
-                            strcat(buf, tbuf);
-                            result += strlen(tbuf);
-                            break;
-                        case '?':
-                            strcat(sfmt, "s");
-                            switch (oper3->type) {
-                            case PROG_OBJECT:
-                                strcpy(hold, "OBJECT");
+                                if (strlen(tbuf) + result > BUFFER_LEN)
+                                    abort_interp
+                                        ("Resultant string would overflow buffer.");
+                                buf[result] = '\0';
+                                strcat(buf, tbuf);
+                                result += strlen(tbuf);
                                 break;
-                            case PROG_FLOAT:
-                                strcpy(hold, "FLOAT");
+                            case '?':
+                                strcat(sfmt, "s");
+                                switch (oper3->type) {
+                                    case PROG_OBJECT:
+                                        strcpy(hold, "OBJECT");
+                                        break;
+                                    case PROG_FLOAT:
+                                        strcpy(hold, "FLOAT");
+                                        break;
+                                    case PROG_INTEGER:
+                                        strcpy(hold, "INTEGER");
+                                        break;
+                                    case PROG_LOCK:
+                                        strcpy(hold, "LOCK");
+                                        break;
+                                    case PROG_STRING:
+                                        strcpy(hold, "STRING");
+                                        break;
+                                    case PROG_VAR:
+                                        strcpy(hold, "VARIABLE");
+                                        break;
+                                    case PROG_LVAR:
+                                        strcpy(hold, "LOCAL-VARIABLE");
+                                        break;
+                                    case PROG_SVAR:
+                                        strcpy(hold, "SCOPED-VARIABLE");
+                                        break;
+                                    case PROG_ADD:
+                                        strcpy(hold, "ADDRESS");
+                                        break;
+                                    case PROG_ARRAY:
+                                        strcpy(hold, "ARRAY");
+                                        break;
+                                    case PROG_FUNCTION:
+                                        strcpy(hold, "FUNCTION-NAME");
+                                        break;
+                                    case PROG_IF:
+                                        strcpy(hold, "IF-STATEMENT");
+                                        break;
+                                    case PROG_EXEC:
+                                        strcpy(hold, "EXECUTE");
+                                        break;
+                                    case PROG_JMP:
+                                        strcpy(hold, "JUMP");
+                                        break;
+                                    case PROG_PRIMITIVE:
+                                        strcpy(hold, "PRIMITIVE");
+                                        break;
+                                    default:
+                                        strcpy(hold, "UNKNOWN");
+                                }
+                                sprintf(tbuf, sfmt, hold);
+                                tlen = strlen(tbuf);
+                                if (slrj == 2) {
+                                    tnum = 0;
+                                    while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                        tnum++;
+                                    if ((tnum) && (tnum < tlen)) {
+                                        temp = tnum / 2;
+                                        for (i = tnum; i < tlen; i++)
+                                            tbuf[i - temp] = tbuf[i];
+                                        for (i = tlen - temp; i < tlen; i++)
+                                            tbuf[i] = ' ';
+                                    }
+                                }
+                                if (strlen(tbuf) + result > BUFFER_LEN)
+                                    abort_interp
+                                        ("Resultant string would overflow buffer.");
+                                buf[result] = '\0';
+                                strcat(buf, tbuf);
+                                result += strlen(tbuf);
                                 break;
-                            case PROG_INTEGER:
-                                strcpy(hold, "INTEGER");
+                            case 'd':
+                                strcat(sfmt, "s");
+                                if (oper3->type != PROG_OBJECT)
+                                    abort_interp
+                                        ("Format specified object not found.");
+                                sprintf(hold, "#%d", oper3->data.objref);
+                                sprintf(tbuf, sfmt, hold);
+                                tlen = strlen(tbuf);
+                                if (slrj == 2) {
+                                    tnum = 0;
+                                    while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                        tnum++;
+                                    if ((tnum) && (tnum < tlen)) {
+                                        temp = tnum / 2;
+                                        for (i = tnum; i < tlen; i++)
+                                            tbuf[i - temp] = tbuf[i];
+                                        for (i = tlen - temp; i < tlen; i++)
+                                            tbuf[i] = ' ';
+                                    }
+                                }
+                                if (strlen(tbuf) + result > BUFFER_LEN)
+                                    abort_interp
+                                        ("Resultant string would overflow buffer.");
+                                buf[result] = '\0';
+                                strcat(buf, tbuf);
+                                result += strlen(tbuf);
                                 break;
-                            case PROG_LOCK:
-                                strcpy(hold, "LOCK");
+                            case 'D':
+                                strcat(sfmt, "s");
+                                if (oper3->type != PROG_OBJECT)
+                                    abort_interp
+                                        ("Format specified object not found.");
+                                if (!valid_object(oper3))
+                                    abort_interp
+                                        ("Format specified object not valid.");
+                                ref = oper3->data.objref;
+                                CHECKREMOTE(ref);
+                                if (NAME(ref)) {
+                                    strcpy(hold, PNAME(ref));
+                                } else {
+                                    hold[0] = '\0';
+                                }
+                                sprintf(tbuf, sfmt, hold);
+                                tlen = strlen(tbuf);
+                                if (slrj == 2) {
+                                    tnum = 0;
+                                    while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                        tnum++;
+                                    if ((tnum) && (tnum < tlen)) {
+                                        temp = tnum / 2;
+                                        for (i = tnum; i < tlen; i++)
+                                            tbuf[i - temp] = tbuf[i];
+                                        for (i = tlen - temp; i < tlen; i++)
+                                            tbuf[i] = ' ';
+                                    }
+                                }
+                                if (strlen(tbuf) + result > BUFFER_LEN)
+                                    abort_interp
+                                        ("Resultant string would overflow buffer.");
+                                buf[result] = '\0';
+                                strcat(buf, tbuf);
+                                result += strlen(tbuf);
                                 break;
-                            case PROG_STRING:
-                                strcpy(hold, "STRING");
+                            case 'l':
+                                strcat(sfmt, "s");
+                                if (oper3->type != PROG_LOCK)
+                                    abort_interp
+                                        ("Format specified lock not found.");
+                                strcpy(hold,
+                                       unparse_boolexp(ProgUID,
+                                                       oper3->data.lock, 1));
+                                sprintf(tbuf, sfmt, hold);
+                                tlen = strlen(tbuf);
+                                if (slrj == 2) {
+                                    tnum = 0;
+                                    while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                        tnum++;
+                                    if ((tnum) && (tnum < tlen)) {
+                                        temp = tnum / 2;
+                                        for (i = tnum; i < tlen; i++)
+                                            tbuf[i - temp] = tbuf[i];
+                                        for (i = tlen - temp; i < tlen; i++)
+                                            tbuf[i] = ' ';
+                                    }
+                                }
+                                if (strlen(tbuf) + result > BUFFER_LEN)
+                                    abort_interp
+                                        ("Resultant string would overflow buffer.");
+                                buf[result] = '\0';
+                                strcat(buf, tbuf);
+                                result += strlen(tbuf);
                                 break;
-                            case PROG_VAR:
-                                strcpy(hold, "VARIABLE");
-                                break;
-                            case PROG_LVAR:
-                                strcpy(hold, "LOCAL-VARIABLE");
-                                break;
-                            case PROG_SVAR:
-                                strcpy(hold, "SCOPED-VARIABLE");
-                                break;
-                            case PROG_ADD:
-                                strcpy(hold, "ADDRESS");
-                                break;
-                            case PROG_ARRAY:
-                                strcpy(hold, "ARRAY");
-                                break;
-                            case PROG_FUNCTION:
-                                strcpy(hold, "FUNCTION-NAME");
-                                break;
-                            case PROG_IF:
-                                strcpy(hold, "IF-STATEMENT");
-                                break;
-                            case PROG_EXEC:
-                                strcpy(hold, "EXECUTE");
-                                break;
-                            case PROG_JMP:
-                                strcpy(hold, "JUMP");
-                                break;
-                            case PROG_PRIMITIVE:
-                                strcpy(hold, "PRIMITIVE");
+                            case 'f':
+                            case 'e':
+                            case 'g':
+                                strcat(sfmt, "l");
+                                sprintf(hold, "%c", sstr[scnt]);
+                                strcat(sfmt, hold);
+                                if (oper3->type != PROG_FLOAT)
+                                    abort_interp
+                                        ("Format specified float not found.");
+                                sprintf(tbuf, sfmt, oper3->data.fnumber);
+                                tlen = strlen(tbuf);
+                                if (slrj == 2) {
+                                    tnum = 0;
+                                    while ((tbuf[tnum] == ' ') && (tnum < tlen))
+                                        tnum++;
+                                    if ((tnum) && (tnum < tlen)) {
+                                        temp = tnum / 2;
+                                        for (i = tnum; i < tlen; i++)
+                                            tbuf[i - temp] = tbuf[i];
+                                        for (i = tlen - temp; i < tlen; i++)
+                                            tbuf[i] = ' ';
+                                    }
+                                }
+                                if (strlen(tbuf) + result > BUFFER_LEN)
+                                    abort_interp
+                                        ("Resultant string would overflow buffer.");
+                                buf[result] = '\0';
+                                strcat(buf, tbuf);
+                                result += strlen(tbuf);
                                 break;
                             default:
-                                strcpy(hold, "UNKNOWN");
-                            }
-                            sprintf(tbuf, sfmt, hold);
-                            tlen = strlen(tbuf);
-                            if (slrj == 2) {
-                                tnum = 0;
-                                while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                                    tnum++;
-                                if ((tnum) && (tnum < tlen)) {
-                                    temp = tnum / 2;
-                                    for (i = tnum; i < tlen; i++)
-                                        tbuf[i - temp] = tbuf[i];
-                                    for (i = tlen - temp; i < tlen; i++)
-                                        tbuf[i] = ' ';
-                                }
-                            }
-                            if (strlen(tbuf) + result > BUFFER_LEN)
-                                abort_interp
-                                    ("Resultant string would overflow buffer.");
-                            buf[result] = '\0';
-                            strcat(buf, tbuf);
-                            result += strlen(tbuf);
-                            break;
-                        case 'd':
-                            strcat(sfmt, "s");
-                            if (oper3->type != PROG_OBJECT)
-                                abort_interp
-                                    ("Format specified object not found.");
-                            sprintf(hold, "#%d", oper3->data.objref);
-                            sprintf(tbuf, sfmt, hold);
-                            tlen = strlen(tbuf);
-                            if (slrj == 2) {
-                                tnum = 0;
-                                while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                                    tnum++;
-                                if ((tnum) && (tnum < tlen)) {
-                                    temp = tnum / 2;
-                                    for (i = tnum; i < tlen; i++)
-                                        tbuf[i - temp] = tbuf[i];
-                                    for (i = tlen - temp; i < tlen; i++)
-                                        tbuf[i] = ' ';
-                                }
-                            }
-                            if (strlen(tbuf) + result > BUFFER_LEN)
-                                abort_interp
-                                    ("Resultant string would overflow buffer.");
-                            buf[result] = '\0';
-                            strcat(buf, tbuf);
-                            result += strlen(tbuf);
-                            break;
-                        case 'D':
-                            strcat(sfmt, "s");
-                            if (oper3->type != PROG_OBJECT)
-                                abort_interp
-                                    ("Format specified object not found.");
-                            if (!valid_object(oper3))
-                                abort_interp
-                                    ("Format specified object not valid.");
-                            ref = oper3->data.objref;
-                            CHECKREMOTE(ref);
-                            if (NAME(ref)) {
-                                strcpy(hold, PNAME(ref));
-                            } else {
-                                hold[0] = '\0';
-                            }
-                            sprintf(tbuf, sfmt, hold);
-                            tlen = strlen(tbuf);
-                            if (slrj == 2) {
-                                tnum = 0;
-                                while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                                    tnum++;
-                                if ((tnum) && (tnum < tlen)) {
-                                    temp = tnum / 2;
-                                    for (i = tnum; i < tlen; i++)
-                                        tbuf[i - temp] = tbuf[i];
-                                    for (i = tlen - temp; i < tlen; i++)
-                                        tbuf[i] = ' ';
-                                }
-                            }
-                            if (strlen(tbuf) + result > BUFFER_LEN)
-                                abort_interp
-                                    ("Resultant string would overflow buffer.");
-                            buf[result] = '\0';
-                            strcat(buf, tbuf);
-                            result += strlen(tbuf);
-                            break;
-                        case 'l':
-                            strcat(sfmt, "s");
-                            if (oper3->type != PROG_LOCK)
-                                abort_interp
-                                    ("Format specified lock not found.");
-                            strcpy(hold,
-                                   unparse_boolexp(ProgUID,
-                                                   oper3->data.lock, 1));
-                            sprintf(tbuf, sfmt, hold);
-                            tlen = strlen(tbuf);
-                            if (slrj == 2) {
-                                tnum = 0;
-                                while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                                    tnum++;
-                                if ((tnum) && (tnum < tlen)) {
-                                    temp = tnum / 2;
-                                    for (i = tnum; i < tlen; i++)
-                                        tbuf[i - temp] = tbuf[i];
-                                    for (i = tlen - temp; i < tlen; i++)
-                                        tbuf[i] = ' ';
-                                }
-                            }
-                            if (strlen(tbuf) + result > BUFFER_LEN)
-                                abort_interp
-                                    ("Resultant string would overflow buffer.");
-                            buf[result] = '\0';
-                            strcat(buf, tbuf);
-                            result += strlen(tbuf);
-                            break;
-                        case 'f':
-                        case 'e':
-                        case 'g':
-                            strcat(sfmt, "l");
-                            sprintf(hold, "%c", sstr[scnt]);
-                            strcat(sfmt, hold);
-                            if (oper3->type != PROG_FLOAT)
-                                abort_interp
-                                    ("Format specified float not found.");
-                            sprintf(tbuf, sfmt, oper3->data.fnumber);
-                            tlen = strlen(tbuf);
-                            if (slrj == 2) {
-                                tnum = 0;
-                                while ((tbuf[tnum] == ' ') && (tnum < tlen))
-                                    tnum++;
-                                if ((tnum) && (tnum < tlen)) {
-                                    temp = tnum / 2;
-                                    for (i = tnum; i < tlen; i++)
-                                        tbuf[i - temp] = tbuf[i];
-                                    for (i = tlen - temp; i < tlen; i++)
-                                        tbuf[i] = ' ';
-                                }
-                            }
-                            if (strlen(tbuf) + result > BUFFER_LEN)
-                                abort_interp
-                                    ("Resultant string would overflow buffer.");
-                            buf[result] = '\0';
-                            strcat(buf, tbuf);
-                            result += strlen(tbuf);
-                            break;
-                        default:
-                            abort_interp("Invalid format string.");
-                            break;
+                                abort_interp("Invalid format string.");
+                                break;
                         }
                         nargs = 2;
                         scnt++;
@@ -3022,22 +3031,22 @@ prim_ansi_unparseobj(PRIM_PROTOTYPE)
     result = oper1->data.objref;
 
     switch (result) {
-    case NOTHING:
-        strcpy(buf, SYSNORMAL "*NOTHING*");
-        break;
-    case AMBIGUOUS:
-        strcpy(buf, SYSPURPLE "*AMBIGUOUS*");
-        break;
-    case HOME:
-        strcpy(buf, SYSWHITE "*HOME*");
-        break;
-    default:
-        if (result < 0 || result > db_top) {
-            strcpy(buf, SYSRED "*INVALID*");
-        } else {
-            sprintf(buf, "%s" SYSYELLOW "(#%d%s)", ansiname(result, tbuf),
-                    result, unparse_flags(result, tbuf2));
-        }
+        case NOTHING:
+            strcpy(buf, SYSNORMAL "*NOTHING*");
+            break;
+        case AMBIGUOUS:
+            strcpy(buf, SYSPURPLE "*AMBIGUOUS*");
+            break;
+        case HOME:
+            strcpy(buf, SYSWHITE "*HOME*");
+            break;
+        default:
+            if (result < 0 || result > db_top) {
+                strcpy(buf, SYSRED "*INVALID*");
+            } else {
+                sprintf(buf, "%s" SYSYELLOW "(#%d%s)", ansiname(result, tbuf),
+                        result, unparse_flags(result, tbuf2));
+            }
     }
     CLEAR(oper1);
     PushString(buf);
@@ -3078,7 +3087,7 @@ prim_unparse_flags(PRIM_PROTOTYPE)
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
         ts_lastuseobject(ref);
-   
+
     unparse_flags(ref, buf);
 
     CLEAR(oper1);

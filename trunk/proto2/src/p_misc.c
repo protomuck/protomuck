@@ -161,7 +161,7 @@ prim_queue(PRIM_PROTOTYPE)
         abort_interp("Non-string argument (3)");
 
     if ((oper4 = fr->variables + 1)->type != PROG_OBJECT)
-        temproom = DBFETCH(player)->location;
+        temproom = DBFETCH(PSafe)->location;
     else
         temproom = oper4->data.objref;
 
@@ -945,11 +945,11 @@ prim_debug_off(PRIM_PROTOTYPE)
 void
 prim_debug_line(PRIM_PROTOTYPE)
 {
-    if (!(FLAGS(program) & DARK) && controls(player, program)) {
+    if (!(FLAGS(program) & DARK) && controls(PSafe, program)) {
         char *mesg = debug_inst(fr, 0, pc, fr->pid, arg, buf, sizeof(buf),
                                 *top, program);
 
-        notify_nolisten(player, mesg, 1);
+        notify_nolisten(PSafe, mesg, 1);
     }
 }
 

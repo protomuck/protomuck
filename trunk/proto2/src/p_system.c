@@ -74,7 +74,7 @@ prim_setsysparm(PRIM_PROTOTYPE)
     switch (result) {
         case 0:                /* TUNESET_SUCCESS */
             log_status("TUNED (MUF): %s(%d) tuned %s to %s\n",
-                       player != -1 ? NAME(player) : "(Login)", player,
+                       OkObj(player) ? NAME(player) : "(Login)", player,
                        oper2->data.string->data, oper1->data.string->data);
             break;
         case 1:                /* TUNESET_UNKNOWN */
@@ -198,7 +198,8 @@ prim_shutdown(PRIM_PROTOTYPE)
     if (oper1->type != PROG_STRING)
         abort_interp("String expected.");
 
-    log_status("SHUT(MUF): by %s\n", unparse_object(player, player));
+    log_status("SHUT(MUF: %d): by %s(%d)\n", program,
+               OkObj(player) ? NAME(player) : "(login)", player);
     shutdown_flag = 1;
     restart_flag = 0;
     if (oper1->data.string) {
@@ -221,7 +222,8 @@ prim_restart(PRIM_PROTOTYPE)
     if (oper1->type != PROG_STRING)
         abort_interp("String expected.");
 
-    log_status("REST(MUF): by %s\n", unparse_object(player, player));
+    log_status("RESTART(MUF: %d): by %s(%d)\n", program,
+               OkObj(player) ? NAME(player) : "(login)", player);
     shutdown_flag = 1;
     restart_flag = 1;
 
@@ -249,7 +251,7 @@ prim_armageddon(PRIM_PROTOTYPE)
     if (oper1->type != PROG_STRING)
         abort_interp("String expected.");
 
-    sprintf(buf, "\r\nImmediate shutdown by %s.\r\n", NAME(player));
+    sprintf(buf, "\r\nImmediate shutdown by %s.\r\n", NAME(PSafe));
     if (oper1->data.string) {
         strcat(buf, SYSWHITE MARK SYSNORMAL);
         strcat(buf, oper1->data.string->data);
@@ -257,8 +259,10 @@ prim_armageddon(PRIM_PROTOTYPE)
     }
 
     CLEAR(oper1);
-    log_status("DDAY(MUF): %s(%d)\n", NAME(player), player);
-    fprintf(stderr, "DDAY: %s(%d)\n", NAME(player), player);
+    log_status("DDAY(MUF: %d): by %s(%d)\n", program,
+               OkObj(player) ? NAME(player) : "(login)", player);
+    fprintf(stderr, "DDAY(MUF: %d): by %s(%d)\n", program,
+            OkObj(player) ? NAME(player) : "(login)", player);
     close_sockets(buf);
 
 #ifdef SPAWN_HOST_RESOLVER

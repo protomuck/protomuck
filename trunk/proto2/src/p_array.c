@@ -749,7 +749,7 @@ prim_array_notify(PRIM_PROTOTYPE)
             strcpy(buf, DoNullInd(oper4->data.string));
             if (tp_m1_name_notify && mlev < 2) {
                 prefix_message(buf, DoNullInd(oper4->data.string),
-                               PNAME(player), BUFFER_LEN, 1);
+                               NAME(PSafe), BUFFER_LEN, 1);
             } else {
                 strcpy(buf, DoNullInd(oper4->data.string));
             }
@@ -758,7 +758,7 @@ prim_array_notify(PRIM_PROTOTYPE)
                 do {
                     oper3 = array_getitem(refarr, &temp1);
                     if (valid_object(oper3))
-                        notify_listeners(fr->descr, player,
+                        notify_listeners(fr->descr, PSafe,
                                          program, oper3->data.objref,
                                          getloc(oper3->data.objref), buf, 1);
 
@@ -803,7 +803,7 @@ prim_array_ansi_notify(PRIM_PROTOTYPE)
             oper4 = array_getitem(strarr, &temp2);
             strcpy(buf, DoNullInd(oper4->data.string));
             if (tp_m1_name_notify && mlev < 2) {
-                strcpy(buf2, PNAME(player));
+                strcpy(buf2, NAME(PSafe));
                 strcat(buf2, " ");
                 if (!string_prefix(buf, buf2)) {
                     strcat(buf2, buf);
@@ -816,7 +816,7 @@ prim_array_ansi_notify(PRIM_PROTOTYPE)
                     oper3 = array_getitem(refarr, &temp1);
                     if (valid_object(oper3))
                         ansi_notify_listeners(fr->descr,
-                                              player, program,
+                                              PSafe, program,
                                               oper3->data.objref,
                                               getloc(oper3->data.objref), buf,
                                               1);
@@ -862,7 +862,7 @@ prim_array_notify_html(PRIM_PROTOTYPE)
             oper4 = array_getitem(strarr, &temp2);
             strcpy(buf, DoNullInd(oper4->data.string));
             if (tp_m1_name_notify && mlev < 2) {
-                strcpy(buf2, PNAME(player));
+                strcpy(buf2, NAME(PSafe));
                 strcat(buf2, " ");
                 if (!string_prefix(buf, buf2)) {
                     strcat(buf2, buf);
@@ -874,7 +874,7 @@ prim_array_notify_html(PRIM_PROTOTYPE)
                 do {
                     oper3 = array_getitem(refarr, &temp1);
 
-                    notify_html_listeners(fr->descr, player, program,
+                    notify_html_listeners(fr->descr, PSafe, program,
                                           oper3->data.objref,
                                           getloc(oper3->data.objref), buf, 1);
 
@@ -1571,7 +1571,7 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                 case PROG_LOCK:
                     protoflags = PROP_LOKTYP;
                     sprintf(buf, "%s",
-                            unparse_boolexp(player, copy_bool(oper4->data.lock),
+                            unparse_boolexp(PSafe, copy_bool(oper4->data.lock),
                                             1));
                     break;
                 default:
@@ -2292,7 +2292,7 @@ prim_array_filter_flags(PRIM_PROTOTYPE)
     arr = oper1->data.array;
     nw = new_array_packed(0);
 
-    init_checkflags(player, DoNullInd(oper2->data.string), &check);
+    init_checkflags(PSafe, DoNullInd(oper2->data.string), &check);
 
     if (array_first(arr, &temp1)) {
         do {
