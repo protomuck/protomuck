@@ -396,10 +396,8 @@ prim_program_insertlines(PRIM_PROTOTYPE)
             curr = new_line;    /* move curr to insert after it next */
         } while (array_next(lines, &temp1));
     }
-    log_status("PROGRAM EDITED: %s by %s(%d)\n", unparse_object(player,
-                                                                oper1->data.
-                                                                objref),
-               NAME(player), player);
+    log_status("PROGRAM EDITED: %s by %s(%d)\n",
+               unparse_object(player, theprog), NAME(player), player);
     if (tp_log_programs)
         log_program_text(DBFETCH(theprog)->sp.program.first, player,
                          oper1->data.objref);
