@@ -866,13 +866,13 @@ prim_parseprop(PRIM_PROTOTYPE)
     ptr = (oper2->data.string)? oper2->data.string->data : "";
     if(temp) {
 	result = oper4->data.number & (~MPI_ISLISTENER);
-#ifdef OLDPARSE
+      if(tp_old_parseprop) {
         ptr = do_parse_mesg_2(fr->descr, player, oper3->data.objref, (dbref)program, temp,
 			    ptr, buf, result);
-#else
-        ptr = do_parse_mesg_2(fr->descr, player, oper3->data.objref, temp,
+      } else {
+        ptr = do_parse_mesg(fr->descr, player, oper3->data.objref, temp,
 			    ptr, buf, result);
-#endif
+      }
 	CLEAR(oper1);
 	CLEAR(oper2);
 	CLEAR(oper3);
