@@ -1257,8 +1257,10 @@ shovechars(void)
 	for (d = descriptor_list; d; d = dnext) {
 	    dnext = d->next;
 	    if (d->booted) {
-		if (!(((d->type == CT_HTML) && !(d->http_login)) ||	(d->type == CT_MUF)) && 
-			(!descr_running_queue(d->descriptor)) || (d->booted != 3)) {
+    if ( (d->booted != 3) || 
+         (d->type == CT_HTML && !(d->http_login) 
+           && !descr_running_queue(d->descriptor)) ||
+          (d->type == CT_MUF && !descr_running_queue(d->descriptor)) ) {
 #ifdef HTTPDELAY
 		   if((d->httpdata) && (d->booted == 3)) {
 		       queue_ansi(d, d->httpdata);
@@ -2469,7 +2471,8 @@ process_commands(void)
             if (d->type == CT_MUF) {
                 sprintf(buf, "@Ports/%d/MUF", d->cport);
                 mufprog = get_property_dbref((dbref) 0, buf);
-                if (OkObj(mufprog) && (!descr_running_queue(d->descriptor)) ) {
+                if (OkObj(mufprog) && (!descr_running_queue(d->descriptor)) 
+                    && (d-> booted != 3) ) {
                     struct frame *tmpfr;
                     strcpy(match_args, "MUF");
                     strcpy(match_cmdname, "Queued Event.");
@@ -2480,8 +2483,8 @@ process_commands(void)
                     }
                     d->booted = 3;
                     continue;
-                } else {
-                    d->type = CT_MUCK;
+               // } else {
+                 //   d->type = CT_MUCK;
                 }
             } 
 	    if (d->quota > 0 && (t = d->input.head)) {
@@ -2999,7 +3002,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	if((prpt) || (m && *m)) 
 	{
 		struct frame *tmpfr;
-
+notify(1, "Checking for program ref.");
 	      if (PropType(prpt) == PROP_REFTYP) /* Program reference? */
 	      {
 		sprintf(buf, "%d|%s|%s|%s",
@@ -3009,6 +3012,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		tmpfr = interp(d->descriptor, tp_www_surfer, what, PropDataRef(prpt),
 		       tp_www_root, BACKGROUND, STD_HARDUID);
 		if (tmpfr) {
+notify(1, "In the interp loop.");
 			interp_loop(tp_www_surfer, PropDataRef(prpt), tmpfr, 1);
 		}
 		strcpy(match_args,"");
@@ -3073,6 +3077,7 @@ check_connect(struct descriptor_data * d, const char *msg)
     int     result, xref;
     char    msgargs[BUFFER_LEN];
     char    buf[BUFFER_LEN];
+    char    *p = NULL;
 
     if( tp_log_connects )
 	log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg );
@@ -3085,7 +3090,11 @@ check_connect(struct descriptor_data * d, const char *msg)
     strcat(msgargs, password);
 
     if ( d->interactive == 2 ) { 
-        handle_read_event(d->descriptor, NOTHING, msg);
+        p = buf;
+        while (*msg && (isprint(*msg)))
+            *p++ = *msg++;
+        *p = '\0';
+        handle_read_event(d->descriptor, NOTHING, buf);
         return;
     }
 
@@ -4846,6 +4855,8 @@ pset_user2(int c, dbref who)
    else
       result = plogin_user(d, who);
       d->booted = 0;
+      if (d->typ == CT_MUF)
+          d->type = CT_MUCK;
    return result;
 }
 
