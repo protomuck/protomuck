@@ -628,100 +628,68 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 }
 
 void
-prim_ssl_nbsockopen(PRIM_PROTOTYPE)
+prim_socksecure(PRIM_PROTOTYPE)
 {
 #if !defined(SSL_SOCKETS) || !defined(USE_SSL)
     abort_interp("MUF SSL sockets not supported.");
 #else
-    struct inst *result = NULL;
-    register int mysock = 0;
-    struct sockaddr_in name;
-    struct hostent *myhost;
-    char myresult[255];
     int ssl_error;
 
-    CHECKOP(2);
-    oper2 = POP();
+    CHECKOP(1);
     oper1 = POP();
+
     if (mlev < LARCH)
         abort_interp("Socket calls are ArchWiz-only primitives.");
-    if (oper2->type != PROG_INTEGER)
-        abort_interp("Integer argument expected.");
-    if ((oper2->data.number < 1) || (oper2->data.number > 65535))
-        abort_interp("Invalid port number.");
-    if (oper1->type != PROG_STRING)
-        abort_interp("String argument expected.");
-    if (!oper1->data.string)
-        abort_interp("Host cannot be an empty string.");
-    if (!(myhost = gethostbyname(oper1->data.string->data))) {
-        strcpy(myresult, "Invalid host.");
-        result = (struct inst *) malloc(sizeof(struct inst));
-        result->type = PROG_INTEGER;
-        result->data.number = 0;
-    } else {
-        name.sin_port = (int) htons(oper2->data.number);
-        name.sin_family = AF_INET;
-        bcopy((char *) myhost->h_addr, (char *) &name.sin_addr,
-              myhost->h_length);
-        mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
-        if (connect(mysock, (struct sockaddr *) &name, sizeof(name)) == -1)
-#if defined(BRAINDEAD_OS) || defined(WIN32)
-            sprintf(myresult, "ERROR: %d", errnosocket);
-#else
-            strcpy(myresult, sys_errlist[errnosocket]);
-#endif
-        else
-            strcpy(myresult, "noerr");
-        /* Socket was made, now initialize the muf_socket struct */
-        result = (struct inst *) malloc(sizeof(struct inst));
-        result->type = PROG_SOCKET;
-        result->data.sock =
-            (struct muf_socket *) malloc(sizeof(struct muf_socket));
-        result->data.sock->socknum = mysock;
-        result->data.sock->connected = 0;
-        result->data.sock->links = 1;
-        result->data.sock->listening = 0;
-        result->data.sock->raw_input = NULL;
-        result->data.sock->raw_input_at = NULL;
-        result->data.sock->inIAC = 0;
-        result->data.sock->commands = 0;
-        result->data.sock->is_player = 0;
-        result->data.sock->port = oper2->data.number; /* remote port # */
-        result->data.sock->hostname = alloc_string(oper1->data.string->data);
-        result->data.sock->host = ntohl(name.sin_addr.s_addr);
-        result->data.sock->username =
-            alloc_string(unparse_object(PSafe, PSafe));
-        result->data.sock->connected_at = time(NULL);
-        result->data.sock->last_time = time(NULL);
-        result->data.sock->usequeue = 0;
-        result->data.sock->usesmartqueue = 0;
-        result->data.sock->readWaiting = 0;
-        result->data.sock->ssl_session = SSL_new(ssl_ctx_client);
-        SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
-        ssl_error = SSL_connect(result->data.sock->ssl_session);
-        if (ssl_error <= 0) {
-            ssl_error = SSL_get_error(result->data.sock->ssl_session, ssl_error);
-            if (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE)
-                sprintf(myresult, "SSLerr: %d", ssl_error);
-        }
-                make_nonblocking(mysock);
-        add_socket_to_queue(result->data.sock, fr);
-        if (tp_log_sockets)
-            log2filetime("logs/sockets",
-                         "#%d by %s SOCKOPEN:  %s:%d -> %d\n", program,
-                         unparse_object(PSafe, PSafe),
-                         oper1->data.string->data, oper2->data.number,
-                         result->data.sock->socknum);
-    }
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("SOCKET arguement expected.");
+    if (oper1->data.sock->listening)
+        abort_interp("SOCKET must not be a listening socket.");
 
+    if (oper1->data.sock->connected) {
+        oper1->data.sock->ssl_session = SSL_new(ssl_ctx_client);
+        SSL_set_fd(oper1->data.sock->ssl_session, oper1->data.sock->socknum);
+        ssl_error = SSL_connect(oper1->data.sock->ssl_session);
+        if (ssl_error <= 0) {
+            ssl_error = SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
+            result = (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) 
+                     ? ssl_error : 0;
+        } else {
+    	    result = 0;
+        }
+    } else
+	result = -1;
 
     CLEAR(oper1);
-    CLEAR(oper2);
-    copyinst(result, &arg[(*top)++]);
-    CLEAR(result);
-    PushString(myresult);
-    if (result)
-        free((void *) result);
+    PushInt(result);
+#endif /* SSL_SOCKETS && USE_SSL */
+}
+
+void
+prim_sockunsecure(PRIM_PROTOTYPE)
+{
+#if !defined(SSL_SOCKETS) || !defined(USE_SSL)
+    abort_interp("MUF SSL sockets not supported.");
+#else
+
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("SOCKET arguement expected.");
+    if (oper1->data.sock->listening)
+        abort_interp("SOCKET must not be a listening socket.");
+
+    if (oper1->data.sock->connected) {
+        if (oper1->data.sock->ssl_session) {
+	    if (SSL_shutdown(oper1->data.sock->ssl_session) < 1)
+                SSL_shutdown(oper1->data.sock->ssl_session);
+	    SSL_free(oper1->data.sock->ssl_session);
+        }
+	oper1->data.sock->ssl_session = NULL;
+    }
+    CLEAR(oper1);
 #endif /* SSL_SOCKETS && USE_SSL */
 }
 

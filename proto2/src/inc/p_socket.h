@@ -2,7 +2,9 @@ extern void prim_socksend(PRIM_PROTOTYPE);
 extern void prim_nbsockrecv(PRIM_PROTOTYPE);
 extern void prim_sockclose(PRIM_PROTOTYPE);
 extern void prim_nbsockopen(PRIM_PROTOTYPE);
-extern void prim_ssl_nbsockopen(PRIM_PROTOTYPE);
+extern void prim_socksecure(PRIM_PROTOTYPE);
+extern void prim_sockunsecure(PRIM_PROTOTYPE);
+extern void prim_sslerror(PRIM_PROTOTYPE);
 extern void prim_sockcheck(PRIM_PROTOTYPE);
 extern void prim_sockdescr(PRIM_PROTOTYPE);
 extern void prim_lsockopen(PRIM_PROTOTYPE);
@@ -19,15 +21,15 @@ extern void prim_sockshutdown(PRIM_PROTOTYPE);
     prim_nbsockopen, prim_sockcheck, prim_sockdescr, prim_lsockopen,       \
     prim_sockaccept, prim_nbsockrecv_char, prim_get_sockinfo,              \
     prim_socket_setuser, prim_set_sockopt, prim_socktodescr,               \
-    prim_sockshutdown, prim_ssl_nbsockopen, prim_ssl_sockaccept
+    prim_sockshutdown, prim_ssl_sockaccept, prim_socksecure, prim_sockunsecure
 
 #define PRIMS_SOCKET_NAMES "SOCKSEND", "NBSOCKRECV", "SOCKCLOSE",      \
     "NBSOCKOPEN", "SOCKCHECK", "SOCKDESCR", "LSOCKOPEN", "SOCKACCEPT", \
     "NBSOCKRECV_CHAR", "GET_SOCKINFO", "SOCKET_SETUSER", "SET_SOCKOPT",\
-    "SOCKTODESCR", "SOCKSHUTDOWN", "SSL_NBSOCKOPEN", "SSL_SOCKACCEPT"
+    "SOCKTODESCR", "SOCKSHUTDOWN", "SSL_SOCKACCEPT", "SOCKSECURE", "SOCKUNSECURE"
 
 #ifdef MUF_SOCKETS
-#define PRIMS_SOCKET_CNT 16
+#define PRIMS_SOCKET_CNT 17
 #else
 #define PRIMS_SOCKET_CNT 0
 #endif
