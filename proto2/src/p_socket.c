@@ -49,6 +49,7 @@
 #include "interp.h"
 #include "cgi.h"
 #include "mufevent.h"
+#include "netresolve.h"
 
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__APPLE__)
 typedef int socklen_t;
@@ -287,10 +288,10 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         if (oper1->data.sock->ssl_session)
             while (1) {
                 readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-	        if (SSL_get_error(oper1->data.sock->ssl_session, readme) != SSL_ERROR_WANT_READ)
-    	            break;
-            }
-        else
+                if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
+                    SSL_ERROR_WANT_READ)
+                    break;
+        } else
 #endif
             readme = readsocket(oper1->data.sock->socknum, mystring, 1);
 
@@ -306,11 +307,12 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
             if (oper1->data.sock->ssl_session)
                 while (1) {
-        	    readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-        	    if (SSL_get_error(oper1->data.sock->ssl_session, readme) != SSL_ERROR_WANT_READ)
-            	        break;
-                }
-            else
+                    readme =
+                        SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+                    if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
+                        SSL_ERROR_WANT_READ)
+                        break;
+            } else
 #endif
                 readme = readsocket(oper1->data.sock->socknum, mystring, 1);
         }
@@ -420,11 +422,11 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         if (oper1->data.sock->ssl_session)
             while (1) {
-    	        readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-	        if (SSL_get_error(oper1->data.sock->ssl_session, readme) != SSL_ERROR_WANT_READ)
-    	            break;
-            }
-        else
+                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+                if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
+                    SSL_ERROR_WANT_READ)
+                    break;
+        } else
 #endif
             readme = readsocket(oper1->data.sock->socknum, mystring, 1);
 
@@ -646,27 +648,32 @@ prim_socksecure(PRIM_PROTOTYPE)
         abort_interp("SOCKET must not be a listening socket.");
     if (oper1->data.sock->connected) {
         if (oper1->data.sock->ssl_session) {
-	    ssl_error = SSL_renegotiate(oper1->data.sock->ssl_session);
-	    if (ssl_error <= 0) {
-	        ssl_error = SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
-	        result = (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) 
-	                 ? ssl_error : 0;
+            ssl_error = SSL_renegotiate(oper1->data.sock->ssl_session);
+            if (ssl_error <= 0) {
+                ssl_error =
+                    SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
+                result = (ssl_error != SSL_ERROR_WANT_READ
+                          && ssl_error != SSL_ERROR_WANT_WRITE)
+                    ? ssl_error : 0;
             } else
-		result = 0;
+                result = 0;
         } else {
-	    oper1->data.sock->ssl_session = SSL_new(ssl_ctx_client);
-	    SSL_set_fd(oper1->data.sock->ssl_session, oper1->data.sock->socknum);
-	    ssl_error = SSL_connect(oper1->data.sock->ssl_session);
-	    if (ssl_error <= 0) {
-	        ssl_error = SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
-	        result = (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) 
-	                 ? ssl_error : 0;
-	    } else
-		result = 0;
-	}
+            oper1->data.sock->ssl_session = SSL_new(ssl_ctx_client);
+            SSL_set_fd(oper1->data.sock->ssl_session,
+                       oper1->data.sock->socknum);
+            ssl_error = SSL_connect(oper1->data.sock->ssl_session);
+            if (ssl_error <= 0) {
+                ssl_error =
+                    SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
+                result = (ssl_error != SSL_ERROR_WANT_READ
+                          && ssl_error != SSL_ERROR_WANT_WRITE)
+                    ? ssl_error : 0;
+            } else
+                result = 0;
+        }
     } else
         result = -1;
-   
+
     CLEAR(oper1);
     PushInt(result);
 #endif /* SSL_SOCKETS && USE_SSL */
@@ -688,13 +695,13 @@ prim_sockunsecure(PRIM_PROTOTYPE)
         abort_interp("SOCKET arguement expected.");
     if (oper1->data.sock->listening)
         abort_interp("SOCKET must not be a listening socket.");
- 
+
     if (oper1->data.sock->connected) {
         if (oper1->data.sock->ssl_session) {
-	    if (SSL_shutdown(oper1->data.sock->ssl_session) < 1)
+            if (SSL_shutdown(oper1->data.sock->ssl_session) < 1)
                 SSL_shutdown(oper1->data.sock->ssl_session);
-        SSL_free(oper1->data.sock->ssl_session);
-	oper1->data.sock->ssl_session = NULL;
+            SSL_free(oper1->data.sock->ssl_session);
+            oper1->data.sock->ssl_session = NULL;
         }
     }
     CLEAR(oper1);
@@ -842,13 +849,13 @@ prim_sockaccept(PRIM_PROTOTYPE)
     int newsock = 0;
     int sockdescr = 0;
     struct inst *result;
-    char hostname[128];
     char username[10];
     char myresult[255];
     struct sockaddr_in remoteaddr; // client's address
     int addr_len;
     fd_set reads;
     struct timeval t_val;
+    struct huinfo *hu;
 
     CHECKOP(1);
     /* LSOCKET */
@@ -903,10 +910,12 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->inIAC = 0;
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
-    strcpy(hostname,
-           addrout(oper1->data.sock->port, remoteaddr.sin_addr.s_addr,
-                   remoteaddr.sin_port));
-    result->data.sock->hostname = alloc_string(hostname);
+    /* sockets confuse me too much to convert to the new */
+    /* huinfo system, so I'll quickhack it. -hinoserm */
+    hu = host_getinfo(remoteaddr.sin_addr.s_addr, oper1->data.sock->port,
+                      remoteaddr.sin_port);
+    result->data.sock->hostname = alloc_string(hu->h->name);
+    host_delete(hu);
     sprintf(username, "%d", ntohs(remoteaddr.sin_port));
     result->data.sock->username = alloc_string(username); /* not done */
     result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
@@ -952,6 +961,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     struct timeval t_val;
     int ssl_error;
     SSL *ssl_session;
+    struct huinfo *hu;
 
     CHECKOP(1);
     /* LSOCKET */
@@ -998,7 +1008,8 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
 
     if ((ssl_error = SSL_accept(ssl_session)) <= 0) {
         ssl_error = SSL_get_error(ssl_session, ssl_error);
-        if (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) {
+        if (ssl_error != SSL_ERROR_WANT_READ
+            && ssl_error != SSL_ERROR_WANT_WRITE) {
             sprintf(myresult, "SSLerr: %d", ssl_error);
             SSL_free(ssl_session);
             CLEAR(oper1);
@@ -1021,10 +1032,12 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->inIAC = 0;
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
-    strcpy(hostname,
-           addrout(oper1->data.sock->port, remoteaddr.sin_addr.s_addr,
-                   remoteaddr.sin_port));
-    result->data.sock->hostname = alloc_string(hostname);
+    /* sockets confuse me too much to convert to the new */
+    /* huinfo system, so I'll quickhack it. -hinoserm */
+    hu = host_getinfo(remoteaddr.sin_addr.s_addr, oper1->data.sock->port,
+                      remoteaddr.sin_port);
+    result->data.sock->hostname = alloc_string(hu->h->name);
+    host_delete(hu);
     sprintf(username, "%d", ntohs(remoteaddr.sin_port));
     result->data.sock->username = alloc_string(username); /* not done */
     result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
@@ -1137,13 +1150,15 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     /* Now establish a normal telnet connection to the MUCK */
 #if defined(SSL_SOCKETS) && defined (USE_SSL)
     if (theSock->ssl_session)
-        d = initializesock(theSock->socknum, theSock->hostname,
-                           atoi(theSock->username), theSock->host,
-                           CT_SSL, theSock->port, 0);
+        d = initializesock(theSock->socknum,
+                           host_getinfo(htonl(theSock->host), theSock->port,
+                                        htons(atoi(theSock->username))), CT_SSL,
+                           theSock->port, 0);
     else
 #endif
-        d = initializesock(theSock->socknum, theSock->hostname,
-                           atoi(theSock->username), theSock->host,
+        d = initializesock(theSock->socknum,
+                           host_getinfo(htonl(theSock->host), theSock->port,
+                                        htons(atoi(theSock->username))),
                            CT_MUCK, theSock->port, 0);
 
     check_maxd(d);
@@ -1187,9 +1202,10 @@ prim_socktodescr(PRIM_PROTOTYPE)
     /* make sure socket is non-blocking */
     make_nonblocking(theSock->socknum);
     /* Now add the descriptor to the MUCK's descriptor list */
-    d = initializesock(theSock->socknum, theSock->hostname,
-                       atoi(theSock->username), theSock->host,
-                       CT_INBOUND, theSock->port, 0);
+    d = initializesock(theSock->socknum,
+                       host_getinfo(htonl(theSock->host), theSock->port,
+                                    htons(atoi(theSock->username))), CT_INBOUND,
+                       theSock->port, 0);
     /* now the descriptor is queued with the rest of the MUCK's d's */
     check_maxd(d);
     if (tp_log_sockets)

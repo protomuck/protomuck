@@ -15,6 +15,7 @@
 #include "tune.h"
 #include "strings.h"
 #include "interp.h"
+#include "netresolve.h"
 
 extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern struct inst temp1, temp2, temp3;
@@ -877,7 +878,7 @@ prim_descrhost(PRIM_PROTOTYPE)
     dr = descrdata_by_descr(oper1->data.number);
     CLEAR(oper1);
     CHECKOFLOW(1);
-    PushString(dr->hostname);
+    PushString(dr->hu->h->name);
 }
 
 void
@@ -896,7 +897,7 @@ prim_descruser(PRIM_PROTOTYPE)
     dr = descrdata_by_descr(oper1->data.number);
     CLEAR(oper1);
     CHECKOFLOW(1);
-    PushString(dr->username);
+    PushString(dr->hu->u->user);
 }
 
 void
@@ -915,7 +916,7 @@ prim_descripnum(PRIM_PROTOTYPE)
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
     dr = descrdata_by_descr(oper1->data.number);
-    p = host_as_hex(dr->hostaddr);
+    p = host_as_hex(dr->hu->h->a);
     strcpy(ipnum, p);
     CLEAR(oper1);
     CHECKOFLOW(1);
@@ -937,7 +938,7 @@ prim_descrport(PRIM_PROTOTYPE)
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
     dr = descrdata_by_descr(oper1->data.number);
-    sprintf(port, "%d", dr->port);
+    sprintf(port, "%d", dr->hu->u->uport);
     CLEAR(oper1);
     CHECKOFLOW(1);
     PushString((char *) port);
@@ -1124,28 +1125,28 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("HOSTADDR");
     temp2.type = PROG_INTEGER;
-    temp2.data.number = d->hostaddr;
+    temp2.data.number = d->hu->h->a;
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("PORT");
     temp2.type = PROG_INTEGER;
-    temp2.data.number = d->port;
+    temp2.data.number = d->hu->u->uport;
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("HOSTNAME");
     temp2.type = PROG_STRING;
-    temp2.data.string = alloc_prog_string(d->hostname);
+    temp2.data.string = alloc_prog_string(d->hu->h->name);
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("USERNAME");
     temp2.type = PROG_STRING;
-    temp2.data.string = alloc_prog_string(d->username);
+    temp2.data.string = alloc_prog_string(d->hu->u->user);
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);

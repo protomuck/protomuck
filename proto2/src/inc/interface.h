@@ -86,6 +86,8 @@ struct http_struct {        /* hinoserm */  /***********************************
 
 /*- End hinoserm new code -*/
 
+struct huinfo; /* from newresolv.h -hinoserm */
+
 struct descriptor_data {
     int                      descriptor;    /* Descriptor number */
     int                      connected;     /* Connected as a player? */
@@ -109,12 +111,13 @@ struct descriptor_data {
     int                      inIAC;         /* Used for telnet negotiation */
     time_t                   last_time;
     time_t                   connected_at;
-    int                      hostaddr;      /* HEX host address */
-    int	                 port;          /* Port number */
-    const char              *hostname;      /* String host name */
-    const char              *username;      /* Descriptor user name */
+//  int                      hostaddr;      /* HEX host address */     /* use: hu->h->a */
+//  int                      port;          /* Port number */          /* use: hu->u->uport */
+//  const char              *hostname;      /* String host name */     /* use: hu->h->name */
+//  const char              *username;      /* Descriptor user name */ /* use: hu->u->user */
+    struct huinfo           *hu;            /* host/user information, part of the new resolver system */
     int                      quota;
-    int	                 commands;      /* Number of commands done */
+    int                      commands;      /* Number of commands done */
     int                      linelen;
     int                      type;          /* Connection type */
     int                      cport;         /* Connected on this port if inbound, text, pueblo, web, etc. */
@@ -187,7 +190,7 @@ extern unsigned int bytesOut;
 extern unsigned int commandTotal;
 extern void shutdownsock(struct descriptor_data *d);
 extern void check_maxd(struct descriptor_data *d);
-extern struct descriptor_data * initializesock(int s, const char *hostname, int port, int hostaddr, int ctyp, int cport, int welcome);
+extern struct descriptor_data * initializesock(int s, struct huinfo *hu, int ctyp, int cport, int welcome);
 extern struct descriptor_data* descrdata_by_index(int index);
 extern struct descriptor_data* descrdata_by_descr(int i);
 extern int notify(dbref player, const char *msg);
@@ -236,7 +239,6 @@ extern int pontime(int c);
 extern char *phost(int c);
 extern char *puser(int c);
 extern char *pipnum(int c);
-extern const char *addrout(int, int, unsigned short);
 extern char *pport(int c);
 extern void make_nonblocking(register int s);
 extern char *time_format_2(time_t dt);
@@ -275,16 +277,10 @@ extern int pdescrtype(int c);
 extern void pdescr_welcome_user(int c);
 extern void pdescr_logout(int c);
 extern void pdump_who_users(int c, char *user);
-extern const char* host_as_hex( unsigned addr );
+extern const char* host_as_hex(unsigned addr);
+extern int str2ip(const char *ipstr);
 extern int index_descr(int index);
 extern void close_sockets(const char *msg);
-#ifdef SPAWN_HOST_RESOLVER
-extern void kill_resolver(void);
-extern void spawn_resolver(void);
-extern void resolve_hostnames(void);
-extern int resolverpid;
-extern int resolver_sock[2];
-#endif
 #ifdef IGNORE_SUPPORT
 extern char ignorance(register dbref src, dbref tgt);
 extern void init_ignore(dbref tgt);
@@ -307,7 +303,6 @@ extern SSL_CTX *ssl_ctx_client;
 #endif
 
 /* binding support */
-extern int str2ip(const char *ipstr);
 extern int bind_to;
 
 /* Ansi Colors */

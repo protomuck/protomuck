@@ -34,6 +34,7 @@
 #include "mufevent.h"
 #include "interp.h"
 #include "newhttp.h"            /* hinoserm */
+#include "netresolve.h"         /* hinoserm */
 
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__APPLE__)
 typedef int socklen_t;
@@ -53,10 +54,6 @@ char shutdown_message[BUFFER_LEN];
 int shutdown_flag = 0;
 int restart_flag = 0;
 int total_loggedin_connects = 0;
-
-#ifdef SPAWN_HOST_RESOLVER
-int resolver_sock[2];
-#endif
 
 #ifdef USE_PS
 
@@ -425,7 +422,7 @@ main(int argc, char **argv)
                     show_program_usage(*argv);
                 }
                 bind_to = str2ip(argv[++i]);
-		if (bind_to == -1) {
+                if (bind_to == -1) {
                     bind_to = INADDR_ANY;
                 } else {
                     bind_to = ntohl(bind_to);
@@ -614,7 +611,6 @@ main(int argc, char **argv)
     if (!db_conversion_flag) {
         fprintf(stderr, "INIT: external host resolver started\n");
         spawn_resolver();
-        host_init();
     }
 #endif
 
@@ -626,6 +622,8 @@ main(int argc, char **argv)
 #ifdef MUD_ID
         do_setuid(MUD_ID);
 #endif /* MUD_ID */
+
+        host_init();
 
         if (!sanity_skip) {
             sanity(AMBIGUOUS);
@@ -2251,7 +2249,7 @@ new_connection(int port, int sock)
     int addr_len;
     int ctype;
     int result;
-    char hostname[128];
+    struct huinfo *hu;
 
     addr_len = sizeof(addr);
     newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
@@ -2260,10 +2258,11 @@ new_connection(int port, int sock)
     if (newsock < 0) {
         return 0;
     } else {
-        strcpy(hostname, addrout(port, addr.sin_addr.s_addr, addr.sin_port));
+        hu = host_getinfo(addr.sin_addr.s_addr, port, addr.sin_port);
+
         if (reg_site_is_blocked(ntohl(addr.sin_addr.s_addr)) == TRUE) {
             log_status("*BLK: %2d %s(%d) %s C#%d P#%d\n", newsock,
-                       hostname, ntohs(addr.sin_port),
+                       hu->h->name, ntohs(addr.sin_port),
                        host_as_hex(ntohl(addr.sin_addr.s_addr)),
                        ++crt_connect_count, port);
             shutdown(newsock, 2);
@@ -2274,7 +2273,7 @@ new_connection(int port, int sock)
         if (ctype != CT_HTTP) { /* hinoserm */
 #endif /* NEWHTTPD */
             show_status("ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
-                        hostname, ntohs(addr.sin_port),
+                        hu->h->name, ntohs(addr.sin_port),
                         host_as_hex(ntohl(addr.sin_addr.s_addr)),
                         ++crt_connect_count, port,
                         ctype == CT_MUCK ? "TEXT" :
@@ -2291,7 +2290,7 @@ new_connection(int port, int sock)
                 );
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "ACPT: %2d %s(%d) %s C#%d P#%d %s\n",
-                             newsock, hostname, ntohs(addr.sin_port),
+                             newsock, hu->h->name, ntohs(addr.sin_port),
                              host_as_hex(ntohl(addr.sin_addr.s_addr)),
                              ++crt_connect_count, port,
                              ctype == CT_MUCK ? "TEXT" :
@@ -2314,197 +2313,9 @@ new_connection(int port, int sock)
         add_property((dbref) 0, "~sys/concount", NULL, result);
         if (tp_allow_old_trigs)
             add_property((dbref) 0, "_sys/concount", NULL, result);
-        return initializesock(newsock,
-                              hostname, ntohs(addr.sin_port),
-                              ntohl(addr.sin_addr.s_addr), ctype, port, 1);
+        return initializesock(newsock, hu, ctype, port, 1);
     }
 }
-
-
-#ifdef SPAWN_HOST_RESOLVER
-
-int resolverpid = 0;
-
-void
-kill_resolver(void)
-{
-    int i;
-    pid_t p;
-
-    resolverpid = 0;
-    write(resolver_sock[1], "QUIT\n", 5);
-    p = wait(&i);
-}
-
-void
-spawn_resolver(void)
-{
-    socketpair(AF_UNIX, SOCK_STREAM, 0, resolver_sock);
-    make_nonblocking(resolver_sock[1]);
-    if (!(resolverpid = fork())) {
-        close(0);
-        close(1);
-        dup(resolver_sock[0]);
-        dup(resolver_sock[0]);
-        execl("./resolver", "resolver", NULL);
-        execl("./bin/resolver", "resolver", NULL);
-        execl("../src/resolver", "resolver", NULL);
-        perror("resolver execlp");
-        _exit(1);
-    }
-}
-
-
-void
-resolve_hostnames(void)
-{
-    char buf[BUFFER_LEN], *oldname;
-    char *ptr, *ptr2, *ptr3, *hostip, *port, *hostname, *username, *tempptr;
-    struct descriptor_data *d;
-    int got, iport, dc;
-    int ipnum;
-
-    got = read(resolver_sock[1], buf, sizeof(buf));
-    if (got < 0)
-        return;
-    if (got == sizeof(buf)) {
-        got--;
-        while (got > 0 && buf[got] != '\n')
-            buf[got--] = '\0';
-    }
-    ptr = buf;
-    dc = 0;
-    do {
-        for (ptr2 = ptr; *ptr && *ptr != '\n' && dc < got; ptr++, dc++) ;
-        if (*ptr) {
-            *ptr++ = '\0';
-            dc++;
-        }
-        if (*ptr2) {
-            ptr3 = index(ptr2, ':');
-            if (!ptr3)
-                return;
-            hostip = ptr2;
-            port = index(ptr2, '(');
-            if (!port)
-                return;
-            tempptr = index(port, ')');
-            if (!tempptr)
-                return;
-            *tempptr = '\0';
-            hostname = ptr3;
-            username = index(ptr3, '(');
-            if (!username)
-                return;
-            tempptr = index(username, ')');
-            if (!tempptr)
-                return;
-            *tempptr = '\0';
-            if (*port && *hostname && *username) {
-                *port++ = '\0';
-                *hostname++ = '\0';
-                *username++ = '\0';
-                if ((ipnum = str2ip(hostip)) != -1) {
-                    /* we got a new name, update? */
-                    if (!(oldname = host_fetch(ipnum)))
-                        host_add(ipnum, hostname);
-                    else {
-                        if (strcmp(oldname, hostname)) {
-                            log_status("*RES: %s to %s\n", oldname, hostname);
-                            host_del(ipnum);
-                            host_add(ipnum, hostname);
-                        }
-                    }
-                } else {
-                    log_status("*BUG: resolve_hostnames bad ipstr %s\n",
-                               hostip);
-                }
-                iport = atoi(port);
-                for (d = descriptor_list; d; d = d->next) {
-                    if ((d->hostaddr == ipnum) && (iport == d->port)) {
-                        FREE(d->hostname);
-                        FREE(d->username);
-                        while (isspace(*username))
-                            ++username; /* strip occasional leading spaces */
-                        d->hostname = string_dup(hostname);
-                        d->username = string_dup(username);
-                    }
-                }
-            }
-        }
-    } while (dc < got && *ptr);
-}
-
-#endif
-
-
-/*  addrout -- Translate address 'a' from int to text.          */
-
-const char *
-addrout(int lport, int a, unsigned short prt)
-{
-    static char buf[128], *host;
-    struct in_addr addr;
-
-    addr.s_addr = a;
-    prt = ntohs(prt);
-
-#ifndef SPAWN_HOST_RESOLVER
-    if (tp_hostnames) {
-        /* One day the nameserver Qwest uses decided to start */
-        /* doing halfminute lags, locking up the entire muck  */
-        /* that long on every connect.  This is intended to   */
-        /* prevent that, reduces average lag due to nameserver */
-        /* to 1 sec/call, simply by not calling nameserver if */
-        /* it's in a slow mood *grin*. If the nameserver lags */
-        /* consistently, a hostname cache ala OJ's tinymuck2.3 */
-        /* would make more sense:                             */
-        static int secs_lost = 0;
-
-        if (secs_lost) {
-            secs_lost--;
-        } else {
-            time_t gethost_start = current_systime;
-            struct hostent *he = gethostbyaddr(((char *) &addr),
-                                               sizeof(addr), AF_INET);
-            time_t gethost_stop = time(&current_systime);
-            time_t lag = gethost_stop - gethost_start;
-
-            if (lag > 10) {
-                secs_lost = lag;
-#if         MIN_SECS_TO_LOG
-                if (lag >= CFG_MIN_SECS_TO_LOG) {
-                    log_status("GETHOSTBYNAME-RAN: secs %3d\n", lag);
-                }
-#endif
-
-            }
-            if (he) {
-                sprintf(buf, "%s(%d)", he->h_name, prt);
-                return buf;
-            }
-        }
-    }
-#endif /* no SPAWN_HOST_RESOLVER */
-
-    a = ntohl(a);
-
-#ifdef SPAWN_HOST_RESOLVER
-    sprintf(buf, "%d.%d.%d.%d(%u)%u\n",
-            (a >> 24) & 0xff,
-            (a >> 16) & 0xff, (a >> 8) & 0xff, a & 0xff, prt, lport);
-    if (tp_hostnames) {
-        write(resolver_sock[1], buf, strlen(buf));
-    }
-#endif
-    if ((host = host_fetch(a)))
-        sprintf(buf, "%s", host);
-    else
-        sprintf(buf, "%s", host_as_hex(a));
-
-    return buf;
-}
-
 
 void
 clearstrings(struct descriptor_data *d)
@@ -2531,22 +2342,22 @@ shutdownsock(struct descriptor_data *d)
                              "DISC: %2d %s %s(%s) %s, %d cmds P#%d\n",
                              d->descriptor, unparse_object(d->player,
                                                            d->player),
-                             d->hostname, d->username, host_as_hex(d->hostaddr),
-                             d->commands, d->cport);
+                             d->hu->h->name, d->hu->u->user,
+                             host_as_hex(d->hu->h->a), d->commands, d->cport);
             show_status("DISC: %2d %s %s(%s) %s, %d cmds P#%d\n", d->descriptor,
-                        unparse_object(d->player, d->player), d->hostname,
-                        d->username, host_as_hex(d->hostaddr), d->commands,
+                        unparse_object(d->player, d->player), d->hu->h->name,
+                        d->hu->u->user, host_as_hex(d->hu->h->a), d->commands,
                         d->cport);
             announce_disconnect(d);
         } else if (d->type != CT_INBOUND) {
             show_status("DISC: %2d %s(%s) %s, %d cmds P#%d (never connected)\n",
-                        d->descriptor, d->hostname, d->username,
-                        host_as_hex(d->hostaddr), d->commands, d->cport);
+                        d->descriptor, d->hu->h->name, d->hu->u->user,
+                        host_as_hex(d->hu->h->a), d->commands, d->cport);
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG,
                              "DISC: %2d %s(%s) %s, %d cmds P#%d (never connected)\n",
-                             d->descriptor, d->hostname, d->username,
-                             host_as_hex(d->hostaddr), d->commands, d->cport);
+                             d->descriptor, d->hu->h->name, d->hu->u->user,
+                             host_as_hex(d->hu->h->a), d->commands, d->cport);
         }
 #ifdef NEWHTTPD
     }
@@ -2577,10 +2388,7 @@ shutdownsock(struct descriptor_data *d)
     *d->prev = d->next;
     if (d->next)
         d->next->prev = d->prev;
-    if (d->hostname)
-        free((void *) d->hostname);
-    if (d->username)
-        free((void *) d->username);
+    host_delete(d->hu);
 #ifdef MCP_SUPPORT
     mcp_frame_clear(&d->mcpframe);
 #endif
@@ -2625,11 +2433,9 @@ mcpframe_to_user(McpFrame *ptr)
 #endif
 
 struct descriptor_data *
-initializesock(int s, const char *hostname, int port, int hostaddr,
-               int ctype, int cport, int welcome)
+initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
 {
     struct descriptor_data *d;
-    char buf[128];
 
     ndescriptors++;
     MALLOC(d, struct descriptor_data, 1);
@@ -2654,7 +2460,6 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     d->output.lines = 0;
     d->output.head = 0;
     d->output.tail = &d->output.head;
-    d->hostaddr = hostaddr;
     d->input.lines = 0;
     d->input.head = 0;
     d->input.tail = &d->input.head;
@@ -2664,15 +2469,12 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     d->quota = tp_command_burst_size;
     d->commands = 0;
     d->last_time = d->connected_at;
-    d->port = port;
     d->type = ctype;
     d->cport = cport;
 #ifdef MCP_SUPPORT
     mcp_frame_init(&d->mcpframe, d);
 #endif
-    d->hostname = alloc_string(hostname);
-    sprintf(buf, "%d", port);
-    d->username = alloc_string(buf);
+    d->hu = hu;
     d->linelen = 0;
     d->flags = 0;
     d->prog = NULL;
@@ -3282,7 +3084,7 @@ do_command(struct descriptor_data *d, char *command)
         queue_ansi(d, "</xch_mudtext><img xch_mode=html>");
         d->type = CT_PUEBLO;
     } else if (!strncmp(command, "!WHO", sizeof("!WHO") - 1)) {
-        if (!d->connected && (reg_site_is_barred(d->hostaddr) == TRUE)) {
+        if (!d->connected && (reg_site_is_barred(d->hu->h->a) == TRUE)) {
             queue_ansi(d, "Connect and find out!\r\n");
         } else if (tp_secure_who && (!d->connected || !TMage(d->player))) {
             queue_ansi(d, "Connect and find out!\r\n");
@@ -3302,7 +3104,7 @@ do_command(struct descriptor_data *d, char *command)
         strcat(buf, command + sizeof(WHO_COMMAND) - 1);
 
         if (!d->connected) {
-            if (tp_secure_who || (reg_site_is_barred(d->hostaddr) == TRUE)) {
+            if (tp_secure_who || (reg_site_is_barred(d->hu->h->a) == TRUE)) {
                 queue_ansi(d, "Login and find out!\r\n");
             } else {
                 if (OkObj(tp_player_start) && OkObj(tp_login_who_prog)
@@ -3421,7 +3223,7 @@ check_connect(struct descriptor_data *d, const char *msg)
             if (player > 0) {
                 now = current_systime;
                 result = get_property_value(player, "@/Failed/Count") + 1;
-                SETMESG(player, "@/Failed/Host", d->hostname);
+                SETMESG(player, "@/Failed/Host", d->hu->h->name);
                 add_property(player, "@/Failed/Time", NULL, now);
                 add_property(player, "@/Failed/Count", NULL, result);
             }
@@ -3430,11 +3232,12 @@ check_connect(struct descriptor_data *d, const char *msg)
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG,
                              "FAIL: %2d %s pw '%s' %s(%s) %s P#%d\n",
-                             d->descriptor, user, "<hidden>", d->hostname,
-                             d->username, host_as_hex(d->hostaddr), d->cport);
+                             d->descriptor, user, "<hidden>", d->hu->h->name,
+                             d->hu->u->user, host_as_hex(d->hu->h->a),
+                             d->cport);
             show_status("FAIL: %2d %s pw '%s' %s(%s) %s P#%d\n", d->descriptor,
-                        user, "<hidden>", d->hostname, d->username,
-                        host_as_hex(d->hostaddr), d->cport);
+                        user, "<hidden>", d->hu->h->name, d->hu->u->user,
+                        host_as_hex(d->hu->h->a), d->cport);
 
         } else if ((why = reg_user_is_suspended(player))) {
             queue_ansi(d, "\r\n");
@@ -3447,14 +3250,14 @@ check_connect(struct descriptor_data *d, const char *msg)
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "*LOK: %2d %s %s(%s) %s %s P#%d\n",
                              d->descriptor, unparse_object(player, player),
-                             d->hostname, d->username,
-                             host_as_hex(d->hostaddr), why, d->cport);
+                             d->hu->h->name, d->hu->u->user,
+                             host_as_hex(d->hu->h->a), why, d->cport);
             show_status("*LOK: %2d %s %s(%s) %s %s P#%d\n",
                         d->descriptor, unparse_object(player, player),
-                        d->hostname, d->username,
-                        host_as_hex(d->hostaddr), why, d->cport);
+                        d->hu->h->name, d->hu->u->user,
+                        host_as_hex(d->hu->h->a), why, d->cport);
             d->booted = 1;
-        } else if (reg_user_is_barred(d->hostaddr, player) == TRUE) {
+        } else if (reg_user_is_barred(d->hu->h->a, player) == TRUE) {
             char buf[1024];
 
             sprintf(buf, CFG_REG_MSG2, tp_reg_email);
@@ -3462,12 +3265,12 @@ check_connect(struct descriptor_data *d, const char *msg)
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "*BAN: %2d %s %s(%s) %s P#%d\n",
                              d->descriptor, unparse_object(player, player),
-                             d->hostname, d->username,
-                             host_as_hex(d->hostaddr), d->cport);
+                             d->hu->h->name, d->hu->u->user,
+                             host_as_hex(d->hu->h->a), d->cport);
             show_status("*BAN: %2d %s %s(%s) %s P#%d\n",
                         d->descriptor, unparse_object(player, player),
-                        d->hostname, d->username,
-                        host_as_hex(d->hostaddr), d->cport);
+                        d->hu->h->name, d->hu->u->user,
+                        host_as_hex(d->hu->h->a), d->cport);
             d->booted = 1;
         } else if ((wizonly_mode ||
                     (tp_playermax && con_players_curr >= tp_playermax_limit)) &&
@@ -3489,22 +3292,22 @@ check_connect(struct descriptor_data *d, const char *msg)
                 if (tp_log_connects)
                     log2filetime(CONNECT_LOG,
                                  "FAIL[CH]: %2d %s pw '%s' %s(%s) %s P#%d\n",
-                                 d->descriptor, user, "<hidden>", d->hostname,
-                                 d->username, host_as_hex(d->hostaddr),
-                                 d->cport);
+                                 d->descriptor, user, "<hidden>",
+                                 d->hu->h->name, d->hu->u->user,
+                                 host_as_hex(d->hu->h->a), d->cport);
                 show_status("FAIL[CH]: %2d %s pw '%s' %s(%s) %s P#%d\n",
-                            d->descriptor, user, "<hidden>", d->hostname,
-                            d->username, host_as_hex(d->hostaddr), d->cport);
+                            d->descriptor, user, "<hidden>", d->hu->h->name,
+                            d->hu->u->user, host_as_hex(d->hu->h->a), d->cport);
             } else {
                 if (tp_log_connects)
                     log2filetime(CONNECT_LOG, "CONN: %2d %s %s(%s) %s P#%d\n",
                                  d->descriptor, unparse_object(player, player),
-                                 d->hostname, d->username,
-                                 host_as_hex(d->hostaddr), d->cport);
+                                 d->hu->h->name, d->hu->u->user,
+                                 host_as_hex(d->hu->h->a), d->cport);
                 show_status("CONN: %2d %s %s(%s) %s P#%d\n",
                             d->descriptor, unparse_object(player, player),
-                            d->hostname, d->username,
-                            host_as_hex(d->hostaddr), d->cport);
+                            d->hu->h->name, d->hu->u->user,
+                            host_as_hex(d->hu->h->a), d->cport);
                 d->connected = 1;
                 d->did_connect = 1;
                 d->connected_at = current_systime;
@@ -3539,22 +3342,22 @@ check_connect(struct descriptor_data *d, const char *msg)
     } else if (string_prefix("help", command)) { /* Connection Help */
         if (tp_log_connects)
             log2filetime(CONNECT_LOG, "HELP: %2d %s(%s) %s %d cmds P#%d\n",
-                         d->descriptor, d->hostname, d->username,
-                         host_as_hex(d->hostaddr), d->commands, d->cport);
+                         d->descriptor, d->hu->h->name, d->hu->u->user,
+                         host_as_hex(d->hu->h->a), d->commands, d->cport);
         show_status("HELP: %2d %s(%s) %s %d cmds P#%d\n",
-                    d->descriptor, d->hostname, d->username,
-                    host_as_hex(d->hostaddr), d->commands, d->cport);
+                    d->descriptor, d->hu->h->name, d->hu->u->user,
+                    host_as_hex(d->hu->h->a), d->commands, d->cport);
         help_user(d);
     } else {
         if (tp_log_connects)
             log2filetime(CONNECT_LOG,
                          "TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
-                         d->descriptor, d->hostname, d->username,
-                         host_as_hex(d->hostaddr), command, d->commands,
+                         d->descriptor, d->hu->h->name, d->hu->u->user,
+                         host_as_hex(d->hu->h->a), command, d->commands,
                          d->cport);
         show_status("TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
-                    d->descriptor, d->hostname, d->username,
-                    host_as_hex(d->hostaddr), command, d->commands, d->cport);
+                    d->descriptor, d->hu->h->name, d->hu->u->user,
+                    host_as_hex(d->hu->h->a), command, d->commands, d->cport);
         welcome_user(d);
     }
 }
@@ -3653,13 +3456,9 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                                     /****/
+        if (d->next)                                                                                                                                         /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                                                                 /****/
-            free((void *) d->hostname);
-                                   /****/
-        if (d->username)                                                                                                                                 /****/
-            free((void *) d->username);
+        host_delete(d->hu);
                                    /****/
 #ifdef NEWHTTPD
         if (d->type == CT_HTTP) /* hinoserm */
@@ -3779,12 +3578,12 @@ do_dinfo(dbref player, const char *arg)
 
     if (Arch(player))
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
-                    SYSCYAN "%s", d->username, d->hostname);
+                    SYSCYAN "%s", d->hu->u->user, d->hu->h->name);
     else
-        anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s", d->hostname);
+        anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s", d->hu->h->name);
 
     anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY
-                "%X", host_as_hex(d->hostaddr), d->port, d->hostaddr);
+                "%X", host_as_hex(d->hu->h->a), d->hu->u->uport, d->hu->h->a);
 
     anotify_fmt(player, SYSVIOLET "Online: " SYSPURPLE "%s  " SYSBROWN "Idle: "
                 SYSYELLOW "%s  " SYSCRIMSON "Commands: " SYSRED "%d",
@@ -4164,9 +3963,10 @@ dump_users(struct descriptor_data *d, char *user)
                                                           player) & INTERACTIVE)
                                                    ? "*" : " ") : " "), SYSBLUE,
                             (d->connected && OkObj(d->player)
-                             && Arch(d->player)) ? dlist->username : "",
+                             && Arch(d->player)) ? dlist->hu->u->user : "",
                             (d->connected && OkObj(d->player)
-                             && Arch(d->player)) ? "@" : "", dlist->hostname);
+                             && Arch(d->player)) ? "@" : "",
+                            dlist->hu->h->name);
                     break;
                 }
                 case 2:{
@@ -4855,7 +4655,7 @@ phost(int count)
     d = descrdata_by_count(count);
 
     if (d)
-        return ((char *) d->hostname);
+        return ((char *) d->hu->h->name);
 
     return (char *) NULL;
 }
@@ -4868,7 +4668,7 @@ puser(int count)
     d = descrdata_by_count(count);
 
     if (d)
-        return ((char *) d->username);
+        return ((char *) d->hu->u->user);
 
     return (char *) NULL;
 }
@@ -4934,7 +4734,7 @@ pipnum(int count)
     d = descrdata_by_count(count);
 
     if (d) {
-        p = host_as_hex(d->hostaddr);
+        p = host_as_hex(d->hu->h->a);
         strcpy(ipnum, p);
         return ((char *) ipnum);
     }
@@ -4951,7 +4751,7 @@ pport(int count)
     d = descrdata_by_count(count);
 
     if (d) {
-        sprintf(port, "%d", d->port);
+        sprintf(port, "%d", d->hu->u->uport);
         return ((char *) port);
     }
 
@@ -5318,8 +5118,8 @@ pdescr_logout(int c)
     if (d && d->descriptor == c && d->player != NOTHING) {
         log_status("LOGOUT: %2d %s %s(%s) %s P#%d\n",
                    d->descriptor, unparse_object(1, d->player),
-                   d->hostname, d->username,
-                   host_as_hex(d->hostaddr), d->cport);
+                   d->hu->h->name, d->hu->u->user,
+                   host_as_hex(d->hu->h->a), d->cport);
         announce_disconnect(d);
         d->connected = 0;
         d->player = NOTHING;
@@ -5373,7 +5173,7 @@ welcome_user(struct descriptor_data *d)
         queue_ansi(d, "\r\nThis world is Pueblo 1.0 Enhanced.\r\n\r\n");
         queue_ansi(d, "</xch_mudtext><img xch_mode=html>");
 
-        fname = reg_site_welcome(d->hostaddr);
+        fname = reg_site_welcome(d->hu->h->a);
         if (fname && (*fname == '.')) {
             strcpy(buf, WELC_FILE);
         } else if (fname && (*fname == '#')) {
@@ -5389,7 +5189,7 @@ welcome_user(struct descriptor_data *d)
                 (*(ptr++)) = (*(fname++));
             *ptr = '\0';
             strcat(buf, ".txt");
-        } else if (reg_site_is_barred(d->hostaddr) == TRUE) {
+        } else if (reg_site_is_barred(d->hu->h->a) == TRUE) {
             strcpy(buf, BARD_FILE);
         } else if (tp_rand_screens > 0) {
             sprintf(buf, "data/welcome%d.txt", (rand() % tp_rand_screens) + 1);
@@ -5429,7 +5229,7 @@ welcome_user(struct descriptor_data *d)
         || d->type == CT_SSL
 #endif /* USE_SSL */
         ) {
-        fname = reg_site_welcome(d->hostaddr);
+        fname = reg_site_welcome(d->hu->h->a);
         if (fname && (*fname == '.')) {
             strcpy(buf, WELC_FILE);
         } else if (fname && (*fname == '#')) {
@@ -5445,7 +5245,7 @@ welcome_user(struct descriptor_data *d)
                 (*(ptr++)) = (*(fname++));
             *ptr = '\0';
             strcat(buf, ".txt");
-        } else if (reg_site_is_barred(d->hostaddr) == TRUE) {
+        } else if (reg_site_is_barred(d->hu->h->a) == TRUE) {
             strcpy(buf, BARD_FILE);
         } else if (tp_rand_screens > 0) {
             sprintf(buf, "data/welcome%d.txt", (rand() % tp_rand_screens) + 1);
