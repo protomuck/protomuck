@@ -180,7 +180,6 @@ extern int tp_allow_old_trigs;
 extern int tp_multi_wizlevels;
 extern int tp_auto_archive;
 extern int tp_optimize_muf;
-extern int tp_socket_events;
 extern int tp_compatible_muf_perms;
 extern int tp_allow_unidle; 
 extern int tp_alt_infinity_handler;

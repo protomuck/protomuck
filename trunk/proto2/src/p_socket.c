@@ -483,7 +483,6 @@ prim_sockclose(PRIM_PROTOTYPE)
         PushInt(myresult);
         return;
     }
-
     if (shutdown(oper1->data.sock->socknum, 2) == -1)
 #if defined(BRAINDEAD_OS)
         myresult = -1;
@@ -634,8 +633,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     result->data.sock->usesmartqueue = 0;
     result->data.sock->host = validHost;
     result->data.sock->readWaiting = 0;
-    if (tp_socket_events)
-        add_socket_to_queue(result->data.sock, fr);
+    add_socket_to_queue(result->data.sock, fr);
 
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n",
@@ -827,8 +825,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->host = 1;
     result->data.sock->usequeue = 0;
     result->data.sock->readWaiting = 0;
-    if (tp_socket_events)
-        add_socket_to_queue(result->data.sock, fr);
+    add_socket_to_queue(result->data.sock, fr);
 
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s LSOCKOPEN: Port:%d -> %d\n",
@@ -923,8 +920,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
-    if (tp_socket_events)
-        add_socket_to_queue(result->data.sock, fr);
+    add_socket_to_queue(result->data.sock, fr);
 
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKACCEPT: Port:%d -> %d\n",
