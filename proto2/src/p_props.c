@@ -1481,17 +1481,15 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
     		pdat.flags = currprop->flags;
 
             switch(PropType(currprop)) {
-                case PROP_INTTYP:
-                case PROP_FLTTYP:
-                case PROP_REFTYP:
-                    pdat.data = currprop->data;
-                    break;
                 case PROP_LOKTYP:
                     pdat.data.lok = copy_bool((currprop->data).lok);
                 case PROP_DIRTYP:
                     break;
+                default:
+                    pdat.data = currprop->data;
+                    break;
             }
-		    set_property_nofetch(destination, buf2, &pdat, 1);
+            set_property_nofetch(destination, buf2, &pdat, 1);
             propcount++;
        
             /* This has to go here, or it'll miss propdirs with values */
