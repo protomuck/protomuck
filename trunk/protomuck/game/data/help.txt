@@ -232,7 +232,7 @@ Wizards can rename any player by typing '@name <player>=<newname> yes'
 By setting @tune wiz_name=yes, players will be unable to change their
 own names, and must request name changes from a mage or higher.
 ~
-@OWNED
+@OWNED|@OWN
 @owned <name> [= <flags/types> = [<output type>]]
 -------------------------------------------------
 Permissions: !GUEST  - To use on self.
@@ -1684,7 +1684,10 @@ When this is set in conjunction with the STICKY (SETUID) flag on a program,
 and the program is owned by a wizard, then it will run with the effective
 mucker level and permissions of the calling program.  If the caller was not
 a program, or the current program is NOT owned by a wizard, then it runs
-with SETUID permissions.
+with SETUID permissions. 
+Combining the HARDUID flag with the QUELL flag will make a program run at
+the permission bit set on the program object itself, instead of at it's 
+owners perm level, though no higher than the owner's permission level.
 
 If a container object is set HAVEN it will be called HIDE and will not show
 the objects within itself.
@@ -1917,6 +1920,10 @@ from '"wizard" flag?' when the player is QUELLed.  Wiz-bitted programs will
 still act wizbitted whether or not the owner is QUELLED.
 However '"truewizard" flag?' would return the true value. Only players of
 W1 or higher can set the QUELL flag.
+Combining the QUELL flag with the HARDUID flag on a program makes it so that
+the program runs at the level of the bit on the object itself, instead of
+at the owner's permission level. It still can't be made to run higher than
+the owner's permission, however.
 ~~
 IDLE
 IDLE (I)
@@ -3169,7 +3176,7 @@ when processing player input. By setting a NO_COMMAND flag on an object,
 that object will only be checked for the @command/ propdir, but not
 the other two. 
 ~~~~
-CONTAINERS
+CONTAINERS|CONTAINER
 Containers
 ----------
 Any normal Thing object can be a container. As far as the in-server
