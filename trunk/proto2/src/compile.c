@@ -1364,7 +1364,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
             percent = ((double) (optimcount)
                        / (double) instrCount) * 100;
             sprintf(buf2, "Program optimized by %d instructions "
-                    "in %d %s. (%#.4lg%%)", optimcount, passcount,
+                    "in %d %s. (%#.4g%%)", optimcount, passcount,
                     passcount == 1 ? "pass" : "passes", percent);
             strcpy(buf, SYSFOREST);
             strcat(buf, buf2);

@@ -731,7 +731,7 @@ unparse_ansi(char *buf, const char *from)
                 *(to++) = '^';
             else
                 while (*from && *from != '^')
-                    *(from++);
+                    from++;
 
             if (*from)
                 from++;
@@ -813,7 +813,7 @@ strip_bad_ansi(char *buf, const char *input)
         } else {
             if ((*is == '\r') || (*is == '\n')) {
                 while ((*is == '\r') || (*is == '\n'))
-                    *is++;
+                    is++;
                 if (!(*is) && (aflag)) {
                     *os++ = '\033';
                     *os++ = '[';

@@ -352,14 +352,13 @@ prim_fread(PRIM_PROTOTYPE)
     FILE *fh;
     char *filename;
     double offset;
-    char tempchr[2];
-    int result;
+    int tempchr;
 
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
     if (getuid() == 0)
-        abort_interp("Muck is running under root privs, file prims disabled.");
+        abort_interp("MUCK is running under root privs, file prims disabled.");
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (oper1->type != PROG_INTEGER)
@@ -387,27 +386,30 @@ prim_fread(PRIM_PROTOTYPE)
         result = 0;
     } else {
         fseek(fh, (int) offset, SEEK_SET);
-        tempchr[0] = (char) fgetc(fh);
-        if (tempchr[0] == '\n') {
-            tempchr[0] = '\r';
-        }
-        if (tempchr[0] == EOF) {
-            tempchr[0] = '\0';
+        tempchr = fgetc(fh);
+
+        if (tempchr == '\n')
+            tempchr = '\r';
+
+        if (tempchr == EOF) {
+            result = 0;
         } else {
-            tempchr[1] = '\0';
+            result = 1;
+            buf[0] = (char)tempchr;
+            buf[1] = '\0';
         }
+
         fclose(fh);
-        sprintf(buf, "%s", tempchr);
-        result = 1;
+
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREAD: %s \n", program,
                          unparse_object(player, player),
                          oper2->data.string->data);
-        if (tempchr[0] == EOF)
-            result = 0;
     }
+
     CLEAR(oper1);
     CLEAR(oper2);
+
     if (result)
         PushString(buf);
     else
@@ -425,7 +427,7 @@ prim_freadn(PRIM_PROTOTYPE)
     int result = 0;
     int i;
     int found_end = 0;
-    char tempChr;
+    int tempChr;
 
     CHECKOP(3);
     oper1 = POP();              /*The range */
@@ -471,17 +473,17 @@ prim_freadn(PRIM_PROTOTYPE)
     } else {
         for (i = 0; i < range && found_end != 1; i++, offset++) {
             fseek(fh, (int) offset, SEEK_SET);
-            tempChr = (char) fgetc(fh);
+            tempChr = fgetc(fh);
             if (tempChr == EOF)
                 found_end = 1;
             else
-                tempBuf[i] = tempChr;
+                tempBuf[i] = (char)tempChr;
         }
         i++;
         tempBuf[i] = '\0';
         fclose(fh);
-        if (tempBuf[0] != EOF)
-            result = 1;
+//        if (tempBuf[0] != EOF)
+//            result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREADN: %s \n", program,
                          unparse_object(player, player),
@@ -981,9 +983,9 @@ prim_freadto(PRIM_PROTOTYPE)
     char *filename, *buf3;
     int offset;
     char tempBuf[BUFFER_LEN] = "";
-    int result = 0, i, found_end = 0;
-    char checkChar;
-    char tempChr;
+    int i, found_end = 0;
+    int checkChar;
+    int tempChr;
 
     CHECKOP(3);
 
@@ -1042,15 +1044,15 @@ prim_freadto(PRIM_PROTOTYPE)
             if (tempChr == EOF || tempChr == checkChar)
                 found_end = 1;
             else
-                tempBuf[i] = tempChr;
+                tempBuf[i] = (char)tempChr;
             if (checkChar == '\n' && tempChr == '\n' && i == 0)
                 tempBuf[i] = ' ';
         }
         i++;
         tempBuf[i] = '\0';
         fclose(fh);
-        if (tempBuf[0] != EOF)
-            result = 1;
+//        if (tempBuf[0] != EOF)
+//            result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREADN: %s \n", program,
                          unparse_object(player, player),

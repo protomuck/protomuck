@@ -1085,7 +1085,7 @@ http_dofile(struct descriptor_data *d)
         return 0;
 
     if (!*d->http.newdest || (i && d->http.newdest[i - 1] == '/')) {
-        for (; *m; *m++) {
+        for (; *m; m++) {
             if (**m) {
                 sprintf(buf, "%s/%s%s", HTTP_DIR, d->http.newdest, *m);
                 if ((i = http_sendfile(d, buf)))
