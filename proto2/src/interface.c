@@ -663,7 +663,7 @@ main(int argc, char **argv)
         kill_resolver();
 #endif
 #ifdef USE_RESLVD
-    reslvd_disc();
+    reslvd_close();
 #endif
 
 #ifdef WIN_VC
@@ -3737,7 +3737,7 @@ do_armageddon(dbref player, const char *msg)
     kill_resolver();
 #endif
 #ifdef USE_RESLVD
-    reslvd_disc();
+    reslvd_close();
 #endif
 
     exit(1);
@@ -3753,7 +3753,7 @@ emergency_shutdown(void)
     kill_resolver();
 #endif
 #ifdef USE_RESLVD
-    reslvd_disc();
+    reslvd_close();
 #endif
 
 }
