@@ -666,11 +666,7 @@ prim_truename(PRIM_PROTOTYPE)
     if ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_THING)) {
         if (GETMESG(ref, "%n")) {
             msg = GETMESG(ref, "%n");
-#ifdef COMPRESS
-            strcpy(buf, uncompress(msg));
-#else
-            strcpy(buf, msg);
-#endif
+            strcpy(buf, get_uncompress(msg));
             CLEAR(oper1);
             strcpy(buf2, buf);
             if (lookup_player(buf2) != NOTHING) {
@@ -2887,6 +2883,8 @@ prim_find_array(PRIM_PROTOTYPE)
     oper2 = POP();              /* str:namepattern */
     oper1 = POP();              /* ref:owner */
 
+    if (mlev < LMAGE)
+        abort_interp("MAGE prim.");
     if (oper3->type != PROG_STRING)
         abort_interp("Expected string argument. (3)");
     if (oper2->type != PROG_STRING)
@@ -2898,9 +2896,6 @@ prim_find_array(PRIM_PROTOTYPE)
 
     who = oper1->data.objref;
     name = DoNullInd(oper2->data.string);
-
-    if (mlev < LMAGE)
-        abort_interp("MAGE prim.");
 
     strcpy(buf, name);
     init_checkflags(player, DoNullInd(oper3->data.string), &check);

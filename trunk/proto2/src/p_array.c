@@ -1299,7 +1299,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
             sprintf(propname, "%s%c#", dir, PROPDIR_DELIMITER);
             if (!(lines = get_property_value(ref, propname)))
                 if (m = get_property_class(ref, propname))
-                        lines = atoi(get_uncompress(m));
+                    lines = atoi(get_uncompress(m));
         }
 
     }

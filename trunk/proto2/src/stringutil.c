@@ -179,10 +179,6 @@ pronoun_substitute(int descr, dbref player, const char *str)
     prn[0] = '%';
     prn[2] = '\0';
 
-#ifdef COMPRESS
-    str = uncompress(str);
-#endif /* COMPRESS */
-
     strcpy(orig, str);
     str = orig;
 
@@ -199,21 +195,12 @@ pronoun_substitute(int descr, dbref player, const char *str)
                 mywhere = player;
                 d = (isupper(c)) ? c : toupper(c);
 
-#ifdef COMPRESS
                 if (d == 'A' || d == 'S' || d == 'O' ||
                     d == 'P' || d == 'R' || d == 'N') {
-                    self_sub = uncompress(get_property_class(mywhere, prn));
+                    self_sub = get_uncompress(get_property_class(mywhere, prn));
                 } else {
-                    self_sub = uncompress(envpropstr(&mywhere, prn));
+                    self_sub = get_uncompress(envpropstr(&mywhere, prn));
                 }
-#else
-                if (d == 'A' || d == 'S' || d == 'O' ||
-                    d == 'P' || d == 'R' || d == 'N') {
-                    self_sub = get_property_class(mywhere, prn);
-                } else {
-                    self_sub = envpropstr(&mywhere, prn);
-                }
-#endif
 
                 if (self_sub) {
                     if (((result - buf) + strlen(self_sub)) > (BUFFER_LEN - 2))

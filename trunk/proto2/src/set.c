@@ -14,13 +14,6 @@
 #include "interface.h"
 #include "externs.h"
 
-#ifdef COMPRESS
-#define alloc_compressed(x) alloc_string(compress(x))
-#else /* COMPRESS */
-#define alloc_compressed(x) alloc_string(x)
-#endif /* COMPRESS */
-
-
 static dbref
 match_controlled(int descr, dbref player, const char *name)
 {
@@ -133,7 +126,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
             /* everything ok, notify */
             log_status("NAME: %s(%d) to %s by %s\n",
                        NAME(thing), thing, newname, NAME(player));
-            strcpy(oldName, uncompress(NAME(thing)));
+            strcpy(oldName, NAME(thing));
             strcpy(nName, newname);
             delete_player(thing);
             if (NAME(thing))
@@ -153,7 +146,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
         }
 
         /* everything ok, change the name */
-        strcpy(oldName, uncompress(NAME(thing)));
+        strcpy(oldName, NAME(thing));
         strcpy(nName, newname);
         if (NAME(thing)) {
             free((void *) NAME(thing));

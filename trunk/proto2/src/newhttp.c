@@ -208,6 +208,21 @@ http_log(struct descriptor_data *d, int debuglvl, char *format, ...)
     }
 }
 
+/* isascii_string():                                    */
+/*   Checks all characters in a string with isascii()   */
+/*   and returns the result.                            */
+int
+isascii_string(const char *str)
+{
+    const char *p;
+
+    for (p = str; *p; p++)
+        if (!isascii(*p))
+            return 0;
+
+    return 1;
+}
+
 /* queue_text():                                        */
 /*   Works exactly like queue_write(), but can format   */
 /*   like sprintf().                                    */
@@ -222,21 +237,6 @@ queue_text(struct descriptor_data *d, char *format, ...)
     va_end(args);
 
     return queue_write(d, buf, strlen(buf));
-}
-
-/* isascii_string():                                    */
-/*   Checks all characters in a string with isascii()   */
-/*   and returns the result.                            */
-int
-isascii_string(const char *str)
-{
-    const char *p;
-
-    for (p = str; *p; p++)
-        if (!isascii(*p))
-            return 0;
-
-    return 1;
 }
 
 /* http_split():                                        */
@@ -681,11 +681,11 @@ http_makearray(struct descriptor_data *d)
 
     if ((d->http.smethod->flags & HS_BODY) && d->http.body.len && p) {
         array_set_strkey_intval(&nw, "BODYLen", d->http.body.len);
-        if (isascii_string(p)) {
+        //if (isascii_string(p)) {
             if (strlen(p) < BUFFER_LEN)
                 array_set_strkey_strval(&nw, "BODY", p);
             array_set_strkey_arrval(&nw, "POSTData", http_formarray(p));
-        }
+        //}
     }
 
     if (d->http.cgidata && strlen(d->http.cgidata) < BUFFER_LEN) {
@@ -1360,7 +1360,7 @@ http_finish(struct descriptor_data *d)
     //int i = 0;
 
     if (d->http.body.len && d->http.body.len < MAX_COMMAND_LEN
-        && d->http.body.data && isascii_string(d->http.body.data))
+        && d->http.body.data)
         http_log(d, 4, "BODY:    '%s' (%d)\n", d->http.body.data,
                  d->http.body.len);
 

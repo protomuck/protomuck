@@ -943,12 +943,6 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
     int len, di;
     int dcount;
 
-#ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
-    msg = uncompress(msg);
-#endif /* COMPRESS */
-
     if (player < 0)
         return retval;          /* no one to notify */
     ptr2 = msg;
@@ -989,10 +983,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
                         char pbuf[BUFFER_LEN];
                         const char *prefix;
 
-                        prefix = GETPECHO(player);
-#ifdef COMPRESS
-                        prefix = uncompress(prefix);
-#endif
+                        prefix = get_uncompress(GETPECHO(player));
 
                         if (prefix && *prefix) {
                             char ch = *match_args;
@@ -1050,12 +1041,6 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
     int len, di;
     int dcount;
 
-#ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
-    msg = uncompress(msg);
-#endif /* COMPRESS */
-
     if (player < 0)
         return retval;          /* no one to notify */
     ptr2 = msg;
@@ -1099,11 +1084,7 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
                         char pbuf[BUFFER_LEN];
                         const char *prefix;
 
-                        prefix = GETPECHO(player);
-
-#ifdef COMPRESS
-                        prefix = uncompress(prefix);
-#endif
+                        prefix = get_uncompress(GETPECHO(player));
 
                         if (prefix && *prefix) {
                             char ch = *match_args;
@@ -1704,10 +1685,6 @@ wall_and_flush(const char *msg)
     char buf[BUFFER_LEN + 2];
     char abuf[BUFFER_LEN + 2];
 
-#ifdef COMPRESS
-    msg = uncompress(msg);
-#endif /* COMPRESS */
-
     if (!msg || !*msg)
         return;
     strcpy(buf, msg);
@@ -1732,12 +1709,6 @@ wall_logwizards(const char *msg)
     struct descriptor_data *d, *dnext;
     char buf[BUFFER_LEN + 2];
     int pos = 0;
-
-#ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
-    msg = uncompress(msg);
-#endif /* COMPRESS */
 
     sprintf(buf, "LOG> %s", msg);
 
@@ -1766,10 +1737,6 @@ wall_arches(const char *msg)
     struct descriptor_data *d;
     char buf[BUFFER_LEN + 2];
 
-#ifdef COMPRESS
-    msg = uncompress(msg);
-#endif /* COMPRESS */
-
     strcpy(buf, msg);
     strcat(buf, "\r\n");
 
@@ -1790,10 +1757,6 @@ wall_wizards(const char *msg)
     struct descriptor_data *d;
     char buf[BUFFER_LEN + 2];
 
-#ifdef COMPRESS
-    msg = uncompress(msg);
-#endif /* COMPRESS */
-
     strcpy(buf, msg);
     strcat(buf, "\r\n");
 
@@ -1813,12 +1776,6 @@ ansi_wall_wizards(const char *msg)
 {
     struct descriptor_data *d, *dnext;
     char buf[BUFFER_LEN + 2], buf2[BUFFER_LEN + 2];
-
-#ifdef COMPRESS
-    extern const char *uncompress(const char *);
-
-    msg = uncompress(msg);
-#endif /* COMPRESS */
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
@@ -1875,10 +1832,6 @@ wall_all(const char *msg)
 {
     struct descriptor_data *d;
     char buf[BUFFER_LEN + 2], buf2[BUFFER_LEN + 500], *temp;
-
-#ifdef COMPRESS
-    msg = uncompress(msg);
-#endif /* COMPRESS */
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
@@ -2814,12 +2767,8 @@ process_input(struct descriptor_data *d)
         } else if (*q == '\377') {
             /* Got TELNET IAC, store for next byte */
             d->inIAC = 1;
-        } else if (p < pend && (isascii(*q)
-                                || !(d->type == CT_MUCK
-                                     || d->type == CT_PUEBLO))) {
-            if (isprint(*q) || !(d->type == CT_MUCK || d->type == CT_PUEBLO)) {
-                *p++ = *q;
-            } else if ((*q == '\t')
+        } else if (p < pend) {
+            if ((*q == '\t')
                        && (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = ' ';
             } else if ((*q == 8 || *q == 127)
@@ -2827,6 +2776,8 @@ process_input(struct descriptor_data *d)
                 /* if BS or DEL, delete last character */
                 if (p > d->raw_input)
                     p--;
+            } else if (*q != 13) {
+                *p++ = *q;
             }
         }
     }
@@ -3668,9 +3619,7 @@ dump_users(struct descriptor_data *d, char *user)
     }
     if (!wizwho && tp_who_doing) {
         if (p = get_property_class((dbref) 0, "_poll")) {
-#ifdef COMPRESS
-            p = uncompress(p);
-#endif
+            p = get_uncompress(p);
             sprintf(dobuf, "%-43s", p);
         } else {
             sprintf(dobuf, "%-43s", "Doing...");
