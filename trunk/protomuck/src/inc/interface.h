@@ -25,10 +25,10 @@ struct descriptor_data {
     int                      con_number;    /* Connection number */
     int                      booted;        /* 1 = Booted, 2 = Boot with message, 3 = WEB boot */
     int                      fails;         /* Number of fail connection attempts */
-    int                      block;         /* Is this descriptor blocked of output? -- UNIMPLEMENTED */
-    dbref                   *prog;          /* Which programs are blocking the output? -- UNIMPLEMENTED */
+    int                      block;         /* Is this descriptor blocked of input? */
+    dbref                   *prog;          /* Which programs are blocking the input? -- UNIMPLEMENTED */
     dbref                    player;        /* Player dbref number connected to */
-    int                      interactive;   /* 0 = not, 1 = @program/@edit/@mcpedit, 2 = READ primitive -- UNIMPLEMENTED */
+    int                      interactive;   /* 0 = not, 1 = @program/@edit/@mcpedit, 2 = READ primitive */
     char                    *output_prefix; /* Prefix for all output */
     char                    *output_suffix; /* Suffix for all output */
     int                      input_len; 
@@ -142,6 +142,7 @@ extern int boot_off(dbref player);
 extern void boot_player_off(dbref player);
 extern int online(dbref player);
 extern int *get_player_descrs(dbref player, int *count);
+extern struct descriptor_data* get_descr(int, int);
 extern int least_idle_player_descr(dbref who);
 extern int most_idle_player_descr(dbref who);
 extern int pcount(void);

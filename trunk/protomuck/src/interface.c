@@ -1455,7 +1455,8 @@ shovechars(void)
                    }
                    if (curidle < 30)
                       curidle = 9999999;
-		       if ((now - d->connected_at) > curidle) {
+		       if ((now - d->connected_at) > curidle && 
+                           !(descr_running_queue(d->descriptor)) ) {
 			   d->booted = 1;
 		       }
                 }
@@ -2369,6 +2370,8 @@ save_command(struct descriptor_data * d, const char *command)
 	if (dequeue_prog(d->player, 2))
 	    anotify(d->player, CINFO "Foreground program aborted.");
 	DBFETCH(d->player)->sp.player.block = 0;
+        if (d->player == NOTHING )
+            d->block = 0;
 	if (!(FLAGS(d->player) & INTERACTIVE))
 	    return;
     }
@@ -2473,7 +2476,7 @@ process_commands(void)
                     tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
                                   (dbref) 0, FOREGROUND, STD_HARDUID);
                     if (tmpfr) {
-                        interp_loop(tp_www_surfer, mufprog, tmpfr, 1);
+                        interp_loop(NOTHING, mufprog, tmpfr, 1);
                     }
                     d->booted = 3;
                     continue;
@@ -2482,7 +2485,8 @@ process_commands(void)
                 }
             } 
 	    if (d->quota > 0 && (t = d->input.head)) {
-		if (d->connected && DBFETCH(d->player)->sp.player.block) {
+		if ( (d->connected && DBFETCH(d->player)->sp.player.block)
+                      || (!d->connected && d->block) ) {
 			char *tmp = t->start;
 			/* dequote MCP quoting. */
 			if (!strncmp(tmp, "#%\"", 3)) {
@@ -3080,6 +3084,12 @@ check_connect(struct descriptor_data * d, const char *msg)
     strcat(msgargs, " ");
     strcat(msgargs, password);
 
+    if ( d->interactive == 2 ) { 
+        handle_read_event(d->descriptor, NOTHING, msg);
+        return;
+    }
+
+
 #ifdef HTTPD
     if (d->type == CT_HTML && (d->http_login == 0)) {
 	if (OkObj(tp_www_surfer)) {
@@ -3245,6 +3255,8 @@ check_connect(struct descriptor_data * d, const char *msg)
 	   
 	    /* cks: someone has to initialize this somewhere. */
 	    DBFETCH(d->player)->sp.player.block = 0;
+            if (d->player == NOTHING)
+                d->block = 0;
 	    spit_file(player, MOTD_FILE);
 	    interact_warn(player);
 	    if (sanity_violated && TMage(player)) {
@@ -3253,7 +3265,7 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    announce_connect(d->descriptor, player);
 	}
      }
-    } else if (prop_command(d->descriptor, (dbref) 0, command, msgargs, "@logincommand", 1)) { /* Check for replaced login commands */
+    } else if (prop_command(d->descriptor, (dbref) NOTHING, command, msgargs, "@logincommand", 1)) { /* Check for replaced login commands */
     } else if (string_prefix("help", command) ) { /* Connection Help */
      if( tp_log_connects )
 	log2filetime(CONNECT_LOG, "HELP: %2d %s(%s) %s %d cmds P#%d\n",
@@ -4175,6 +4187,7 @@ announce_disclogin(struct descriptor_data *d)
 
     if (d->connected)
 	return;
+    dequeue_prog_descr(d->descriptor, 0);
 
     /* queue up all _login programs referred to by properties */
     propqueue(d->descriptor, player, 0, 0, 0, 0,
@@ -4832,7 +4845,7 @@ pset_user2(int c, dbref who)
       result = pset_user(d, who);
    else
       result = plogin_user(d, who);
-
+      d->booted = 0;
    return result;
 }
 

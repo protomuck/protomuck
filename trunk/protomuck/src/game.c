@@ -1435,6 +1435,12 @@ process_command(int descr, dbref player, char *command)
 
 }
 
+/* This is the command prop support in ProtoMUCK. It allows certain
+ * commands to be done without having to make literal exits to do
+ * them. There's support for command/ propdirs and logincommand/ 
+ * propdirs, the latter only being on #0. 
+ */
+
 int prop_command(int descr, dbref player, char *command, char *arg, char *type, int mt)
 {
    PropPtr ptr;
@@ -1442,6 +1448,11 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
    dbref where = player;
    char propName[BUFFER_LEN];
    const char *workBuf = NULL; 
+
+   if (player == NOTHING) // For handling logincommand props.
+       where = (dbref) 0; 
+
+
    sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);
    strcpy(match_cmdname, command);
    strcpy(match_args, arg);
