@@ -1099,76 +1099,75 @@ prim_foreach(PRIM_PROTOTYPE)
 void
 prim_foriter(PRIM_PROTOTYPE)
 {
-	CHECKOP(0);
+    CHECKOP(0);
 
-	if (!fr->fors.st)
-		abort_interp("Internal error; FOR stack underflow.");
+    if (!fr->fors.st)
+        abort_interp("Internal error; FOR stack underflow.");
 
-	if (fr->fors.st->end.type == PROG_ARRAY) {
-		stk_array *arr = fr->fors.st->end.data.array;
+    if (fr->fors.st->end.type == PROG_ARRAY) {
+        stk_array *arr = fr->fors.st->end.data.array;
 
-		if (fr->fors.st->didfirst) {
-			result = array_next(arr, &fr->fors.st->cur);
-		} else {
-			result = array_first(arr, &fr->fors.st->cur);
-			fr->fors.st->didfirst = 1;
-		}
-		if (result) {
-			array_data *val = array_getitem(arr, &fr->fors.st->cur);
+        if (fr->fors.st->didfirst) {
+            result = array_next(arr, &fr->fors.st->cur);
+        } else {
+            result = array_first(arr, &fr->fors.st->cur);
+            fr->fors.st->didfirst = 1;
+        }
+        if (result) {
+            array_data *val = array_getitem(arr, &fr->fors.st->cur);
 
-			if (val) {
-				CHECKOFLOW(2);
-				PushInst(&fr->fors.st->cur);	/* push key onto stack */
-				PushInst(val);	/* push value onto stack */
-				tmp = 1;		/* tell following IF to NOT branch out of loop */
-			} else {
-				tmp = 0;		/* tell following IF to branch out of loop */
-			}
-		} else {
-                        fr->fors.st->cur.type = PROG_INTEGER; 
-                        fr->fors.st->cur.line = 0; 
-                        fr->fors.st->cur.data.number = 0; 
+            if (val) {
+                CHECKOFLOW(2);
+                PushInst(&fr->fors.st->cur);	/* push key onto stack */
+                PushInst(val);	/* push value onto stack */
+                tmp = 1;      /* tell following IF to NOT branch out of loop */
+            } else {
+                tmp = 0;      /* tell following IF to branch out of loop */
+            }
+        } else {
+            fr->fors.st->cur.type = PROG_INTEGER; 
+            fr->fors.st->cur.line = 0; 
+            fr->fors.st->cur.data.number = 0; 
+            tmp = 0;  /* tell following IF to branch out of loop */
+        }
+    } else {
+        int cur = fr->fors.st->cur.data.number;
+        int end = fr->fors.st->end.data.number;
 
-			tmp = 0;			/* tell following IF to branch out of loop */
-		}
-	} else {
-		int cur = fr->fors.st->cur.data.number;
-		int end = fr->fors.st->end.data.number;
-
-		tmp = fr->fors.st->step > 0;
-		if (tmp)
-			tmp = !(cur > end);
-		else
-			tmp = !(cur < end);
-		if (tmp) {
-			CHECKOFLOW(2);
-			result = cur;
-			fr->fors.st->cur.data.number += fr->fors.st->step;
-			PushInt(result);
-		} else {
-			CHECKOFLOW(1);
-		}
-	}
-	PushInt(tmp);
+        tmp = fr->fors.st->step > 0;
+        if (tmp)
+            tmp = !(cur > end);
+        else
+            tmp = !(cur < end);
+        if (tmp) {
+            CHECKOFLOW(2);
+            result = cur;
+            fr->fors.st->cur.data.number += fr->fors.st->step;
+            PushInt(result);
+        } else {
+            CHECKOFLOW(1);
+        }
+    }
+    PushInt(tmp);
 }
 
 
 void
 prim_forpop(PRIM_PROTOTYPE)
 {
-	CHECKOP(0);
+    CHECKOP(0);
 
-	if (!(fr->fors.top))
-		abort_interp("Internal error; FOR stack underflow.");
+    if (!(fr->fors.top))
+        abort_interp("Internal error; FOR stack underflow.");
 
-	CLEAR(&fr->fors.st->cur);
-	CLEAR(&fr->fors.st->end);
+    CLEAR(&fr->fors.st->cur);
+    CLEAR(&fr->fors.st->end);
 
-	if (fr->trys.st)
-		fr->trys.st->for_count--;
+    if (fr->trys.st)
+        fr->trys.st->for_count--;
 
-	fr->fors.top--;
-	fr->fors.st = pop_for(fr->fors.st);
+    fr->fors.top--;
+    fr->fors.st = pop_for(fr->fors.st);
 }
 
 
