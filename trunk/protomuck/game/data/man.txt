@@ -4232,7 +4232,7 @@ See: EXECUTE, ADDRESS
 ADDRESS
 
 Function names can be placed on the stack and treated just like 
-any other data type by entering them in the code as '<function_name>'.
+any other data type by entering them in the code as '<function_name>.
 The function name can then be manipulated around the stack just
 like any other data object in MUF. It can be called by the
 EXECUTE prim. Other than functions such as DUP, ROT, etc, that handle
