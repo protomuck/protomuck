@@ -415,13 +415,13 @@ do_look_at(int descr, dbref player, register const char *name,
                     goto repeat_match;
 
             thing = lastthing;
-            if (((int) lastmatch > 0) && (PropType(lastmatch) == PROP_STRTYP)) {
+            if (((size_t)lastmatch > 0) && (PropType(lastmatch) == PROP_STRTYP)) {
 #ifdef DISKBASE
                 propfetch(thing, lastmatch); /* DISKBASE PROPVALS */
 #endif
                 exec_or_notify(descr, player, thing, PropDataUNCStr(lastmatch),
                                "(@detail)");
-            } else if ((int) lastmatch == AMBIGUOUS) {
+            } else if ((size_t)lastmatch == AMBIGUOUS) {
                 anotify_nolisten(player, CINFO AMBIGUOUS_MESSAGE, 1);
 
             } else if (*detail) {

@@ -1233,7 +1233,7 @@ mfn_smatch(MFUNARGS)
 const char *
 mfn_strlen(MFUNARGS)
 {
-    sprintf(buf, "%d", strlen(argv[0]));
+    sprintf(buf, "%zd", strlen(argv[0]));
     return buf;
 }
 
@@ -1631,7 +1631,7 @@ mfn_instr(MFUNARGS)
     for (ptr = argv[0]; *ptr && !string_prefix(ptr, argv[1]); ptr++) ;
     if (!*ptr)
         return "0";
-    sprintf(buf, "%d", (ptr - argv[0] + 1));
+    sprintf(buf, "%d", (int)(ptr - argv[0] + 1));
     return buf;
 }
 
