@@ -954,7 +954,6 @@ do_comment(COMPSTATE * cstat)
         if (!cstat->curr_line) 
             v_abort_compile(cstat, "Unterminated comment.");
     } while ( 1 );
-    v_abort_compile(cstat, "Compilier problem: Comment parsing error." );
 }
 /*
 void
