@@ -32,7 +32,7 @@ prop_read_perms(dbref player, dbref obj, const char *name, int mlev)
       return 0;
     if ((mlev < LM3) && Prop_Private(name) && !permissions(mlev, player, obj))
 	return 0;
-    if ((mlev < LARCH) && Prop_Hidden(name))
+    if ((mlev < (tp_wizhidden_access_bit+4)) && Prop_Hidden(name))
 	return 0;
     return 1;
 }

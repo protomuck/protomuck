@@ -148,6 +148,7 @@ int tp_dump_copies = 10;
 int tp_min_progbreak_lev = 0;
 int tp_mcp_muf_mlev = MCP_MUF_MLEV;
 int tp_max_wiz_preempt_count = 0;
+int tp_wizhidden_access_bit = 3;
 
 #ifdef SQL_SUPPORT
 int tp_mysql_result_limit = 40;
@@ -180,6 +181,7 @@ struct tune_val_entry tune_val_list[] = {
     {"System", "command_time_msec", &tp_command_time_msec, LARCH, LMUF},
     {"Database", "max_delta_objs", &tp_max_delta_objs, LARCH, LMUF},
     {"Database", "max_loaded_objs", &tp_max_loaded_objs, LARCH, LMUF},
+    {"Database", "wizhidden_access_bit", &tp_wizhidden_access_bit, WBOY, LMAGE},
     {"MUF", "max_process_limit", &tp_max_process_limit, LARCH, LMUF},
     {"MUF", "max_plyr_processes", &tp_max_plyr_processes, LARCH, LMUF},
     {"MUF", "max_instr_count", &tp_max_instr_count, LARCH, LMUF},

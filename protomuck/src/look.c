@@ -678,7 +678,7 @@ power_description(dbref thing)
     if (POWERS(thing) & POW_CHOWN_ANYTHING)
         strcat(buf, "CHOWN_ANYTHING ");
     if (POWERS(thing) & POW_CONTROL_ALL)
-        strcat(buf, "CONTROL_ALL");
+        strcat(buf, "CONTROL_ALL ");
     if (POWERS(thing) & POW_CONTROL_MUF)
         strcat(buf, "CONTROL_MUF ");
     if (POWERS(thing) & POW_EXPANDED_WHO)
@@ -743,7 +743,7 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
         if (equalstr(wldcrd, propname)) {
             sprintf(buf, "%s%c%s", dir, PROPDIR_DELIMITER, propname);
             if ((!Prop_Hidden(buf) && !(PropFlags(propadr) & PROP_SYSPERMS))
-                || Arch(OWNER(player))) {
+                || WizHidden(OWNER(player))) {
                 if (!*ptr || recurse) {
                     cnt++;
                     displayprop(player, thing, buf, buf2);

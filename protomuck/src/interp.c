@@ -2150,6 +2150,7 @@ find_mlev(dbref prog, struct frame *fr, int st)
         (POWERS(OWNER(prog)) & POW_ALL_MUF_PRIMS) ? LBOY : MLevel(OWNER(prog));
     int mlev;
 
+if (!tp_compatible_muf_perms) { /* Do it the proto/neon way */
     if ((FLAGS(prog) & STICKY) && (FLAGS(prog) & HAVEN)
         && ((st > 1) && (TMage(OWNER(prog))))) {
         mlev = find_mlev(fr->caller.st[st - 1], fr, st - 1);
@@ -2172,6 +2173,36 @@ find_mlev(dbref prog, struct frame *fr, int st)
             }
         }
     }
+   } else { /* do it the FB6/Glow way */
+    /* W S and H, give it the level of the owner of the program, or the player 
+       if not a program */
+    if ((FLAGS(prog) & STICKY) && (FLAGS(prog) & HAVEN)
+        && ((st > 1) && (TMage(OWNER(prog))))) {
+        mlev = find_mlev(fr->caller.st[st - 1], fr, st - 1);
+    } else {
+       /* HARDUID, give it permissions of the owner of the trigger */
+        if ((FLAGS(prog) & HAVEN) && ((st > 1) && (TMage(OWNER(prog))))) {
+            mlev = MLevel(OWNER(fr->caller.st[st - 1]));
+        } else {
+           /* SETUID, give it the owners permissions */
+            if ((FLAGS(prog) & STICKY)) {
+                mlev = MLevel(OWNER(prog));
+            } else {
+              /* QUELL, give it the permissions of the caller */ 
+                if ((FLAGS(prog) & QUELL)
+                    && (((fr->player > 0) && (fr->player < db_top))
+                        && (TMage(OWNER(prog))))) {
+                    mlev = MLevel(OWNER(fr->player));
+                } else {
+                 /* Give it W4 if the owner has ALL_MUF_PRIMS, else give it its MLevel */
+                    mlev =
+                        (POWERS(OWNER(prog)) & POW_ALL_MUF_PRIMS) ? LBOY : MLevel(prog);
+                }
+            }
+        }
+    }
+
+   }
     if (maxmlev < mlev) {
         mlev = maxmlev;
     }

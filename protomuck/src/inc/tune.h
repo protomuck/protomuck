@@ -77,6 +77,7 @@ extern int tp_max_output;
 extern int tp_rand_screens;
 
 extern int tp_listen_mlev;
+extern int tp_wizhidden_access_bit;
 extern int tp_playermax_limit;
 
 extern int tp_dump_copies;

@@ -1235,7 +1235,7 @@ do_mush_set(int descr, dbref player, char *name, char *setting, char *command)
         return;
     }
 
-    if (!Arch(OWNER(player)) && Prop_Hidden(prop)) {
+    if (!WizHidden(OWNER(player)) && Prop_Hidden(prop)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
@@ -1353,7 +1353,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
                               "That property is already used as a system property.");
         }
 
-        if (!Arch(OWNER(player)) && Prop_Hidden(type)) {
+        if (!WizHidden(OWNER(player)) && Prop_Hidden(type)) {
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             free((void *) x);
             return;
@@ -1629,7 +1629,7 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
                           "That property is already used as a system property.");
     }
 
-    if (!Arch(OWNER(player)) && Prop_Hidden(pname)) {
+    if (!WizHidden(OWNER(player)) && Prop_Hidden(pname)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
