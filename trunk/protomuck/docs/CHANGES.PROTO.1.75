@@ -1,0 +1,159 @@
+Changes from 1.70 to 1.71
+**Alynna**
+* Added the define CYGWIN for defining a compile under CYGWIN.  Off by default.
+  If you are compiling for Win32 under Cygwin, and define this, all will go off
+  without so much as a warning.  :)  Assuming your Cygwin is configed right.
+
+* Added the define CYGWIN_TZ and CYGWIN_TZX which defines the
+   offset in hours and the label of the timezone for strftime.
+
+* Added my comments in config.h, documenting these, and added a note to
+   the USE_STRFTIME define, saying not to define it, as CYGWIN define fixes
+   the protomuck strftime.
+
+* strftime.c/format_time: For %Z: When determining the timezone, use
+   whats in the define, dont try to figure it out under CYGWIN, it breaks.
+   Takes the label from CYGWIN_TZX
+
+* strftime.c/get_tz_offset: Return whats defined under CYGWIN_TZ, dont
+   try to figure it out.
+
+* interface.c/main: DETACH define fix, CYGWIN is POSIX, but doesnt
+   explicitly say so.  CYGWIN define activates this fix when DETACH is defined.
+   CYGWIN define tells proto to use 'setsid()' for CYGWIN.
+
+* version.h: Update version number and specifically detect CYGWIN and display
+   apporpriate version info.
+
+* game.c: Modified @version for new version info, and to display whether it is
+  compiled for Cygwin.
+
+* Added define STAFF_POWER, by default defined, that adds a power called STAFF
+   to the powers list.  It does nothing codewise, but it can be detected by
+    <obj> "STAFF" power?
+   This is so that you can give special priveledges in MUF to someone with that
+   power set without giving them a full W.
+
+* STAFF_POWER define activates edits in the following files to support the new
+  @power: inc/db.h look.c p_db.c unparse.c wiz.c
+
+* Fixed a crasher in fltostr() that would choke on some instances of float
+  props
+
+* Fixed a segfault crasher in CYGWIN having to do with arbitrary declarations
+  of BUFFER_LEN in some buffers.
+
+* Added two new propqueues, @dumpwarn and @dump, both called just before a dump
+  warning or a dump.  They're only valid on #0, and return #-1 as the trigger,
+  #1 as the player triggering, and #0 as the location, at all times.   This is
+  so you can execute programs or customize messages just before a dump warning
+  or a dbsave.   Considering saves are near instant due to forking, it may be
+  found useful just to tune dumps up to one every 5 minutes or so, turn off
+  messages, and use the dump propqueues to do any pre-dump work needed.  Both
+  queues run before the message, so that you can use the queue to change the
+  message.
+
+* The new propqueues can be turned off by undefining DUMP propqueues in
+  inc/config.h
+
+* Added 'staff? ( d -- i )' primitive, inserver define for:
+   dup "W" flag? "STAFF" power? or
+
+**Akari**
+INTERNAL:
+December 10, 2001
+- Fixed it so that DARK characters don't show up on the login
+    WHO anymore. [Proto only bug]
+- Fixed a crasher with the in-server look crashing when internal
+    descs were used on things.
+
+December 15, 2001:
+- Made it so that _disconnect propqueues are called whenever a
+    character is dropped, not just when it is the last connection.
+    This is in line with how FB has always handled it.
+
+Feburary 23, 2002:
+- Fixed it so that failed help attempts don't show up to LOGWALL
+    admin when log_failedhelp is turned off.
+
+Feburary 24, 2002:
+- Made it so that array_tree_free_node() asserts that any subnodes
+    are NULL. This is to help catch any memory leaks. [FB6-change]
+
+March 6, 2002:
+- Fixed a typo in the @idesc code.
+
+SERVER-SIDE:
+December 10, 2001
+- Removed the FLUSHCHANGED #ifdef from the code, since it should
+    never be turned off. [FB6 change]
+- Made it so that the MUCK will fork off a child process to do
+    data base dumps, thus making it so that the MUCK won't have 
+    to pause for dumps. [FB6 change]
+- Fixed resolver to properly shutdown() indentd sockets. [FB6 fix]
+
+December 15, 2001:
+- Fixed a compiletime warning in the SMATCH prim.
+
+Feburary 23, 2002:
+- Incorporated a ton of changes made by Moose to make compiling
+    WinProto a much easier process.
+
+March 9, 2002:
+- Fixed a crash related to loading floating point props.
+
+April 18, 2002:
+- Fixed it so that the webserver port will not be opened if HTTPD is
+    undefined in config.h.
+
+MPI:
+December 10, 2001:
+- Fixed MPI variables. Under certain condition garbage would be
+    put in them because they were not initialzed properly.
+
+MUF:
+December 10, 2001:
+- Fixed ARRAY_GET_PROPLIST to not get confused by null value entries
+    in the list. It will create valid entries for them in the array with
+    the content of '0'. [FB6 fix]
+- Made it so that ARRAY_FILTER_PROP follows the same behavior as the
+    SMATCH prim. [FB6 fix]
+
+Feburary 23, 2002:
+- Made it so that LOGSTATUS was understood by the interpretor.
+- Made it so that flag? does not abort out on unknown flags, but
+    instead returns 0.
+- Fixed NEWOBJECT to allow the appropriate destinations for the new
+    object to be located. 
+- Fixed PNAME-OK? and NAME-OK?.
+
+Feburary 24, 2002:
+- Made array sorting use FLT_EPSILON for more accurate number 
+    comparison. [FB6-change]
+- Added a }join inserver define that expands to:
+    } array_make \"\" array_join
+- Added ARRAY_SORT_INDEXED. [FB6-addition]
+- Blocked a security hole in moveto that allowed anyone to move to #0
+    by trying to send something to an invalid location. [FB6-fix]
+- Added ARRAY_FMTSTRING. [FB6-addition]. The code on this was formatted 
+    horribly, but it's 400+ lines long, so I kinda left it as-is for 
+    now. Would be nice to format it correctly sometime...
+
+March 25, 2002:
+- Fixed a crasher with NBSOCKRECV handling Invalid Host returns wrong.
+
+March 28, 2002:
+- Fixed TREAD to work correctly.
+- Fixed it so that NBSOCKRECV won't infinite loop if the input has no
+     end of line or character ASCII in it.
+- Fixed NBSOCKRECV to ignore non-printable ASCII.
+- Added NBSOCKRECV_CHAR. Only takes in 1 character at a time from the 
+    input stream and pushes it onto the stack as an integer.
+- Moved socket prims header stuff to p_socket.h instead of p_misc.h.
+
+April 22, 2002:
+- Fixed NBSOCKRECV to accept control characters again, and resolved
+    a number of socket prim related bugs.
+- Changed FINDNEXT to not abort on garbage objects. It will return 
+    garbage objects if the object 
+- Changed staff? to return false on players.
