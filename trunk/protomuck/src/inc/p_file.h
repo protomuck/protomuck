@@ -28,5 +28,9 @@ extern void prim_getdir(PRIM_PROTOTYPE);
         "FSTATS", "CURID", "FSINFO", "FRM", "FREN", "FREADTO",    \
         "FNAME-OK?", "GETDIR"
 
+#ifdef FILE_PRIMS
 #define PRIMS_FILE_CNT 18
+#else
+#define PRIMS_FILE_CNT 0
+#endif
 

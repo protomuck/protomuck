@@ -38,10 +38,24 @@
 #define CYGWIN_TZ -8 
 #define CYGWIN_TZX "PST" 
 
-/* In order to include support for MySQL, #define SQL_SUPPORT */
+/* Define this to compile with MySQL support. MySQL must be installed
+ * somewhere on your system. When compiling with this option, you
+ * MUST run ./configure --with-mysql in the proto/src directory
+ * in order to include the necessary MySQL libraries. 
+ * If the mysql headers are in the normal /user/include/mysql/
+ * location, then it will find it fine. Otherwise, type:
+ * ./configure --with-mysql=<path to the mysql headers>
+ */
 #define SQL_SUPPORT
 
+/* Define FILE_PRIMS to compile in a set of W4 level file-access
+ * and control prims. The file prims are often a problem when
+ * compiling on non-linux servers, so if you are having problems
+ * compiling p_file.c, and don't intend to use file prims, you may
+ * want to undef this.
+ */
 
+#define FILE_PRIMS
 
 /* Alynna - STAFF bit support
  * Defines a 'w' power that does nothing of note, but you can set it 
