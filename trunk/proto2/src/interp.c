@@ -505,8 +505,9 @@ interp(int descr, dbref player, dbref location, dbref program,
 //        return NULL;
 
     if (!MLevel(program) || !MLevel(OWNER(program)) ||
-        ((OkObj(source)) && !TMage(OWNER(source)) &&
-         !can_link_to(OWNER(source), TYPE_EXIT, program))) {
+        (OkObj(source) ? (!TMage(OWNER(source)) &&
+                          !can_link_to(OWNER(source), TYPE_EXIT,
+                                       program)) : 0)) {
         anotify_nolisten(PSafe, CFAIL "Program call: Permission denied.", 1);
         return 0;
     }
