@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/inc/externs.h,v 1.1.1.1 2000-09-20 18:26:35 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/inc/externs.h,v 1.2 2000-09-20 18:34:10 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands
@@ -394,6 +394,7 @@ extern void host_shutdown();
 extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
 extern unsigned long rnd(void *buffer);
+
 
 
 

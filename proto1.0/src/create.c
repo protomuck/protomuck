@@ -39,7 +39,7 @@ parse_linkable_dest(int descr, dbref player, dbref exit,
 
     if ((dobj = match_result(&md)) == NOTHING || dobj == AMBIGUOUS) {
 	sprintf(buf, CINFO "I couldn't find '%s'.", dest_name);
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	return NOTHING;
 
     }
@@ -47,17 +47,17 @@ parse_linkable_dest(int descr, dbref player, dbref exit,
     if (!tp_teleport_to_player && Typeof(dobj) == TYPE_PLAYER) {
 	sprintf(buf, CFAIL "You can't link to players.  Destination %s ignored.",
 		unparse_object(player, dobj));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	return NOTHING;
     }
 
     if (!can_link(player, exit)) {
-	anotify(player, CFAIL "You can't link that.");
+	anotify_nolisten2(player, CFAIL "You can't link that.");
 	return NOTHING;
     }
     if (!can_link_to(player, Typeof(exit), dobj)) {
 	sprintf(buf, CFAIL "You can't link to %s.", unparse_object(player, dobj));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	return NOTHING;
     } else {
 	return dobj;
@@ -105,12 +105,12 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
     int     i, ndest;
 
     if (!Builder(player)) {
-	anotify(player, CFAIL NOBBIT_MESG);
+	anotify_nolisten2(player, CFAIL NOBBIT_MESG);
 	return;
     }
 
     if (!tp_building || tp_db_readonly) {
-	anotify(player, CFAIL NOBUILD_MESG);
+	anotify_nolisten2(player, CFAIL NOBUILD_MESG);
 	return;
     }
 
@@ -129,10 +129,10 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
     if ((loc = getloc(player)) == NOTHING)
 	return;
     if (!*direction) {
-	anotify(player, CINFO "You must specify a direction or action name to open.");
+	anotify_nolisten2(player, CINFO "You must specify a direction or action name to open.");
 	return;
     } else if (!ok_name(direction)) {
-	anotify(player, CINFO "That's a strange name for an exit!");
+	anotify_nolisten2(player, CINFO "That's a strange name for an exit!");
 	return;
     }
     if (!controls(player, loc)) {
@@ -160,11 +160,11 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 
 	/* and we're done */
 	sprintf(buf, CSUCC "Exit #%d created and opened.", exit);
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 
 	/* check second arg to see if we should do a link */
 	if (*qname != '\0') {
-	    anotify(player, CNOTE "Trying to link...");
+	    anotify_nolisten2(player, CNOTE "Trying to link...");
 	    if (!payfor(player, tp_link_cost)) {
 		anotify_fmt(player, CFAIL "You don't have enough %s to link.",
                            tp_pennies);
@@ -182,7 +182,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 
     if (*rname && (exit != NOTHING)) {
 	sprintf(buf, CSUCC "Registered as $%s", rname);
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	sprintf(buf, "_reg/%s", rname);
 	set_property(player, buf, PROP_REFTYP, (PTYPE)exit);
     }
@@ -234,7 +234,7 @@ link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_lis
 	    case TYPE_PROGRAM:
 		if (prdest) {
 		    sprintf(buf, CFAIL "One non-thing link allowed. Destination %s ignored.", unparse_object(player, dest));
-		    anotify(player, buf);
+		    anotify_nolisten2(player, buf);
 		    continue;
 		}
 		dest_list[ndest++] = dest;
@@ -247,25 +247,25 @@ link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_lis
 		if (exit_loop_check(exit, dest)) {
 		    sprintf(buf, CFAIL "Destination %s would create a loop, ignored.",
 			    unparse_object(player, dest));
-		    anotify(player, buf);
+		    anotify_nolisten2(player, buf);
 		    continue;
 		}
 		dest_list[ndest++] = dest;
 		break;
 	    default:
-		anotify(player, CFAIL "Weird object type.");
+		anotify_nolisten2(player, CFAIL "Weird object type.");
 		log_status("*BUG: weird object: Typeof(%d) = %d\n",
 			   dest, Typeof(dest));
 		break;
 	}
 	if (dest == HOME) {
-	    anotify(player, CSUCC "Linked to HOME.");
+	    anotify_nolisten2(player, CSUCC "Linked to HOME.");
 	} else {
 	    sprintf(buf, CSUCC "Linked to %s.", unparse_object(player, dest));
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
 	}
 	if (ndest >= MAX_LINKS) {
-	    anotify(player, CSUCC "Too many destinations, extra ignored.");
+	    anotify_nolisten2(player, CSUCC "Too many destinations, extra ignored.");
 	    break;
 	}
     }
@@ -292,7 +292,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
     int     ndest, i;
 
     if (tp_db_readonly) {
-	anotify(player, CFAIL DBRO_MESG);
+	anotify_nolisten2(player, CFAIL DBRO_MESG);
 	return;
     }
 
@@ -320,7 +320,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 	    /* we're ok, check the usual stuff */
 	    if (DBFETCH(thing)->sp.exit.ndest != 0) {
 		if (controls(player, thing)) {
-		    anotify(player, CINFO "That exit is already linked.");
+		    anotify_nolisten2(player, CINFO "That exit is already linked.");
 		    return;
 		} else {
 		    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -341,7 +341,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
                                (tp_link_cost+tp_exit_cost == 1)?tp_penny:tp_pennies);
 		    return;
 		} else if (!Builder(player)) {
-		    anotify(player, CFAIL NOBBIT_MESG);
+		    anotify_nolisten2(player, CFAIL NOBBIT_MESG);
 		    return;
 		} else {
 		    /* pay the owner for his loss */
@@ -356,7 +356,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 	    OWNER(thing) = OWNER(player);
 	    ndest = link_exit(descr, player, thing, (char *) dest_name, good_dest);
 	    if (ndest == 0) {
-		anotify(player, CFAIL "No destinations linked.");
+		anotify_nolisten2(player, CFAIL "No destinations linked.");
 		DBFETCH(player)->sp.player.pennies += tp_link_cost;	/* Refund! */
 		DBDIRTY(player);
 		break;
@@ -385,7 +385,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 		return;
 	    }
 	    if (parent_loop_check(thing, dest)) {
-		anotify(player, CFAIL "That would cause a parent paradox.");
+		anotify_nolisten2(player, CFAIL "That would cause a parent paradox.");
 		return;
 	    }
 	    /* do the link */
@@ -393,7 +393,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 		DBFETCH(thing)->sp.thing.home = dest;
 	    } else
 		DBFETCH(thing)->sp.player.home = dest;
-	    anotify(player, CSUCC "Home set.");
+	    anotify_nolisten2(player, CSUCC "Home set.");
 	    break;
 	case TYPE_ROOM:	/* room dropto's */
 	    init_match(descr, player, dest_name, TYPE_ROOM, &md);
@@ -409,14 +409,14 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 		anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	    } else {
 		DBFETCH(thing)->sp.room.dropto = dest;	/* dropto */
-		anotify(player, CSUCC "Dropto set.");
+		anotify_nolisten2(player, CSUCC "Dropto set.");
 	    }
 	    break;
 	case TYPE_PROGRAM:
-	    anotify(player, CFAIL "You can't link programs to things!");
+	    anotify_nolisten2(player, CFAIL "You can't link programs to things!");
 	    break;
 	default:
-	    anotify(player, CFAIL "Weird object type.");
+	    anotify_nolisten2(player, CFAIL "Weird object type.");
 	    log_status("*BUG: weird object: Typeof(%d) = %d\n",
 		       thing, Typeof(thing));
 	    break;
@@ -444,21 +444,21 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     struct match_data md;
 
     if (!Builder(player) && !tp_all_can_build_rooms) {
-	anotify(player, CFAIL NOBBIT_MESG);
+	anotify_nolisten2(player, CFAIL NOBBIT_MESG);
 	return;
     }
 
     if (!tp_building || tp_db_readonly) {
-	anotify(player, CFAIL NOBUILD_MESG);
+	anotify_nolisten2(player, CFAIL NOBUILD_MESG);
 	return;
     }
 
     if (*name == '\0') {
-	anotify(player, CINFO "You need name for the room.");
+	anotify_nolisten2(player, CINFO "You need name for the room.");
 	return;
     }
     if (!ok_name(name)) {
-	anotify(player, CINFO "That's a silly name for a room!");
+	anotify_nolisten2(player, CINFO "That's a silly name for a room!");
 	return;
     }
     if (!payfor(player, tp_room_cost)) {
@@ -486,7 +486,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     DBDIRTY(newparent);
 
     sprintf(buf, CSUCC "Room #%d created.", room);
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
     strcpy(buf, pname);
     for (rname = buf; (*rname && (*rname != '=')); rname++);
@@ -501,21 +501,21 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     qname = strcpy(qbuf, qname);
 
     if (*qname) {
-	anotify(player, CNOTE "Trying to set parent...");
+	anotify_nolisten2(player, CNOTE "Trying to set parent...");
 	init_match(descr, player, qname, TYPE_ROOM, &md);
 	match_absolute(&md);
 	match_registered(&md);
 	match_here(&md);
 	if ((parent = noisy_match_result(&md)) == NOTHING
 		|| parent == AMBIGUOUS) {
-	    anotify(player, CINFO "Parent set to default.");
+	    anotify_nolisten2(player, CINFO "Parent set to default.");
 	} else {
 	    if (!can_link_to(player, Typeof(room), parent) || room == parent) {
-		anotify(player, CFAIL "Permission denied.  Parent set to default.");
+		anotify_nolisten2(player, CFAIL "Permission denied.  Parent set to default.");
 	    } else {
 		moveto(room, parent);
 		sprintf(buf, CSUCC "Parent set to %s.", unparse_object(player, parent));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 	    }
 	}
     }
@@ -524,7 +524,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
 	sprintf(buf, "_reg/%s", rname);
 	set_property(player, buf, PROP_REFTYP, (PTYPE)room);
 	sprintf(buf, CINFO "Room registered as $%s", rname);
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
 }
 
@@ -544,19 +544,19 @@ do_prog(int descr, dbref player, const char *name, int mcp)
     struct match_data md;
 
     if (Typeof(player) != TYPE_PLAYER) {
-	anotify(player, CFAIL "Only players can edit programs.");
+	anotify_nolisten2(player, CFAIL "Only players can edit programs.");
 	return;
     }
     if (!Mucker(player)) {
-	anotify(player, CFAIL NOMBIT_MESG);
+	anotify_nolisten2(player, CFAIL NOMBIT_MESG);
 	return;
     }
     if (!tp_building || tp_db_readonly) {
-	anotify(player, CFAIL NOBUILD_MESG);
+	anotify_nolisten2(player, CFAIL NOBUILD_MESG);
 	return;
     }
     if (!*name) {
-	anotify(player, CINFO "No program name given.");
+	anotify_nolisten2(player, CINFO "No program name given.");
 	return;
     }
     init_match(descr, player, name, TYPE_PROGRAM, &md);
@@ -596,10 +596,10 @@ do_prog(int descr, dbref player, const char *name, int mcp)
 	DBDIRTY(newprog);
 	DBDIRTY(player);
 	sprintf(buf, CSUCC "Program %s created with number %d.", name, newprog);
-	anotify(player, buf);
-	anotify(player, CINFO "Entering editor.");
+	anotify_nolisten2(player, buf);
+	anotify_nolisten2(player, CINFO "Entering editor.");
     } else if (i == AMBIGUOUS) {
-	anotify(player, CINFO "I don't know which one you mean!");
+	anotify_nolisten2(player, CINFO "I don't know which one you mean!");
 	return;
     } else {
 	if ((Typeof(i) != TYPE_PROGRAM) || !controls(player, i)) {
@@ -607,13 +607,13 @@ do_prog(int descr, dbref player, const char *name, int mcp)
 	    return;
 	}
 	if (FLAGS(i) & INTERNAL) {
-	    anotify(player, CFAIL NOEDIT_MESG);
+	    anotify_nolisten2(player, CFAIL NOEDIT_MESG);
 	    return;
 	}
 	DBFETCH(i)->sp.program.first = read_program(i,1);
 	FLAGS(i) |= INTERNAL;
 	DBFETCH(player)->sp.player.curr_prog = i;
-	anotify(player, CINFO "Entering editor.");
+	anotify_nolisten2(player, CINFO "Entering editor.");
 	/* list current line */
 	do_list(player, i, 0, 0);
 	DBDIRTY(i);
@@ -629,20 +629,20 @@ do_edit(int descr, dbref player, const char *name)
     struct match_data md;
 
     if (Typeof(player) != TYPE_PLAYER) {
-	anotify(player, CFAIL "Only players can edit programs.");
+	anotify_nolisten2(player, CFAIL "Only players can edit programs.");
 	return;
     }
     if (!Mucker(player)) {
-	anotify(player, CFAIL NOMBIT_MESG);
+	anotify_nolisten2(player, CFAIL NOMBIT_MESG);
 	return;
     }
     if (tp_db_readonly) {
-	anotify(player, CFAIL DBRO_MESG);
+	anotify_nolisten2(player, CFAIL DBRO_MESG);
 	return;
     }
 
     if (!*name) {
-	anotify(player, CINFO "No program name given.");
+	anotify_nolisten2(player, CINFO "No program name given.");
 	return;
     }
     init_match(descr, player, name, TYPE_PROGRAM, &md);
@@ -660,13 +660,13 @@ do_edit(int descr, dbref player, const char *name)
 	return;
     }
     if (FLAGS(i) & INTERNAL) {
-	anotify(player, CFAIL NOEDIT_MESG);
+	anotify_nolisten2(player, CFAIL NOEDIT_MESG);
 	return;
     }
     FLAGS(i) |= INTERNAL;
     DBFETCH(i)->sp.program.first = read_program(i,1);
     DBFETCH(player)->sp.player.curr_prog = i;
-    anotify(player, CINFO "Entering editor.");
+    anotify_nolisten2(player, CINFO "Entering editor.");
     /* list current line */
     do_list(player, i, 0, 0);
     FLAGS(player) |= INTERACTIVE;
@@ -691,12 +691,12 @@ do_create(dbref player, char *name, char *acost)
     char   *rname, *qname;
 
     if (!Builder(player)) {
-	anotify(player, CFAIL NOBBIT_MESG);
+	anotify_nolisten2(player, CFAIL NOBBIT_MESG);
 	return;
     }
 
     if (!tp_building || tp_db_readonly) {
-	anotify(player, CFAIL NOBUILD_MESG);
+	anotify_nolisten2(player, CFAIL NOBUILD_MESG);
 	return;
     }
 
@@ -712,13 +712,13 @@ do_create(dbref player, char *name, char *acost)
 
     cost = atoi(qname);
     if (*name == '\0') {
-	anotify(player, CINFO "Create what?");
+	anotify_nolisten2(player, CINFO "Create what?");
 	return;
     } else if (!ok_name(name)) {
-	anotify(player, CINFO "That's a silly name for a thing!");
+	anotify_nolisten2(player, CINFO "That's a silly name for a thing!");
 	return;
     } else if (cost < 0) {
-	anotify(player, CINFO "You can't create an object for less than nothing!");
+	anotify_nolisten2(player, CINFO "You can't create an object for less than nothing!");
 	return;
     } else if (cost < tp_object_cost) {
 	cost = tp_object_cost;
@@ -756,12 +756,12 @@ do_create(dbref player, char *name, char *acost)
 
 	/* and we're done */
 	sprintf(buf, CSUCC "Object #%d created.", thing);
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	DBDIRTY(thing);
     }
     if (*rname) {
 	sprintf(buf, CINFO "Registered as $%s", rname);
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	sprintf(buf, "_reg/%s", rname);
 	set_property(player, buf, PROP_REFTYP, (PTYPE)thing);
     }
@@ -803,11 +803,11 @@ parse_source(int descr, dbref player, const char *source_name)
 	return NOTHING;
     }
     if (Typeof(source) == TYPE_EXIT) {
-	anotify(player, CFAIL "You can't attach an action to an action.");
+	anotify_nolisten2(player, CFAIL "You can't attach an action to an action.");
 	return NOTHING;
     }
     if (Typeof(source) == TYPE_PROGRAM) {
-	anotify(player, CFAIL "You can't attach an action to a program.");
+	anotify_nolisten2(player, CFAIL "You can't attach an action to a program.");
 	return NOTHING;
     }
     return source;
@@ -830,7 +830,7 @@ set_source(dbref player, dbref action, dbref source)
 	    PUSH(action, DBFETCH(source)->exits);
 	    break;
 	default:
-	    anotify(player, CFAIL "Weird object type.");
+	    anotify_nolisten2(player, CFAIL "Weird object type.");
 	    log_status("*BUG: tried to source %d to %d: type: %d\n",
 		       action, source, Typeof(source));
 	    return;
@@ -890,12 +890,12 @@ do_action(int descr, dbref player, const char *action_name, const char *source_n
     char   *rname, *qname;
 
     if (!Builder(player)) {
-	anotify(player, CFAIL NOBBIT_MESG);
+	anotify_nolisten2(player, CFAIL NOBBIT_MESG);
 	return;
     }
 
     if (!tp_building || tp_db_readonly) {
-	anotify(player, CFAIL NOBUILD_MESG);
+	anotify_nolisten2(player, CFAIL NOBUILD_MESG);
 	return;
     }
 
@@ -910,10 +910,10 @@ do_action(int descr, dbref player, const char *action_name, const char *source_n
     for (; *rname && isspace(*rname); rname++);
 
     if (!*action_name || !*qname) {
-	anotify(player, CINFO "You must specify an action name and a source object.");
+	anotify_nolisten2(player, CINFO "You must specify an action name and a source object.");
 	return;
     } else if (!ok_name(action_name)) {
-	anotify(player, CINFO "That's a strange name for an action!");
+	anotify_nolisten2(player, CINFO "That's a strange name for an action!");
 	return;
     } else if (!payfor(player, tp_exit_cost)) {
 	anotify_fmt(player, RED
@@ -935,12 +935,12 @@ do_action(int descr, dbref player, const char *action_name, const char *source_n
 
     set_source(player, action, source);
     sprintf(buf, CSUCC "Action #%d created and attached.", action);
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
     DBDIRTY(action);
 
     if (*rname) {
 	sprintf(buf, CINFO "Registered as $%s", rname);
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	sprintf(buf, "_reg/%s", rname);
 	set_property(player, buf, PROP_REFTYP, (PTYPE)action);
     }
@@ -964,16 +964,16 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
 	return;
 
     if (!Builder(player)) {
-	anotify(player, CFAIL NOBBIT_MESG);
+	anotify_nolisten2(player, CFAIL NOBBIT_MESG);
 	return;
     }
     if (tp_db_readonly) {
-	anotify(player, CFAIL DBRO_MESG);
+	anotify_nolisten2(player, CFAIL DBRO_MESG);
 	return;
     }
 
     if (!*action_name || !*source_name) {
-	anotify(player, CINFO "You must specify an action name and a source object.");
+	anotify_nolisten2(player, CINFO "You must specify an action name and a source object.");
 	return;
     }
     init_match(descr, player, action_name, TYPE_EXIT, &md);
@@ -985,7 +985,7 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
 	return;
 
     if (Typeof(action) != TYPE_EXIT) {
-	anotify(player, CINFO "That's not an action.");
+	anotify_nolisten2(player, CINFO "That's not an action.");
 	return;
     } else if (!controls(player, action)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -999,11 +999,12 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
 	return;
     }
     set_source(player, action, source);
-    anotify(player, CSUCC "Action re-attached.");
+    anotify_nolisten2(player, CSUCC "Action re-attached.");
     if (MLevel(action)) {
 	SetMLevel(action, 0);
-        anotify(player, CINFO "Action priority Level reset to zero.");
+        anotify_nolisten2(player, CINFO "Action priority Level reset to zero.");
     }
 }
+
 
 

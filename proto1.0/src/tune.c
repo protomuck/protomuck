@@ -193,6 +193,7 @@ struct tune_val_entry tune_val_list[] =
 
 
 /* dbrefs */
+dbref tp_quit_prog         = -1;
 dbref tp_huh_command       = -1;
 dbref tp_login_huh_command = -1;
 dbref tp_login_who_prog    = -1;
@@ -217,6 +218,7 @@ struct tune_ref_entry {
 
 struct tune_ref_entry tune_ref_list[] =
 {
+    {"quit_prog",        TYPE_PROGRAM,   &tp_quit_prog,            0},
     {"huh_command",      TYPE_PROGRAM,   &tp_huh_command,          0},
     {"login_huh_command",TYPE_PROGRAM,   &tp_login_huh_command,    0},
     {"login_who_prog",   TYPE_PROGRAM,   &tp_login_who_prog,       0},
@@ -281,8 +283,10 @@ int tp_db_readonly		= 0;
 int tp_building			= 1;
 int tp_restricted_building	= 1;
 int tp_all_can_build_rooms	= 1;
+int tp_pcreate_copy_props     = 0;
 int tp_enable_home		= 0;
 int tp_quiet_moves            = 0;
+int tp_quiet_connects         = 0;
 int tp_expanded_debug         = 0;
 
 struct tune_bool_entry {
@@ -340,8 +344,10 @@ struct tune_bool_entry tune_bool_list[] =
     {"building",			 &tp_building,			0},
     {"all_can_build_rooms",	 &tp_all_can_build_rooms,	0},
     {"restricted_building",	 &tp_restricted_building,	0},
+    {"pcreate_copy_props",     &tp_pcreate_copy_props,      0},
     {"allow_home",             &tp_enable_home,             0},
     {"quiet_moves",            &tp_quiet_moves,             0},
+    {"quiet_connects",         &tp_quiet_connects,          0},
     {"expanded_debug",         &tp_expanded_debug,          0},
     {NULL, 				 NULL, 				0}
 };
@@ -404,7 +410,7 @@ tune_display_parms(dbref player, char *name)
 	    sprintf(buf, CYAN "(str)" GREEN "  %-20s" RED " = " CYAN "%.4096s", 
 tstr->name, tct(*tstr->str,tbuf));
             lastname = tstr->name;
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
             total++;
 	}
 	tstr++;
@@ -417,7 +423,7 @@ tstr->name, tct(*tstr->str,tbuf));
 ttim->name,
 		    timestr_full(*ttim->tim));
             lastname = ttim->name;
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
             total++;
 	}
 	ttim++;
@@ -429,7 +435,7 @@ ttim->name,
 	    sprintf(buf, GREEN "(int)" GREEN "  %-20s" RED " = " YELLOW "%d", 
 tval->name, *tval->val);
             lastname = tval->name;
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
             total++;
 	}
 	tval++;
@@ -441,7 +447,7 @@ tval->name, *tval->val);
 	    sprintf(buf, YELLOW "(ref)" GREEN "  %-20s" RED " = %s", tref->name,
 		    ansi_unparse_object(player, *tref->ref));
             lastname = tref->name;
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
             total++;
 	}
 	tref++;
@@ -453,7 +459,7 @@ tval->name, *tval->val);
 	    sprintf(buf, WHITE "(bool)" GREEN " %-20s" RED " = " BLUE "%s", tbool->name,
 		    ((*tbool->bool)? "yes" : "no"));
             lastname = tbool->name;
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
             total++;
 	}
 	tbool++;
@@ -791,27 +797,27 @@ do_tune(dbref player, char *parmname, char *parmval)
 	    case TUNESET_SUCCESS:
 		log_status("TUNE: %s(%d) tuned %s to %s\n",
 			    NAME(player), player, parmname, parmval);
-		anotify(player, CSUCC "Parameter set.");
+		anotify_nolisten2(player, CSUCC "Parameter set.");
 		tune_display_parms(player, parmname);
 		break;
 	    case TUNESET_UNKNOWN:
-		anotify(player, CINFO "Unknown parameter.");
+		anotify_nolisten2(player, CINFO "Unknown parameter.");
 		break;
 	    case TUNESET_SYNTAX:
-		anotify(player, CFAIL "Bad parameter syntax.");
+		anotify_nolisten2(player, CFAIL "Bad parameter syntax.");
 		break;
 	    case TUNESET_BADVAL:
-		anotify(player, CFAIL "Bad parameter value.");
+		anotify_nolisten2(player, CFAIL "Bad parameter value.");
 		break;
 	}
 	return;
     } else if (*parmname) {
 	/* if (!string_compare(parmname, "save")) {
 	    tune_save_parmsfile();
-	    anotify(player, CSUCC "Saved parameters to configuration file.");
+	    anotify_nolisten2(player, CSUCC "Saved parameters to configuration file.");
 	} else if (!string_compare(parmname, "load")) {
 	    tune_load_parmsfile(player);
-	    anotify(player, CSUCC "Restored parameters from configuration file.");
+	    anotify_nolisten2(player, CSUCC "Restored parameters from configuration file.");
 	} else
 	*/ {
 	    tune_display_parms(player, parmname);
@@ -820,10 +826,11 @@ do_tune(dbref player, char *parmname, char *parmval)
     } else if (!*parmval && !*parmname) {
 	tune_display_parms(player, parmname);
     } else {
-	anotify(player, CINFO "Tune what?");
+	anotify_nolisten2(player, CINFO "Tune what?");
 	return;
     }
 }
+
 
 
 

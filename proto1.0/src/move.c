@@ -172,7 +172,7 @@ void enter_room(int descr, dbref player, dbref loc, dbref exit)
 
 	    /* notify others unless DARK */
 	    if (!Hidden(player) && !Dark(old) && !Dark(player)
-		    && (Typeof(exit) != TYPE_EXIT || !Dark(exit)) && !tp_quiet_moves) {
+		  /*  && (Typeof(exit) != TYPE_EXIT || !Dark(exit)) */ && !tp_quiet_moves) {
 #if !defined(QUIET_MOVES)
 		sprintf(buf, CMOVE "%s has left.", PNAME(player));
 		anotify_except(DBFETCH(old)->contents, player, buf, player);
@@ -189,7 +189,7 @@ void enter_room(int descr, dbref player, dbref loc, dbref exit)
 
 	/* tell other folks in new location if not DARK */
 	if (!Hidden(player) && !Dark(loc) && !Dark(player)
-		&& (Typeof(exit) != TYPE_EXIT || !Dark(exit)) && !tp_quiet_moves) {
+	/* 	&& (Typeof(exit) != TYPE_EXIT || !Dark(exit)) */ && !tp_quiet_moves) {
 #if !defined(QUIET_MOVES)
 	    sprintf(buf, CMOVE "%s has arrived.", PNAME(player));
 	    anotify_except(DBFETCH(loc)->contents, player, buf, player);
@@ -209,7 +209,7 @@ void enter_room(int descr, dbref player, dbref loc, dbref exit)
 	}
 	donelook--;
     } else
-	anotify(player, CINFO "Look aborted because of look action loop.");
+	anotify_nolisten2(player, CINFO "Look aborted because of look action loop.");
 
     if (tp_penny_rate != 0) {
 	/* check for pennies */
@@ -315,17 +315,17 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 	    case TYPE_ROOM:
 		if (pflag) {
 		    if (parent_loop_check(player, dest)) {
-			anotify(player, CINFO "That would cause a paradox.");
+			anotify_nolisten2(player, CINFO "That would cause a paradox.");
 			break;
 		    }
 		    if (!Mage(OWNER(player)) && Typeof(player)==TYPE_THING
 			    && (FLAGS(dest)&ZOMBIE)) {
-			anotify(player, CFAIL "You can't go that way.");
+			anotify_nolisten2(player, CFAIL "You can't go that way.");
 			break;
 		    }
 		    if ((FLAGS(player) & VEHICLE) &&
 			    ((FLAGS(dest) | FLAGS(exit)) & VEHICLE)) {
-			anotify(player, CFAIL "You can't go that way.");
+			anotify_nolisten2(player, CFAIL "You can't go that way.");
 			break;
 		    }
 		    if (GETDROP(exit))
@@ -342,7 +342,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 		if (dest == getloc(exit) && (FLAGS(dest) & VEHICLE)) {
 		    if (pflag) {
 			if (parent_loop_check(player, dest)) {
-			    anotify(player, CINFO "That would cause a paradox.");
+			    anotify_nolisten2(player, CINFO "That would cause a paradox.");
 			    break;
 			}
 			if (GETDROP(exit))
@@ -358,7 +358,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 		} else {
 		    if (Typeof(DBFETCH(exit)->location) == TYPE_THING) {
 			if (parent_loop_check(dest, getloc(getloc(exit)))) {
-			    anotify(player, CINFO "That would cause a paradox.");
+			    anotify_nolisten2(player, CINFO "That would cause a paradox.");
 			    break;
 			}
 			moveto(dest, DBFETCH(DBFETCH(exit)->location)->location);
@@ -368,7 +368,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			}
 		    } else {
 			if (parent_loop_check(dest, getloc(exit))) {
-			    anotify(player, CINFO "That would cause a paradox.");
+			    anotify_nolisten2(player, CINFO "That would cause a paradox.");
 			    break;
 			}
 			moveto(dest, DBFETCH(exit)->location);
@@ -386,7 +386,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 	    case TYPE_PLAYER:
 		if (pflag && DBFETCH(dest)->location != NOTHING) {
 		    if (parent_loop_check(player, dest)) {
-			anotify(player, CINFO "That would cause a paradox.");
+			anotify_nolisten2(player, CINFO "That would cause a paradox.");
 			break;
 		    }
 		    succ = 1;
@@ -401,7 +401,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			}
 			enter_room(descr, player, DBFETCH(dest)->location, exit);
 		    } else {
-			anotify(player, CINFO "That player does not wish to be disturbed.");
+			anotify_nolisten2(player, CINFO "That player does not wish to be disturbed.");
 		    }
 		}
 		break;
@@ -419,7 +419,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
     if (sobjact)
 	send_home(descr, DBFETCH(exit)->location, 0);
     if (!succ && pflag)
-	anotify(player, CINFO "Done.");
+	anotify_nolisten2(player, CINFO "Done.");
 }
 
 void 
@@ -438,9 +438,9 @@ do_move(int descr, dbref player, const char *direction, int lev)
 	    anotify_except(DBFETCH(loc)->contents, player, buf, player);
 	}
 	/* give the player the messages */
-        anotify(player, RED "There's no place like home...");
-        anotify(player, WHITE "There's no place like home...");
-        anotify(player, BLUE "There's no place like home...");
+        anotify_nolisten2(player, RED "There's no place like home...");
+        anotify_nolisten2(player, WHITE "There's no place like home...");
+        anotify_nolisten2(player, BLUE "There's no place like home...");
 	send_home(descr, player, 1);
     } else {
 	/* find the exit */
@@ -449,10 +449,10 @@ do_move(int descr, dbref player, const char *direction, int lev)
 	match_all_exits(&md);
 	switch (exit = match_result(&md)) {
 	    case NOTHING:
-		anotify(player, CFAIL "You can't go that way.");
+		anotify_nolisten2(player, CFAIL "You can't go that way.");
 		break;
 	    case AMBIGUOUS:
-		anotify(player, CINFO "I don't know which way you mean!");
+		anotify_nolisten2(player, CINFO "I don't know which way you mean!");
 		break;
 	    default:
 		/* we got one */
@@ -475,12 +475,12 @@ do_leave(int descr, dbref player)
 
     loc = DBFETCH(player)->location;
     if (loc == NOTHING || Typeof(loc) == TYPE_ROOM) {
-	anotify(player, CFAIL "You can't go that way.");
+	anotify_nolisten2(player, CFAIL "You can't go that way.");
 	return;
     }
 
     if (!(FLAGS(loc) & VEHICLE) && !(Typeof(loc) == TYPE_PLAYER)) {
-	anotify(player, CFAIL "You can only exit vehicles.");
+	anotify_nolisten2(player, CFAIL "You can only exit vehicles.");
 	return;
     }
 
@@ -488,24 +488,24 @@ do_leave(int descr, dbref player)
     if(dest < 0 || dest >= db_top) return;
 
     if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_THING) {
-	anotify(player, CFAIL "You can't exit a vehicle inside of a player.");
+	anotify_nolisten2(player, CFAIL "You can't exit a vehicle inside of a player.");
 	return;
     }
 
 /*
  *  if (Typeof(dest) == TYPE_ROOM && !controls(player, dest)
  *          && !(FLAGS(dest) | JUMP_OK)) {
- *      anotify(player, CFAIL "You can't go that way.");
+ *      anotify_nolisten2(player, CFAIL "You can't go that way.");
  *      return;
  *  }
  */
 
     if (parent_loop_check(player, dest)) {
-	anotify(player,CFAIL "You can't go that way.");
+	anotify_nolisten2(player,CFAIL "You can't go that way.");
 	return;
     }
 
-    anotify(player, CSUCC "You exit the vehicle.");
+    anotify_nolisten2(player, CSUCC "You exit the vehicle.");
     enter_room(descr, player, dest, loc);
 }
 
@@ -518,7 +518,7 @@ do_get(int descr, dbref player, const char *what, const char *obj)
     struct match_data md;
 
     if( tp_db_readonly ) {
-	anotify( player, CFAIL DBRO_MESG );
+	anotify_nolisten2( player, CFAIL DBRO_MESG );
 	return;
     }
 
@@ -539,24 +539,24 @@ do_get(int descr, dbref player, const char *what, const char *obj)
 		return;
 	    }
 	    if (Typeof(cont) == TYPE_PLAYER) {
-		anotify(player, CFAIL "You can't steal things from players.");
+		anotify_nolisten2(player, CFAIL "You can't steal things from players.");
 		return;
 	    }
 	    if (!test_lock_false_default(descr, player, cont, "_/clk")) {
-		anotify(player, CFAIL "You can't open that container.");
+		anotify_nolisten2(player, CFAIL "You can't open that container.");
 		return;
 	    }
 	}
 	if (DBFETCH(thing)->location == player) {
-	    anotify(player, CINFO "You already have that.");
+	    anotify_nolisten2(player, CINFO "You already have that.");
 	    return;
 	}
 	if (Typeof(cont) == TYPE_PLAYER) {
-	    anotify(player, CFAIL "You can't steal stuff from players.");
+	    anotify_nolisten2(player, CFAIL "You can't steal stuff from players.");
 	    return;
 	}
 	if (parent_loop_check(thing, player)) {
-	    anotify(player, CFAIL "You can't pick yourself up by your bootstraps!");
+	    anotify_nolisten2(player, CFAIL "You can't pick yourself up by your bootstraps!");
 	    return;
 	}
 	switch (Typeof(thing)) {
@@ -566,17 +566,17 @@ do_get(int descr, dbref player, const char *what, const char *obj)
 		if (obj && *obj) {
 		    cando = could_doit(descr, player, thing);
 		    if (!cando)
-			anotify(player, CFAIL "You can't get that.");
+			anotify_nolisten2(player, CFAIL "You can't get that.");
 		} else {
 		    cando=can_doit(descr, player, thing, "You can't pick that up.");
 		}
 		if (cando) {
 		    moveto(thing, player);
-		    anotify(player, CSUCC "Taken.");
+		    anotify_nolisten2(player, CSUCC "Taken.");
 		}
 		break;
 	    default:
-		anotify(player, CFAIL "You can't take that!");
+		anotify_nolisten2(player, CFAIL "You can't take that!");
 		break;
 	}
     }
@@ -591,7 +591,7 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
     struct match_data md;
 
     if( tp_db_readonly ) {
-	anotify( player, CFAIL DBRO_MESG );
+	anotify_nolisten2( player, CFAIL DBRO_MESG );
 	return;
     }
 
@@ -621,21 +621,21 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
 	case TYPE_PROGRAM:
 	    if (DBFETCH(thing)->location != player) {
 		/* Shouldn't ever happen. */
-		anotify(player, CFAIL "You can't drop that.");
+		anotify_nolisten2(player, CFAIL "You can't drop that.");
 		break;
 	    }
 	    if (Typeof(cont) != TYPE_ROOM && Typeof(cont) != TYPE_PLAYER &&
 		    Typeof(cont) != TYPE_THING) {
-		anotify(player, CFAIL "You can't put anything in that.");
+		anotify_nolisten2(player, CFAIL "You can't put anything in that.");
 		break;
 	    }
 	    if (Typeof(cont)!=TYPE_ROOM &&
 		    !test_lock_false_default(descr, player, cont, "_/clk")) {
-		anotify(player, CFAIL "You don't have permission to put something in that.");
+		anotify_nolisten2(player, CFAIL "You don't have permission to put something in that.");
 		break;
 	    }
 	    if (parent_loop_check(thing, cont)) {
-		anotify(player, CFAIL "You can't put something inside of itself.");
+		anotify_nolisten2(player, CFAIL "You can't put something inside of itself.");
 		break;
 	    }
 	    if (Typeof(cont) == TYPE_ROOM && (FLAGS(thing) & STICKY) &&
@@ -649,7 +649,7 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
 		moveto(thing, immediate_dropto ? DBFETCH(cont)->sp.room.dropto : cont);
 	    }
 	    if (Typeof(cont) == TYPE_THING) {
-		anotify(player, CSUCC "Put away.");
+		anotify_nolisten2(player, CSUCC "Put away.");
 		return;
             } else if (Typeof(cont) == TYPE_PLAYER) {
 		anotify_fmt(cont, CNOTE "%s hands you %s.", PNAME(player), PNAME(thing));
@@ -661,7 +661,7 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
 	    if (GETDROP(thing))
 		exec_or_notify(descr, player, thing, GETDROP(thing), "(@Drop)");
 	    else
-		anotify(player, CSUCC "Dropped.");
+		anotify_nolisten2(player, CSUCC "Dropped.");
 
 	    if (GETDROP(loc))
 		exec_or_notify(descr, player, loc, GETDROP(loc), "(@Drop)");
@@ -680,7 +680,7 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
 	    }
 	    break;
 	default:
-	    anotify(player, CFAIL "You can't drop that.");
+	    anotify_nolisten2(player, CFAIL "You can't drop that.");
 	    break;
     }
 }
@@ -693,12 +693,12 @@ do_recycle(int descr, dbref player, const char *name)
     struct match_data md;
 
     if(Guest(player)) {
-	anotify(player, CFAIL NOGUEST_MESG);
+	anotify_nolisten2(player, CFAIL NOGUEST_MESG);
 	return;
     }
 
     if( tp_db_readonly ) {
-	anotify( player, CFAIL DBRO_MESG );
+	anotify_nolisten2( player, CFAIL DBRO_MESG );
 	return;
     }
 
@@ -722,7 +722,7 @@ do_recycle(int descr, dbref player, const char *name)
 			return;
 		    }
 		    if (thing == tp_player_start || thing == GLOBAL_ENVIRONMENT) {
-			anotify(player, CFAIL "This room may not be recycled.");
+			anotify_nolisten2(player, CFAIL "This room may not be recycled.");
 			return;
 		    }
 		    break;
@@ -735,8 +735,8 @@ do_recycle(int descr, dbref player, const char *name)
 			sprintf(buf, BLUE "%.512s's owner commands it to kill itself.  It blinks a few times in shock, and says, \"But.. but.. WHY?\"  It suddenly clutches it's heart, grimacing with pain..  Staggers a few steps before falling to it's knees, then plops down on it's face.  *thud*  It kicks it's legs a few times, with weakening force, as it suffers a seizure.  It's color slowly starts changing to purple, before it explodes with a fatal *POOF*!", PNAME(thing));
 			anotify_except(DBFETCH(getloc(thing))->contents,
 				thing, buf, player);
-			anotify(OWNER(player), buf);
-			anotify(OWNER(player), CINFO "Now don't you feel guilty?");
+			anotify_nolisten2(OWNER(player), buf);
+			anotify_nolisten2(OWNER(player), CINFO "Now don't you feel guilty?");
 		    }
 		    break;
 		case TYPE_EXIT:
@@ -745,12 +745,12 @@ do_recycle(int descr, dbref player, const char *name)
 			return;
 		    }
 		    if (!unset_source(player, DBFETCH(player)->location, thing)) {
-			anotify(player, CFAIL "You can't do that to an exit in another room.");
+			anotify_nolisten2(player, CFAIL "You can't do that to an exit in another room.");
 			return;
 		    }
 		    break;
 		case TYPE_PLAYER:
-		    anotify(player, CFAIL "You can't recycle a player!");
+		    anotify_nolisten2(player, CFAIL "You can't recycle a player!");
 		    return;
 		    /* NOTREACHED */
 		    break;
@@ -761,13 +761,13 @@ do_recycle(int descr, dbref player, const char *name)
 		    }
 		    break;
 		case TYPE_GARBAGE:
-		    anotify(player, CINFO "That's already garbage.");
+		    anotify_nolisten2(player, CINFO "That's already garbage.");
 		    return;
 		    /* NOTREACHED */
 		    break;
 	    }
 	    recycle(descr, player, thing);
-	    anotify(player, CINFO "Thank you for recycling.");
+	    anotify_nolisten2(player, CINFO "Thank you for recycling.");
 	}
     }
 }
@@ -883,7 +883,7 @@ recycle(int descr, dbref player, dbref thing)
 		if (Typeof(thing) == TYPE_PROGRAM && (FLAGS(rest) & INTERACTIVE)
 			&& (DBFETCH(rest)->sp.player.curr_prog == thing)) {
 		    if (FLAGS(rest) & READMODE) {
-			anotify(rest, CINFO "The program you were running has been recycled.  Aborting program.");
+			anotify_nolisten2(rest, CINFO "The program you were running has been recycled.  Aborting program.");
 		    } else {
 			free_prog_text(DBFETCH(thing)->sp.program.first);
 			DBFETCH(thing)->sp.program.first = NULL;
@@ -891,7 +891,7 @@ recycle(int descr, dbref player, dbref thing)
 			FLAGS(thing) &= ~INTERNAL;
 			FLAGS(rest) &= ~INTERACTIVE;
 			DBFETCH(rest)->sp.player.curr_prog = NOTHING;
-			anotify(rest, CINFO "The program you were editing has been recycled.  Exiting Editor.");
+			anotify_nolisten2(rest, CINFO "The program you were editing has been recycled.  Exiting Editor.");
 		    }
 		}
 		if (DBFETCH(rest)->sp.player.home == thing) {

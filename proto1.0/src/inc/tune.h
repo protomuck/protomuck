@@ -82,6 +82,7 @@ extern int tp_playermax_limit;
 extern int tp_num_backups;
 
 /* dbrefs */
+extern dbref tp_quit_prog;
 extern dbref tp_huh_command;
 extern dbref tp_login_huh_command;
 extern dbref tp_login_who_prog;
@@ -142,8 +143,10 @@ extern int tp_idleboot;
 extern int tp_playermax;
 extern int tp_db_readonly;
 extern int tp_process_timer_limit;
+extern int tp_pcreate_copy_props;
 extern int tp_enable_home;
 extern int tp_quiet_moves;
+extern int tp_quiet_connects;
 extern int tp_expanded_debug;
 
 extern int tune_count_parms();
@@ -153,6 +156,7 @@ extern void tune_save_parms_to_file(FILE *f);
 extern int tp_building;
 extern int tp_all_can_build_rooms;
 extern int tp_restricted_building;
+
 
 
 

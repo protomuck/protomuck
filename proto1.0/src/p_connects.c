@@ -535,6 +535,38 @@ prim_descrp(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
+void
+prim_motd_notify(PRIM_PROTOTYPE)
+{
+   CHECKOP(1);
+   oper1 = POP();
+   if (mlev < 3)
+       abort_interp("Requires Mucker Level 3 or better.");
+   if (!valid_object(oper1))
+       abort_interp("invalid argument");
+   ref = oper1->data.objref;
+
+   CLEAR(oper1);
+   spit_file(ref, MOTD_FILE);
+}
+
+void
+prim_descr_logout(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (mlev < LARCH)
+       abort_interp("Requires Wizard Level 3 (Archwizard) or better.");
+    if (oper1->type != PROG_INTEGER)
+       abort_interp("Integer descriptor number expected.");
+
+    if (!pdescrp(oper1->data.number))
+       abort_interp("That is not a valid descriptor.");
+
+    pdescr_logout(oper1->data.number);
+    CLEAR(oper1);
+}
 
 
 
