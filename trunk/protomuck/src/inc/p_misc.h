@@ -15,7 +15,6 @@ extern void prim_ispidp(PRIM_PROTOTYPE);
 extern void prim_parselock(PRIM_PROTOTYPE);
 extern void prim_unparselock(PRIM_PROTOTYPE);
 extern void prim_prettylock(PRIM_PROTOTYPE);
-extern void prim_testlock(PRIM_PROTOTYPE);
 extern void prim_cancallp(PRIM_PROTOTYPE);
 extern void prim_timer_start(PRIM_PROTOTYPE);
 extern void prim_timer_stop(PRIM_PROTOTYPE);
@@ -39,7 +38,7 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     prim_systime, prim_timesplit, prim_timefmt, prim_queue, prim_kill,   \
     prim_timestamps, prim_fork, prim_pid, prim_stats,        \
     prim_abort, prim_ispidp, prim_parselock, prim_unparselock,           \
-    prim_prettylock, prim_testlock,        \
+    prim_prettylock,         \
     prim_commandtext, prim_playmidi, prim_stopmidi,                      \
     prim_cancallp, prim_timer_start, prim_timer_stop,   \
     prim_event_count, prim_event_send,                                   \
@@ -51,7 +50,7 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     "SYSTIME", "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL",  \
     "TIMESTAMPS", "FORK", "PID", "STATS",       \
     "ABORT", "ISPID?", "PARSELOCK", "UNPARSELOCK",       \
-    "PRETTYLOCK", "TESTLOCK",   \
+    "PRETTYLOCK", \
     "COMMANDTEXT", "PLAYMIDI", "STOPMIDI",               \
     "CANCALL?", "TIMER_START",             \
     "TIMER_STOP", "EVENT_COUNT", "EVENT_SEND",           \
@@ -60,5 +59,5 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     "GETPIDS", "GETPIDINFO", "READ_WANTS_BLANKS",   \
     "DEBUGGER_BREAK"
 
-#define PRIMS_MISC_CNT 34
+#define PRIMS_MISC_CNT 33
 

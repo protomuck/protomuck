@@ -650,35 +650,6 @@ prim_prettylock(PRIM_PROTOTYPE)
 }
 
 
-void 
-prim_testlock(PRIM_PROTOTYPE)
-{
-    struct inst *oper1, *oper2;  
-    /* d d - i */
-    CHECKOP(2);
-    oper1 = POP();		/* boolexp lock */
-    oper2 = POP();		/* player dbref */
-    if (fr->level > 8)
-	abort_interp("Interp call loops not allowed");
-    if (!valid_object(oper2))
-	abort_interp("Invalid argument (1).");
-    if (Typeof(oper2->data.objref) != TYPE_PLAYER &&
-        Typeof(oper2->data.objref) != TYPE_THING )
-    {
-	abort_interp("Invalid object type (1).");
-    }
-    CHECKREMOTE(oper2->data.objref);
-    if (oper1->type != PROG_LOCK)
-	abort_interp("Invalid argument (2)");
-    interp_set_depth(fr);
-    result = eval_boolexp(fr->descr, oper2->data.objref, oper1->data.lock, player);
-    fr->level--;
-    interp_set_depth(fr);
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    PushInt(result);
-}
 
 void
 prim_cancallp(PRIM_PROTOTYPE)

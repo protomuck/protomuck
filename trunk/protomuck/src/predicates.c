@@ -118,7 +118,7 @@ could_doit(int descr, dbref player, dbref thing)
 
 
 int 
-could_doit2(int descr, dbref player, dbref thing, char *prop)
+could_doit2(int descr, dbref player, dbref thing, char *prop, int tryprog)
 {
     dbref   source, dest, owner;
 
@@ -163,7 +163,13 @@ could_doit2(int descr, dbref player, dbref thing, char *prop)
 	    }
 	}
     }
-    return (eval_boolexp2(descr, player, get_property_lock(thing, prop), thing));
+    if (tryprog)
+        return (eval_boolexp(descr, player, 
+                              get_property_lock(thing, prop), thing));
+    else
+        return (eval_boolexp2(descr, player, 
+                              get_property_lock(thing, prop), thing));
+    
 }
 
 

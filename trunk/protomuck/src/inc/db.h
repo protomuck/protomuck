@@ -439,7 +439,7 @@ struct line {
 #define PROG_ARRAY         16   /* Array @ = (r1)..(ri) (i) */
 #define PROG_DICTIONARY    17   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
 #define PROG_SOCKET        18   /* ProtoMUCK socket type */
-#define PROG_MARK          19   /* Stack markers -- not in yet */
+#define PROG_MARK          19   /* Stack markers */
 #define PROG_SVAR_AT       20   /* @ shortcut for scoped vars */
 #define PROG_SVAR_AT_CLEAR 21   /* @ for scoped vars with optimization on */
 #define PROG_SVAR_BANG     22   /* ! shortcut for scoped vars */

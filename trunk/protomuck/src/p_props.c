@@ -968,57 +968,161 @@ prim_envpropqueue(PRIM_PROTOTYPE)
    CLEAR(oper4);
 }
 
+void
+prim_testlock(PRIM_PROTOTYPE)
+{
+    struct inst *oper1, *oper2;
+    /* d d - i */
+    CHECKOP(2);
+    oper1 = POP();              /* boolexp lock */
+    oper2 = POP();              /* player dbref */
+    if (fr->level > 8)
+        abort_interp("Interp call loops not allowed");
+    if (!valid_object(oper2))
+        abort_interp("Invalid argument (1).");
+    if (Typeof(oper2->data.objref) != TYPE_PLAYER &&
+        Typeof(oper2->data.objref) != TYPE_THING )
+    {
+        abort_interp("Invalid object type (1).");
+    }
+    CHECKREMOTE(oper2->data.objref);
+    if (oper1->type != PROG_LOCK)
+        abort_interp("Invalid argument (2)");
+    interp_set_depth(fr);
+    result = eval_boolexp(fr->descr, oper2->data.objref, oper1->data.lock, 
+                          player);
+    fr->level--;
+    interp_set_depth(fr);
 
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
+}
 
+void 
+prim_lockedp(PRIM_PROTOTYPE)
+{       
+    /* d d - i */
+    struct inst *oper1, *oper2;
+    CHECKOP(2);
+    oper1 = POP();              /* objdbref */
+    oper2 = POP();              /* player dbref */
+    if (fr->level > 8)
+        abort_interp("Interp call loops not allowed");
+    if (!valid_object(oper2))
+        abort_interp("invalid object (1)");
+    if (!valid_player(oper2) && Typeof(oper2->data.objref) != TYPE_THING)
+        abort_interp("Non-player argument (1)");
+    CHECKREMOTE(oper2->data.objref);
+    if (!valid_object(oper1))
+        abort_interp("invalid object (2)");
+    CHECKREMOTE(oper1->data.objref);
+    interp_set_depth(fr);
+    result = !could_doit(fr->descr, oper2->data.objref, oper1->data.objref);
+    fr->level--; 
+    interp_set_depth(fr);
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
+}
 
 void
 prim_islockedp(PRIM_PROTOTYPE)
 {
-   /* d d s - i */
+    /* d d s - i */
 
-   char  *tmpptr;
+    char  *tmpptr;
 
-   CHECKOP(3);
+    CHECKOP(3);
 
-   oper1 = POP();
-   oper2 = POP();
-   oper3 = POP();
+    oper1 = POP();
+    oper2 = POP();
+    oper3 = POP();
 
-   if (fr->level > 8)
-      abort_interp("Interp call loops not allowed");
+    if (fr->level > 8)
+        abort_interp("Interp call loops not allowed");
 
-   if ((oper3->data.objref < 0) || (oper3->data.objref >= db_top))
-      abort_interp("Invalid argument (1).");
-   if (Typeof(oper3->data.objref) != TYPE_PLAYER &&
-      Typeof(oper3->data.objref) != TYPE_THING )
-   {
-      abort_interp("Invalid object type (1).");
-   }
+    if ((oper3->data.objref < 0) || (oper3->data.objref >= db_top))
+        abort_interp("Invalid argument (1).");
+    if (Typeof(oper3->data.objref) != TYPE_PLAYER &&
+          Typeof(oper3->data.objref) != TYPE_THING )
+        abort_interp("Invalid object type (1).");
 
-   if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
-      abort_interp("Invalid argument (2).");
+    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+        abort_interp("Invalid argument (2).");
 
-   if (oper1->type != PROG_STRING)
-      abort_interp("Invalid argument. (3)");
+    if (oper1->type != PROG_STRING)
+        abort_interp("Invalid argument. (3)");
 
-   CHECKREMOTE(oper2->data.objref);
-   CHECKREMOTE(oper3->data.objref);
+     CHECKREMOTE(oper2->data.objref);
+     CHECKREMOTE(oper3->data.objref);
 
-   tmpptr = oper1->data.string->data;
-   while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
-      if (!(*(++tmpptr)))
-         abort_interp("Cannot access a propdir directly");
+     tmpptr = oper1->data.string->data;
+     while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
+         if (!(*(++tmpptr)))
+             abort_interp("Cannot access a propdir directly");
 
-   interp_set_depth(fr);
-   result = !(could_doit2(fr->descr, oper3->data.objref, oper2->data.objref, oper1->data.string->data));
-   fr->level--;
-   interp_set_depth(fr);
+     interp_set_depth(fr);
+     result = !(could_doit2(fr->descr, oper3->data.objref, oper2->data.objref, 
+                oper1->data.string->data, 0));
+     fr->level--;
+     interp_set_depth(fr);
 
-   CLEAR(oper1);
-   CLEAR(oper2);
-   CLEAR(oper3);
+     CLEAR(oper1);
+     CLEAR(oper2);
+     CLEAR(oper3);
 
-   PushInt(result);
+     PushInt(result);
+}
+
+void
+prim_checklock(PRIM_PROTOTYPE)
+{
+    /* d d s - i */
+    /* This is just a copy and paste of the islocked? code. The only
+     * difference is that it will try MUF called from the lock. */
+    char  *tmpptr;
+
+    CHECKOP(3);
+
+    oper1 = POP();
+    oper2 = POP();
+    oper3 = POP();
+
+    if (fr->level > 8)
+        abort_interp("Interp call loops not allowed");
+
+    if ((oper3->data.objref < 0) || (oper3->data.objref >= db_top))
+        abort_interp("Invalid argument (1).");
+    if (Typeof(oper3->data.objref) != TYPE_PLAYER &&
+          Typeof(oper3->data.objref) != TYPE_THING )
+        abort_interp("Invalid object type (1).");
+
+    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+        abort_interp("Invalid argument (2).");
+
+    if (oper1->type != PROG_STRING)
+        abort_interp("Invalid argument. (3)");
+
+     CHECKREMOTE(oper2->data.objref);
+     CHECKREMOTE(oper3->data.objref);
+
+     tmpptr = oper1->data.string->data;
+     while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
+         if (!(*(++tmpptr)))
+             abort_interp("Cannot access a propdir directly");
+
+     interp_set_depth(fr);
+     result = !(could_doit2(fr->descr, oper3->data.objref, oper2->data.objref,
+                oper1->data.string->data, 1));
+     fr->level--;
+     interp_set_depth(fr);
+
+     CLEAR(oper1);
+     CLEAR(oper2);
+     CLEAR(oper3);
+
+     PushInt(result);
 }
 
 void
