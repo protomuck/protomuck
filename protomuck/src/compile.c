@@ -933,6 +933,32 @@ next_token(COMPSTATE * cstat)
 /* skip comments */
 void
 do_comment(COMPSTATE * cstat)
+{  
+    int parCount = 1;
+    cstat->next_char++;
+    do {
+        while (*cstat->next_char) {
+            if ( *cstat->next_char == ENDCOMMENT )
+                parCount--;
+            else if ( *cstat->next_char == BEGINCOMMENT )
+                parCount++;
+            if ( parCount == 0 ) {
+                cstat->next_char++;
+                if (!(*cstat->next_char))
+                    advance_line(cstat);
+                return;
+            }
+            cstat->next_char++;
+        }
+        advance_line(cstat);
+        if (!cstat->curr_line) 
+            v_abort_compile(cstat, "Unterminated comment.");
+    } while ( 1 );
+    v_abort_compile(cstat, "Compilier problem: Comment parsing error." );
+}
+/*
+void
+do_comment(COMPSTATE * cstat)
 {
 	while (*cstat->next_char && *cstat->next_char != ENDCOMMENT)
 		cstat->next_char++;
@@ -948,7 +974,7 @@ do_comment(COMPSTATE * cstat)
 			advance_line(cstat);
 	}
 }
-
+*/
 /* handle compiler directives */
 void
 do_directive(COMPSTATE * cstat, char *direct)
