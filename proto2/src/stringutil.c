@@ -194,7 +194,10 @@ pronoun_substitute(int descr, dbref player, const char *str)
         if (*str == '%') {
             *result = '\0';
             prn[1] = c = *(++str);
-            if (c == '%') {
+            if (!c) {
+                *(result++) = '%';
+                continue;
+            } else if (c == '%') {
                 *(result++) = '%';
                 str++;
             } else {
