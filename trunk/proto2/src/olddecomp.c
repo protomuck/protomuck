@@ -3,6 +3,14 @@
 
 #include <stdio.h>
 
+#ifndef COMPRESS
+# error "This will not compile without COMPRESS enabled."
+#endif
+
+#ifndef ARCHAIC_DATABASES
+# error "This will not compile without ARCHAIC_DATABASES enabled."
+#endif
+
 #undef malloc
 #undef calloc
 #undef realloc

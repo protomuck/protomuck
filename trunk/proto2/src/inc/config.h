@@ -129,6 +129,17 @@
 
 #define MCP_SUPPORT
 
+/* Define this to enable support for pre-Foxen5 (FB5) database
+ * formats or if you need to build the "olddecompress" utility. 
+ * This adds to ProtoMUCK's memory requirements, and should only
+ * be enabled if you -really- need to convert from an older
+ * database format, or if you need the "olddecompress" utility.
+ * Note that most of these database formats are pre-1993, and I
+ * really doubt any of them still exist.  -Hinoserm
+ */
+
+#undef ARCHAIC_DATABASES
+
 /* Detaches the process as a daemon so that it don't cause problems
  * keeping a terminal line open and such. Logs normal output to a file
  * and writes out a protomuck.pid file

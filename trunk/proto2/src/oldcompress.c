@@ -1,6 +1,8 @@
 #include "copyright.h"
 #include "config.h"
 
+#if defined(ARCHAIC_DATABASES) && defined(COMPRESS)
+
 /*
  * Compression routines
  *
@@ -129,3 +131,5 @@ old_uncompress(const char *s)
 
     return buf;
 }
+
+#endif /* ARCHAIC_DATABASES */

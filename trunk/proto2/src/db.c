@@ -34,7 +34,6 @@ struct macrotable *macrotop;
 extern char *alloc_string(const char *);
 #endif
 
-
 extern short db_conversion_flag;
 extern short db_decompression_flag;
 
@@ -326,7 +325,6 @@ putproperties(FILE * f, dbref obj)
     /* putproperties_rec(f, "/", obj); */
     putstring(f, "*End*");
 }
-
 
 extern FILE *input_file;
 extern FILE *delta_infile;
@@ -834,7 +832,10 @@ getstring_noalloc(FILE * f)
 
 #ifdef COMPRESS
 extern const char *compress(const char *);
+
+#ifdef ARCHAIC_DATABASES
 extern const char *old_uncompress(const char *);
+#endif /* ARCHAIC_DATABASES */
 
 #define alloc_compressed(x) alloc_string(compress(x))
 #else
@@ -1161,6 +1162,8 @@ read_program(dbref i)
     return first;
 }
 
+#ifdef ARCHAIC_DATABASES
+
 #ifdef COMPRESS
 # define getstring_oldcomp_noalloc(foo) old_uncompress(getstring_noalloc(foo))
 #else
@@ -1396,6 +1399,8 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
     }
 }
 
+#endif /* ARCHAIC_DATABASES */
+
 /* Reads in Foxen, Foxen[234], WhiteFire, Mage or Lachesis DB Formats */
 void
 db_read_object_foxen(FILE * f, struct object *o, dbref objno,
@@ -1421,17 +1426,20 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         fprintf(stderr, "#%d [object_info] ", objno);
 
     NAME(objno) = getstring(f);
-    if (dtype <= 3) {
+#ifdef ARCHAIC_DATABASES
+    if (dtype <= 3)
         LOADDESC(objno, getstring_oldcomp_noalloc(f));
-    }
+#endif /* ARCHAIC_DATABASES */
+
     o->location = getref(f);
     o->contents = getref(f);
     o->next = getref(f);
-    if (dtype < 6) {
-        LOADLOCK(objno, getboolexp(f));
-    }
-    if (dtype == 3) {
 
+#ifdef ARCHAIC_DATABASES
+    if (dtype < 6)
+        LOADLOCK(objno, getboolexp(f));
+
+    if (dtype == 3) {
         if (verboseload)
             fprintf(stderr, "[timestamps v3] ");
         /* Mage timestamps */
@@ -1440,6 +1448,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         o->ts.lastused = getref(f);
         o->ts.usecount = 0;
     }
+
     if (dtype <= 3) {
         /* Lachesis, WhiteFire, and Mage messages */
         LOADFAIL(objno, getstring_oldcomp_noalloc(f));
@@ -1449,10 +1458,13 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         LOADOSUCC(objno, getstring_oldcomp_noalloc(f));
         LOADODROP(objno, getstring_oldcomp_noalloc(f));
     }
+#endif /* ARCHAIC_DATABASES */
+
     if (verboseload)
         fprintf(stderr, "[flags] ");
 
     tmp = getfref(f, &f2, &f3, &f4, &p1, &p2);
+
     if (dtype >= 4) {
         tmp &= ~DUMP_MASK;
         f2 &= ~DUM2_MASK;
@@ -1461,6 +1473,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         p1 &= ~POWERS_DUMP_MASK;
         p2 &= ~POWER2_DUMP_MASK;
     }
+
     FLAGS(objno) |= tmp;
     FLAG2(objno) |= f2;
     FLAG3(objno) |= f3;
@@ -1479,6 +1492,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         o->ts.usecount = getref(f);
         o->ts.modified = getref(f);
     }
+
     c = getc(f);
     if (c == '*') {
         if (verboseload)
@@ -1540,6 +1554,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         LOADLOCK(objno, negate_boolexp(copy_bool(GETLOCK(objno))))
             FLAGS(objno) &= ~ANTILOCK;
     }
+
     switch (FLAGS(objno) & TYPE_MASK) {
         case TYPE_THING:
             if (verboseload)
@@ -1596,16 +1611,17 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             o->sp.program.pubs = 0;
 #ifdef MCP_SUPPORT
             o->sp.program.mcpbinds = 0;
-#endif
+#endif /* MCP_SUPPORT */
             o->sp.program.proftime.tv_sec = 0;
             o->sp.program.proftime.tv_usec = 0;
             o->sp.program.profstart = 0;
             o->sp.program.profuses = 0;
             o->sp.program.instances = 0;
 
+#ifdef ARCHAIC_DATABASES
             if (dtype < 5 && MLevel(objno) == 0)
                 SetMLevel(objno, 2);
-
+#endif /* ARCHAIC_DATABASES */
             break;
         case TYPE_GARBAGE:
             free((void *) NAME(objno));
@@ -1646,7 +1662,6 @@ autostart_progs(void)
     }
 }
 
-
 dbref
 db_read(FILE * f)
 {
@@ -1663,6 +1678,7 @@ db_read(FILE * f)
 
     if ((c = getc(f)) == '*') {
         special = getstring(f);
+#ifdef ARCHAIC_DATABASES
         if (!strcmp(special, "**TinyMUCK DUMP Format***")) {
             db_load_format = 1;
         } else if (!strcmp(special, "**Lachesis TinyMUCK DUMP Format***") ||
@@ -1680,10 +1696,12 @@ db_read(FILE * f)
             db_load_format = 6;
             i = getref(f);
             db_grow(i);
-        } else if (!strcmp(special, "**Foxen5 TinyMUCK DUMP Format***") ||
-                   !strcmp(special, "**Foxen6 TinyMUCK DUMP Format***") ||
-                   !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ||
-                   !strcmp(special, "**NeonMuck V2 DUMP Format***")) {
+        } else
+#endif /* ARCHAIC_DATABASES */
+        if (!strcmp(special, "**Foxen5 TinyMUCK DUMP Format***") ||
+                !strcmp(special, "**Foxen6 TinyMUCK DUMP Format***") ||
+                !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ||
+                !strcmp(special, "**NeonMuck V2 DUMP Format***")) {
             db_load_format =
                 !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ? 8 : 7;
             i = getref(f);
@@ -1702,6 +1720,7 @@ db_read(FILE * f)
 #endif
             }
             db_grow(i);
+#ifdef ARCHAIC_DATABASES
         } else if (!strcmp(special, "***Foxen Deltas Dump Extention***")) {
             db_load_format = 4;
             doing_deltas = 1;
@@ -1711,6 +1730,7 @@ db_read(FILE * f)
         } else if (!strcmp(special, "***Foxen4 Deltas Dump Extention***")) {
             db_load_format = 6;
             doing_deltas = 1;
+#endif /* ARCHAIC_DATABASES */
         } else if (!strcmp(special, "***Foxen5 Deltas Dump Extention***") ||
                    !strcmp(special, "***Foxen6 Deltas Dump Extention***") ||
                    !strcmp(special, "***Foxen7 Deltas Dump Extention***") ||
@@ -1728,6 +1748,7 @@ db_read(FILE * f)
             main_db_format = db_load_format;
         c = getc(f);            /* get next char */
     }
+
     for (i = 0;; i++) {
         switch (c) {
             case NUMBER_TOKEN:
@@ -1747,6 +1768,7 @@ db_read(FILE * f)
 
                 /* read it in */
                 o = DBFETCH(thisref);
+#ifdef ARCHAIC_DATABASES
                 switch (db_load_format) {
                     case 0:
                         db_read_object_old(f, o, thisref);
@@ -1760,14 +1782,16 @@ db_read(FILE * f)
                     case 5:
                     case 6:
                     case 7:
-                        db_read_object_foxen(f, o, thisref,
-                                             db_load_format, doing_deltas);
-                        break;
                     case 8:
                         db_read_object_foxen(f, o, thisref,
                                              db_load_format, doing_deltas);
                         break;
                 }
+#else /* !ARCHAIC_DATABASES */
+                db_read_object_foxen(f, o, thisref, db_load_format,
+                                     doing_deltas);
+#endif /* !ARCHAIC_DATABASES */
+
                 if (Typeof(thisref) == TYPE_PLAYER) {
                     OWNER(thisref) = thisref;
                     add_player(thisref);
@@ -1781,6 +1805,7 @@ db_read(FILE * f)
                 } else {
                     free((void *) special);
                     special = getstring(f);
+#ifdef ARCHAIC_DATABASES
                     if (!special || strcmp(special,
                                            "***Foxen Deltas Dump Extention***"))
                     {
@@ -1791,6 +1816,7 @@ db_read(FILE * f)
                                 || strcmp(special,
                                           "***Foxen4 Deltas Dump Extention***"))
                             {
+#endif /* ARCHAIC_DATABASES */
                                 if (!special
                                     || strcmp(special,
                                               "***Foxen5 Deltas Dump Extention***")
@@ -1830,6 +1856,7 @@ db_read(FILE * f)
                                         ? 8 : 7;
                                     doing_deltas = 1;
                                 }
+#ifdef ARCHAIC_DATABASES
                             } else {
                                 free((void *) special);
                                 db_load_format = 6;
@@ -1845,6 +1872,7 @@ db_read(FILE * f)
                         db_load_format = 4;
                         doing_deltas = 1;
                     }
+#endif /* ARCHAIC_DATABASES */
                 }
                 break;
             default:
