@@ -34,6 +34,7 @@ extern bool reslvd_connected;
 extern int reslvd_open(void);
 extern void reslvd_input(void);
 extern void reslvd_disc(void);
+extern void reslvd_close(void);
 #endif
 
 #ifdef SPAWN_HOST_RESOLVER

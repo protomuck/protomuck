@@ -272,7 +272,7 @@ prim_armageddon(PRIM_PROTOTYPE)
     kill_resolver();
 #endif
 #ifdef USE_RESLVD
-    reslvd_disc();
+    reslvd_close();
 #endif
 
     exit(1);

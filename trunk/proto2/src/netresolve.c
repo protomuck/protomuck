@@ -70,7 +70,6 @@ reslvd_open(void)
         return -1;
 
     if (connect(reslvd_sock, (struct sockaddr *) &addr, sizeof(addr)) == -1) {
-        log_status("RLVD: Error %d.", errnosocket);
         closesocket(reslvd_sock);
         reslvd_sock = 0;
         return -1;
@@ -86,12 +85,11 @@ reslvd_open(void)
 }
 
 void
-reslvd_disc(void)
+reslvd_close(void)
 {
     if (!reslvd_connected)
         return;
 
-    log_status("RLVD: Connection to daemon broken.\n");
     shutdown(reslvd_sock, 2);
     closesocket(reslvd_sock);
 
@@ -102,7 +100,13 @@ reslvd_disc(void)
     reslvd_buf_at = NULL;
     reslvd_sock = 0;
     reslvd_connected = 0;
+}
 
+void
+reslvd_disc(void)
+{
+    log_status("RLVD: Connection to daemon broken.\n");
+    reslvd_close();
 #ifdef SPAWN_HOST_RESOLVER
     if (reslvd_open() != 1)
         spawn_resolver();
@@ -672,7 +676,21 @@ do_hostcache(dbref player, const char *args)
     while (isspace(*arg2))
         arg2++;
 
-    if (string_prefix(arg1, "#sh")) {
+    if (string_prefix(arg1, "#re")) {
+#if defined(USE_RESLVD) && defined(SPAWN_HOST_RESOLVER)
+        kill_resolver();
+        reslvd_close();
+        if (reslvd_open() != 1)
+            spawn_resolver();
+#elif defined(USE_RESLVD)
+        reslvd_close();
+        reslvd_open();
+#elif defined(SPAWN_HOST_RESOLVER)
+        kill_resolver();
+        spawn_resolver();
+#endif
+        anotify_fmt(player, CSUCC "Done.");
+    } else if (string_prefix(arg1, "#sh")) {
         struct hostinfo **harr;
         register long i = 0;
         register long count = 0;
