@@ -519,9 +519,11 @@ prim_moveto(PRIM_PROTOTYPE)
                 if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_THING &&
                     Typeof(dest) != TYPE_PLAYER)
                     abort_interp("Bad destination object");
-                if (!unset_source(ProgUID, getloc(PSafe), victim))
-                    break;
-                set_source(ProgUID, victim, dest);
+                if (OkObj(dest)) {
+            	    if (!unset_source(ProgUID, getloc(PSafe), victim))
+                	break;
+            	    set_source(ProgUID, victim, dest);
+                }
                 SetMLevel(victim, 0);
                 break;
             case TYPE_ROOM:
