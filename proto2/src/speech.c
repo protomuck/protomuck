@@ -240,10 +240,13 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 {
     char buf[BUFFER_LEN], buf2[BUFFER_LEN], buf3[BUFFER_LEN], *noamsg;
     dbref ref;
+    dbref WHO;
 
     if (obj == NOTHING)
         return 0;
 
+    WHO = who;
+ 
     strcpy(buf2, msg);
     noamsg = tct(buf2, buf3);
 
@@ -292,6 +295,9 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                         (int) (BUFFER_LEN - 2 - strlen(prefix)), msg);
                 ref = DBFETCH(obj)->contents;
                 while (ref != NOTHING) {
+#ifdef IGNORE_SUPPORT
+           if (!ignorance(WHO,ref))
+#endif
                     notify_nolisten(ref, buf, isprivate);
                     ref = DBFETCH(ref)->next;
                 }
@@ -300,7 +306,13 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
     }
 
     if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
+#ifdef IGNORE_SUPPORT
+           if (!ignorance(WHO,obj))
+#endif
         return notify_nolisten(obj, msg, isprivate);
+#ifdef IGNORE_SUPPORT
+        else return 0;
+#endif
     } else {
         return 0;
     }
@@ -313,9 +325,12 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 {
     char buf[BUFFER_LEN], buf2[BUFFER_LEN], *noabuf;
     dbref ref;
+    dbref WHO;
 
     if (obj == NOTHING)
         return 0;
+
+    WHO = who;
 
     noabuf = unparse_ansi(buf2, msg);
 
@@ -364,6 +379,9 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                         (int) (BUFFER_LEN - 2 - strlen(prefix)), msg);
                 ref = DBFETCH(obj)->contents;
                 while (ref != NOTHING) {
+#ifdef IGNORE_SUPPORT
+           if (!ignorance(WHO,ref))
+#endif
                     anotify_nolisten(ref, msg, isprivate);
                     ref = DBFETCH(ref)->next;
                 }
@@ -372,7 +390,13 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
     }
 
     if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
+#ifdef IGNORE_SUPPORT
+           if (!ignorance(who,obj))
+#endif
         return anotify_nolisten(obj, msg, isprivate);
+#ifdef IGNORE_SUPPORT
+        else return 0;
+#endif
     } else {
         return 0;
     }
@@ -384,9 +408,12 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
 {
     char buf[BUFFER_LEN], *nohbuf, *noabuf, buf2[BUFFER_LEN];
     dbref ref;
+    dbref WHO;
 
     if (obj == NOTHING)
         return 0;
+
+    WHO = who;
 
     nohbuf = html_escape(msg);
     noabuf = tct(buf2, nohbuf);
@@ -436,6 +463,9 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
                         (int) (BUFFER_LEN - 2 - strlen(prefix)), msg);
                 ref = DBFETCH(obj)->contents;
                 while (ref != NOTHING) {
+#ifdef IGNORE_SUPPORT
+           if (!ignorance(WHO,ref))
+#endif
                     notify_html_nolisten(ref, buf, isprivate);
                     ref = DBFETCH(ref)->next;
                 }
@@ -444,7 +474,13 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
     }
 
     if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
+#ifdef IGNORE_SUPPORT
+           if (!ignorance(WHO,obj))
+#endif
         return notify_html_nolisten(obj, msg, isprivate);
+#ifdef IGNORE_SUPPORT
+        else return 0;
+#endif
     } else {
         return 0;
     }

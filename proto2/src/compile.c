@@ -549,6 +549,9 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "array_diff", "2 array_ndiff");
     insert_def(cstat, "array_union", "2 array_nunion");
     insert_def(cstat, "array_intersect", "2 array_nintersect");
+#ifdef IGNORE_SUPPORT
+    insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
+#endif
 
 #ifdef MCP_SUPPORT
 

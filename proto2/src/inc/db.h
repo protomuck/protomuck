@@ -756,6 +756,10 @@ union specific {      /* I've been railroaded! */
         int*    descrs;
         short   descr_count;
         int     last_descr;
+#ifdef IGNORE_SUPPORT
+        dbref	ignore[MAX_IGNORES];
+        time_t  ignoretime;
+#endif
     }       player;
     struct {			      /* PROGRAM-specific fields */
 	short   curr_line;	      /* current-line */

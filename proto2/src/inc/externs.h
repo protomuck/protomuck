@@ -201,6 +201,8 @@ extern void dump_database(void);
 extern int prop_command(int descr, dbref player, char *command, char *arg,
                         char *type, int mt);
 extern void dump_warning(void);
+extern int dumper_pid;
+extern char dump_done;
 
 #ifdef DELTADUMPS
 extern void dump_deltas(void);

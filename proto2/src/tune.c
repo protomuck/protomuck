@@ -42,6 +42,9 @@ const char *tp_reg_email = "admin@your.host.here";
 const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt = "P#/N";
 const char *tp_unidle_command = "";
+#ifdef USE_SSL
+const char *tp_ssl_keyfile_passwd = "";
+#endif
 
 struct tune_str_entry {
     const char *group;
@@ -74,6 +77,9 @@ struct tune_str_entry tune_str_list[] = {
     {"Props", "proplist_counter_fmt", &tp_proplist_counter_fmt, LARCH, LMUF, 1},
     {"Props", "proplist_entry_fmt", &tp_proplist_entry_fmt, LARCH, LMUF, 1},
     {"IdleTime", "unidle_command", &tp_unidle_command, LARCH, LMUF, 1},
+#ifdef USE_SSL
+    {"SSL", "ssl_keyfile_passwd", &tp_ssl_keyfile_passwd, WBOY, LBOY, 1},
+#endif
     {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -115,6 +121,9 @@ struct tune_time_entry tune_time_list[] = {
 /* integers */
 int tp_textport = TINYPORT;
 int tp_puebloport = TINYPORT - 2;
+#ifdef USE_SSL
+int tp_sslport = TINYPORT + 1;
+#endif
 int tp_max_object_endowment = MAX_OBJECT_ENDOWMENT;
 int tp_object_cost = OBJECT_COST;
 int tp_exit_cost = EXIT_COST;
@@ -173,6 +182,9 @@ struct tune_val_entry tune_val_list[] = {
     {"System", "mainport", &tp_textport, WBOY, LMUF},
 #ifdef NEWHTTPD
     {"System", "wwwport", &tp_wwwport, WBOY, LMUF},
+#endif
+#ifdef USE_SSL
+    {"System", "sslport", &tp_sslport, WBOY, LMUF},
 #endif
     {"System", "puebloport", &tp_puebloport, WBOY, LMUF},
     {"Currency", "max_object_endowment", &tp_max_object_endowment, LARCH, LMUF},
