@@ -512,6 +512,7 @@ extern void log_muf(char *format, ...);
 extern void log_conc(char *format, ...);
 extern void log_status_nowall(char *format, ...);
 extern void log_status(char *format, ...);
+extern void show_status(char *format, ...);
 extern void log_other(char *format, ...);
 extern void notify_fmt(dbref player, char *format, ...);
 extern void anotify_fmt(dbref player, char *format, ...);

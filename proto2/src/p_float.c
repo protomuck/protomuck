@@ -29,11 +29,9 @@ static int result;
 static double fresult;
 static char buf[BUFFER_LEN];
 
-int
-no_good(double test)
-{
-    return (((test == INF) || (test == NINF)) || (test == NAN));
-}
+#define no_good(x) ((x == INF) || (x == NINF) || (x == NAN))
+#define ISINF(x) ((x == INF) || (x == NINF))
+#define ISNAN(x) (x == NAN)
 
 void
 prim_ceil(PRIM_PROTOTYPE)

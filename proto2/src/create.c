@@ -211,24 +211,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
  *
  */
 
-int
-link_exit(int descr, dbref player, dbref exit, char *dest_name,
-          dbref *dest_list)
-{
-    return _link_exit(descr, player, exit, dest_name, dest_list, 0);
-}
-
-int
-link_exit_dry(int descr, dbref player, dbref exit, char *dest_name,
-              dbref *dest_list)
-{
-    return _link_exit(descr, player, exit, dest_name, dest_list, 1);
-}
-
-
-
-
-_link_exit(int descr, dbref player, dbref exit, char *dest_name,
+int _link_exit(int descr, dbref player, dbref exit, char *dest_name,
            dbref *dest_list, int dryrun)
 {
     char *p, *q;
@@ -316,6 +299,20 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
     if (dryrun && error)
         return 0;
     return ndest;
+}
+
+int
+link_exit(int descr, dbref player, dbref exit, char *dest_name,
+          dbref *dest_list)
+{
+    return _link_exit(descr, player, exit, dest_name, dest_list, 0);
+}
+            
+int         
+link_exit_dry(int descr, dbref player, dbref exit, char *dest_name,
+              dbref *dest_list)
+{
+    return _link_exit(descr, player, exit, dest_name, dest_list, 1);
 }
 
 /* do_link

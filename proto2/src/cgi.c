@@ -125,7 +125,7 @@ escape_url(char *out, char *in)
         else if (isvalid_cgichar(*in))
             *tmp = *in;
         else {
-            sprintf(tmp, "%%%0.2X", *in);
+            sprintf(tmp, "%%%.2X", *in);
             cnt += 2;
             tmp += 2;
         }

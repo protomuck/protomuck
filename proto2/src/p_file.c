@@ -1231,7 +1231,7 @@ prim_send_binary(PRIM_PROTOTYPE)
     FILE *ftemp;
     int j;
     int zero = 0;
-    char  *filename, *buf3;
+    char  *filename;
     double offset = 0.0;
     double range;
     unsigned char tempBuf[BUFFER_LEN];

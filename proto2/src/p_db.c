@@ -2667,7 +2667,6 @@ prim_getobjinfo(PRIM_PROTOTYPE)
     double fresult;
     struct inst temp1, temp2;
     stk_array *nw;
-    int count = 0;
 
     if (mlev < LM3)
         abort_interp(tp_noperm_mesg);

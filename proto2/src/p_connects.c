@@ -79,7 +79,6 @@ has_descr_flag(int descr, char *dFlag, int mLev)
  * if the descriptor has the flag if mlev high enough.
  */
     int flagValue = 0, rslt = 0, result = 0;
-    struct descriptor_data *d;
 
     if (mLev < LMAGE)
         return -2;

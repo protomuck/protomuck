@@ -162,6 +162,7 @@ extern int notify_nolisten(dbref player, const char *msg, int ispriv);
 extern void notify_descriptor(int c, const char *msg);
 extern void notify_descriptor_raw(int descr, const char *msg, int lenght);
 extern void notify_descriptor_char(int d, char c);
+extern void anotify_descriptor(int descr, const char *msg);
 extern int anotify(dbref player, const char *msg);
 extern int notify_html(dbref player, const char *msg);
 extern void add_to_queue(struct text_queue *q, const char *b, int n); /* hinoserm */

@@ -32,11 +32,17 @@ extern void localvar_dupall(struct frame *fr, struct frame *oldfr);
 extern struct inst *scopedvar_get(struct frame *fr, int level, int varnum);
 extern const char* scopedvar_getname(struct frame *fr, int level, int varnum);
 extern const char* scopedvar_getname_byinst(struct inst *pc, int varnum);
-extern int scoepdvar_getnum(struct frame *fr, int level, const char* varname);
+extern int scopedvar_getnum(struct frame *fr, int level, const char* varname);
 extern void scopedvar_dupall(struct frame *fr, struct frame *oldfr);
 extern int logical_false(struct inst *p);
   
+extern void purge_for_pool(void);
+extern void purge_try_pool(void);
+
 extern void copyinst(struct inst *from, struct inst *to);
+
+/* From p_socket.c */
+extern void remove_socket_from_queue(struct muf_socket *oldSock);
   
 #define abort_loop(S, C1, C2) \
 { \

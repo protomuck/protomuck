@@ -1001,7 +1001,7 @@ prim_itoh(PRIM_PROTOTYPE)
     if (oper1->type != PROG_INTEGER)
         abort_interp("Non-integer argument. (1)");
 
-    sprintf(buf, "%0.2X", oper1->data.number);
+    sprintf(buf, "%.2X", oper1->data.number);
 
     CLEAR(oper1);
     PushString(buf);

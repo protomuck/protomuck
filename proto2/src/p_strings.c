@@ -1014,7 +1014,6 @@ prim_notify(PRIM_PROTOTYPE)
 {
     struct inst *oper1 = NULL, *oper2 = NULL;
     char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1046,7 +1045,6 @@ prim_notify_html(PRIM_PROTOTYPE)
 {
     struct inst *oper1 = NULL, *oper2 = NULL;
     char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1082,8 +1080,6 @@ void
 prim_notify_html_nocr(PRIM_PROTOTYPE)
 {
     struct inst *oper1 = NULL, *oper2 = NULL;
-    char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1118,7 +1114,6 @@ void
 prim_ansi_notify(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1149,7 +1144,6 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1233,7 +1227,6 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1317,7 +1310,6 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1402,7 +1394,6 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper1 = POP();

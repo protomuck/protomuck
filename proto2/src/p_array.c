@@ -728,7 +728,6 @@ prim_array_notify(PRIM_PROTOTYPE)
     stk_array *refarr;
     struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
     struct inst temp1, temp2;
-    char buf2[BUFFER_LEN * 2];
 
     CHECKOP(2);
     oper2 = POP();
@@ -1291,14 +1290,14 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
         if (!lines) {
             sprintf(propname, "%s", dir);
             if (!(lines = get_property_value(ref, propname)))
-                if (m = get_property_class(ref, propname))
+                if ((m = get_property_class(ref, propname)))
                     lines = atoi(get_uncompress(m));
    
         }
         if (!lines) {
             sprintf(propname, "%s%c#", dir, PROPDIR_DELIMITER);
             if (!(lines = get_property_value(ref, propname)))
-                if (m = get_property_class(ref, propname))
+                if ((m = get_property_class(ref, propname)))
                     lines = atoi(get_uncompress(m));
         }
 
@@ -1560,7 +1559,7 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                 break;
             case PROG_FLOAT:
                 protoflags = PROP_FLTTYP;
-                sprintf(buf, "%h", oper4->data.fnumber);
+                sprintf(buf, "%hg", oper4->data.fnumber);
                 break;
             case PROG_OBJECT:
                 protoflags = PROP_REFTYP;
