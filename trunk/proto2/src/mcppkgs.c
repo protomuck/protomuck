@@ -1,5 +1,8 @@
 
 #include "config.h"
+
+#ifdef MCP_SUPPORT
+
 #include <math.h>
 #include <ctype.h>
 #include "params.h"
@@ -293,3 +296,5 @@ mcppkg_simpleedit(McpFrame *mfr, McpMesg *msg, McpVer ver, void *context)
         }
     }
 }
+
+#endif

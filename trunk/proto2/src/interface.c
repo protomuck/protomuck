@@ -24,8 +24,10 @@
 #include "tune.h"
 #include "props.h"
 #include "match.h"
-#include "mcp.h"
-#include "mcpgui.h"
+#ifdef MCP_SUPPORT
+# include "mcp.h"
+# include "mcpgui.h"
+#endif
 #include "mpi.h"
 #include "reg.h"
 #include "externs.h"
@@ -406,8 +408,10 @@ main(int argc, char **argv)
     }
 
     /* Initialize MCP and some packages. */
+#ifdef MCP_SUPPORT
     mcp_initialize();
     gui_initialize();
+#endif
 
     sel_prof_start_time = current_systime; /* Set useful starting time */
     sel_prof_idle_sec = 0;
@@ -885,7 +889,11 @@ queue_ansi(struct descriptor_data *d, const char *msg)
         else
             strip_ansi(buf, msg);
     }
+#ifdef MCP_SUPPORT
     mcp_frame_output_inband(&d->mcpframe, buf);
+#else
+    queue_string(d, buf);
+#endif
     return strlen(buf);
 }
 
@@ -2248,13 +2256,17 @@ shutdownsock(struct descriptor_data *d)
         free((void *) d->hostname);
     if (d->username)
         free((void *) d->username);
+#ifdef MCP_SUPPORT
     mcp_frame_clear(&d->mcpframe);
+#endif
 #ifdef NEWHTTPD                 /* hinoserm */
     http_deinitstruct(d);       /* hinoserm */
 #endif  /* NEWHTTPD */               /* hinoserm */
     FREE(d);
     ndescriptors--;
 }
+
+#ifdef MCP_SUPPORT
 
 void
 SendText(McpFrame *mfr, const char *text)
@@ -2284,6 +2296,8 @@ mcpframe_to_user(McpFrame *ptr)
 {
     return ((struct descriptor_data *) ptr->descriptor)->player;
 }
+
+#endif
 
 struct descriptor_data *
 initializesock(int s, const char *hostname, int port, int hostaddr,
@@ -2325,7 +2339,9 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     d->port = port;
     d->type = ctype;
     d->cport = cport;
+#ifdef MCP_SUPPORT
     mcp_frame_init(&d->mcpframe, d);
+#endif
     d->hostname = alloc_string(hostname);
     sprintf(buf, "%d", port);
     d->username = alloc_string(buf);
@@ -2603,6 +2619,7 @@ save_command(struct descriptor_data *d, const char *command)
         if (!(FLAGS(d->player) & INTERACTIVE))
             return 1;
     }
+#ifdef MCP_SUPPORT
     if (d->connected && (DBFETCH(d->player)->sp.player.block)) {
         char cmdbuf[BUFFER_LEN];
 
@@ -2611,6 +2628,7 @@ save_command(struct descriptor_data *d, const char *command)
             return 1;
         }
     }
+#endif
     if (tp_allow_unidle) {      /* check for unidle word */
         if (!string_compare((char *) command, tp_unidle_command))
             return -1;
@@ -2841,9 +2859,11 @@ process_commands(void)
                     char *tmp = t->start;
 
                     /* dequote MCP quoting. */
+#ifdef MCP_SUPPORT
                     if (!strncmp(tmp, "#%\"", 3)) {
                         tmp += 3;
                     }
+#endif
                     if (strncmp(t->start, WHO_COMMAND, sizeof(WHO_COMMAND) - 1)
                         && strcmp(t->start, QUIT_COMMAND)
                         && strcmp(t->start, QUIT_COMMAND)
@@ -2851,7 +2871,10 @@ process_commands(void)
                                    sizeof(PREFIX_COMMAND) - 1)
                         && strncmp(t->start, SUFFIX_COMMAND,
                                    sizeof(SUFFIX_COMMAND) - 1)
-                        && strncmp(t->start, "#$#", 3) /* MCP mesg. */ ) {
+#ifdef MCP_SUPPORT
+                        && strncmp(t->start, "#$#", 3) /* MCP mesg. */ 
+#endif
+                        ) {
                         read_event_notify(d->descriptor, d->player);
                     }
                 } else {
@@ -2912,11 +2935,14 @@ do_command(struct descriptor_data *d, char *command)
     if (d->connected)
         ts_lastuseobject(d->player);
 
+#ifdef MCP_SUPPORT
     if (!mcp_frame_process_input(&d->mcpframe, command, cmdbuf, sizeof(cmdbuf))) {
         d->quota++;
         return 1;
     }
-
+#else
+    strcpy(cmdbuf, command);
+#endif
     command = cmdbuf;
     if (!strcmp(command, QUIT_COMMAND)) {
         return 0;
@@ -4026,7 +4052,9 @@ announce_disconnect(struct descriptor_data *d)
         if (can_move(d->descriptor, player, "disconnect", 1)) {
             do_move(d->descriptor, player, "disconnect", 1);
         }
+#ifdef MCP_SUPPORT
         gui_dlog_closeall_descr(d->descriptor);
+#endif
         if (!Hidden(player)) {
             announce_puppets(player, "falls asleep.", "_/pdcon");
         }
@@ -4823,6 +4851,8 @@ dbref_first_descr(dbref c)
     }
 }
 
+#ifdef MCP_SUPPORT
+
 McpFrame *
 descr_mcpframe(int c)
 {
@@ -4837,6 +4867,8 @@ descr_mcpframe(int c)
     }
     return NULL;
 }
+
+#endif
 
 int
 pdescrflush(int c)
@@ -4987,7 +5019,9 @@ welcome_user(struct descriptor_data *d)
             strcpy(buf, WELC_HTML);
         }
         strcpy(buf, WELC_HTML);
+#ifdef MCP_SUPPORT
         mcp_negotiation_start(&d->mcpframe, d);
+#endif
         if ((f = fopen(buf, "r")) == NULL) {
             queue_unhtml(d, DEFAULT_WELCOME_MESSAGE);
             perror("spit_file: welcome.html");
@@ -5036,7 +5070,9 @@ welcome_user(struct descriptor_data *d)
         } else {
             strcpy(buf, WELC_FILE);
         }
+#ifdef MCP_SUPPORT
         mcp_negotiation_start(&d->mcpframe, d);
+#endif
         if ((f = fopen(buf, "r")) == NULL) {
             queue_unhtml(d, DEFAULT_WELCOME_MESSAGE);
             perror("spit_file: welcome.txt");

@@ -31,7 +31,9 @@ const char *base_inst[] = {
     PRIMS_FILE_NAMES,
 #endif
     PRIMS_ARRAY_NAMES,
+#ifdef MCP_SUPPORT
     PRIMS_MCP_NAMES,
+#endif
 #ifdef MUF_SOCKETS
     PRIMS_SOCKET_NAMES,
 #endif

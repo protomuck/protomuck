@@ -19,7 +19,9 @@
 #include "props.h"
 #include "strings.h"
 #include "interp.h"
-#include "mcpgui.h"
+#ifdef MCP_SUPPORT
+# include "mcpgui.h"
+#endif
 #include "mufevent.h"
 
 /* This package performs the interpretation of mud forth programs.
@@ -62,7 +64,10 @@ void (*prim_func[]) (PRIM_PROTOTYPE) = {
 #ifdef FILE_PRIMS
         PRIMS_FILE_FUNCS,
 #endif
-        PRIMS_ARRAY_FUNCS, PRIMS_MCP_FUNCS,
+        PRIMS_ARRAY_FUNCS,
+#ifdef MCP_SUPPORT
+        PRIMS_MCP_FUNCS,
+#endif
 #ifdef MUF_SOCKETS
         PRIMS_SOCKET_FUNCS,
 #endif
@@ -925,7 +930,9 @@ prog_clean(struct frame *fr)
     if (fr->rndbuf)
         delete_seed(fr->rndbuf);
 
+#ifdef MCP_SUPPORT
     muf_dlog_purge(fr);
+#endif
 
     dequeue_timers(fr->pid, NULL);
     muf_event_purge(fr);

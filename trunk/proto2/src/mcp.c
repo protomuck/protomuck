@@ -1,9 +1,12 @@
 /* mcp.c: MUD Client Protocol.
    Part of the FuzzBall distribution. */
 
+#include "config.h"
+
+#ifdef MCP_SUPPORT
+
 #include <stdlib.h>
 #include <ctype.h>
-#include "config.h"
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 # ifdef APPLE
 # include <sys/malloc.h>
@@ -1738,3 +1741,5 @@ mcp_internal_parse(McpFrame *mfr, const char *in)
         return 1;
     return 0;
 }
+
+#endif

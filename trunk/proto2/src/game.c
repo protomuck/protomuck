@@ -1002,6 +1002,7 @@ process_command(int descr, dbref player, char *command)
         case 'm':
         case 'M':
             switch (command[2]) {
+#ifdef MCP_SUPPORT
             case 'c':
             case 'C':
                 switch (command[4]) {
@@ -1018,6 +1019,7 @@ process_command(int descr, dbref player, char *command)
                 default:
                     goto bad;
                 }
+#endif
             case 'e':
             case 'E':
                 Matched("@memory");
