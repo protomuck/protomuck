@@ -942,6 +942,7 @@ prim_set(PRIM_PROTOTYPE)
 
     if (!*flag)
         abort_interp("Empty flag");
+#ifdef CONTROLS_SUPPORT
     if ((check_flag1(flag) == CHOWN_OK)
         || (check_flag2(flag, &tWiz) == F2CONTROLS)) {
         if (!newpermissions(mlev, ProgUID, ref, 1))
@@ -950,6 +951,10 @@ prim_set(PRIM_PROTOTYPE)
         if (!newpermissions(mlev, ProgUID, ref, 0))
             abort_interp(tp_noperm_mesg);
     }
+#else
+    if (!permissions(mlev, ProgUID, ref))
+        abort_interp(tp_noperm_mesg);
+#endif
     if (result && Typeof(ref) == TYPE_THING) {
         dbref obj = DBFETCH(ref)->contents;
 

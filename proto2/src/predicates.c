@@ -353,7 +353,10 @@ newcontrols(dbref who, dbref what, int true_c)
             }
         }
     } else {
+#else
+        true_c = 1;
 #endif
+
         if (tp_realms_control && (Typeof(what) != TYPE_PLAYER))
             for (index = what; index != NOTHING; index = getloc(index))
                 if ((OWNER(index) == who) && (Typeof(index) == TYPE_ROOM
