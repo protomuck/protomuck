@@ -250,10 +250,10 @@ check_archive_time(void)
         return;
     if ((last_archive_time + tp_archive_interval) < currtime) {
         add_property((dbref) 0, "~sys/lastarchive", NULL,
-                     (int) last_archive_time);
+                     (int) currtime);
         if (tp_allow_old_trigs)
             add_property((dbref) 0, "_sys/lastarchive", NULL,
-                         (int) last_archive_time);
+                         (int) currtime);
         last_archive_time = currtime;
         log_status("ARCHIVE: Scheduled by @tune\n");
         archive_done++;
