@@ -27,7 +27,7 @@ mfn_func(MFUNARGS)
     int i;
 
     funcname = MesgParse(argv[0], argv[0]);
-    CHECKRETURN(ptr, "FUNC", "Name argument (1)");
+    CHECKRETURN(funcname, "FUNC", "Name argument (1)");
 
     def = argv[argc - 1];
     for (i = 1; i < argc - 1; i++) {
