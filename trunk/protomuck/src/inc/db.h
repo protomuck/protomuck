@@ -334,6 +334,8 @@ extern int RawMWLevel(dbref thing);
 #define Mucker(x)	 (MLevel(x) >= LMUF)
 #define Meeper(x)	 (MLevel(x) >= LMPI)
 
+#define WizHidden(x)    (QLevel(x) >= (tp_wizhidden_access_bit+4))
+
 
 #define PREEMPT 0
 #define FOREGROUND 1

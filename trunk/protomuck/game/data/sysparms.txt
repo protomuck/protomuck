@@ -521,11 +521,14 @@ Turns off all Webserver logwalling to cut down on lots
 of webserver related spam.
 ~~~
 compatible_muf_perms
-Turning this on makes it so that every new MUF object
-that is created is automatically set HARDUID and QUELL
-so that it will run at the level of the Flag on it
-(like in Fuzzball) rather than the level of the program's
-owner (like in Neon).
+Tuning this on, will change the permissions model for MUF so
+that MUF runs at the level of the bit set on it by default,
+SETUID runs at the owner of the of the program, HARDUID runs 
+at the level of owner of the trigger of the program, and 
+QUELL will run it at the permissions of the calling player.
+This is as per FB/Glow behaviour.  If you are running a FB
+or glow database, best to set this ON, if a Neon or Proto DB
+set it off.
 ~~~
 max_wiz_preempt_count
 Sets a hard max instruction count on PREEMPT programs that not 
@@ -563,3 +566,7 @@ to use floats without checking if you triggered an error when you
 get a zero result, since all error conditions return either inf
 (for true floating point overflows) or nan (for 'not a number'
 conditions.
+~~~
+wizhidden_access_bit
+Values 1-5 change the level of bit it takes to access wizhidden
+'@' props, W1 (Mage) to W5(the MAN).  Read and Write are given.
