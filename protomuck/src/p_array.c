@@ -1031,6 +1031,8 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
 
         ref = oper1->data.objref;
         strcpy(dir, DoNullInd(oper2->data.string));
+        CLEAR(oper1);
+        CLEAR(oper2);
         if (!*dir)
                 strcpy(dir, "/");
 
@@ -1093,6 +1095,8 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
 
         ref = oper1->data.objref;
         strcpy(dir, DoNullInd(oper2->data.string));
+        CLEAR(oper1);
+        CLEAR(oper2);
         if (!*dir)
                 strcpy(dir, "/");
 
@@ -1182,6 +1186,8 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
 
         ref = oper1->data.objref;
         strcpy(dir, DoNullInd(oper2->data.string));
+        CLEAR(oper1);
+        CLEAR(oper2);
         if (!*dir)
                 strcpy(dir, "/");
 
@@ -1528,6 +1534,8 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
 
         ref = oper1->data.objref;
         strcpy(dir, oper2->data.string->data);
+        CLEAR(oper1);
+        CLEAR(oper2);
 
         if (!prop_read_perms(ProgUID, ref, dir, mlev))
                 abort_interp(tp_noperm_mesg);
