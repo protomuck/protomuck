@@ -803,7 +803,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 
 #ifdef VERBOSE_EXAMINE
     anotify_nolisten2(player, flag_description(thing));
-    if (POWERS(thing))
+    if ((POWERS(thing)) && (Typeof(thing) == TYPE_PLAYER))
        anotify_nolisten2(player, power_description(thing));
 #endif				/* VERBOSE_EXAMINE */
 
