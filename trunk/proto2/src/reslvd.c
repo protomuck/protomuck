@@ -1,6 +1,9 @@
+#define NO_MALLOC_PROFILING
+
 #include "copyright.h"
 #include "config.h"
 #include "version.h"
+
 #include <sys/types.h>
 #include <fcntl.h>
 #include <ctype.h>
@@ -12,6 +15,17 @@
 #include <sys/errno.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <signal.h>
+
+#ifdef SOLARIS
+#  ifndef _POSIX_SOURCE
+#    define _POSIX_SOURCE       /* Solaris needs this */
+#  endif
+#endif
+
+#if defined(HAVE_SYS_SIGNAL_H) && !defined(SUN_OS)
+# include <sys/signal.h>
+#endif
 
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__APPLE__)
 typedef int socklen_t;
