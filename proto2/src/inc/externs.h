@@ -593,7 +593,7 @@ extern void tune_save_parmsfile(void);
 /* from random.c */
 extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
-extern unsigned long rndn(void *buffer);
+extern unsigned long rnd(void *buffer);
 extern void MD5base64(char *dest, const void *orig, int len);
 
 #ifdef MCP_SUPPORT

@@ -30,7 +30,7 @@ static double fresult, tf1, tf2;
 
 #define MAXINT ~(1<<((sizeof(int)*8)-1))
 #define MININT (1<<((sizeof(int)*8)-1))
-#define no_good(x) ((x == INF) || (x == NINF) || (x == NAN)) 
+#define no_good(x) ((x == INF) || (x == NINF) || (x == NAN))
 #define ISINF(x) ((x == INF) || (x == NINF))
 #define ISNAN(x) (x == NAN)
 
@@ -71,13 +71,15 @@ prim_add(PRIM_PROTOTYPE)
         if (!no_good(tf1) && !no_good(tf2)) {
             fresult = tf1 + tf2;
         } else {
-         if (ISNAN(tf1) || ISNAN(tf2)) {
-            fresult = tp_alt_infinity_handler ? NAN : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
-         } else {
-            fresult = tp_alt_infinity_handler ? ( tf1 + tf2 ) : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
-         }
+            if (ISNAN(tf1) || ISNAN(tf2)) {
+                fresult = tp_alt_infinity_handler ? NAN : 0.0;
+                if (!tp_alt_infinity_handler)
+                    fr->error.error_flags.nan = 1;
+            } else {
+                fresult = tp_alt_infinity_handler ? (tf1 + tf2) : 0.0;
+                if (!tp_alt_infinity_handler)
+                    fr->error.error_flags.f_bounds = 1;
+            }
         }
     } else {
         result = oper1->data.number + oper2->data.number;
@@ -114,13 +116,15 @@ prim_subtract(PRIM_PROTOTYPE)
         if (!no_good(tf1) && !no_good(tf2)) {
             fresult = tf1 - tf2;
         } else {
-         if (ISNAN(tf1) || ISNAN(tf2)) {
-            fresult = tp_alt_infinity_handler ? NAN : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
-         } else {
-            fresult = tp_alt_infinity_handler ? ( tf1 + tf2 ) : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
-         }
+            if (ISNAN(tf1) || ISNAN(tf2)) {
+                fresult = tp_alt_infinity_handler ? NAN : 0.0;
+                if (!tp_alt_infinity_handler)
+                    fr->error.error_flags.nan = 1;
+            } else {
+                fresult = tp_alt_infinity_handler ? (tf1 + tf2) : 0.0;
+                if (!tp_alt_infinity_handler)
+                    fr->error.error_flags.f_bounds = 1;
+            }
         }
     } else {
         result = oper2->data.number - oper1->data.number;
@@ -157,13 +161,15 @@ prim_multiply(PRIM_PROTOTYPE)
         if (!no_good(tf1) && !no_good(tf2)) {
             fresult = tf1 * tf2;
         } else {
-         if (ISNAN(tf1) || ISNAN(tf2)) {
-            fresult = tp_alt_infinity_handler ? NAN : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
-         } else {
-            fresult = tp_alt_infinity_handler ? ( tf1 * tf2 ) : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
-         }
+            if (ISNAN(tf1) || ISNAN(tf2)) {
+                fresult = tp_alt_infinity_handler ? NAN : 0.0;
+                if (!tp_alt_infinity_handler)
+                    fr->error.error_flags.nan = 1;
+            } else {
+                fresult = tp_alt_infinity_handler ? (tf1 * tf2) : 0.0;
+                if (!tp_alt_infinity_handler)
+                    fr->error.error_flags.f_bounds = 1;
+            }
         }
     } else {
         result = oper1->data.number * oper2->data.number;
@@ -194,8 +200,10 @@ prim_divide(PRIM_PROTOTYPE)
         if ((oper1->type == PROG_INTEGER && !oper1->data.number) ||
             (oper1->type == PROG_FLOAT && fabs(oper1->data.fnumber)
              < DBL_EPSILON)) {
-            fresult = tp_alt_infinity_handler ? 
-             ((oper2->type == PROG_INTEGER) ? oper2->data.number : oper2->data.fnumber) * INF : 0.0;
+            fresult = tp_alt_infinity_handler ?
+                ((oper2->type ==
+                  PROG_INTEGER) ? oper2->data.number : oper2->data.fnumber) *
+                INF : 0.0;
             fr->error.error_flags.div_zero = 1;
         } else {
             tf1 =
@@ -207,13 +215,15 @@ prim_divide(PRIM_PROTOTYPE)
             if (!no_good(tf1) && !no_good(tf2)) {
                 fresult = tf1 / tf2;
             } else {
-         if (ISNAN(tf1) || ISNAN(tf2)) {
-            fresult = tp_alt_infinity_handler ? NAN : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
-         } else {
-            fresult = tp_alt_infinity_handler ? ( tf1 / tf2 ) : 0.0;
-            if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
-         }
+                if (ISNAN(tf1) || ISNAN(tf2)) {
+                    fresult = tp_alt_infinity_handler ? NAN : 0.0;
+                    if (!tp_alt_infinity_handler)
+                        fr->error.error_flags.nan = 1;
+                } else {
+                    fresult = tp_alt_infinity_handler ? (tf1 / tf2) : 0.0;
+                    if (!tp_alt_infinity_handler)
+                        fr->error.error_flags.f_bounds = 1;
+                }
             }
         }
     } else {
@@ -567,7 +577,7 @@ prim_srand(PRIM_PROTOTYPE)
     if (!(fr->rndbuf)) {
         fr->rndbuf = init_seed(NULL);
     }
-    result = (int) rndn(fr->rndbuf);
+    result = (int) rnd(fr->rndbuf);
     PushInt(result);
 }
 

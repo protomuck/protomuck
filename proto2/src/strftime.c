@@ -280,7 +280,7 @@ format_time(char *buf, int max_len, const char *fmt, struct tm *tmval)
 #ifdef HAVE_TM_ZONE
 #ifdef HAVE_TZNAME
 #ifdef __CYGWIN__
-			tzset();
+                        tzset();
 #endif
                         strcpy(tmp, tzname[tmval->tm_isdst]);
 #else
@@ -320,15 +320,14 @@ get_tz_offset(void)
  */
 #if defined(BRAINDEAD_OS)
     return 0;
-#elif defined(HAVE_TM_GMTOFF) || defined(HAVE_SYS_TM_GMTOFF)
+#elif defined(HAVE_STRUCT_TM_TM_GMTOFF)
     time_t now;
 
     time(&now);
     return (int) (localtime(&now)->tm_gmtoff);
 #elif defined(WIN_VC) || defined(WIN32)
     return (int) _timezone;
-#elif defined(__CYGWIN__)
-/* Same problem as above.  Its much easier to SET the DEFINE. */
+#elif (HAVE_DECL__TIMEZONE)
     tzset();
     return (int) _timezone;
 #else

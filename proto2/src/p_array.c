@@ -1638,7 +1638,7 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
         while (*rawstr) {
             if (*rawstr == '#')
                 rawstr++;
-            if (!isdigit(*rawstr))
+            if (!isdigit(*rawstr) && (*rawstr != '-'))
                 break;
             result = atoi(rawstr);
             while (*rawstr && !isspace(*rawstr))
