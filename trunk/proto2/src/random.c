@@ -25,7 +25,7 @@
  * will fill a supplied 16-byte array with the digest.
  */
 
-typedef unsigned long word32;
+typedef unsigned int word32;    /* this used to be long, but that breaks on 64-bit machines. -hinoserm */
 typedef unsigned char byte;
 
 struct xMD5Context {
@@ -38,7 +38,6 @@ void xMD5Init(struct xMD5Context *context);
 void xMD5Update(struct xMD5Context *context, byte const *buf, int len);
 void xMD5Final(byte digest[16], struct xMD5Context *context);
 void xMD5Transform(word32 buf[4], word32 const in[16]);
-
 
 /*
  * Shuffle the bytes into little-endian order within words, as per the

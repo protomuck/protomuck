@@ -17,6 +17,7 @@ struct object *db = 0;
 dbref db_top = 0;
 dbref recyclable = NOTHING;
 int db_load_format = 0;
+bool db_md5_passwords = 0;
 
 #ifndef DB_INITIAL_SIZE
 #define DB_INITIAL_SIZE 10000
@@ -585,15 +586,9 @@ db_write_object(FILE * f, dbref i)
     o->propsfpos = tmppos;
     undirtyprops(i);
 
-
-
-
-
-
 #else /* !DISKBASE */
     putproperties(f, i);
 #endif /* DISKBASE */
-
 
     switch (Typeof(i)) {
         case TYPE_THING:
@@ -679,6 +674,7 @@ db_write(FILE * f)
 #ifdef COMPRESS
            + (db_decompression_flag ? 0 : DB_COMPRESSED)
 #endif
+           + (db_md5_passwords ? DB_MD5PASSES : 0)
         );
     putref(f, tune_count_parms());
     tune_save_parms_to_file(f);
@@ -1586,7 +1582,14 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             o->sp.player.home = prop_flag ? getref(f) : j;
             o->exits = getref(f);
             o->sp.player.pennies = getref(f);
-            o->sp.player.password = getstring(f);
+            if (db_md5_convert) {
+                char md5buf[64];
+                const char *p = getstring_noalloc(f);
+
+                MD5base64(md5buf, p, strlen(p));
+                o->sp.player.password = alloc_string(md5buf);
+            } else
+                o->sp.player.password = getstring(f);
             o->sp.player.curr_prog = NOTHING;
             o->sp.player.insert_mode = 0;
             o->sp.player.descrs = NULL;
@@ -1716,6 +1719,13 @@ db_read(FILE * f)
                 return -1;
 #endif
             }
+
+            if ((db_md5_passwords =
+                 (dbflags & DB_MD5PASSES || db_load_format == 8)))
+                db_md5_convert = 0;
+            else if (db_md5_convert)
+                db_md5_passwords = 1;
+
             db_grow(i);
 #ifdef ARCHAIC_DATABASES
         } else if (!strcmp(special, "***Foxen Deltas Dump Extention***")) {

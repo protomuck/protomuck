@@ -152,6 +152,7 @@ SSL_CTX *ssl_ctx_client;
 
 bool db_conversion_flag = 0;
 bool db_decompression_flag = 0;
+bool db_md5_convert = 0;
 bool wizonly_mode = 0;
 bool verboseload = 0;
 
@@ -298,6 +299,8 @@ show_program_usage(char *prog)
     fprintf(stderr,
             "       -convert          load db, save in current format, and quit.\n");
     fprintf(stderr,
+            "       -pwconvert        convert passwords to MD5 format on next save.\n");
+    fprintf(stderr,
             "       -decompress       when saving db, save in uncompressed format.\n");
     fprintf(stderr,
             "       -nosanity         don't do db sanity checks at startup time.\n");
@@ -400,6 +403,8 @@ main(int argc, char **argv)
                 wizonly_mode = 1;
             } else if (!strcmp(argv[i], "-sanfix")) {
                 sanity_autofix = 1;
+            } else if (!strcmp(argv[i], "-pwconvert")) {
+                db_md5_convert = 1;
             } else if (!strcmp(argv[i], "-version")) {
                 printf("ProtoMUCK %s (%s -- %s)\n", PROTOBASE, VERSION,
                        NEONVER);
@@ -3458,7 +3463,7 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                                             /****/
+        if (d->next)                                                                                                                                                 /****/
             d->next->prev = d->prev;     /****/
         host_delete(d->hu);
                                    /****/
