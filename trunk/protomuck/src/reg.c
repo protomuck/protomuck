@@ -152,9 +152,11 @@ reg_user_is_barred( int site, int user ) {
 	case REG_BLOCKED:
 	case REG_LOCKOUT:
 		barred = TRUE;
+                opensite = TRUE;
 		break;
 	case REG_GUEST:
 		guest = TRUE;
+                opensite = TRUE;
 		break;
         case REG_OPEN:
                 opensite = TRUE;
@@ -162,6 +164,7 @@ reg_user_is_barred( int site, int user ) {
     default:
 	break;
     }
+
     if (!Guest(user) && get_property_class( user, REG_LOGIN ))
 	login = TRUE;
     else if (TMage(user)) return FALSE;
