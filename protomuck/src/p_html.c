@@ -22,7 +22,7 @@ extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
-struct tm *time_tm;
+/* struct tm *time_tm; */
 
 extern struct descriptor_data *descriptor_list;
 
@@ -155,3 +155,4 @@ prim_commandtext(PRIM_PROTOTYPE)
     CLEAR(oper3);
     PushString(buf);
 }
+

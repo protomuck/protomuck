@@ -76,7 +76,7 @@ extern int anotify(dbref player, const char *msg);
 extern int notify_html(dbref player, const char *msg);
 extern int queue_string(struct descriptor_data *d, const char *s);
 extern int notify_nolisten(dbref player, const char *msg, int isprivate);
-extern int notify_nolisten2(dbref player, const char *msg);
+extern int anotify_nolisten2(dbref player, const char *msg);
 extern int notify_html_nolisten(dbref player, const char *msg, int isprivate);
 extern int anotify_nolisten(dbref player, const char *msg, int isprivate);
 extern int notify_from_echo(dbref from, dbref player, const char *msg, int isprivate);
@@ -102,7 +102,7 @@ extern int online(dbref player);
 extern int *get_player_descrs(dbref player, int *count);
 extern int least_idle_player_descr(dbref who);
 extern int most_idle_player_descr(dbref who);
-extern int pcount();
+extern int pcount(void);
 extern int pidle(int c);
 extern int pdbref(int c);
 extern int pontime(int c);
@@ -119,6 +119,9 @@ extern int pfirstdescr(void);
 extern int plastdescr(void);
 extern int pdescrcon(int c);
 extern McpFrame *descr_mcpframe(int c);
+extern void SendText(McpFrame * mfr, const char *text);
+extern int mcpframe_to_descr(McpFrame * ptr);
+extern int mcpframe_to_user(McpFrame * ptr);
 extern int pnextdescr(int c);
 extern int pfirstconn(dbref who);
 extern int pset_user(struct descriptor_data *d, dbref who);
@@ -138,6 +141,7 @@ extern void pdescr_welcome_user(int c);
 extern void pdescr_logout(int c);
 extern void pdump_who_users(int c, char *user);
 extern const char* host_as_hex( unsigned addr );
+extern int index_descr(int index);
 
 /* the following symbols are provided by game.c */
 
@@ -272,6 +276,7 @@ extern void panic(const char *);
 #define ANSI_BG_BLUE	"\033[44m"
 #define ANSI_BG_MAGENTA	"\033[45m"
 #define ANSI_BG_WHITE	"\033[47m"
+
 
 
 

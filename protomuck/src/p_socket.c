@@ -52,13 +52,13 @@ extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
-struct tm *time_tm;
+/* struct tm *time_tm; */
 
 
 void
 prim_socksend(PRIM_PROTOTYPE)
 {
-   void *outputbuf;
+   char *outputbuf;
    char bigbuffer[BUFFER_LEN];
    int myresult;
 
@@ -74,18 +74,20 @@ prim_socksend(PRIM_PROTOTYPE)
    sprintf(bigbuffer, "%s\n",oper2->data.string->data);
 
    myresult = send(oper1->data.sock->socknum, outputbuf,
-                   strlen(outputbuf), 0);
+                   (int) strlen(outputbuf), (unsigned int) 0);
    if(tp_log_sockets)
       log2filetime( "logs/sockets", "#%d by %s SOCKSEND:  %d\n", program, 
                      unparse_object(player, player), oper1->data.sock->socknum);
 
    CLEAR(oper1);
    CLEAR(oper2);
+   if (myresult < 1 )
+      myresult = 0;
    PushInt(myresult);
 }
 
 void
-prim_sockrecv(PRIM_PROTOTYPE)
+prim_nbsockrecv(PRIM_PROTOTYPE)
 {
    char *bigbuf, *bufpoint;
    char *mystring;
@@ -101,8 +103,8 @@ prim_sockrecv(PRIM_PROTOTYPE)
        abort_interp("Socket calls are ArchWiz-only primitives.");
    if (oper1->type != PROG_SOCKET) abort_interp("Socket argument expected!");
 
-   mystring = malloc(3);
-   bigbuf = malloc(1024);
+   mystring = (char *) malloc(3);
+   bigbuf = (char *) malloc(1024);
    bufpoint = bigbuf;
 
    t_val.tv_sec = 0;
@@ -136,6 +138,9 @@ prim_sockrecv(PRIM_PROTOTYPE)
        log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program, 
                       unparse_object(player, player), sockval);
    *bufpoint = '\0';
+   if (readme < 1)
+      readme = 0;
+   PushInt(readme);
    PushString(bigbuf);
    free((void *)mystring);
    free((void *)bigbuf);
@@ -170,7 +175,7 @@ prim_sockclose(PRIM_PROTOTYPE)
 void
 prim_nbsockopen(PRIM_PROTOTYPE)
 {
-    int mysock;
+    int mysock = 0;
     struct inst *result;
     struct muf_socket *mufsock;
     struct hostent *myhost;
@@ -213,8 +218,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 #endif
         else strcpy(myresult, "noerr");
     }
-    result = malloc(sizeof(struct inst));
-    mufsock = malloc(sizeof(struct muf_socket));
+    result = (struct inst *) malloc(sizeof(struct inst));
+    mufsock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
 
     result->type = PROG_SOCKET;
     mufsock->socknum = mysock;
@@ -231,11 +236,14 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     PushString(myresult);
 }
 
+
 void
 prim_sockcheck(PRIM_PROTOTYPE)
-{  
+{
    int connected = 0;
    int sockval = 0;
+   int len = 10;
+   int optval = 0;
    fd_set writes;
    struct timeval t_val;
 
@@ -250,17 +258,39 @@ prim_sockcheck(PRIM_PROTOTYPE)
    t_val.tv_usec = 0;
 
    sockval = oper1->data.sock->socknum;
-   FD_ZERO(&writes);                                                    
+   FD_ZERO(&writes);
    FD_SET(oper1->data.sock->socknum, &writes);
 
    select(oper1->data.sock->socknum + 1, NULL, &writes, NULL, &t_val);
 
-   if (FD_ISSET(oper1->data.sock->socknum, &writes))
-     connected = 1; 
+   if (FD_ISSET(oper1->data.sock->socknum, &writes)) { 
+      connected = 1;
+      fcntl(oper1->data.sock->socknum, F_SETFL, 0);
+   }
    else {
-     connected = 0;
-     fcntl(oper1->data.sock->socknum, F_SETFL, 0);
+      connected = 0;
+   }
+   if (connected == 1) {
+      getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, &len);
+notify(1, "Doing check.");
+      if ( optval != 0 )
+         connected = -1;
    }
    PushInt(connected);
 }
 
+void
+prim_sockdescr(PRIM_PROTOTYPE)
+{
+    int sockdescr = 0;
+    CHECKOP(1); 
+    oper1 = POP(); /* SOCKET */
+
+    if (mlev < LARCH)
+        abort_interp("Socket prims are ArchWiz-only.");
+    if (oper1->type != PROG_SOCKET) abort_interp("Socket arguement expected.");
+    
+    sockdescr = oper1->data.sock->socknum;
+    PushInt(sockdescr);
+}
+  

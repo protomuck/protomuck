@@ -956,18 +956,18 @@ db_free(void)
 struct line *
 get_new_line(void)
 {
-    struct line *new;
+    struct line *nw;
 
-    new = (struct line *) malloc(sizeof(struct line));
+    nw = (struct line *) malloc(sizeof(struct line));
 
-    if (!new) {
+    if (!nw) {
         fprintf(stderr, "get_new_line(): Out of memory!\n");
         abort();
     }
-    new->this_line = NULL;
-    new->next = NULL;
-    new->prev = NULL;
-    return new;
+    nw->this_line = NULL;
+    nw->next = NULL;
+    nw->prev = NULL;
+    return nw;
 }
 
 struct line *
@@ -976,7 +976,7 @@ read_program(dbref i)
     char    buf[BUFFER_LEN];
     struct line *first;
     struct line *prev = NULL;
-    struct line *new;
+    struct line *nw;
     FILE   *f;
     int len;
 
@@ -987,21 +987,21 @@ read_program(dbref i)
 	return 0;
 
     while (fgets(buf, BUFFER_LEN, f)) {
-	new = get_new_line();
+	nw = get_new_line();
 	len = strlen(buf);
 	if (len > 0 && buf[len - 1] == '\n') {
 	    buf[len - 1] = '\0';
 	}
 	if (!*buf)
           strcpy(buf, " ");
-	new->this_line = alloc_string(buf);
+	nw->this_line = alloc_string(buf);
 	if (!first) {
-	    prev = new;
-	    first = new;
+	    prev = nw;
+	    first = nw;
 	} else {
-	    prev->next = new;
-	    new->prev = prev;
-	    prev = new;
+	    prev->next = nw;
+	    nw->prev = prev;
+	    prev = nw;
 	}
     }
 
@@ -1686,4 +1686,5 @@ WLevel(dbref player)
 
     return mlev >= LMAGE ? mlev : 0;
 }   
+
 

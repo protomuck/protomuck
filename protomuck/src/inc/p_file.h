@@ -14,14 +14,19 @@ extern void prim_fsinfo(PRIM_PROTOTYPE);
 extern void prim_frm(PRIM_PROTOTYPE);
 extern void prim_fren(PRIM_PROTOTYPE);
 extern void prim_freadto(PRIM_PROTOTYPE);
+extern void prim_array_get_file(PRIM_PROTOTYPE);
+extern void prim_array_put_file(PRIM_PROTOTYPE);
 
-#define PRIMS_FILE_FUNCS prim_fwrite, prim_fappend, prim_fread, \
-        prim_freadn, prim_fcr, prim_fpublish, prim_bread, \
-        prim_bwrite, prim_bappend, prim_fsize, prim_fstats, \
-        prim_curid, prim_fsinfo, prim_frm, prim_fren, prim_freadto
+#define PRIMS_FILE_FUNCS prim_fwrite, prim_fappend, prim_fread,     \
+        prim_freadn, prim_fcr, prim_fpublish, prim_bread,           \
+        prim_bwrite, prim_bappend, prim_fsize, prim_fstats,         \
+        prim_curid, prim_fsinfo, prim_frm, prim_fren, prim_freadto, \
+        prim_array_get_file, prim_array_put_file
 
-#define PRIMS_FILE_NAMES "FWRITE", "FAPPEND", "FREAD", "FREADN", \
+#define PRIMS_FILE_NAMES "FWRITE", "FAPPEND", "FREAD", "FREADN",  \
         "FCR", "FPUBLISH", "BREAD", "BWRITE", "BAPPEND", "FSIZE", \
-        "FSTATS", "CURID", "FSINFO", "FRM", "FREN", "FREADTO"
+        "FSTATS", "CURID", "FSINFO", "FRM", "FREN", "FREADTO",    \
+        "ARRAY_GET_FILE", "ARRAY_PUT_FILE"
 
-#define PRIMS_FILE_CNT 16
+#define PRIMS_FILE_CNT 18
+

@@ -32,7 +32,7 @@ main(int argc, char **argv)
 
     if (argc > 2) {
 	fprintf(stderr, "Usage: %s [infile]\n", argv[0]);
-	return;
+	return 0;
     }
 
     if (argc < 2) {
@@ -41,7 +41,7 @@ main(int argc, char **argv)
 	in_filename = (char *)string_dup(argv[1]);
 	if ((infile = fopen(in_filename, "r")) == NULL) {
 	    fprintf(stderr, "%s: unable to open input file.\n", argv[0]);
-	    return;
+	    return 0;
 	}
     }
 
@@ -50,4 +50,6 @@ main(int argc, char **argv)
 	fputs((char *)old_uncompress(buf), stdout);
     }
     exit(0);
+    return 0;
 }
+

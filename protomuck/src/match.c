@@ -562,10 +562,10 @@ noisy_match_result(struct match_data * md)
 
     switch (match = match_result(md)) {
 	case NOTHING:
-	    anotify_nolisten2(md->match_who, CINFO NOMATCH_MESSAGE);
+	    anotify_nolisten(md->match_who, CINFO NOMATCH_MESSAGE, 1);
 	    return NOTHING;
 	case AMBIGUOUS:
-	    anotify_nolisten2(md->match_who, CINFO AMBIGUOUS_MESSAGE);
+	    anotify_nolisten(md->match_who, CINFO AMBIGUOUS_MESSAGE, 1);
 	    return NOTHING;
 	default:
 	    return match;
@@ -644,5 +644,6 @@ path_name( const char *path )
 
     return path;
 }
+
 
 

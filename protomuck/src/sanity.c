@@ -33,7 +33,7 @@ SanPrint(dbref player, const char *format, ...)
 {
     va_list args;
     char buf[16384];
-    static san_linesprinted = 0;
+    static int san_linesprinted = 0;
 
     va_start(args, format);
 
@@ -580,7 +580,7 @@ cut_all_chains(dbref obj)
 }
 
 void
-cut_bad_recyclable()
+cut_bad_recyclable(void)
 {
     dbref loop, prev;
     loop = recyclable;
@@ -677,7 +677,7 @@ cut_bad_exits(dbref obj)
 }
 
 void
-hacksaw_bad_chains()
+hacksaw_bad_chains(void)
 {
     dbref loop;
     cut_bad_recyclable();
@@ -693,7 +693,7 @@ hacksaw_bad_chains()
 }
 
 char *
-rand_password()
+rand_password(void)
 {
     int loop;
     char pwdchars[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -834,7 +834,7 @@ fix_garbage(dbref obj) {
 }
 
 void
-find_misplaced_objects()
+find_misplaced_objects(void)
 {
     dbref loop, player = NOTHING, room;
     for (loop = 0; loop < db_top; loop++) {
@@ -958,7 +958,7 @@ find_misplaced_objects()
 }
 
 void
-adopt_orphans()
+adopt_orphans(void)
 {
     dbref loop;
     for (loop = 0; loop < db_top; loop++) {
@@ -992,7 +992,7 @@ adopt_orphans()
 }
 
 void
-clean_global_environment()
+clean_global_environment(void)
 {
     if (DBFETCH(GLOBAL_ENVIRONMENT)->next != NOTHING) {
 	SanFixed(GLOBAL_ENVIRONMENT, "Removed the global environment %s from a chain");
@@ -1492,5 +1492,6 @@ san_main(void)
     
     printf("Exiting sanity editor...\n\n");
 }
+
 
 

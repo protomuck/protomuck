@@ -16,13 +16,17 @@ int muf_event_dequeue_pid(int pid);
 struct frame* muf_event_pid_frame(int pid);
 int muf_event_controls(dbref player, int pid);
 void muf_event_register(dbref player, dbref prog, struct frame *fr);
+void muf_event_register_specific(dbref player, dbref prog, struct frame *fr, int eventcount, char** eventids);
 int muf_event_count(struct frame* fr);
 void muf_event_add(struct frame *fr, char *event, struct inst *val, int exclusive);
 void muf_event_remove(struct frame *fr, char *event, int which);
 void muf_event_purge(struct frame *fr);
 void muf_event_process(void);
+int muf_event_exists(struct frame* fr, const char* eventid);
+int muf_event_list(dbref player, char *pat);
 
 #endif /* MUF_EVENT_H */
+
 
 
 

@@ -50,7 +50,7 @@ int truestr(char *buf);
 
 int new_mvar(const char *varname, char *buf);
 char *get_mvar(const char *varname);
-int free_top_mvar();
+int free_top_mvar(void);
 
 int new_mfunc(const char *funcname, const char *buf);
 const char *get_mfunc(const char *funcname);
@@ -71,4 +71,5 @@ typedef char argv_typ[10][BUFFER_LEN];
 
 
 #endif /* MPI */
+
 

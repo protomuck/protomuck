@@ -384,7 +384,7 @@ mfn_select(MFUNARGS)
 	char propname[BUFFER_LEN];
 	char bestname[BUFFER_LEN];
 	dbref obj = what;
-	dbref bestobj;
+	dbref bestobj = NOTHING;
 	char *pname;
 	const char *ptr;
 	char *out, *in;
@@ -1715,11 +1715,13 @@ mfn_telldescr(MFUNARGS)
     char buf2[BUFFER_LEN];
     char *ptr, *ptr2;
     dbref obj = descr;
-    if (argc > 1)
-      if (!string_compare(argv[1], "descr"))
+    if (argc > 1) {
+      if (!string_compare(argv[1], "descr")) {
          obj = descr;
-      else
+      } else {
   	   obj = atoi(argv[1]);
+      }
+    }
     if (!pdescrp(obj))
         ABORT_MPI("TELLDESCR","Invalid descriptor.");
     if (obj == PERMDENIED)
@@ -1903,11 +1905,12 @@ mfn_right(MFUNARGS)
     char *fptr;
     int i, len;
     char *fillstr;
+    char def_pad[] = " ";
 
     len = (argc > 1)? atoi(argv[1]) : 78;
     if (len + 1 > BUFFER_LEN)
         ABORT_MPI("RIGHT","Fieldwidth too big.");
-    fillstr = (argc > 2)? argv[2] : " ";
+    fillstr = (argc > 2)? argv[2] : def_pad;
     if (!*fillstr)
 	ABORT_MPI("RIGHT","Null pad string.");
     for (ptr = buf, fptr = fillstr, i = strlen(argv[0]); i < len; i++) {
@@ -1996,11 +1999,12 @@ mfn_left(MFUNARGS)
     char *fptr;
     int i, len;
     char *fillstr;
+    char def_pad[] = " ";
 
     len = (argc > 1)? atoi(argv[1]) : 78;
     if (len + 1 > BUFFER_LEN)
         ABORT_MPI("RIGHT","Fieldwidth too big.");
-    fillstr = (argc > 2)? argv[2] : " ";
+    fillstr = (argc > 2)? argv[2] : def_pad;
     if (!*fillstr)
 	ABORT_MPI("RIGHT","Null pad string.");
     strcpy(buf, argv[0]);
@@ -2023,13 +2027,14 @@ mfn_center(MFUNARGS)
     char *fptr;
     int i, len, halflen;
     char *fillstr;
+    char def_pad[] = " ";
 
     len = (argc > 1)? atoi(argv[1]) : 78;
     if (len + 1 > BUFFER_LEN)
         ABORT_MPI("RIGHT","Fieldwidth too big.");
     halflen = len / 2;
 
-    fillstr = (argc > 2)? argv[2] : " ";
+    fillstr = (argc > 2)? argv[2] : def_pad;
     if (!*fillstr)
 	ABORT_MPI("RIGHT","Null pad string.");
 
@@ -2047,6 +2052,7 @@ mfn_center(MFUNARGS)
 }
 
 #endif /* MPI */
+
 
 
 

@@ -24,6 +24,8 @@ int link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref *dest_
  * on failure.
  */
 
+#define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
+
 static dbref 
 parse_linkable_dest(int descr, dbref player, dbref exit,
 		    const char *dest_name)
@@ -622,7 +624,8 @@ do_prog(int descr, dbref player, const char *name)
 	DBFETCH(i)->sp.program.first = read_program(i);
 	FLAGS(i) |= INTERNAL;
 	DBFETCH(player)->sp.player.curr_prog = i;
-	anotify_nolisten2(player, CINFO "Entering editor.");
+        sprintf(buf, CINFO "Entering editor for %s.", unparse_object(player, i));
+	anotify_nolisten2(player, buf);
 	/* list current line */
 	do_list(player, i, 0, 0, 0);
 	DBDIRTY(i);
@@ -635,6 +638,7 @@ void
 do_edit(int descr, dbref player, const char *name)
 {
     dbref   i;
+    char buf[BUFFER_LEN];
     struct match_data md;
 
     if (Typeof(player) != TYPE_PLAYER) {
@@ -675,7 +679,8 @@ do_edit(int descr, dbref player, const char *name)
     FLAGS(i) |= INTERNAL;
     DBFETCH(i)->sp.program.first = read_program(i);
     DBFETCH(player)->sp.player.curr_prog = i;
-    anotify_nolisten2(player, CINFO "Entering editor.");
+        sprintf(buf, CINFO "Entering editor for %s.", unparse_object(player, i));
+    anotify_nolisten2(player, buf);
     /* list current line */
     do_list(player, i, 0, 0, 0);
     FLAGS(player) |= INTERACTIVE;
@@ -1089,6 +1094,7 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
         anotify_nolisten2(player, CINFO "Action priority Level reset to zero.");
     }
 }
+
 
 
 

@@ -41,7 +41,7 @@ RETSIGTYPE bailout(int);
 RETSIGTYPE sig_reap_resolver(int);
 
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)());
+void our_signal(int signo, void (*sighandler)(int));
 #else
 # define our_signal(s,f) signal((s),(f))
 #endif
@@ -55,7 +55,7 @@ void our_signal(int signo, void (*sighandler)());
  * Calls sigaction() to set a signal, if we are posix.
  */
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)())
+void our_signal(int signo, void (*sighandler)(int))
 {
     struct sigaction    act, oact;
     
@@ -191,4 +191,5 @@ RETSIGTYPE sig_reap_resolver(int i)
     return 0;
 #endif
 }
+
 

@@ -58,7 +58,7 @@ prim_online(PRIM_PROTOTYPE)
 void
 prim_online_array(PRIM_PROTOTYPE)
 {
-	stk_array *new;
+	stk_array *nw;
 	int i;
 
 	CHECKOP(0);
@@ -71,13 +71,13 @@ prim_online_array(PRIM_PROTOTYPE)
 	temp2.type = PROG_OBJECT;
 	temp1.line = 0;
 	temp2.line = 0;
-	new = new_array_packed(result);
+	nw = new_array_packed(result);
 	for (i = 0; i < result; i++) {
 		temp1.data.number = i;
 		temp2.data.number = pdbref(i + 1);
-		array_setitem(&new, &temp1, &temp2);
+		array_setitem(&nw, &temp1, &temp2);
 	}
-	PushArrayRaw(new);
+	PushArrayRaw(nw);
 }
 
 
@@ -332,7 +332,7 @@ prim_nextdescr(PRIM_PROTOTYPE)
 void 
 prim_descriptors(PRIM_PROTOTYPE)
 {
-    int  mydescr, mycount = 0;
+    int  mycount = 0;
     int  di, dcount, descr;
     int* darr;
 
@@ -427,6 +427,7 @@ void
 prim_descr_setuser(PRIM_PROTOTYPE)
 {
     char *ptr;
+    char pad_char[] = "";
 
     CHECKOP(3);
     oper3 = POP();
@@ -446,7 +447,7 @@ prim_descr_setuser(PRIM_PROTOTYPE)
 	abort_interp("Password string expected");
     if (!pdescrp(oper1->data.number))
        abort_interp("That is not a valid descriptor.");
-    ptr = oper3->data.string? oper3->data.string->data : "";
+    ptr = oper3->data.string? oper3->data.string->data : pad_char;
     if (ref != NOTHING) { 
         const char *passwd = DBFETCH(ref)->sp.player.password; 
         if (passwd) {
@@ -779,7 +780,6 @@ prim_descripnum(PRIM_PROTOTYPE)
    struct descriptor_data *dr;
    static char ipnum[40];
    const char *p;
-   struct descriptor_data *d;
 
    CHECKOP(1);
    oper1 = POP();
@@ -822,7 +822,6 @@ void
 prim_descrconport(PRIM_PROTOTYPE)
 {
    struct descriptor_data *dr;
-   static char port[40];
 
    CHECKOP(1);
    oper1 = POP();
@@ -884,6 +883,7 @@ prim_descrboot(PRIM_PROTOTYPE)
     pdboot(oper1->data.number);
     CLEAR(oper1);
 }
+
 
 
 

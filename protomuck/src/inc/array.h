@@ -52,10 +52,12 @@ array_data *array_getitem(stk_array * arr, array_iter * idx);
 int array_setitem(stk_array ** arr, array_iter * idx, array_data * item);
 int array_insertitem(stk_array ** arr, array_iter * idx, array_data * item);
 int array_appenditem(stk_array ** arr, array_data * item);
+int array_delitem(stk_array ** harr, array_iter * itm);
 
 stk_array *array_getrange(stk_array * arr, array_iter * start, array_iter * end);
 int array_setrange(stk_array ** arr, array_iter * start, stk_array * inarr);
 int array_insertrange(stk_array ** arr, array_iter * start, stk_array * inarr);
+int array_delrange(stk_array ** harr, array_iter * start, array_iter * end);
 
 stk_array *array_demote_only(stk_array * arr, int threshold);
 void array_mash(stk_array * arr_in, stk_array ** mash, int value);
@@ -70,6 +72,7 @@ int array_set_strkey_refval(stk_array ** harr, const char *key, dbref val);
 char* array_get_intkey_strval(stk_array * arr, int key); 
 
 #endif       						/* MUFARRAY_H */
+
 
 
 

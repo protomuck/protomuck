@@ -298,7 +298,7 @@ format_time(char *buf, int max_len, const char *fmt, struct tm * tmval)
 
 
 int
-get_tz_offset()
+get_tz_offset(void)
 {
 /*
  * SunOS don't seem to have timezone as a "extern long", but as
@@ -321,5 +321,6 @@ get_tz_offset()
  #endif
 }
     
+
 
 

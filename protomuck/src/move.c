@@ -9,6 +9,8 @@
 #include "match.h"
 #include "externs.h"
 
+#define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
+
 void 
 moveto(dbref what, dbref where)
 {
@@ -962,6 +964,7 @@ recycle(int descr, dbref player, dbref thing)
     recyclable = thing;
     DBDIRTY(thing);
 }
+
 
 
 

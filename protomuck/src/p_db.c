@@ -9,7 +9,6 @@
 #include <time.h>
 #include "db.h"
 #include "tune.h"
-#include "dbsearch.h"
 #include "props.h"
 #include "inst.h"
 #include "externs.h"
@@ -26,17 +25,17 @@ extern char buf[BUFFER_LEN];
 
 
 void 
-copyobj(dbref player, dbref old, dbref new)
+copyobj(dbref player, dbref old, dbref nw)
 {
-    struct object *newp = DBFETCH(new);
+    struct object *newp = DBFETCH(nw);
 
-    NAME(new) = alloc_string(NAME(old));
+    NAME(nw) = alloc_string(NAME(old));
     newp->properties = copy_prop(old);
     newp->exits = NOTHING;
     newp->contents = NOTHING;
     newp->next = NOTHING;
     newp->location = NOTHING;
-    moveto(new, player);
+    moveto(nw, player);
 
 #ifdef DISKBASE
     newp->propsfpos = 0;
@@ -44,10 +43,10 @@ copyobj(dbref player, dbref old, dbref new)
     newp->propstime = 0;
     newp->nextold = NOTHING;
     newp->prevold = NOTHING;
-    dirtyprops(new);
+    dirtyprops(nw);
 #endif
 
-    DBDIRTY(new);
+    DBDIRTY(nw);
 }
 
 int check_flag1(char *flag)
@@ -201,7 +200,7 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
 int
 flag_set_perms2(dbref ref, int flag, int mlev)
 {
-   if((flag == F2LIGHT) && (Typeof(ref) == TYPE_PLAYER))
+   if((flag == F2LIGHT) && (Typeof(ref) == TYPE_PLAYER) && (mlev < LWIZ))
       return 0;
    if(flag == F2HIDDEN && mlev < LARCH)
       return 0;
@@ -1635,6 +1634,7 @@ void
 prim_checkpassword(PRIM_PROTOTYPE)
 {
     char *ptr;
+    char pad_char[] = "";
 
     CHECKOP(2);
     oper2 = POP();
@@ -1649,7 +1649,7 @@ prim_checkpassword(PRIM_PROTOTYPE)
        abort_interp("Player dbref expected (1)");
     if (oper2->type != PROG_STRING)
        abort_interp("Password string expected (2)");
-    ptr = oper2->data.string? oper2->data.string->data : "";
+    ptr = oper2->data.string? oper2->data.string->data : pad_char;
     if (ref != NOTHING) {
        const char *passwd = DBFETCH(ref)->sp.player.password;
        result = 1;
@@ -1727,7 +1727,7 @@ prim_nextowned(PRIM_PROTOTYPE)
 
 	CHECKOP(1);
 	oper1 = POP();
-	if (!valid_object(oper1))
+	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
 		abort_interp("Invalid object.");
 	if (mlev < LMAGE)
 		abort_interp("Mage only prim.");
@@ -1753,18 +1753,16 @@ prim_nextowned(PRIM_PROTOTYPE)
 void
 prim_nextplayer(PRIM_PROTOTYPE)
 {
-	dbref ownr;
-
 	CHECKOP(1);
 	oper1 = POP();
-	if (!valid_object(oper1))
+	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
 		abort_interp("Invalid object.");
 	if (mlev < 3)
 		abort_interp(tp_noperm_mesg);
 	ref = oper1->data.objref;
 	CHECKREMOTE(ref);
 
-	if (Typeof(ref) == TYPE_PLAYER) {
+	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_PLAYER) {
 		ref++;
 	}
 	while (ref < db_top && (Typeof(ref) != TYPE_PLAYER))
@@ -1780,18 +1778,16 @@ prim_nextplayer(PRIM_PROTOTYPE)
 void
 prim_nextprogram(PRIM_PROTOTYPE)
 {
-	dbref ownr;
-
 	CHECKOP(1);
 	oper1 = POP();
-	if (!valid_object(oper1))
+	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
 		abort_interp("Invalid object.");
 	if (mlev < 3)
 		abort_interp(tp_noperm_mesg);
 	ref = oper1->data.objref;
 	CHECKREMOTE(ref);
 
-	if (Typeof(ref) == TYPE_PROGRAM) {
+	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_PROGRAM) {
 		ref++;
 	}
 	while (ref < db_top && (Typeof(ref) != TYPE_PROGRAM))
@@ -1807,18 +1803,16 @@ prim_nextprogram(PRIM_PROTOTYPE)
 void
 prim_nextexit(PRIM_PROTOTYPE)
 {
-	dbref ownr;
-
 	CHECKOP(1);
 	oper1 = POP();
-	if (!valid_object(oper1))
+	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
 		abort_interp("Invalid object.");
 	if (mlev < 3)
 		abort_interp(tp_noperm_mesg);
 	ref = oper1->data.objref;
 	CHECKREMOTE(ref);
 
-	if (Typeof(ref) == TYPE_EXIT) {
+	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_EXIT) {
 		ref++;
 	}
 	while (ref < db_top && (Typeof(ref) != TYPE_EXIT))
@@ -1834,18 +1828,16 @@ prim_nextexit(PRIM_PROTOTYPE)
 void
 prim_nextroom(PRIM_PROTOTYPE)
 {
-	dbref ownr;
-
 	CHECKOP(1);
 	oper1 = POP();
-	if (!valid_object(oper1))
+	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
 		abort_interp("Invalid object.");
 	if (mlev < 3)
 		abort_interp(tp_noperm_mesg);
 	ref = oper1->data.objref;
 	CHECKREMOTE(ref);
 
-	if (Typeof(ref) == TYPE_ROOM) {
+	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_ROOM) {
 		ref++;
 	}
 	while (ref < db_top && (Typeof(ref) != TYPE_ROOM))
@@ -1861,22 +1853,20 @@ prim_nextroom(PRIM_PROTOTYPE)
 void
 prim_nextthing(PRIM_PROTOTYPE)
 {
-	dbref ownr;
-
 	CHECKOP(1);
 	oper1 = POP();
-	if (!valid_object(oper1))
+	if (!valid_object(oper1) && (oper1->data.objref != NOTHING))
 		abort_interp("Invalid object.");
 	if (mlev < 3)
 		abort_interp(tp_noperm_mesg);
 	ref = oper1->data.objref;
 	CHECKREMOTE(ref);
 
-	if (Typeof(ref) == TYPE_THING) {
-		ref++;
+	if ((ref == NOTHING) ? 1 : Typeof(ref) == TYPE_THING) {
+         (void) ref++;
 	}
 	while (ref < db_top && (Typeof(ref) != TYPE_THING))
-		ref++;
+	   (void) ref++;
 
 	if (ref >= db_top) {
 		ref = NOTHING;
@@ -1904,6 +1894,7 @@ prim_nextentrance(PRIM_PROTOTYPE)
          abort_interp("Invalid reference object (1)");
       if (linkref == HOME)
          linkref = DBFETCH(player)->sp.player.home;
+      (void) ref++;
       for (; ref < db_top; ref++) {
          oper2->data.objref = ref;
          if (valid_object(oper2)) {
@@ -1942,7 +1933,6 @@ prim_nextentrance(PRIM_PROTOTYPE)
 void
 prim_newplayer(PRIM_PROTOTYPE)
 {
-   char buf[80];
    dbref newplayer;
    char *name, *password;
    struct object *newp;
@@ -2025,7 +2015,6 @@ prim_newplayer(PRIM_PROTOTYPE)
 void
 prim_copyplayer(PRIM_PROTOTYPE)
 {
-   char buf[80];
    dbref newplayer, ref;
    char *name, *password;
    struct object *newp;
@@ -2118,7 +2107,6 @@ prim_toadplayer(PRIM_PROTOTYPE) {
     dbref   recipient;
     dbref   stuff;
     char    buf[BUFFER_LEN];
-    char    *name, *recip;
 
     CHECKOP(2);
     oper1 = POP();
@@ -2346,6 +2334,7 @@ void
 prim_setpassword(PRIM_PROTOTYPE)
 {
     char *ptr, *ptr2;
+    char pad_char[] = "";
 
     CHECKOP(3);
     oper1 = POP();
@@ -2363,8 +2352,8 @@ prim_setpassword(PRIM_PROTOTYPE)
     CHECKREMOTE(ref);
     if (oper2->type != PROG_STRING)
 	abort_interp("Password string expected");
-    ptr = oper2->data.string? oper2->data.string->data : "";
-    ptr2 = oper1->data.string? oper1->data.string->data : "";
+    ptr = oper2->data.string? oper2->data.string->data : pad_char;
+    ptr2 = oper1->data.string? oper1->data.string->data : pad_char;
     if (ref != NOTHING && strcmp(ptr, DBFETCH(ref)->sp.player.password))
 	abort_interp("Incorrect password");
     free((void *) DBFETCH(ref)->sp.player.password);
@@ -2378,6 +2367,7 @@ void
 prim_newpassword(PRIM_PROTOTYPE)
 {
     char *ptr2;
+    char pad_char[] = "";
 
     CHECKOP(2);
     oper1 = POP();
@@ -2388,7 +2378,7 @@ prim_newpassword(PRIM_PROTOTYPE)
 	abort_interp("Password string expected");
     if (oper3->type != PROG_OBJECT)
 	abort_interp("Player dbref expected");
-    ptr2 = oper1->data.string? oper1->data.string->data : "";
+    ptr2 = oper1->data.string? oper1->data.string->data : pad_char;
     ref = oper3->data.objref;
     if (ref != NOTHING && !valid_player(oper3))
 	abort_interp("Player dbref expected");
@@ -2682,6 +2672,7 @@ prim_findnext(PRIM_PROTOTYPE)
 
         PushObject(ref);
 }
+
 
 
 

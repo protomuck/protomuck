@@ -3,6 +3,7 @@
 
 #include "db.h"
 #include "params.h"
+#include "props.h"
 #include "tune.h"
 #include "interface.h"
 #include "externs.h"
@@ -177,6 +178,7 @@ delete_player(dbref who)
 
     return;
 }
+
 
 
 

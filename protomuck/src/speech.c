@@ -25,10 +25,10 @@ do_say(int descr, dbref player, const char *message)
 	return;
     tct(message,buf2);
     /* notify everybody */
-    sprintf(buf, AQUA "You say, \"" YELLOW "%s" AQUA "\"", buf2);
+    sprintf(buf, "^SAY/POSE^You say, ^SAY/QUOTES^\"^SAY/TEXT^%s^SAY/QUOTES^\"", buf2);
     anotify(player, buf);
 
-    sprintf(buf, AQUA "%s says, \"" YELLOW "%s" AQUA "\"", PNAME(player), buf2);
+    sprintf(buf, "^SAY/POSE^%s says, ^SAY/QUOTES^\"^SAY/TEXT^%s^SAY/QUOTES^\"", PNAME(player), buf2);
     anotify_except(DBFETCH(loc)->contents, player, buf, player);
 }
 
@@ -102,7 +102,7 @@ do_pose(int descr, dbref player, const char *message)
 	return;
     tct(message,buf2);
     /* notify everybody */
-    sprintf(buf, AQUA "%s %s", PNAME(player), buf2);
+    sprintf(buf, "^SAY/POSE^%s %s", PNAME(player), buf2);
     anotify_except(DBFETCH(loc)->contents, NOTHING, buf, player);
 }
 
@@ -122,6 +122,7 @@ do_wall(dbref player, const char *message)
 		sprintf(buf, MARK "%s %s", NAME(player), message+1);
 		break;
 	    case '#':
+          case '|':
 		sprintf(buf, MARK "%s", message+1);
 		break;
 	    default:
@@ -228,7 +229,7 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
     dbref ref;
 
     if (obj == NOTHING)
-	return;
+	return 0;
 
     buf3 = strcpy(buf2, msg);
     buf2[0] = '\0';
@@ -276,7 +277,7 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
     }
 
     if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
-	notify_nolisten(obj, msg, isprivate);
+	return notify_nolisten(obj, msg, isprivate);
     } else {
       return 0;
     }
@@ -291,7 +292,7 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
     dbref ref;
 
     if (obj == NOTHING)
-	return;
+	return 0;
 
     noabuf = unparse_ansi(buf2, msg);
 
@@ -351,7 +352,7 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
     dbref ref;
 
     if (obj == NOTHING)
-	return;
+	return 0;
 
     nohbuf = html_escape(msg);
     noabuf = tct(buf2, nohbuf);
@@ -398,7 +399,7 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
     }
 
     if (Typeof(obj) == TYPE_PLAYER || Typeof(obj) == TYPE_THING) {
-	notify_html_nolisten(obj, msg, isprivate);
+	return notify_html_nolisten(obj, msg, isprivate);
     } else {
       return 0;
     }
@@ -525,6 +526,7 @@ blank(const char *s)
 
     return !(*s);
 }
+
 
 
 

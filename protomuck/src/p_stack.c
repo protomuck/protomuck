@@ -264,8 +264,10 @@ prim_popn(PRIM_PROTOTYPE)
 }
 
 int
-sort0(struct inst *o1, struct inst *o2)
+sort0(const void *op1, const void *op2)
 {
+   struct inst *o1 = (struct inst *) op1;
+   struct inst *o2 = (struct inst *) op2;
 	if( o1->type != PROG_STRING || o2->type != PROG_STRING )
 	    return 0;
 
@@ -278,8 +280,10 @@ sort0(struct inst *o1, struct inst *o2)
 }
 
 int
-sort1(struct inst *o1, struct inst *o2)
+sort1(const void *op1, const void *op2)
 {
+   struct inst *o1 = (struct inst *) op1;
+   struct inst *o2 = (struct inst *) op2;
 	if( o1->type != PROG_STRING || o2->type != PROG_STRING )
 	    return 0;
 
@@ -292,8 +296,10 @@ sort1(struct inst *o1, struct inst *o2)
 }
 
 int
-sort2(struct inst *o1, struct inst *o2)
+sort2(const void *op1, const void *op2)
 {
+   struct inst *o1 = (struct inst *) op1;
+   struct inst *o2 = (struct inst *) op2;
 	if( o1->type != PROG_STRING || o2->type != PROG_STRING )
 	    return 0;
 
@@ -306,8 +312,10 @@ sort2(struct inst *o1, struct inst *o2)
 }
 
 int
-sort3(struct inst *o1, struct inst *o2)
+sort3(const void *op1, const void *op2)
 {
+   struct inst *o1 = (struct inst *) op1;
+   struct inst *o2 = (struct inst *) op2;
 	if( o1->type != PROG_STRING || o2->type != PROG_STRING )
 	    return 0;
 
@@ -320,8 +328,10 @@ sort3(struct inst *o1, struct inst *o2)
 }
 
 int
-sort4(struct inst *o1, struct inst *o2)
+sort4(const void *op1, const void *op2)
 {
+   struct inst *o1 = (struct inst *) op1;
+   struct inst *o2 = (struct inst *) op2;
 	if( o1->type != PROG_OBJECT || o2->type != PROG_OBJECT )
 	    return 0;
 
@@ -335,8 +345,10 @@ sort4(struct inst *o1, struct inst *o2)
 }
 
 int
-sort5(struct inst *o1, struct inst *o2)
+sort5(const void *op1, const void *op2)
 {
+   struct inst *o1 = (struct inst *) op1;
+   struct inst *o2 = (struct inst *) op2;
 	if( o1->type != PROG_OBJECT || o2->type != PROG_OBJECT )
 	    return 0;
 
@@ -352,6 +364,7 @@ sort5(struct inst *o1, struct inst *o2)
 void
 prim_sort(PRIM_PROTOTYPE)
 {
+    int (*comparator)(const void*, const void*);
     CHECKOP(2);
     oper1 = POP(); /* Sort type */
     oper2 = POP(); /* {s} size */
@@ -370,25 +383,26 @@ prim_sort(PRIM_PROTOTYPE)
 
     switch(oper1->data.number) {
 	case 1:
-		qsort(&arg[*top - tmp], tmp, sizeof(arg[0]),(void *)sort1);
+            comparator = sort1;
 		break;
 	case 2:
-		qsort(&arg[*top - tmp], tmp, sizeof(arg[0]),(void *)sort2);
+            comparator = sort2;
 		break;
 	case 3:
-		qsort(&arg[*top - tmp], tmp, sizeof(arg[0]),(void *)sort3);
+            comparator = sort3;
 		break;
 	case 4:
-		qsort(&arg[*top - tmp], tmp, sizeof(arg[0]),(void *)sort4);
+            comparator = sort4;
 		break;
 	case 5:
-		qsort(&arg[*top - tmp], tmp, sizeof(arg[0]),(void *)sort5);
+            comparator = sort5;
 		break;
 	case 0:
 	default:
-		qsort(&arg[*top - tmp], tmp, sizeof(arg[0]),(void *)sort0);
+            comparator = sort0;
     }
 
+    qsort(&arg[*top - tmp], tmp, sizeof(arg[0]), comparator);
     result=oper2->data.number;
     CLEAR(oper1);
     CLEAR(oper2);
@@ -860,7 +874,7 @@ prim_setmode(PRIM_PROTOTYPE)
 void
 prim_interp(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2, *oper3, *rv;
+    struct inst *oper1, *oper2, *oper3, *rv = NULL;
     char buf[BUFFER_LEN];
     struct frame *tmpfr;
 
@@ -1122,4 +1136,5 @@ prim_forpop(PRIM_PROTOTYPE)
 	fr->fors.top--;
 	fr->fors.st = pop_for(fr->fors.st);
 }
+
 

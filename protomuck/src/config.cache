@@ -32,16 +32,29 @@ ac_cv_header_sys_time_h=${ac_cv_header_sys_time_h='yes'}
 ac_cv_header_time=${ac_cv_header_time='yes'}
 ac_cv_header_unistd_h=${ac_cv_header_unistd_h='yes'}
 ac_cv_lib_dir=${ac_cv_lib_dir='no'}
+ac_cv_lib_dir_opendir=${ac_cv_lib_dir_opendir='no'}
 ac_cv_lib_fl=${ac_cv_lib_fl='yes'}
 ac_cv_lib_m=${ac_cv_lib_m='yes'}
+ac_cv_lib_m_=${ac_cv_lib_m_='no'}
 ac_cv_lib_nsl=${ac_cv_lib_nsl='yes'}
+ac_cv_lib_nsl_=${ac_cv_lib_nsl_='no'}
 ac_cv_lib_socket=${ac_cv_lib_socket='no'}
+ac_cv_lib_socket_=${ac_cv_lib_socket_='no'}
 ac_cv_prog_CC=${ac_cv_prog_CC='gcc'}
 ac_cv_prog_CPP=${ac_cv_prog_CPP=''gcc -E''}
+ac_cv_prog_CXX=${ac_cv_prog_CXX='c++'}
+ac_cv_prog_CXXCPP=${ac_cv_prog_CXXCPP=''c++ -E''}
 ac_cv_prog_LEX=${ac_cv_prog_LEX='flex'}
 ac_cv_prog_YACC=${ac_cv_prog_YACC=''bison -y''}
+ac_cv_prog_cc_cross=${ac_cv_prog_cc_cross='no'}
+ac_cv_prog_cc_g=${ac_cv_prog_cc_g='yes'}
+ac_cv_prog_cc_works=${ac_cv_prog_cc_works='yes'}
+ac_cv_prog_cxx_cross=${ac_cv_prog_cxx_cross='no'}
+ac_cv_prog_cxx_g=${ac_cv_prog_cxx_g='yes'}
+ac_cv_prog_cxx_works=${ac_cv_prog_cxx_works='yes'}
 ac_cv_prog_gcc=${ac_cv_prog_gcc='yes'}
 ac_cv_prog_gcc_g=${ac_cv_prog_gcc_g='yes'}
+ac_cv_prog_gxx=${ac_cv_prog_gxx='yes'}
 ac_cv_struct_tm=${ac_cv_struct_tm='time.h'}
 ac_cv_struct_tm_zone=${ac_cv_struct_tm_zone='yes'}
 ac_cv_type_pid_t=${ac_cv_type_pid_t='yes'}

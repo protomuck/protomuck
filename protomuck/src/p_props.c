@@ -783,8 +783,8 @@ prim_parsempi(PRIM_PROTOTYPE)
         abort_interp("Integer of 0 or 1 expected (4)");
     CHECKREMOTE(oper3->data.objref);
 
-    temp = (oper1->data.string)? oper1->data.string->data : "";
-    ptr  = (oper2->data.string)? oper2->data.string->data : "";
+    temp = (oper1->data.string)? oper1->data.string->data : (const char *) "";
+    ptr  = (char *) ((oper2->data.string)? (char *) oper2->data.string->data : "");
     if(temp && *temp && ptr) {
 	result = oper4->data.number & (~MPI_ISLISTENER);
         ptr = do_parse_mesg(fr->descr, player, oper3->data.objref, temp,
@@ -863,7 +863,7 @@ prim_parseprop(PRIM_PROTOTYPE)
 #endif
 
     }
-    ptr = (oper2->data.string)? oper2->data.string->data : "";
+    ptr = (char *) ((oper2->data.string)? (char *) oper2->data.string->data : "");
     if(temp) {
 	result = oper4->data.number & (~MPI_ISLISTENER);
       if(tp_old_parseprop) {
@@ -1044,8 +1044,8 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
 
 	nu = new_array_packed(0);
 	arr = oper1->data.array;
-	prop = DoNullInd(oper2->data.string);
-	pat = DoNullInd(oper3->data.string);
+	prop = (char *) DoNullInd(oper2->data.string);
+	pat = (char *) DoNullInd(oper3->data.string);
 	if (array_first(arr, &temp1)) {
 		do {
 			in = array_getitem(arr, &temp1);
@@ -1069,5 +1069,6 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
 
 	PushArrayRaw(nu);
 }
+
 
 

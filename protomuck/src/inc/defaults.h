@@ -37,6 +37,9 @@
 /*  Idleboot message.  */
 #define IDLEBOOT_MESSAGE "*poke* *poke*  Psst!"
 
+/* How long someone can idle for on the connection screen. */
+#define CONNIDLE TIME_MINUTE(5)
+
 /*  How long someone can idle for.  */
 #define MAXIDLE TIME_HOUR(4)
 
@@ -258,4 +261,5 @@
 
 /* Define to 0 to prevent diskbasing of property values, or to 1 to allow. */
 #define DISKBASE_PROPVALS 1
+
 

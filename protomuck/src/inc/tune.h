@@ -44,6 +44,7 @@ extern time_t tp_monolithic_interval;
 extern time_t tp_clean_interval;
 extern time_t tp_aging_time;
 extern time_t tp_idletime;
+extern time_t tp_connidle;
 extern time_t tp_maxidle;
 extern time_t tp_cron_interval;
 
@@ -158,13 +159,14 @@ extern int tp_enable_mcp;
 extern int tp_enable_commandprops;
 extern int tp_old_parseprop;
 
-extern int tune_count_parms();
+extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
 extern void tune_save_parms_to_file(FILE *f);
 
 extern int tp_building;
 extern int tp_all_can_build_rooms;
 extern int tp_restricted_building;
+
 
 
 

@@ -419,7 +419,7 @@ strencrypt(const char *data, const char *key)
     seed3 = seed2 = ((seed2 ^ (seed ^ (RANDOM() >> 24))) & 0x3f);
 
     count = seed + 11;
-    for (upt = data, ups = buf, cp = key; *upt; upt++) {
+    for (upt = (const unsigned char *) data, ups = (unsigned char *) buf, cp = key; *upt; upt++) {
 	count = (((*cp) ^ count) + (seed ^ seed2)) & 0xff;
 	seed2 = ((seed2 + 1) & 0x3f);
 	if (!*(++cp)) cp = key;
@@ -430,7 +430,7 @@ strencrypt(const char *data, const char *key)
     }
     *ups++ = '\0';
 
-    ptr = linebuf;
+    ptr = (unsigned char *) linebuf;
 
     linelen = strlen(data);
     *ptr++ = (' ' + 1);
@@ -468,7 +468,7 @@ strdecrypt(const char *data, const char *key)
     if (!initialized_crypt)
         init_crypt();
 
-    ptr = linebuf;
+    ptr = (unsigned char *) linebuf;
 
     if ((data[0] - ' ') < 1 || (data[0] - ' ') > 1) {
         return "";
@@ -486,8 +486,8 @@ strdecrypt(const char *data, const char *key)
 
     count = seed + 11;
     outlen = strlen(linebuf);
-    upt = linebuf;
-    ups = buf;
+    upt = (const unsigned char *) linebuf;
+    ups = (unsigned char *) buf;
     cp = key;
     while ((const char *)upt < &linebuf[outlen]) {
 	count = (((*cp) ^ count) + (seed ^ seed2)) & 0xff;
@@ -812,7 +812,7 @@ escape_ansi(char *buf, const char *input)
       if (*is == ESCAPE_CHAR) {
          *os++ = '\\';
          *os++ = '[';
-         *is++;
+         (void) *is++;
       } else {
          *os++ = *is++;
       }
@@ -831,7 +831,7 @@ parse_mush_ansi( char *buf, char *from )
    to = buf;
    while(*from) {
       if(*from == '%') {
-         *from++;
+         (void) *from++;
          color = (*(from++));
          if(color == 'c') {
             color = (*(from++));
@@ -901,7 +901,7 @@ unparse_mush_ansi( char *buf, char *from )
    to = buf;
    while(*from) {
       if(*from == '%') {
-         *from++;
+         (void) *from++;
          color = (*(from++));
          if(color == 'c') {
             color = (*(from++));
@@ -938,6 +938,7 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     *p = '\0';
     return out;
 }
+
 
 
 

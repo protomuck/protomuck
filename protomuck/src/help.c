@@ -14,6 +14,8 @@
 #include <sys/stat.h>
 #include <ctype.h>
 
+#define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
+
 /*
  * Ok, directory stuff IS a bit ugly.
  */
@@ -473,6 +475,7 @@ do_info(dbref player, const char *topic, const char *seg)
 #endif /* !DIR_AVALIBLE */
     }
 }
+
 
 
 

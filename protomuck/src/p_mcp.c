@@ -418,6 +418,7 @@ prim_mcp_bind(PRIM_PROTOTYPE)
 {
 	char *pkgname, *msgname;
 	struct mcp_binding *ptr;
+      char pad_char[] = "";
 
 	CHECKOP(3);
 	oper3 = POP();
@@ -446,7 +447,7 @@ prim_mcp_bind(PRIM_PROTOTYPE)
 	}
 
 	pkgname = oper1->data.string->data;
-	msgname = oper2->data.string ? oper2->data.string->data : "";
+	msgname = oper2->data.string ? oper2->data.string->data : pad_char;
 
         for (ptr = DBFETCH(program)->sp.program.mcpbinds; ptr; ptr = ptr->next) {
 		if (ptr->pkgname && ptr->msgname) {
@@ -483,6 +484,7 @@ prim_mcp_send(PRIM_PROTOTYPE)
 	int descr;
 	McpFrame *mfr;
 	stk_array *arr;
+      char pad_char[] = "";
 
 	CHECKOP(4);
 	oper3 = POP();
@@ -505,7 +507,7 @@ prim_mcp_send(PRIM_PROTOTYPE)
 		abort_interp("Arguments dictionary expected. (4)");
 
 	pkgname = oper1->data.string->data;
-	msgname = oper2->data.string ? oper2->data.string->data : "";
+	msgname = oper2->data.string ? oper2->data.string->data : pad_char;
 	arr = oper3->data.array;
 	descr = oper4->data.number;
 
@@ -606,6 +608,8 @@ prim_gui_dlog_create(PRIM_PROTOTYPE)
 	stk_array *arr = NULL;
 	McpMesg msg;
 	McpFrame *mfr;
+      char pad_char[] = "";
+      char pad_char2[] = "simple";
 
 	CHECKOP(4);
 	oper4 = POP();				/* arr  args */
@@ -624,8 +628,8 @@ prim_gui_dlog_create(PRIM_PROTOTYPE)
 	if (oper4->type != PROG_ARRAY)
 		abort_interp("Window options array expected. (4)");
 
-	title = oper3->data.string ? oper3->data.string->data : "";
-	wintype = oper2->data.string ? oper2->data.string->data : "simple";
+	title = oper3->data.string ? oper3->data.string->data : pad_char;
+	wintype = oper2->data.string ? oper2->data.string->data : pad_char2;
 	arr = oper4->data.array;
 	mfr = descr_mcpframe(oper1->data.number);
 
@@ -820,8 +824,6 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
 void
 prim_gui_ctrl_command(PRIM_PROTOTYPE)
 {
-	int vallines = 0;
-	char **vallist = NULL;
 	char *dlogid = NULL;
 	char *ctrlid = NULL;
 	char *ctrlcmd = NULL;
@@ -829,7 +831,6 @@ prim_gui_ctrl_command(PRIM_PROTOTYPE)
 	McpMesg msg;
 	McpFrame *mfr;
 	int descr;
-	int i;
 
 	CHECKOP(4);
 	oper4 = POP();				/* dict args */
@@ -921,6 +922,7 @@ prim_gui_value_set(PRIM_PROTOTYPE)
 	char **valarray;
 	struct inst temp1;
 	array_data *temp2;
+      char pad_char[] = "";
 
 	CHECKOP(2);
 	oper3 = POP();				/* str value  */
@@ -947,7 +949,7 @@ prim_gui_value_set(PRIM_PROTOTYPE)
 		count = 1;
 		valarray = (char **) malloc(sizeof(char *) * count);
 
-		value = oper3->data.string ? oper3->data.string->data : "";
+		value = oper3->data.string ? oper3->data.string->data : pad_char;
 		valarray[0] = (char *) malloc(sizeof(char) * strlen(value) + 1);
 
 		strcpy(valarray[0], value);
@@ -965,7 +967,7 @@ prim_gui_value_set(PRIM_PROTOTYPE)
 			}
 			switch (temp2->type) {
 			case PROG_STRING:
-				value = DoNullInd(temp2->data.string);
+				value = (char *) DoNullInd(temp2->data.string);
 				break;
 			case PROG_INTEGER:
 				sprintf(buf, "%d", temp2->data.number);
@@ -1010,7 +1012,7 @@ prim_gui_values_get(PRIM_PROTOTYPE)
 {
 	const char *name;
 	char *dlogid;
-	stk_array *new;
+	stk_array *nw;
 	struct inst temp1;
 	array_data temp2;
 
@@ -1023,7 +1025,7 @@ prim_gui_values_get(PRIM_PROTOTYPE)
 		abort_interp("Invalid dialog ID.");
 
 	dlogid = oper1->data.string->data;
-	new = new_array_dictionary();
+	nw = new_array_dictionary();
 	name = GuiValueFirst(oper1->data.string->data);
 	while (name) {
 		int i;
@@ -1049,7 +1051,7 @@ prim_gui_values_get(PRIM_PROTOTYPE)
 			CLEAR(&temp3);
 			CLEAR(&temp4);
 		}
-		array_setitem(&new, &temp1, &temp2);
+		array_setitem(&nw, &temp1, &temp2);
 		CLEAR(&temp1);
 		CLEAR(&temp2);
 
@@ -1057,7 +1059,7 @@ prim_gui_values_get(PRIM_PROTOTYPE)
 	}
 
 	CLEAR(oper1);
-	PushArrayRaw(new);
+	PushArrayRaw(nw);
 }
 
 
@@ -1066,7 +1068,7 @@ prim_gui_value_get(PRIM_PROTOTYPE)
 {
 	char *dlogid;
 	char *ctrlid;
-	stk_array *new;
+	stk_array *nw;
 	struct inst temp1;
 	array_data temp2;
 	int lines;
@@ -1090,7 +1092,7 @@ prim_gui_value_get(PRIM_PROTOTYPE)
 	ctrlid = oper2->data.string->data;
 
 	lines = gui_value_linecount(dlogid, ctrlid);
-	new = new_array_packed(lines);
+	nw = new_array_packed(lines);
 
 	for (i = 0; i < lines; i++) {
 		temp1.type = PROG_INTEGER;
@@ -1099,7 +1101,7 @@ prim_gui_value_get(PRIM_PROTOTYPE)
 		temp2.type = PROG_STRING;
 		temp2.data.string = alloc_prog_string(gui_value_get(dlogid, ctrlid, i));
 
-		array_setitem(&new, &temp1, &temp2);
+		array_setitem(&nw, &temp1, &temp2);
 
 		CLEAR(&temp1);
 		CLEAR(&temp2);
@@ -1107,8 +1109,9 @@ prim_gui_value_get(PRIM_PROTOTYPE)
 
 	CLEAR(oper1);
 	CLEAR(oper2);
-	PushArrayRaw(new);
+	PushArrayRaw(nw);
 }
+
 
 
 

@@ -30,12 +30,13 @@ static float fresult, tf1, tf2;
 int
 arith_good(double test)
 {
-	return ((test <= (double) (MAXINT)) && (test >= (double) (MININT)));
+	return (((test) <= ((double) (MAXINT))) && ((test) >= ((double) (MININT))));
 }
 
 #define INF (9.9E999)
 #define NINF (-9.9E999)
 
+extern int no_good(float test);
 int
 nogood(float test)
 {
@@ -293,7 +294,7 @@ prim_and(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
-    result = !false(oper1) && !false(oper2);
+    result = !logical_false(oper1) && !logical_false(oper2);
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(result);
@@ -305,7 +306,7 @@ prim_or(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
-    result = !false(oper1) || !false(oper2);
+    result = !logical_false(oper1) || !logical_false(oper2);
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(result);
@@ -316,7 +317,7 @@ prim_not(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
     oper1 = POP();
-    result = false(oper1);
+    result = logical_false(oper1);
     CLEAR(oper1);
     PushInt(result);
 }
@@ -576,17 +577,16 @@ prim_plusplus(PRIM_PROTOTYPE)
       switch(oper1->type) {
          case PROG_VAR:
 		copyinst(&(fr->variables[temp1.data.number]), &temp2);
-            goto dovar;
+            break;
          case PROG_SVAR:
 		tmp = scopedvar_get(fr, temp1.data.number);
             copyinst(tmp, &temp2);
-            goto dovar;
-         case PROG_LVAR:
-            {
+            break;
+         case PROG_LVAR: {
                struct localvars *tmp2 = localvars_get(fr, program);
  		   copyinst(&(tmp2->lvars[temp1.data.number]), &temp2);
-               goto dovar;
-            }
+               break;
+         }
          case PROG_INTEGER:
             oper1->data.number++;
             result = oper1->data.number;
@@ -608,37 +608,33 @@ prim_plusplus(PRIM_PROTOTYPE)
          default:
             abort_interp("Invalid datatype.");
       }
-      return;
 
-   dovar:
       itype = temp1.type;
       vnum = temp1.data.number;
       switch(temp2.type) {
          case PROG_INTEGER:
             temp2.data.number++;
             result = temp2.data.number;
-            goto dovar2;
+            break;
          case PROG_OBJECT:
             temp2.data.objref++;
             result = temp2.data.objref;
-            goto dovar2;
+            break;
          case PROG_FLOAT:
             temp2.data.fnumber++;
             fresult = temp2.data.fnumber;
-            goto dovar2;
+            break;
          default:
             abort_interp("Invalid datatype in variable.");
       }
-   dovar2:
+
       switch(temp1.type) {
-         case PROG_VAR:
-            {
+         case PROG_VAR: {
                CLEAR(&(fr->variables[vnum]));
 		   copyinst(&temp2, &(fr->variables[vnum]));
                break;
-             }
-         case PROG_SVAR:
-            {
+         }
+         case PROG_SVAR: {
 		   struct inst *tmp2;
 		   tmp2 = scopedvar_get(fr, vnum);
 		   if (!tmp2)
@@ -646,14 +642,13 @@ prim_plusplus(PRIM_PROTOTYPE)
 		   CLEAR(tmp2);
 		   copyinst(&temp2, tmp2);
                break;
-            }
-         case PROG_LVAR:
-            {
+         }
+         case PROG_LVAR: {
                struct localvars *tmp2 = localvars_get(fr, program);
 		   CLEAR(&(tmp2->lvars[vnum]));
                copyinst(&temp2, &(tmp2->lvars[vnum]));
                break;
-            }
+         }
       }
       CLEAR(oper1);
 }
@@ -675,17 +670,16 @@ prim_minusminus(PRIM_PROTOTYPE)
       switch(oper1->type) {
          case PROG_VAR:
 		copyinst(&(fr->variables[temp1.data.number]), &temp2);
-            goto dovar;
+            break;
          case PROG_SVAR:
 		tmp = scopedvar_get(fr, temp1.data.number);
             copyinst(tmp, &temp2);
-            goto dovar;
-         case PROG_LVAR:
-            {
+            break;;
+         case PROG_LVAR: {
                struct localvars *tmp2 = localvars_get(fr, program);
  		   copyinst(&(tmp2->lvars[temp1.data.number]), &temp2);
-               goto dovar;
-            }
+               break;
+         }
          case PROG_INTEGER:
             oper1->data.number--;
             result = oper1->data.number;
@@ -707,37 +701,33 @@ prim_minusminus(PRIM_PROTOTYPE)
          default:
             abort_interp("Invalid datatype.");
       }
-      return;
 
-   dovar:
       itype = temp1.type;
       vnum = temp1.data.number;
       switch(temp2.type) {
          case PROG_INTEGER:
             temp2.data.number--;
             result = temp2.data.number;
-            goto dovar2;
+            break;
          case PROG_OBJECT:
             temp2.data.objref--;
             result = temp2.data.objref;
-            goto dovar2;
+            break;
          case PROG_FLOAT:
             temp2.data.fnumber--;
             fresult = temp2.data.fnumber;
-            goto dovar2;
+            break;
          default:
             abort_interp("Invalid datatype in variable.");
       }
-   dovar2:
+
       switch(temp1.type) {
-         case PROG_VAR:
-            {
+         case PROG_VAR: {
                CLEAR(&(fr->variables[vnum]));
 		   copyinst(&temp2, &(fr->variables[vnum]));
                break;
-             }
-         case PROG_SVAR:
-            {
+         }
+         case PROG_SVAR: {
 		   struct inst *tmp2;
 		   tmp2 = scopedvar_get(fr, vnum);
 		   if (!tmp2)
@@ -745,14 +735,13 @@ prim_minusminus(PRIM_PROTOTYPE)
 		   CLEAR(tmp2);
 		   copyinst(&temp2, tmp2);
                break;
-            }
-         case PROG_LVAR:
-            {
+         }
+         case PROG_LVAR: {
                struct localvars *tmp2 = localvars_get(fr, program);
 		   CLEAR(&(tmp2->lvars[vnum]));
                copyinst(&temp2, &(tmp2->lvars[vnum]));
                break;
-            }
+         }
       }
       CLEAR(oper1);
 }
@@ -880,6 +869,7 @@ prim_3ddist(PRIM_PROTOTYPE)
    CLEAR(oper6);
    PushFloat(fresult);
 }
+
 
 
 

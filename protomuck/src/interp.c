@@ -21,6 +21,7 @@
 #include "props.h"
 #include "strings.h"
 #include "interp.h"
+#include "mcpgui.h"
 #include "mufevent.h"
 
 /* This package performs the interpretation of mud forth programs.
@@ -187,12 +188,6 @@ scopedvar_dupall(struct frame *fr, struct frame *oldfr)
 	}
 }
 
-void
-scopedvar_freeall(struct frame *fr)
-{
-	while (scopedvar_poplevel(fr)) ;
-}
-
 int
 scopedvar_poplevel(struct frame *fr)
 {
@@ -209,6 +204,12 @@ scopedvar_poplevel(struct frame *fr)
 	}
 	free(tmp);
 	return 1;
+}
+
+void
+scopedvar_freeall(struct frame *fr)
+{
+	while (scopedvar_poplevel(fr)) ;
 }
 
 struct inst *
@@ -238,12 +239,12 @@ RCLEAR(struct inst * oper, char *file, int line)
 		break;
 	case PROG_STRING:
 		if (oper->data.string && --oper->data.string->links == 0)
-			free((void *) oper->data.string);
+			free(oper->data.string);
 		break;
 	case PROG_FUNCTION:
 		if (oper->data.mufproc) {
-			free((void*) oper->data.mufproc->procname);
-			free((void*) oper->data.mufproc);
+			free(oper->data.mufproc->procname);
+			free(oper->data.mufproc);
 		}
 		break;
 	case PROG_ARRAY:
@@ -259,12 +260,12 @@ RCLEAR(struct inst * oper, char *file, int line)
 				shutdown(oper->data.sock->socknum,2);
 				closesocket(oper->data.sock->socknum);
 			}
-			free((void *) oper->data.sock);
+			free(oper->data.sock);
 		}
             break;
 	}
 	oper->line = line;
-	oper->data.addr = (void *) file;
+	oper->data.addr = (struct prog_addr *) file;
 	oper->type = PROG_CLEARED;
 }
 
@@ -438,19 +439,19 @@ int     already_created;
 struct forvars *
 push_for(struct forvars *forstack)
 {
-	struct forvars *new;
+	struct forvars *nw;
 
 	if (!for_pool) {
-		new = malloc(sizeof(struct forvars));
+		nw = (struct forvars *) malloc(sizeof(struct forvars));
 	} else {
-		new = for_pool;
+		nw = for_pool;
 		if (*last_for == for_pool->next) {
 			last_for = &for_pool;
 		}
-		for_pool = new->next;
+		for_pool = nw->next;
 	}
-	new->next = forstack;
-	return new;
+	nw->next = forstack;
+	return nw;
 }
 
 struct forvars *
@@ -472,7 +473,7 @@ pop_for(struct forvars *forstack)
 void 
 prog_clean(struct frame * fr)
 {
-    int     i, j;
+    int     i;
     struct frame *ptr;
     time_t  now;
 
@@ -561,7 +562,7 @@ reload(struct frame * fr, int atop, int stop)
 
 
 int 
-false(struct inst * p)
+logical_false(struct inst * p)
 {
     return ((p->type == PROG_STRING && (p->data.string == 0 || !(*p->data.string->data)))
 	    || (p->type == PROG_MARK)
@@ -692,8 +693,8 @@ do_abort_loop(dbref player, dbref program, const char *msg,
     DBSTORE(player, sp.player.block, 0);
 }
 
-extern struct line *read_program( );
-extern char *show_line_prims( );
+extern struct line *read_program(dbref prog);
+extern char *show_line_prims(dbref program, struct inst *pc, int maxprims, int markpc);
 
 void
 interp_set_depth(struct frame * fr)
@@ -737,7 +738,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	struct line *tmpline;
 
 	tmpline = DBFETCH(program)->sp.program.first;
-	DBFETCH(program)->sp.program.first = read_program(program, 0);
+	DBFETCH(program)->sp.program.first = read_program(program);
 	do_compile(-1, OWNER(program), program, 0);
 	free_prog_text(DBFETCH(program)->sp.program.first);
 	DBSTORE(program, sp.program.first, tmpline);
@@ -945,7 +946,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		if (atop < 1)
 		    abort_loop("Stack Underflow.", NULL, NULL);
 		temp1 = arg + --atop;
-		if (false(temp1))
+		if (logical_false(temp1))
 		    pc = pc->data.call;
 		else
 		    pc++;
@@ -1042,7 +1043,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 
 			    tmpline = DBFETCH(temp1->data.objref)->sp.program.first;
 			    DBFETCH(temp1->data.objref)->sp.program.first =
-				read_program(temp1->data.objref, 0);
+				read_program(temp1->data.objref);
 			    do_compile(-1, OWNER(temp1->data.objref), temp1->data.objref, 0);
 			    free_prog_text(DBFETCH(temp1->data.objref)->sp.program.first);
 			    DBSTORE(temp1->data.objref, sp.program.first, tmpline);
@@ -1267,7 +1268,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	    copyinst(arg + atop - 1, &retval); 
 	    rv = &retval;
 	} else {
-	    if (!false(arg + atop - 1)) {
+	    if (!logical_false(arg + atop - 1)) {
 		rv = (struct inst *)1;
 	    } else {
 		rv = NULL;
@@ -1477,6 +1478,7 @@ do_abort_silent(void)
 {
     err++;
 }
+
 
 
 
