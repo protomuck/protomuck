@@ -26,7 +26,7 @@ set GAMEDIR = $PROTODIR/game/
 # relevant file. 
 #
 
-set DOCSDIR = $PROTODIR/docs/
+set DOCSDIR = $PROTODIR
 set HELP = $GAMEDIR/data/help.txt
 set MAN = $GAMEDIR/data/man.txt
 set MPI = $GAMEDIR/data/mpihelp.txt
