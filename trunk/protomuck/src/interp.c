@@ -353,6 +353,7 @@ interp(int descr, dbref player, dbref location, dbref program,
 {
     struct frame *fr;
     int     i;
+    PropPtr tptr;
 
     if (!MLevel(program) || !MLevel(OWNER(program)) ||
 	    ((source != NOTHING) && !TMage(OWNER(source)) &&
@@ -409,7 +410,19 @@ interp(int descr, dbref player, dbref location, dbref program,
 		     ((FLAGS(player) & READMODE) && player != NOTHING));
     fr->level = 0;
     fr->error.is_flags = 0;
-
+   
+    /* set inst count limit for preempt programs. Can be used to limit
+     * w-bitted preempt programs from going forever. 
+     */ 
+    fr->preemptlimit = 0;
+    tptr = get_property(program, "_/instlimit");
+    if (tptr) {
+#ifdef DISKBASE
+        propfetch(program, tptr);
+#endif
+        if (PropType(tptr) == PROP_STRTYP) 
+            fr->preemptlimit = atoi(get_uncompress(PropDataStr(tptr)));
+    }
     /* set basic local variables */
 
     fr->svars = NULL;
@@ -912,6 +925,9 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
     while (stop) {
 	fr->instcnt++;
 	instr_count++;
+        if (fr->preemptlimit)
+            if (fr->instcnt > fr->preemptlimit)
+                    abort_loop("Program specific instruction limit exceeded.", NULL, NULL); 
 	if ((fr->multitask == PREEMPT) || (FLAGS(program) & BUILDER)) {
 	    if (mlev >= LMAGE) {
 		instr_count = 0;/* if program is wizbit, then clear count */

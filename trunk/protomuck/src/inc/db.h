@@ -560,6 +560,7 @@ struct frame {
     int     multitask;              /* This program's multitasking mode */
     int     perms;                  /* permissions restrictions on program */
     int     level;                  /* prevent interp call loops */
+    int     preemptlimit;           /* cap preempt insts in _/instlimit prop */
     short   already_created;        /* this prog already created an object */
     short   been_background;        /* this prog has run in the background */
     short   skip_declare;           /* tells interp to skip next scoped var decl */
