@@ -17,7 +17,7 @@
 # -g			Generate debugging information, suggested, you can
 #			alwase "strip protomuck" if you want the space.
 #
-OPTIM= -O -Wall -Wstrict-prototypes -Wno-format -g
+OPTIM= -O 
 
 #
 # Paths
