@@ -28,6 +28,9 @@ extern void prim_getpids(PRIM_PROTOTYPE);
 extern void prim_getpidinfo(PRIM_PROTOTYPE);
 extern void prim_read_wants_blanks(PRIM_PROTOTYPE);
 extern void prim_debugger_break(PRIM_PROTOTYPE);
+extern void prim_debug_on(PRIM_PROTOTYPE);
+extern void prim_debug_off(PRIM_PROTOTYPE);
+extern void prim_debug_line(PRIM_PROTOTYPE);
 
 /* From p_html.c */
 extern void prim_commandtext(PRIM_PROTOTYPE);
@@ -44,7 +47,7 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     prim_event_count, prim_event_send,                                   \
     prim_pnameokp, prim_nameokp, prim_event_exists,    \
     prim_watchpid, prim_getpids, prim_getpidinfo, prim_read_wants_blanks, \
-    prim_debugger_break
+    prim_debugger_break, prim_debug_on, prim_debug_off, prim_debug_line
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET",    \
     "SYSTIME", "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL",  \
@@ -57,7 +60,7 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     "PNAME-OK?", "NAME-OK?",  \
     "EVENT_EXISTS", "WATCHPID",           \
     "GETPIDS", "GETPIDINFO", "READ_WANTS_BLANKS",   \
-    "DEBUGGER_BREAK"
+    "DEBUGGER_BREAK", "DEBUG_ON", "DEBUG_OFF", "DEBUG_LINE"
 
-#define PRIMS_MISC_CNT 33
+#define PRIMS_MISC_CNT 36
 
