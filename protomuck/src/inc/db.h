@@ -208,6 +208,9 @@ typedef int dbref;		/* offset into db */
 #define POW_TELEPORT       0x2000   /* Fee use of @teleport */
 #define POW_SHUTDOWN       0x4000   /* Ability to @shutdown and @restart*/
 #define POW_CONTROL_MUF    0x8000   /* Ability to control all MUFs */
+#define POW_CONTROL_ALL   0x10000   /* Ability to control all objects */
+#define POW_ALL_MUF_PRIMS 0x20000   /* Gives full access to MUF prims */
+
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
 #define DUM2_MASK	(F2IDLE | F2COMMAND)
@@ -808,6 +811,7 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 

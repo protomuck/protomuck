@@ -218,8 +218,6 @@ prim_kill(PRIM_PROTOTYPE)
 void 
 prim_force(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
-
     /* d s -- */
     CHECKOP(2);
     oper1 = POP();		/* string to @force */
@@ -558,7 +556,6 @@ prim_prettylock(PRIM_PROTOTYPE)
 void 
 prim_testlock(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
     /* d d - i */
     CHECKOP(2);
     oper1 = POP();		/* boolexp lock */
@@ -898,6 +895,9 @@ void prim_watchpid(PRIM_PROTOTYPE)
 
 	CLEAR (oper1);
 } 
+
+
+
 
 
 

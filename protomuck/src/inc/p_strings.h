@@ -61,7 +61,7 @@ extern void prim_textattr(PRIM_PROTOTYPE);
     prim_stod, prim_split, prim_rsplit, prim_ansi_notify_exclude, prim_dtos,  \
     prim_tokensplit, prim_fmtstring, prim_parse_ansi, prim_unparse_ansi,      \
     prim_escape_ansi, prim_ansi_strlen, prim_ansi_strcut, prim_ansi_strip,    \
-    prim_ansi_midstr, prim_textattr, prim_parse_neon
+    prim_ansi_midstr, prim_textattr, prim_parse_neon, prim_notify_descriptor
 
 #define PRIMS_STRINGS_NAMES "NUMBER?", "STRINGCMP", "STRCMP",        \
     "STRNCMP", "STRCUT", "STRLEN", "STRCAT", "ATOI",                 \
@@ -74,9 +74,10 @@ extern void prim_textattr(PRIM_PROTOTYPE);
     "RSPLIT", "ANSI_NOTIFY_EXCLUDE", "DTOS", "TOKENSPLIT",           \
     "FMTSTRING", "PARSE_ANSI", "UNPARSE_ANSI", "ESCAPE_ANSI",        \
     "ANSI_STRLEN", "ANSI_STRCUT", "ANSI_STRIP", "ANSI_MIDSTR",       \
-    "TEXTATTR", "PARSE_NEON"
+    "TEXTATTR", "PARSE_NEON", "DESCRNOTIFY"
 
-#define PRIMS_STRINGS_CNT 51
+#define PRIMS_STRINGS_CNT 52
+
 
 
 

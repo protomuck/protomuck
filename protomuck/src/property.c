@@ -1055,7 +1055,7 @@ void
 db_dump_props_rec(dbref obj, FILE *f, const char *dir, PropPtr p)
 {
     char buf[BUFFER_LEN];
-#ifdef DISKBASED
+#ifdef DISKBASE
     int tpos = 0;
     int flg;
     short wastouched = 0;
@@ -1136,6 +1136,7 @@ Prop_SysPerms(dbref player, const char *type)
    else
       return 0;
 }
+
 
 
 

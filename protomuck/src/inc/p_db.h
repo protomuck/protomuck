@@ -64,6 +64,10 @@ extern void prim_powerp(PRIM_PROTOTYPE);
 extern void prim_newprogram(PRIM_PROTOTYPE);
 extern void prim_compile(PRIM_PROTOTYPE);
 extern void prim_uncompile(PRIM_PROTOTYPE);
+extern void prim_contents_array(PRIM_PROTOTYPE);
+extern void prim_exits_array(PRIM_PROTOTYPE);
+extern void prim_getlinks_array(PRIM_PROTOTYPE);
+extern void prim_getobjinfo(PRIM_PROTOTYPE);
 
 #define PRIMS_DB_FUNCS prim_addpennies, prim_moveto, prim_pennies,       \
     prim_dbcomp, prim_dbref, prim_contents, prim_exits, prim_next,       \
@@ -80,7 +84,8 @@ extern void prim_uncompile(PRIM_PROTOTYPE);
     prim_nextowned_flag, prim_nextplayer_flag, prim_nextthing_flag,      \
     prim_nextprogram, prim_nextexit, prim_nextroom, prim_nextentrance,   \
     prim_nextthing, prim_nextplayer_power, prim_ispowerp, prim_powerp,   \
-    prim_newprogram, prim_compile, prim_uncompile
+    prim_newprogram, prim_compile, prim_uncompile, prim_contents_array,  \
+    prim_exits_array, prim_getlinks_array, prim_getobjinfo
 
 #define PRIMS_DB_NAMES "ADDPENNIES", "MOVETO", "PENNIES",   \
     "DBCMP", "DBREF", "CONTENTS", "EXITS", "NEXT",          \
@@ -97,9 +102,11 @@ extern void prim_uncompile(PRIM_PROTOTYPE);
     "NEXTOWNED_FLAG", "NEXTPLAYER_FLAG", "NEXTTHING_FLAG",  \
     "NEXTPROGRAM", "NEXTEXIT", "NEXTROOM", "NEXTENTRANCE",  \
     "NEXTTHING", "NEXTPLAYER_POWER", "ISPOWER?", "POWER?",  \
-    "NEWPROGRAM", "COMPILE", "UNCOMPILE"
+    "NEWPROGRAM", "COMPILE", "UNCOMPILE", "CONTENTS_ARRAY", \
+    "EXITS_ARRAY", "GETLINKS_ARRAY", "GETOBJINFO"
 
-#define PRIMS_DB_CNT 66
+#define PRIMS_DB_CNT 70
+
 
 
 

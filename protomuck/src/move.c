@@ -160,17 +160,17 @@ void enter_room(int descr, dbref player, dbref loc, dbref exit)
 	    envpropqueue(descr, player, old, exit, old, NOTHING,
 			 "~odepart", "Odepart", 1, 0);
 
-#ifdef ALLOW_OLD_TRIGGERS
-	    propqueue(descr, player, old, exit, player, NOTHING,
-			 "_depart", "Depart", 1, 1);
-	    envpropqueue(descr, player, old, exit, old, NOTHING,
-			 "_depart", "Depart", 1, 1);
+	    if (tp_allow_old_trigs) {
+		    propqueue(descr, player, old, exit, player, NOTHING,
+				 "_depart", "Depart", 1, 1);
+		    envpropqueue(descr, player, old, exit, old, NOTHING,
+				 "_depart", "Depart", 1, 1);
 
-	    propqueue(descr, player, old, exit, player, NOTHING,
-			 "_odepart", "Odepart", 1, 0);
-	    envpropqueue(descr, player, old, exit, old, NOTHING,
-			 "_odepart", "Odepart", 1, 0);
-#endif
+		    propqueue(descr, player, old, exit, player, NOTHING,
+				 "_odepart", "Odepart", 1, 0);
+		    envpropqueue(descr, player, old, exit, old, NOTHING,
+				 "_odepart", "Odepart", 1, 0);
+	    }
 
 	    /* notify others unless DARK */
 	    if (!Hidden(player) && !Dark(old) && !Dark(player)
@@ -229,10 +229,10 @@ void enter_room(int descr, dbref player, dbref loc, dbref exit)
 	envpropqueue(descr,player,loc,exit,player,NOTHING,"@oarrive","Oarrive",1,0);
 	envpropqueue(descr,player,loc,exit,player,NOTHING,"~arrive","Arrive",1,1);
 	envpropqueue(descr,player,loc,exit,player,NOTHING,"~oarrive","Oarrive",1,0);
-#ifdef ALLOW_OLD_TRIGGERS
-	envpropqueue(descr,player,loc,exit,player,NOTHING,"_arrive","Arrive",1,1);
-	envpropqueue(descr,player,loc,exit,player,NOTHING,"_oarrive","Oarrive",1,0);
-#endif
+	if (tp_allow_old_trigs) {
+		envpropqueue(descr,player,loc,exit,player,NOTHING,"_arrive","Arrive",1,1);
+		envpropqueue(descr,player,loc,exit,player,NOTHING,"_oarrive","Oarrive",1,0);
+	}
     }
 }
 
@@ -964,6 +964,7 @@ recycle(int descr, dbref player, dbref thing)
     recyclable = thing;
     DBDIRTY(thing);
 }
+
 
 
 

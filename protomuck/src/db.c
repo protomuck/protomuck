@@ -474,7 +474,7 @@ db_write_object(FILE * f, dbref i)
 {
     struct object *o = DBFETCH(i);
     int     j;
-#ifdef DISKBASED
+#ifdef DISKBASE
     int tmppos;
 #endif
 
@@ -891,7 +891,7 @@ skipproperties(FILE * f, dbref obj)
     } else {
 	FLAGS(obj) &= ~LISTENER;
     }
-    if (iscommand) ) {
+    if (iscommand) {
 	FLAG2(obj) |= F2COMMAND;
     } else {
 	FLAG2(obj) &= ~F2COMMAND;
@@ -1686,5 +1686,6 @@ WLevel(dbref player)
 
     return mlev >= LMAGE ? mlev : 0;
 }   
+
 
 

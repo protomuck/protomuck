@@ -1612,15 +1612,29 @@ permissions(int mlev, dbref player, dbref thing)
 int
 find_mlev(dbref prog, struct frame * fr, int st)
 {
-    if ((FLAGS(prog) & STICKY) && (FLAGS(prog) & HAVEN)) {
-	if ((st > 1) && (TMage(OWNER(prog))))
-	    return (find_mlev(fr->caller.st[st - 1], fr, st - 1));
-    }
-    if (MLevel(prog) > MLevel(OWNER(prog))) {
-	return (MLevel(prog));
-    } else {
-	return (MLevel(OWNER(prog)));
-    }
+	int maxmlev = (POWERS(OWNER(prog)) & POW_ALL_MUF_PRIMS) ? LBOY : MLevel(OWNER(prog));
+	int mlev;
+	if ((FLAGS(prog) & STICKY) && (FLAGS(prog) & HAVEN) && ((st > 1) && (TMage(OWNER(prog))))) {
+		mlev = find_mlev(fr->caller.st[st - 1], fr, st - 1);
+	} else {
+		if ((FLAGS(prog) & HAVEN) && ((st > 1) && (TMage(OWNER(prog))))) {
+			mlev = MLevel(OWNER(fr->caller.st[st - 1]));
+		} else {
+			if ((FLAGS(prog) & QUELL) && (FLAGS(prog) & HAVEN)) {
+				mlev = MLevel(prog);
+			} else {
+				if ((FLAGS(prog) & QUELL) && (((fr->player > 0) && (fr->player < db_top)) && (TMage(OWNER(prog))))) {
+					mlev = QLevel(OWNER(fr->player));
+				} else {
+					mlev = (POWERS(OWNER(prog)) & POW_ALL_MUF_PRIMS) ? LBOY : MLevel(OWNER(prog));
+				}
+			}
+		}
+	}
+	if (maxmlev < mlev) {
+		mlev = maxmlev;
+	}
+	return mlev;
 }
 
 
@@ -1690,6 +1704,7 @@ do_abort_silent(void)
 	 * be caught in a TRY-CATCH block.  This may be undesirable. */
     err++;
 }
+
 
 
 

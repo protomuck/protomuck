@@ -23,6 +23,7 @@ const char *mfn_dec(MFUNARGS);
 const char *mfn_default(MFUNARGS);
 const char *mfn_delay(MFUNARGS);
 const char *mfn_delprop(MFUNARGS);
+const char *mfn_descr(MFUNARGS);
 const char *mfn_dice(MFUNARGS);
 const char *mfn_dirprops(MFUNARGS);
 const char *mfn_dist(MFUNARGS);
@@ -120,6 +121,7 @@ const char *mfn_strlen(MFUNARGS);
 const char *mfn_sublist(MFUNARGS);
 const char *mfn_subst(MFUNARGS);
 const char *mfn_subt(MFUNARGS);
+const char *mfn_sysparm(MFUNARGS);
 const char *mfn_tell(MFUNARGS);
 const char *mfn_telldescr(MFUNARGS);
 const char *mfn_testlock(MFUNARGS);
@@ -146,6 +148,7 @@ const char *mfn_playmidi(MFUNARGS);
 const char *mfn_stopmidi(MFUNARGS);
 
 #endif /* MPI */
+
 
 
 

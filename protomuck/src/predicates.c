@@ -86,14 +86,8 @@ could_doit(int descr, dbref player, dbref thing)
 
 	if( (dest != HOME) &&  
 	    (Typeof(dest)==TYPE_ROOM) &&
-	    Guest(player) &&
-#ifdef G_NEEDFLAG
-	    !(FLAG2(dest)&F2GUEST)
-#else
-	    (FLAG2(dest)&F2GUEST)
-#endif
-	) {
-	    notify(player, "Guests aren't allowed there.");
+	    Guest(player) && (tp_guest_needflag ? !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) & F2GUEST))) {
+	    anotify_nolisten(player, CFAIL "Guests aren't allowed there.", 1);
 	    return 0;
 	}
 
@@ -142,14 +136,8 @@ could_doit2(int descr, dbref player, dbref thing, char *prop)
 
 	if( (dest != HOME) &&  
 	    (Typeof(dest)==TYPE_ROOM) &&
-	    Guest(player) &&
-#ifdef G_NEEDFLAG
-	    !(FLAG2(dest)&F2GUEST)
-#else
-	    (FLAG2(dest)&F2GUEST)
-#endif
-	) {
-	    notify(player, "Guests aren't allowed there.");
+	    Guest(player) && (tp_guest_needflag ? !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) & F2GUEST))) {
+	    anotify_nolisten(player, CFAIL "Guests aren't allowed there.", 1);
 	    return 0;
 	}
 
@@ -275,6 +263,10 @@ controls(dbref who, dbref what)
     if (Typeof(who) != TYPE_PLAYER)
 	who = OWNER(who);
 
+    /* CONTROL_ALL controls all objects */
+    if ((POWERS(who) & POW_CONTROL_ALL) && !Protect(what))
+        return 1;
+
     /* CONTROL_MUF power controls all MUF objects */
     if ( (POWERS(who) & POW_CONTROL_MUF ) && (Typeof(what) == TYPE_PROGRAM) 
          && (!(Protect(what))) )
@@ -282,11 +274,7 @@ controls(dbref who, dbref what)
 
     /* Wizard controls (most) everything else */
     if (Wiz(who) && (!(Protect(what) && MLevel(OWNER(what)) >= LBOY) || MLevel(who) >= LBOY))
-#ifdef FB_CONTROLS
-        if(MLevel(who) >= LWIZ)
-#else
-	if(MLevel(who) >= MLevel(OWNER(what)))
-#endif
+        if(tp_fb_controls ? (MLevel(who) >= LWIZ) : (MLevel(who) >= MLevel(OWNER(what))))
 	    return 1;
 
     /* owners control their own stuff */
@@ -458,6 +446,7 @@ ok_password(const char *password)
 
     return 1;
 }
+
 
 
 

@@ -909,10 +909,16 @@ prim_notify(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper1->type != PROG_STRING) {
+      CLEAR(oper1);
+      CLEAR(oper2);
 	abort_interp("Non-string argument (2)");
-    if (!valid_object(oper2))
+    }
+    if (!valid_object(oper2)) {
+      CLEAR(oper1);
+      CLEAR(oper2);
 	abort_interp("Invalid object argument (1)");
+    }
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
@@ -943,10 +949,16 @@ prim_notify_html(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper1->type != PROG_STRING) {
+      CLEAR(oper1);
+      CLEAR(oper2);
 	abort_interp("Non-string argument (2)");
-    if (!valid_object(oper2))
+    }
+    if (!valid_object(oper2)) {
+      CLEAR(oper1);
+      CLEAR(oper2);
 	abort_interp("Invalid object argument (1)");
+    }
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
@@ -978,10 +990,16 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper1->type != PROG_STRING) {
+      CLEAR(oper1);
+      CLEAR(oper2);
 	abort_interp("Non-string argument (2)");
-    if (!valid_object(oper2))
+    }
+    if (!valid_object(oper2)) {
+      CLEAR(oper1);
+      CLEAR(oper2);
 	abort_interp("Invalid object argument (1)");
+    }
     CHECKREMOTE(oper2->data.objref);
 
     if (oper1->data.string) {
@@ -1041,7 +1059,6 @@ void
 prim_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
-    struct inst *oper1, *oper2;
     char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
@@ -1126,7 +1143,6 @@ void
 prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
-    struct inst *oper1, *oper2;
     char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
@@ -1210,7 +1226,6 @@ void
 prim_notify_html_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
-    struct inst *oper1, *oper2;
     char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
@@ -1294,7 +1309,6 @@ void
 prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
-    struct inst *oper1, *oper2;
     char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
@@ -2363,6 +2377,7 @@ prim_textattr(PRIM_PROTOTYPE)
 	CLEAR(oper2);
 	PushString(buf);
 }
+
 
 
 

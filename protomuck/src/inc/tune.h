@@ -84,12 +84,10 @@ extern int tp_rand_screens;
 extern int tp_listen_mlev;
 extern int tp_playermax_limit;
 
-extern int tp_num_backups;
+extern int tp_dump_copies;
 
 /* dbrefs */
 extern dbref tp_quit_prog;
-extern dbref tp_huh_command;
-extern dbref tp_login_huh_command;
 extern dbref tp_login_who_prog;
 extern dbref tp_player_start;
 extern dbref tp_reg_wiz;
@@ -158,6 +156,11 @@ extern int tp_proplist_int_counter;
 extern int tp_enable_mcp;
 extern int tp_enable_commandprops;
 extern int tp_old_parseprop;
+extern int tp_mpi_needflag;
+extern int tp_mortalwho;
+extern int tp_guest_needflag;
+extern int tp_fb_controls;
+extern int tp_allow_old_trigs;
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
@@ -166,6 +169,7 @@ extern void tune_save_parms_to_file(FILE *f);
 extern int tp_building;
 extern int tp_all_can_build_rooms;
 extern int tp_restricted_building;
+
 
 
 
