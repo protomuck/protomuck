@@ -801,7 +801,7 @@ prim_set(PRIM_PROTOTYPE)
     int tmp2 = 0;
     char *flag;
     int tWiz = 0;
-
+    result = 0;
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -817,10 +817,12 @@ prim_set(PRIM_PROTOTYPE)
     CHECKREMOTE(ref);
     flag = oper1->data.string->data;
     tmp = 0;
+
     while (*flag == '!') {
        flag++;
        result = (!result);
     }
+
     if(!*flag)
        abort_interp("Empty flag");
     if (!permissions(mlev, ProgUID, ref))
@@ -834,7 +836,7 @@ prim_set(PRIM_PROTOTYPE)
        }
     }
     tmp = check_flag1(flag);
-    if (tmp) {
+    if (!tmp) {
        tmp = check_mlev(flag, &tWiz);
        if (tmp) {
           abort_interp(tp_noperm_mesg);
