@@ -1010,14 +1010,15 @@ do_action(int descr, dbref player, const char *action_name, const char *source_n
     } else if (!ok_name(action_name)) {
 	anotify_nolisten2(player, CINFO "That's a strange name for an action!");
 	return;
-    } else if (!payfor(player, tp_exit_cost)) {
-	anotify_fmt(player, RED
-                   "You don't have enough %s to make an action.",
-                   tp_pennies);
-	return;
     }
     if (((source = parse_source(descr, player, qname)) == NOTHING))
 	return;
+    if (!payfor(player, tp_exit_cost)) {
+        anotify_fmt(player, RED
+                   "You don't have enough %s to make an action.",
+                   tp_pennies);
+        return;
+    }
 
     action = new_object();
 

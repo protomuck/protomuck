@@ -579,7 +579,7 @@ prim_plusplus(PRIM_PROTOTYPE)
 		copyinst(&(fr->variables[temp1.data.number]), &temp2);
             break;
          case PROG_SVAR:
-		tmp = scopedvar_get(fr, temp1.data.number);
+		tmp = scopedvar_get(fr, 0, temp1.data.number);
             copyinst(tmp, &temp2);
             break;
          case PROG_LVAR: {
@@ -636,7 +636,7 @@ prim_plusplus(PRIM_PROTOTYPE)
          }
          case PROG_SVAR: {
 		   struct inst *tmp2;
-		   tmp2 = scopedvar_get(fr, vnum);
+		   tmp2 = scopedvar_get(fr, 0, vnum);
 		   if (!tmp2)
 			   abort_interp("Scoped variable number out of range.");
 		   CLEAR(tmp2);
@@ -672,7 +672,7 @@ prim_minusminus(PRIM_PROTOTYPE)
 		copyinst(&(fr->variables[temp1.data.number]), &temp2);
             break;
          case PROG_SVAR:
-		tmp = scopedvar_get(fr, temp1.data.number);
+		tmp = scopedvar_get(fr, 0, temp1.data.number);
             copyinst(tmp, &temp2);
             break;;
          case PROG_LVAR: {
@@ -729,7 +729,7 @@ prim_minusminus(PRIM_PROTOTYPE)
          }
          case PROG_SVAR: {
 		   struct inst *tmp2;
-		   tmp2 = scopedvar_get(fr, vnum);
+		   tmp2 = scopedvar_get(fr, 0, vnum);
 		   if (!tmp2)
 			   abort_interp("Scoped variable number out of range.");
 		   CLEAR(tmp2);
@@ -870,9 +870,33 @@ prim_3ddist(PRIM_PROTOTYPE)
    PushFloat(fresult);
 }
 
+void
+prim_abs(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument.");
+    result = oper1->data.number;
+    if (result < 0)
+        result = -result;
+    CLEAR(oper1);
+    PushInt(result);
+}
 
+void prim_sign(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument.");
+    if (oper1->data.number > 0) 
+        result = 1;
+    else if (oper1->data.number < 0)
+        result = -1;
+    else
+        result = 0;
 
-
-
-
-
+    CLEAR(oper1);
+    PushInt(result);
+}

@@ -36,7 +36,7 @@ const char *base_inst[] = {
 /* converts an instruction into a printable string, stores the string in
    an internal buffer and returns a pointer to it */
 char   *
-insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref program)
+insttotext(struct frame *fr, int lev, struct inst * theinst, char *buffer, int buflen, int strmax, dbref program)
 {
     char buf2[BUFFER_LEN];
     char buf3[BUFFER_LEN];
@@ -96,12 +96,12 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
 					firstflag = 0;
 					oper2 = array_getitem(theinst->data.array, &temp1);
 
-					inststr = insttotext(&temp1, buf2, length, strmax, program);
+					inststr = insttotext(fr, lev, &temp1, buf2, length, strmax, program);
 					strcat(buffer, inststr);
 					strcat(buffer, ":");
 					length -= strlen(inststr) + 1;
 
-					inststr = insttotext(oper2, buf2, length, strmax, program);
+					inststr = insttotext(fr, lev,  oper2, buf2, length, strmax, program);
 					strcat(buffer, inststr);
 					length -= strlen(inststr);
 
@@ -167,14 +167,32 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
 	    sprintf(buffer, "V%d", theinst->data.number);
 	    break;
 	case PROG_SVAR:
+            if (fr) {
+                length = snprintf(buffer, buflen, "SV%d:%s", 
+                            theinst->data.number, scopedvar_getname(fr, lev,
+                                                      theinst->data.number));
+            } else {
 		sprintf(buffer, "SV%d", theinst->data.number);
-		break;
+            }
+            break;
 	case PROG_SVAR_AT:
-		sprintf(buffer, "SV%d @", theinst->data.number);
-		break;
+            if (fr) {
+                length = snprintf(buffer, buflen, "SV%d:%s @", 
+                            theinst->data.number, scopedvar_getname(fr, lev,
+                                                      theinst->data.number));
+            } else {
+                sprintf(buffer, "SV%d @", theinst->data.number);
+            }
+            break;
 	case PROG_SVAR_BANG:
-		sprintf(buffer, "SV%d !", theinst->data.number);
-		break;
+            if (fr) {
+                length = snprintf(buffer, buflen, "SV%d:%s !", 
+                            theinst->data.number, scopedvar_getname(fr, lev,
+                                                      theinst->data.number));
+            } else {
+                sprintf(buffer, "SV%d !", theinst->data.number);
+            }
+            break;
 	case PROG_LVAR:
 	    sprintf(buffer, "LV%d", theinst->data.number);
 	    break;
@@ -213,8 +231,9 @@ insttotext(struct inst * theinst, char *buffer, int buflen, int strmax, dbref pr
 /* produce one line summary of current state.  Note that sp is the next
    space on the stack -- 0..sp-1 is the current contents. */
 char   *
-debug_inst(struct inst * pc, int pid, struct inst * stack, char *buffer, 
-           int buflen, int sp, dbref program)
+debug_inst(struct frame *fr, int lev, struct inst * pc, int pid, 
+           struct inst * stack, char *buffer, int buflen, int sp, 
+           dbref program)
 {
     char buf2[BUFFER_LEN];
     int     count;
@@ -224,12 +243,13 @@ debug_inst(struct inst * pc, int pid, struct inst * stack, char *buffer,
 	strcat(buffer, "..., ");
     count = (sp > 8) ? sp - 8 : 0;
     while (count < sp) {
-	strcat(buffer, insttotext(stack + count, buf2, buflen, 30, program));
+	strcat(buffer, insttotext(fr, lev, stack + count, buf2,
+                buflen, 30, program));
 	if (++count < sp)
 	    strcat(buffer, ", ");
     }
     strcat(buffer, ") ");
-    strcat(buffer, insttotext(pc, buf2, buflen, 30, program));
+    strcat(buffer, insttotext(fr, lev, pc, buf2, buflen, 30, program));
     return (buffer);
 }
 

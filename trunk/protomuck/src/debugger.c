@@ -57,7 +57,8 @@ list_proglines(dbref player, dbref program, struct frame *fr, int start, int end
 
 
 char *
-show_line_prims(dbref program, struct inst *pc, int maxprims, int markpc)
+show_line_prims(struct frame *fr, dbref program, struct inst *pc, 
+                int maxprims, int markpc)
 {
     static char buf[BUFFER_LEN];
     static char buf2[BUFFER_LEN];
@@ -96,10 +97,12 @@ show_line_prims(dbref program, struct inst *pc, int maxprims, int markpc)
             if (*buf) strcat(buf, " ");
             if (pc == linestart && markpc) {
                 strcat(buf, " {{");
-                strcat(buf, insttotext(linestart, buf2, sizeof(buf2), 30, program));
+                strcat(buf, insttotext(NULL, 0, linestart, buf2, sizeof(buf2), 
+		       30, program));
                 strcat(buf, "}} ");
             } else {
-                strcat(buf, insttotext(linestart, buf2, sizeof(buf2), 30, program));
+                strcat(buf, insttotext(NULL, 0, linestart, buf2, sizeof(buf2), 
+                       30, program));
             }
         } else {
             break;
@@ -208,10 +211,13 @@ void
 muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
 {
     char buf[BUFFER_LEN];
+    char buf2[BUFFER_LEN];
+    char buf3[BUFFER_LEN];
     char *ptr;
     dbref ref;
     int i, j, cnt, flag;
     struct inst *pinst, *lastinst;
+    int lev;
 
     anotify_nolisten(player, CINFO "System stack backtrace:", 1);
     i = count;
@@ -236,6 +242,41 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
             sprintf(buf, "     [repeats %d times]", cnt);
             notify_nolisten(player, buf, 1);
         }
+        lev = fr->system.top - j;
+        if (ptr) {
+            int k;
+            char* bufend = buf2;
+            struct inst* fntop = fr->pc;
+            struct inst* varinst;
+ 
+            while (fntop->type != PROG_FUNCTION)
+                --fntop;
+
+            bufend += sprintf(buf2, "%.512s\033[1m(\033[0m", ptr);
+            for (k = 0; k < fntop->data.mufproc->args; ++k) {
+                const char* nam = scopedvar_getname(fr, lev, k);
+                char* val;
+                const char* fmt;
+                if (!nam) {
+                    break;
+                }
+                varinst = scopedvar_get(fr, lev, k);
+                val = insttotext(fr, lev, varinst, buf3, sizeof(buf3), 30,
+                                 program);
+                
+                if (k) {
+                    fmt = "\033[1m, %s=\033[0m%s";
+                } else {
+                    fmt = "\033[1m%s=\033[0m%s";
+                }
+                bufend += snprintf(bufend, buf2 - bufend - 18, fmt, nam, val);
+            }
+            bufend += snprintf(bufend, buf2 - bufend - 1, "\033[1m)\033[0m",
+                               ptr);
+            ptr = buf2;
+        }
+
+
         if (pinst != lastinst) {
             sprintf(buf, "%3d) %s(#%d) %s:", j, NAME(ref), ref, ptr);
             notify_nolisten(player, buf, 1);
@@ -279,42 +320,66 @@ debug_printvar(dbref player, dbref program, struct frame *fr, const char *arg)
 	int i;
 	int lflag = 0;
 	int sflag = 0;
+        int varnum = -1;
 	char buf[BUFFER_LEN];
 
 	if (!arg || !*arg) {
-		anotify_nolisten(player, CINFO "I don't know which variable you mean.", 1);
+		anotify_nolisten(player, 
+		            CINFO "I don't know which variable you mean.", 1);
 		return;
 	}
+        varnum = scopedvar_getnum(fr, 0, arg);
+        if (varnum != -1) {
+            sflag = 1;
+        } else 
 	if (*arg == 'L' || *arg == 'l') {
-		arg++, lflag = 1;
-	} else if (*arg == 'S' || *arg == 's') {
-		arg++, sflag = 1;
-	}
-	if (*arg == 'V' || *arg == 'v')
 		arg++;
-	if (!number(arg)) {
-		anotify_nolisten(player, CINFO "I don't know which variable you mean.", 1);
-		return;
+                if (*arg == 'V' || *arg == 'v') {
+                    arg++;
+                }
+                lflag = 1;
+                varnum = scopedvar_getnum(fr, 0, arg);
+	} else if (*arg == 'S' || *arg == 's') {
+		arg++;
+		if (*arg == 'V' || *arg == 'v') {
+                    arg++;
+                }
+                sflag = 1;
 	}
-	i = atoi(arg);
+        else if (*arg == 'V' || *arg == 'v') {
+	        arg++;
+        }
+        if (varnum > -1 ) {
+            i = varnum;
+        } else if (number(arg)) {
+            i = atoi(arg);
+        } else {
+           notify_nolisten(player, "I don't know which variable you mean.", 1);
+           return;
+        }
+        
 	if (i >= MAX_VAR || i < 0) {
-		anotify_nolisten(player, CINFO "Variable number out of range.", 1);
+		anotify_nolisten(player, 
+		                    CINFO "Variable number out of range.", 1);
 		return;
 	}
 	if (sflag) {
-		struct inst *tmp = scopedvar_get(fr, i);
+		struct inst *tmp = scopedvar_get(fr, 0, i);
 
 		if (!tmp) {
-			notify_nolisten(player, "Scoped variable number out of range.", 1);
+			notify_nolisten(player, 
+                                   "Scoped variable number out of range.", 1);
 			return;
 		}
-		notify_nolisten(player, insttotext(tmp, buf, sizeof(buf), 4000, -1), 1);
+		notify_nolisten(player, 
+                        insttotext(fr, 0, tmp, buf, sizeof(buf), 4000, -1), 1);
 	} else if (lflag) {
                 struct localvars *lvars = localvars_get(fr, program);
-		notify_nolisten(player, insttotext(&(lvars->lvars[i]), buf, sizeof(buf), 4000, -1), 1);
+		notify_nolisten(player, insttotext(fr, 0, &(lvars->lvars[i]), 
+                                buf, sizeof(buf), 4000, -1), 1);
 	} else {
-		notify_nolisten(player, insttotext(&(fr->variables[i]), buf, sizeof(buf), 4000, -1),
-						1);
+		notify_nolisten(player, insttotext(fr, 0, &(fr->variables[i]), 
+                                buf, sizeof(buf), 4000, -1), 1);
 	}
 }
 
@@ -348,31 +413,6 @@ push_arg(dbref player, struct frame *fr, const char *arg)
 	num = atoi(arg+1);
 	push(fr->argument.st, &fr->argument.top, PROG_OBJECT, MIPSCAST &num);
 	anotify_nolisten(player, CSUCC "Dbref pushed.", 1);
-    } else if (*arg == 'L' || *arg == 'V' || *arg == 'l' || *arg == 'v') {
-	if (*arg == 'S' || *arg == 's') {
-	    arg++;
-	    sflag = 1;
-	} else if (*arg == 'L' || *arg == 'l') {
-	    arg++;
-	    lflag = 1;
-      }
-	if (*arg == 'V' || *arg == 'v')
-	    arg++;
-	if (!number(arg)) {
-	    anotify_nolisten(player, CINFO "I don't understand which variable you mean.", 1);
-	    return;
-	}
-	num = atoi(arg);
-	if (lflag) {
-	    push(fr->argument.st, &fr->argument.top, PROG_LVAR, MIPSCAST &num);
-	    anotify_nolisten(player, CSUCC "Local variable pushed.", 1);
-	} else if (sflag) {
-	    push(fr->argument.st, &fr->argument.top, PROG_SVAR, MIPSCAST & num);
-	    notify_nolisten(player, "Scoped variable pushed.", 1);
-	} else {
-	    push(fr->argument.st, &fr->argument.top, PROG_VAR, MIPSCAST &num);
-	    anotify_nolisten(player, CSUCC "Global variable pushed.", 1);
-	}
     } else if (*arg == '"') {
 	/* push a string */
 	char buf[BUFFER_LEN];
@@ -394,7 +434,45 @@ push_arg(dbref player, struct frame *fr, const char *arg)
 		MIPSCAST alloc_prog_string(buf));
 	anotify_nolisten(player, CSUCC "String pushed.", 1);
     } else {
-	anotify_nolisten(player, CINFO "I don't know that data type.", 1);
+        int varnum = scopedvar_getnum(fr, 0, arg);
+        if (varnum != -1) {
+            sflag = 1;
+        } else {
+            if (*arg == 'S' || *arg == 's') {
+                ++arg;
+                if (*arg == 'V' || *arg == 'v') {
+                    arg++;
+                }
+                sflag = 1;
+                varnum = scopedvar_getnum(fr, 0, arg);
+            } else if (*arg == 'L' || *arg == 'l') {
+                ++arg;
+                if (*arg == 'V' || *arg == 'v') {
+                    ++arg;
+                }
+                lflag = 1;
+            } else if (*arg == 'V' || *arg == 'v') {
+                ++arg;
+            }
+        }
+        if (varnum > -1 ) {
+            num = varnum;
+        } else if (number(arg)) {
+            num = atoi(arg);
+        } else {
+            anotify_nolisten(player, CINFO "I don't understand what you want to push.", 1);
+            return;
+        }
+        if (lflag) {
+            push(fr->argument.st, &fr->argument.top, PROG_LVAR, MIPSCAST & num);
+            anotify_nolisten(player, CSUCC "Local variable pushed.", 1);
+        } else if (sflag) {
+            push(fr->argument.st, &fr->argument.top, PROG_SVAR, MIPSCAST & num);
+            anotify_nolisten(player, CSUCC "Scoped variable pushed.", 1);
+        } else {
+            push(fr->argument.st, &fr->argument.top, PROG_VAR, MIPSCAST & num);
+             anotify_nolisten(player, CSUCC "Global variable pushed.", 1);
+        }
     }
 }
 
@@ -405,7 +483,8 @@ struct inst primset[3];
 static struct muf_proc_data temp_muf_proc_data = {
     "__Temp_Debugger_Proc",
 	0,
-	0
+	0, 
+        NULL
 };
 struct shared_string shstr;
 
@@ -600,6 +679,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
 	primset[0].data.mufproc = &temp_muf_proc_data;
 	primset[0].data.mufproc->vars = 0;
 	primset[0].data.mufproc->args = 0;
+        primset[0].data.mufproc->varnames = NULL;
 	primset[1].type = PROG_PRIMITIVE;
 	primset[1].line = 0;
 	primset[1].data.number = get_primitive(arg);
@@ -610,16 +690,17 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
 
 	fr->system.st[fr->system.top].progref = program;
 	fr->system.st[fr->system.top++].offset = fr->pc;
-	fr->pc = primset;
+	fr->pc = &primset[1];
         j = fr->brkpt.count++;
         fr->brkpt.temp[j] = 1;
-        fr->brkpt.level[j] = fr->system.top - 1;
+        fr->brkpt.level[j] = -1;
         fr->brkpt.line[j] = -1;
         fr->brkpt.linecount[j] = -2;
-        fr->brkpt.pc[j] = NULL;
+        fr->brkpt.pc[j] = &primset[2];
         fr->brkpt.pccount[j] = -2;
         fr->brkpt.prog[j] = program;
         fr->brkpt.bypass = 1;
+        fr->brkpt.dosyspop = 1;
         return 0;
     } else if (!string_compare(cmd, "break")) {
 	add_muf_read_event(descr, player, program, fr);
@@ -698,7 +779,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
             cnt = 0;
             do {
                 strcpy(buf, ptr);
-                ptr = insttotext(&fr->argument.st[--j], buf2, sizeof(buf2), 4000, program);
+                ptr = insttotext(NULL, 0, &fr->argument.st[--j], buf2, sizeof(buf2), 4000, program);
                 cnt++;
             } while (!string_compare(ptr, buf) && j>0);
             if (cnt > 1)
@@ -771,8 +852,8 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
 		pinst = linenum_to_pc(program, i);
 		if (pinst) {
 		    sprintf(buf, "line %d: %s", i, (i == fr->pc->line) ?
-			    show_line_prims(program, fr->pc, STACK_SIZE, 1) :
-			    show_line_prims(program, pinst, STACK_SIZE, 0));
+			    show_line_prims(fr, program, fr->pc, STACK_SIZE, 1) :
+			    show_line_prims(fr, program, pinst, STACK_SIZE, 0));
 		    notify_nolisten(player, buf, 1);
 		}
 	    }

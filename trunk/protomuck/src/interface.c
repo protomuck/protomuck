@@ -1627,7 +1627,7 @@ wall_logwizards(const char *msg)
 
     for (d = descriptor_list; d; d = dnext) {
 	dnext = d->next;
-	if ( d->connected && Arch(d->player) && (FLAG2(d->player)&F2LOGWALL)) {
+	if ( d->connected && (FLAG2(d->player)&F2LOGWALL)) {
 	    queue_unhtml(d, buf);
 	    if (!process_output(d))
 		d->booted = 1;
@@ -5132,6 +5132,19 @@ pdescr_logout(int c)
        d->player = NOTHING;
     }
     return;
+}
+
+int
+pdescrbufsize(int c)
+{
+    struct descriptor_data *d;
+    
+    d = descrdata_by_descr(c);
+
+    if (d) {
+        return (tp_max_output - d->output_size);
+    }
+    return -1;
 }
 
 dbref 

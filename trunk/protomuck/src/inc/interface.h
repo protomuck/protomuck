@@ -176,6 +176,7 @@ extern int pfirstconn(dbref who);
 extern int pset_user(struct descriptor_data *d, dbref who);
 extern int plogin_user(struct descriptor_data *d, dbref who);
 extern int pset_user2(int c, dbref who);
+extern int pdescrbufsize(int c);
 extern dbref partial_pmatch(const char *name);
 extern void do_armageddon( dbref, const char * );
 extern void do_dinfo( dbref, const char * );

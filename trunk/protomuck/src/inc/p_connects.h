@@ -42,6 +42,7 @@ extern void prim_getdescrinfo(PRIM_PROTOTYPE);
 extern void prim_descr_set(PRIM_PROTOTYPE);
 extern void prim_descr_flagp(PRIM_PROTOTYPE);
 extern void prim_bandwidth(PRIM_PROTOTYPE);
+extern void prim_descrbufsize(PRIM_PROTOTYPE);
 
 #define PRIMS_CONNECTS_FUNCS prim_awakep, prim_online, prim_concount,      \
     prim_condbref, prim_conidle, prim_contime, prim_conhost, prim_conuser, \
@@ -54,7 +55,8 @@ extern void prim_bandwidth(PRIM_PROTOTYPE);
     prim_descrhost, prim_descruser, prim_descripnum, prim_descrport,       \
     prim_descrconport, prim_firstdescr, prim_lastdescr,                    \
     prim_descrleastidle, prim_descrmostidle, prim_descrboot,               \
-    prim_getdescrinfo, prim_descr_set, prim_descr_flagp, prim_bandwidth
+    prim_getdescrinfo, prim_descr_set, prim_descr_flagp, prim_bandwidth,   \
+    prim_descrbufsize
 
 #define PRIMS_CONNECTS_NAMES "AWAKE?", "ONLINE", "CONCOUNT",  \
     "CONDBREF", "CONIDLE", "CONTIME", "CONHOST", "CONUSER",   \
@@ -67,7 +69,8 @@ extern void prim_bandwidth(PRIM_PROTOTYPE);
     "DESCRHOST", "DESCRUSER", "DESCRIPNUM", "DESCRPORT",      \
     "DESCRCONPORT", "FIRSTDESCR", "LASTDESCR",                \
     "DESCRLEASTIDLE", "DESCRMOSTIDLE", "DESCRBOOT",           \
-    "GETDESCRINFO", "DESCR_SET", "DESCR_FLAG?", "BANDWIDTH"
+    "GETDESCRINFO", "DESCR_SET", "DESCR_FLAG?", "BANDWIDTH",  \
+    "DESCRBUFSIZE"
 
-#define PRIMS_CONNECTS_CNT 44
+#define PRIMS_CONNECTS_CNT 45
 
