@@ -1643,7 +1643,6 @@ void
 prim_array_findval(PRIM_PROTOTYPE)
 {
         struct inst *in;
-        struct inst temp1;
         stk_array *arr;
         stk_array *nw;
         int found = 0;
@@ -1663,8 +1662,8 @@ prim_array_findval(PRIM_PROTOTYPE)
                                 array_appenditem(&nw, &temp1);
                         }
                 } while (!found && array_next(arr, &temp1));
+                CLEAR(&temp1);
         }
-        CLEAR(&temp1);
         CLEAR(oper2);
         CLEAR(oper1);
 

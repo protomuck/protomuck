@@ -472,8 +472,8 @@ init_defs(COMPSTATE * cstat)
       insert_def(cstat, "nextprogram_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"F\" swap strcat findnext");
       insert_def(cstat, "nextexit_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"E\" swap strcat findnext");
       insert_def(cstat, "nextroom_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"R\" swap strcat findnext");
-      insert_def(cstat, "nextowned", "dup player? if #-1 swap else dup owner then \"\" \"\" findnext");
-      insert_def(cstat, "nextowned_flag", "swap dup player? if #-1 swap else dup owner then \"\" 4 rotate dup \"!\" instr 1 = if 2 else 1 then strcut pop findnext");
+        insert_def(cstat, "nextowned", "dup player? if #-1 swap else dup owner then \"\" \"!P\" findnext");
+        insert_def(cstat, "nextowned_flag", "swap dup player? if #-1 swap else dup owner then \"\" 4 rotate dup \"!\" instr 1 = if 2 else 1 then strcut pop \"!P!\" swap strcat findnext");
       insert_def(cstat, "nextplayer_power", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"P:\" swap strcat findnext");
 	insert_def(cstat, "desc", "\"_/de\" getpropstr");
 	insert_def(cstat, "idesc", "\"_/ide\" getpropstr");
