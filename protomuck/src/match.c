@@ -91,7 +91,6 @@ match_player(struct match_data * md)
 {
     dbref   match;
     const char *p;
-
     if (*(md->match_name) == LOOKUP_TOKEN
 	    && payfor(OWNER(md->match_from), tp_lookup_cost)) {
 	for (p = (md->match_name) + 1; isspace(*p); p++);
@@ -408,6 +407,8 @@ match_roomobj_actions(struct match_data * md)
 {
     dbref   thing, loc;
 
+    if (md->match_from == NOTHING)
+        return;
     if ((loc = DBFETCH(md->match_from)->location) == NOTHING)
 	return;
     if (DBFETCH(loc)->contents == NOTHING)
@@ -479,8 +480,11 @@ match_all_exits(struct match_data * md)
 
     strcpy(match_args, "\0");
     strcpy(match_cmdname, "\0");
-    if ((loc = DBFETCH(md->match_from)->location) != NOTHING)
-	match_room_exits(loc, md);
+    if (md->match_from == NOTHING)
+        return;
+    if (md->match_from != NOTHING)
+        if ((loc = DBFETCH(md->match_from)->location) != NOTHING)
+    	    match_room_exits(loc, md);
 
     if (md->exact_match != NOTHING)
 	md->block_equals = 1;

@@ -625,7 +625,7 @@ prim_setsysparm(PRIM_PROTOTYPE)
 	switch (result) {
 	case 0:					/* TUNESET_SUCCESS */
 		log_status("TUNED (MUF): %s(%d) tuned %s to %s\n",
-				   NAME(player), player, oper2->data.string->data, oper1->data.string->data);
+				player != -1 ? NAME(player) : "(Login)", player, oper2->data.string->data, oper1->data.string->data);
 		break;
 	case 1:					/* TUNESET_UNKNOWN */
 		abort_interp("Unknown parameter. (1)");

@@ -731,8 +731,6 @@ prim_setname(PRIM_PROTOTYPE)
 		abort_interp("You can't give a player that name");
 	    }
 	    /* everything ok, notify */
-	    /* log_status("NAME: (MUF) %s(#%d) to %s by %s\n",
-		       NAME(ref), ref, b, NAME(ProgUID)); */
 	    delete_player(ref);
 	    if (NAME(ref))
 		free((void *) NAME(ref));
@@ -772,7 +770,7 @@ prim_match(PRIM_PROTOTYPE)
 	init_match(fr->descr, player, oper1->data.string->data, NOTYPE, &md);
 	if (oper1->data.string->data[0] == REGISTERED_TOKEN) {
 	    match_registered(&md);
-	} else {
+	} else if (player != NOTHING) {
 	    match_all_exits(&md);
 	    match_neighbor(&md);
 	    match_possession(&md);
@@ -1906,7 +1904,8 @@ prim_newplayer(PRIM_PROTOTYPE)
     DBDIRTY(tp_player_start);
     if(MLevel(newplayer) > LM3) SetMLevel(newplayer, LM3);
     log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
-        NAME(newplayer), (int) newplayer, NAME(player), (int) player);
+        NAME(newplayer), (int) newplayer, 
+        player != -1 ? NAME(player) : "(Login)", (int) player);
     
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1994,8 +1993,8 @@ prim_copyplayer(PRIM_PROTOTYPE)
     DBDIRTY(tp_player_start);
     if(MLevel(newplayer) > LM3) SetMLevel(newplayer, LM3);
     log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
-        NAME(newplayer), (int) newplayer, NAME(player), (int) player);
-    
+        NAME(newplayer), (int) newplayer, 
+           player != -1 ? NAME(player) : "(Login)", (int) player); 
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -2074,7 +2073,7 @@ prim_toadplayer(PRIM_PROTOTYPE) {
 	/* anotify(victim, BLUE "You have been frobbed!  Been nice knowing you.");
 	anotify_fmt(player, GREEN "You frob %s.", PNAME(victim)); */
 	log_status("FROB[MUF]: %s(%d) by %s(%d)\n", NAME(victim),
-		   victim, NAME(player), player);
+		   victim, player != -1 ? NAME(player) : "(Login)", player);
 
 	boot_player_off(victim);
 	delete_player(victim);

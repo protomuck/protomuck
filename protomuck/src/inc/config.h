@@ -60,7 +60,7 @@
  *
  */
 
-#define TINYPORT      8881    /* Port that tinymuck uses for playing */
+#define TINYPORT      4567    /* Port that tinymuck uses for playing */
 
 /*
  * Some systems can hang for up to 30 seconds while trying to resolve
@@ -121,7 +121,7 @@
 
 /* Set this to your mark for shouts, dumps, etc.  Also change @tunes */
 
-#define MARK "[!] "
+#define MARK ">> "
 
 /* Make the `examine' command display full names for types and flags */
 #define VERBOSE_EXAMINE
