@@ -923,9 +923,7 @@ const char *dest_name)
     if (Mage(OWNER(player)) || POWERS(OWNER(player)) & POW_LONG_FINGERS)
         match_player(&md);
 
-    if ((thing == noisy_match_result(&md)) == NOTHING)
-        return;
-    if (thing == AMBIGUOUS)
+    if ((thing = noisy_match_result(&md)) == NOTHING)
         return;
 
     /* check if new target would be valid. */
