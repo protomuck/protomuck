@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/interface.c,v 1.2 2000-09-20 18:34:09 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/interface.c,v 1.3 2000-09-20 18:42:02 akari Exp $
  *
  * $Log: not supported by cvs2svn $
  *
@@ -3075,7 +3075,7 @@ check_connect(struct descriptor_data * d, const char *msg)
 	   if (tmpfr) {
 		interp_loop(-1, tp_login_huh_command, tmpfr, 0);
 	   }
-      } else {
+      } else if(!index(msg,':') && !string_compare(msg, "GET")) {
 	   log_status("TYPO: %2d %s(%s) %s '%s' %d cmds\n",
 	     d->descriptor, d->hostname, d->username,
 	     host_as_hex(d->hostaddr), command, d->commands);
@@ -4201,7 +4201,7 @@ pset_user2(int c, dbref who)
    while(d && d->descriptor != c) {
       d = d->next;
    }
-   if(d->descriptor != c)
+   if(!d)
       return 0;
 
    if(d->connected)

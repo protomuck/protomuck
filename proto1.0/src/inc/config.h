@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/inc/config.h,v 1.2 2000-09-20 18:34:10 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/inc/config.h,v 1.3 2000-09-20 18:42:02 akari Exp $
  * $Log: not supported by cvs2svn $
  *
  * Revision 1.3  2000/06/27 22:32:17  moose
