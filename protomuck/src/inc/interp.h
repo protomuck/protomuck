@@ -73,6 +73,8 @@ extern int is_home(struct inst *oper);
 extern int permissions(int mlev, dbref player, dbref thing);
   
 extern int arith_type(struct inst *op1, struct inst *op2);
+
+extern void interp_set_depth(struct frame * fr);
   
 #define CHECKOP(N) { if ((*top) < (N)) { char* errbuf = (char*)malloc(128); interp_err(player, program, pc, arg, *top, fr->caller.st[1], insttotext(pc, errbuf, 128, 30, program), "Stack underflow."); free(errbuf); return; } nargs = (N); }
 

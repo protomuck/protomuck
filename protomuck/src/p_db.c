@@ -297,6 +297,7 @@ prim_moveto(PRIM_PROTOTYPE)
 	if (!(FLAGS(victim) & JUMP_OK)
 		&& !permissions(mlev, ProgUID, victim) && (mlev < LM3))
 	    abort_interp("Object can't be moved");
+      interp_set_depth(fr);
 	switch (Typeof(victim)) {
 	    case TYPE_PLAYER:
 		if (Typeof(dest) != TYPE_ROOM && Typeof(dest) != TYPE_PLAYER &&
@@ -389,6 +390,8 @@ prim_moveto(PRIM_PROTOTYPE)
 		abort_interp("Invalid object type (1)");
 	}
     }
+    fr->level--;
+    interp_set_depth(fr);
     CLEAR(oper1);
     CLEAR(oper2);
 }
@@ -1615,7 +1618,10 @@ prim_lockedp(PRIM_PROTOTYPE)
     if (!valid_object(oper1))
 	abort_interp("invalid object (2)");
     CHECKREMOTE(oper1->data.objref);
+    interp_set_depth(fr);
     result = !could_doit(fr->descr, oper2->data.objref, oper1->data.objref);
+    fr->level--;
+    interp_set_depth(fr);
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(result);
@@ -2554,6 +2560,8 @@ prim_nextplayer_flag(PRIM_PROTOTYPE)
     PushObject(ref);
 
 }
+
+
 void
 prim_nextplayer_power(PRIM_PROTOTYPE)
 {
@@ -2564,21 +2572,26 @@ prim_nextplayer_power(PRIM_PROTOTYPE)
     oper2 = POP();
     if (oper1->type != PROG_STRING)
 	abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
-	abort_interp("Empty string argument (2)");
     if (!valid_object(oper2))
 	abort_interp("Invalid object");
     if (Typeof(oper2->data.objref) != TYPE_PLAYER)
       ref = 0;
     else
       ref = oper2->data.objref;
-    pow = check_power(oper1->data.string->data);
-    if(!pow)
-      abort_interp("Not a valid power");
+    if(oper1->data.string) {
+       pow = check_power(oper1->data.string->data);
+       if(!pow)
+         abort_interp("Not a valid power");
+    }
     for(; ref < db_top; ref++) {
       result = 0;
-      if (POWERS(ref) & pow)
-         result = 1;
+      if (pow) {
+         if (POWERS(ref) & pow)
+            result = 1;
+      } else {
+         if (POWERS(ref))
+            result = 1;
+      }
       if (result && Typeof(ref) == TYPE_PLAYER)
          break;
     }

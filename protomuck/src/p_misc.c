@@ -240,7 +240,10 @@ prim_force(PRIM_PROTOTYPE)
     if (Man(oper2->data.objref) && !Man(OWNER(program)))
 	abort_interp("Cannot force the man (1)");
     force_level++;
+    interp_set_depth(fr);
     process_command(dbref_first_descr(oper2->data.objref), oper2->data.objref, oper1->data.string->data);
+    fr->level--;
+    interp_set_depth(fr);
     force_level--;
     CLEAR(oper1);
     CLEAR(oper2);
@@ -533,7 +536,11 @@ prim_testlock(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
     if (oper1->type != PROG_LOCK)
 	abort_interp("Invalid argument (2)");
+    interp_set_depth(fr);
     result = eval_boolexp(fr->descr, oper2->data.objref, oper1->data.lock, player);
+    fr->level--;
+    interp_set_depth(fr);
+
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(result);
@@ -592,9 +599,6 @@ prim_setsysparm(PRIM_PROTOTYPE)
 		break;
 	case 3:					/* TUNESET_BADVAL */
 		abort_interp("Bad parameter value. (2)");
-		break;
-	case 4:                                 /* TUNESET_NOPERM */
-                abort_interp("Permission denied.");
 		break;
 	}
 	CLEAR(oper1);
@@ -734,6 +738,28 @@ prim_event_send(PRIM_PROTOTYPE)
       CLEAR(oper1);
 	CLEAR(oper2);
 	CLEAR(oper3);
+}
+
+
+void
+prim_pnameokp(PRIM_PROTOTYPE)
+{
+   oper1 = POP();
+   if (oper1->type != PROG_STRING)
+      abort_interp("Player name string expected.");
+   result = ok_player_name(oper1->data.string->data);
+   PushInt(result);
+}
+
+
+void
+prim_nameokp(PRIM_PROTOTYPE)
+{
+   oper1 = POP();
+   if (oper1->type != PROG_STRING)
+      abort_interp("Object name string expected.");
+   result = ok_name(oper1->data.string->data);
+   PushInt(result);
 }
 
 

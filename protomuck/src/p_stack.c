@@ -883,6 +883,7 @@ prim_interp(PRIM_PROTOTYPE)
     strcpy(match_args, oper3->data.string? oper3->data.string->data : "");
 /*    rv = interp(fr->descr, player, DBFETCH(player)->location, oper1->data.objref,
 			oper2->data.objref, PREEMPT, STD_HARDUID, 1); */
+    interp_set_depth(fr);
     tmpfr = interp(fr->descr, player, DBFETCH(player)->location, oper1->data.objref,
 				   oper2->data.objref, PREEMPT, STD_HARDUID);
     if (tmpfr) {

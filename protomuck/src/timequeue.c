@@ -769,55 +769,47 @@ dequeue_prog(dbref program, int sleeponly)
 int
 dequeue_process(int pid)
 {
-    timequeue tmp, ptr = tqhead;
-    int deqflag = 0;
+	timequeue tmp, ptr = tqhead;
+	int deqflag = 0;
 
-    if (!pid) return 0;
+	if (!pid)
+		return 0;
 
-    if (muf_event_dequeue_pid(pid)) {
-	process_count--;
-    }
-
-    tmp = ptr;
-    while ((ptr) && (pid != ptr->eventnum)) {
-	if (pid == ptr->eventnum) {
-		if (tmp == ptr) {
-			tqhead = tmp = tmp->next;
-			free_timenode(ptr);
-			ptr = tmp;
-		} else {
-			tmp->next = ptr->next;
-			free_timenode(ptr);
-			ptr = tmp->next;
-		}
+	if (muf_event_dequeue_pid(pid)) {
 		process_count--;
-		deqflag = 1;
-	} else {
-		tmp = ptr;
-		ptr = ptr->next;
 	}
-    }
 
-/*    if (!tmp) return 0;
-    if (!ptr) return 0;
-    if (tmp == ptr) {
-	tqhead = ptr->next;
-    } else {
-	tmp->next = ptr->next;
-    }
-    free_timenode(ptr);
-    process_count--; */
-
-    if (!deqflag) {
-        return 0;
-    }
-    for (ptr = tqhead; ptr; ptr = ptr->next) {
-	if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
-						ptr->subtyp == TQ_MUF_TREAD)) {
-	    FLAGS(ptr->uid) |= (INTERACTIVE | READMODE);
+	tmp = ptr;
+	while (ptr) {
+		if (pid == ptr->eventnum) {
+			if (tmp == ptr) {
+				tqhead = tmp = tmp->next;
+				free_timenode(ptr);
+				ptr = tmp;
+			} else {
+				tmp->next = ptr->next;
+				free_timenode(ptr);
+				ptr = tmp->next;
+			}
+			process_count--;
+			deqflag = 1;
+		} else {
+			tmp = ptr;
+			ptr = ptr->next;
+		}
 	}
-    }
-    return 1;
+
+	if (!deqflag) {
+		return 0;
+	}
+
+	for (ptr = tqhead; ptr; ptr = ptr->next) {
+		if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
+									ptr->subtyp == TQ_MUF_TREAD)) {
+			FLAGS(ptr->uid) |= (INTERACTIVE | READMODE);
+		}
+	}
+	return 1;
 }
 
 

@@ -991,7 +991,10 @@ prim_islockedp(PRIM_PROTOTYPE)
       if (!(*(++tmpptr)))
          abort_interp("Cannot access a propdir directly");
 
+   interp_set_depth(fr);
    result = !(could_doit2(fr->descr, oper3->data.objref, oper2->data.objref, oper1->data.string->data));
+   fr->level--;
+   interp_set_depth(fr);
 
    CLEAR(oper1);
    CLEAR(oper2);

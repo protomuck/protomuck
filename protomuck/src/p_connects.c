@@ -332,13 +332,13 @@ void
 prim_descriptors(PRIM_PROTOTYPE)
 {
     int  mydescr, mycount = 0;
-    int  di, dcount;
+    int  di, dcount, descr;
     int* darr;
 
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LM3)
-	abort_interp("M3");
+	abort_interp("M3 prim");
     if (oper1->type != PROG_OBJECT)
 	abort_interp("Argument not a dbref");
     if (oper1->data.objref != NOTHING && !valid_object(oper1))
@@ -350,22 +350,22 @@ prim_descriptors(PRIM_PROTOTYPE)
     CHECKOP(0);
 
     if (ref == NOTHING) {
-        result = pcount();
-		CHECKOFLOW(result + 1);
-        while (result) {
+        for (result = pcount(); result; result--) {
+            CHECKOFLOW(1);
             mydescr = pdescr(result);
             PushInt(mydescr);
             mycount++;
-			result--;
         }
     } else {
-		darr = get_player_descrs(ref, &dcount);
-		CHECKOFLOW(dcount + 1);
+        darr = get_player_descrs(ref, &dcount);
         for (di = 0; di < dcount; di++) {
-            PushInt(darr[di]);
+            CHECKOFLOW(1);
+            descr = index_descr(darr[di]);
+            PushInt(descr);
             mycount++;
         }
     }
+    CHECKOFLOW(1);
     PushInt(mycount);
 }
 
@@ -374,7 +374,7 @@ prim_descr_array(PRIM_PROTOTYPE)
 {
 	stk_array *newarr;
 	int* darr;
-	int di, dcount;
+	int di, dcount, descr;
 	int i;
 
 	CHECKOP(1);
@@ -404,10 +404,11 @@ prim_descr_array(PRIM_PROTOTYPE)
 			array_setitem(&newarr, &temp1, &temp2);
         }
 	} else {
-		darr = get_player_descrs(ref, &dcount);
+        darr = get_player_descrs(ref, &dcount);
         for (di = 0; di < dcount; di++) {
+                  descr = index_descr(darr[di]);
 			temp1.data.number = di;
-			temp2.data.number = darr[di];
+			temp2.data.number = descr;
 			array_setitem(&newarr, &temp1, &temp2);
         }
 	}
@@ -437,8 +438,10 @@ prim_descr_setuser(PRIM_PROTOTYPE)
     if (oper3->type != PROG_STRING)
 	abort_interp("Password string expected");
     ptr = oper3->data.string? oper3->data.string->data : "";
-    if (ref != NOTHING && strcmp(ptr, DBFETCH(ref)->sp.player.password))
-	abort_interp("Incorrect password");
+    if ((ref != NOTHING) && DBFETCH(ref)->sp.player.password &&
+	(*DBFETCH(ref)->sp.player.password) &&
+	strcmp(ptr, DBFETCH(ref)->sp.player.password)
+    )	abort_interp("Incorrect password");
 
     if (ref != NOTHING) {
 	log_status("SUSR: %d %s(%d) to %s(%d)\n",

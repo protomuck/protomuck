@@ -759,5 +759,130 @@ prim_minusminus(PRIM_PROTOTYPE)
 
 
 
+void
+prim_dist2d(PRIM_PROTOTYPE)
+{
+   oper1 = POP();
+   oper2 = POP();
+
+   if ( (oper1->type == PROG_INTEGER || oper1->type == PROG_FLOAT) &&
+        (oper2->type == PROG_INTEGER || oper2->type == PROG_FLOAT)    )
+           abort_interp("Invalid argument type.");
+
+   if (!no_good(oper1->data.fnumber)) {
+      if (oper1->data.fnumber < 0.0) {
+         fresult = 0.0;
+         fr->error.error_flags.imaginary = 1;
+      } else {
+         fresult = (float) sqrt((double) oper1->data.fnumber);
+         fresult = (float) sqrt((double)                                                       (float) pow( \
+(double) (oper3->type == PROG_INTEGER ? (float) oper3->data.number : oper3->data.number), 2) + (float) pow( \
+(double) (oper4->type == PROG_INTEGER ? (float) oper4->data.number : oper4->data.number), 2)   );
+      }
+   } else {
+      fresult = 0.0;
+      fr->error.error_flags.f_bounds = 1;
+   }
+
+   CLEAR(oper1);
+   CLEAR(oper2);
+   PushFloat(fresult);
+}
+
+
+
+void
+prim_2ddist(PRIM_PROTOTYPE)
+{
+   float fresult;
+
+   oper1 = POP();
+   oper2 = POP();
+   oper3 = POP();
+   oper4 = POP();
+
+   if ( (oper1->type == PROG_INTEGER || oper1->type == PROG_FLOAT) &&
+        (oper2->type == PROG_INTEGER || oper2->type == PROG_FLOAT) &&
+        (oper3->type == PROG_INTEGER || oper3->type == PROG_FLOAT) &&
+        (oper4->type == PROG_INTEGER || oper4->type == PROG_FLOAT)    )
+           abort_interp("Invalid argument type.");
+
+   if (!no_good(oper1->data.fnumber)) {
+      if (oper1->data.fnumber < 0.0) {
+         fresult = 0.0;
+         fr->error.error_flags.imaginary = 1;
+      } else {
+         fresult = (float) sqrt((double) oper1->data.fnumber);
+         fresult = (float) sqrt((double)                                                     (float) pow( \
+(double) ((oper3->type == PROG_INTEGER ? (float) oper3->data.number : oper3->data.number) -                \
+         (oper1->type == PROG_INTEGER ? (float) oper1->data.number : oper1->data.number)), 2) + (float) pow( \
+(double) ((oper4->type == PROG_INTEGER ? (float) oper4->data.number : oper4->data.number) -                \
+         (oper2->type == PROG_INTEGER ? (float) oper2->data.number : oper2->data.number)), 2)   );
+      }
+   } else {
+      fresult = 0.0;
+      fr->error.error_flags.f_bounds = 1;
+   }
+
+   CLEAR(oper1);
+   CLEAR(oper2);
+   CLEAR(oper3);
+   CLEAR(oper4);
+   PushFloat(fresult);
+}
+
+
+
+void
+prim_3ddist(PRIM_PROTOTYPE)
+{
+   struct inst *oper5, *oper6;
+
+   oper1 = POP();
+   oper2 = POP();
+   oper3 = POP();
+   oper4 = POP();
+   oper5 = POP();
+   oper6 = POP();
+
+   if ( (oper1->type == PROG_INTEGER || oper1->type == PROG_FLOAT) &&
+        (oper2->type == PROG_INTEGER || oper2->type == PROG_FLOAT) &&
+        (oper3->type == PROG_INTEGER || oper3->type == PROG_FLOAT) &&
+        (oper4->type == PROG_INTEGER || oper4->type == PROG_FLOAT) &&
+        (oper5->type == PROG_INTEGER || oper5->type == PROG_FLOAT) &&
+        (oper6->type == PROG_INTEGER || oper6->type == PROG_FLOAT)    )
+           abort_interp("Invalid argument type.");
+
+   if (!no_good(oper1->data.fnumber)) {
+      if (oper1->data.fnumber < 0.0) {
+         fresult = 0.0;
+         fr->error.error_flags.imaginary = 1;
+      } else {
+         fresult = (float) sqrt((double) oper1->data.fnumber);
+         fresult = (float) sqrt((double)                                                     (float) pow( \
+(double) ((oper4->type == PROG_INTEGER ? (float) oper4->data.number : oper4->data.number) -                \
+         (oper1->type == PROG_INTEGER ? (float) oper1->data.number : oper1->data.number)), 2 ) + (float) pow( \
+(double) ((oper5->type == PROG_INTEGER ? (float) oper5->data.number : oper5->data.number) -                \
+         (oper2->type == PROG_INTEGER ? (float) oper2->data.number : oper2->data.number)), 2) + (float) pow( \
+(double) ((oper6->type == PROG_INTEGER ? (float) oper6->data.number : oper6->data.number) -                \
+         (oper3->type == PROG_INTEGER ? (float) oper3->data.number : oper3->data.number)), 2)   );
+      }
+   } else {
+      fresult = 0.0;
+      fr->error.error_flags.f_bounds = 1;
+   }
+
+   CLEAR(oper1);
+   CLEAR(oper2);
+   CLEAR(oper3);
+   CLEAR(oper4);
+   CLEAR(oper5);
+   CLEAR(oper6);
+   PushFloat(fresult);
+}
+
+
+
+
 
 

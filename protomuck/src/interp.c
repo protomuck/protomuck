@@ -344,7 +344,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->pid = top_pid++;
     fr->descr = descr;
     fr->multitask = nosleeps;
-    fr->perms=whichperms;
+    fr->perms = whichperms;
     fr->already_created = 0;
     fr->been_background = (nosleeps == 2);
     fr->trig = source;
@@ -354,6 +354,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->prog = program;
     fr->player = player;
     fr->instcnt = 0;
+    fr->skip_declare = 0;
     fr->caller.top = 1;
     fr->caller.st[0] = source;
     fr->caller.st[1] = program;
@@ -422,11 +423,9 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->variables[3].type = PROG_STRING;
     fr->variables[3].data.string = (!*match_cmdname) ? 0 : alloc_prog_string(match_cmdname);
 
-    ts_useobject(program);
     if (DBFETCH(program)->sp.program.code) {
        DBFETCH(program)->sp.program.profuses++;
     }
-
     DBFETCH(program)->sp.program.instances++;
     push(fr->argument.st, &(fr->argument.top), PROG_STRING, match_args ?
 	 MIPSCAST alloc_prog_string(match_args) : 0);
@@ -608,10 +607,11 @@ copyinst(struct inst * from, struct inst * to)
 		}
 		break;
       case PROG_SOCKET:
-	    if (from->data.sock)
+	    if (from->data.sock) {
 			from->data.sock->links++;
-	    break;
-	}
+	    }
+          break;
+      }
 }
 
 
@@ -630,31 +630,31 @@ copyvars(vars *from, vars *to)
 void
 calc_profile_timing(dbref prog, struct frame *fr)
 {
-    struct timeval tv;
-    struct timeval tv2;
+	struct timeval tv;
+	struct timeval tv2;
 
-    gettimeofday(&tv, NULL);
-    if (tv.tv_usec < fr->proftime.tv_usec) {
-        tv.tv_usec += 1000000;
-        tv.tv_sec -= 1;
-    }
-    tv.tv_usec -= fr->proftime.tv_usec;
-    tv.tv_sec -= fr->proftime.tv_sec;
-    tv2 = DBFETCH(prog)->sp.program.proftime;
-    tv2.tv_sec += tv.tv_sec;
-    tv2.tv_usec += tv.tv_usec;
-    if (tv2.tv_usec >= 1000000) {
-        tv2.tv_usec -= 1000000;
-        tv2.tv_sec += 1;
-    }
-    DBFETCH(prog)->sp.program.proftime.tv_usec = tv2.tv_usec;
-    DBFETCH(prog)->sp.program.proftime.tv_sec = tv2.tv_sec;
-    fr->totaltime.tv_sec += tv.tv_sec;
-    fr->totaltime.tv_usec += tv.tv_usec;
-    if (fr->totaltime.tv_usec > 1000000) {
-	fr->totaltime.tv_usec -= 1000000;
-	fr->totaltime.tv_sec += 1;
-    }
+	gettimeofday(&tv, NULL);
+	if (tv.tv_usec < fr->proftime.tv_usec) {
+		tv.tv_usec += 1000000;
+		tv.tv_sec -= 1;
+	}
+	tv.tv_usec -= fr->proftime.tv_usec;
+	tv.tv_sec -= fr->proftime.tv_sec;
+	tv2 = DBFETCH(prog)->sp.program.proftime;
+	tv2.tv_sec += tv.tv_sec;
+	tv2.tv_usec += tv.tv_usec;
+	if (tv2.tv_usec >= 1000000) {
+		tv2.tv_usec -= 1000000;
+		tv2.tv_sec += 1;
+	}
+      DBFETCH(prog)->sp.program.proftime.tv_sec = tv2.tv_sec;
+      DBFETCH(prog)->sp.program.proftime.tv_usec = tv2.tv_usec;
+	fr->totaltime.tv_sec += tv.tv_sec;
+	fr->totaltime.tv_usec += tv.tv_usec;
+	if (fr->totaltime.tv_usec > 1000000) {
+		fr->totaltime.tv_usec -= 1000000;
+		fr->totaltime.tv_sec += 1;
+	}
 }
 
 
@@ -687,13 +687,19 @@ do_abort_loop(dbref player, dbref program, const char *msg,
     } else {
 	notify_nolisten(player, msg, 1);
     }
-    interp_depth--;
+    fr->level--;
     prog_clean(fr);
     DBSTORE(player, sp.player.block, 0);
 }
 
 extern struct line *read_program( );
 extern char *show_line_prims( );
+
+void
+interp_set_depth(struct frame * fr)
+{
+   interp_depth = fr->level;
+}
 
 struct inst * 
 interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
@@ -710,8 +716,12 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
     static struct inst retval;
     char dbuf[BUFFER_LEN];
 
-
-    fr->level = ++interp_depth; /* increment interp level */
+    if(interp_depth) {
+       fr->level = interp_depth++;
+       interp_depth = 0;
+    } else {
+       fr->level++;
+    }
 
     /* load everything into local stuff */
     pc = fr->pc;
@@ -764,7 +774,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		DBSTORE(player, sp.player.block, (!fr->been_background));
 		add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING, program, fr,
 		    (fr->multitask==FOREGROUND) ? "FOREGROUND" : "BACKGROUND");
-		interp_depth--;
+		fr->level--;
 		calc_profile_timing(program,fr);
 		return NULL;
 	    }
@@ -828,7 +838,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			    fr->brkpt.bypass = 0;
 			    DBSTORE(player, sp.player.curr_prog, program);
 			    DBSTORE(player, sp.player.block, 0);
-			    interp_depth--;
+			    fr->level--;
 			    if (!fr->brkpt.showstack) {
 				m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
 				notify_nolisten(player, m, 1);
@@ -1106,7 +1116,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			reload(fr, atop, stop);
 			muf_event_register(player, program, fr);
 			DBSTORE(player, sp.player.block, (!fr->been_background));
-			interp_depth--;
+			fr->level--;
 			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
@@ -1123,7 +1133,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			DBSTORE(player, sp.player.curr_prog, program);
 			DBSTORE(player, sp.player.block, 0);
 			add_muf_read_event(fr->descr, player, program, fr);
-			interp_depth--;
+			fr->level--;
 			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
@@ -1149,7 +1159,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			DBSTORE(player, sp.player.curr_prog, program);
 			DBSTORE(player, sp.player.block, 0);
 			add_muf_tread_event(fr->descr, player, program, fr, temp1->data.number);
-			interp_depth--;
+			fr->level--;
 			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
@@ -1168,7 +1178,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			add_muf_delay_event(temp1->data.number, fr->descr, player,
 				NOTHING, NOTHING, program, fr, "SLEEPING");
 			DBSTORE(player, sp.player.block, (!fr->been_background));
-			interp_depth--;
+			fr->level--;
 			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
@@ -1198,7 +1208,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	    reload(fr, atop, stop);
 	    prog_clean(fr);
 	    DBSTORE(player, sp.player.block, 0);
-	    interp_depth--;
+	    fr->level--;
 	    calc_profile_timing(program,fr);
 	    return NULL;
 	}
@@ -1220,13 +1230,13 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	}
 	reload(fr, atop, stop);
 	prog_clean(fr);
-	interp_depth--;
+	fr->level--;
 	calc_profile_timing(program,fr);
 	return rv;
     }
     reload(fr, atop, stop);
     prog_clean(fr);
-    interp_depth--;
+    fr->level--;
     calc_profile_timing(program,fr);
     return NULL;
 }
