@@ -85,7 +85,6 @@ void    check_connect(struct descriptor_data * d, const char *msg);
 void    close_sockets(const char *msg);
 int     boot_off(dbref player);
 void    boot_player_off(dbref player);
-void    boot_player_off_too(dbref player);
 const char *addrout(int, unsigned short);
 void    dump_users(struct descriptor_data * d, char *user);
 struct descriptor_data *new_connection(int sock, int ctype);
@@ -2962,31 +2961,6 @@ boot_player_off(dbref player)
     update_desc_count_table();
 }
 
-void 
-boot_player_off_too(dbref player)
-{
-    int di;
-    int* darr;
-    int dcount;
-    struct descriptor_data *d;
- 
-	darr = get_player_descrs(player, &dcount);
-
-    for (di = 0; di < dcount; di++) {
-        d = descrdata_by_descr(darr[di]);
-        if (d) {
-#ifdef HTTPDELAY
-		if(d->httpdata) {
-		    queue_ansi(d, d->httpdata);
-		    free((void *)d->httpdata);
-		    d->httpdata = NULL;
-		}
-#endif
-		process_output(d);
-            shutdownsock(d);
-        }
-    }
-}
 
 void
 close_sockets(const char *msg)

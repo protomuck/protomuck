@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.8 2000-09-18 03:21:51 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.9 2000-10-23 04:54:09 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands

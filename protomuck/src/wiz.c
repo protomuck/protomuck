@@ -894,7 +894,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
 	log_status("FROB: %s(%d) by %s(%d)\n", NAME(victim),
 		   victim, NAME(player), player);
       if (Typeof(victim) != TYPE_PLAYER) return;
-	boot_player_off_too(victim);
+	boot_player_off(victim);
 	delete_player(victim);
 	/* reset name */
 	sprintf(buf, "The soul of %s", PNAME(victim));

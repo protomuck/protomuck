@@ -2230,7 +2230,7 @@ prim_toadplayer(PRIM_PROTOTYPE) {
 	log_status("FROB[MUF]: %s(%d) by %s(%d)\n", NAME(victim),
 		   victim, NAME(player), player);
 
-	boot_player_off_too(victim);
+	boot_player_off(victim);
 	delete_player(victim);
 	/* reset name */
 	sprintf(buf, "The soul of %s", PNAME(victim));
