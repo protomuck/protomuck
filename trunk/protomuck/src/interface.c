@@ -2505,7 +2505,6 @@ save_command(struct descriptor_data * d, const char *command)
         !string_compare((char *) command, BREAK_COMMAND) &&
         ( (MLevel(d->player) >= tp_min_progbreak_lev) ||
         (Wiz(d->player)))  ) {
-notify_fmt(3166, "about to dequeue %d", d->player);
 	if (dequeue_prog(d->player, 2))
 	    anotify(d->player, CINFO "Foreground program aborted.");
 	DBFETCH(d->player)->sp.player.block = 0;
