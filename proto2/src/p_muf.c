@@ -397,7 +397,8 @@ prim_program_insertlines(PRIM_PROTOTYPE)
         } while (array_next(lines, &temp1));
     }
     log_status("PROGRAM EDITED: %s by %s(%d)\n",
-               unparse_object(player, theprog), NAME(player), player);
+               unparse_object(PSafe, theprog),
+               OkObj(player) ? NAME(player) : "(login)", player);
     if (tp_log_programs)
         log_program_text(DBFETCH(theprog)->sp.program.first, player,
                          oper1->data.objref);
