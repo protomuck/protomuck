@@ -245,9 +245,9 @@ has_flagp(dbref ref, char *flag, int mlev)
       lev = check_mlev(flag, &truwiz);
       if(lev) {
          if(truwiz)
-            result = (QLevel(ref) >= lev);
-         else
             result = (MLevel(ref) >= lev);
+         else
+            result = (QLevel(ref) >= lev);
       } else {
          tmp2 = check_flag2(flag, &tmp3);
          if(!tmp2)
