@@ -23,7 +23,7 @@ do_say(int descr, dbref player, const char *message)
 
     if ((loc = getloc(player)) == NOTHING)
 	return;
-
+    tct(message,buf2);
     /* notify everybody */
     sprintf(buf, AQUA "You say, \"" YELLOW "%s" AQUA "\"", buf2);
     anotify(player, buf);
@@ -100,7 +100,7 @@ do_pose(int descr, dbref player, const char *message)
 
     if ((loc = getloc(player)) == NOTHING)
 	return;
-
+    tct(message,buf2);
     /* notify everybody */
     sprintf(buf, AQUA "%s %s", PNAME(player), buf2);
     anotify_except(DBFETCH(loc)->contents, NOTHING, buf, player);
