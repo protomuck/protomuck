@@ -133,10 +133,11 @@ update_socket_frame(struct muf_socket *mufSock, struct frame *newfr)
         if (curr->theSock->readWaiting) { /* need to send an event to new fr */
             temp1.type = PROG_SOCKET;
             temp1.data.sock = curr->theSock;
-            if (curr->theSock->listening)
-                strcpy(littleBuf, "SOCKET.LISTEN");
+            if (curr->theSock->listening) 
+                sprintf(littleBuf, "SOCKET.LISTEN.%d", 
+                         curr->theSock->socknum);   
             else
-                strcpy(littleBuf, "SOCKET.READ");
+                sprintf(littleBuf, "SOCKET.READ.%d", curr->theSock->socknum);
             muf_event_add(curr->fr, littleBuf, &temp1, 1); /* 1 = exclusive */
         }
     }
@@ -192,9 +193,10 @@ muf_socket_events()
             temp1.type = PROG_SOCKET;
             temp1.data.sock = curr->theSock;
             if (curr->theSock->listening)
-                strcpy(littleBuf, "SOCKET.LISTEN");
+                sprintf(littleBuf, "SOCKET.LISTEN.%d",
+                         curr->theSock->socknum);
             else
-                strcpy(littleBuf, "SOCKET.READ");
+                sprintf(littleBuf, "SOCKET.READ.%d", curr->theSock->socknum);
             muf_event_add(curr->fr, littleBuf, &temp1, 1); /* 1 = exclusive */ 
         } /* if */
         curr = curr->next;
@@ -261,6 +263,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     char *mystring;
     int loop, gotmessage = 0;
     int readme = 0;
+    int conRead = 1; /* bool to detect dropped connections */
     int sockval = 0;
     fd_set reads;
     struct timeval t_val;
@@ -306,6 +309,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     if (FD_ISSET(oper1->data.sock->socknum, &reads))
     {
        readme = recv(oper1->data.sock->socknum,mystring,1,0);
+       conRead = readme;
        while (readme > 0 && charCount < BUFFER_LEN)
        {
            if ((*mystring == '\0') || (((*mystring == '\n') ||
@@ -376,10 +380,8 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
             log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program, 
                            unparse_object(player, player), sockval);
     
-    if (readme < 1 && readme != -1)
-        readme = 0;
     CHECKOFLOW(2);
-    PushInt(readme);
+    PushInt(conRead);
     PushString(bigbuf);
     free((void *)mystring);
     free((void *)bigbuf);
