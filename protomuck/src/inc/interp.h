@@ -13,9 +13,22 @@ typedef void * voidptr;
 #define MIPSCAST
 #endif
 
-#define UPCASE(x) (toupper(x))
-#define DOWNCASE(x) (tolower(x))
+extern const char *uppercase, *lowercase;
+#define UPCASE(x) (uppercase[x])
+#define DOWNCASE(x) (lowercase[x])
 
+#ifdef COMPRESS
+extern const char *uncompress(const char *);
+extern const char *compress(const char *);
+
+#define alloc_compressed(x) alloc_string(compress(x))
+#define get_compress(x) compress(x)
+#define get_uncompress(x) uncompress(x)
+#else /* COMPRESS */
+#define alloc_compressed(x) alloc_string(x)
+#define get_compress(x) (x)
+#define get_uncompress(x) (x)
+#endif /* COMPRESS */
 #define DoNullInd(x) ((x) ? (x) -> data : "")
   
 extern void do_abort_silent(void);
@@ -31,17 +44,11 @@ extern void localvar_dupall(struct frame *fr, struct frame *oldfr);
 extern struct inst *scopedvar_get(struct frame *fr, int level, int varnum);
 extern const char* scopedvar_getname(struct frame *fr, int level, int varnum);
 extern const char* scopedvar_getname_byinst(struct inst *pc, int varnum);
-extern int scopedvar_getnum(struct frame *fr, int level, const char* varname);
+extern int scoepdvar_getnum(struct frame *fr, int level, const char* varname);
 extern void scopedvar_dupall(struct frame *fr, struct frame *oldfr);
 extern int logical_false(struct inst *p);
   
-extern void purge_for_pool(void);
-extern void purge_try_pool(void);
-
 extern void copyinst(struct inst *from, struct inst *to);
-
-/* From p_socket.c */
-extern void remove_socket_from_queue(struct muf_socket *oldSock);
   
 #define abort_loop(S, C1, C2) \
 { \
@@ -79,7 +86,6 @@ extern int valid_object(struct inst *oper);
 extern int is_home(struct inst *oper);
   
 extern int permissions(int mlev, dbref player, dbref thing);
-extern int newpermissions(int mlev, dbref player, dbref thing, int true_c);
   
 extern int arith_type(struct inst *op1, struct inst *op2);
 
@@ -87,20 +93,20 @@ extern void interp_set_depth(struct frame * fr);
   
 #define CHECKOP_READONLY(N) \
 { \
-    nargs = (N); \
-    if (*top < nargs) { \
-        nargs = 0; \
-        abort_interp("Stack underflow."); \
-    }\
+	nargs = (N); \
+	if (*top < nargs) { \
+                nargs = 0; \
+		abort_interp("Stack underflow."); \
+        }\
 }
 
 #define CHECKOP(N) \
 { \
-    CHECKOP_READONLY(N); \
-    if (fr->trys.top && *top - fr->trys.st->depth < nargs) {\
-        nargs = 0;\
-        abort_interp("Stack protection fault."); \
-    }\
+	CHECKOP_READONLY(N); \
+	if (fr->trys.top && *top - fr->trys.st->depth < nargs) {\
+		nargs = 0;\
+		abort_interp("Stack protection fault."); \
+	}\
 }
 
 #define POP() (arg + --(*top))
@@ -182,5 +188,5 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 #include "p_mysql.h"
 #include "p_muf.h"
 #include "p_regex.h"
-#include "p_http.h" /* hinoserm */
+
 
