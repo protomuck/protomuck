@@ -1113,9 +1113,13 @@ do_directive(COMPSTATE * cstat, char *direct)
 		}
 
 	} else if (!string_compare(temp, "cleardefs")) {
+                char nextToken[BUFFER_LEN];
                 purge_defs(cstat);//Get rid of all defs first.
 		include_internal_defs(cstat);//Always include internal defs.
-		tmpname = (char *) next_token_raw(cstat);
+                while(*cstat->next_char && isspace(*cstat->next_char))
+                    cstat->next_char++; /* eating leading spaces */
+                strcpy(nextToken, cstat->next_char);
+                tmpname = nextToken;
 		while (*cstat->next_char)
 			cstat->next_char++;
 		advance_line(cstat);
@@ -1124,7 +1128,6 @@ do_directive(COMPSTATE * cstat, char *direct)
 			include_defs(cstat, OWNER(cstat->program));
 			include_defs(cstat, (dbref) 0);
 		}
-		free(tmpname);
 
 	} else if (!string_compare(temp, "nomacros")) {
 		cstat->use_macros = 0;
@@ -1635,12 +1638,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 				{
 					if (defstr && *defstr)
 					{
-						(void) insert_def(cstat, tmpname, cstat->next_char);
-
 						add_property(cstat->program, propname, defstr, 0);
 					} else {
-						kill_def(cstat, tmpname);
-
 						remove_property(cstat->program, propname);
 					}
 				}
