@@ -228,7 +228,7 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
     anotify_nolisten(player, CINFO "System stack backtrace:", 1);
     i = count;
     if (!i)
-        i = STACK_SIZE;
+        i = ADDR_SIZE;
     ref = program;
     pinst = NULL;
     j = fr->system.top + 1;
@@ -271,9 +271,13 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
                 val = insttotext(fr, lev, varinst, buf3, sizeof(buf3), 30,
                                  program);
 
-                bufend += snprintf(bufend, buf2 - bufend - 18, k ? SYSWHITE ", %s=" SYSNORMAL "%s" : SYSWHITE "%s=" SYSNORMAL "%s", nam, val);
+                bufend +=
+                    snprintf(bufend, buf2 - bufend - 18,
+                             k ? SYSWHITE ", %s=" SYSNORMAL "%s" : SYSWHITE
+                             "%s=" SYSNORMAL "%s", nam, val);
             }
-            bufend += snprintf(bufend, buf2 - bufend - 1, SYSWHITE ")" SYSNORMAL);
+            bufend +=
+                snprintf(bufend, buf2 - bufend - 1, SYSWHITE ")" SYSNORMAL);
             ptr = buf2;
         }
 
@@ -659,7 +663,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text,
             add_muf_read_event(descr, player, program, fr);
             return 0;
         }
-        if (fr->system.top >= STACK_SIZE) {
+        if (fr->system.top >= ADDR_SIZE) {
             anotify_nolisten(player,
                              CFAIL
                              "That would exceed the system stack size for this program.",
@@ -695,7 +699,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text,
             add_muf_read_event(descr, player, program, fr);
             return 0;
         }
-        if (fr->system.top >= STACK_SIZE) {
+        if (fr->system.top >= ADDR_SIZE) {
             anotify_nolisten(player,
                              CFAIL
                              "That would exceed the system stack size for this program.",

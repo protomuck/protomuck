@@ -57,6 +57,18 @@ struct CONTROL_STACK {
     struct CONTROL_STACK *extra;
 };
 
+struct LABEL_LIST {
+    const char *name;
+    struct INTERMEDIATE *code;
+    struct LABEL_LIST *next;
+};
+
+struct LABEL_NOTE {
+    const char *name;
+    struct INTERMEDIATE *code;
+    struct LABEL_NOTE *next;
+};
+
 /* This structure is an association list that contains both a procedure
    name and the place in the code that it belongs.  A lookup to the procedure
    will see both it's name and it's number and so we can generate a
@@ -67,6 +79,8 @@ struct CONTROL_STACK {
 struct PROC_LIST {
     const char *name;
     int returntype;
+    struct LABEL_LIST *labels;
+    struct LABEL_NOTE *lnotes;
     struct INTERMEDIATE *code;
     struct PROC_LIST *next;
 };
@@ -84,7 +98,6 @@ struct INTERMEDIATE {
     short line;                 /* line number of instruction */
     struct INTERMEDIATE *next;  /* next instruction */
 };
-
 
 /* The state structure for a compile. */
 typedef struct COMPILE_STATE_T {
@@ -146,7 +159,11 @@ struct INTERMEDIATE *number_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *float_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *object_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *quoted_word(COMPSTATE *, const char *);
+struct INTERMEDIATE *quoted_label_word(COMPSTATE *, const char *);
+struct INTERMEDIATE *quoted_note_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *call_word(COMPSTATE *, const char *);
+struct INTERMEDIATE *jump_word(COMPSTATE *, const char *);
+struct INTERMEDIATE *label_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *var_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *lvar_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *svar_word(COMPSTATE *, const char *);
@@ -164,6 +181,7 @@ void clean_mcpbinds(struct mcp_binding *mcpbinds);
 #endif
 void cleanup(COMPSTATE *);
 void add_proc(COMPSTATE *, const char *, struct INTERMEDIATE *, int rettype);
+void add_label(COMPSTATE *, const char *, struct INTERMEDIATE *);
 void add_control_structure(COMPSTATE *, int typ, struct INTERMEDIATE *);
 void add_loop_exit(COMPSTATE *, struct INTERMEDIATE *);
 int in_loop(COMPSTATE *cstat);
@@ -181,7 +199,11 @@ int add_localvar(COMPSTATE *, const char *, int valtype);
 int add_scopedvar(COMPSTATE *, const char *, int valtype);
 int special(const char *);
 int call(COMPSTATE *, const char *);
+int jump(COMPSTATE *, const char *);
 int quoted(COMPSTATE *, const char *);
+int quoted_label(COMPSTATE *, const char *);
+int quoted_note(COMPSTATE *, const char *);
+int label(const char *);
 int object(const char *);
 int string(const char *);
 int variable(COMPSTATE *, const char *);
@@ -291,7 +313,6 @@ get_address(COMPSTATE *cstat, struct INTERMEDIATE *dest, int offset)
     return cstat->addrcount++;
 }
 
-
 void
 fix_addresses(COMPSTATE *cstat)
 {
@@ -325,7 +346,6 @@ fix_addresses(COMPSTATE *cstat)
     }
 }
 
-
 void
 free_addresses(COMPSTATE *cstat)
 {
@@ -338,9 +358,7 @@ free_addresses(COMPSTATE *cstat)
     cstat->addrlist = NULL;
 }
 
-
 /*****************************************************************/
-
 
 void
 fixpubs(struct publics *mypubs, struct inst *offset)
@@ -556,7 +574,8 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "IGNORE_ADD", "\"/@/ignore\" swap reflist_add");
     insert_def(cstat, "IGNORE_DEL", "\"/@/ignore\" swap reflist_del");
     insert_def(cstat, "IGNORING?", "\"/@/ignore\" swap reflist_find");
-    insert_def(cstat, "ARRAY_GET_IGNORELIST", "\"/@/ignore\" array_get_reflist");
+    insert_def(cstat, "ARRAY_GET_IGNORELIST",
+               "\"/@/ignore\" array_get_reflist");
 #else
     insert_def(cstat, "MAX_IGNORES", "0");
 #endif
@@ -1188,8 +1207,9 @@ OptimizeIntermediate(COMPSTATE *cstat)
                             }
                         }       /* end of % case */
                     }           /* end of if PROG_INTEGER if */
-                }               /* end of 2 contiguous */ 
+                }
 
+                /* end of 2 contiguous */
                 /* 0 = into not */
                 if (IntermediateIsInteger(curr, 0)) {
                     if (ContiguousIntermediates(Flags, curr->next, 1)) {
@@ -1452,6 +1472,17 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 
 }
 
+struct LABEL_LIST *
+find_label(COMPSTATE *cstat, const char *name)
+{
+    struct LABEL_LIST *p;
+
+    for (p = cstat->procs->labels; p; p = p->next)
+        if (!string_compare(p->name, name))
+            return p;
+    return NULL;
+}
+
 struct INTERMEDIATE *
 next_word(COMPSTATE *cstat, const char *token)
 {
@@ -1463,6 +1494,8 @@ next_word(COMPSTATE *cstat, const char *token)
 
     if (call(cstat, token))
         new_word = call_word(cstat, token);
+    /* else if (jump(cstat, token))
+       new_word = jump_word(cstat, token); */
     else if (scopedvar(cstat, token))
         new_word = svar_word(cstat, token);
     else if (localvar(cstat, token))
@@ -1483,6 +1516,12 @@ next_word(COMPSTATE *cstat, const char *token)
         new_word = object_word(cstat, token);
     else if (quoted(cstat, token))
         new_word = quoted_word(cstat, token + 1);
+    else if (quoted_label(cstat, token))
+        new_word = quoted_label_word(cstat, token + 1);
+    else if (quoted_note(cstat, token))
+        new_word = quoted_note_word(cstat, token + 1);
+    else if (label(token))
+        new_word = label_word(cstat, token);
     else {
         sprintf(buf, "Unrecognized word %s.", token);
         abort_compile(cstat, buf);
@@ -1835,7 +1874,7 @@ do_directive(COMPSTATE *cstat, char *direct)
     } else if (!string_compare(temp, "cleardefs")) {
         char nextToken[BUFFER_LEN];
 
-        purge_defs(cstat);            /* Get rid of all defs first. */
+        purge_defs(cstat);      /* Get rid of all defs first. */
         include_internal_defs(cstat); /* Always include internal defs. */
         while (*cstat->next_char && isspace(*cstat->next_char))
             cstat->next_char++; /* eating leading spaces */
@@ -2671,6 +2710,38 @@ process_special(COMPSTATE *cstat, const char *token)
                 cstat->scopedvars[i] = 0;
             }
         }
+
+        if (cstat->procs->lnotes) {
+            if (cstat->procs->labels) {
+                struct LABEL_NOTE *n;
+                struct LABEL_LIST *l, *tmpl;
+
+                for (n = cstat->procs->lnotes; n; n = cstat->procs->lnotes) {
+                    if (!(l = find_label(cstat, n->name))) {
+                        sprintf(buf, "Unrecognized word '%s.", n->name);
+                        abort_compile(cstat, buf);
+                        break;  /* never gets here */
+                    }
+
+                    cstat->procs->lnotes = n->next;
+                    n->code->in.data.number = get_address(cstat, l->code, 0);
+
+                    free((void *) n->name);
+                    free((void *) n);
+                } cstat->procs->lnotes = NULL;
+
+                for (l = cstat->procs->labels; l; l = tmpl) {
+                    tmpl = l->next;
+                    free((void *) l->name);
+                    free((void *) l);
+                } cstat->procs->labels = NULL;
+            } else {
+                sprintf(buf, "Unrecognized word '%s.",
+                        cstat->procs->lnotes->name);
+                abort_compile(cstat, buf);
+            }
+        }
+
         cstat->curr_proc = 0;
         return nw;
     } else if (!string_compare(token, "IF")) {
@@ -2992,7 +3063,8 @@ process_special(COMPSTATE *cstat, const char *token)
         cstat->nested_trys++;
 
         return nw;
-    } else if (!string_compare(token, "CATCH")  || !string_compare(token, "CATCH_DETAILED")) {
+    } else if (!string_compare(token, "CATCH")
+               || !string_compare(token, "CATCH_DETAILED")) {
         /* can't use 'if' because it's a reserved word */
         struct INTERMEDIATE *eef;
         struct INTERMEDIATE *curr;
@@ -3314,6 +3386,48 @@ call_word(COMPSTATE *cstat, const char *token)
     nw->in.data.number = get_address(cstat, p->code, 0);
     return nw;
 }
+
+struct INTERMEDIATE *
+jump_word(COMPSTATE *cstat, const char *token)
+{
+    struct INTERMEDIATE *nw;
+    struct LABEL_LIST *p = find_label(cstat, token);
+
+    nw = new_inst(cstat);
+    nw->no = cstat->nowords++;
+    nw->in.type = PROG_JMP;
+    nw->in.line = cstat->lineno;
+
+    nw->in.data.number = get_address(cstat, p->code, 0);
+    return nw;
+}
+
+struct INTERMEDIATE *
+label_word(COMPSTATE *cstat, const char *token)
+{
+    struct INTERMEDIATE *nw;
+    char buf[BUFFER_LEN];
+
+    if (cstat->curr_proc) {
+        strcpy(buf, token);
+        buf[strlen(token) - 1] = '\0';
+
+        if (find_label(cstat, buf))
+            abort_compile(cstat, "Cannot define the same label twice.");
+
+        nw = new_inst(cstat);
+        nw->no = cstat->nowords++;
+        nw->in.type = PROG_LABEL;
+        nw->in.line = cstat->lineno;
+        nw->in.data.labelname = string_dup(buf);
+        add_label(cstat, buf, nw);
+
+        return nw;
+    } else {
+        abort_compile(cstat, "Cannot define label outside of procedure.");
+    }
+}
+
 struct INTERMEDIATE *
 quoted_word(COMPSTATE *cstat, const char *token)
 {
@@ -3329,6 +3443,51 @@ quoted_word(COMPSTATE *cstat, const char *token)
             break;
 
     nw->in.data.number = get_address(cstat, p->code, 0);
+    return nw;
+}
+
+struct INTERMEDIATE *
+quoted_label_word(COMPSTATE *cstat, const char *token)
+{
+    struct INTERMEDIATE *nw;
+    struct LABEL_LIST *p;
+
+    nw = new_inst(cstat);
+    nw->no = cstat->nowords++;
+    nw->in.type = PROG_ADD;
+    nw->in.line = cstat->lineno;
+
+    for (p = cstat->procs->labels; p; p = p->next)
+        if (!string_compare(p->name, token))
+            break;
+
+    nw->in.data.number = get_address(cstat, p->code, 0);
+    return nw;
+}
+
+/* This one's a little strange.  Since you need to be able to */
+/*  define labels AFTER they're used, I make note of any address */
+/*  retreival attempts that've failed, and then check again after */
+/*  the end of the function.  */
+
+struct INTERMEDIATE *
+quoted_note_word(COMPSTATE *cstat, const char *token)
+{
+    struct INTERMEDIATE *nw;
+    struct LABEL_NOTE *n;
+
+    nw = new_inst(cstat);
+    nw->no = cstat->nowords++;
+    nw->in.type = PROG_ADD;
+    nw->in.line = cstat->lineno;
+    nw->in.data.number = 0;     /* If it can't find anything it'll abort anyway. */
+
+    n = (struct LABEL_NOTE *) malloc(sizeof(struct LABEL_NOTE));
+    n->name = alloc_string(token);
+    n->code = nw;
+    n->next = cstat->procs->lnotes;
+    cstat->procs->lnotes = n;
+
     return nw;
 }
 
@@ -3426,9 +3585,26 @@ add_proc(COMPSTATE *cstat, const char *proc_name,
     nw->name = alloc_string(proc_name);
     nw->returntype = rettype;
     nw->code = place;
+    nw->labels = NULL;
+    nw->lnotes = NULL;
     nw->next = cstat->procs;
     cstat->procs = nw;
 }
+
+/* add a label to the list */
+void
+add_label(COMPSTATE *cstat, const char *label_name, struct INTERMEDIATE *place)
+{
+    struct LABEL_LIST *nw;
+
+    nw = (struct LABEL_LIST *) malloc(sizeof(struct LABEL_LIST));
+
+    nw->name = alloc_string(label_name);
+    nw->code = place;
+    nw->next = cstat->procs->labels;
+    cstat->procs->labels = nw;
+}
+
 /* add if to control stack */ void
 add_control_structure(COMPSTATE *cstat, int typ, struct INTERMEDIATE *place)
 {
@@ -3676,6 +3852,7 @@ special(const char *token)
                        && string_compare(token, "VAR!")
                        && string_compare(token, "VAR")));
 }
+
 /* see if procedure call */ int
 call(COMPSTATE *cstat, const char *token)
 {
@@ -3687,12 +3864,33 @@ call(COMPSTATE *cstat, const char *token)
 
     return 0;
 }
+
+/* see if it's a jumpable label */ int
+jump(COMPSTATE *cstat, const char *token)
+{
+    return (find_label(cstat, token) != NULL);
+}
+
 /* see if it's a quoted procedure name */ int
 quoted(COMPSTATE *cstat, const char *token)
 {
     return (*token == '\'' && call(cstat, token + 1));
 }
-/* see if it's an object # */ int
+
+/* see if it's a quoted label name */ int
+quoted_label(COMPSTATE *cstat, const char *token)
+{
+    return (*token == '\'' && jump(cstat, token + 1));
+}
+
+/* see if it's a quoted label name */ int
+quoted_note(COMPSTATE *cstat, const char *token)
+{
+    return (*token == '\'');
+}
+
+/* see if it's an object # */
+int
 object(const char *token)
 {
     if (*token == NUMBER_TOKEN && number(token + 1))
@@ -3700,6 +3898,16 @@ object(const char *token)
     else
         return 0;
 }
+
+/* see if it's label definition */
+int
+label(const char *token)
+{
+    register int i = strlen(token);
+
+    return (i > 1 && token[i - 1] == ':');
+}
+
 /* see if string */ int
 string(const char *token)
 {
@@ -3849,11 +4057,32 @@ cleanup(COMPSTATE *cstat)
     } cstat->control_stack = 0;
 
     for (p = cstat->procs; p; p = tempp) {
+        struct LABEL_LIST *l = p->labels, *tmpl;
+        struct LABEL_NOTE *n = p->lnotes, *tmpn;
+
         tempp = p->next;
+
+        for (; l; l = tmpl) {
+            tmpl = l->next;
+            free((void *) l->name);
+            free((void *) l);
+        }
+
+        for (; n; n = tmpn) {
+            tmpn = n->next;
+            free((void *) n->name);
+            free((void *) n);
+        }
+
         free((void *) p->name);
         free((void *) p);
-    }
-    cstat->procs = 0;
+    } cstat->procs = 0;
+
+    /* for (l = cstat->labels; l; l = templ) {
+       templ = l->next;
+       free((void *) l->name);
+       free((void *) l);
+       } cstat->labels = 0; */
 
     purge_defs(cstat);
     free_addresses(cstat);
@@ -3952,6 +4181,9 @@ copy_program(COMPSTATE *cstat)
             case PROG_EXEC:
             case PROG_TRY:
                 code[i].data.call = code + curr->in.data.number;
+                break;
+            case PROG_LABEL:
+                code[i].data.labelname = curr->in.data.labelname;
                 break;
             default:
                 v_abort_compile(cstat,
