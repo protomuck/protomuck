@@ -158,7 +158,9 @@ struct prog_addr *alloc_addr(COMPSTATE *, int, struct inst *);
 struct INTERMEDIATE *prealloc_inst(COMPSTATE *cstat);
 struct INTERMEDIATE *new_inst(COMPSTATE *);
 void cleanpubs(struct publics *mypub);
+#ifdef MCP_SUPPORT
 void clean_mcpbinds(struct mcp_binding *mcpbinds);
+#endif
 void cleanup(COMPSTATE *);
 void add_proc(COMPSTATE *, const char *, struct INTERMEDIATE *, int rettype);
 void add_control_structure(COMPSTATE *, int typ, struct INTERMEDIATE *);
@@ -236,8 +238,10 @@ do_abort_compile(COMPSTATE *cstat, const char *c)
     free_prog(cstat->program);
     cleanpubs(DBFETCH(cstat->program)->sp.program.pubs);
     DBFETCH(cstat->program)->sp.program.pubs = NULL;
+#ifdef MCP_SUPPORT
     clean_mcpbinds(DBFETCH(cstat->program)->sp.program.mcpbinds);
     DBFETCH(cstat->program)->sp.program.mcpbinds = NULL;
+#endif
     DBFETCH(cstat->program)->sp.program.proftime.tv_sec = 0;
     DBFETCH(cstat->program)->sp.program.proftime.tv_usec = 0;
 }
@@ -546,6 +550,8 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "array_union", "2 array_nunion");
     insert_def(cstat, "array_intersect", "2 array_nintersect");
 
+#ifdef MCP_SUPPORT
+
     /* GUI dialog types */
     insert_def(cstat, "d_simple", "\"simple\"");
     insert_def(cstat, "d_tabbed", "\"tabbed\"");
@@ -577,6 +583,9 @@ include_internal_defs(COMPSTATE *cstat)
                "d_tabbed swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
     insert_def(cstat, "gui_dlog_helper",
                "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
+
+#endif
+
     /* for SOCK_SETOPT */
     insert_def(cstat, "NOQUEUE", "0");
     insert_def(cstat, "SIMPLEQUEUE", "1");
@@ -639,8 +648,10 @@ uncompile_program(dbref i)
     free_prog(i);
     cleanpubs(DBFETCH(i)->sp.program.pubs);
     DBFETCH(i)->sp.program.pubs = NULL;
+#ifdef MCP_SUPPORT
     clean_mcpbinds(DBFETCH(i)->sp.program.mcpbinds);
     DBFETCH(i)->sp.program.mcpbinds = NULL;
+#endif
     DBFETCH(i)->sp.program.proftime.tv_sec = 0;
     DBFETCH(i)->sp.program.proftime.tv_usec = 0;
     DBFETCH(i)->sp.program.code = NULL;
@@ -1283,8 +1294,10 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
     free_prog(cstat.program);
     cleanpubs(DBFETCH(cstat.program)->sp.program.pubs);
     DBFETCH(cstat.program)->sp.program.pubs = NULL;
+#ifdef MCP_SUPPORT
     clean_mcpbinds(DBFETCH(cstat.program)->sp.program.mcpbinds);
     DBFETCH(cstat.program)->sp.program.mcpbinds = NULL;
+#endif
     DBFETCH(cstat.program)->sp.program.proftime.tv_sec = 0;
     DBFETCH(cstat.program)->sp.program.proftime.tv_usec = 0;
     DBFETCH(cstat.program)->sp.program.profstart = current_systime;
@@ -3748,6 +3761,8 @@ cleanpubs(struct publics *mypub)
     }
 }
 
+#ifdef MCP_SUPPORT
+
 void
 clean_mcpbinds(struct mcp_binding *mypub)
 {
@@ -3761,6 +3776,8 @@ clean_mcpbinds(struct mcp_binding *mypub)
         mypub = tmppub;
     }
 }
+
+#endif
 
 
 void

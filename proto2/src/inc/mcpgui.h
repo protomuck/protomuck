@@ -2,6 +2,8 @@
  * Headers for MCP GUI support code.
  */
 
+#ifdef MCP_SUPPORT
+
 #ifndef MCPGUI_H
 #define MCPGUI_H
 
@@ -228,3 +230,4 @@ void muf_dlog_purge(struct frame *fr);
 
 #endif							/* MCPGUI_H */
 
+#endif

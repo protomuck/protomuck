@@ -719,6 +719,7 @@ struct publics {
     struct publics *next;
 };
 
+#ifdef MCP_SUPPORT
 
 struct mcp_binding {
 	struct mcp_binding *next;
@@ -727,6 +728,8 @@ struct mcp_binding {
 	char *msgname;
 	struct inst *addr;
 };
+
+#endif
 
 
 /* union of type-specific fields */
@@ -762,7 +765,9 @@ union specific {      /* I've been railroaded! */
 	struct inst *start;	      /* place to start executing */
 	struct line *first;	      /* first line */
 	struct publics *pubs;	      /* public subroutine addresses */
+#ifdef MCP_SUPPORT
 	struct mcp_binding *mcpbinds;	/* MCP message bindings. */
+#endif
       struct timeval proftime;      /* Profiling time spent in this program */
       time_t profstart;             /* Time when profiling started for this prog */
       unsigned int profuses;        /* # calls to this program while profiling */

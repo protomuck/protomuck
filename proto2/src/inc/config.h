@@ -98,12 +98,16 @@
 
 #define MUF_EDIT_PRIMS
 
+/* Define this to enable support for MCP (MUD Client Protocol). */
+
+#define MCP_SUPPORT
+
 /* Detaches the process as a daemon so that it don't cause problems
  * keeping a terminal line open and such. Logs normal output to a file
  * and writes out a protomuck.pid file
  */
 
-#define DETACH
+#undef DETACH
 
 // If you have problems compiling with DETACH defined, uncomment one
 // of these:
@@ -177,7 +181,7 @@
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
 /* all @tune options as before. */
-#undef W4_TUNEABLES
+#define W4_TUNEABLES
 
 /* Define this to compile in the new EXPERIMENTAL webserver. It will share all */
 /* it's other settings with the old webserver. They may both be compiled in.   */

@@ -34,7 +34,10 @@
  *
  */
 /* Definition of 'McpFrame' */
-#include "mcp.h"
+
+#ifdef MCP_SUPPORT
+# include "mcp.h"
+#endif
 #include "dbsearch.h"
 
 /* Prototypes for externs not defined elsewhere */
@@ -156,10 +159,12 @@ extern void do_dig(int descr, dbref player, const char *name,
                    const char *pname);
 extern void do_create(dbref player, char *name, char *cost);
 extern void do_prog(int descr, dbref player, const char *name);
+#ifdef MCP_SUPPORT
 extern void do_mcpprogram(int descr, dbref player, const char *name);
 extern void do_mcpedit(int descr, dbref player, const char *name);
 extern void mcpedit_program(int descr, dbref player, dbref prog,
                             const char *name);
+#endif
 extern void do_edit(int descr, dbref player, const char *name);
 extern int unset_source(dbref player, dbref loc, dbref action);
 extern int link_exit(int descr, dbref player, dbref exit, char *dest_name,
@@ -571,8 +576,12 @@ extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
 extern unsigned long rndn(void *buffer);
 
+#ifdef MCP_SUPPORT
+
 /* from mcppkgs.c */
 extern void show_mcp_error(McpFrame *mfr, char *topic, char *text);
+
+#endif
 
 
 /* For MPI profiling */

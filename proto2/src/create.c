@@ -656,7 +656,9 @@ do_prog(int descr, dbref player, const char *name)
         DBFETCH(newprog)->sp.program.code = 0;
         DBFETCH(newprog)->sp.program.start = 0;
         DBFETCH(newprog)->sp.program.pubs = 0;
+#ifdef MCP_SUPPORT
         DBFETCH(newprog)->sp.program.mcpbinds = 0;
+#endif
         DBFETCH(newprog)->sp.program.proftime.tv_sec = 0;
         DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
         DBFETCH(newprog)->sp.program.profstart = 0;
@@ -754,6 +756,8 @@ do_edit(int descr, dbref player, const char *name)
     DBDIRTY(i);
     DBDIRTY(player);
 }
+
+#ifdef MCP_SUPPORT
 
 void
 do_mcpedit(int descr, dbref player, const char *name)
@@ -955,6 +959,8 @@ mcpedit_program(int descr, dbref player, dbref prog, const char *name)
     free_prog_text(DBFETCH(prog)->sp.program.first);
     DBFETCH(prog)->sp.program.first = NULL;
 }
+
+#endif
 
 /*
  * do_create

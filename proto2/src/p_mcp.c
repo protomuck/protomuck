@@ -3,6 +3,8 @@
 #include "copyright.h"
 #include "config.h"
 
+#ifdef MCP_SUPPORT
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
@@ -1248,3 +1250,5 @@ prim_gui_value_get(PRIM_PROTOTYPE)
     CLEAR(oper2);
     PushArrayRaw(nw);
 }
+
+#endif

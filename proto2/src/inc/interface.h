@@ -2,7 +2,9 @@
 #include "copyright.h"
 #include "db.h"
 #include "defaults.h"
-#include "mcp.h"
+#ifdef MCP_SUPPORT
+# include "mcp.h"
+#endif
 
 /* structures */
 
@@ -104,7 +106,9 @@ struct descriptor_data {
     dbref                    mufprog;       /* If it is one of the MUF-type ports, then this points to the program. -- UNIMPLEMENTED */
     struct descriptor_data  *next;          /* Next descriptor information */
     struct descriptor_data **prev;          /* Previous descriptor information */
+#ifdef MCP_SUPPORT
     McpFrame                 mcpframe;      /* Muck-To-Client protocal information */
+#endif
 #ifdef NEWHTTPD
     struct http_struct       http;          /* hinoserm: Struct for webserver stuff */
 #endif /* NEWHTTPD */
@@ -210,10 +214,12 @@ extern int pdescrcount(void);
 extern int pfirstdescr(void);
 extern int plastdescr(void);
 extern int pdescrcon(int c);
+#ifdef MCP_SUPPORT
 extern McpFrame *descr_mcpframe(int c);
 extern void SendText(McpFrame * mfr, const char *text);
 extern int mcpframe_to_descr(McpFrame * ptr);
 extern int mcpframe_to_user(McpFrame * ptr);
+#endif
 extern int pnextdescr(int c);
 extern int pfirstconn(dbref who);
 extern int pset_user(struct descriptor_data *d, dbref who);

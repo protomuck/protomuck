@@ -974,8 +974,6 @@ recycle(int descr, dbref player, dbref thing)
             dequeue_prog(thing, 0);
             sprintf(buf, "muf/%d.m", (int) thing);
             unlink(buf);
-            sprintf(buf, "mcp/%d.mcp", (int) thing);
-            unlink(buf);
             break;
     }
 

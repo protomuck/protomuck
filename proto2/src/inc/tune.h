@@ -80,7 +80,9 @@ extern int tp_playermax_limit;
 
 extern int tp_dump_copies;
 extern int tp_min_progbreak_lev;
+#ifdef MCP_SUPPORT
 extern int tp_mcp_muf_mlev;
+#endif
 extern int tp_max_wiz_preempt_count;
 extern int tp_mysql_result_limit;
 
@@ -158,7 +160,9 @@ extern int tp_user_idle_propqueue;
 extern int tp_quiet_moves;
 extern int tp_quiet_connects;
 extern int tp_proplist_int_counter;
+#ifdef MCP_SUPPORT
 extern int tp_enable_mcp;
+#endif
 extern int tp_enable_commandprops;
 extern int tp_old_parseprop;
 extern int tp_mpi_needflag;

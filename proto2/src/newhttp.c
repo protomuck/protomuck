@@ -49,8 +49,6 @@
 #include "db.h"
 //#include "defaults.h"
 //#include "strings.h"
-//#include "mcpgui.h"
-//#include "mcp.h"
 //#include "mpi.h"
 //#include "reg.h"
 

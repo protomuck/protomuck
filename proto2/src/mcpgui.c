@@ -1,4 +1,7 @@
 #include "config.h"
+
+#ifdef MCP_SUPPORT
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -1188,3 +1191,5 @@ do_post_dlog(int descr, const char *text)
 
     GuiShow(dlg);
 }
+
+#endif

@@ -1514,7 +1514,9 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             o->sp.program.siz = 0;
             o->sp.program.start = 0;
             o->sp.program.pubs = 0;
+#ifdef MCP_SUPPORT
             o->sp.program.mcpbinds = 0;
+#endif
             o->sp.program.proftime.tv_sec = 0;
             o->sp.program.proftime.tv_usec = 0;
             o->sp.program.profstart = 0;

@@ -2459,7 +2459,9 @@ prim_newprogram(PRIM_PROTOTYPE)
     DBFETCH(newprog)->sp.program.code = 0;
     DBFETCH(newprog)->sp.program.start = 0;
     DBFETCH(newprog)->sp.program.pubs = 0;
+#ifdef MCP_SUPPORT
     DBFETCH(newprog)->sp.program.mcpbinds = 0;
+#endif
     DBFETCH(newprog)->sp.program.proftime.tv_sec = 0;
     DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
     DBFETCH(newprog)->sp.program.profstart = 0;
