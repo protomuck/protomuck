@@ -361,6 +361,8 @@ RCLEAR(struct inst * oper, char *file, int line)
                     shutdown(oper->data.sock->socknum,2);
                     close(oper->data.sock->socknum);
                 }
+                if (tp_socket_events)
+                    remove_socket_from_queue(oper->data.sock);
                 if (oper->data.sock->raw_input) 
                     free((void *) oper->data.sock->raw_input);
                 if (oper->data.sock->hostname)

@@ -56,6 +56,113 @@ extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
 
+struct muf_socket_queue *socket_list = NULL; /* 1 way link list */
+
+/* add_socket_to_queue will add a new MUF socket to the queue 
+ * that gets checked for sending MUF socket events.
+ * Should be called whenever a new MUF socket is made
+ */
+void 
+add_socket_to_queue(struct muf_socket *newSock, struct frame *fr)
+{
+    struct muf_socket_queue *curr, *nw;
+    curr = socket_list;
+
+    /* make new node */
+    nw = (struct muf_socket_queue *) malloc(sizeof(struct muf_socket_queue *));
+    nw->theSock = newSock;
+    nw->fr = fr;
+    nw->next = NULL;
+
+    if (!curr) { /* list is empty, point list to new */
+        socket_list = nw;
+    } else { /* list not empty, find end */
+        while(curr->next)
+            curr->next;
+        curr->next = nw;
+    }
+}
+
+/* remove_socket_from_queue() will remove a MUF socket from
+ * the queue of sockets to check. Called from RCLEAR() in interp.c
+ */
+void 
+remove_socket_from_queue(struct muf_socket *oldSock)
+{
+    struct muf_socket_queue *curr, *next, *temp;
+    
+    curr = socket_list;
+
+    if (!curr)
+        return; /* socket list is empty */
+    
+    if (curr->theSock == oldSock) { /* need to remove first */
+        temp = curr->next;
+        free((void*) curr);
+        socket_list = temp;
+    } else { /* need to search through the list */
+        while(curr && curr->theSock != oldSock) {
+            temp = curr;
+            curr = curr->next;
+        } 
+        if (!curr)
+            return; /* nothing to free */
+        temp->next = curr->next;
+        free((void *) curr);
+    }
+}
+
+/* checks all of the sockets in the queue to see if they
+ * are in the 'readable' set. If so, passes an event
+ * to that program frame.
+ */
+void 
+muf_socket_events()
+{
+    fd_set reads;
+    char littleBuf[128]; /* should be big enough */
+    int maxDescr = 0;
+    struct timeval t_val;
+    struct muf_socket_queue *curr = socket_list;
+    struct inst temp1;
+
+    if (!curr)
+        return; /* no sockets to check */
+
+    FD_ZERO(&reads);
+    t_val.tv_sec  = 0;
+    t_val.tv_usec = 0;
+
+    strcpy(littleBuf, "SOCKET.READ");
+
+    while(curr) { /* add sockets to check to set */
+        if (!curr->theSock->readWaiting) { /* add it */
+            FD_SET(curr->theSock->socknum, &reads);
+            if (curr->theSock->socknum >= maxDescr)
+                maxDescr = curr->theSock->socknum;
+        }
+        curr = curr->next;
+    } /* while(curr) */
+    /* now our &reads set is ready */
+    select(maxDescr + 1, &reads, NULL, NULL, &t_val);
+    
+    /* now check through the reads set */
+    curr = socket_list;
+    while (curr) {
+        if (!(curr->theSock->readWaiting) && 
+            FD_ISSET(curr->theSock->socknum, &reads)) { /* event time */
+            curr->theSock->readWaiting = 1;
+            temp1.type = PROG_SOCKET;
+            temp1.data.sock = curr->theSock;
+            curr->theSock->links++; /* manual pointer copy */
+            muf_event_add(curr->fr, littleBuf, &temp1, 1); /* 1 = exclusive */ 
+            CLEAR(&temp2);
+            CLEAR(&temp1);
+        } /* if */
+        curr = curr->next;
+    } /* while(curr) */ 
+}
+
 void
 prim_socksend(PRIM_PROTOTYPE)
 {
@@ -112,7 +219,8 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 {
     char *bigbuf, *bufpoint;
     char *mystring;
-    int loop, readme, gotmessage = 0;
+    int loop, gotmessage = 0;
+    int readme = 0;
     int sockval = 0;
     fd_set reads;
     struct timeval t_val;
@@ -215,12 +323,13 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                theSock->raw_input_at = p;
            if (!gotmessage)
                strcpy(bigbuf, "");
-       } /* if tp_socket queues... */
+       } /* if usequeues */
     } /* if FD_ISSET */
     if (gotmessage) { /* update */
         oper1->data.sock->last_time = time(NULL);
         oper1->data.sock->commands += 1;
     }
+    oper1->data.sock->readWaiting = 0;
     CLEAR(oper1);
     if(tp_log_sockets)
         if(gotmessage)
@@ -287,6 +396,7 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
        }
     }
     oper1->data.sock->last_time = time(NULL); /* time of last command */
+    oper1->data.sock->readWaiting = 0;
     CLEAR(oper1);
     if(tp_log_sockets)
         if(gotmessage)
@@ -413,6 +523,10 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     result->data.sock->usequeue = 0; 
     result->data.sock->usesmartqueue = 0;
     result->data.sock->host = validHost; 
+    result->data.sock->readWaiting = 0;
+    if (tp_socket_events)
+        add_socket_to_queue(result->data.sock, fr);
+
     if(tp_log_sockets)
       log2filetime( "logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n", 
                     program, unparse_object(player, player), 
@@ -595,6 +709,9 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->username = alloc_string(tp_muckname);
     result->data.sock->host = 1;
     result->data.sock->usequeue = 0;
+    result->data.sock->readWaiting = 0;
+    if (tp_socket_events)
+        add_socket_to_queue(result->data.sock, fr);
 
     if (tp_log_sockets)
         log2filetime( "logs/sockets", "#%d by %s LSOCKOPEN: Port:%d -> %d\n",
@@ -691,6 +808,10 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->usesmartqueue = 0;
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
+    result->data.sock->readWaiting = 0;
+    if (tp_socket_events)
+        add_socket_to_queue(result->data.sock, fr);
+
     if (tp_log_sockets)
         log2filetime( "logs/sockets", "#%d by %s SOCKACCEPT: Port:%d -> %d\n",
                       program, unparse_object(player, (dbref) 1),
@@ -728,6 +849,7 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     array_set_strkey_intval(&nw, "PORT", theSock->port);
     array_set_strkey_intval(&nw, "SOCKQUEUE", theSock->usequeue);
     array_set_strkey_intval(&nw, "SMARTQUEUE", theSock->usesmartqueue);
+    array_set_strkey_intval(&nw, "READWAITING", theSock->readWaiting);
     array_set_strkey_strval(&nw, "HOSTNAME", 
                                 theSock->hostname ? theSock->hostname : "" ); 
     array_set_strkey_strval(&nw, "USERNAME", 

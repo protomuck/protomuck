@@ -317,6 +317,7 @@ int tp_allow_old_trigs		     = 1;
 int tp_multi_wizlevels             = 1;
 int tp_auto_archive                = 0;
 int tp_optimize_muf                = OPTIMIZE_MUF;
+int tp_socket_events               = 1;
 
 struct tune_bool_entry {
     const char *group;
@@ -392,6 +393,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"System",   "multi_wizlevels",     &tp_multi_wizlevels,     LBOY,  LMUF },
     {"Database", "auto_archive",        &tp_auto_archive,        LBOY,  LMAGE},
     {"MUF",      "optimize_muf",        &tp_optimize_muf,        LBOY,  LMAGE},
+    {"MUF",      "socket_events",       &tp_socket_events,       LARCH, LMUF },
     {NULL, NULL, NULL, 0, 0}
 };
 
