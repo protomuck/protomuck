@@ -4,7 +4,12 @@
 #include <sys/types.h>
 #include <sys/stat.h> 
 #include <unistd.h>
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include <sys/param.h>
+#include <sys/mount.h>
+#else 
 #include <sys/vfs.h>
+#endif
 #include <stdio.h>
 #include <time.h>
 #include <ctype.h>
@@ -731,7 +736,11 @@ void prim_fsinfo(PRIM_PROTOTYPE)
   PushInt(fs.f_files); 
   PushInt(fs.f_ffree); 
   PushInt(fs.f_bsize); 
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+  { int x = MNAMELEN; PushInt(x); }
+#else
   PushInt(fs.f_namelen); 
+#endif
 }
 
 void prim_frm(PRIM_PROTOTYPE)
