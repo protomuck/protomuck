@@ -58,45 +58,43 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
 			}
 		} else if (a->type == PROG_OBJECT && b->type == PROG_STRING
                            && objname && valid_obj(a->data.objref)) {
-                  char *astr = (char *) NAME(a->data.objref);
-		      char *bstr = (b->data.string) ? b->data.string->data : pad_char;
-                  if(case_sens) {
-                       return strcmp(astr, bstr);
-                  } else {
+                       char *astr = (char *) NAME(a->data.objref);
+		       char *bstr = (b->data.string) ? b->data.string->data : pad_char;
+                       if(case_sens) {
+                           return strcmp(astr, bstr);
+                       } else {
  		           return string_compare(astr, bstr);
-                  }
+                       }
 		} else if (a->type == PROG_STRING && b->type == PROG_OBJECT
                            && objname && valid_obj(b->data.objref)) {
 		      char *astr = (a->data.string) ? a->data.string->data : pad_char;
-                  char *bstr = (char *) NAME(b->data.objref);
-                  if(case_sens) {
-                       return strcmp(astr, bstr);
-                  } else {
-                       return string_compare(astr, bstr);
-                  }
-            }
+                      char *bstr = (char *) NAME(b->data.objref);
+                      if(case_sens) {
+                          return strcmp(astr, bstr);
+                      } else {
+                          return string_compare(astr, bstr);
+                      }
+                }
 		return (a->type - b->type);
 	}
 	/* Indexes are of same type if we reached here. */
-      if (a->type == PROG_OBJECT && objname && valid_obj(a->data.objref)
+        if (a->type == PROG_OBJECT && objname && valid_obj(a->data.objref)
           && valid_obj(b->data.objref)) {
-         char *astr = (char *) NAME(a->data.objref);
-         char *bstr = (char *) NAME( b->data.objref);
-         if(case_sens) {
-             return strcmp(astr, bstr);
-         } else {
-             return string_compare(astr, bstr);
-         }
-      }
-      if ( a->type == PROG_OBJECT) {
-         if ( a->data.objref > b->data.objref )
-             return 1;
-         else if ( a->data.objref < b->data.objref) 
-             return -1;
-         else return 0;
-      }
-
-
+            char *astr = (char *) NAME(a->data.objref);
+            char *bstr = (char *) NAME( b->data.objref);
+            if(case_sens) {
+                return strcmp(astr, bstr);
+            } else {
+                return string_compare(astr, bstr);
+            }
+        }
+        if ( a->type == PROG_OBJECT) {
+            if ( a->data.objref > b->data.objref )
+                return 1;
+            else if ( a->data.objref < b->data.objref) 
+                return -1;
+            else return 0;
+        }
 	if (a->type == PROG_FLOAT) {
 		if (a->data.fnumber > b->data.fnumber) {
 			return 1;
@@ -107,13 +105,13 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
 		}
 	} else if (a->type == PROG_STRING) {
             char pad_char[] = "";
-		char *astr = (a->data.string) ? a->data.string->data : pad_char;
-		char *bstr = (b->data.string) ? b->data.string->data : pad_char;
-                if(case_sens) {
-                   return strcmp(astr, bstr);
-                } else {
- 		   return string_compare(astr, bstr);
-                }
+	    char *astr = (a->data.string) ? a->data.string->data : pad_char;
+	    char *bstr = (b->data.string) ? b->data.string->data : pad_char;
+            if(case_sens) {
+                return strcmp(astr, bstr);
+            } else {
+ 	        return string_compare(astr, bstr);
+            }
 	} else if (a->type == PROG_ARRAY) {
 		/* Sort arrays by memory address. */
 		/* This is a bug, really. */
