@@ -691,6 +691,7 @@ struct muf_interrupt { /* linked list of addresses and event ID names from ONEVE
     struct inst  *addr;  /* the 'funcname address */
     char         *event; /* event ID string to wait for */
     char         *id;    /* this interrupt's ID name */
+    bool          keep;  /* leave event in queue or not */
     struct muf_interrupt *next; /* next element */
     struct muf_interrupt *prev; /* previous element */
 };
@@ -698,6 +699,8 @@ struct muf_interrupt { /* linked list of addresses and event ID names from ONEVE
 struct muf_ainterrupt { /* active interrupts */
     struct muf_interrupt *interrupt; /* the interrupt */
     struct inst *ret;     /* where to return */
+    struct inst *data;    /* data from the event */
+    char        *eventid; /* event id */
     struct muf_ainterrupt *next;
 };
 
