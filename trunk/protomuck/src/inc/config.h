@@ -33,7 +33,7 @@
 /* To use a simple disk basing scheme where properties aren't loaded
  * from the input file until they are needed, define this. 
  */
-#define DISKBASE
+#undef DISKBASE
 
 /* To make the server save using fast delta dumps that only write out the
  * changed objects, except when @dump or @shutdown are used, or when too
@@ -261,8 +261,8 @@
 
 /* This gives some debug malloc profiling, but also eats some overhead,
    so only define if your using it. */
-#define MALLOC_PROFILING
-#define CRT_DEBUG_ALSO TRUE
+#undef MALLOC_PROFILING
+#undef CRT_DEBUG_ALSO TRUE
 
 /************************************************************************/
 /************************************************************************/

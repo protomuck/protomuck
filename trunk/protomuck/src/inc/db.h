@@ -424,6 +424,7 @@ struct muf_socket {             /* placeholder so more data can be */
    char lastchar;
 };
 
+
 struct muf_proc_data {
     char *procname;
 	int vars;

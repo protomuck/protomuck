@@ -219,11 +219,23 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         else strcpy(myresult, "noerr");
     }
     result = (struct inst *) malloc(sizeof(struct inst));
-    mufsock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    result->type = PROG_SOCKET;
+    result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    result->data.sock->socknum = mysock;
+    result->data.sock->connected = 0;
+    result->data.sock->links = 1;
+    result->data.sock->lastchar = '0';
+
+
+/*    mufsock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
 
     result->type = PROG_SOCKET;
     mufsock->socknum = mysock;
     result->data.sock = mufsock;
+    result->data.sock->connected = 0;
+    result->data.sock->links = 0;
+    result->data.sock->lastchar = '0';
+*/
     if(tp_log_sockets)
       log2filetime( "logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n", 
                     program, unparse_object(player, player), 
@@ -274,7 +286,9 @@ prim_sockcheck(PRIM_PROTOTYPE)
       getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, (socklen_t *) &len);
       if ( optval != 0 )
          connected = -1;
+      else oper1->data.sock->connected = 1;
    }
+   CLEAR(oper1);
    PushInt(connected);
 }
 
@@ -291,6 +305,7 @@ prim_sockdescr(PRIM_PROTOTYPE)
     
     sockdescr = oper1->data.sock->socknum;
     PushInt(sockdescr);
+    CLEAR(oper1);
 }
   
 
