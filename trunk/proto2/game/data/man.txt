@@ -8810,20 +8810,6 @@ Level: W3 ArchWizard
 These primitives can be used to force the MUCK to dump a standard
  or delta database save.
 ~~~~
-STAFF?
-
-staff? ( d -- i )
------------------
-Level: M1 Apprentice
-d - dbref of player to check
-i - integer to represent true or false.
-
-Returns true if that player has either a W1 bit or higher, or
-has the STAFF @power set on them. 
-
-Inserver define for:
-dup player? if dup "W" flag? swap "STAFF" power? or else pop 0 then
-~~~~
 ARRAY_SORT_INDEXED
 
 array_sort_indexed ( a1 i ? -- a2 )
