@@ -866,6 +866,7 @@ prim_atoi(PRIM_PROTOTYPE)
 void 
 prim_notify_descriptor(PRIM_PROTOTYPE)
 {
+    char buf[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -889,6 +890,7 @@ void
 prim_notify(PRIM_PROTOTYPE)
 {
     struct inst *oper1, *oper2;
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -922,6 +924,7 @@ void
 prim_notify_html(PRIM_PROTOTYPE)
 {
     struct inst *oper1, *oper2;
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -956,6 +959,7 @@ void
 prim_notify_html_nocr(PRIM_PROTOTYPE)
 {
     struct inst *oper1, *oper2;
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -988,6 +992,7 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
 void 
 prim_ansi_notify(PRIM_PROTOTYPE)
 {
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -1023,6 +1028,7 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     struct inst *oper1, *oper2;
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -1107,6 +1113,7 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     struct inst *oper1, *oper2;
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -1190,6 +1197,7 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     struct inst *oper1, *oper2;
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -1273,6 +1281,7 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     struct inst *oper1, *oper2;
+    char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
     oper1 = POP();
@@ -1818,6 +1827,7 @@ prim_tokensplit(PRIM_PROTOTYPE)
 void
 prim_parse_ansi(PRIM_PROTOTYPE)
 {
+   char buf[BUFFER_LEN];
    char buf3[BUFFER_LEN];
    char buf4[BUFFER_LEN];
    int  ctype;
@@ -1847,7 +1857,7 @@ prim_parse_ansi(PRIM_PROTOTYPE)
       if (ctype == 0)
         sprintf(buf4, "%s", buf3);
       if (ctype == 1)
-         sprintf(buf4, "%s", parse_ansi(player, buf, buf3));
+         sprintf(buf4, "%s", parse_ansi(player, buf, buf3, ANSINORMAL));
       if (ctype == 2)
         sprintf(buf4, "%s", parse_mush_ansi(buf, buf3));
 
@@ -1856,8 +1866,52 @@ prim_parse_ansi(PRIM_PROTOTYPE)
 }
 
 void
+prim_parse_neon(PRIM_PROTOTYPE)
+{
+   char  buf[BUFFER_LEN];
+   char  buf3[BUFFER_LEN];
+   char  buf4[BUFFER_LEN];
+   char  buf5[BUFFER_LEN];
+   dbref ref;
+
+   CHECKOP(1);
+   oper1 = POP();
+   oper2 = POP();
+   oper3 = POP();
+
+   if (oper1->type != PROG_STRING)
+      abort_interp("Not a string argument. (3)");
+   if (oper2->type != PROG_STRING)
+      abort_interp("Not a string argument. (2)");
+   if (!valid_object(oper3))
+	abort_interp("Invalid object. (1)");
+
+   ref = oper3->data.objref;
+   CLEAR(oper3);
+
+   if (!oper1->data.string || oper1->data.string->length < 1) {
+      sprintf(buf5, "%s", ANSINORMAL);
+   } else {
+      sprintf(buf5, "%s", oper1->data.string->data);
+   }
+
+   if (!oper2->data.string || oper2->data.string->length < 1) {
+      CLEAR(oper1);
+      CLEAR(oper2);
+      PushNullStr;
+   } else {
+      sprintf(buf3, "%s", oper2->data.string->data);
+      CLEAR(oper2);
+      CLEAR(oper1);
+      sprintf(buf4, "%s", parse_ansi(ref, buf, buf3, buf5));
+      PushString(buf4);
+   }
+}
+
+void
 prim_unparse_ansi(PRIM_PROTOTYPE)
 {
+   char buf[BUFFER_LEN];
    char buf3[BUFFER_LEN];
    char buf4[BUFFER_LEN];
    int  ctype;
@@ -1880,6 +1934,9 @@ prim_unparse_ansi(PRIM_PROTOTYPE)
    } else {
 
       ctype = oper1->data.number;
+      buf[0] = '\0';
+      buf3[0] = '\0';
+      buf4[0] = '\0';
       sprintf(buf3, "%s", oper2->data.string->data);
       CLEAR(oper1);
       CLEAR(oper2);
@@ -1902,6 +1959,7 @@ prim_unparse_ansi(PRIM_PROTOTYPE)
 void
 prim_escape_ansi(PRIM_PROTOTYPE)
 {
+   char buf[BUFFER_LEN];
    char buf3[BUFFER_LEN];
    char buf4[BUFFER_LEN];
    int  ctype;

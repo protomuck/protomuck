@@ -45,7 +45,7 @@ list_proglines(dbref player, dbref program, struct frame *fr, int start, int end
 
 		FLAGS(player) |= INTERNAL;
 
-		do_list(player, program, range, argc);
+		do_list(player, program, range, argc, 0);
 
 		if (!tmpflg) {
 			FLAGS(player) &= ~INTERNAL;
@@ -857,6 +857,7 @@ notify_nolisten(player, "quit            stop execution here.", 1);
     }
     return 0;
 }
+
 
 
 

@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.16 2000-11-24 03:38:50 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.17 2000-12-03 04:42:01 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.14  2000/11/12 08:37:12  akari
  * Added force_level prim.
@@ -128,7 +128,7 @@ extern struct macrotable
     *new_macro(const char *name, const char *definition, dbref player);
 extern char *macro_expansion(struct macrotable *node, const char *match);
 extern void match_and_list(int descr, dbref player, const char *name, char *linespec, int editor);
-extern void do_list(dbref player, dbref program, int arg[], int argc);
+extern void do_list(dbref player, dbref program, int arg[], int argc, int commentit);
 
 /* From game.c */
 extern void do_dump(dbref player, const char *newfile);
@@ -277,7 +277,7 @@ extern const char *string_match(const char *src, const char *sub);
 extern char *pronoun_substitute(int descr, dbref player, const char *str);
 extern char *intostr(int i);
 extern char *html_escape (const char *str);
-extern char *parse_ansi( dbref player, char *buf, const char *from );
+extern char *parse_ansi( dbref player, char *buf, const char *from, const char *defcolor );
 extern char *unparse_ansi( char *buf, const char *from );
 extern char *tct( const char *in, char out[BUFFER_LEN]);
 extern char *strip_ansi(char *buf, const char *input);

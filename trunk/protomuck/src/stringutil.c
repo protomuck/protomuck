@@ -5,6 +5,7 @@
 #include "props.h"
 #include "params.h"
 #include "interface.h"
+#include "interp.h"
 
 /* String utilities */
 
@@ -505,48 +506,58 @@ strdecrypt(const char *data, const char *key)
     return buf;
 }
 
-const char *color_lookup( dbref player, const char *color )
+const char *
+color_lookup( dbref player, const char *color, const char *defcolor )
 {
    const char *tempcolor;
+   char buf[BUFFER_LEN];
 
    if( (!color) || (!*color) )
-	return ANSINORMAL;
+	return defcolor;
 
     if( !strcasecmp( "SUCC", color ) || !strcasecmp( "CSUCC", color ) ) {
-      tempcolor = GETMESG(player, "_/COLORS/SUCC");
+      tempcolor = get_uncompress(GETMESG(player, "_/COLORS/SUCC"));
       if(!tempcolor)
-         tempcolor = GETMESG(0, "_/COLORS/SUCC");
+         tempcolor = get_uncompress(GETMESG(0, "_/COLORS/SUCC"));
       if(!tempcolor)
   	   tempcolor = CCSUCC;
       color = tempcolor;
     } else if( !strcasecmp( "FAIL", color ) || !strcasecmp( "CFAIL", color)) {
-      tempcolor = GETMESG(player, "_/COLORS/FAIL");
+      tempcolor = get_uncompress(GETMESG(player, "_/COLORS/FAIL"));
       if(!tempcolor)
-         tempcolor = GETMESG(0, "_/COLORS/FAIL");
+         tempcolor = get_uncompress(GETMESG(0, "_/COLORS/FAIL"));
       if(!tempcolor)
   	   tempcolor = CCFAIL;
       color = tempcolor;
     } else if( !strcasecmp( "INFO", color ) || !strcasecmp( "CINFO", color)) {
-      tempcolor = GETMESG(player, "_/COLORS/INFO");
+      tempcolor = get_uncompress(GETMESG(player, "_/COLORS/INFO"));
       if(!tempcolor)
-         tempcolor = GETMESG(0, "_/COLORS/INFO");
+         tempcolor = get_uncompress(GETMESG(0, "_/COLORS/INFO"));
       if(!tempcolor)
   	   tempcolor = CCINFO;
       color = tempcolor;
     } else if( !strcasecmp( "NOTE", color ) || !strcasecmp( "CNOTE", color)) {
-      tempcolor = GETMESG(player, "_/COLORS/NOTE");
+      tempcolor = get_uncompress(GETMESG(player, "_/COLORS/NOTE"));
       if(!tempcolor)
-         tempcolor = GETMESG(0, "_/COLORS/NOTE");
+         tempcolor = get_uncompress(GETMESG(0, "_/COLORS/NOTE"));
       if(!tempcolor)
   	   tempcolor = CCNOTE;
       color = tempcolor;
     } else if( !strcasecmp( "MOVE", color ) || !strcasecmp( "CMOVE", color)) {
-      tempcolor = GETMESG(player, "_/COLORS/MOVE");
+      tempcolor = get_uncompress(GETMESG(player, "_/COLORS/MOVE"));
       if(!tempcolor)
-         tempcolor = GETMESG(0, "_/COLORS/MOVE");
+         tempcolor = get_uncompress(GETMESG(0, "_/COLORS/MOVE"));
       if(!tempcolor)
   	   tempcolor = CCMOVE;
       color = tempcolor;
+    } {
+      strcpy(buf, "_/COLORS/");
+      strcat(buf, color);
+      tempcolor = get_uncompress(GETMESG(player, buf));
+      if(!tempcolor)
+         tempcolor = get_uncompress(GETMESG(0, buf));
+      if(tempcolor)
+         color = tempcolor;
     }
 
     if( !strcasecmp( "NORMAL", color )) {
@@ -624,12 +635,12 @@ const char *color_lookup( dbref player, const char *color )
     } else if( !strcasecmp( "BGRAY", color )) {
 	return ANSIBGRAY;
     } else {
-	return ANSINORMAL;
+	return defcolor;
     }
 }
 
 char *
-parse_ansi( dbref player, char *buf, const char *from )
+parse_ansi( dbref player, char *buf, const char *from, const char *defcolor )
 {
     char *to, *color, cbuf[BUFFER_LEN + 2];
     const char *ansi;
@@ -644,7 +655,7 @@ parse_ansi( dbref player, char *buf, const char *from )
 	    *color = '\0';
 	    if(*from) from++;
 	    if(*cbuf) {
-		if((ansi = color_lookup(player, cbuf)))
+		if((ansi = color_lookup(player, cbuf, defcolor)))
 		    while(*ansi)
 			*(to++) = (*(ansi++));
 	    } else
@@ -675,6 +686,7 @@ unparse_ansi( char *buf, const char *from )
 {
     char *to;
 
+    buf[0]='\0';
     to=buf;
     while(*from) {
 	if(*from == '^') {
@@ -909,5 +921,6 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     *p = '\0';
     return out;
 }
+
 
 

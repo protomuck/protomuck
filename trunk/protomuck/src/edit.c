@@ -19,7 +19,7 @@ void    editor(int descr, dbref player, const char *command);
 void    do_insert(dbref player, dbref program, int arg[], int argc);
 void    do_delete(dbref player, dbref program, int arg[], int argc);
 void    do_quit(dbref player, dbref program);
-void    do_list(dbref player, dbref program, int arg[], int argc);
+void    do_list(dbref player, dbref program, int arg[], int argc, int commentit);
 void    insert(dbref player, const char *line);
 struct line *get_new_line(void);
 struct line *read_program(dbref i);
@@ -359,7 +359,7 @@ editor(int descr, dbref player, const char *command)
                 anotify_nolisten2(player, CSUCC "Compiler done.");
                 break; 
             case LIST_COMMAND:
-                do_list(player, program, arg, i);
+                do_list(player, program, arg, i, 0);
                 break;
             case EDITOR_HELP_COMMAND:
                 spit_file(player, EDITOR_HELP_FILE);
@@ -482,6 +482,7 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
     char   *q;
     int     range[2];
     int     argc;
+    int     commentit = 0;
     struct match_data md;
     struct line *tmpline;
 
@@ -504,6 +505,10 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
     {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
+    }
+    while(*linespec == '!' && *linespec) {
+       commentit = (!commentit);
+       *linespec++;
     }
     if (!*linespec) {
         range[0] = 1;
@@ -538,7 +543,7 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
     }
     tmpline = DBFETCH(thing)->sp.program.first;
     DBSTORE(thing, sp.program.first, read_program(thing));
-    do_list(player, thing, range, argc);
+    do_list(player, thing, range, argc, commentit);
     free_prog_text(DBFETCH(thing)->sp.program.first);
     DBSTORE(thing, sp.program.first, tmpline);
     return;
@@ -549,7 +554,7 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
    if 1 argument, display that line
    if 2 arguments, display all in between   */
 void
-do_list(dbref player, dbref program, int oarg[], int argc)
+do_list(dbref player, dbref program, int oarg[], int argc, int commentit)
 {
     struct line *curr;
     int     i, count;
@@ -568,7 +573,11 @@ do_list(dbref player, dbref program, int oarg[], int argc)
             arg[1] = arg[0];
         case 2:
             if ((arg[0] > arg[1]) && (arg[1] != -1)) {
-                anotify_nolisten(player, CFAIL "Arguments don't make sense.", 1);
+                if(commentit) {
+                   anotify_nolisten(player, CFAIL "( Arguments don't make sense. )", 1);
+                } else {
+                   anotify_nolisten(player, CFAIL "Arguments don't make sense.", 1);
+                }
                 return;
             }
             i = arg[0] - 1;
@@ -587,14 +596,27 @@ do_list(dbref player, dbref program, int oarg[], int argc)
                     curr = curr->next;
                 }
                 if (count - arg[0] > 1) {
-                    sprintf(buf, BLUE "%d lines displayed.", count - arg[0]);
+                    if(commentit) {
+                       sprintf(buf, BLUE "( %d lines displayed. )", count - arg[0]);
+                    } else {
+                       sprintf(buf, BLUE "%d lines displayed.", count - arg[0]);
+                    }
                     anotify_nolisten(player, buf, 1);
                 }
-            } else
-                anotify_nolisten(player, BLUE "Line not available for display.", 1);
+            } else {
+                if(commentit) {
+                   anotify_nolisten(player, BLUE "( Line not available for display. )", 1);
+                } else {
+                   anotify_nolisten(player, BLUE "Line not available for display.", 1);
+                }
+            }
             break;
         default:
-            anotify_nolisten(player, CINFO "Too many arguments.", 1);
+            if(commentit) {
+               anotify_nolisten(player, CINFO "( Too many arguments. )", 1);
+            } else {
+               anotify_nolisten(player, CINFO "Too many arguments.", 1);
+            }
             break;
     }
 }
@@ -771,6 +793,7 @@ insert(dbref player, const char *line)
     curr->next = new_line;
     /* DBDIRTY(program); */
 }
+
 
 
 

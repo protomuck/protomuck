@@ -624,7 +624,7 @@ do_prog(int descr, dbref player, const char *name)
 	DBFETCH(player)->sp.player.curr_prog = i;
 	anotify_nolisten2(player, CINFO "Entering editor.");
 	/* list current line */
-	do_list(player, i, 0, 0);
+	do_list(player, i, 0, 0, 0);
 	DBDIRTY(i);
     }
     FLAGS(player) |= INTERACTIVE;
@@ -677,7 +677,7 @@ do_edit(int descr, dbref player, const char *name)
     DBFETCH(player)->sp.player.curr_prog = i;
     anotify_nolisten2(player, CINFO "Entering editor.");
     /* list current line */
-    do_list(player, i, 0, 0);
+    do_list(player, i, 0, 0, 0);
     FLAGS(player) |= INTERACTIVE;
     DBDIRTY(i);
     DBDIRTY(player);
@@ -1093,6 +1093,7 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
         anotify_nolisten2(player, CINFO "Action priority Level reset to zero.");
     }
 }
+
 
 
 
