@@ -183,7 +183,8 @@ void prim_sqlquery(PRIM_PROTOTYPE)
                     if (row[i]) {
                         array_set_strkey_strval(&nw, fields[i].name, row[i]);
                         if (!fieldListMade)
-                            array_set_intkey_strval(&nw, i, fields[i].name);
+                            array_set_intkey_strval(&fieldsList, i, 
+                                                     fields[i].name);
                     }
                 }
                 fieldListMade = 1;
