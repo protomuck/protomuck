@@ -141,7 +141,7 @@ queue_promote(struct queue_node *node)
 
 
 void
-list_top_4k_words()
+list_top_4k_words(void)
 {
     int count = 4096;
     int lastval;
@@ -160,40 +160,40 @@ list_top_4k_words()
 struct queue_node *
 queue_add_node(const char *word, int pri)
 {
-    struct queue_node *new;
+    struct queue_node *nw;
     hash_data hd;
 
-    new = (struct queue_node *)malloc(sizeof(struct queue_node));
-    if (!new) abort();
+    nw = (struct queue_node *)malloc(sizeof(struct queue_node));
+    if (!nw) abort();
 
     if (!head) {
-        head = new;
-        new->prev = NULL;
+        head = nw;
+        nw->prev = NULL;
     }
-    new->next = NULL;
-    new->prev = tail;
+    nw->next = NULL;
+    nw->prev = tail;
     if (tail) {
-        tail->next = new;
+        tail->next = nw;
     }
-    tail = new;
-    new->count = 0;
-    new->spcount = 0;
-    strcpy(new->word, word);
-    new->len = strlen(new->word);
-    if (new->word[new->len - 1] == ' ') {
-        new->word[new->len - 1] = '\0';
-        new->len--;
-        new->spcount += pri;
+    tail = nw;
+    nw->count = 0;
+    nw->spcount = 0;
+    strcpy(nw->word, word);
+    nw->len = strlen(nw->word);
+    if (nw->word[nw->len - 1] == ' ') {
+        nw->word[nw->len - 1] = '\0';
+        nw->len--;
+        nw->spcount += pri;
     } else {
-        new->count += pri;
+        nw->count += pri;
     }
-    new->val = 0;
-    queue_promote(new);
+    nw->val = 0;
+    queue_promote(nw);
 
-    hd.pval = (void *)new;
-    (void) add_hash(new->word, hd, wordhash, WORD_HASH_SIZE);
+    hd.pval = (void *)nw;
+    (void) add_hash(nw->word, hd, wordhash, WORD_HASH_SIZE);
 
-    return new;
+    return nw;
 }
 
 void
@@ -333,5 +333,7 @@ main (int argc, char**argv)
     list_top_4k_words();
     /* printf("%d unique words found.\n", total_words); */
     /* printf("%d counted words.\n", counted_words); */
+    return 0;
 }
+
 

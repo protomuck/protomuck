@@ -1,20 +1,15 @@
+/* ProtoMUCK's main interface.c */
+/*  int main() is in this file  */
 #include <sys/types.h>
-#ifdef WIN32
-# include <fcntl.h>
-# include <ctype.h>
-# include <string.h>
-#else
-# include <sys/file.h>
-# include <sys/ioctl.h>
-# include <sys/wait.h>
-# include <fcntl.h>
-# include <errno.h>
-# include <ctype.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <netdb.h>
-#endif
-
+#include <sys/file.h>
+#include <sys/ioctl.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <ctype.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include "cgi.h"
 #include "copyright.h"
 #include "config.h"
@@ -26,14 +21,12 @@
 #include "props.h"
 #include "match.h"
 #include "mcp.h"
+#include "mcpgui.h"
 #include "mpi.h"
 #include "reg.h"
 #include "externs.h"
 #include "mufevent.h"
-
-#ifdef HTTPD
 #include "interp.h"
-#endif
 
 /* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
@@ -57,16 +50,21 @@ int resolver_sock[2];
 
 struct descriptor_data  *descriptor_list = 0;
 
-static int sock = 0;
+#define MAX_LISTEN_SOCKS 16
+
+static int numsocks = 0;
+static int listener_port[MAX_LISTEN_SOCKS];
+static int sock[MAX_LISTEN_SOCKS];
+/* static int sock = 0;
 static int sock_html = 0;
-static int sock_pueblo = 0;
+static int sock_pueblo = 0; */
 static int ndescriptors = 0;
-extern void fork_and_dump();
+extern void fork_and_dump(void);
 
 #ifdef RWHO
 extern int rwhocli_setup(const char *server, const char *serverpw, const char *myname, const char *comment);
-extern int rwhocli_shutdown();
-extern int rwhocli_pingalive();
+extern int rwhocli_shutdown(void);
+extern int rwhocli_pingalive(void);
 extern int rwhocli_userlogin(const char *uid, const char *name,time_t tim);
 extern int rwhocli_userlogout(const char *uid);
 #endif
@@ -76,9 +74,9 @@ extern const char *uncompress(const char *);
 #endif
 
 void    process_commands(void);
-void    shovechars(int port);
+void    shovechars(void);
 void    shutdownsock(struct descriptor_data * d);
-struct descriptor_data *initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, int cport);
+struct  descriptor_data *initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, int cport);
 void    make_nonblocking(int s);
 void    freeqs(struct descriptor_data * d);
 void    welcome_user(struct descriptor_data * d);
@@ -87,15 +85,16 @@ void    check_connect(struct descriptor_data * d, const char *msg);
 void    close_sockets(const char *msg);
 int     boot_off(dbref player);
 void    boot_player_off(dbref player);
-const char *addrout(int, unsigned short);
+const char *addrout(int lport, int, unsigned short);
 void    dump_users(struct descriptor_data * d, char *user);
-struct descriptor_data *new_connection(int sock, int ctype, int cport);
+struct descriptor_data *new_connection(int port, int sock);
 void    parse_connect(const char *msg, char *command, char *user, char *pass);
 void    set_userstring(char **userstring, const char *command);
 int     do_command(struct descriptor_data * d, char *command);
 char   *strsave(const char *s);
 int     make_socket(int);
 int     queue_string(struct descriptor_data *, const char *);
+int     queue_ansi(struct descriptor_data *d, const char *msg);
 int     queue_write(struct descriptor_data *, const char *, int);
 int     process_output(struct descriptor_data * d);
 int     process_input(struct descriptor_data * d);
@@ -107,11 +106,11 @@ void    announce_connect(int descr, dbref);
 void    announce_disconnect(struct descriptor_data *);
 char   *time_format_1(time_t);
 char   *time_format_2(time_t);
-void    init_descriptor_lookup();
-void    init_descr_count_lookup();
+void    init_descriptor_lookup(void);
+void    init_descr_count_lookup(void);
 int     remember_descriptor(struct descriptor_data *);
 void    remember_player_descr(dbref player, int);
-void    update_desc_count_table();
+void    update_desc_count_table(void);
 int*    get_player_descrs(dbref player, int* count);
 void    forget_player_descr(dbref player, int);
 void    forget_descriptor(struct descriptor_data *);
@@ -119,14 +118,14 @@ struct  descriptor_data* descrdata_by_index(int index);
 struct descriptor_data* descrdata_by_descr(int i);
 struct  descriptor_data* lookup_descriptor(int);
 int     online(dbref player);
-int     online_init();
+int     online_init(void);
 dbref   online_next(int *ptr);
 long    max_open_files(void);
 
 #ifdef SPAWN_HOST_RESOLVER
-void kill_resolver();
-void spawn_resolver();
-void resolve_hostnames();
+void kill_resolver(void);
+void spawn_resolver(void);
+void resolve_hostnames(void);
 #endif
 
 
@@ -149,7 +148,6 @@ extern FILE *delta_outfile;
 
 #define MAX_SOCKETS 800
 
-static unsigned short resolver_myport;
 short db_conversion_flag = 0;
 short db_decompression_flag = 0;
 short wizonly_mode = 0;
@@ -162,11 +160,11 @@ unsigned long sel_prof_idle_use;
 void
 show_program_usage(char *prog)
 {
-    fprintf(stderr, "Usage: %s [<options>] [infile [dumpfile [portnum]]]\n", prog);
+    fprintf(stderr, "Usage: %s [<options>] [infile [dumpfile [portnum [portnum ...]]]]\n", prog);
     fprintf(stderr, "   Arguments:\n");
     fprintf(stderr, "       infile            db loaded at startup. optional with -dbin.\n");
     fprintf(stderr, "       outfile           output db to save to. optional with -dbout.\n");
-    fprintf(stderr, "       portnum           port number to listen for connections on.\n");
+    fprintf(stderr, "       portnum           port num to listen for conns on. (16 ports max)\n");
     fprintf(stderr, "   Options:\n");
     fprintf(stderr, "       -dbin INFILE      uses INFILE as the database to load at startup.\n");
     fprintf(stderr, "       -dbout OUTFILE    uses OUTFILE as the output database to save to.\n");
@@ -189,36 +187,24 @@ extern int sanity_violated;
 int 
 main(int argc, char **argv)
 {
-    int whatport;
     FILE *ffd;
     char *infile_name = NULL;
     char *outfile_name = NULL;
-    int i, plain_argnum, nomore_options;
+    int i, nomore_options;
     int sanity_skip;
     int sanity_interactive;
     int sanity_autofix;
+    int val;
+    int initsock = 0;
 
 #ifdef DETACH
     int   fd;
 #endif
 
-#ifdef WIN32
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
-		perror("WSAStartup failed: unable to initialize Windows socket service.");
-		exit(1);
-	}
-#endif
-
-    if (argc < 3) {
-	show_program_usage(*argv);
-    }
-
     time(&current_systime);
     init_descriptor_lookup();
     init_descr_count_lookup();
 
-    plain_argnum = 0;
     nomore_options = 0;
     sanity_skip = 0;
     sanity_interactive = 0;
@@ -256,7 +242,8 @@ main(int argc, char **argv)
             if (i + 1 >= argc) {
                show_program_usage(*argv);
             }
-            resolver_myport = whatport = atoi(argv[++i]);
+            if (numsocks < MAX_LISTEN_SOCKS)
+               listener_port[numsocks++] = atoi(argv[++i]);
           } else if (!strcmp(argv[i], "-gamedir")) {
             if (i + 1 >= argc) {
                show_program_usage(*argv);
@@ -271,24 +258,31 @@ main(int argc, char **argv)
 		show_program_usage(*argv);
 	    }
 	} else {
-	    plain_argnum++;
-	    switch (plain_argnum) {
-	      case 1:
-		infile_name = argv[i];
-		break;
-	      case 2:
-		outfile_name = argv[i];
-		break;
-	      case 3:
-		resolver_myport = whatport = atoi(argv[i]);
-		break;
-	      default:
-		show_program_usage(*argv);
-		break;
-	    }
+          if (!infile_name) {
+             infile_name = argv[i];
+          } else if (!outfile_name) {
+             outfile_name = argv[i];
+          } else {
+             val = atoi(argv[i]);
+             if ((val < 1) || (val > 65535)) {
+                if (numsocks >= 3) {
+                   show_program_usage(*argv);
+                } else {
+                   (void) numsocks++;
+                }
+             } else {
+                if (initsock) {
+                   if (numsocks < MAX_LISTEN_SOCKS) {
+                      listener_port[numsocks++] = val;
+                   }
+                 } else {
+                   initsock = 1;
+                 }
+             }
+          }
 	}
     }
-    if (plain_argnum < 2) {
+    if ((!infile_name) || (!outfile_name)) {
 	show_program_usage(*argv);
     }
 
@@ -315,7 +309,7 @@ main(int argc, char **argv)
 	    fclose(ffd);
 	}
 
-	log_status("INIT: %s starting.\n", VERSION);
+	log_status("INIT: ProtoMUCK %s starting.\n", PROTOBASE);
 	#ifdef WIN32
 	   fprintf(stderr,"ProtoMUCK %s(%s-compat) - Windows Port\n", PROTOBASE, VERSION);
 	   fprintf(stderr,"----------------------------------------------\n");
@@ -371,7 +365,15 @@ main(int argc, char **argv)
 	exit(2);
     }
 
-       resolver_myport = whatport = tp_textport;
+    if ((tp_textport > 0) && (tp_textport < 65536))
+       listener_port[numsocks++] = tp_textport;
+    if ((tp_wwwport > 0) && (tp_wwwport < 65536))
+       listener_port[numsocks++] = tp_wwwport;
+    if ((tp_puebloport > 0) && (tp_puebloport < 65536))
+       listener_port[numsocks++] = tp_puebloport;
+
+    if (!numsocks)
+       listener_port[numsocks++] = TINYPORT;
 
 #ifdef SPAWN_HOST_RESOLVER
 	if (!db_conversion_flag) {
@@ -382,9 +384,7 @@ main(int argc, char **argv)
 #endif
 
     if (!sanity_interactive && !db_conversion_flag) {
-#ifndef WIN32
 	set_signals();
-#endif
 
 #ifdef MUD_ID
 	do_setuid(MUD_ID);
@@ -401,7 +401,7 @@ main(int argc, char **argv)
 	}
 
 	/* go do it */
-	shovechars(whatport);
+	shovechars();
 
 	if (restart_flag) {
 	    close_sockets(
@@ -431,10 +431,6 @@ main(int argc, char **argv)
 	kill_resolver();
 #endif
 
-#ifdef WIN32
-	WSACleanup();
-#endif
-
 #ifdef MALLOC_PROFILING
 	db_free();
 	free_old_macros();
@@ -456,9 +452,18 @@ main(int argc, char **argv)
 #endif
 
 	if (restart_flag) {
+          char portlist[BUFFER_LEN];
 	    char numbuf[16];
-	    sprintf(numbuf, "%d", whatport);
-	    execl("restart", "restart", numbuf, (char *)0);
+
+          portlist[0] = '\0';
+          for (i = 0; i < numsocks; i++) {
+             sprintf(numbuf, "%d", listener_port[i]);
+             if (*portlist) {
+                strcat(portlist, " ");
+             }
+             strcat(portlist, numbuf);
+          }
+	    execl("restart", "restart", portlist, (char *)0);
 	}
     }
 
@@ -1044,7 +1049,7 @@ extern void purge_free_frames(void);
 time_t current_systime = 0;
 
 void 
-shovechars(int port)
+shovechars(void)
 {
     fd_set  input_set, output_set;
     long   now, tmptq;
@@ -1056,20 +1061,13 @@ shovechars(int port)
     struct descriptor_data *newd;
     int     avail_descriptors;
     struct timeval sel_in, sel_out;
-    int     wwwport, puebloport, textport;
-    int socknum;
     int openfiles_max;
+    int i;
 
-    puebloport  = tp_puebloport;
-    wwwport     = tp_wwwport;
-    textport    = port;
-    if (puebloport >= 1)
-       sock_pueblo = make_socket(puebloport);
-    if (wwwport >= 1)
-       sock_html   = make_socket(wwwport);
-    if (textport >= 1)
-       sock        = make_socket(textport);
-    maxd = sock + 1;
+    for (i = 0; i < numsocks; i++) {
+        sock[i] = make_socket(listener_port[i]);
+    }
+    maxd = sock[0] + 1;
     gettimeofday(&last_slice, (struct timezone *) 0);
 
     openfiles_max =  max_open_files();
@@ -1088,21 +1086,23 @@ shovechars(int port)
 	for (d = descriptor_list; d; d = dnext) {
 	    dnext = d->next;
 	    if (d->booted) {
+            if (((d->type != CT_HTML) && (d->type != CT_MUF)) || (!descr_running_queue(d->descriptor))) {
 #ifdef HTTPDELAY
-		if(d->httpdata) {
-		    queue_ansi(d, d->httpdata);
-		    free((void *)d->httpdata);
-		    d->httpdata = NULL;
-		}
+		   if(d->httpdata) {
+		       queue_ansi(d, d->httpdata);
+		       free((void *)d->httpdata);
+		       d->httpdata = NULL;
+		   }
 #endif
-		process_output(d);
-		if (d->booted == 2) {
-		    goodbye_user(d);
+		   process_output(d);
+		   if (d->booted == 2) {
+		       goodbye_user(d);
+		   }
+		   d->booted = 0;
+		   process_output(d);
+               if (!d->connected) announce_disclogin(d);
+		   shutdownsock(d);
 		}
-		d->booted = 0;
-		process_output(d);
-            if (!d->connected) announce_disclogin(d);
-		shutdownsock(d);
 	    }
 	}
 	purge_free_frames();
@@ -1118,12 +1118,9 @@ shovechars(int port)
 	FD_ZERO(&output_set);
 	FD_ZERO(&input_set);
 	if (ndescriptors < avail_descriptors) {
-          if (textport >= 1)
-	       FD_SET(sock, &input_set);
-          if (wwwport >= 1)
-	       FD_SET(sock_html, &input_set);
-          if (puebloport >= 1)
-	       FD_SET(sock_pueblo, &input_set);
+         for (i = 0; i < numsocks; i++) {
+             FD_SET(sock[i], &input_set);
+         }
 	}
 	for (d = descriptor_list; d; d = d->next) {
 	    if (d->input.lines > 100)
@@ -1150,10 +1147,6 @@ shovechars(int port)
 		return;
 	    }
 	} else {
-          int cport = port;
-	    int csock = -1;
-	    int ctype = CT_MUCK;
-
 	    time(&current_systime);
 	    gettimeofday(&sel_out,NULL);
 	    if (sel_out.tv_usec < sel_in.tv_usec) {
@@ -1169,42 +1162,29 @@ shovechars(int port)
 	      sel_prof_idle_sec += 1;
 	    }
 	    sel_prof_idle_use++;
-	    time(&now);
-	    if (textport > 1 ? FD_ISSET(sock, &input_set) : 0) {
-            cport = textport;
-		csock = sock;
-		ctype = CT_MUCK;
-	    }
-	    if (wwwport > 1 ? FD_ISSET(sock_html, &input_set) : 0) {
-            cport = wwwport;
-		csock = sock_html;
-		ctype = CT_HTML;
-	    }
-	    if (puebloport > 1 ? FD_ISSET(sock_pueblo, &input_set) : 0) {
-            cport = puebloport;
-		csock = sock_pueblo;
-		ctype = CT_PUEBLO;
-	    }
-	    if (csock >= 0) {
-		if ((newd = new_connection(csock, ctype, cport)) <= 0) {
-		    if ((newd < 0) && errnosocket
+	    (void) time(&now);
+          for (i = 0; i < numsocks; i++) {
+	       if (FD_ISSET(sock[i], &input_set)) {
+		   if ((newd = new_connection(listener_port[i], sock[i])) <= 0) {
+		       if ((newd < 0) && errnosocket
 #ifndef WIN32
-			    && errno != EINTR
-			    && errno != EMFILE
-			    && errno != ENFILE
+			       && errno != EINTR
+			       && errno != EMFILE
+			       && errno != ENFILE
 #endif
-		    ) {
+		       ) {
 #ifdef WIN32
-			log_status("new_connection: error #%d\n", errnosocket);
+			   log_status("new_connection: error #%d\n", errnosocket);
 #else
-			log_status("new_connection: %s\n", sys_errlist[errnosocket]);
+	  	  	   log_status("new_connection: %s\n", sys_errlist[errnosocket]);
 #endif
-		    }
-		} else {
-		    if (newd->descriptor >= maxd)
-			maxd = newd->descriptor + 1;
-		}
-	    }
+		       }
+		   } else {
+		       if (newd->descriptor >= maxd)
+			   maxd = newd->descriptor + 1;
+		   }
+	       }
+          }
 #ifdef SPAWN_HOST_RESOLVER
 	    if (FD_ISSET(resolver_sock[1], &input_set)) {
 	       resolve_hostnames();
@@ -1235,9 +1215,21 @@ shovechars(int port)
                    announce_idle(d);
                 }
 		} else {
-		    if ((now - d->connected_at) > 300) {
-			d->booted = 1;
-		    }
+                if (!((d->type == CT_HTML) || (d->type == CT_MUF))) {
+                   int curidle;
+                   char buff[BUFFER_LEN];
+                   sprintf(buff, "@Ports/%d/Idle", d->cport);
+                   if (get_property((dbref) 0, buff)) {
+                      curidle = get_property_value((dbref) 0, buff);
+                   } else {
+                      curidle = tp_connidle;
+                   }
+                   if (curidle < 30)
+                      curidle = 9999999;
+		       if ((now - d->connected_at) > curidle) {
+			   d->booted = 1;
+		       }
+                }
 		}
 	    }
 	    if (cnt > con_players_max) {
@@ -1438,7 +1430,7 @@ void
 wall_all(const char *msg)
 {
     struct descriptor_data *d;
-    char    buf[BUFFER_LEN + 2];
+    char    buf[BUFFER_LEN + 2], buf2[BUFFER_LEN + 500], *temp;
 
 #ifdef COMPRESS
     msg = uncompress(msg);
@@ -1446,9 +1438,17 @@ wall_all(const char *msg)
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
+    temp = html_escape(buf);
+    strcpy(buf2, "<code>");
+    strcat(buf2, temp);
+    strcat(buf2, "</code>");
 
     for (d = descriptor_list; d; d = d->next) {
-	queue_ansi(d, buf);
+      if((d->type == CT_HTML) || (d->type == CT_PUEBLO)) {
+           queue_ansi(d, buf2);
+      } else {
+           queue_ansi(d, buf);
+      }
 	if (!process_output(d))
 	    d->booted = 1;
     }
@@ -1485,26 +1485,74 @@ str2ip( const char *ipstr )
     /* return( htonl((ip1 << 24) | (ip2 << 16) | (ip3 << 8) | ip4) ); */
 }
 
+int
+get_ctype(int port)
+{
+   char buf[BUFFER_LEN];
+   int  ctype = 0;
+
+   sprintf(buf, "@Ports/%d/Type", port);
+   if (get_property((dbref) 0, buf)) {
+      ctype = get_property_value((dbref) 0, buf);
+      switch (ctype) {
+         case 0:
+            ctype = CT_MUCK;
+            break;
+         case 1:
+            ctype = CT_HTML;
+            break;
+         case 2:
+            ctype = CT_MUCK;
+            break;
+         case 3:
+            ctype = CT_MUF;
+            break;
+         default:
+            ctype = CT_MUCK;
+            break;
+      }
+   } else {
+      if (port == tp_wwwport) {
+         ctype = CT_HTML;
+      } else if (port == tp_puebloport) {
+         ctype = CT_PUEBLO;
+      } else ctype = CT_MUCK;
+   }
+   switch (ctype) {
+      case CT_MUCK:
+         return CT_MUCK;
+      case CT_HTML:
+         return CT_HTML;
+      case CT_PUEBLO:
+         return CT_PUEBLO;
+      case CT_MUF:
+         return CT_MUF;
+   }
+   return CT_MUCK;
+}
+
 struct descriptor_data *
-new_connection(int sock, int ctype, int cport)
+new_connection(int port, int sock)
 {
     int     newsock;
     struct sockaddr_in addr;
     int     addr_len;
+    int     ctype;
     char    hostname[128];
 
     addr_len = sizeof(addr);
-    newsock = accept(sock, (struct sockaddr *) & addr, &addr_len);
+    newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
     
+    ctype = get_ctype(port);
     if (newsock < 0) {
 	return 0;
     } else {
-	strcpy(hostname, addrout(addr.sin_addr.s_addr, addr.sin_port));
+	strcpy(hostname, addrout(port, addr.sin_addr.s_addr, addr.sin_port));
 	if (reg_site_is_blocked(ntohl(addr.sin_addr.s_addr)) == TRUE) {
 	    log_status( "*BLK: %2d %s(%d) %s C#%d P#%d\n", newsock,
 		hostname, ntohs(addr.sin_port),
 		host_as_hex(ntohl(addr.sin_addr.s_addr)),
-		++crt_connect_count, cport
+		++crt_connect_count, port
 	    );
 	    shutdown(newsock, 2);
 	    closesocket(newsock);
@@ -1514,15 +1562,16 @@ new_connection(int sock, int ctype, int cport)
 	log_status( "ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
 	    hostname, ntohs(addr.sin_port),
 	    host_as_hex(ntohl(addr.sin_addr.s_addr)),
-	    ++crt_connect_count, cport,
-	    ctype==0? "muck"    : (
-	    ctype==1? "html"    : (
-	    ctype==2? "Pueblo"  : (
-	    "unknown" )))
+	    ++crt_connect_count, port,
+	    ctype==CT_MUCK?   "TEXT"    : (
+	    ctype==CT_HTML?   "WWW"    : (
+	    ctype==CT_PUEBLO? "PUEBLO"  : (
+	    ctype==CT_MUF?    "MUF"  : (
+                            "UNKNOWN" ))))
 	);
 	return initializesock( newsock,
 	    hostname, ntohs(addr.sin_port),
-	    ntohl(addr.sin_addr.s_addr), ctype, cport
+	    ntohl(addr.sin_addr.s_addr), ctype, port
 	);
     }
 }
@@ -1531,7 +1580,7 @@ new_connection(int sock, int ctype, int cport)
 #ifdef SPAWN_HOST_RESOLVER
 
 void
-kill_resolver()
+kill_resolver(void)
 {
     int i;
     pid_t p;
@@ -1543,7 +1592,7 @@ kill_resolver()
 
 
 void
-spawn_resolver()
+spawn_resolver(void)
 {
     socketpair(AF_UNIX, SOCK_STREAM, 0, resolver_sock);
     make_nonblocking(resolver_sock[1]);
@@ -1562,7 +1611,7 @@ spawn_resolver()
 
 
 void
-resolve_hostnames()
+resolve_hostnames(void)
 {
     char buf[BUFFER_LEN], *oldname;
     char *ptr, *ptr2, *ptr3, *hostip, *port, *hostname, *username, *tempptr;
@@ -1634,7 +1683,7 @@ resolve_hostnames()
 /*  addrout -- Translate address 'a' from int to text.          */
 
 const char *
-addrout(int a, unsigned short prt)
+addrout(int lport, int a, unsigned short prt)
 {
     static char buf[128], *host;
     struct in_addr addr;
@@ -1686,7 +1735,7 @@ addrout(int a, unsigned short prt)
 	(a >> 16) & 0xff,
 	(a >> 8)  & 0xff,
 	 a        & 0xff,
-	prt, resolver_myport
+	prt, lport
     );
     if (tp_hostnames) {
 	write(resolver_sock[1], buf, strlen(buf));
@@ -1845,7 +1894,9 @@ make_socket(int port)
     struct sockaddr_in server;
     int     opt;
 
+    fprintf(stderr, "Opening port: %d\n", port);
     s = socket(AF_INET, SOCK_STREAM, 0);
+    fprintf(stderr, "        Sock: %d\n", s);
     if (s < 0) {
 	perror("creating stream socket");
 	exit(3);
@@ -2006,11 +2057,7 @@ make_nonblocking(int s)
 # endif /* FNDELAY */
 #endif
 
-#ifdef WIN32
-	if (ioctl(s, FIONBIO, NULL) != 0) {
-#else
     if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
-#endif
 	perror("make_nonblocking: fcntl");
 	panic("O_NONBLOCK fcntl failed");
     }
@@ -2315,21 +2362,6 @@ interact_warn(dbref player)
 }
 
 #ifdef HTTPD
-void
-httpd_unknown(struct descriptor_data *d, const char *name) {
-    if(httpd_get_lsedit(d, tp_www_root, "http/404") <= 0) {
-	queue_ansi(d,
-	    "<HTML>\r\n<HEAD><TITLE>404 Not Found</TITLE></HEAD><BODY>\r\n"
-	    "<H1>404 Not Found</H1>\r\n"
-	    "The requested URL "
-	);
-	queue_ansi(d, name);
-	queue_ansi(d,
-	    " was not found on this server.<P>\r\n</BODY></HTML>\r\n"
-	);
-    }
-    d->booted = 1;
-}
 
 int
 httpd_get_lsedit(struct descriptor_data *d, dbref what, const char *prop) {
@@ -2362,6 +2394,22 @@ httpd_get_lsedit(struct descriptor_data *d, dbref what, const char *prop) {
     }
 
     return lines - 1;
+}
+
+void
+httpd_unknown(struct descriptor_data *d, const char *name) {
+    if(httpd_get_lsedit(d, tp_www_root, "http/404") <= 0) {
+	queue_ansi(d,
+	    "<HTML>\r\n<HEAD><TITLE>404 Not Found</TITLE></HEAD><BODY>\r\n"
+	    "<H1>404 Not Found</H1>\r\n"
+	    "The requested URL "
+	);
+	queue_ansi(d, name);
+	queue_ansi(d,
+	    " was not found on this server.<P>\r\n</BODY></HTML>\r\n"
+	);
+    }
+    d->booted = 3;
 }
 
 void
@@ -2430,7 +2478,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	queue_ansi(d, "</NOFRAMES>");  
 	
 	FREE(identify);
-	d->booted = 1;
+	d->booted = 3;
         foundit = 1;
      } else
      if (string_prefix("webinput", name))
@@ -2511,7 +2559,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	    queue_ansi(d, buf);
 	}       
         foundit = 1;         
-	d->booted = 1;
+	d->booted = 3;
 /*      } else
 	{
 	   queue_ansi(d, "<b>Server has disconnected.</b><BR>");
@@ -2547,7 +2595,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	    }
 	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
 	    queue_string(d, "</BODY></HTML>\r\n");
-	    d->booted = 1;
+	    d->booted = 3;
 	} else if ( string_prefix("help", name) ) {
 	    queue_string(d, "<HTML>\r\n<HEAD><TITLE>Connection Help</TITLE></HEAD>\r\n");
 	    queue_string(d, "<BODY><PRE>\r\n");
@@ -2557,7 +2605,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		d->type = cold;
 	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
 	    queue_string(d, "</BODY></HTML>\r\n");
-	    d->booted = 1;
+	    d->booted = 3;
 	} else if ( string_prefix("who", name) ) {
 	    queue_string(d, "<HTML>\r\n<HEAD><TITLE>Who's on now?</TITLE></HEAD>\r\n");
 	    queue_string(d, "<H1>Who's on now?</H1>\r\n");
@@ -2568,7 +2616,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		dump_users(d, "");
 	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
 	    queue_string(d, "</BODY></HTML>\r\n");
-	    d->booted = 1;
+	    d->booted = 3;
 	} else if ( string_prefix("welcome", name) ) {
 	    queue_ansi(d, "<HTML>\r\n<HEAD><TITLE>Welcome!</TITLE></HEAD>\r\n");
 	    queue_ansi(d, "<H1>Welcome!</H1>\r\n");
@@ -2579,7 +2627,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		d->type = cold;
 	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
 	    queue_string(d, "</BODY></HTML>\r\n");
-	    d->booted = 1;
+	    d->booted = 3;
 	} else {
 	    httpd_unknown(d, name);
 	}
@@ -2659,7 +2707,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		strcpy(match_args, buf);
 		strcpy(match_cmdname, "(WWW)");
 		tmpfr = interp(d->descriptor, tp_www_surfer, what, PropDataRef(prpt),
-		       tp_www_root, PREEMPT, STD_HARDUID);
+		       tp_www_root, BACKGROUND, STD_HARDUID);
 		if (tmpfr) {
 			interp_loop(tp_www_surfer, PropDataRef(prpt), tmpfr, 1);
 		}
@@ -2695,14 +2743,14 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	    queue_ansi(d, "\">HERE</A>.\r\n</HTML>\r\n");
 #endif
 	    if (!*http)
-		d->booted = 1;
+		d->booted = 3;
 	   }
 	} else {
 	    httpd_unknown(d, prop);
 	    return;
 	}
     } else {
-	d->booted = 1;
+	d->booted = 3;
     }
      }
 }
@@ -2719,10 +2767,11 @@ check_connect(struct descriptor_data * d, const char *msg)
 #ifdef HTTPD
     char    *name;
 #endif
-    dbref   player;
+    dbref   player, mufprog;
     time_t  now;
     int     result, xref;
     char    msgargs[BUFFER_LEN];
+    char    buf[BUFFER_LEN];
 
     if( tp_log_connects )
 	log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg );
@@ -2762,6 +2811,25 @@ check_connect(struct descriptor_data * d, const char *msg)
       return;
    } else if (d->type == CT_HTML && (index(msg,':'))) { /* Ignore */ }
 #endif
+   if (d->type == CT_MUF) {
+      sprintf(buf, "@Ports/%d/MUF", d->cport);
+      mufprog = get_property_dbref((dbref) 0, buf);
+      if (OkObj(mufprog)) {
+         struct frame *tmpfr;
+
+         strcpy(match_args, "MUF");
+         strcpy(match_cmdname, "Queued Event.");
+         tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
+                        (dbref) 0, FOREGROUND, STD_HARDUID);
+         if (tmpfr) {
+            interp_loop(tp_www_surfer, mufprog, tmpfr, 1);
+         }
+         d->booted = 3;
+         return;
+      } else {
+         d->type = CT_MUCK;
+      }
+   }
 	   if (( string_prefix("connect", command) && !string_prefix("c", command) ) || !string_compare(command, "ch")) {
 	player = connect_player(user, password);
 	if (player == NOTHING) {
@@ -2983,6 +3051,7 @@ void
 close_sockets(const char *msg)
 {
     struct descriptor_data *d, *dnext;
+    int i;
 
     for (d = descriptor_list; d; d = dnext) {
 	dnext = d->next;
@@ -3002,12 +3071,9 @@ close_sockets(const char *msg)
 	FREE(d);                                /****/
 	ndescriptors--;                         /****/
     }
-    if (sock != 0)
-       closesocket(sock);
-    if (sock_html != 0)
-       closesocket(sock_html);
-    if (sock_pueblo != 0)
-       closesocket(sock_pueblo);
+    for (i = 0; i < numsocks; i++) {
+       closesocket(sock[i]);
+    }
 }
 
 struct descriptor_data *
@@ -3232,7 +3298,7 @@ dump_users(struct descriptor_data * e, char *user)
     char    buf[2048], tbuf[BUFFER_LEN];
     char    pbuf[64];
     const char    *p;
-    static  players_max = 0;
+    static  int players_max = 0;
 #ifdef COMPRESS
     extern const char *uncompress(const char *);
 #endif
@@ -3575,7 +3641,6 @@ announce_disconnect(struct descriptor_data *d)
     dbref   player = d->player;
     dbref   loc;
     char    buf[BUFFER_LEN];
-    object_flag_type f=0;
 
     if (!d->connected || !OkObj(player) || (Typeof(player) != TYPE_PLAYER) ||
 	((loc = getloc(player)) == NOTHING)
@@ -3708,8 +3773,6 @@ void
 announce_login(struct descriptor_data *d)
 {
     dbref   player = 0;
-    dbref   loc = 0;
-    char    buf[BUFFER_LEN];
 
     if (d->connected)
 	return;
@@ -3734,8 +3797,6 @@ void
 announce_disclogin(struct descriptor_data *d)
 {
     dbref   player = 0;
-    dbref   loc = 0;
-    char    buf[BUFFER_LEN];
 
     if (d->connected)
 	return;
@@ -3781,7 +3842,7 @@ struct descriptor_data *descr_count_table[MAX_SOCKETS];
 int current_descr_count = 0;
 
 void
-init_descr_count_lookup()
+init_descr_count_lookup(void)
 {
     int i;
     for (i = 0; i < MAX_SOCKETS; i++)
@@ -3789,7 +3850,7 @@ init_descr_count_lookup()
 }
 
 void
-update_desc_count_table()
+update_desc_count_table(void)
 {
     int c;
     struct descriptor_data *d;
@@ -3819,7 +3880,7 @@ descrdata_by_count(int count)
 struct descriptor_data *descr_lookup_table[MAX_SOCKETS];
 
 void
-init_descriptor_lookup()
+init_descriptor_lookup(void)
 {
     int i;
     for (i = 0; i < MAX_SOCKETS; i++)
@@ -3995,7 +4056,7 @@ online(dbref player)
 }
 
 int 
-pcount()
+pcount(void)
 {
     return current_descr_count;
 }
@@ -4292,7 +4353,6 @@ int
 pdescrcon(int c)
 {
     struct descriptor_data *d;
-    int     i = 1;
 
     d = descrdata_by_descr(c);
 	if (d) {
@@ -4442,7 +4502,7 @@ pdescrflush(int c)
 int
 pdescrtype(int c)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
 
     d = descrdata_by_descr(c);
     if (d && d->descriptor == c)
@@ -4467,7 +4527,7 @@ pdescrp(int c)
 void
 pdescr_welcome_user(int c)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
 
     d = descrdata_by_descr(c);
     if (d && d->descriptor == c)
@@ -4478,7 +4538,7 @@ pdescr_welcome_user(int c)
 void
 pdescr_logout(int c)
 {
-    struct descriptor_data *d, *dnext;
+    struct descriptor_data *d;
 
     d = descrdata_by_descr(c);
     if (d && d->descriptor == c && d->player != NOTHING) {
@@ -4517,7 +4577,7 @@ partial_pmatch(const char *name)
 
 #ifdef RWHO
 void
-update_rwho()
+update_rwho(void)
 {
     struct descriptor_data *d;
     char buf[BUFFER_LEN];
@@ -4637,6 +4697,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

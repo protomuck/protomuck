@@ -79,7 +79,7 @@ struct tune_str_entry tune_str_list[] =
     {"reg_email",            &tp_reg_email,           WBOY , LARCH, 1},
     {"proplist_counter_fmt", &tp_proplist_counter_fmt,LARCH, LMUF , 1},
     {"proplist_entry_fmt",   &tp_proplist_entry_fmt,  LARCH, LMUF , 1},
-    {NULL, NULL, 0, 0}
+    {NULL, NULL, 0, 0, 0}
 };
 
 
@@ -93,6 +93,7 @@ time_t tp_dump_warntime           = DUMP_WARNTIME;
 time_t tp_monolithic_interval     = MONOLITHIC_INTERVAL;
 time_t tp_clean_interval          = CLEAN_INTERVAL;
 time_t tp_aging_time              = AGING_TIME;
+time_t tp_connidle                = CONNIDLE;
 time_t tp_maxidle                 = MAXIDLE;
 time_t tp_idletime                = IDLETIME;
 time_t tp_cron_interval           = CRON_INTERVAL;
@@ -114,10 +115,11 @@ struct tune_time_entry tune_time_list[] =
     {"monolithic_interval", &tp_monolithic_interval,	LARCH, LMUF },
     {"clean_interval",      &tp_clean_interval,       LARCH, LMUF },
     {"aging_time",          &tp_aging_time,           LARCH, LMUF },
+    {"connidle",            &tp_connidle,             LARCH, LMUF },
     {"maxidle",             &tp_maxidle,              LARCH, LMUF },
     {"idletime",            &tp_idletime,             LARCH, LMUF },
     {"cron_interval",       &tp_cron_interval,        LARCH, LMUF },
-    {NULL, NULL, 0}
+    {NULL, NULL, 0, 0}
 };
 
 
@@ -193,7 +195,7 @@ struct tune_val_entry tune_val_list[] =
     {"listen_mlev",           &tp_listen_mlev,         WBOY , LMUF },
     {"playermax_limit",       &tp_playermax_limit,     LARCH, LMUF },
     {"process_timer_limit",   &tp_process_timer_limit, LARCH, LMUF },
-    {NULL, NULL, 0}
+    {NULL, NULL, 0, 0}
 };
 
 
@@ -236,7 +238,7 @@ struct tune_ref_entry tune_ref_list[] =
     {"www_root",          TYPE_ROOM,      &tp_www_root,         LARCH, LMAGE},
     {"www_surfer",        TYPE_PLAYER,    &tp_www_surfer,       LARCH, LMAGE},
 #endif
-    {NULL, 0, NULL, 0}
+    {NULL, 0, NULL, 0, 0}
 };
 
 
@@ -299,7 +301,7 @@ int tp_old_parseprop               = 0;
 
 struct tune_bool_entry {
     const char *name;
-    int *bool;
+    int *boolv;
     int writemlev;
     int readmlev;
 };
@@ -361,7 +363,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"enable_mcp",             &tp_enable_mcp,               WBOY,  LMUF },
     {"enable_commandprops",    &tp_enable_commandprops,      WBOY,  LMUF },
     {"old_parseprop",          &tp_old_parseprop,            WBOY,  LMUF },
-    {NULL, NULL, 0}
+    {NULL, NULL, 0, 0}
 };
 
 
@@ -385,7 +387,7 @@ timestr_full(time_t dtime)
 
 
 int
-tune_count_parms()
+tune_count_parms(void)
 {
     int total = 0;
     struct tune_str_entry *tstr = tune_str_list;
@@ -430,7 +432,7 @@ tune_show_times(dbref player, char *name)
 {
     int total=0;
     const char *lastname = NULL;
-    char buf[BUFFER_LEN + 50], tbuf[BUFFER_LEN];
+    char buf[BUFFER_LEN + 50];
     struct tune_time_entry *ttim = tune_time_list;
     while (ttim->name) {
 	strcpy(buf, ttim->name);
@@ -453,7 +455,7 @@ tune_show_vals(dbref player, char *name)
 {
     int total=0;
     const char *lastname = NULL;
-    char buf[BUFFER_LEN + 50], tbuf[BUFFER_LEN];
+    char buf[BUFFER_LEN + 50];
     struct tune_val_entry *tval = tune_val_list;
     while (tval->name) {
 	strcpy(buf, tval->name);
@@ -476,7 +478,7 @@ tune_show_refs(dbref player, char *name)
 {
     int total=0;
     const char *lastname = NULL;
-    char buf[BUFFER_LEN + 50], tbuff[BUFFER_LEN];
+    char buf[BUFFER_LEN + 50];
     struct tune_ref_entry *tref = tune_ref_list;
     while (tref->name) {
 	strcpy(buf, tref->name);
@@ -499,14 +501,14 @@ tune_show_bool(dbref player, char *name)
 {
     int total=0;
     const char *lastname = NULL;
-    char buf[BUFFER_LEN + 50], tbuf[BUFFER_LEN];
+    char buf[BUFFER_LEN + 50];
     struct tune_bool_entry *tbool = tune_bool_list;
     while (tbool->name) {
 	strcpy(buf, tbool->name);
 	if (MLevel(OWNER(player)) >= tbool->readmlev) {
 	    sprintf(buf, WHITE "(bool) " CRED "%c" GREEN "%-24s" RED " = " BLUE "%s", 
            (WLevel(OWNER(player)) >= tbool->writemlev) ? ' ' : '-',
-           tbool->name, ((*tbool->bool)? "yes" : "no"));
+           tbool->name, ((*tbool->boolv)? "yes" : "no"));
            lastname = tbool->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -590,7 +592,7 @@ tune_display_parms(dbref player, char *name)
           (!*name || equalstr(name, buf))) {
 	    sprintf(buf, WHITE "(bool) " CRED "%c" GREEN "%-24s" RED " = " BLUE "%s", 
            (WLevel(OWNER(player)) >= tbool->writemlev) ? ' ' : '-',
-           tbool->name, ((*tbool->bool)? "yes" : "no"));
+           tbool->name, ((*tbool->boolv)? "yes" : "no"));
            lastname = tbool->name;
            anotify_nolisten2(player, buf);
            total++;
@@ -638,7 +640,7 @@ tune_save_parms_to_file(FILE *f)
     }
 
     while (tbool->name) {
-	fprintf(f, "%s=%s\n", tbool->name, (*tbool->bool)? "yes" : "no");
+	fprintf(f, "%s=%s\n", tbool->name, (*tbool->boolv)? "yes" : "no");
 	tbool++;
     }
 }
@@ -709,7 +711,7 @@ tune_get_parmstring(const char *name, int mlev)
     while (tbool->name) {
 	if (!string_compare(name, tbool->name)) {
 	    if (tbool->readmlev > mlev) return "";
-	    sprintf(buf, "%s", ((*tbool->bool)? "yes" : "no"));
+	    sprintf(buf, "%s", ((*tbool->boolv)? "yes" : "no"));
 	    return (buf);
 	}
 	tbool++;
@@ -847,9 +849,9 @@ tune_setparm(const dbref player, const char *parmname, const char *val)
            if ((player != NOTHING) && (WLevel(OWNER(player)) < tbool->writemlev))
               return TUNESET_NOPERM;
 	    if (*parmval == 'y' || *parmval == 'Y') {
-		*tbool->bool = 1;
+		*tbool->boolv = 1;
 	    } else if (*parmval == 'n' || *parmval == 'N') {
-		*tbool->bool = 0;
+		*tbool->boolv = 0;
 	    } else {
 		return 2;
 	    }
@@ -992,6 +994,7 @@ do_tune(dbref player, char *parmname, char *parmval)
 	return;
     }
 }
+
 
 
 

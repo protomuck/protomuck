@@ -15,7 +15,7 @@
 #include <ctype.h>
 #include <time.h>
 
-extern struct line *read_program( );
+extern struct line *read_program(dbref prog);
 
 void
 list_proglines(dbref player, dbref program, struct frame *fr, int start, int end)
@@ -35,7 +35,7 @@ list_proglines(dbref player, dbref program, struct frame *fr, int start, int end
     }
     if (!fr->brkpt.proglines || program != fr->brkpt.lastproglisted) {
 	free_prog_text(fr->brkpt.proglines);
-	fr->brkpt.proglines = read_program(program, 0);
+	fr->brkpt.proglines = read_program(program);
 	fr->brkpt.lastproglisted = program;
     }
     tmpline = DBFETCH(program)->sp.program.first;
@@ -321,8 +321,8 @@ debug_printvar(dbref player, dbref program, struct frame *fr, const char *arg)
 static void
 push_arg(dbref player, struct frame *fr, const char *arg)
 {
-    int num, lflag, sflag = 0;
-    float inum;
+    int num = 0, lflag = 0, sflag = 0;
+    float inum = 0.0;
 
 
     if (fr->argument.top >= STACK_SIZE) {
@@ -857,6 +857,7 @@ notify_nolisten(player, "quit            stop execution here.", 1);
     }
     return 0;
 }
+
 
 
 

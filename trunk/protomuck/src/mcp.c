@@ -93,19 +93,19 @@ void
 mcp_package_register(const char *pkgname, McpVer minver, McpVer maxver, McpPkg_CB callback,
 					 void *context, ContextCleanup_CB cleanup)
 {
-	McpPkg *new = (McpPkg *) malloc(sizeof(McpPkg));
+	McpPkg *nw = (McpPkg *) malloc(sizeof(McpPkg));
 
-	new->pkgname = (char *) malloc(strlen(pkgname) + 1);
-	strcpy(new->pkgname, pkgname);
-	new->minver = minver;
-	new->maxver = maxver;
-	new->callback = callback;
-	new->context = context;
-	new->cleanup = cleanup;
+	nw->pkgname = (char *) malloc(strlen(pkgname) + 1);
+	strcpy(nw->pkgname, pkgname);
+	nw->minver = minver;
+	nw->maxver = maxver;
+	nw->callback = callback;
+	nw->context = context;
+	nw->cleanup = cleanup;
 
 	mcp_package_deregister(pkgname);
-	new->next = mcp_PackageList;
-	mcp_PackageList = new;
+	nw->next = mcp_PackageList;
+	mcp_PackageList = nw;
 }
 
 
@@ -1589,6 +1589,7 @@ mcp_internal_parse(McpFrame * mfr, const char *in)
 * Added log to bottom and comment to top
 *
 */
+
 
 
 

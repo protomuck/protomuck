@@ -94,7 +94,7 @@ escape_url(char *out, char *in)
 {
     char       *tmp = out;
     int         cnt = 0;
-    int         isvalid_cgichar();
+    int         isvalid_cgichar(char);
 
     for (; *in != '\0'; in++, tmp++, cnt++)
         {
@@ -115,8 +115,7 @@ escape_url(char *out, char *in)
 }
 
 int
-isvalid_cgichar(c)
-     char        c;
+isvalid_cgichar(char c)
 {
     if (isalnum(c) ||
         (c == UNDERSCORE) ||
@@ -131,4 +130,5 @@ isvalid_cgichar(c)
     else
         return (0);
 }
+
 

@@ -20,6 +20,8 @@
 #include "externs.h"
 #include "strings.h"
 
+#define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
+
 /* declarations */
 static const char *dumpfile = 0;
 static int epoch = 0;
@@ -475,24 +477,6 @@ do_restrict(dbref player, const char *arg)
 /* use this only in process_command */
 #define Matched(string) { if(!string_prefix((string), command)) goto bad; }
 
-void
-find_path( dbref loc, const char *pathname, char buf[BUFFER_LEN] ) {
-    PropPtr propadr, pptr;
-
-#ifdef DISKBASE
-    fetchprops(loc);
-#endif
-    buf[0] = '\0';
-    propadr = first_prop(loc, "@u/d/", &pptr, buf);
-
-    while (propadr > 0) {
-	if( exit_prefix(buf, pathname) )
-	    return;
-	propadr = next_prop(pptr, propadr, buf);
-    }
-    buf[0] = '\0';
-}
-
 int force_level = 0;
 
 void 
@@ -500,13 +484,12 @@ process_command(int descr, dbref player, char *command)
 {
     char   *arg1;
     char   *arg2;
-    char   *full_command, *commandline=command, *commandstuff;
+    char   *full_command, /* *commandline=command, */ *commandstuff;
     char   *p;                  /* utility */
     char    pbuf[BUFFER_LEN];
     char    xbuf[BUFFER_LEN];
     char    ybuf[BUFFER_LEN];
     int     isOverride = 0;
-    const char *path;
     struct frame *tmpfr;
 
     if (command == 0)
@@ -538,7 +521,7 @@ process_command(int descr, dbref player, char *command)
     }
     /* eat leading whitespace */
     while (*command && isspace(*command))
-	command++;
+	(void) command++;
 
     commandstuff = command;
     /* check for single-character commands */
@@ -549,7 +532,7 @@ process_command(int descr, dbref player, char *command)
 	sprintf(pbuf, "pose %s", command + 1);
 	command = &pbuf[0];
     } else if ((*command == '|' || (*commandstuff++ == '\\' && *commandstuff == '\\') ) && can_move(descr, player, "spoof", 0)) {
-      if(*command = '\\')
+      if(*command == '\\')
          sprintf(pbuf, "spoof %s", command + 2);
       else
          sprintf(pbuf, "spoof %s", command + 1);
@@ -908,7 +891,7 @@ process_command(int descr, dbref player, char *command)
 			    case 'c':
 			    case 'C':
 				Matched("@mcpedit");
-				do_mcpedit(descr, player, arg1);
+				(void) do_mcpedit(descr, player, arg1);
 				break;
 			    case 'e':
 			    case 'E':
@@ -1505,10 +1488,10 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
          do_parse_mesg(descr, player, where, workBuf + 1, match_cmdname,
                        cbuf, ival);
 
-      if(*cbuf)
+      if(*cbuf) {
         if (player < 1)
           notify_descriptor(descr, cbuf);
-        else
+        } else {
           if (mt) {
              notify_nolisten(player, cbuf, 1);
           } else {
@@ -1523,6 +1506,7 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
                 plyr = DBFETCH(plyr)->next;
              }
           }
+        }
       return 1;
    }
    else {
@@ -1555,6 +1539,7 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
 }
 
 #undef Matched
+
 
 
 

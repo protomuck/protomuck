@@ -31,7 +31,7 @@ extern const char *compress(const char *);
 #endif /* COMPRESS */
 #define DoNullInd(x) ((x) ? (x) -> data : "")
   
-extern void do_abort_silent();
+extern void do_abort_silent(void);
 
 extern void RCLEAR(struct inst *oper, char *file, int line);
 
@@ -43,7 +43,7 @@ extern struct localvars *localvars_get(struct frame *fr, dbref prog);
 extern void localvar_dupall(struct frame *fr, struct frame *oldfr);
 extern struct inst *scopedvar_get(struct frame *fr, int varnum);
 extern void scopedvar_dupall(struct frame *fr, struct frame *oldfr);
-extern int false (struct inst *p);
+extern int logical_false(struct inst *p);
   
 extern void copyinst(struct inst *from, struct inst *to);
   
@@ -147,6 +147,7 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 #include "p_error.h"
 #include "p_file.h"
 #include "p_array.h"
+
 
 
 

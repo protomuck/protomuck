@@ -125,23 +125,23 @@ extern int size_proplist(PropPtr avl);
 
 extern void set_property_nofetch(dbref player, const char *type, int flags, PTYPE value);
 extern void set_property(dbref player, const char *type, int flags, PTYPE value);
-extern void add_prop_nofetch(dbref player, const char *type, const char *class, int value);
-extern void add_property(dbref player, const char *type, const char *class, int value);
+extern void add_prop_nofetch(dbref player, const char *type, const char *pclass, int value);
+extern void add_property(dbref player, const char *type, const char *pclass, int value);
 extern void remove_property_list(dbref player, int all);
 extern void remove_property_nofetch(dbref player, const char *type);
 extern void remove_property(dbref player, const char *type);
-extern int has_property(int descr, dbref player, dbref what, const char *type, const char *class, int value);
-extern int has_property_strict(int descr, dbref player, dbref what, const char *type, const char *class, int value);
+extern int has_property(int descr, dbref player, dbref what, const char *type, const char *pclass, int value);
+extern int has_property_strict(int descr, dbref player, dbref what, const char *type, const char *pclass, int value);
 extern PropPtr get_property(dbref player, const char *type);
 
 extern const char *get_property_class(dbref player, const char *type);
 extern float get_property_fvalue(dbref player, const char *type);
 extern int get_property_value(dbref player, const char *type);
-extern dbref get_property_dbref(dbref player, const char *class);
+extern dbref get_property_dbref(dbref player, const char *pclass);
 extern struct boolexp *get_property_lock(dbref player, const char *type);
 extern int genderof(int descr, dbref player);
 extern struct plist *copy_prop(dbref old);
-extern void copy_proplist(dbref obj, PropPtr *new, PropPtr old);
+extern void copy_proplist(dbref obj, PropPtr *new2, PropPtr old);
 extern PropPtr first_prop(dbref player, const char *dir, PropPtr *list, char *name);
 extern PropPtr first_prop_nofetch(dbref player, const char *dir, PropPtr *list, char *name);
 extern PropPtr next_prop(PropPtr list, PropPtr prop, char *name);
@@ -188,4 +188,5 @@ extern char *displayprop(dbref player, dbref obj, const char *name, char *buf);
 extern int size_properties(dbref player, int load);
 extern void untouchprops_incremental(int limit);
 extern int Prop_SysPerms(dbref obj, const char *type);
+
 

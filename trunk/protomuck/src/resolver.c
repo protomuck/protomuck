@@ -35,7 +35,7 @@
 #define IDENTD_TIMEOUT 60
 
 
-extern int errno;
+/* extern int errno; */
 
 const char *addrout(int, int, int);
 
@@ -100,7 +100,7 @@ hostfetch(int ip)
 }
 
 void
-hostprune()
+hostprune(void)
 {
     struct hostcache *ptr;
     struct hostcache *tmp;
@@ -156,7 +156,7 @@ hostadd_timestamp(int ip, const char *name)
 void    set_signals(void);
 
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)());
+void our_signal(int signo, void (*sighandler)(int));
 #else
 # define our_signal(s,f) signal((s),(f))
 #endif
@@ -170,7 +170,7 @@ void our_signal(int signo, void (*sighandler)());
  * Calls sigaction() to set a signal, if we are posix.
  */
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)())
+void our_signal(int signo, void (*sighandler)(int))
 {
     struct sigaction	act, oact;
     
@@ -200,7 +200,7 @@ void our_signal(int signo, void (*sighandler)())
  * Called from main() and bailout()
  */
 
-void set_signals()
+void set_signals(void)
 {
     /* we don't care about SIGPIPE, we notice it in select() and write() */
     our_signal(SIGPIPE, SIG_IGN);
@@ -371,7 +371,7 @@ addrout(int a, int prt, int myprt)
                      return 0; \
 		 }
 int 
-do_resolve()
+do_resolve(void)
 {
     int ip1, ip2, ip3, ip4;
     int prt, myprt;
@@ -435,5 +435,6 @@ main(int argc, char **argv)
 
     exit(0);
 }
+
 
 

@@ -28,6 +28,8 @@
 #include "maillib.h"
 #include "strings.h"
 
+#define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
+
 extern	int resolver_sock[2];
 
 void
@@ -43,7 +45,7 @@ get_inquotes( char *buf, char *retbuf, int which )
 	*retbuf = '\0';
 }
 
-void strreplace(char *new, const char *base, const char *orig, 
+void strreplace(char *nw, const char *base, const char *orig, 
                 const char *replace) 
 {
     char xbuf[BUFFER_LEN];
@@ -76,7 +78,7 @@ void strreplace(char *new, const char *base, const char *orig,
           }
        }
     }
-    sprintf(new, "%s", buf);
+    sprintf(nw, "%s", buf);
 }
 
 
@@ -117,6 +119,7 @@ do_wizchat(dbref player, const char *arg)
 void 
 do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 {
+    char buf[BUFFER_LEN];
     dbref   victim;
     dbref   destination;
     const char *to;
@@ -243,7 +246,10 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 		    }
 		    anotify_nolisten2(victim, CNOTE "You feel a wrenching sensation...");
 		    enter_room(descr, victim, destination, DBFETCH(victim)->location);
-		    anotify_nolisten2(player, CSUCC "Teleported.");
+                    sprintf(buf, CSUCC "%s teleported to %s.",
+                            unparse_object(player, victim),
+                            NAME(destination) );
+                    anotify_nolisten2(player, buf);
 		    break;
 		case TYPE_THING:
 		    if (parent_loop_check(victim, destination)) {
@@ -272,7 +278,9 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			    && !(FLAGS(destination) & STICKY))
 			destination = DBFETCH(destination)->sp.room.dropto;
 		    moveto(victim, destination);
-		    anotify_nolisten2(player, CSUCC "Teleported.");
+                    sprintf(buf, CSUCC "%s teleported to %s.",
+                            unparse_object(player, victim), NAME(destination));
+                    anotify_nolisten2(player, buf);
 		    break;
 		case TYPE_ROOM:
 		    if (Typeof(destination) != TYPE_ROOM) {
@@ -292,7 +300,9 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			break;
 		    }
 		    moveto(victim, destination);
-		    anotify_nolisten2(player, CSUCC "Parent set.");
+                    sprintf(buf, CSUCC "Parent of %s set to %s.",
+                            unparse_object(player, victim), NAME(destination));
+                    anotify_nolisten2(player, buf);
 		    break;
 		case TYPE_GARBAGE:
 		    anotify_nolisten2(player, CFAIL "That is garbage.");
@@ -1516,7 +1526,7 @@ do_memory(dbref who)
     CrT_summarize_to_file("malloc_log", "Manual Checkpoint");
 #endif
 
-    anotify_nolisten2(who, CINFO "Done.", 1);
+    anotify_nolisten2(who, CINFO "Done.");
 }
 
 void
@@ -1551,6 +1561,7 @@ do_fixw(dbref player, const char *msg)
     }
     anotify_nolisten2(player, CINFO "Done.");
 }
+
 
 
 

@@ -20,7 +20,7 @@ static time_t last_dump_time = 0L;
 static int dump_warned = 0;
 
 time_t
-next_dump_time()
+next_dump_time(void)
 {
     time_t currtime = time((time_t *) NULL);
 
@@ -117,7 +117,7 @@ delta_dump_now(void)
 static time_t last_clean_time = 0L;
 
 time_t
-next_clean_time()
+next_clean_time(void)
 {
     time_t currtime = time((time_t *) NULL);
 
@@ -302,6 +302,7 @@ next_muckevent (void)
     check_rwho_time();
 #endif
 }         
+
 
 
 

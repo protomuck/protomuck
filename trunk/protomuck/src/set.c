@@ -993,7 +993,6 @@ void
 do_mush_set(int descr, dbref player, char *name, char *setting, char *command)
 {
    char *prop;
-   char *temp;
    dbref thing;
 
 
@@ -1009,7 +1008,7 @@ do_mush_set(int descr, dbref player, char *name, char *setting, char *command)
       return;
    }
 
-   *command++;
+   (void) *command++;
    if(!(*command)) {
       anotify_nolisten2(player, CFAIL "That is a bad name for a property!");
       return;
@@ -1063,7 +1062,6 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     dbref   thing;
     const char *p;
     object_flag_type f=0, f2=0;
-    int ibol=0;
 
     if(tp_db_readonly) return;
 
@@ -1089,7 +1087,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     if (index(flag, PROP_DELIMITER)) {
 	/* copy the string so we can muck with it */
 	char   *type = alloc_string(flag);	/* type */
-	char   *class = (char *) index(type, PROP_DELIMITER);	/* class */
+	char   *pclass = (char *) index(type, PROP_DELIMITER);	/* class */
 	char   *x;	/* to preserve string location so we can free it */
 	char   *temp;
 	int ival = 0;
@@ -1118,14 +1116,14 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	    return;
 	}
 	/* get rid of trailing spaces and slashes */
-	for (temp = class - 1; temp >= type && isspace(*temp); temp--);
+	for (temp = pclass - 1; temp >= type && isspace(*temp); temp--);
 	while (temp >= type && *temp == '/') temp--;
 	*(++temp) = '\0';
 
-	class++;		/* move to next character */
-	/* while (isspace(*class) && *class) class++; */
-	if (*class == '^' && number(class+1))
-	    ival = atoi(++class);
+	pclass++;		/* move to next character */
+	/* while (isspace(*pclass) && *pclass) pclass++; */
+	if (*pclass == '^' && number(pclass+1))
+	    ival = atoi(++pclass);
 
       if (Prop_SysPerms(thing, type)) {
           anotify_nolisten2(player, CFAIL "That property is already used as a system property.");
@@ -1141,7 +1139,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	    free((void *) x);
 	    return;
 	}
-	if (!(*class)) {
+	if (!(*pclass)) {
 	    ts_modifyobject(thing);
 	    remove_property(thing, type);
 	    anotify_nolisten2(player, CSUCC "Property removed.");
@@ -1150,7 +1148,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	    if (ival) {
 		add_property(thing, type, NULL, ival);
 	    } else {
-		add_property(thing, type, class, 0);
+		add_property(thing, type, pclass, 0);
 	    }
 	    anotify_nolisten2(player, CSUCC "Property set.");
 	}
@@ -1425,6 +1423,7 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
     }
     anotify_nolisten2(player, CSUCC "Property set.");
 }
+
 
 
 

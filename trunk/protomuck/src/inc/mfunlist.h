@@ -4,7 +4,7 @@ typedef struct mfun_dat MFNDAT;
 
 struct mfun_dat {
     char   *name;
-    const char *(*mfn) ();
+    const char *(*mfn) (MFUNARGS);
     short     parsep;
     short     postp;
     short     stripp;
@@ -165,6 +165,7 @@ MFNDAT mfun_list[] =
 };
 
 #endif /* MPI */
+
 
 
 

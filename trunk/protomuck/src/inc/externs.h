@@ -35,6 +35,7 @@
  */
 /* Definition of 'McpFrame' */
 #include "mcp.h"
+#include "dbsearch.h"
 
 /* Prototypes for externs not defined elsewhere */
 
@@ -50,23 +51,25 @@ extern void list_proglines(dbref player, dbref program, struct frame *fr, int st
 extern void disassemble(dbref player, dbref program);
 
 /* from event.c */
-extern time_t next_muckevent_time();
-extern void next_muckevent();
+extern time_t next_muckevent_time(void);
+extern void next_muckevent(void);
 extern void dump_db_now(void);
 #ifdef DELTADUMPS
 extern void delta_dump_now(void);
 #endif
-extern time_t next_cron_time();
-extern void check_cron_time();
+extern time_t next_cron_time(void);
+extern void check_cron_time(void);
 
 /* from timequeue.c */
 extern int scan_instances(dbref program);
 extern void handle_read_event(int descr, dbref player, const char *command);
 extern int add_muf_read_event(int descr, dbref player, dbref prog, struct frame *fr);
+extern int add_muf_tread_event(int descr, dbref player, dbref prog, struct frame *fr, int delay);
 extern int add_muf_queue_event(int descr, dbref player, dbref loc, dbref trig, dbref prog,
 		const char *argstr, const char *cmdstr, int listen_p);
 extern int add_muf_delay_event(int delay, int descr, dbref player, dbref loc, dbref trig, dbref prog,
 		struct frame *fr, const char *mode);
+extern int add_muf_timer_event(int descr, dbref player, dbref prog, struct frame *fr, int delay, char *id);
 extern int add_muf_delayq_event(int delay, int descr, dbref player, dbref loc, dbref trig,
 		dbref prog, const char *argstr, const char *cmdstr,
 		int listen_p);
@@ -79,13 +82,15 @@ extern int add_event(int event_type, int subtyp, int dtime, int descr, dbref pla
 void listenqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
 		dbref xclude, const char *propname, const char *toparg,
 		int mlev, int mt, int mpi_p);
-extern void next_timequeue_event();
+extern void next_timequeue_event(void);
 extern int  in_timequeue(int pid);
 extern struct frame* timequeue_pid_frame(int pid);
-extern time_t next_event_time();
+extern time_t next_event_time(void);
 extern void list_events(dbref program);
+extern int  descr_running_queue(int descr);
 extern int  dequeue_prog(dbref program, int sleeponly);
 extern int  dequeue_process(int procnum);
+extern int  dequeue_timers(int pid, char* id);
 extern int  control_process(dbref player, int procnum);
 extern void do_dequeue(int descr, dbref player, const char *arg1);
 extern void propqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
@@ -94,6 +99,7 @@ extern void propqueue(int descr, dbref player, dbref where, dbref trigger, dbref
 extern void envpropqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
 	    dbref xclude, const char *propname, const char *toparg,
 	    int mlev, int mt);
+extern char *time_format_2(time_t dt);
 
 /* From compress.c */
 extern void init_compress_from_file(FILE *dicto);
@@ -107,6 +113,7 @@ extern void do_link(int descr, dbref player, const char *name, const char *room_
 extern void do_dig(int descr, dbref player, const char *name, const char *pname);
 extern void do_create(dbref player, char *name, char *cost);
 extern void do_prog(int descr, dbref player, const char *name);
+extern void do_mcpedit(int descr, dbref player, const char *name);
 extern void do_edit(int descr, dbref player, const char *name);
 extern int unset_source(dbref player, dbref loc, dbref action);
 extern int link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_list);
@@ -178,6 +185,8 @@ extern void exec_or_notify(int descr, dbref player, dbref thing, const char *mes
 			   const char *whatcalled);
 extern void exec_or_html_notify(int descr, dbref player, dbref thing, const char *message,
 			   const char *whatcalled);
+extern int init_checkflags(dbref player, const char *flags, struct flgchkdat *check);
+extern int checkflags(dbref what, struct flgchkdat check);
 
 /* From move.c */
 extern void moveto(dbref what, dbref where);
@@ -210,6 +219,7 @@ extern int test_lock_false_default(int descr, dbref player, dbref thing, const c
 extern int can_link_to(dbref who, object_flag_type what_type, dbref where);
 extern int can_link(dbref who, dbref what);
 extern int could_doit(int descr, dbref player, dbref thing);
+extern int could_doit2(int descr, dbref player, dbref thing, char *prop);
 extern int can_doit(int descr, dbref player, dbref thing, const char *default_fail_msg);
 extern int can_see(dbref player, dbref thing, int can_see_location);
 extern int controls(dbref who, dbref what);
@@ -318,6 +328,7 @@ extern void do_all_topprofs(dbref player, char *arg1);
 /* From boolexp.c */
 extern int size_boolexp(struct boolexp * b);
 extern int eval_boolexp(int descr, dbref player, struct boolexp *b, dbref thing);
+extern int eval_boolexp2(int descr, dbref player, struct boolexp *b, dbref thing);
 extern struct boolexp *parse_boolexp(int descr, dbref player, const char *string, int dbloadp);
 extern struct boolexp *copy_bool(struct boolexp *old);
 extern struct boolexp *getboolexp(FILE *f);
@@ -360,6 +371,7 @@ extern struct inst *interp_loop(dbref player, dbref program,
 extern struct frame *interp(int descr, dbref player, dbref location, dbref program,
 			   dbref source, int nosleeping, int whichperms /* ,
 			   int rettyp */ );
+extern void prog_clean(struct frame * fr);
 
 /* From log.c */
 extern void log2file(char *myfilename, char *format, ...);
@@ -391,7 +403,7 @@ extern void ts_modifyobject(dbref thing);
 extern int  equalstr(char *s, char *t);
 
 extern void CrT_summarize( dbref player );
-extern time_t get_tz_offset();
+extern time_t get_tz_offset(void);
 
 extern int force_level;
 
@@ -405,18 +417,18 @@ extern void disassemble(dbref player, dbref program);
 
 extern int sanity_violated;
 extern void sanfix(dbref player);
-extern void san_main();
+extern void san_main(void);
 extern void sane_dump_object(dbref player, const char *arg);
 extern void sanity(dbref player);
 extern void sanechange(dbref player, const char *command);
 
 /* From tune.c */
 extern void do_tune(dbref player, char *parmname, char *parmval);
-extern int tune_count_parms();
+extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
 extern void tune_save_parms_to_file(FILE *f);
 extern void tune_load_parmsfile(dbref player);
-extern void tune_save_parmsfile();
+extern void tune_save_parmsfile(void);
 
 
 /* From netresolve.c */
@@ -424,10 +436,10 @@ extern void tune_save_parmsfile();
 extern void host_add( int, const char * );
 extern void host_del( int );
 extern char *host_fetch( int );
-extern void host_init();
-extern void host_load();
-extern void host_save();
-extern void host_shutdown();
+extern void host_init(void);
+extern void host_load(void);
+extern void host_save(void);
+extern void host_shutdown(void);
 
 /* from random.c */
 extern void *init_seed(char *seed);
@@ -445,6 +457,7 @@ extern time_t sel_prof_start_time;
 extern long sel_prof_idle_sec;
 extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
+
 
 
 

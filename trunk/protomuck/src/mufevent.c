@@ -271,7 +271,7 @@ muf_event_list(dbref player, char *pat)
 	int count = 0;
 	time_t rtime = time((time_t *) NULL);
       time_t etime;
-      double pcnt;
+      double pcnt = 0.0;
 	struct mufevent_process *proc = mufevent_processes;
 
 	while (proc) {
@@ -480,11 +480,11 @@ muf_event_remove(struct frame *fr, char *event, int which)
  * program instance's event queue.  The event is not removed
  * from the queue.
  */
-static struct mufevent *
+/* static struct mufevent *
 muf_event_peek(struct frame *fr)
 {
 	return fr->events;
-}
+} */
 
 
 
@@ -597,6 +597,7 @@ muf_event_process(void)
 		proc = next;
 	}
 }
+
 
 
 

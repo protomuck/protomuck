@@ -16,6 +16,7 @@
 #include "msgparse.h"
 
 
+extern int tune_setparm(const dbref player, const char *parmname, const char *val);
 struct line *get_new_line(void);
 
 void
@@ -302,7 +303,7 @@ mcppkg_simpleedit(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 				return;
 			}
 			content = mcp_mesg_arg_getline(msg, "content", 0);
-			tune_setparm(reference, content);
+			tune_setparm(player, reference, content);
 
 		} else if (!string_compare(category, "user")) {
 		} else {
@@ -311,5 +312,6 @@ mcppkg_simpleedit(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 		}
 	}
 }
+
 
 

@@ -33,7 +33,7 @@
 
 
 struct boolexp *
-alloc_boolnode()
+alloc_boolnode(void)
 {
     return ((struct boolexp *) malloc(sizeof(struct boolexp)));
 }
@@ -105,13 +105,13 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp * b, dbref thing, int 
     } else {
 	switch (b->type) {
 	    case BOOLEXP_AND:
-		return (eval_boolexp_rec(descr, player, b->sub1, thing)
-			&& eval_boolexp_rec(descr, player, b->sub2, thing));
+		return (eval_boolexp_rec2(descr, player, b->sub1, thing, evalprogram)
+			&& eval_boolexp_rec2(descr, player, b->sub2, thing, evalprogram));
 	    case BOOLEXP_OR:
-		return (eval_boolexp_rec(descr, player, b->sub1, thing)
-			|| eval_boolexp_rec(descr, player, b->sub2, thing));
+		return (eval_boolexp_rec2(descr, player, b->sub1, thing, evalprogram)
+			|| eval_boolexp_rec2(descr, player, b->sub2, thing, evalprogram));
 	    case BOOLEXP_NOT:
-		return !eval_boolexp_rec(descr, player, b->sub1, thing);
+		return !eval_boolexp_rec2(descr, player, b->sub1, thing, evalprogram);
 	    case BOOLEXP_CONST:
 #ifndef SANITY
 		if (b->thing == NOTHING) return 0;
@@ -155,7 +155,10 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp * b, dbref thing, int 
 int 
 eval_boolexp_rec(int descr, dbref player, struct boolexp * b, dbref thing)
 {
-   return eval_boolexp_rec2(descr, player, b, thing, 1);
+   int result;
+ 
+   result = eval_boolexp_rec2(descr, player, b, thing, 1);
+   return result;
 }
 
 #ifndef SANITY
@@ -366,7 +369,7 @@ static struct boolexp *
 parse_boolprop(char *buf)
 {
     char   *type = alloc_string(buf);
-    char   *class = (char *) index(type, PROP_DELIMITER);
+    char   *pclass = (char *) index(type, PROP_DELIMITER);
     char   *x;
     struct boolexp *b;
     PropPtr p;
@@ -385,24 +388,24 @@ parse_boolprop(char *buf)
 	return TRUE_BOOLEXP;
     }
     /* get rid of trailing spaces */
-    for (temp = class - 1; isspace(*temp); temp--);
+    for (temp = pclass - 1; isspace(*temp); temp--);
     temp++;
     *temp = '\0';
-    class++;
-    while (isspace(*class) && *class)
-	class++;
-    if (!*class) {
+    pclass++;
+    while (isspace(*pclass) && *pclass)
+	pclass++;
+    if (!*pclass) {
 	/* Oops!  CLEAN UP AND RETURN A TRUE */
 	free((void *) x);
 	free_boolnode(b);
 	return TRUE_BOOLEXP;
     }
     /* get rid of trailing spaces */
-    for (temp = class; !isspace(*temp) && *temp; temp++);
+    for (temp = pclass; !isspace(*temp) && *temp; temp++);
     *temp = '\0';
 
     b->prop_check = p = alloc_propnode(type);
-    SetPDataStr(p, alloc_string(class));
+    SetPDataStr(p, alloc_string(pclass));
     SetPType(p, PROP_STRTYP);
     free((void *) x);
     return b;
@@ -601,6 +604,7 @@ free_boolexp(struct boolexp * b)
 	}
     }
 }
+
 
 
 

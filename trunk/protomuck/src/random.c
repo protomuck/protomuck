@@ -1,6 +1,7 @@
 /* Various 'random' functions for general use in the FB6 MUCK server. */
 /* Attributions as given, modified by Jonah 'Points' Safar */
 
+#include <config.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
@@ -255,8 +256,8 @@ MD5(void *dest, void *orig, int len)
 	struct xMD5Context context;
 
 	xMD5Init(&context);
-	xMD5Update(&context, orig, len);
-	xMD5Final(dest, &context);
+	xMD5Update(&context, (byte const *) orig, len);
+	xMD5Final((byte *) dest, &context);
 }
 
 /*****************************************************************/
@@ -303,7 +304,7 @@ rnd(void *buffer)
 
 	if (!digest)
 		return (0);
-	MD5(digest, digest, sizeof(digest));
+      MD5(digest, digest, sizeof(digest));
 	return (digest[0]);
 }
 
@@ -325,4 +326,5 @@ int main(int argc, char **argv) {
   exit(1);
 }
 */
+
 

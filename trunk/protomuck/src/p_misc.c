@@ -10,6 +10,7 @@
 #include "inst.h"
 #include "externs.h"
 #include "match.h"
+#include "mufevent.h"
 #include "interface.h"
 #include "params.h"
 #include "tune.h"
@@ -22,6 +23,9 @@ extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
 struct tm *time_tm;
+
+extern struct line *read_program(dbref i);
+extern int tune_setparm(const dbref player, const char *parmname, const char *val);
 
 void 
 prim_time(PRIM_PROTOTYPE)
@@ -279,12 +283,12 @@ prim_timestamps(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
-extern  top_pid;
+extern int top_pid;
 
 void 
 prim_fork(PRIM_PROTOTYPE)
 {
-    int     i, j;
+    int     i;
     struct frame *tmpfr;
 
     CHECKOP(0);
@@ -520,6 +524,7 @@ prim_prettylock(PRIM_PROTOTYPE)
 void 
 prim_testlock(PRIM_PROTOTYPE)
 {
+    struct inst *oper1, *oper2;
     /* d d - i */
     CHECKOP(2);
     oper1 = POP();		/* boolexp lock */
@@ -670,8 +675,8 @@ prim_timer_start(PRIM_PROTOTYPE)
 	if (oper2->type != PROG_STRING)
 		abort_interp("Expected a string timer id. (2)");
 
-    dequeue_timers(fr->pid, DoNullInd(oper2->data.string));
-	add_muf_timer_event(fr->descr, player, program, fr, oper1->data.number, DoNullInd(oper2->data.string));
+    dequeue_timers(fr->pid, (char *) DoNullInd(oper2->data.string));
+	add_muf_timer_event(fr->descr, player, program, fr, oper1->data.number, (char *) DoNullInd(oper2->data.string));
 
 	CLEAR(oper1);
 	CLEAR(oper2);
@@ -687,7 +692,7 @@ prim_timer_stop(PRIM_PROTOTYPE)
 	if (oper1->type != PROG_STRING)
 		abort_interp("Expected a string timer id. (2)");
 
-      dequeue_timers(fr->pid, DoNullInd(oper1->data.string));
+      dequeue_timers(fr->pid, (char *) DoNullInd(oper1->data.string));
 
 	CLEAR(oper1);
 }
@@ -746,7 +751,7 @@ prim_event_send(PRIM_PROTOTYPE)
 		temp1.data.array = arr; 
 
 		sprintf(buf, "USER.%.32s", DoNullInd(oper2->data.string));
-		muf_event_add(destfr, buf, oper3);
+		muf_event_add(destfr, buf, oper3, 0);
 	}
 
       CLEAR(oper1);
@@ -786,6 +791,7 @@ prim_force_level(PRIM_PROTOTYPE)
 {
    PushInt(force_level);
 }
+
 
 
 

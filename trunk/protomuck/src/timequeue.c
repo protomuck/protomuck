@@ -471,7 +471,7 @@ next_timequeue_event(void)
     struct frame *tmpfr;
     dbref   tmpcp;
     int     tmpbl, tmpfg;
-    timequeue ptr, lastevent, event;
+    timequeue lastevent, event;
     int     maxruns = 0;
     time_t  rtime = time((time_t *) NULL);
 
@@ -637,8 +637,8 @@ list_events(dbref player)
     int     count = 0;
     timequeue ptr = tqhead;
     time_t  rtime = time((time_t *) NULL);
-    time_t  etime;
-    double  pcnt;
+    time_t  etime = 0;
+    double  pcnt = 0.0;
 
     anotify_nolisten(player, CINFO "     PID Next  Run KInst %CPU Prog#   Player", 1);
 
@@ -709,6 +709,20 @@ list_events(dbref player)
     count += muf_event_list(player, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s");
     sprintf(buf, CINFO "%d events.", count);
     anotify_nolisten(player, buf, 1);
+}
+
+int
+descr_running_queue(int descr)
+{
+   int       icount = 0;
+   timequeue ptr = tqhead;
+   while (ptr) {
+      if (ptr->descr == descr) {
+         icount++;
+      }
+      ptr = ptr->next;
+   }
+   return icount;
 }
 
 /*
@@ -1216,6 +1230,7 @@ listenqueue(int descr, dbref player, dbref where, dbref trigger, dbref what, dbr
 	}
     }
 }
+
 
 
 

@@ -54,10 +54,37 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens)
 			} else {
 				return 0;
 			}
-		}
+		} else if (a->type == PROG_OBJECT && b->type == PROG_STRING) {
+                  char pad_char[] = "";
+                  char *astr = (char *) unparse_object(MAN, a->data.objref);
+		      char *bstr = (b->data.string) ? b->data.string->data : pad_char;
+                  if(case_sens) {
+                       return strcmp(astr, bstr);
+                  } else {
+ 		           return string_compare(astr, bstr);
+                  }
+		} else if (a->type == PROG_STRING && b->type == PROG_OBJECT) {
+                  char pad_char[] = "";
+		      char *astr = (a->data.string) ? a->data.string->data : pad_char;
+                  char *bstr = (char *) unparse_object(MAN, b->data.objref);
+                  if(case_sens) {
+                       return strcmp(astr, bstr);
+                  } else {
+                       return string_compare(astr, bstr);
+                  }
+            }
 		return (a->type - b->type);
 	}
 	/* Indexes are of same type if we reached here. */
+      if (a->type == PROG_OBJECT) {
+         char *astr = (char *) unparse_object(MAN, a->data.objref);
+         char *bstr = (char *) unparse_object(MAN, b->data.objref);
+         if(case_sens) {
+             return strcmp(astr, bstr);
+         } else {
+             return string_compare(astr, bstr);
+         }
+      }
 	if (a->type == PROG_FLOAT) {
 		if (a->data.fnumber > b->data.fnumber) {
 			return 1;
@@ -67,8 +94,9 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens)
 			return 0;
 		}
 	} else if (a->type == PROG_STRING) {
-		char *astr = (a->data.string) ? a->data.string->data : "";
-		char *bstr = (b->data.string) ? b->data.string->data : "";
+            char pad_char[] = "";
+		char *astr = (a->data.string) ? a->data.string->data : pad_char;
+		char *bstr = (b->data.string) ? b->data.string->data : pad_char;
                 if(case_sens) {
                    return strcmp(astr, bstr);
                 } else {
@@ -455,75 +483,75 @@ array_tree_next_node(array_tree * ptr, array_iter * key)
 stk_array *
 new_array(void)
 {
-	stk_array *new;
+	stk_array *new2;
 
-	new = (stk_array *) malloc(sizeof(stk_array));
-	new->links = 1;
-	new->items = 0;
-	new->type = ARRAY_UNDEFINED;
-	new->data.packed = NULL;
+	new2 = (stk_array *) malloc(sizeof(stk_array));
+	new2->links = 1;
+	new2->items = 0;
+	new2->type = ARRAY_UNDEFINED;
+	new2->data.packed = NULL;
 
-	return new;
+	return new2;
 }
 
 
 stk_array *
 new_array_packed(int size)
 {
-	stk_array *new;
+	stk_array *new2;
 	int i;
 
 	if (size < 0) {
 		return NULL;
 	}
 
-	new = new_array();
-	new->items = size;
-	new->type = ARRAY_PACKED;
+	new2 = new_array();
+	new2->items = size;
+	new2->type = ARRAY_PACKED;
 	if (size < 1)
 		size = 1;
-	new->data.packed = (array_data *) malloc(sizeof(array_data) * size);
+	new2->data.packed = (array_data *) malloc(sizeof(array_data) * size);
 	for (i = size; i-- > 0;) {
-		new->data.packed[i].type = PROG_INTEGER;
-		new->data.packed[i].line = 0;
-		new->data.packed[i].data.number = 0;
+		new2->data.packed[i].type = PROG_INTEGER;
+		new2->data.packed[i].line = 0;
+		new2->data.packed[i].data.number = 0;
 	}
-	return new;
+	return new2;
 }
 
 
 stk_array *
 new_array_dictionary(void)
 {
-	stk_array *new;
+	stk_array *new2;
 
-	new = new_array();
-	new->type = ARRAY_DICTIONARY;
-	return new;
+	new2 = new_array();
+	new2->type = ARRAY_DICTIONARY;
+	return new2;
 }
 
 
 stk_array *
 array_clone(stk_array * arr)
 {
-	stk_array *new;
+	stk_array *new2;
 
 	if (!arr) {
 		return NULL;
 	}
 
-	new = new_array();
-	new->type = arr->type;
+	new2 = new_array();
+	new2->type = arr->type;
 	switch (arr->type) {
 	case ARRAY_PACKED:{
 			int i;
 
-			new->items = arr->items;
-			new->data.packed = (array_data *) malloc(sizeof(array_data) * arr->items);
+			new2->items = arr->items;
+			new2->data.packed = (array_data *) malloc(sizeof(array_data) * arr->items);
 			for (i = arr->items; i-- > 0;) {
-				copyinst(&arr->data.packed[i], &new->data.packed[i]);
+				copyinst(&arr->data.packed[i], &new2->data.packed[i]);
 			}
-			return new;
+			return new2;
 			break;
 		}
 
@@ -532,10 +560,10 @@ array_clone(stk_array * arr)
 
 			if (array_first(arr, &idx)) {
 				do {
-					array_setitem(&new, &idx, array_getitem(arr, &idx));
+					array_setitem(&new2, &idx, array_getitem(arr, &idx));
 				} while (array_next(arr, &idx));
 			}
-			return new;
+			return new2;
 			break;
 		}
 
@@ -549,7 +577,7 @@ array_clone(stk_array * arr)
 stk_array *
 array_promote(stk_array * arr)
 {
-	stk_array *new;
+	stk_array *new2;
 	int i;
 	array_iter idx;
 
@@ -560,16 +588,16 @@ array_promote(stk_array * arr)
 		return NULL;
 	}
 
-	new = new_array_dictionary();
+	new2 = new_array_dictionary();
 
 	idx.type = PROG_INTEGER;
 	for (i = 0; i < arr->items; i++) {
 		idx.data.number = i;
-		array_setitem(&new, &idx, array_getitem(arr, &idx));
+		array_setitem(&new2, &idx, array_getitem(arr, &idx));
 	}
 	array_free(arr);
 
-	return new;
+	return new2;
 }
 
 
@@ -778,7 +806,7 @@ array_prev(stk_array * arr, array_iter * item)
 				if (item->data.fnumber >= arr->items) {
 					idx = arr->items - 1;
 				} else {
-					idx = item->data.fnumber - 1.0;
+					idx = (int) (item->data.fnumber - 1.0);
 				}
 			} else {
 				idx = item->data.number - 1;
@@ -828,7 +856,7 @@ array_next(stk_array * arr, array_iter * item)
 				if (item->data.fnumber < 0.0) {
 					idx = 0;
 				} else {
-					idx = item->data.fnumber + 1.0;
+					idx = (int) (item->data.fnumber + 1.0);
 				}
 			} else {
 				idx = item->data.number + 1;
@@ -923,7 +951,7 @@ array_setitem(stk_array ** harr, array_iter * idx, array_data * item)
 					arr->links--;
 					arr = *harr = array_clone(arr);
 				}
-				arr->data.packed =
+				arr->data.packed = (array_data *)
 						realloc(arr->data.packed, sizeof(array_data) * (arr->items + 1));
 				copyinst(item, &arr->data.packed[arr->items]);
 				return (++arr->items);
@@ -982,7 +1010,7 @@ array_insertitem(stk_array ** harr, array_iter * idx, array_data * item)
 				arr->links--;
 				arr = *harr = array_clone(arr);
 			}
-			arr->data.packed =
+			arr->data.packed = (array_data *)
 					realloc(arr->data.packed, sizeof(array_data) * (arr->items + 1));
 			for (i = arr->items++; i > idx->data.number; i--) {
 				copyinst(&arr->data.packed[i - 1], &arr->data.packed[i]);
@@ -1040,7 +1068,7 @@ array_appenditem(stk_array ** harr, array_data * item)
 stk_array *
 array_getrange(stk_array * arr, array_iter * start, array_iter * end)
 {
-	stk_array *new;
+	stk_array *new2;
 	array_data *tmp;
 	int sidx, eidx;
 
@@ -1077,49 +1105,49 @@ array_getrange(stk_array * arr, array_iter * start, array_iter * end)
 			idx.data.number = sidx;
 			didx.type = PROG_INTEGER;
 			didx.data.number = 0;
-			new = new_array_packed(eidx - sidx + 1);
+			new2 = new_array_packed(eidx - sidx + 1);
 			while (idx.data.number <= eidx) {
 				tmp = array_getitem(arr, &idx);
 				if (!tmp)
 					break;
-				array_setitem(&new, &didx, tmp);
+				array_setitem(&new2, &didx, tmp);
 				didx.data.number++;
 				idx.data.number++;
 			}
-			return new;
+			return new2;
 			break;
 		}
 
 	case ARRAY_DICTIONARY:{
-			stk_array *new;
+			stk_array *new2;
 			array_tree *s;
 			array_tree *e;
 
-			new = new_array_dictionary();
+			new2 = new_array_dictionary();
 			s = array_tree_find(arr->data.dict, start);
 			if (!s) {
 				s = array_tree_next_node(arr->data.dict, start);
 				if (!s) {
-					return new;
+					return new2;
 				}
 			}
 			e = array_tree_find(arr->data.dict, end);
 			if (!e) {
 				e = array_tree_prev_node(arr->data.dict, end);
 				if (!e) {
-					return new;
+					return new2;
 				}
 			}
 			if (array_tree_compare(&s->key, &e->key, 0) > 0) {
-				return new;
+				return new2;
 			}
 			while (s) {
-				array_setitem(&new, &s->key, &s->data);
+				array_setitem(&new2, &s->key, &s->data);
 				if (s == e)
 					break;
 				s = array_tree_next_node(arr->data.dict, &s->key);
 			}
-			return new;
+			return new2;
 			break;
 		}
 
@@ -1219,7 +1247,7 @@ array_insertrange(stk_array ** harr, array_iter * start, stk_array * inarr)
 				arr->links--;
 				arr = *harr = array_clone(arr);
 			}
-			arr->data.packed =
+			arr->data.packed = (array_data *)
 					realloc(arr->data.packed,
 							sizeof(array_data) * (arr->items + inarr->items));
 			copyinst(start, &idx);
@@ -1319,7 +1347,7 @@ array_delrange(stk_array ** harr, array_iter * start, array_iter * end)
 				didx.data.number++;
 			}
 			arr->items -= (eidx - sidx + 1);
-			arr->data.packed = realloc(arr->data.packed, sizeof(array_data) * (arr->items));
+			arr->data.packed = (array_data *) realloc(arr->data.packed, sizeof(array_data) * (arr->items));
 			return arr->items;
 			break;
 		}
@@ -1368,13 +1396,13 @@ array_delrange(stk_array ** harr, array_iter * start, array_iter * end)
 
 
 int
-array_delitem(stk_array ** harr, array_iter * item)
+array_delitem(stk_array ** harr, array_iter * itm)
 {
 	array_iter idx;
 	int result;
 
-	copyinst(item, &idx);
-	result = array_delrange(harr, item, &idx);
+	copyinst(itm, &idx);
+	result = array_delrange(harr, itm, &idx);
 	CLEAR(&idx);
 	return result;
 }
@@ -1585,4 +1613,5 @@ array_get_intkey_strval(stk_array * arr, int key)
                  return value->data.string->data; 
         } 
 } 
+
 

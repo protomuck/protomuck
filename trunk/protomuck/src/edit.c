@@ -169,7 +169,7 @@ list_macros(const char *word[], int k, dbref player, int length)
     } else {
         do_list_tree(macrotop, word[0], word[k], length, player);
     }
-    anotify_nolisten2(player, CINFO "End of list.");
+    anotify_nolisten(player, CINFO "End of list.", 1);
     return;
 }
 
@@ -294,12 +294,12 @@ editor(int descr, dbref player, const char *command)
 	    if (MLevel(player) < LMAGE) {
                 anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             } else if (!word[2]) {
-                anotify_nolisten2(player, CFAIL "Invalid definition syntax.");
+                anotify_nolisten(player, CFAIL "Invalid definition syntax.", 1);
             } else {
                 if (insert_macro(word[1], word[2], player, &macrotop)) {
-                    anotify_nolisten2(player, CSUCC "Entry created.");
+                    anotify_nolisten(player, CSUCC "Entry created.", 1);
                 } else {
-                    anotify_nolisten2(player, CINFO "That macro already exists.");
+                    anotify_nolisten(player, CINFO "That macro already exists.", 1);
                 }
             }
             for (; i >= 0; i--) {
@@ -310,7 +310,7 @@ editor(int descr, dbref player, const char *command)
         }
         arg[i] = atoi(buf);
         if (arg[i] < 0) {
-            anotify_nolisten2(player, CFAIL "Negative arguments not allowed.");
+            anotify_nolisten(player, CFAIL "Negative arguments not allowed.", 1);
             for (; i >= 0; i--) {
                 if (word[i])
                     free((void *) word[i]);
@@ -330,9 +330,9 @@ editor(int descr, dbref player, const char *command)
                     anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
                 } else {
                     if (kill_macro(word[0], player, &macrotop))
-                        anotify_nolisten2(player, CSUCC "Macro entry deleted.");
+                        anotify_nolisten(player, CSUCC "Macro entry deleted.", 1);
                     else
-                        anotify_nolisten2(player, CINFO "Macro to delete not found.");
+                        anotify_nolisten(player, CINFO "Macro to delete not found.", 1);
                 }
                 break;
             case SHOW_COMMAND:
@@ -343,20 +343,20 @@ editor(int descr, dbref player, const char *command)
                 break;
             case INSERT_COMMAND:
                 do_insert(player, program, arg, i);
-                anotify_nolisten2(player, CINFO "Entering insert mode.");
+                anotify_nolisten(player, CINFO "Entering insert mode.", 1);
                 break;
             case DELETE_COMMAND:
                 do_delete(player, program, arg, i);
                 break;
             case QUIT_EDIT_COMMAND:
                 do_quit(player, program);
-                anotify_nolisten2(player, CINFO "Editor exited.");
+                anotify_nolisten(player, CINFO "Editor exited.", 1);
                 break;
             case COMPILE_COMMAND: 
                 /* compile code belongs in compile.c, not in the editor */
                 notify(player, "Compiling..."); 
                 do_compile(descr, player, program, 0);
-                anotify_nolisten2(player, CSUCC "Compiler done.");
+                anotify_nolisten(player, CSUCC "Compiler done.", 1);
                 break; 
             case LIST_COMMAND:
                 do_list(player, program, arg, i, 0);
@@ -377,7 +377,7 @@ editor(int descr, dbref player, const char *command)
                 list_publics(descr, player, arg, i);
                 break;
             default:
-                anotify_nolisten2(player, CFAIL "Illegal editor command.");
+                anotify_nolisten(player, CFAIL "Illegal editor command.", 1);
                 break;
         }
     }
@@ -418,7 +418,7 @@ do_delete(dbref player, dbref program, int arg[], int argc)
             /* delete from line 1 to line 2 */
             /* first, check for conflict */
             if (arg[0] > arg[1]) {
-                anotify_nolisten2(player, CFAIL "Nonsensical arguments.");
+                anotify_nolisten(player, CFAIL "Nonsensical arguments.", 1);
                 return;
             }
             i = arg[0] - 1;
@@ -441,12 +441,12 @@ do_delete(dbref player, dbref program, int arg[], int argc)
                     i--;
                 }
                 sprintf(buf, CSUCC "%d lines deleted", arg[1] - arg[0] - i + 1);
-                anotify_nolisten2(player, buf);
+                anotify_nolisten(player, buf, 1);
             } else
-                anotify_nolisten2(player, CINFO "No line to delete.");
+                anotify_nolisten(player, CINFO "No line to delete.", 1);
             break;
         default:
-            anotify_nolisten2(player, CINFO "Too many arguments.");
+            anotify_nolisten(player, CINFO "Too many arguments.", 1);
             break;
     }
 }
@@ -498,7 +498,7 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
     if ((thing = noisy_match_result(&md)) == NOTHING)
         return;
     if (Typeof(thing) != TYPE_PROGRAM) {
-        anotify_nolisten2(player, CINFO "You can't list anything but a program.");
+        anotify_nolisten(player, CINFO "You can't list anything but a program.", 1);
         return;
     }
     if ( !controls(player, thing) && !Viewable(thing) && !(POWERS(player) & POW_SEE_ALL) )
@@ -508,7 +508,7 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
     }
     while(*linespec == '!' && *linespec) {
        commentit = (!commentit);
-       *linespec++;
+       (void) *linespec++;
     }
     if (!*linespec) {
         range[0] = 1;
@@ -626,17 +626,17 @@ val_and_head(dbref player, int arg[], int argc)
     dbref   program;
 
     if (argc != 1) {
-        anotify_nolisten2(player, CINFO "I don't understand which header you're trying to look at.");
+        anotify_nolisten(player, CINFO "I don't understand which header you're trying to look at.", 1);
         return;
     }
     program = arg[0];
     if ((program < 0) || (program >= db_top)
             || (Typeof(program) != TYPE_PROGRAM)) {
-        anotify_nolisten2(player, CINFO "That isn't a program.");
+        anotify_nolisten(player, CINFO "That isn't a program.", 1);
         return;
     }
     if (!(controls(player, program) || Viewable(program))) {
-        anotify_nolisten2(player, CFAIL "That's not a public program.");
+        anotify_nolisten(player, CFAIL "That's not a public program.", 1);
         return;
     }
     do_list_header(player, program);
@@ -656,7 +656,7 @@ do_list_header(dbref player, dbref program)
     if (!(FLAGS(program) & INTERNAL)) {
         free_prog_text(curr);
     }
-    anotify_nolisten2(player, CINFO "Done.");
+    anotify_nolisten(player, CINFO "Done.", 1);
 }
 
 void
@@ -665,16 +665,16 @@ list_publics(int descr, dbref player, int arg[], int argc)
     dbref   program;
 
     if (argc > 1) {
-        anotify_nolisten2(player, CINFO "I don't understand which program you want to list PUBLIC functions for.");
+        anotify_nolisten(player, CINFO "I don't understand which program you want to list PUBLIC functions for.", 1);
         return;
     }
     program = (argc == 0) ? DBFETCH(player)->sp.player.curr_prog : arg[0];
     if (Typeof(program) != TYPE_PROGRAM) {
-        anotify_nolisten2(player, CINFO "That isn't a program.");
+        anotify_nolisten(player, CINFO "That isn't a program.", 1);
         return;
     }
     if (!(controls(player, program) || Viewable(program))) {
-        anotify_nolisten2(player, CFAIL "That's not a public program.");
+        anotify_nolisten(player, CFAIL "That's not a public program.", 1);
         return;
     }
     if (!(DBFETCH(program)->sp.program.code)) {
@@ -690,7 +690,7 @@ list_publics(int descr, dbref player, int arg[], int argc)
             DBSTORE(program, sp.program.first, tmpline);
         }
         if (!(DBFETCH(program)->sp.program.code)) {
-            anotify_nolisten2(player, CFAIL "Program not compilable.");
+            anotify_nolisten(player, CFAIL "Program not compilable.", 1);
             return;
         }
     }
@@ -702,7 +702,7 @@ do_list_publics(dbref player, dbref program)
 {
     struct publics *ptr;
 
-    anotify_nolisten2(player, CINFO "PUBLIC funtions:");
+    anotify_nolisten(player, CINFO "PUBLIC funtions:", 1);
     for (ptr = DBFETCH(program)->sp.program.pubs; ptr; ptr = ptr->next)
         notify(player, ptr->subname);
 }
@@ -714,20 +714,20 @@ toggle_numbers(dbref player, int arg[], int argc)
 		switch (arg[0]) {
 		case 0:
 			FLAGS(player) &= ~INTERNAL;
-			anotify_nolisten2(player, CINFO "Line numbers off.");
+			anotify_nolisten(player, CINFO "Line numbers off.", 1);
 			break;
 
 		default:
 			FLAGS(player) |= INTERNAL;
-			anotify_nolisten2(player, CINFO "Line numbers on.");
+			anotify_nolisten(player, CINFO "Line numbers on.", 1);
 			break;
 		}
 	} else if (FLAGS(player) & INTERNAL) {
 		FLAGS(player) &= ~INTERNAL;
-		anotify_nolisten2(player, CINFO "Line numbers off.");
+		anotify_nolisten(player, CINFO "Line numbers off.", 1);
 	} else {
 		FLAGS(player) |= INTERNAL;
-		anotify_nolisten2(player, CINFO "Line numbers on.");
+		anotify_nolisten(player, CINFO "Line numbers on.", 1);
 	}
 }
 
@@ -746,7 +746,7 @@ insert(dbref player, const char *line)
     if (!string_compare(line, EXIT_INSERT)) {
         DBSTORE(player, sp.player.insert_mode, 0);      /* turn off insert mode */
 #ifndef NO_EXITMSG
-        anotify_nolisten2(player, CSUCC "Exiting insert mode.");
+        anotify_nolisten(player, CSUCC "Exiting insert mode.", 1);
 #endif
         return;
     }
@@ -793,6 +793,7 @@ insert(dbref player, const char *line)
     curr->next = new_line;
     /* DBDIRTY(program); */
 }
+
 
 
 

@@ -74,7 +74,7 @@ host_add(int ip, const char *name)
 }
 
 void
-host_free()
+host_free(void)
 {
     struct hostcache *next, *list;
 
@@ -91,7 +91,7 @@ host_free()
 }
 
 void
-host_load()
+host_load(void)
 {
     FILE *f;
     int ip;
@@ -109,7 +109,7 @@ host_load()
 }
 
 void
-host_save()
+host_save(void)
 {
     FILE *f;
     struct hostcache *ptr;
@@ -123,14 +123,15 @@ host_save()
 }
 
 void
-host_init()
+host_init(void)
 {
     host_load();
 }
 
 void
-host_shutdown()
+host_shutdown(void)
 {
     host_save();
     host_free();
 }
+
