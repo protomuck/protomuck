@@ -1266,8 +1266,9 @@ shovechars(void)
 
     for (i = 0; i < numsocks; i++) {
         sock[i] = make_socket(listener_port[i]);
-    }
-    maxd = sock[0] + 1;
+        maxd = sock[i] +1;
+    } //fixes the socket blocking problem at startup.
+    //maxd = sock[0] + 1;
     gettimeofday(&last_slice, (struct timezone *) 0);
 
     openfiles_max =  max_open_files();
@@ -2180,9 +2181,9 @@ make_socket(int port)
     struct sockaddr_in server;
     int     opt;
 
-    fprintf(stderr, "Opening port: %d\n", port);
+    log_status("Opening port: %d\n", port);//changed from fprintf 
     s = socket(AF_INET, SOCK_STREAM, 0);
-    fprintf(stderr, "        Sock: %d\n", s);
+    log_status("        Sock: %d\n", s);//changed from fprintf
     if (s < 0) {
 	perror("creating stream socket");
 	exit(3);
