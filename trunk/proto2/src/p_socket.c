@@ -664,7 +664,6 @@ prim_ssl_nbsockopen(PRIM_PROTOTYPE)
         bcopy((char *) myhost->h_addr, (char *) &name.sin_addr,
               myhost->h_length);
         mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
-        make_nonblocking(mysock);
         if (connect(mysock, (struct sockaddr *) &name, sizeof(name)) == -1)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
             sprintf(myresult, "ERROR: %d", errnosocket);
@@ -705,6 +704,7 @@ prim_ssl_nbsockopen(PRIM_PROTOTYPE)
             if (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE)
                 sprintf(myresult, "SSLerr: %d", ssl_error);
         }
+                make_nonblocking(mysock);
         add_socket_to_queue(result->data.sock, fr);
         if (tp_log_sockets)
             log2filetime("logs/sockets",
