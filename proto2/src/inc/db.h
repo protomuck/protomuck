@@ -534,7 +534,7 @@ struct muf_socket {             /* struct for MUF socket data */
    int usesmartqueue;          /* makes the socket completely telnet savy */
    int is_player;               /* means to not close the socket when clearing*/
    int readWaiting;             /* to support socket events */
-#ifdef SSL_SOCKETS
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
     SSL *ssl_session;                /* SSL session data                             */
 #endif
 };

@@ -1,7 +1,4 @@
 #include "copyright.h"
-#ifdef USE_SSL
-#include <openssl/err.h>
-#endif
 
 /*
  * Revision 1.14  2000/11/12 08:37:12  akari
