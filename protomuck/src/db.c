@@ -1757,6 +1757,9 @@ db_read(FILE * f)
 int
 RawMWLevel(dbref thing)
 {
+    if (!OkObj(thing))
+        return 0;
+
     switch (CheckMWLevel(thing)) {
         case LBOY:
             return (tp_multi_wizlevels ? LBOY : LARCH);
