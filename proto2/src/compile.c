@@ -1888,7 +1888,7 @@ do_directive(COMPSTATE *cstat, char *direct)
             i = cstat->program;
         }
         free(tmpname);
-        if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
+        if (!OkObj(i)
             || (Typeof(i) == TYPE_GARBAGE))
             abort_compile(cstat,
                           "I don't understand what program you want to check in ifcancall.");
@@ -1972,7 +1972,7 @@ do_directive(COMPSTATE *cstat, char *direct)
             i = cstat->program;
         }
         free(tmpname);
-        if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
+        if (!OkObj(i)
             || (Typeof(i) == TYPE_GARBAGE))
             abort_compile(cstat,
                           "I don't understand what object you want to check with $ifauthor.");
@@ -2043,7 +2043,7 @@ do_directive(COMPSTATE *cstat, char *direct)
             i = cstat->program;
         }
         free(tmpname);
-        if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
+        if (!OkObj(i)
             || (Typeof(i) == TYPE_GARBAGE))
             abort_compile(cstat,
                           "I don't understand what object you want to check with $ifver.");
@@ -2129,7 +2129,7 @@ do_directive(COMPSTATE *cstat, char *direct)
             i = cstat->program;
         }
         free(tmpname);
-        if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
+        if (!OkObj(i)
             || (Typeof(i) == TYPE_GARBAGE))
             abort_compile(cstat,
                           "I don't understand what object you want to check with $ifbeta or $ifalpha.");
@@ -2255,8 +2255,9 @@ do_directive(COMPSTATE *cstat, char *direct)
             strcpy(match_cmdname, tempb);
         }
         free(tmpname);
-        if ((((dbref) i == NOTHING) || (i < 0) || (i > db_top)
-             || (Typeof(i) == TYPE_GARBAGE)) ? 0 : (Typeof(i) == TYPE_PROGRAM)) {
+        if ((!OkObj(i)
+             || (Typeof(i) == TYPE_GARBAGE))
+            ? 0 : (Typeof(i) == TYPE_PROGRAM)) {
             j = 1;
         } else {
             j = 0;
@@ -2362,7 +2363,7 @@ do_directive(COMPSTATE *cstat, char *direct)
                 strcpy(match_cmdname, tempb);
             }
             free(tmpname);
-            if (((dbref) i == NOTHING) || (i < 0) || (i > db_top)
+            if (!OkObj(i)
                 || (Typeof(i) == TYPE_GARBAGE))
                 abort_compile(cstat,
                               "I don't understand what object you want to $include.");
@@ -2553,6 +2554,7 @@ process_special(COMPSTATE *cstat, const char *token)
         }
 
         nw = new_inst(cstat);
+
         nw->no = cstat->nowords++;
         nw->in.type = PROG_FUNCTION;
         nw->in.line = cstat->lineno;
@@ -3210,9 +3212,7 @@ string_word(COMPSTATE *cstat, const char *token)
     nw->in.data.string = alloc_prog_string(token);
     return nw;
 }
-
-/* return self pushing word (float) */
-struct INTERMEDIATE *
+/* return self pushing word (float) */ struct INTERMEDIATE *
 float_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *nw;
@@ -3241,9 +3241,7 @@ float_word(COMPSTATE *cstat, const char *token)
 #endif
     return nw;
 }
-
-/* return self pushing word (number) */
-struct INTERMEDIATE *
+/* return self pushing word (number) */ struct INTERMEDIATE *
 number_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *nw;
@@ -3258,8 +3256,7 @@ number_word(COMPSTATE *cstat, const char *token)
 
 /* do a subroutine call --- push address onto stack, then make a primitive
    CALL.
-   */
-struct INTERMEDIATE *
+   */ struct INTERMEDIATE *
 call_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *nw;
@@ -3276,7 +3273,6 @@ call_word(COMPSTATE *cstat, const char *token)
     nw->in.data.number = get_address(cstat, p->code, 0);
     return nw;
 }
-
 struct INTERMEDIATE *
 quoted_word(COMPSTATE *cstat, const char *token)
 {
@@ -3296,8 +3292,7 @@ quoted_word(COMPSTATE *cstat, const char *token)
 }
 
 /* returns number corresponding to variable number.
-   We assume that it DOES exist */
-struct INTERMEDIATE *
+   We assume that it DOES exist */ struct INTERMEDIATE *
 var_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *nw;
@@ -3375,15 +3370,10 @@ object_word(COMPSTATE *cstat, const char *token)
     nw->in.data.objref = objno;
     return nw;
 }
+                                                    /* support routines for internal data structures. *//* add procedure to procedures list */ void
 
-
-
-/* support routines for internal data structures. */
-
-/* add procedure to procedures list */
-void
-add_proc(COMPSTATE *cstat, const char *proc_name, struct INTERMEDIATE *place,
-         int rettype)
+add_proc(COMPSTATE *cstat, const char *proc_name,
+         struct INTERMEDIATE *place, int rettype)
 {
     struct PROC_LIST *nw;
 
@@ -3395,10 +3385,7 @@ add_proc(COMPSTATE *cstat, const char *proc_name, struct INTERMEDIATE *place,
     nw->next = cstat->procs;
     cstat->procs = nw;
 }
-
-
-/* add if to control stack */
-void
+/* add if to control stack */ void
 add_control_structure(COMPSTATE *cstat, int typ, struct INTERMEDIATE *place)
 {
     struct CONTROL_STACK *nu;
@@ -3411,9 +3398,7 @@ add_control_structure(COMPSTATE *cstat, int typ, struct INTERMEDIATE *place)
     nu->extra = 0;
     cstat->control_stack = nu;
 }
-
-/* add while to current loop's list of exits remaining to be resolved. */
-void
+/* add while to current loop's list of exits remaining to be resolved. */ void
 add_loop_exit(COMPSTATE *cstat, struct INTERMEDIATE *place)
 {
     struct CONTROL_STACK *nu;
@@ -3424,7 +3409,6 @@ add_loop_exit(COMPSTATE *cstat, struct INTERMEDIATE *place)
     while (loop && loop->type != CTYPE_BEGIN && loop->type != CTYPE_FOR) {
         loop = loop->next;
     }
-
     if (!loop)
         return;
 
@@ -3462,9 +3446,7 @@ innermost_control_type(COMPSTATE *cstat)
 
     return ctrl->type;
 }
-
-/* Returns number of TRYs before topmost Loop */
-int
+/* Returns number of TRYs before topmost Loop */ int
 count_trys_inside_loop(COMPSTATE *cstat)
 {
     struct CONTROL_STACK *loop;
@@ -3517,9 +3499,7 @@ innermost_control_place(COMPSTATE *cstat, int type1)
 
     return ctrl->place;
 }
-
-/* Pops off the innermost control structure and returns the place. */
-struct INTERMEDIATE *
+/* Pops off the innermost control structure and returns the place. */ struct INTERMEDIATE *
 pop_control_structure(COMPSTATE *cstat, int type1, int type2)
 {
     struct CONTROL_STACK *ctrl;
@@ -3537,9 +3517,7 @@ pop_control_structure(COMPSTATE *cstat, int type1, int type2)
 
     return place;
 }
-
-/* pops first while off the innermost control structure, if it's a loop. */
-struct INTERMEDIATE *
+/* pops first while off the innermost control structure, if it's a loop. */ struct INTERMEDIATE *
 pop_loop_exit(COMPSTATE *cstat)
 {
     struct INTERMEDIATE *temp;
@@ -3576,9 +3554,7 @@ resolve_loop_addrs(COMPSTATE *cstat, int where)
         eef->next->in.data.number = where;
     }
 }
-
-/* adds variable.  Return 0 if no space left */
-int
+/* adds variable.  Return 0 if no space left */ int
 add_variable(COMPSTATE *cstat, const char *varname, int valtype)
 {
     int i;
@@ -3594,10 +3570,7 @@ add_variable(COMPSTATE *cstat, const char *varname, int valtype)
     cstat->variabletypes[i] = valtype;
     return i;
 }
-
-
-/* adds local variable.  Return 0 if no space left */
-int
+/* adds local variable.  Return 0 if no space left */ int
 add_scopedvar(COMPSTATE *cstat, const char *varname, int valtype)
 {
     int i;
@@ -3613,10 +3586,7 @@ add_scopedvar(COMPSTATE *cstat, const char *varname, int valtype)
     cstat->scopedvartypes[i] = valtype;
     return i;
 }
-
-
-/* adds local variable.  Return 0 if no space left */
-int
+/* adds local variable.  Return 0 if no space left */ int
 add_localvar(COMPSTATE *cstat, const char *varname, int valtype)
 {
     int i;
@@ -3632,10 +3602,7 @@ add_localvar(COMPSTATE *cstat, const char *varname, int valtype)
     cstat->localvartypes[i] = valtype;
     return i;
 }
-
-
-/* predicates for procedure calls */
-int
+/* predicates for procedure calls */ int
 special(const char *token)
 {
     return (token && !(string_compare(token, ":")
@@ -3664,9 +3631,7 @@ special(const char *token)
                        && string_compare(token, "VAR!")
                        && string_compare(token, "VAR")));
 }
-
-/* see if procedure call */
-int
+/* see if procedure call */ int
 call(COMPSTATE *cstat, const char *token)
 {
     struct PROC_LIST *i;
@@ -3677,16 +3642,12 @@ call(COMPSTATE *cstat, const char *token)
 
     return 0;
 }
-
-/* see if it's a quoted procedure name */
-int
+/* see if it's a quoted procedure name */ int
 quoted(COMPSTATE *cstat, const char *token)
 {
     return (*token == '\'' && call(cstat, token + 1));
 }
-
-/* see if it's an object # */
-int
+/* see if it's an object # */ int
 object(const char *token)
 {
     if (*token == NUMBER_TOKEN && number(token + 1))
@@ -3694,9 +3655,7 @@ object(const char *token)
     else
         return 0;
 }
-
-/* see if string */
-int
+/* see if string */ int
 string(const char *token)
 {
     return (token[0] == '"');
@@ -3737,9 +3696,7 @@ localvar(COMPSTATE *cstat, const char *token)
 
     return 0;
 }
-
-/* see if token is primitive */
-int
+/* see if token is primitive */ int
 primitive(const char *token)
 {
     int primnum;
@@ -3747,9 +3704,7 @@ primitive(const char *token)
     primnum = get_primitive(token);
     return (primnum && primnum <= BASE_MAX - PRIMS_INTERNAL_CNT);
 }
-
-/* return primitive instruction */
-int
+/* return primitive instruction */ int
 get_primitive(const char *token)
 {
     hash_data *hd;
@@ -3760,12 +3715,7 @@ get_primitive(const char *token)
         return (hd->ival);
     }
 }
-
-
-
-/* clean up as nicely as we can. */
-
-void
+/* clean up as nicely as we can. */ void
 cleanpubs(struct publics *mypub)
 {
     struct publics *tmppub;
@@ -3779,7 +3729,6 @@ cleanpubs(struct publics *mypub)
 }
 
 #ifdef MCP_SUPPORT
-
 void
 clean_mcpbinds(struct mcp_binding *mypub)
 {
@@ -3793,21 +3742,16 @@ clean_mcpbinds(struct mcp_binding *mypub)
         mypub = tmppub;
     }
 }
-
 #endif
-
-
 void
+
 append_intermediate_chain(struct INTERMEDIATE *chain, struct INTERMEDIATE *add)
 {
     while (chain->next)
         chain = chain->next;
     chain->next = add;
 }
-
-
-/* free resources used by INTERMEDIATE struct */
-void
+/* free resources used by INTERMEDIATE struct */ void
 free_intermediate_node(struct INTERMEDIATE *wd)
 {
     int varcnt, j;
@@ -3843,7 +3787,6 @@ free_intermediate_chain(struct INTERMEDIATE *wd)
         wd = tempword;
     }
 }
-
 void
 cleanup(COMPSTATE *cstat)
 {
@@ -3858,8 +3801,7 @@ cleanup(COMPSTATE *cstat)
     for (eef = cstat->control_stack; eef; eef = tempif) {
         tempif = eef->next;
         free((void *) eef);
-    }
-    cstat->control_stack = 0;
+    } cstat->control_stack = 0;
 
     for (p = cstat->procs; p; p = tempp) {
         tempp = p->next;
@@ -3985,10 +3927,7 @@ set_start(COMPSTATE *cstat)
     DBFETCH(cstat->program)->sp.program.start =
         (DBFETCH(cstat->program)->sp.program.code + cstat->procs->code->no);
 }
-
-
-/* allocate and initialize data linked structure. */
-struct INTERMEDIATE *
+/* allocate and initialize data linked structure. */ struct INTERMEDIATE *
 alloc_inst(void)
 {
     struct INTERMEDIATE *nw;
@@ -4002,7 +3941,6 @@ alloc_inst(void)
     nw->in.data.number = 0;
     return nw;
 }
-
 struct INTERMEDIATE *
 prealloc_inst(COMPSTATE *cstat)
 {
@@ -4037,6 +3975,7 @@ new_inst(COMPSTATE *cstat)
         nw = alloc_inst();
     }
     cstat->nextinst = nw->next;
+
     nw->next = NULL;
 
     return nw;
@@ -4070,6 +4009,7 @@ free_prog(dbref prog)
                     DBFETCH(prog)->sp.program.instances);
         }
         i = scan_instances(prog);
+
         if (i) {
             fprintf(stderr, "Freeing program %s with %d instances found\n",
                     unparse_object(GOD, prog), i);
@@ -4156,6 +4096,7 @@ init_primitives(void)
         add_primitive(i);
     }
     IN_FORPOP = get_primitive(" FORPOP");
+
     IN_FORITER = get_primitive(" FORITER");
     IN_FOR = get_primitive(" FOR");
     IN_FOREACH = get_primitive(" FOREACH");

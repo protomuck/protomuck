@@ -324,7 +324,7 @@ unparse_object(dbref player, dbref loc)
         case HOME:
             return "*HOME*";
         default:
-            if (loc < 0 || loc > db_top)
+            if (loc < 0 || loc >= db_top)
 #ifdef SANITY
             {
                 sprintf(upb, "*INVALID*(#%d)", loc);
@@ -400,7 +400,7 @@ ansi_unparse_object(dbref player, dbref loc)
         case HOME:
             return SYSWHITE "*HOME*";
         default:
-            if (loc < 0 || loc > db_top)
+            if (loc < 0 || loc >= db_top)
                 return SYSRED "*INVALID*";
 #ifndef SANITY
             if (!(FLAGS(player) & STICKY) &&
