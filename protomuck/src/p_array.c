@@ -1403,7 +1403,7 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
                                 sprintf(propname, "%s%c%d", dir, PROPDIR_DELIMITER, temp1.data.number);
                                 break;
                         case PROG_FLOAT:
-                                sprintf(propname, "%s%c%g", dir, PROPDIR_DELIMITER, temp1.data.fnumber);
+                                sprintf(propname, "%s%c%.16lg", dir, PROPDIR_DELIMITER, temp1.data.fnumber);
                                 break;
                         default:
                                 *propname = '\0';
@@ -1886,7 +1886,7 @@ prim_array_join(PRIM_PROTOTYPE)
 				text = buf;
 				break;
 			case PROG_FLOAT:
-				sprintf(buf, "%g", in->data.fnumber);
+				sprintf(buf, "%.16lg", in->data.fnumber);
 				text = buf;
 				break;
 			case PROG_LOCK:

@@ -6,7 +6,7 @@ struct plist {
 	char           *str;
 	struct boolexp *lok;
 	int             val;
-      float          fval;
+        double          fval;
 	dbref           ref;
 	int             pos;
     }       data;
@@ -135,7 +135,7 @@ extern int has_property_strict(int descr, dbref player, dbref what, const char *
 extern PropPtr get_property(dbref player, const char *type);
 
 extern const char *get_property_class(dbref player, const char *type);
-extern float get_property_fvalue(dbref player, const char *type);
+extern double get_property_fvalue(dbref player, const char *type);
 extern int get_property_value(dbref player, const char *type);
 extern dbref get_property_dbref(dbref player, const char *pclass);
 extern struct boolexp *get_property_lock(dbref player, const char *type);

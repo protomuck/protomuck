@@ -918,7 +918,7 @@ get_pidinfo(int pid)
         temp1.type = PROG_STRING;
         temp1.data.string = alloc_prog_string("CPU");
         temp2.type = PROG_FLOAT;
-        temp2.data.fnumber = (float) pcnt;
+        temp2.data.fnumber = pcnt;
         array_setitem(&nw, &temp1, &temp2);
         CLEAR(&temp1);
         CLEAR(&temp2);
@@ -957,7 +957,9 @@ get_pidinfo(int pid)
         array_setitem(&nw, &temp1, &temp2);
         CLEAR(&temp1);
         CLEAR(&temp2);
-    }
+    } else {
+        nw = get_mufevent_pidinfo(nw, pid);
+    } 
     return nw;
 }
 

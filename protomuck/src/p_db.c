@@ -219,8 +219,6 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
 int
 flag_set_perms2(dbref ref, int flag, int mlev)
 {
-   if((flag == F2LIGHT) && (Typeof(ref) == TYPE_PLAYER) && (mlev < LWIZ))
-      return 0;
    if(flag == F2HIDDEN && mlev < LARCH)
       return 0;
    if(flag == F2GUEST && mlev < LMAGE)

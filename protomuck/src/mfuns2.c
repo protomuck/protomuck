@@ -1433,6 +1433,8 @@ mfn_muf(MFUNARGS)
             CLEAR(rv);
             return buf;
             break;
+        case PROG_FLOAT:
+            snprintf(buf, BUFFER_LEN, "%.16lg", rv->data.fnumber);
         case PROG_OBJECT:
             ptr = ref2str(rv->data.objref, buf);
             CLEAR(rv);

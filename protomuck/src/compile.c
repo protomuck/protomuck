@@ -1750,7 +1750,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 	} else if (!string_compare(temp, "version")) {
 		tmpname = (char *) next_token_raw(cstat); 
 		if (!ifloat(tmpname))
-			abort_compile(cstat, "Not a floating point number for the version.");
+			abort_compile(cstat, "Expected a floating point number for the version.");
 		add_property(cstat->program, "_Version", tmpname, 0);
                 while (*cstat->next_char)
                         cstat->next_char++;
@@ -1759,7 +1759,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 	} else if (!string_compare(temp, "lib-version")) {
 		tmpname = (char *) next_token_raw(cstat);
 		if (!ifloat(tmpname))
-			abort_compile(cstat, "Not a floating point number for the version.");
+			abort_compile(cstat, "Expected a floating point number for the version.");
                 while (*cstat->next_char)
                     cstat->next_char++;
                 advance_line(cstat);
@@ -1930,8 +1930,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 	} else if (!string_compare(temp, "ifver") || !string_compare(temp, "iflibver") ||
 			!string_compare(temp, "ifnver") || !string_compare(temp, "ifnlibver")) {
 		struct match_data md;
-		float verflt = 0;
-                float checkflt = 0;
+		double verflt = 0;
+                double checkflt = 0;
                 int needFree = 0;
 
 		tmpname = (char *) next_token_raw(cstat);
@@ -1981,7 +1981,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 		{
 			verflt = 0.0;
 		} else {
-			sscanf(tmpptr, "%g", &verflt);
+			sscanf(tmpptr, "%lg", &verflt);
 		}
                 if ( needFree )
                     free(tmpptr);
@@ -1989,7 +1989,7 @@ do_directive(COMPSTATE * cstat, char *direct)
 		{
 			checkflt = 0.0;
 		} else {
-			sscanf(tmpname, "%g", &checkflt);
+			sscanf(tmpname, "%lg", &checkflt);
 		}
                 free(tmpname);
 		while (*cstat->next_char)
@@ -3097,7 +3097,7 @@ float_word(COMPSTATE * cstat, const char *token)
 	nw->no = cstat->nowords++;
 	nw->in.type = PROG_FLOAT;
 	nw->in.line = cstat->lineno;
-	sscanf(token, "%g", &(nw->in.data.fnumber));
+	sscanf(token, "%lg", &(nw->in.data.fnumber));
 	return nw;
 }
 

@@ -65,9 +65,6 @@ struct descriptor_data {
     McpFrame                 mcpframe;      /* Muck-To-Client protocal information */
 };
 
-/*
- TODO: Move the dbref-blocking to the descriptors and have READ, etc. run off the descriptors instead.
- */
 
 #define DF_HTML          0x1 /* Connected to the internal WEB server. -- UNIMPLEMENTED */
 #define DF_PUEBLO        0x2 /* Allows for HTML/Pueblo extentions on a connected port. -- UNIMPLEMENTED */
@@ -76,11 +73,6 @@ struct descriptor_data {
 #define DF_TRUEIDLE     0x10 /* Set if the descriptor goes past the @tune idletime. Also triggers the propqueues if connected. */
 #define DF_INTERACTIVE  0x20 /* If the player is in the MUF editor or the READ prim is used, etc. */
 #define DF_COLOR        0x40 /* Used in conjunction with ansi_notify_descriptor */
-
-/*
- TODO: Finish adding the rest of the flags and create the following primitives:
-     dr_flag?[ int:descr -- int:bolhastheflag? ]
- */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)

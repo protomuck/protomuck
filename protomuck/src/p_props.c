@@ -60,7 +60,7 @@ prop_write_perms(dbref player, dbref obj, const char *name, int mlev)
 void
 prim_getpropfval(PRIM_PROTOTYPE)
 {
-	float fresult;
+	double fresult;
 
 	CHECKOP(2);
 	oper1 = POP();
@@ -361,7 +361,7 @@ prim_remove_prop(PRIM_PROTOTYPE)
 void 
 prim_envprop(PRIM_PROTOTYPE)
 {
-    float fresult;
+    double fresult;
 
     CHECKOP(2);
     oper1 = POP();

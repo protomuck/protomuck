@@ -361,9 +361,6 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
         case F2GUEST:
             return (!Mage(OWNER(player)));
             break;
-        case F2LIGHT:
-            if (Typeof(thing) == TYPE_PLAYER) 
-                return (!Wiz(OWNER(player))); 
         case F2LOGWALL:
             return (!Arch(OWNER(player)));
         case F2HIDDEN: /* can only be set on players currently */
@@ -375,8 +372,6 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
             if (Typeof(thing) == TYPE_PLAYER) 
                 return (!Boy(OWNER(player))); 
             else return 1; 
-        case F2MUFCOUNT:
-            return 0;
         default:
             return 0;
             break;

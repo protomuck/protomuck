@@ -5,6 +5,7 @@
 
 #include "config.h"
 #include <stdio.h>
+#include <math.h>
 #ifndef WIN_VC
 # include <time.h>
 #endif
@@ -26,8 +27,48 @@
 
 /* smallest possible numbers to use before a float is considered to be '0' or
    'false'. */
-#define SMALL_NUM 1.0E-37
-#define NSMALL_NUM -1.0E-37
+/* Defining INF as infinite.  This is HUGE_VAL on IEEE754 systems. */
+#ifdef WIN32
+#include <limits>
+using namespace std;
+# define INF (numeric_limits<double>::infinity())
+# define NINF (-1 * numeric_limits<double>::infinity())
+#elif defined(HUGE_VAL)
+# define INF (HUGE_VAL)
+# define NINF (-HUGE_VAL)
+#else
+# define INF (9.9E999)
+# define NINF (-9.9E999)
+#endif
+
+/* Defining Pi, Half Pi, and Quarter Pi.  */
+#ifdef M_PI
+# define F_PI M_PI
+# define NF_PI -M_PI
+#else
+# define F_PI 3.14159265359
+# define NF_PI -3.14159265359
+#endif
+
+#ifdef M_PI_2
+# define H_PI M_PI_2
+# define NH_PI -M_PI_2
+#else
+# define H_PI 1.5707963268
+# define NH_PI -1.5707963268
+#endif
+
+#ifdef M_PI_4  /* A quarter slice.  Yum. */
+# define Q_PI M_PI_4
+# define NQ_PI -M_PI_4
+#else
+# define Q_PI 0.7853981634
+# define NQ_PI -0.7853981634
+#endif
+
+
+
+
 
 extern time_t current_systime;
 extern char match_args[BUFFER_LEN];
@@ -484,7 +525,7 @@ struct inst {			/* instruction */
         struct shared_string *string;  /* strings */
         struct boolexp *lock;     /* boolean lock expression */
         int     number;		  /* used for both primitives and integers */
-        float   fnumber;          /* used for float storage */
+        double  fnumber;          /* used for float storage */
         dbref   objref;		  /* object reference */
         struct stk_array_t *array;/* FB6 style array */
         struct inst *call;	  /* use in IF and JMPs */

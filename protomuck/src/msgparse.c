@@ -375,7 +375,6 @@ dbref
 mesg_dbref(int descr, dbref player, dbref what, dbref perms, char *buf)
 {
     dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
-
     if (obj == UNKNOWN) return obj;
     if (!mesg_read_perms(player, perms, obj)) {
         obj = PERMDENIED;
