@@ -1,0 +1,80 @@
+NeonMuck source code is (C)1996 Andrew Nelson and Jeremy Blackman, all 
+rights reserved.  All pertinant TinyMUCK and TinyMUCKfb copyrights also 
+still apply.  Database compression code (C) Dragon's Eye Productions and 
+used with the kind permission of Dr. Cat.
+---- Changes from normal TinyMUCKfb as of Neon 1.5, first release ----
+
+REALLY MAJOR:
+* Pueblo multimedia protocol support added.
+  - 'PUEBLO' ($) flag added.
+  - notify_html, notify_html_exclude, html_nocr, html_exclude_nocr
+    MUF primitives added.
+  - {html:} and {ohtml:} MPI added
+* ANSI color support added.
+  - 'COLOR' flag added to players.
+  - ansi_notify MUF primitive added
+  - {ansi:} MPI added.
+* New MUCKER / WIZARD level system added.
+  - see 'help newlevels'
+* WWW server support added.
+  - notify_descriptor (MAGE (M4) only) MUF primitive added.
+  - Users can create homepages on themselves.
+  - MUF programs can work as webpages as well.
+* Combat/RPG support planned
+  - MOBILE and ETHEREAL flags (currently unused by server) added for
+    MUD-program use.
+
+OF OTHER INTEREST:
+* Program logs show user's mucker level.
+* @/lockout-msg can be set on a player to prevent them from logging in...
+  contents of this prop will be displayed and login rejected.
+* Lots of new @tune parameters
+* Online registration request hopper added.
+* wizchat/wc added internally.
+* Wizards can choose to not see wall_wizards messages
+* Added setting to curtail building if DB hits a certain size
+* Wizards can @name non-wizards without needing to @newpassword the user
+* Dark rooms do not display contents even to owner.  Examine will still
+  show all contents
+* Fixed simple_look in look.c to not use (@desc) for the 'command @'
+* _sys/lastcleantime added for cleanup intervals
+* Added support for mortal use of !@ps
+* Wizards cannot @force other wizards.  Period.
+* MPI security holes patched.
+* @/mage feeps added to allow select mortals higher-level use of certain
+  commands.
+* Wizards can teleport into player's inventories.  No, you can't ask why.
+  Boredom, ok? :)
+* MUF 'parseprop' now parses MPI _correctly_ to remove all non-printing 
+  characters from result string.
+* MUF 'moveto' prim now allows entry of vehicles without a wizbit.
+* Wizard WHO list modified so there's more room for sitenames.
+* 'Doing...' in normal WHO list is replaced by #0=_poll, if set.
+* Fixed @tune to allow un-setting of dbref tune params.
+* Added GUEST flag, restricted use of certain commands so characters set
+  GUEST cannot use them.  Set this flag on twinks, too!  Note that MUF
+  programs not locked against GUEST characters could potentially give them
+  these powers back.
+* Added a 'help' command to the login screen to spit back 'connect.txt'
+  as opposed to welcome.txt.
+* 'viewable' flag added.
+* DARK flag on a player will send them ALL debug info for a MUF program
+  they run.  HACK FOR DEBUGGING PURPOSES...(?)TEMPORARY(?)
+* Andy made a truly garish default color scheme.  Watch out! :)
+* Program changes by wizards are NOT logged to logs/programs.
+  This saves an unbelievable amount of disk space.
+* Nicer @stats and @proginfo
+* Automatic character generation / e-mail based registration added.  Cool!
+* Some sites, for real losers, can be COMPLETELY blocked.  Neon won't
+  even output the login screen before dropping connection.
+* {showlist} MPI primitive will print a list without running against the
+  {list} length limit.
+* A set of randomly cycled login screens!  Again, no, you can't ask why! ;)
+
+INTERNAL:
+* Fixed some logging issues.
+* Hostname resolution in registration connection should work better now.
+* Violated some C programming rules, but fixed dump_users() to not crash
+  on long usernames.
+* format_time() fixed.
+

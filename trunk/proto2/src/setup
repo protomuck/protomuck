@@ -1,0 +1,336 @@
+#!/bin/bash
+
+BASEDBURL="http://tails.animaltracks.net/protomuck/protodb_v1.tar.gz"
+GLOWUTILSURL="http://tails.animaltracks.net/protomuck/glow-utils.mufpkg"
+
+echo "Begin ProtoMUCK configuration - written by Alynna"
+echo "The default value will be specified by the value in [brackets]."
+echo " "
+
+gen_muck_config () {
+cat <<EOF >game/muck.config
+HOSTNAME="$HOSTNAME"
+MUCKNAME="$MUCKNAME"
+MUCKDB="$MUCKDB"
+MUCKOUT="$MUCKOUT"
+MAINPORT="$MAINPORT"
+MOREPORTS="$MOREPORTS"
+WWWPORT="$WWWPORT"
+PUEBLOPORT="$PUEBLOPORT"
+ADMINEMAIL="$ADMINEMAIL"
+STARTDB=0
+EOF
+chmod 644 game/muck.config
+}
+
+gen_restart_script () {
+if [ '$VENDOR' = 'apple' ]; then
+cat <<EOF >game/restart
+#!/bin/tcsh
+
+cp $MUCKOUT $MUCKOUT.bak
+cp $MUCKOUT $MUCKDB
+limit stacksize 16384
+echo -n "($MUCKNAME on port $MAINPORT from $MUCKDB): "
+./protomuck $MUCKDB $MUCKOUT $MAINPORT $MOREPORTS
+EOF
+else
+cat <<\EOF >game/restart
+#!/bin/bash
+
+. ./muck.config
+cp $MUCKOUT $MUCKOUT.bak
+cp $MUCKOUT $MUCKDB
+echo -n "($MUCKNAME on port $MAINPORT from $MUCKDB): "
+./protomuck $MUCKDB $MUCKOUT $MAINPORT $MOREPORTS
+EOF
+fi
+chmod 755 game/restart
+}
+
+gen_base_parmfile () {
+egrep -iv "(mainport|wwwport|puebloport|mailserver|servername|reg_email|muckname)" \
+           game/data/parmfile.cfg > /tmp/parmfile.cfg
+cp /tmp/parmfile.cfg game/data/parmfile.cfg
+rm /tmp/parmfile.cfg
+echo "mainport=$MAINPORT" >> game/data/parmfile.cfg
+echo "wwwport=$WWWPORT" >> game/data/parmfile.cfg
+echo "puebloport=$PUEBLOPORT" >> game/data/parmfile.cfg
+echo "mailserver=$HOSTNAME" >> game/data/parmfile.cfg
+echo "servername=$HOSTNAME" >> game/data/parmfile.cfg
+echo "reg_email=$ADMINEMAIL" >> game/data/parmfile.cfg
+echo "muckname=$MUCKNAME" >> game/data/parmfile.cfg
+}
+
+unset INPUT
+if [ -e ../game/muck.config ]; then
+ # read file for defaults
+ echo -n "You've already configured your MUCK before, do you want to do it again? [Y/n]: "
+ read INPUT
+ if [ "$INPUT" == "N" ]; then exit 0; fi
+ if [ "$INPUT" == "n" ]; then exit 0; fi
+ . ../game/muck.config
+else
+ # define these defaults
+ HOSTNAME=`hostname`.`domainname`
+ MUCKNAME=ProtoMUCK
+ MAINPORT=8888
+ MOREPORTS=""
+ WWWPORT=8880
+ PUEBLOPORT=8823
+ ADMINEMAIL=`whoami`@`domainname`
+ STARTDB=0
+fi
+
+unset INPUT
+echo -n "Please enter the fully qualified name of this machine [$HOSTNAME]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ HOSTNAME=$INPUT
+fi
+echo "HOSTNAME is $HOSTNAME"
+echo " "
+
+unset INPUT
+echo "The MUCKNAME specifies the name required to shutdown/restart in server"
+echo "It is also used to uniquely identify your database files."
+echo -n "Please enter the name of your MUCK [$MUCKNAME]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ MUCKNAME=$INPUT
+fi
+MUCKDB=`echo $MUCKNAME | tr -d " "`.db
+MUCKOUT=`echo $MUCKNAME | tr -d " "`.out
+echo "MUCKNAME is $MUCKNAME"
+echo "MUCKDB is $MUCKDB"
+echo "MUCKOUT is $MUCKOUT"
+echo " "
+
+unset INPUT
+echo    "Please enter the main port you want to use."
+echo -n "This is the port people will log into for a standard connection. [$MAINPORT]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ MAINPORT=$INPUT
+fi
+echo "MAINPORT is $MAINPORT"
+echo " "
+
+unset INPUT
+echo    "Please enter any additional ports you want to allocate to the MUCK, seperated by spaces."
+echo    "These will be standard ports, unless redefined in #0:@ports props to map to MUF."
+echo -n "This is safe to leave blank, and is typically only for advanced use. [$MOREPORTS]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ MOREPORTS=$INPUT
+fi
+echo "MOREPORTS is $MOREPORTS"
+echo " "
+
+unset INPUT
+echo    "Please enter the www port you want to use."
+echo -n "This is the port the internal webserver will run on.  0 disables it. [$WWWPORT]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ WWWPORT=$INPUT
+fi
+echo "WWWPORT is $WWWPORT"
+echo " "
+
+unset INPUT
+echo    "Please enter the pueblo port you want to use."
+echo -n "This is the port people will log into for a pueblo connection. [$PUEBLOPORT]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ PUEBLOPORT=$INPUT
+fi
+echo "PUEBLOPORT is $PUEBLOPORT"
+echo " "
+
+unset INPUT
+echo -n "Please enter the email address of the headwiz here [$ADMINEMAIL]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ ADMINEMAIL=$INPUT
+fi
+echo "ADMINEMAIL is $ADMINEMAIL"
+echo " "
+
+unset INPUT
+echo    "Please select one of the options below to select a startup database..."
+echo    " 0) Please dont touch the current configuration."
+echo    "    The default option."
+echo    " 1) I dont have a database but I want the official base-db from the internet."
+echo    "    Will download and install the database."
+echo    " 2) I dont have a database, and I want to start with the bare mininum."
+echo    "    (Objects #0 and #1 only)"
+echo    " 3) Dont do anything but regenerate the 'restart' script and update my"
+echo    "    port numbers. (I want to change ports)"
+echo    " 4) I have a database from FB5/FB6 (fuzzball)."
+echo    "    Set tunes for maximum fuzzball compatibility"
+echo    " 5) I have a database from GlowMUCK"
+echo    "    Set tunes for maximum GlowMUCK compatibility, and download path2exit"
+echo    "    and ansihack to make the database Proto compatible."
+echo    " 6) I have a database from NeonMUCK"
+echo    " 7) I have a database from ProtoMUCK"
+echo -n "Your choice? [$STARTDB]: "
+read INPUT
+if [ "$INPUT" != "" ]; then
+ STARTDB=$INPUT
+fi
+echo "STARTDB is $STARTDB"
+echo "Acting on your choice..."
+
+case "$STARTDB" in
+ '0') # Do nothing
+      echo "Configuration is skipped..."
+      ;;
+ '1') # Configure for ProtoMUCK, with basedb from internet...
+      cd ..
+      echo "Acquiring a basic database..."
+      wget $BASEDBURL
+      echo "Decompressing database..."
+      tar xzf protodb_v1.tar.gz
+      echo "Copying database to game directory.."
+      cp game/data/proto.db game/$MUCKDB
+      cp game/data/proto.db game/$MUCKOUT
+      echo "Removing unused database file in game/data and original tarball..."
+      rm game/data/proto.db
+      rm protodb_v1.tar.gz
+      echo "Writing data to parmfile.cfg.."
+      gen_base_parmfile
+      echo "Generating restart script..."
+      gen_restart_script
+      echo "Saving configuration to muck.config..."
+      DBMODE=ProtoMUCK
+      gen_muck_config
+      cd -
+      ;;
+ '2') # Configure the bare minimum database...
+      echo "Copying data/minimal.proto to your main directory.."
+      cd ..
+      cp game/data/minimal.proto game/$MUCKDB
+      cp game/data/minimal.proto game/$MUCKOUT
+      echo "Writing data to parmfile.cfg.."
+      gen_base_parmfile
+      echo "Generating restart script..."
+      gen_restart_script   
+      echo "Saving configuration to muck.config..."
+      gen_muck_config
+      cd -
+      ;;
+ '3') # Configure for Fuzzball...
+      echo    "Enter the location of the database you want to use, relative to your game directory."
+      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      unset INPUT ; read INPUT
+      cd ../game
+      echo "Copying database to game directory.."
+      cp $INPUT $MUCKDB
+      cp $INPUT $MUCKOUT
+      cd - ; cd ..
+      echo "Writing data to parmfile.cfg.."
+      gen_base_parmfile
+      echo "Adjusting tunes in parmfile.cfg to be FB6 compatible..."
+      egrep -iv "(old_parseprop|proplist_int_counter|fb_controls|allow_old_trigs|compatible_muf_perms|multi_wiz_levels)" \
+                  game/data/parmfile.cfg > /tmp/parmfile.cfg
+      cp /tmp/parmfile.cfg game/data/parmfile.cfg
+      rm /tmp/parmfile.cfg
+      echo "old_parseprop=yes" >> game/data/parmfile.cfg
+      echo "proplist_int_counter=no" >> game/data/parmfile.cfg
+      echo "fb_controls=yes" >> game/data/parmfile.cfg
+      echo "allow_old_trigs=yes" >> game/data/parmfile.cfg
+      echo "compatible_muf_perms=yes" >> game/data/parmfile.cfg
+      echo "multi_wiz_levels=no" >> game/data/parmfile.cfg
+      echo "Generating restart script..."
+      gen_restart_script
+      echo "Saving configuration to muck.config..."
+      DBMODE=Fuzzball6
+      gen_muck_config
+      cd -
+      ;;
+ '4') # Configure for GlowMUCK...
+      echo    "Enter the location of the database you want to use, relative to your game directory."
+      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      unset INPUT ; read INPUT
+      cd ../game
+      echo "Copying database to game directory.."
+      cp $INPUT $MUCKDB
+      cp $INPUT $MUCKOUT
+      cd - ; cd ..
+      echo "Writing data to parmfile.cfg.."
+      gen_base_parmfile
+      echo "Adjusting tunes in parmfile.cfg to be GlowMUCK compatible..."
+      egrep -iv "(old_parseprop|proplist_int_counter|fb_controls|allow_old_trigs|compatible_muf_perms|multi_wiz_levels)" \
+                  game/data/parmfile.cfg > /tmp/parmfile.cfg
+      cp /tmp/parmfile.cfg game/data/parmfile.cfg
+      rm /tmp/parmfile.cfg
+      echo "old_parseprop=yes" >> game/data/parmfile.cfg
+      echo "proplist_int_counter=no" >> game/data/parmfile.cfg
+      echo "fb_controls=yes" >> game/data/parmfile.cfg
+      echo "allow_old_trigs=yes" >> game/data/parmfile.cfg
+      echo "compatible_muf_perms=yes" >> game/data/parmfile.cfg
+      echo "multi_wiz_levels=yes" >> game/data/parmfile.cfg
+      echo "Generating restart script..."
+      gen_restart_script
+      echo "Saving configuration to muck.config..."
+      DBMODE=GlowMUCK
+      gen_muck_config
+      cd - ; cd ../game
+      echo "Retrieving the $ansihack and path2exit MUFs..."
+      wget $GLOWUTLISURL
+      cd -
+      ;;      
+ '5') # Configure for NeonMUCK...
+      echo    "Enter the location of the database you want to use, relative to your game directory."
+      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      unset INPUT ; read INPUT
+      cd ../game
+      echo "Copying database to game directory.."
+      cp $INPUT $MUCKDB
+      cp $INPUT $MUCKOUT
+      cd - ; cd ..
+      echo "Writing data to parmfile.cfg.."
+      gen_base_parmfile
+      echo "Generating restart script..."
+      gen_restart_script
+      echo "Saving configuration to muck.config..."
+      DBMODE=NeonMUCK
+      gen_muck_config
+      cd -
+      ;;
+ '6') # Configure for ProtoMUCK...
+      echo    "Enter the location of the database you want to use, relative to your game directory."
+      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      unset INPUT ; read INPUT
+      cd ../game
+      echo "Copying database to game directory.."
+      cp $INPUT $MUCKDB
+      cp $INPUT $MUCKOUT
+      cd - ; cd ..
+      echo "Writing data to parmfile.cfg.."
+      gen_base_parmfile
+      echo "Generating restart script..."
+      gen_restart_script
+      echo "Saving configuration to muck.config..."
+      DBMODE=ProtoMUCK
+      gen_muck_config
+      cd -
+      ;;
+ '7') # Reconfigure ports only
+      cd ..
+      echo "Writing data to parmfile.cfg.."
+      gen_base_parmfile
+      echo "Generating restart script..."
+      gen_restart_script
+      echo "Saving configuration to muck.config..."
+      gen_muck_config
+      cd -
+      ;;
+esac
+
+echo "Configuration is finished."
+echo "If this was a GlowMUCK database and you had paths compiled in,"
+echo "please use the path2exit MUF that was just downloaded in the"
+echo "glowutils script."
+echo " "
+echo "Type 'cd ../game ; ./restart' to start your protomuck. ^o.o^"
