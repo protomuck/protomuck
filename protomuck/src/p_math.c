@@ -12,7 +12,7 @@
 #include "externs.h"
 #include "match.h"
 #include <float.h>
-#ifndef APPLE
+#ifndef NAN
 #include "nan.h"
 #endif
 #include "interface.h"
@@ -44,6 +44,16 @@ nogood(double test)
 {
     return (((test == INF) || (test == NINF)) || (test == NAN));
 }
+
+/* Alynna: BSD defines these in math.h, but we REALLY want our own.. */
+#ifdef __FreeBSD__
+# ifdef isinf
+# undef isinf
+# endif
+# ifdef isnan
+# undef isnan
+# endif
+#endif
 
 int
 isinf(double test)

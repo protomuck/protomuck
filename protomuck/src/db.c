@@ -1594,6 +1594,8 @@ db_read(FILE * f)
             i = getref(f);
             db_grow(i);
         } else if (!strcmp(special, "**Foxen5 TinyMUCK DUMP Format***") ||
+                   !strcmp(special, "**Foxen6 TinyMUCK DUMP Format***") ||
+                   !strcmp(special, "**Foxen7 TinyMUCK DUMP Format***") ||
                    !strcmp(special, "**NeonMuck V2 DUMP Format***")) {
             db_load_format = 7;
             i = getref(f);
@@ -1622,6 +1624,8 @@ db_read(FILE * f)
             db_load_format = 6;
             doing_deltas = 1;
         } else if (!strcmp(special, "***Foxen5 Deltas Dump Extention***") ||
+                   !strcmp(special, "***Foxen6 Deltas Dump Extention***") ||
+                   !strcmp(special, "***Foxen7 Deltas Dump Extention***") ||
                    !strcmp(special, "***NeonMuck V2 Deltas Dump Format***")) {
             db_load_format = 7;
             doing_deltas = 1;

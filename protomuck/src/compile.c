@@ -16,10 +16,10 @@
 #include "interp.h"
 #include <ctype.h>
 #include <time.h>
-#ifndef APPLE
+#include <math.h>
+#ifndef NAN
 #include "nan.h"
 #endif
-#include <math.h>
 
 /* This file contains code for doing "byte-compilation" of
    mud-forth programs.  As such, it contains many internal
