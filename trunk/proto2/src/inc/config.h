@@ -520,7 +520,6 @@
 #   define PS_CHANGE_ARGV
 #  elif defined(__linux__) || defined(_AIX) || defined(__sgi) || (defined(sun) && !defined(BSD)) || defined(ultrix) || defined(__ksr__) || defined(__osf__) || defined(__QNX__) || defined(__svr4__) || defined(__svr5__) || defined(__darwin__)
 #   define PS_CLOBBER_ARGV
-#   define PS_BUFFER_SIZE 256
 #  elif
 #   undef USE_PS
 #  endif
@@ -530,6 +529,7 @@
 # else
 #  define PS_PADDING ' '
 # endif
+# define PS_BUFFER_SIZE 256
 #endif
 
 /*

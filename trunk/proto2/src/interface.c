@@ -172,7 +172,6 @@ save_ps_display_args(int argc, char *argv[])
     save_argv = argv;
 
 #ifdef PS_CLOBBER_ARGV
-
     /* If we're going to overwrite the argv area, count the available
      * space.  Also move the environment to make additional room.  */
     {
@@ -233,7 +232,11 @@ init_ps_display(void)
     }
 #endif /* PS_CLOBBER_ARGV */
 
+#ifdef HAVE_SETPROCTITLE
+    strncpy(ps_buffer, PROTOBASE ": ", ps_buffer_size);
+#else /* !HAVE_SETPROCTITLE */
     strncpy(ps_buffer, "protomuck " PROTOBASE ": ", ps_buffer_size);
+#endif /* HAVE_SETPROCTITLE */
     ps_buffer_fixed_size = strlen(ps_buffer);
 }
 
@@ -3634,12 +3637,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                                 /****/
+        if (d->next)                                                                                                                                     /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                                                             /****/
+        if (d->hostname)                                                                                                                                 /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                                                             /****/
+        if (d->username)                                                                                                                                 /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD

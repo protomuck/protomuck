@@ -800,7 +800,7 @@ envpropstr(dbref *where, const char *propname)
     if (!temp)
         return NULL;
     if (PropType(temp) == PROP_STRTYP)
-        return (PropDataStr(temp));
+        return (PropDataUNCStr(temp));
     return NULL;
 }
 
