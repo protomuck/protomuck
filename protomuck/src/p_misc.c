@@ -878,12 +878,9 @@ prim_nameokp(PRIM_PROTOTYPE)
 void
 prim_force_level(PRIM_PROTOTYPE)
 {
+   CHECKOFLOW(1);
    PushInt(force_level);
 }
-
-
-
-
 
 
 void prim_watchpid(PRIM_PROTOTYPE)
@@ -947,3 +944,116 @@ prim_read_wants_blanks(PRIM_PROTOTYPE)
 {
     fr->wantsblanks = !(fr->wantsblanks);
 }
+
+
+void
+prim_dump(PRIM_PROTOTYPE)
+{
+    if (mlev < LARCH)
+        abort_interp("Archwizard primitive.");
+	
+    dump_db_now();
+}
+
+void
+prim_delta(PRIM_PROTOTYPE)
+{
+    if (mlev < LARCH)
+        abort_interp("Archwizard primitive.");
+
+#ifdef DELTADUMPS
+    delta_dump_now();
+#else
+    abort_interp("Support for Delta dumps is not compiled.");
+#endif
+}
+
+void 
+prim_shutdown(PRIM_PROTOTYPE)
+{
+
+	CHECKOP(1);
+	oper1 = POP();
+
+	if (mlev < LBOY)
+		abort_interp("W4 primitive.");
+
+	if (oper1->type != PROG_STRING)
+		abort_interp("String expected.");
+
+	log_status("SHUT(MUF): by %s\n", unparse_object(player, player));
+	shutdown_flag = 1;
+	restart_flag = 0;
+	if (oper1->data.string) {
+		strcat(shutdown_message, ANSIWHITE MARK ANSINORMAL);
+		strcat(shutdown_message, oper1->data.string->data);
+		strcat(shutdown_message, "\r\n");
+	}
+
+	CLEAR(oper1);
+}
+
+void 
+prim_restart(PRIM_PROTOTYPE)
+{
+
+	CHECKOP(1);
+	oper1 = POP();
+
+	if (mlev < LBOY)
+		abort_interp("W4 primitive.");
+
+	if (oper1->type != PROG_STRING)
+		abort_interp("String expected.");
+
+	log_status("REST(MUF): by %s\n", unparse_object(player, player));
+	shutdown_flag = 1;
+	restart_flag = 1;
+	if (oper1->data.string) {
+		strcat(restart_message, ANSIWHITE MARK ANSINORMAL);
+		strcat(restart_message, oper1->data.string->data);
+		strcat(restart_message, "\r\n");
+	}
+
+	CLEAR(oper1);
+}
+
+void 
+prim_armageddon(PRIM_PROTOTYPE)
+{
+
+	char buf[BUFFER_LEN];
+
+	CHECKOP(1);
+	oper1 = POP();
+
+	if (mlev < LBOY)
+		abort_interp("W4 primitive.");
+
+	if (oper1->type != PROG_STRING)
+		abort_interp("String expected.");
+
+
+    sprintf(buf, "\r\nImmediate shutdown by %s.\r\n", NAME(player));
+
+	if (oper1->data.string) {
+		strcat(buf, ANSIWHITE MARK ANSINORMAL);
+		strcat(buf, oper1->data.string->data);
+		strcat(buf, "\r\n");
+	}
+
+	CLEAR(oper1);
+
+    log_status("DDAY(MUF): %s(%d)\n", NAME(player), player);
+    fprintf(stderr, "DDAY: %s(%d)\n", NAME(player), player);
+
+    close_sockets(buf);
+
+#ifdef SPAWN_HOST_RESOLVER
+    kill_resolver();
+#endif
+
+    exit(1);
+
+}
+
