@@ -122,6 +122,8 @@ check_flag2(char *flag, int *nbol)
     if (string_prefix("controls", flag) || string_prefix("~", flag))
         return F2CONTROLS;
 #endif
+    if (string_prefix("immobile", flag) || string_prefix("|", flag))
+        return F2IMMOBILE;
     if (string_prefix("hidden", flag) || string_prefix("#", flag))
         return F2HIDDEN;
     if (string_prefix("command", flag))
@@ -270,6 +272,8 @@ flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
         return (mlev >= LMAGE);
     if (flag == F2MOBILE)
         return (mlev >= tp_userflag_mlev);
+    if (flag == F2IMMOBILE && mlev < LWIZ)
+        return 0;
     return 1;
 }
 
@@ -456,7 +460,6 @@ prim_moveto(PRIM_PROTOTYPE)
             abort_interp("Target argument is invalid");
         if (!OkObj(dest))
             abort_interp("Destination argument is invalid");
-
         if (Typeof(dest) == TYPE_EXIT)
             abort_interp("Destination argument is an exit");
         if (Typeof(victim) == TYPE_EXIT && (mlev < LM3))
@@ -464,6 +467,11 @@ prim_moveto(PRIM_PROTOTYPE)
         if (!(FLAGS(victim) & JUMP_OK)
             && !permissions(mlev, ProgUID, victim) && (mlev < LM3))
             abort_interp("Object can't be moved");
+        if (FLAG2(victim) & F2IMMOBILE) if (!(FLAG2(program) & F2IMMOBILE)) {
+	    envpropqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1,
+			 program, program, NOTHING, "@immobile", "Immobile", mlev, 1);
+            abort_interp("Object can't be moved, movement IMMOBILE restricted.");
+	    }
         interp_set_depth(fr);
         switch (Typeof(victim)) {
             case TYPE_PLAYER:

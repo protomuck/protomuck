@@ -530,6 +530,8 @@ flag_description(register dbref thing)
         if (FLAG2(thing) & F2CONTROLS)
             strcat(buf, " CONTROLS");
 #endif
+        if (FLAG2(thing) & F2IMMOBILE)
+            strcat(buf, " IMMOBILE");
         if (FLAGS(thing) & JUMP_OK)
             strcat(buf, " JUMP_OK");
         if (FLAGS(thing) & VEHICLE)
@@ -1268,7 +1270,6 @@ init_checkflags(dbref player, register const char *flags,
                         check->istype = TYPE_PROGRAM;
                     }
                     break;
-                case '~':
                 case '^':
                     check->loadedsize = (Mage(OWNER(player)) && *flags == '^');
                     check->size = atoi(flags + 1);
@@ -1517,6 +1518,18 @@ init_checkflags(dbref player, register const char *flags,
                         check->clearflag2 |= F2MOBILE;
                     else
                         check->setflag2 |= F2MOBILE;
+                    break;
+                case '~':
+                    if (mode)
+                        check->clearflag2 |= F2CONTROLS;
+                    else
+                        check->setflag2 |= F2CONTROLS;
+                    break;
+                case '|':
+                    if (mode)
+                        check->clearflag2 |= F2IMMOBILE;
+                    else
+                        check->setflag2 |= F2IMMOBILE;
                     break;
                 case 'a':
                     check->anypower = 0;

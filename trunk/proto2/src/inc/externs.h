@@ -281,6 +281,7 @@ extern void send_home(int descr, dbref thing, int homepuppet);
 extern void send_contents(int descr, dbref loc, dbref dest);
 extern int parent_loop_check(dbref source, dbref dest);
 extern int can_move(int descr, dbref player, const char *direction, int lev);
+extern int can_move2(int descr, dbref player, const char *direction, int lev);
 extern void do_move(int descr, dbref player, const char *direction, int lev);
 extern void do_leave(int descr, dbref player);
 extern void do_get(int descr, dbref player, const char *what, const char *obj);

@@ -259,7 +259,6 @@ extern short dbcheck(const char *file, int line, dbref item);
 
 
 /* F2 flags */
-
 #define F2GUEST		    0x1     /* Guest character */
 #define F2LOGWALL	    0x2     /* Wizard sees logs walled */
 #define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ 
@@ -280,8 +279,9 @@ extern short dbcheck(const char *file, int line, dbref item);
 #ifdef CONTROLS_SUPPORT
 #define F2CONTROLS      0x20000     /* CONTROLS support for multiple owners */
 #endif
-/* Proto @Powers */
+#define F2IMMOBILE	0x40000	    /* Immobile support */
 
+/* Proto @Powers */
 #define POW_ANNOUNCE          0x1   /* [a] Can use @wall and dwall commands */
 #define POW_BOOT              0x2   /* [b] Can use @boot and dboot commands */
 #define POW_CHOWN_ANYTHING    0x4   /* [c] Can @chown anything, unless it is PROTECTed */

@@ -663,8 +663,13 @@ process_command(int descr, dbref player, char *command)
         return;
     }
     if (!(*command == OVERIDE_TOKEN && TMage(player))) {
-        if (can_move(descr, player, command, 0)) {
+        switch (can_move2(descr, player, command, 0)) {
+        case 1:
             do_move(descr, player, command, 0); /* command is exact match for exit */
+            *match_args = 0;
+            *match_cmdname = 0;
+            return;
+        case 2:
             *match_args = 0;
             *match_cmdname = 0;
             return;

@@ -301,7 +301,9 @@ send_home(int descr, dbref thing, int puppethome)
 int
 can_move(int descr, dbref player, const char *direction, int lev)
 {
+
     struct match_data md;
+    dbref matched;
 
     if (!string_compare(direction, "home") && (tp_enable_home == 1))
         return 1;
@@ -310,7 +312,40 @@ can_move(int descr, dbref player, const char *direction, int lev)
     init_match(descr, player, direction, TYPE_EXIT, &md);
     md.match_level = lev;
     match_all_exits(&md);
-    return (last_match_result(&md) != NOTHING);
+
+    matched = last_match_result(&md);
+
+    return (matched != NOTHING);
+}
+
+int
+can_move2(int descr, dbref player, const char *direction, int lev)
+{
+
+    struct match_data md;
+    dbref matched;
+
+    if (!string_compare(direction, "home") && (tp_enable_home == 1))
+        return 1;
+
+    /* otherwise match on exits */
+    init_match(descr, player, direction, TYPE_EXIT, &md);
+    md.match_level = lev;
+    match_all_exits(&md);
+
+    matched = last_match_result(&md);
+
+    if (OkObj(matched)) if
+        ( (FLAG2(player) & F2IMMOBILE) &&
+          !(FLAG2(matched) & F2IMMOBILE) &&
+          !( (Typeof(DBFETCH(matched)->sp.exit.dest[0]) == TYPE_PROGRAM) || matched == NIL ) ) 
+	    {
+	     envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
+                          player, player, NOTHING, "@immobile", "Immobile", 1, 1);
+             return 2;
+    	    }
+
+    return (matched != NOTHING);
 }
 
 /*
@@ -567,7 +602,7 @@ do_move(int descr, dbref player, const char *direction, int lev)
     char buf[BUFFER_LEN];
     struct match_data md;
 
-    if (!string_compare(direction, "home") && tp_enable_home) {
+    if (!(FLAGS(player) & F2IMMOBILE) && !string_compare(direction, "home") && tp_enable_home) {
         /* send him home */
         if ((loc = DBFETCH(player)->location) != NOTHING) {
             /* tell everybody else */

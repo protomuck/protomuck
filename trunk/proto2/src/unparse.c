@@ -75,6 +75,8 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
             *p++ = '&';
         if (FLAG2(thing) & F2MOBILE)
             *p++ = '?';
+        if (FLAG2(thing) & F2IMMOBILE)
+            *p++ = '|';
 #ifdef CONTROLS_SUPPORT
         if (FLAG2(thing) & F2CONTROLS)
             *p++ = '~';
@@ -216,6 +218,8 @@ flag_2char(char *flag)
     if (string_prefix("controls", flag))
         return '~';
 #endif
+    if (string_prefix("immobile", flag))
+        return '|';
     if (string_prefix("mufcount", flag))
         return '+';
     if (string_prefix("light", flag) || string_prefix("oldcomment", flag))
