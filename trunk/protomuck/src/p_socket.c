@@ -131,14 +131,13 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     FD_SET(oper1->data.sock->socknum, &reads);
 
     select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
-
     if (FD_ISSET(oper1->data.sock->socknum, &reads))
     {
        readme = recv(oper1->data.sock->socknum,mystring,1,0);
        while (readme > 0 && charCount < BUFFER_LEN)
        {
            if ((*mystring == '\0') || (((*mystring == '\n') ||
-               (*mystring == '\r'))))
+               (*mystring == '\r') || !isascii(*mystring) )))
                break;
            gotmessage = 1;
 	   ++charCount;
@@ -146,7 +145,8 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                *bufpoint++=*mystring;
            readme = recv(oper1->data.sock->socknum,mystring,1,0);
        }
-       oper1->data.sock->lastchar = *mystring;
+       if(isprint(*mystring))
+           oper1->data.sock->lastchar = *mystring;
     }
     CLEAR(oper1);
     if(tp_log_sockets)
