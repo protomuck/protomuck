@@ -891,6 +891,8 @@ prim_interp(PRIM_PROTOTYPE)
         abort_interp("Bad program reference. (1)");
     if (!valid_object(oper2))
         abort_interp("Bad object. (2)");
+    if (oper3->type != PROG_STRING)
+        abort_interp("Need string arguement. (3)");
     if (!permissions(mlev, ProgUID, oper2->data.objref))
 	abort_interp(tp_noperm_mesg);
     if (fr->level > 8)
