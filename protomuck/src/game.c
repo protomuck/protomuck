@@ -1422,7 +1422,7 @@ process_command(int descr, dbref player, char *command)
 	    default:
         bad:
                 
-                if ( prop_command(descr, player, command, (char *)PROP_HIDDEN))
+                if ( prop_command(descr, player, command, "@command"))
                   return;
                 else 
                   goto bad2;
@@ -1455,7 +1455,7 @@ int prop_command(int descr, dbref player, char *command, char *type)
    dbref where = player;
    char propName[BUFFER_LEN];
    char *workBuf;
-   sprintf(propName, "%ccommand%c%s", type, PROPDIR_DELIMITER, command);        
+   sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);        
             
    ptr = envprop(&where, propName, 0);
    if (!ptr) return 0;
