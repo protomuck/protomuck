@@ -1707,13 +1707,13 @@ do_abort_interp(dbref player, const char *msg, struct inst * pc,
 	}
     switch (nargs) {
 	case 4:
-	    RCLEAR(oper4, file, line);
+	    if (oper4)  RCLEAR(oper4, file, line);
 	case 3:
-	    RCLEAR(oper3, file, line);
+	    if (oper3)  RCLEAR(oper3, file, line);
 	case 2:
-	    RCLEAR(oper2, file, line);
+	    if (oper2)  RCLEAR(oper2, file, line);
 	case 1:
-	    RCLEAR(oper1, file, line);
+	    if (oper1)  RCLEAR(oper1, file, line);
     }
     return;
 }

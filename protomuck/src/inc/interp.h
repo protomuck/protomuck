@@ -93,8 +93,10 @@ extern void interp_set_depth(struct frame * fr);
 #define CHECKOP_READONLY(N) \
 { \
 	nargs = (N); \
-	if (*top < nargs) \
+	if (*top < nargs) { \
+                nargs = 0; \
 		abort_interp("Stack underflow."); \
+        }\
 }
 
 #define CHECKOP(N) \
