@@ -44,10 +44,10 @@ s%@exec_prefix@%${prefix}%g
 s%@prefix@%/usr/local%g
 s%@program_transform_name@%s,x,x,%g
 s%@CC@%gcc%g
-s%@CPP@%$gcc -E%g
+s%@CPP@%$ -E%g
 s%@LEX@%flex%g
 s%@LEXLIB@%-lfl%g
-s%@YACC@%$bison -y%g
+s%@YACC@%$ -y%g
 
 CEOF
 
