@@ -142,6 +142,8 @@ resolve_hostnames(void)
     } while (dc < got && *ptr);
 }
 
+/* host_get_oldres():                                               */
+/*  This is the send request function for the old resolver process. */
 bool
 host_get_oldres(struct hostinfo *h, unsigned short lport, unsigned short prt)
 {
@@ -161,6 +163,9 @@ host_get_oldres(struct hostinfo *h, unsigned short lport, unsigned short prt)
 }
 #endif
 
+/* host_get_oldstyle():                                             */
+/*  This is the old, original lookup method, with no added resolver */
+/*  process at all.  This is only ever used as a fallback.          */
 bool
 host_get_oldstyle(struct hostinfo * h)
 {
@@ -213,9 +218,7 @@ host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
     if (!tp_hostnames)
         return;
 
-#ifdef HOSTCACHE_DEBUG
     log_status("Hostname request: %X\n", h->a); 
-#endif
 
 #ifdef SPAWN_HOST_RESOLVER
     if (!host_get_oldres(h, lport, prt))
@@ -251,9 +254,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         if (h->a == a) {
             h->links++;
             h->uses++;
-#ifdef HOSTCACHE_DEBUG
             log_status("Hostname in cache: %X, %s\n", h->a, h->name);
-#endif
             if (current_systime - h->wupd > 80)
                 host_request(h, lport, prt);
             hu->h = h;
@@ -261,9 +262,8 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         }
     }
 
-#ifdef HOSTCACHE_DEBUG
     log_status("New hostname (not in cache): %X\n", a);
-#endif
+
     h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
     h->links = 1;
     h->uses = 1;
@@ -423,19 +423,71 @@ time_format_3(time_t dt)
     return buf;
 }
 
+int
+hostsort_mostused(const void *x, const void *y)
+{
+    struct hostinfo *a = *(struct hostinfo **) y;
+    struct hostinfo *b = *(struct hostinfo **) x;
+
+    if (a->uses > b->uses)
+        return 1;
+    else if (a->uses < b->uses)
+        return -1;
+    else if (a->links > b->links)
+        return 1;
+    else if (a->links < b->links)
+        return -1;
+    else if (a->wupd > b->wupd)
+        return 1;
+    else if (a->wupd < b->wupd)
+        return -1;
+    else
+        return 0;
+}
+
 void
 do_hostcache(dbref player, const char *args)
 {
     struct hostinfo *h;
+    char arg1[BUFFER_LEN];
+    char *arg2;
 
-    if (!strcasecmp(args, "#show")) {
+    strcpy(arg1, args);
+
+    for (arg2 = arg1; *arg2 && !isspace(*arg2); arg2++) ;
+    if (*arg2)
+        *arg2++ = '\0';
+    while(isspace(*arg2)) arg2++;
+
+    if (!strcasecmp(arg2, "#show")) {
+        struct hostinfo **harr;
+        register int i = 0;
+        register int count = 0;
+
+        if (strcasecmp(arg2, "all")) {
+            count = atoi(arg2);
+            if (count < 1)
+                count = 10;
+            if (count > hostdb_count)
+                count = hostdb_count;
+        } else
+            count = hostdb_count;
+
         anotify_fmt(player, CINFO "IP Number         Use  Last Updated   Hostname");
-        for (h = hostdb; h; h = h->next)
-            anotify_fmt(player, " %-15s  %0.3d  %-14s %s", host_as_hex(h->a), h->uses, time_format_3(h->wupd), h->name);
-        anotify_fmt(player, CINFO "%d host%s.", hostdb_count, hostdb_count == 1 ? "" : "s");
-    } else 
-        anotify_fmt(player, "Bytes used by cache: %d", sizeof(struct hostinfo) * hostdb_count);
 
+        harr = (struct hostinfo **)malloc(hostdb_count * sizeof(struct hostinfo *));
+        for (h = hostdb; h; h = h->next)
+            harr[i++] = h;
+        qsort(harr, hostdb_count, sizeof(struct hostinfo *), (*hostsort_mostused));
+        
+        for (i = 0; i < count; i++)
+            anotify_fmt(player, " %-15s  %0.3d  %-14s %s", host_as_hex(harr[i]->a), harr[i]->uses, time_format_3(harr[i]->wupd), harr[i]->name);
+        anotify_fmt(player, CINFO "Top %d host%s displayed (%d total).", count, count == 1 ? "" : "s", hostdb_count);
+    } else {
+        anotify_fmt(player, "Bytes used by cache: %d", sizeof(struct hostinfo) * hostdb_count);
+        anotify_fmt(player, "Hostnames in cache:  %d", hostdb_count);
+        anotify_fmt(player, "Last cache flush:    %s", "...");
+    }
 }
 
 
