@@ -32,10 +32,11 @@ prim_kill_macro(PRIM_PROTOTYPE)
 {
     /* name -- result */
     char tmp[BUFFER_LEN];
+
     result = 0;
     CHECKOP(1);
     oper1 = POP();
-    
+
     if (oper1->type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
     if (!oper1->data.string)
@@ -43,15 +44,15 @@ prim_kill_macro(PRIM_PROTOTYPE)
     if (mlev < LWIZ)
         abort_interp("Permission denied.");
 
-    strcpy(tmp, (const char *)oper1->data.string->data);
+    strcpy(tmp, (const char *) oper1->data.string->data);
     CLEAR(oper1);
     result = kill_macro(tmp, player, &macrotop);
-     
+
     PushInt(result);
 }
 
-extern int insert_macro(const char *, const char *, dbref, 
-    struct macrotable **);
+extern int insert_macro(const char *, const char *, dbref,
+                        struct macrotable **);
 
 void
 prim_insert_macro(PRIM_PROTOTYPE)
@@ -60,19 +61,20 @@ prim_insert_macro(PRIM_PROTOTYPE)
     int result = 0;
     char namebuf[BUFFER_LEN];
     char defbuf[BUFFER_LEN];
-    CHECKOP(2);
-    oper1 = POP(); /* definition */
-    oper2 = POP(); /* macro name */
 
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING )
+    CHECKOP(2);
+    oper1 = POP();              /* definition */
+    oper2 = POP();              /* macro name */
+
+    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING)
         abort_interp("Requires two string arguments.");
     if (!oper1->data.string || !oper1->data.string)
         abort_interp("Arguments may not be empty strings.");
     if (mlev < LWIZ)
         abort_interp("Permission denied.");
 
-    strcpy(namebuf, (const char *)oper2->data.string->data);
-    strcpy(defbuf, (const char *)oper1->data.string->data);
+    strcpy(namebuf, (const char *) oper2->data.string->data);
+    strcpy(defbuf, (const char *) oper1->data.string->data);
     CLEAR(oper1);
     CLEAR(oper2);
     result = insert_macro(namebuf, defbuf, player, &macrotop);
@@ -91,7 +93,7 @@ make_macros_array(stk_array *dict, struct macrotable *node)
     make_macros_array(dict, node->right);
     return dict;
 
-}    
+}
 
 void
 prim_get_macros_array(PRIM_PROTOTYPE)
@@ -105,19 +107,20 @@ prim_get_macros_array(PRIM_PROTOTYPE)
 
     CHECKOFLOW(1);
 
-    nw = new_array_dictionary(); 
+    nw = new_array_dictionary();
     make_macros_array(nw, macrotop);
-    
+
     PushArrayRaw(nw);
-}    
+}
 
 void
 prim_program_linecount(PRIM_PROTOTYPE)
 {
     struct line *curr;
+
     /* dbref -- int */
-    CHECKOP(1); 
-    oper1 = POP(); /* dbref */
+    CHECKOP(1);
+    oper1 = POP();              /* dbref */
 
     if (!valid_object(oper1))
         abort_interp("Non-object argument. (1)");
@@ -129,7 +132,7 @@ prim_program_linecount(PRIM_PROTOTYPE)
         abort_interp("Permission denied.");
 
     if (!(FLAGS(ref) | INTERNAL)) /* no one's editing it */
-    DBSTORE(ref, sp.program.first, read_program(ref));
+        DBSTORE(ref, sp.program.first, read_program(ref));
 
     curr = DBFETCH(ref)->sp.program.first;
     if (curr)
@@ -153,15 +156,15 @@ prim_program_getlines(PRIM_PROTOTYPE)
     int start = 0;
     int end = 0;
     int i, count;
-    struct line *curr; /* current line */
-    struct line *first; /* first line in program */
-    struct line *segment; /* starting line in our segment of interest */
+    struct line *curr;          /* current line */
+    struct line *first;         /* first line in program */
+    struct line *segment;       /* starting line in our segment of interest */
 
     /* dbref start stop -- arr */
     CHECKOP(3);
-    oper3 = POP(); /* stop */
-    oper2 = POP(); /* start */
-    oper1 = POP(); /* dbref */
+    oper3 = POP();              /* stop */
+    oper2 = POP();              /* start */
+    oper1 = POP();              /* dbref */
 
     if (!valid_object(oper1))
         abort_interp("Invalid object dbref (1).");
@@ -198,24 +201,24 @@ prim_program_getlines(PRIM_PROTOTYPE)
     for (i = 1; curr && i < start; ++i)
         curr = curr->next;
 
-    if (!curr) { /* no lines to list */
+    if (!curr) {                /* no lines to list */
         free_prog_text(first);
         PushNullArray;
         return;
     }
 
-    segment = curr; /* need to keep segment line for after count */
+    segment = curr;             /* need to keep segment line for after count */
 
     for (; curr && (!end || i < end); ++i)
         curr = curr->next;
 
-    count = i - start +1;
+    count = i - start + 1;
 
-    if (!curr) /* if we don't have a curr we counted 1 beyond end
-                * of the program, so back up one in the count. */
-        --count;  
+    if (!curr)                  /* if we don't have a curr we counted 1 beyond end
+                                 * of the program, so back up one in the count. */
+        --count;
     ary = new_array_packed(count);
-    for (curr = segment, i = 0; --count; ++i, curr = curr->next) 
+    for (curr = segment, i = 0; --count; ++i, curr = curr->next)
         array_set_intkey_strval(&ary, i, curr->this_line);
 
     free_prog_text(first);
@@ -233,12 +236,12 @@ prim_program_deletelines(PRIM_PROTOTYPE)
     int end = 0;
     int count = 0;
     int i = 0;
-    
+
     /* ref start end -- i<lines actually deleted> */
     CHECKOP(3);
-    oper3 = POP(); /* end */
-    oper2 = POP(); /* start */
-    oper1 = POP(); /* program */
+    oper3 = POP();              /* end */
+    oper2 = POP();              /* start */
+    oper1 = POP();              /* program */
 
     if (mlev < LBOY)
         abort_interp("Permission denied.");
@@ -255,39 +258,39 @@ prim_program_deletelines(PRIM_PROTOTYPE)
 
     if (Typeof(theprog) != TYPE_PROGRAM)
         abort_interp("Object must be a program. (1)");
-    if (start < 1 || end < 1 || end < start )
+    if (start < 1 || end < 1 || end < start)
         abort_interp("Range to delete doesn't make sense. (2) (3)");
     if (FLAGS(theprog) & INTERNAL)
-        abort_interp("That program is currently being edited.");     
-    
+        abort_interp("That program is currently being edited.");
+
     DBSTORE(theprog, sp.program.first, read_program(ref));
 
-    i = start - 1; /* array offset for first line to delete */
+    i = start - 1;              /* array offset for first line to delete */
     for (curr = DBFETCH(theprog)->sp.program.first; curr && i; --i)
-        curr = curr->next; /* move to the first line to delete */
+        curr = curr->next;      /* move to the first line to delete */
 
-    if (!curr) { /* line doesn't exist, free code and return 0 */
+    if (!curr) {                /* line doesn't exist, free code and return 0 */
         count = 0;
         free_prog_text(DBFETCH(theprog)->sp.program.first);
         PushInt(count);
         return;
     }
 
-    i = end - start + 1; /* number of lines to delete */
+    i = end - start + 1;        /* number of lines to delete */
 
     while (i && curr) {
         temp = curr;
         if (curr->prev)
             curr->prev->next = curr->next; /* relink prev line */
-        else /* or relink start of program */
-            DBFETCH(theprog)->sp.program.first = curr->next; 
+        else                    /* or relink start of program */
+            DBFETCH(theprog)->sp.program.first = curr->next;
         if (curr->next)
             curr->next->prev = curr->prev;
-        curr = curr->next; /* move curr to next line */
-        free_line(temp);  /* finally release the current line */
-        --i; 
+        curr = curr->next;      /* move curr to next line */
+        free_line(temp);        /* finally release the current line */
+        --i;
         ++count;
-    } /* Write and free program, push result */
+    }                           /* Write and free program, push result */
     write_program(DBFETCH(theprog)->sp.program.first, theprog);
     free_prog_text(DBFETCH(theprog)->sp.program.first);
     DBFETCH(theprog)->sp.program.first = NULL;
@@ -308,13 +311,13 @@ prim_program_insertlines(PRIM_PROTOTYPE)
     stk_array *lines;
     struct inst temp1;
     int endline = 0;
-    int replacedFirst = 0; /* this keeps us from inserting at first over */
+    int replacedFirst = 0;      /* this keeps us from inserting at first over */
 
     /* ref i<start> arr<lines> */
     CHECKOP(3);
-    oper3 = POP(); /* lines */
-    oper2 = POP(); /* start line */
-    oper1 = POP(); /* program ref */
+    oper3 = POP();              /* lines */
+    oper2 = POP();              /* start line */
+    oper1 = POP();              /* program ref */
 
     if (mlev < LBOY)
         abort_interp("Permission denied.");
@@ -333,7 +336,7 @@ prim_program_insertlines(PRIM_PROTOTYPE)
     theprog = oper1->data.objref;
     CLEAR(oper1);
     CLEAR(oper2);
-    lines = oper3->data.array;  
+    lines = oper3->data.array;
     if (Typeof(theprog) != TYPE_PROGRAM)
         abort_interp("Object must be a program. (1)");
     if (FLAGS(theprog) & INTERNAL)
@@ -342,12 +345,12 @@ prim_program_insertlines(PRIM_PROTOTYPE)
         abort_interp("Start line must be greater than 0. (2)");
 
     DBSTORE(theprog, sp.program.first, read_program(theprog));
-    i = start - 1; /*offset in array to insert lines */
+    i = start - 1;              /*offset in array to insert lines */
     DBFETCH(theprog)->sp.program.curr_line = 1;
     for (curr = DBFETCH(theprog)->sp.program.first; curr && i; --i) {
         prev = curr;
         DBFETCH(theprog)->sp.program.curr_line++;
-        curr = curr->next; /* move to the insert point */
+        curr = curr->next;      /* move to the insert point */
     }
 
     if (array_first(lines, &temp1)) {
@@ -363,15 +366,15 @@ prim_program_insertlines(PRIM_PROTOTYPE)
                 DBFETCH(theprog)->sp.program.curr_line = 1;
                 DBFETCH(theprog)->sp.program.first = new_line;
                 prev = DBFETCH(theprog)->sp.program.first;
-                curr = NULL;  /* curr = NULL so we keep inserting at the end */ 
+                curr = NULL;    /* curr = NULL so we keep inserting at the end */
                 continue;
             }
-            if (!curr) { /* insert at the end */
+            if (!curr) {        /* insert at the end */
                 DBFETCH(theprog)->sp.program.curr_line++;
                 new_line->prev = prev;
                 prev->next = new_line;
                 prev = new_line;
-                curr = NULL; /* Keep curr = NULL to keep inserting at the end*/
+                curr = NULL;    /* Keep curr = NULL to keep inserting at the end */
                 continue;
             }
             if (!curr->prev && !replacedFirst) { /*inserting at the beginning */
@@ -390,22 +393,23 @@ prim_program_insertlines(PRIM_PROTOTYPE)
             if (new_line->next)
                 new_line->next->prev = new_line;
             curr->next = new_line;
-            curr = new_line; /* move curr to insert after it next */
-        } while(array_next(lines, &temp1));
+            curr = new_line;    /* move curr to insert after it next */
+        } while (array_next(lines, &temp1));
     }
-    log_status("PROGRAM EDITED: %s by %s(%d)\n", unparse_object(player, 
-        oper1->data.objref), NAME(player), player);
+    log_status("PROGRAM EDITED: %s by %s(%d)\n", unparse_object(player,
+                                                                oper1->data.
+                                                                objref),
+               NAME(player), player);
     if (tp_log_programs)
-        log_program_text(DBFETCH(theprog)->sp.program.first, player, 
+        log_program_text(DBFETCH(theprog)->sp.program.first, player,
                          oper1->data.objref);
     endline = DBFETCH(theprog)->sp.program.curr_line;
     CLEAR(oper3);
     write_program(DBFETCH(theprog)->sp.program.first, theprog);
     free_prog_text(DBFETCH(theprog)->sp.program.first);
     DBFETCH(theprog)->sp.program.first = NULL;
-    DBDIRTY(program); 
-    PushInt(endline);    
+    DBDIRTY(program);
+    PushInt(endline);
 }
 
 #endif /* MUF_EDIT_PRIMS */
-

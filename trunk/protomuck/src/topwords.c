@@ -31,12 +31,12 @@ hash_tab wordhash[WORD_HASH_SIZE];
 
 struct queue_node *sizehash[100000];
 
-int 
-notify(int player, const char *msg) 
-{ 
-    return printf("%s\n", msg); 
-} 
-    
+int
+notify(int player, const char *msg)
+{
+    return printf("%s\n", msg);
+}
+
 
 
 int
@@ -48,7 +48,8 @@ string_compare(const char *s1, const char *s2)
 char *
 string_dup(const char *s)
 {
-    char *p = (char *)malloc(strlen(s) + 1);
+    char *p = (char *) malloc(strlen(s) + 1);
+
     strcpy(p, s);
     return p;
 }
@@ -73,8 +74,8 @@ void
 queue_insert_after(struct queue_node *where, struct queue_node *node)
 {
     if (where) {
-	node->next = where->next;
-	where->next = node;
+        node->next = where->next;
+        where->next = node;
     } else {
         node->next = head;
         head = node;
@@ -96,56 +97,57 @@ queue_promote(struct queue_node *node)
     int oldval;
 
     oldval = node->val;
-    node->val = (node->count * (node->len-2)) + (node->spcount * (node->len-1));
+    node->val =
+        (node->count * (node->len - 2)) + (node->spcount * (node->len - 1));
 
     /* remove node from sizehash table if necessary */
     if (oldval && oldval < SIZE_HASH_SIZE) {
-	p = sizehash[oldval];
-	if (p) {
-	    if (p == node) {
-		if (node->prev) {
-		    if (node->prev->val == oldval) {
-			sizehash[oldval] = node->prev;
-		    } else {
-			sizehash[oldval] = NULL;
-		    }
-		} else {
-		    sizehash[oldval] = NULL;
-		}
-	    }
-	}
+        p = sizehash[oldval];
+        if (p) {
+            if (p == node) {
+                if (node->prev) {
+                    if (node->prev->val == oldval) {
+                        sizehash[oldval] = node->prev;
+                    } else {
+                        sizehash[oldval] = NULL;
+                    }
+                } else {
+                    sizehash[oldval] = NULL;
+                }
+            }
+        }
     }
 
     if (node->val < SIZE_HASH_SIZE) {
         int limit;
         int i;
 
-	limit = 16;
-	i = node->val;
-	do {
-	    prev = sizehash[i];
-	} while (!prev && ++i < SIZE_HASH_SIZE && --limit);
-	if (i >= SIZE_HASH_SIZE || !limit) {
-	    prev = node->prev;
-	    while (prev && prev->val < node->val) {
-		prev = prev->prev;
-	    }
+        limit = 16;
+        i = node->val;
+        do {
+            prev = sizehash[i];
+        } while (!prev && ++i < SIZE_HASH_SIZE && --limit);
+        if (i >= SIZE_HASH_SIZE || !limit) {
+            prev = node->prev;
+            while (prev && prev->val < node->val) {
+                prev = prev->prev;
+            }
         }
     } else {
         prev = node->prev;
-	while (prev && prev->val < node->val) {
-	    prev = prev->prev;
+        while (prev && prev->val < node->val) {
+            prev = prev->prev;
         }
     }
 
     if (prev != node->prev) {
-	queue_remove_node(node);
-	queue_insert_after(prev, node);
+        queue_remove_node(node);
+        queue_insert_after(prev, node);
     }
 
     /* put entry in size hash */
     if (node->val < SIZE_HASH_SIZE) {
-	sizehash[node->val] = node;
+        sizehash[node->val] = node;
     }
 }
 
@@ -162,7 +164,8 @@ list_top_4k_words(void)
         /* printf("%-32s %5d %5d\n", node->word, node->count, node->spcount); */
         printf("%s\n", node->word);
         fflush(stdout);
-        if (lastval < node->val) abort();
+        if (lastval < node->val)
+            abort();
         lastval = node->val;
     }
 }
@@ -173,8 +176,9 @@ queue_add_node(const char *word, int pri)
     struct queue_node *nw;
     hash_data hd;
 
-    nw = (struct queue_node *)malloc(sizeof(struct queue_node));
-    if (!nw) abort();
+    nw = (struct queue_node *) malloc(sizeof(struct queue_node));
+    if (!nw)
+        abort();
 
     if (!head) {
         head = nw;
@@ -200,7 +204,7 @@ queue_add_node(const char *word, int pri)
     nw->val = 0;
     queue_promote(nw);
 
-    hd.pval = (void *)nw;
+    hd.pval = (void *) nw;
     (void) add_hash(nw->word, hd, wordhash, WORD_HASH_SIZE);
 
     return nw;
@@ -220,24 +224,24 @@ add_to_list(const char *word)
 
     strcpy(buf, word);
     if (buf[strlen(buf) - 1] == ' ') {
-	buf[strlen(buf) - 1] = '\0';
-	spcflag++;
+        buf[strlen(buf) - 1] = '\0';
+        spcflag++;
     }
     exp = find_hash(buf, wordhash, WORD_HASH_SIZE);
     if (exp) {
-        node = (struct queue_node *)exp->pval;
+        node = (struct queue_node *) exp->pval;
         if (spcflag) {
-	    node->spcount++;
+            node->spcount++;
         } else {
-	    node->count++;
+            node->count++;
         }
         queue_promote(node);
-	counted_words++;
+        counted_words++;
     } else {
-	/* printf("%s\n", buf); */
-	queue_add_node(word, 1);
-	total_words++;
-	counted_words++;
+        /* printf("%s\n", buf); */
+        queue_add_node(word, 1);
+        total_words++;
+        counted_words++;
     }
 }
 
@@ -249,20 +253,20 @@ remember_word_variants(const char *in)
     strcpy(word, in);
     add_to_list(word);
     /*
-    t = word + strlen(word);
-    while (t > word) {
-	h = word;
-	while (h < t) {
-	    add_to_list(h);
-	    h++;
-	}
-	t--;
-	if (*t == ' ') {
-	    t--;
-	}
-	*t = '\0';
-    }
-    */
+       t = word + strlen(word);
+       while (t > word) {
+       h = word;
+       while (h < t) {
+       add_to_list(h);
+       h++;
+       }
+       t--;
+       if (*t == ' ') {
+       t--;
+       }
+       *t = '\0';
+       }
+     */
 }
 
 void
@@ -274,30 +278,30 @@ remember_words_in_string(const char *in)
 
     h = in;
     while (*h) {
-	o = buf;
-	while (*h && !isalnum(*h)) {
-	    h++;
-	}
-	while (*h && isalnum(*h) && (o - buf < 30)) {
-	    if (isupper(*h)) {
-		*o++ = tolower(*h++);
-	    } else {
-		*o++ = *h++;
-	    }
-	}
-	if (*h == ' ') {
-	    *o++ = ' ';
-	}
-	*o++ = '\0';
-	if (strlen(buf) > 3) {
-	    remember_word_variants(buf);
-	}
+        o = buf;
+        while (*h && !isalnum(*h)) {
+            h++;
+        }
+        while (*h && isalnum(*h) && (o - buf < 30)) {
+            if (isupper(*h)) {
+                *o++ = tolower(*h++);
+            } else {
+                *o++ = *h++;
+            }
+        }
+        if (*h == ' ') {
+            *o++ = ' ';
+        }
+        *o++ = '\0';
+        if (strlen(buf) > 3) {
+            remember_word_variants(buf);
+        }
     }
 }
 
 
 int
-main (int argc, char**argv)
+main(int argc, char **argv)
 {
     char buf[16384];
     char *p;
@@ -331,13 +335,13 @@ main (int argc, char**argv)
     queue_add_node("er ", 99999999);
 
     while (!feof(stdin)) {
-	  fgets(buf, sizeof(buf), stdin);
+        fgets(buf, sizeof(buf), stdin);
         p = strchr(buf, ':');
-        if (p && (atoi(p+1) == 10)) {
-	    p = strchr(p + 1, ':');
-	    if (p) {
-		remember_words_in_string(p + 1);
-	    }
+        if (p && (atoi(p + 1) == 10)) {
+            p = strchr(p + 1, ':');
+            if (p) {
+                remember_words_in_string(p + 1);
+            }
         }
     }
     list_top_4k_words();
@@ -345,5 +349,3 @@ main (int argc, char**argv)
     /* printf("%d counted words.\n", counted_words); */
     return 0;
 }
-
-

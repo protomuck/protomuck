@@ -4,8 +4,8 @@
 #include "tune.h"
 
 
-void 
-ts_newobject(struct object * thing)
+void
+ts_newobject(struct object *thing)
 {
     time_t now = current_systime;
 
@@ -15,31 +15,30 @@ ts_newobject(struct object * thing)
     thing->ts.usecount = 0;
 }
 
-void 
+void
 ts_useobject(dbref thing)
 {
     if (thing == NOTHING)
-	return;
+        return;
     DBFETCH(thing)->ts.lastused = current_systime;
     DBFETCH(thing)->ts.usecount++;
     DBDIRTY(thing);
     if (Typeof(thing) == TYPE_ROOM)
-	ts_useobject(DBFETCH(thing)->location);
+        ts_useobject(DBFETCH(thing)->location);
 }
 
-void 
+void
 ts_lastuseobject(dbref thing)
 {
     if (thing == NOTHING)
-	return;
+        return;
     DBSTORE(thing, ts.lastused, current_systime);
     if (Typeof(thing) == TYPE_ROOM)
-	ts_lastuseobject(DBFETCH(thing)->location);
+        ts_lastuseobject(DBFETCH(thing)->location);
 }
 
-void 
+void
 ts_modifyobject(dbref thing)
 {
     DBSTORE(thing, ts.modified, current_systime);
 }
-

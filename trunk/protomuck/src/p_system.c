@@ -27,9 +27,10 @@ extern char buf[BUFFER_LEN];
 struct tm *time_tm;
 
 extern struct line *read_program(dbref i);
-extern int tune_setparm(const dbref player, const char *parmname, const char *val);
+extern int tune_setparm(const dbref player, const char *parmname,
+                        const char *val);
 
-void 
+void
 prim_sysparm(PRIM_PROTOTYPE)
 {
     const char *ptr;
@@ -47,66 +48,68 @@ prim_sysparm(PRIM_PROTOTYPE)
     CHECKOFLOW(1);
     CLEAR(oper1);
     PushString(ptr);
-}  
+}
 
-void    
+void
 prim_setsysparm(PRIM_PROTOTYPE)
-{       
-        CHECKOP(2);
-        oper1 = POP(); /* string: new parameter value */
-        oper2 = POP(); /* string: parameter to tune */
+{
+    CHECKOP(2);
+    oper1 = POP();              /* string: new parameter value */
+    oper2 = POP();              /* string: parameter to tune */
 
-        if (mlev < 6)
-                abort_interp("Archwizards or higher only.");
-        if (oper2->type != PROG_STRING)
-                abort_interp("Invalid argument. (1)");
-        if (!oper2->data.string)
-                abort_interp("Null string argument. (1)");
-        if (oper1->type != PROG_STRING)
-                abort_interp("Invalid argument. (2)");
-        if (!oper1->data.string)
-                abort_interp("Null string argument. (2)");
+    if (mlev < 6)
+        abort_interp("Archwizards or higher only.");
+    if (oper2->type != PROG_STRING)
+        abort_interp("Invalid argument. (1)");
+    if (!oper2->data.string)
+        abort_interp("Null string argument. (1)");
+    if (oper1->type != PROG_STRING)
+        abort_interp("Invalid argument. (2)");
+    if (!oper1->data.string)
+        abort_interp("Null string argument. (2)");
 
-        result = tune_setparm(program, oper2->data.string->data, 
-                              oper1->data.string->data);
+    result = tune_setparm(program, oper2->data.string->data,
+                          oper1->data.string->data);
 
-        switch (result) {
-        case 0:                                 /* TUNESET_SUCCESS */
-                log_status("TUNED (MUF): %s(%d) tuned %s to %s\n",
-                           player != -1 ? NAME(player) : "(Login)", player, 
-                           oper2->data.string->data, oper1->data.string->data);
-                break;
-        case 1: /* TUNESET_UNKNOWN */
-                abort_interp("Unknown parameter. (1)");
-                break;
-        case 2: /* TUNESET_SYNTAX */
-                abort_interp("Bad parameter syntax. (2)");
-                break;
-        case 3: /* TUNESET_BADVAL */
-                abort_interp("Bad parameter value. (2)");
-                break;
-        }
-        CLEAR(oper1);
-        CLEAR(oper2);
+    switch (result) {
+    case 0:                    /* TUNESET_SUCCESS */
+        log_status("TUNED (MUF): %s(%d) tuned %s to %s\n",
+                   player != -1 ? NAME(player) : "(Login)", player,
+                   oper2->data.string->data, oper1->data.string->data);
+        break;
+    case 1:                    /* TUNESET_UNKNOWN */
+        abort_interp("Unknown parameter. (1)");
+        break;
+    case 2:                    /* TUNESET_SYNTAX */
+        abort_interp("Bad parameter syntax. (2)");
+        break;
+    case 3:                    /* TUNESET_BADVAL */
+        abort_interp("Bad parameter value. (2)");
+        break;
+    }
+    CLEAR(oper1);
+    CLEAR(oper2);
 }
 
 void
 prim_version(PRIM_PROTOTYPE)
 {
     char temp[256];
+
     CHECKOP(0);
     CHECKOFLOW(1);
     sprintf(temp, "%s(ProtoMUCK%s)", VERSION, PROTOBASE);
     PushString(temp);
 }
 
-void 
+void
 prim_force(PRIM_PROTOTYPE)
 {
     struct inst *oper1, *oper2;
+
     /* d s -- */
     CHECKOP(2);
-    oper1 = POP();              /* string to @force */ 
+    oper1 = POP();              /* string to @force */
     oper2 = POP();              /* player dbref */
     if (mlev < LARCH)
         abort_interp("Arch prim");
@@ -130,7 +133,8 @@ prim_force(PRIM_PROTOTYPE)
 
     force_level++;
     interp_set_depth(fr);
-    process_command(dbref_first_descr(oper2->data.objref), oper2->data.objref, oper1->data.string->data);
+    process_command(dbref_first_descr(oper2->data.objref), oper2->data.objref,
+                    oper1->data.string->data);
     fr->level--;
     interp_set_depth(fr);
     force_level--;
@@ -141,8 +145,8 @@ prim_force(PRIM_PROTOTYPE)
 void
 prim_force_level(PRIM_PROTOTYPE)
 {
-   CHECKOFLOW(1);
-   PushInt(force_level);
+    CHECKOFLOW(1);
+    PushInt(force_level);
 }
 
 void
@@ -151,13 +155,12 @@ prim_logstatus(PRIM_PROTOTYPE)
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LARCH)
-       abort_interp("Archwizard primitive.");
+        abort_interp("Archwizard primitive.");
     if (oper1->type != PROG_STRING)
-       abort_interp("Non-string argument (1).");
-    if (oper1->data.string)
-    {
-       strcpy(buf, oper1->data.string->data);
-       log_status("%s\r\n",buf);
+        abort_interp("Non-string argument (1).");
+    if (oper1->data.string) {
+        strcpy(buf, oper1->data.string->data);
+        log_status("%s\r\n", buf);
     }
     CLEAR(oper1);
 }
@@ -237,6 +240,7 @@ void
 prim_armageddon(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN];
+
     /* ( s<message> -- ) */
 
     CHECKOP(1);
@@ -249,8 +253,8 @@ prim_armageddon(PRIM_PROTOTYPE)
 
     sprintf(buf, "\r\nImmediate shutdown by %s.\r\n", NAME(player));
     if (oper1->data.string) {
-         strcat(buf, SYSWHITE MARK SYSNORMAL);
-         strcat(buf, oper1->data.string->data);
+        strcat(buf, SYSWHITE MARK SYSNORMAL);
+        strcat(buf, oper1->data.string->data);
         strcat(buf, "\r\n");
     }
 
@@ -264,14 +268,14 @@ prim_armageddon(PRIM_PROTOTYPE)
 #endif
 
     exit(1);
-}  
+}
 
 void
 prim_sysparm_array(PRIM_PROTOTYPE)
 {
     stk_array *nu;
 
-    /* string */    
+    /* string */
     CHECKOP(1);
     oper1 = POP();
 
@@ -279,7 +283,7 @@ prim_sysparm_array(PRIM_PROTOTYPE)
         abort_interp("Expected a string smatch pattern. (1)");
 
     nu = tune_parms_array(DoNullInd(oper1->data.string), mlev);
- 
+
     CLEAR(oper1);
     PushArrayRaw(nu);
-} 
+}
