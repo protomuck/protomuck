@@ -90,7 +90,6 @@ extern int tp_dump_copies;
 extern dbref tp_quit_prog;
 extern dbref tp_login_who_prog;
 extern dbref tp_player_start;
-extern dbref tp_reg_wiz;
 extern dbref tp_player_prototype;
 extern dbref tp_cron_prog;
 #ifdef HTTPD
