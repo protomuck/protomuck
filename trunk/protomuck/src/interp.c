@@ -1043,16 +1043,19 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 
 		case PROG_SVAR_BANG:
 			{
-				struct inst *tmp;
+				struct inst *the_var;
 				if (atop < 1)
 					abort_loop("Stack Underflow.", NULL, NULL);
+                                if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                                        abort_loop("Stack protection fault.", NULL, NULL);
 
-				tmp = scopedvar_get(fr, pc->data.number);
-				if (!tmp)
+				the_var = scopedvar_get(fr, pc->data.number);
+				if (!the_var)
 					abort_loop("Scoped variable number out of range.", NULL, NULL);
 
-				CLEAR(tmp);
-				copyinst(arg + --atop, tmp);
+				CLEAR(the_var);
+                                temp1 = arg + --atop;
+                                *the_var = *temp1;
 				pc++;
 			}
 			break;
@@ -1062,6 +1065,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 				int i = pc->data.mufproc->args;
 				if (atop < i)
 					abort_loop("Stack Underflow.", NULL, NULL);
+                                if (fr->trys.top && atop - fr->trys.st->depth < i) 
+                                        abort_loop("Stack protection fault.", NULL, NULL);
 				if (fr->skip_declare)
 					fr->skip_declare = 0;
 				else
@@ -1084,7 +1089,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	    case PROG_IF:
 		if (atop < 1)
 		    abort_loop("Stack Underflow.", NULL, NULL);
-		temp1 = arg + --atop;
+                if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                    abort_loop("Stack protection fault.", NULL, NULL);		temp1 = arg + --atop;
 		if (logical_false(temp1))
 		    pc = pc->data.call;
 		else
@@ -1110,6 +1116,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		case PROG_TRY:
 			if (atop < 1)
 				abort_loop("Stack Underflow.", NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                                abort_loop("Stack protection fault.", NULL, NULL);
 			temp1 = arg + --atop;
 			if (temp1->type != PROG_INTEGER)
 				abort_loop("Argument is not an integer.", temp1, NULL);
@@ -1136,6 +1144,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		    case IN_JMP:
 			if (atop < 1)
 			    abort_loop("Stack underflow.  Missing address.", NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                            abort_loop("Stack protection fault.", NULL, NULL);
 			temp1 = arg + --atop;
 			if (temp1->type != PROG_ADD)
 			    abort_loop("Argument is not an address.", temp1, NULL);
@@ -1156,6 +1166,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		    case IN_EXECUTE:
 			if (atop < 1)
 			    abort_loop("Stack Underflow. Missing address.", NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                            abort_loop("Stack protection fault.", NULL, NULL);
 			temp1 = arg + --atop;
 			if (temp1->type != PROG_ADD)
 			    abort_loop("Argument is not an address.", temp1, NULL);
@@ -1180,12 +1192,16 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		    case IN_CALL:
 			if (atop < 1)
 			    abort_loop("Stack Underflow. Missing dbref argument.", NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                            abort_loop("Stack protection fault.", NULL, NULL);
 			temp1 = arg + --atop;
 			temp2 = 0;
 			if (temp1->type != PROG_OBJECT) {
 			    temp2 = temp1;
 			    if (atop < 1)
 				abort_loop("Stack Underflow. Missing dbref of func.", temp1, NULL);
+                            if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                                abort_loop("Stack protection fault.", NULL, NULL);
 			    temp1 = arg + --atop;
 			    if (temp2->type != PROG_STRING)
 				abort_loop("Public Func. name string required. (2)", temp1, temp2);
@@ -1309,6 +1325,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			case IN_EVENT_WAITFOR:
 				if (atop < 1)
 					abort_loop("Stack Underflow. Missing eventID list array argument.", NULL, NULL);
+                                if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                                        abort_loop("Stack protection fault.", NULL, NULL);
 				temp1 = arg + --atop;
 				if (temp1->type != PROG_ARRAY)
 					abort_loop("EventID string list array expected.", temp1, NULL);
@@ -1397,6 +1415,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		    case IN_SLEEP:
 			if (atop < 1)
 			    abort_loop("Stack Underflow.", NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1) 
+                            abort_loop("Stack protection fault.", NULL, NULL);
 			temp1 = arg + --atop;
 			if (temp1->type != PROG_INTEGER)
 			    abort_loop("Invalid argument type.", temp1, NULL);

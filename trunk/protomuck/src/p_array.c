@@ -909,25 +909,25 @@ prim_array_reverse(PRIM_PROTOTYPE)
 int
 sortcomp_case_ascend(const void* x, const void* y)
 {
-     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 1));
+     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 1, 1));
 }
 
 int
 sortcomp_nocase_ascend(const void* x, const void* y)
 {
-     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 0));
+     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 0, 1));
 }
  
 int
 sortcomp_case_descend(const void* x, const void* y)
 {
-     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 1));
+     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 1, 1));
 }
  
 int
 sortcomp_nocase_descend(const void* x, const void* y)
 {
-     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 0));
+     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 0, 1));
 }
 
 int
