@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <signal.h>
-#ifndef WIN32
+#ifndef WIN_VC 
 # include <sys/wait.h>
 #endif
 
@@ -172,19 +172,20 @@ dump_database_internal(void)
 		for (; copies > 1; copies--) {
 			sprintf(fromfile, "backup/%s.#%d#", dumpfile, copies - 1);
 			sprintf(destfile, "backup/%s.#%d#", dumpfile, copies);
-#ifdef WIN32
+#ifdef WIN_VC 
 			unlink(destfile);
 #endif
 			rename(fromfile, destfile);
 		}
 		sprintf(destfile, "backup/%s.#1#", dumpfile);
-#ifdef WIN32
+#ifdef WIN_VC 
 		unlink(destfile); /* proto.new.#1# */
 #endif
 		rename(dumpfile, destfile); /* proto.new -> proto.new.1 */
 
 	} else {
-#ifdef WIN32
+#ifdef WIN_VC
+    /* Windows rename() differs from Unix rename(). Won't overwrite. */
 	if (unlink(dumpfile))
 		perror(dumpfile);
 #endif
@@ -219,14 +220,16 @@ dump_database_internal(void)
     /* Write out the macros */
 
     sprintf(tmpfile, "%s.#%d#", MACRO_FILE, epoch - 1);
-    (void) unlink(tmpfile);
+
+    if (unlink(tmpfile))
+        perror(tmpfile);
 
     sprintf(tmpfile, "%s.#%d#", MACRO_FILE, epoch);
 
     if ((f = fopen(tmpfile, "w")) != NULL) {
 	macrodump(macrotop, f);
 	fclose(f);
-#ifdef WIN32
+#ifdef WIN_VC 
 	if (unlink(MACRO_FILE))
 		perror(MACRO_FILE);
 #endif
@@ -267,7 +270,7 @@ panic(const char *message)
     if ((f = fopen(panicfile, "w")) == NULL) {
 	perror("CANNOT OPEN PANIC FILE, YOU LOSE");
 
-#if defined(NOCOREDUMP) || defined(WINNT)
+#if defined(NOCOREDUMP) 
 	_exit(135);
 #else                           /* !NOCOREDUMP */
 # ifdef SIGIOT
@@ -292,7 +295,7 @@ panic(const char *message)
 	fclose(f);
     } else {
 	perror("CANNOT OPEN MACRO PANIC FILE, YOU LOSE");
-#if defined(NOCOREDUMP) || defined(WINNT)
+#if defined(NOCOREDUMP) 
 	_exit(135);
 #else                           /* !NOCOREDUMP */
 # ifdef SIGIOT
@@ -302,7 +305,7 @@ panic(const char *message)
 #endif                          /* NOCOREDUMP */
     }
 
-#if defined(NOCOREDUMP) || defined(WINNT)
+#if defined(NOCOREDUMP)
     _exit(136);
 #else                           /* !NOCOREDUMP */
 # ifdef SIGIOT
@@ -318,7 +321,14 @@ dump_database(void)
     epoch++;
 
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
+#ifdef DISKBASE
     dump_database_internal();
+#else
+    if (!fork()) {
+        dump_database_internal();
+        _exit(0);
+    }
+#endif
     log_status("DUMP: %s.#%d# (done)\n", dumpfile, epoch);
 }
 

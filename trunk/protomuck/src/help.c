@@ -195,8 +195,10 @@ index_file(dbref player, const char *onwhat, const char *file)
 	anotify_nolisten2(player, buf);
 	fprintf(stderr, "help: No file %s!\n", file);
         log2file(HELP_LOG, "MISSING: %s", file);
-        sprintf(wallBuf, "MISSING: %s", file);
-        wall_logwizards(wallBuf);
+        if (tp_log_failedhelp) {
+            sprintf(wallBuf, "MISSING: %s", file);
+            wall_logwizards(wallBuf);
+        }
     } else {
 	arglen = strlen(topic);
 	if (*topic && (arglen > 1)) {
@@ -207,13 +209,14 @@ index_file(dbref player, const char *onwhat, const char *file)
 				onwhat);
 			anotify_nolisten2(player, buf);
 			fclose(f);
-                        if(tp_log_failedhelp)
+                        if(tp_log_failedhelp) {
                             log2file(HELP_LOG, "%s tried to look up '%s' in: %s.",
                                      unparse_object(player, player), onwhat, 
                                      file);
-                        sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
+                            sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
                                 unparse_object(player, player), onwhat, file);
-                        wall_logwizards(wallBuf);
+                            wall_logwizards(wallBuf);
+		        }
 			return;
 		    }
 		} while (*buf != '~');
@@ -223,13 +226,14 @@ index_file(dbref player, const char *onwhat, const char *file)
 				onwhat);
 			anotify_nolisten2(player, buf);
 			fclose(f);
-                        if(tp_log_failedhelp)
+                        if(tp_log_failedhelp){
                             log2file(HELP_LOG, "%s tried to look up '%s' in: %s.",
                                      unparse_object(player, player), onwhat, 
                                      file);
-                        sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
-                                unparse_object(player, player), onwhat, file);
-                        wall_logwizards(wallBuf);
+                            sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
+                                    unparse_object(player, player), onwhat, file);
+                            wall_logwizards(wallBuf);
+                        }
 			return;
 		    }
 		} while (*buf == '~');
@@ -421,7 +425,7 @@ do_motd(dbref player, char *text)
 void 
 do_info(dbref player, const char *topic, const char *seg)
 {
-#if defined(DIR_AVALIBLE) && !defined(WINNT)
+#if defined(DIR_AVALIBLE) 
     DIR         *df;
     struct dirent *dp;
     int         f;
@@ -434,7 +438,7 @@ do_info(dbref player, const char *topic, const char *seg)
 	    notify(player, NO_INFO_MSG);
 	}
     } else {
-#if defined(DIR_AVALIBLE) && !defined(WINNT)
+#if defined(DIR_AVALIBLE) 
 	char buf[BUFFER_LEN];
 	/* buf = (char *) calloc(1, 80); */
 	(void) strcpy(buf, "    ");

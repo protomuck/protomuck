@@ -1,18 +1,22 @@
 /* ProtoMUCK's main interface.c */
 /*  int main() is in this file  */
-#include <sys/types.h>
-#include <sys/file.h>
-#include <sys/ioctl.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <ctype.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include "cgi.h"
 #include "copyright.h"
 #include "config.h"
+#include <sys/types.h>
+#include <fcntl.h>
+#include <ctype.h>
+#ifdef WIN_VC
+# include <string.h>
+#else
+# include <sys/file.h>
+# include <sys/ioctl.h>
+# include <sys/wait.h>
+# include <sys/socket.h>
+# include <sys/errno.h>
+# include <netinet/in.h>
+# include <netdb.h>
+#endif
+#include "cgi.h"
 #include "defaults.h"
 #include "db.h"
 #include "interface.h"
@@ -27,6 +31,11 @@
 #include "externs.h"
 #include "mufevent.h"
 #include "interp.h"
+
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+ typedef int socklen_t;
+#endif
+
 
 /* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
@@ -205,6 +214,15 @@ main(int argc, char **argv)
 
 #ifdef DETACH
     int   fd;
+#endif
+
+#ifdef WIN_VC
+    WSADATA wsaData;
+    if(WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) {
+        perror("WSAStartup failed.");
+        exit(0);
+        return 0;
+    }
 #endif
 
     strcpy(restart_message, "\r\nServer restarting, be back in a few!\r\n");
@@ -398,7 +416,9 @@ main(int argc, char **argv)
 #endif
 
     if (!sanity_interactive && !db_conversion_flag) {
+#if !defined(WIN_VC) || !defined(DEBUG)
 	set_signals();
+#endif
 
 #ifdef MUD_ID
 	do_setuid(MUD_ID);
@@ -443,6 +463,10 @@ main(int argc, char **argv)
 
 #ifdef SPAWN_HOST_RESOLVER
 	kill_resolver();
+#endif
+
+#ifdef WIN_VC
+        WSACleanup();
 #endif
 
 #ifdef MALLOC_PROFILING
@@ -1393,13 +1417,13 @@ shovechars(void)
 	       if (FD_ISSET(sock[i], &input_set)) {
 		   if ((newd = new_connection(listener_port[i], sock[i])) <= 0) {
 		       if ((newd < 0) && errnosocket
-#ifndef WIN32
+#if !defined(WIN32) && !defined(WIN_VC)
 			       && errno != EINTR
 			       && errno != EMFILE
 			       && errno != ENFILE
 #endif
 		       ) {
-#ifdef WIN32
+#if defined(WIN32) || defined(WIN_VC)
 			   log_status("new_connection: error #%d\n", errnosocket);
 #else
 	  	  	   log_status("new_connection: %s\n", sys_errlist[errnosocket]);
@@ -1480,7 +1504,7 @@ shovechars(void)
                    }
                 }
                 if (!(FLAG2(d->player) & F2IDLE)) {
-                   int idx_idletime;
+                   int idx_idletime = 0;
                    if (!idx_idletime)
                       idx_idletime = tp_idletime;
                    if (dr_idletime >= d->idletime_set) {
@@ -2240,7 +2264,7 @@ make_socket(int port)
     }
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(port);
+    server.sin_port = (int) htons(port);
     if (bind(s, (struct sockaddr *) & server, sizeof(server))) {
 	perror("binding stream socket");
 	closesocket(s);
@@ -2389,10 +2413,15 @@ make_nonblocking(int s)
 # endif /* FNDELAY */
 #endif
 
-    if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
-	perror("make_nonblocking: fcntl");
-	panic("O_NONBLOCK fcntl failed");
-    }
+#ifdef WIN_VC
+        int turnon = 1;
+        if (ioctl(s, FIONBIO, &turnon) != 0) {
+#else
+        if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
+#endif
+                perror("make_nonblocking: fcntl");
+                panic("O_NONBLOCK fcntl failed");
+        }
 }
 
 void 
@@ -2452,6 +2481,13 @@ save_command(struct descriptor_data * d, const char *command)
             d->block = 0;
 	if (!(FLAGS(d->player) & INTERACTIVE))
 	    return;
+    }
+    if (d->connected && (DBFETCH(d->player)->sp.player.block)) {
+                char cmdbuf[BUFFER_LEN];
+                if (!mcp_frame_process_input(&d->mcpframe, command, 
+                     cmdbuf, sizeof(cmdbuf))) {
+                        return;
+                }
     }
     add_to_queue(&d->input, command, strlen(command) + 1);
 }
@@ -5226,6 +5262,18 @@ help_user(struct descriptor_data * d)
     }
 }
 
+#ifdef WIN_VC
+void
+gettimeofday(struct timeval *tval, void *tzone)
+{
+    if(!tval)
+        return;
+
+    tval->tv_sec = time(NULL);
+    tval->tv_usec = 0;
+
+}
+#endif
 
 
 

@@ -44,10 +44,10 @@ s%@exec_prefix@%${prefix}%g
 s%@prefix@%/usr/local%g
 s%@program_transform_name@%s,x,x,%g
 s%@CC@%gcc%g
-s%@CPP@%$ -E%g
+s%@CPP@%$$ -E%g
 s%@LEX@%flex%g
 s%@LEXLIB@%-lfl%g
-s%@YACC@%$ -y%g
+s%@YACC@%$$ -y%g
 
 CEOF
 
@@ -209,9 +209,9 @@ CEOF
 ${ac_dA}HAVE_TM_ZONE${ac_dB}HAVE_TM_ZONE${ac_dC}1${ac_dD}
 ${ac_uA}HAVE_TM_ZONE${ac_uB}HAVE_TM_ZONE${ac_uC}1${ac_uD}
 ${ac_eA}HAVE_TM_ZONE${ac_eB}HAVE_TM_ZONE${ac_eC}1${ac_eD}
-${ac_dA}UNAME_VALUE${ac_dB}UNAME_VALUE${ac_dC}"Linux tnt.2y.net 2.4.8-26mdk #1 Sun Sep 23 17:06:39 CEST 2001 i586 unknown"${ac_dD}
-${ac_uA}UNAME_VALUE${ac_uB}UNAME_VALUE${ac_uC}"Linux tnt.2y.net 2.4.8-26mdk #1 Sun Sep 23 17:06:39 CEST 2001 i586 unknown"${ac_uD}
-${ac_eA}UNAME_VALUE${ac_eB}UNAME_VALUE${ac_eC}"Linux tnt.2y.net 2.4.8-26mdk #1 Sun Sep 23 17:06:39 CEST 2001 i586 unknown"${ac_eD}
+${ac_dA}UNAME_VALUE${ac_dB}UNAME_VALUE${ac_dC}"Linux tnt.2y.net 2.4.8-34.1mdk #1 Mon Nov 19 12:40:39 MST 2001 i686 unknown"${ac_dD}
+${ac_uA}UNAME_VALUE${ac_uB}UNAME_VALUE${ac_uC}"Linux tnt.2y.net 2.4.8-34.1mdk #1 Mon Nov 19 12:40:39 MST 2001 i686 unknown"${ac_uD}
+${ac_eA}UNAME_VALUE${ac_eB}UNAME_VALUE${ac_eC}"Linux tnt.2y.net 2.4.8-34.1mdk #1 Mon Nov 19 12:40:39 MST 2001 i686 unknown"${ac_eD}
 s%^[ 	]*#[ 	]*undef[ 	][ 	]*[a-zA-Z_][a-zA-Z_0-9]*%/* & */%
 CEOF
   sed -f conftest.frag conftest.in > conftest.out

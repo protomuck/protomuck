@@ -767,7 +767,7 @@ prim_parsempi(PRIM_PROTOTYPE)
 {
     const char *temp;
     char *ptr;
-    struct inst *oper1, *oper2, *oper3, *oper4; 
+    struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL; 
     char buf[BUFFER_LEN];
 
     CHECKOP(4);
@@ -818,7 +818,7 @@ prim_parseprop(PRIM_PROTOTYPE)
 {
     const char *temp;
     char *ptr;
-    struct inst *oper1, *oper2, *oper3, *oper4; 
+    struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL; 
     char buf[BUFFER_LEN];
 
     CHECKOP(4);
@@ -901,7 +901,7 @@ prim_parseprop(PRIM_PROTOTYPE)
 void
 prim_propqueue(PRIM_PROTOTYPE)
 {
-   struct inst *oper1, *oper2, *oper3, *oper4;
+   struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
    if (mlev < LARCH)
       abort_interp("Archwizards or above only.");
    CHECKOP(3);
@@ -938,7 +938,7 @@ prim_propqueue(PRIM_PROTOTYPE)
 void
 prim_envpropqueue(PRIM_PROTOTYPE)
 {
-   struct inst *oper1, *oper2, *oper3, *oper4;
+   struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
    if (mlev < LARCH)
       abort_interp("Archwizards or above only.");
    CHECKOP(3);

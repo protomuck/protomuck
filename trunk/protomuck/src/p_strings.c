@@ -954,7 +954,7 @@ prim_notify_descriptor_char(PRIM_PROTOTYPE)
 void 
 prim_notify(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
+    struct inst *oper1 = NULL, *oper2 = NULL;
     char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
@@ -994,7 +994,7 @@ prim_notify(PRIM_PROTOTYPE)
 void 
 prim_notify_html(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
+    struct inst *oper1 = NULL, *oper2 = NULL;
     char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);
@@ -1035,7 +1035,7 @@ prim_notify_html(PRIM_PROTOTYPE)
 void 
 prim_notify_html_nocr(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2;
+    struct inst *oper1 = NULL, *oper2 = NULL;
     char buf[BUFFER_LEN*2];
     char buf2[BUFFER_LEN*2];
     CHECKOP(2);

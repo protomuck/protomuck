@@ -41,11 +41,11 @@ ac_cv_lib_nsl_=${ac_cv_lib_nsl_='no'}
 ac_cv_lib_socket=${ac_cv_lib_socket='no'}
 ac_cv_lib_socket_=${ac_cv_lib_socket_='no'}
 ac_cv_prog_CC=${ac_cv_prog_CC='gcc'}
-ac_cv_prog_CPP=${ac_cv_prog_CPP='$'$ -E''}
+ac_cv_prog_CPP=${ac_cv_prog_CPP='$'$$ -E''}
 ac_cv_prog_CXX=${ac_cv_prog_CXX='c++'}
-ac_cv_prog_CXXCPP=${ac_cv_prog_CXXCPP='$'$++ -E''}
+ac_cv_prog_CXXCPP=${ac_cv_prog_CXXCPP='$'$$++ -E''}
 ac_cv_prog_LEX=${ac_cv_prog_LEX='flex'}
-ac_cv_prog_YACC=${ac_cv_prog_YACC='$'$ -y''}
+ac_cv_prog_YACC=${ac_cv_prog_YACC='$'$$ -y''}
 ac_cv_prog_cc_cross=${ac_cv_prog_cc_cross='no'}
 ac_cv_prog_cc_g=${ac_cv_prog_cc_g='yes'}
 ac_cv_prog_cc_works=${ac_cv_prog_cc_works='yes'}

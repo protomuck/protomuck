@@ -6,14 +6,14 @@
 #include <string.h>
 #include <math.h>
 #include <sys/types.h>
-#ifndef WIN32
+#include <signal.h>
+#include "config.h"
+#ifndef WIN_VC 
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
 #endif
-#include <signal.h>
 
-#include "config.h"
 #include "db.h"
 #include "props.h"
 #include "externs.h"

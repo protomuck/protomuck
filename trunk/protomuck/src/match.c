@@ -310,11 +310,8 @@ match_exits(dbref first, struct match_data * md)
 		if (*exitname == '\0' || *exitname == EXIT_DELIMITER) {
 		    /* we got a match on this alias */
 		    if (lev >= md->match_level) {
-		    #ifdef WINNT
-			if ((int)strlen(md->match_name) - (int)strlen(p) > md->longest_match) {
-		    #else
-			if (strlen(md->match_name) - strlen(p) > md->longest_match) {
-		    #endif
+			if (strlen(md->match_name) - strlen(p) > 
+			    md->longest_match) {
 			    if (lev > md->match_level) {
 				md->match_level = lev;
 				md->block_equals = 0;
@@ -335,11 +332,10 @@ match_exits(dbref first, struct match_data * md)
 				*match_args = '\0';
 				strcpy(match_cmdname, (char *) md->match_name);
 			    }
-			#ifdef WINNT
-			} else if (((int)strlen(md->match_name) - (int)strlen(p) == md->longest_match) && !((lev == md->match_level) && (md->block_equals))) {
-			#else
-			} else if ((strlen(md->match_name) - strlen(p) == md->longest_match) && !((lev == md->match_level) && (md->block_equals))) {
-			#endif
+			} else if ((strlen(md->match_name) - strlen(p) 
+			            == md->longest_match) 
+                                    && !((lev == md->match_level) 
+                                    && (md->block_equals))) {
 			    if (lev > md->match_level) {
 				md->exact_match = exit;
 				md->match_level = lev;

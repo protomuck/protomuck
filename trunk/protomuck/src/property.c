@@ -27,7 +27,7 @@ extern const char *old_uncompress(const char *);
 
 char * fltostr(float fl)
 {
-  char *temp;
+  char *temp = NULL;
   sprintf(temp, "%hg", fl);
   return temp;
 }
@@ -946,12 +946,19 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
             tpnt[1] = toupper(tpnt[1]);
             tpnt[2] = toupper(tpnt[2]);
             if (!strncmp(tpnt, "INF", 3)) {
+#ifndef WIN_VC
                if (!dtemp) {
                   fval = 9.99E999;
                } else {
                   fval = -9.99E999;
                }
-            } else {
+#else
+               if (!dtemp) {
+                  fval = 9.99E99;
+               } else {
+                  fval = -9.99E99;
+               }
+#endif
                if (!strncmp(tpnt, "NAN", 3)) {
                   fval = 0.0;
                }
@@ -987,9 +994,6 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
     char num[16];
     char *ptr;
     const char *ptr2;
-#ifdef WIN32
-	char buf2[BUFFER_LEN];
-#endif
 
 
     if (PropType(p) == PROP_DIRTYP)
@@ -999,13 +1003,7 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
     for (ptr2 = PropName(p); *ptr2;) *ptr++ = *ptr2++;
     *ptr++ = PROP_DELIMITER;
 
-#ifndef WIN32
     ptr2 = intostr(num, PropFlagsRaw(p) & ~(PROP_TOUCHED | PROP_ISUNLOADED));
-#else
-	/* Fix for stupid case where VC++ spits back 'kz' for intostr(10) */
-	ptr2 = &buf2[0];
-	sprintf(ptr2,"%d", PropFlagsRaw(p) & ~(PROP_TOUCHED | PROP_ISUNLOADED));
-#endif
     while (*ptr2) *ptr++ = *ptr2++;
     *ptr++ = PROP_DELIMITER;
 

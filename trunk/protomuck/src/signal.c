@@ -19,6 +19,7 @@
 #include "interface.h"
 
 #include <signal.h>
+#include <sys/wait.h>
 
 /*
  * SunOS can't include signal.h and sys/signal.h, stupid broken OS.
@@ -86,18 +87,26 @@ void our_signal(int signo, void (*sighandler)(int))
  */
 #define SET_BAIL (bail ? SIG_DFL : bailout)
 #define SET_SHUT (bail ? SIG_DFL : sig_shutdown)
+/* #define SET_REST (bail ? SIG_DFL : sig_restart)
+#define SET_DUMP (bail ? SIG_DFL : sig_dump) */
 #define SET_IGN  (bail ? SIG_DFL : SIG_IGN)
 
 static void set_sigs_intern(int bail)
 {
     /* we don't care about SIGPIPE, we notice it in select() and write() */
+#ifdef SIGPIPE
     our_signal(SIGPIPE, SET_IGN);
+#endif
 
     /* didn't manage to lose that control tty, did we? Ignore it anyway. */
+#ifdef SIGHUP
     our_signal(SIGHUP, SET_IGN);
+#endif
 
     /* resolver's exited. Better clean up the mess our child leaves */
+#ifdef SIGCHLD
     our_signal(SIGCHLD, bail ? SIG_DFL : sig_reap_resolver);
+#endif
 
 #ifdef SIGTRAP
     our_signal(SIGTRAP, SET_BAIL);
@@ -126,15 +135,23 @@ static void set_sigs_intern(int bail)
 #ifdef SIGVTALRM
     our_signal(SIGVTALRM, SET_BAIL);
 #endif
-    our_signal(SIGUSR1, SET_SHUT);
-    our_signal(SIGUSR2, SET_SHUT);
+#ifdef SIGUSR1
+/*    our_signal(SIGUSR1, SET_REST); */
+	our_signal(SIGUSR1, SET_SHUT);
+#endif
+#ifdef SIGUSR2
+/*    our_signal(SIGUSR2, SET_DUMP); */
+	our_signal(SIGUSR2, SET_SHUT);
+#endif
 
     /* standard termination signals */
     our_signal(SIGINT, SET_SHUT);
     our_signal(SIGTERM, SET_SHUT);
 
     /* catch these because we might as well */
+#ifdef SIGQUIT
     our_signal(SIGQUIT, SET_SHUT);
+#endif
 }
 
 void set_signals(void)
@@ -172,7 +189,7 @@ RETSIGTYPE bailout(int sig)
     panic(message);
     _exit(7);
 
-#if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN32)
+#if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN_VC)
     return 0;
 #endif
 }
@@ -182,14 +199,21 @@ RETSIGTYPE bailout(int sig)
  */
 RETSIGTYPE sig_reap_resolver(int i)
 {
-#if defined(SPAWN_HOST_RESOLVER)
+	int status = 0;
+	int pid = waitpid(-1, &status, WNOHANG);
+/* #if defined(SPAWN_HOST_RESOLVER)
         extern void kill_resolver(void);
 	kill_resolver();
-#endif
+#endif */
 
-#if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN32)
+#if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN_VC)
     return 0;
 #endif
 }
+
+
+
+
+
 
 

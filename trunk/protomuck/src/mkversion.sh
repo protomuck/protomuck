@@ -42,6 +42,16 @@ const char *infotext[] =
 {
     " ",
     RED "ProtoMUCK " PROTOBASE " " WHITE "-- " CRIMSON VERSION,
+#if defined(WIN32) || (WIN_VC)
+    YELLOW "WINDOWS" BROWN
+# ifdef WIN_VC
+        ": Visual C++"
+# else
+#  ifdef WIN_CY
+        ": Cygwin"
+#  endif
+# endif
+#endif
     " ",
     CYAN "Based on the original code written by these programmers:",
     "  " AQUA "David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",

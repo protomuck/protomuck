@@ -25,15 +25,13 @@
 #include <stdio.h>
 #include <time.h>
 #include <fcntl.h>
-#include <unistd.h> 
-#ifndef WIN32
-# include <netdb.h>
+#ifndef WIN_VC
 # include <sys/socket.h>
 # include <sys/errno.h>
-# include <errno.h>
+# include <sys/errno.h>
 # include <netinet/in.h>
-#else
-# include <winsock.h>
+# include <netdb.h>
+# include <unistd.h>
 #endif
 
 #include "db.h"
@@ -41,19 +39,21 @@
 #include "externs.h"
 #include "match.h"
 #include "interface.h"
-#include "params.h"                 
+#include "params.h"
 #include "tune.h"
 #include "strings.h"
 #include "interp.h"
 #include "cgi.h"
+
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+ typedef int socklen_t;
+#endif
 
 extern struct inst *oper1, *oper2, *oper3, *oper4;
 extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
-/* struct tm *time_tm; */
-
 
 void
 prim_socksend(PRIM_PROTOTYPE)
@@ -196,7 +196,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     struct hostent *myhost;
     char myresult[255];
     struct sockaddr_in name;
-    int addr_len;
+    int addr_len = 0;
+    int turnon = 1;
 
     CHECKOP(2);
     oper2 = POP();
@@ -218,16 +219,31 @@ prim_nbsockopen(PRIM_PROTOTYPE)
       strcpy(myresult, "Invalid host."); 
     } else {
 
-    name.sin_port = htons(oper2->data.number);
+    name.sin_port = (int)htons(oper2->data.number);
     name.sin_family = AF_INET;                                         
     bcopy((char *)myhost->h_addr, (char *)&name.sin_addr,
            myhost->h_length);
     mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
     addr_len = sizeof(name);
-    fcntl(mysock, F_SETFL, O_NONBLOCK);
+
+#if !defined(O_NONBLOCK) || defined(ULTRIX)     /* POSIX ME HARDER */
+# ifdef FNDELAY         /* SUN OS */
+#  define O_NONBLOCK FNDELAY
+# else
+#  ifdef O_NDELAY       /* SyseVil */
+#   define O_NONBLOCK O_NDELAY
+#  endif /* O_NDELAY */
+# endif /* FNDELAY */
+#endif
+
+#ifdef WIN_VC
+        ioctl(mysock, FIONBIO, &turnon);
+#else
+        fcntl(mysock, F_SETFL, O_NONBLOCK);
+#endif
     if (connect(mysock, (struct sockaddr *)&name, addr_len) == -1)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
-                sprintf(myresult, "ERROR %d", errnosocket);
+                sprintf(myresult, "ERROR: %d", errnosocket);
 #else
         strcpy(myresult, sys_errlist[errnosocket]);
 #endif
@@ -289,14 +305,27 @@ prim_sockcheck(PRIM_PROTOTYPE)
 
     if (FD_ISSET(oper1->data.sock->socknum, &writes)) { 
        connected = 1;
+#if !defined(O_NONBLOCK) || defined(ULTRIX)     /* POSIX ME HARDER */
+# ifdef FNDELAY         /* SUN OS */
+#  define O_NONBLOCK FNDELAY
+# else
+#  ifdef O_NDELAY       /* SyseVil */
+#   define O_NONBLOCK O_NDELAY
+#  endif /* O_NDELAY */
+# endif /* FNDELAY */
+#endif
+#ifdef WIN_VC
+       ioctl(oper1->data.sock->socknum, FIONBIO, 0);
+#else
        fcntl(oper1->data.sock->socknum, F_SETFL, 0);
+#endif
     }
     else {
        connected = 0;
     }
     if (connected == 1) {
-       getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, 
-                  (socklen_t *) &len);
+       getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR,
+                  (char*) &optval, (socklen_t *) &len);
        if ( optval != 0 )
            connected = -1;
        else 
@@ -352,12 +381,12 @@ prim_lsockopen(PRIM_PROTOTYPE)
     sockdescr = socket(AF_INET, SOCK_STREAM, 0); /* get the socket descr */
     
     my_addr.sin_family = AF_INET;
-    my_addr.sin_port = htons(oper1->data.number); /* set bind port # */
+    my_addr.sin_port = (int) htons(oper1->data.number); /* set bind port # */
     my_addr.sin_addr.s_addr = INADDR_ANY; /* get my own IP address */
     memset(&(my_addr.sin_zero), '\0', 8); /* zero rest of struct */
  
     /* Make sure is able to reuse the port */
-    setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+    setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, (char *)&yes, sizeof(int));
     
     /* Bind to the port */
     errors = bind(sockdescr, (struct sockaddr *)&my_addr, 
@@ -382,7 +411,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
     if (errors == -1 ) {
        /* Error setting listen mode. */
 #if defined(BRAINDEAD_OS) || defined(WIN32)
-        sprintf(myresult, "ERROR %d", errnosocket);
+        sprintf(myresult, "ERROR: %d", errnosocket);
 #else
         strcpy(myresult, sys_errlist[errnosocket]);
 #endif
