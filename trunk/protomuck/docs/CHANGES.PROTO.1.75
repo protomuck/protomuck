@@ -117,6 +117,10 @@ April 18, 2002:
 - Fixed it so that the webserver port will not be opened if HTTPD is
     undefined in config.h.
 
+May 18, 2002:
+- Removed the coremail call from the restart script for now. Will have
+    to rethink the design on that.
+
 MPI:
 December 10, 2001:
 - Fixed MPI variables. Under certain condition garbage would be
@@ -168,3 +172,8 @@ April 22, 2002:
 - Changed FINDNEXT to not abort on garbage objects. It will return 
     garbage objects if the object 
 - Changed staff? to return false on players.
+
+May 18, 2002:
+- Fixed a hanging problem with nbsockrecv working with raw MS telnet.
+- Tried to fix the NBSOCKRECV to accept control characters again, without
+    allowing Extended ASCII to get through. 
