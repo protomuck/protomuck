@@ -283,7 +283,7 @@ can_see(register dbref player, register dbref thing, register bool can_see_loc)
 }
 
 #ifdef CONTROLS_SUPPORT
-#   define controlsEx(W, H) ((FLAG2(W) & F2CONTROLS) && \
+#   define controlsEx(W, H) ((FLAG2(H) & F2CONTROLS) && \
     test_lock_false_default(-1, OWNER(W), H, "_/chlk"))
 #endif
 
