@@ -85,6 +85,7 @@ void listenqueue(int descr, dbref player, dbref where, dbref trigger, dbref what
 		dbref xclude, const char *propname, const char *toparg,
 		int mlev, int mt, int mpi_p);
 extern void next_timequeue_event(void);
+extern dequeue_prog_descr(int descr, int sleeponly);
 extern int  in_timequeue(int pid);
 extern struct frame* timequeue_pid_frame(int pid);
 extern time_t next_event_time(void);

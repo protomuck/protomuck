@@ -23,6 +23,7 @@ struct mufevent_process {
 	struct mufevent_process *next;
 	dbref player;
 	dbref prog;
+        int descr;//Added in proto for login screen support
 	int filtercount;
 	char** filters;
 	struct frame *fr;
@@ -71,15 +72,21 @@ muf_event_register_specific(dbref player, dbref prog, struct frame *fr, int even
 {
 	struct mufevent_process *newproc;
 	struct mufevent_process *ptr;
+        struct descriptor_data *curdescr = NULL;
 	int i;
 
 	newproc = (struct mufevent_process *) malloc(sizeof(struct mufevent_process));
 
 	newproc->next = NULL;
 	newproc->player = player;
+        newproc->descr = fr->descr;
 	newproc->prog = prog;
 	newproc->fr = fr;
 	newproc->filtercount = eventcount;
+        if (player == NOTHING ) {
+            curdescr = get_descr(fr->descr, NOTHING);
+            curdescr->interactive = 2;
+        }
 	if (eventcount > 0) {
 		newproc->filters = (char**) malloc(eventcount * sizeof(char**));
 		for (i = 0; i < eventcount; i++) {
@@ -205,7 +212,7 @@ muf_event_dequeue(dbref prog)
 	prev = &mufevent_processes;
 	while (*prev) {
 		if (prog == NOTHING || (*prev)->player == prog || (*prev)->prog == prog ||
-			event_has_refs(prog, (*prev)->fr)) {
+			(*prev)->descr == prog|| event_has_refs(prog, (*prev)->fr)) {
 			tmp = *prev;
 			*prev = tmp->next;
 			muf_event_purge(tmp->fr);
@@ -218,7 +225,36 @@ muf_event_dequeue(dbref prog)
 	return count;
 }
 
-
+/* int muf_event_dequeue(int descr)
+ * Just like muf_event_dequeue except that it only checks for
+ * matching descriptors instead of the other criteria that the 
+ * other function checks for. Since descr's could be the same 
+ * value as a program or player dbref, this needed to be handled
+ * seperately. In order to get this to work, a descr field was added
+ * to struct mufevent_process.
+ */
+int
+muf_event_dequeue_descr(int descr)
+{
+    struct mufevent_process **prev;
+    struct mufevent_process *tmp;
+    int count = 0;
+  
+    prev = &mufevent_processes;
+    while (*prev) {
+        if ( (*prev)->descr == descr ) {
+            tmp = *prev;
+            tmp = tmp->next;
+            muf_event_purge(tmp->fr);
+            muf_event_process_free(tmp);
+            count++;
+        } else {
+            prev = &((*prev)->next);
+        }
+    }
+    return count;
+} 
+                 
 
 struct frame*
 muf_event_pid_frame(int pid)
@@ -541,6 +577,7 @@ muf_event_process(void)
 	struct mufevent_process **nextprev;
 	struct mufevent *ev;
 	dbref tmpcp;
+        struct descriptor_data *curdescr = NULL;
 	int tmpbl;
 	int tmpfg;
 
@@ -588,6 +625,11 @@ muf_event_process(void)
 
 					if (!tmpfg) {
                                     DBFETCH(proc->player)->sp.player.block = tmpbl;
+                                    if (proc->player == NOTHING) {
+                                        curdescr = get_descr(proc->descr, NOTHING);
+                                        if (curdescr)
+                                            curdescr->block = tmpbl;  
+                                    }
                                     DBFETCH(proc->player)->sp.player.curr_prog = tmpcp;
 					}
 				}

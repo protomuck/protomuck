@@ -129,6 +129,7 @@ alloc_timenode(int typ, int subtyp, time_t mytime, int descr, dbref player, dbre
 static void
 free_timenode(timequeue ptr)
 {
+    struct descriptor_data *curdescr;
     if (ptr->command)
 	free(ptr->command);
     if (ptr->called_data)
@@ -139,6 +140,11 @@ free_timenode(timequeue ptr)
         if (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER) { 
 	    if (ptr->fr->multitask != BACKGROUND)
 	        DBFETCH(ptr->uid)->sp.player.block = 0;
+            if (ptr->uid == NOTHING ) {
+                curdescr = get_descr(ptr->fr->descr, NOTHING);
+                if (curdescr)
+                    curdescr->block = 0;
+            }
 	    prog_clean(ptr->fr);
 	}
 	if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
@@ -187,6 +193,7 @@ add_event(int event_typ, int subtyp, int dtime, int descr, dbref player, dbref l
 {
     timequeue ptr = tqhead;
     timequeue lastevent = NULL;
+    struct descriptor_data *curdescr = NULL;
     time_t  rtime = time((time_t *) NULL) + (time_t) dtime;
     int mypids = 0;
 
@@ -214,8 +221,14 @@ add_event(int event_typ, int subtyp, int dtime, int descr, dbref player, dbref l
       if (process_count > tp_max_process_limit ||
 	      (mypids > tp_max_plyr_processes && !Mage(OWNER(player)))) {
 	  if (fr) {
-	      if (fr->multitask != BACKGROUND)
+	      if (fr->multitask != BACKGROUND) {
 		  DBFETCH(player)->sp.player.block = 0;
+                  if (player == NOTHING ) {
+                      curdescr = get_descr(fr->descr, NOTHING);
+                      if (curdescr)
+                          curdescr->block = 0;
+                  }
+              }
 	      prog_clean(fr);
 	  }
 	  anotify_nolisten(player, CINFO "Event killed.  Timequeue table full.", 1);
@@ -291,6 +304,7 @@ add_muf_delayq_event(int delay, int descr, dbref player, dbref loc, dbref trig,
 int
 add_muf_read_event(int descr, dbref player, dbref prog, struct frame *fr)
 {
+    if (player != NOTHING )
     FLAGS(player) |= (INTERACTIVE | READMODE);
     return add_event(TQ_MUF_TYP, TQ_MUF_READ, -1, descr, player, -1, fr->trig,
 		     prog, fr, "READ", NULL, NULL);
@@ -336,7 +350,8 @@ read_event_notify(int descr, dbref player)
 
 	ptr = tqhead;
 	while (ptr) {
-		if (ptr->uid == player) {
+		if (ptr->uid != NOTHING ?
+                    ptr->uid == player : ptr->descr == descr) {
 			if (ptr->fr && ptr->fr->multitask != BACKGROUND) {
 				struct inst temp;
 
@@ -358,18 +373,23 @@ handle_read_event(int descr, dbref player, const char *command)
     timequeue ptr, lastevent;
     int flag, typ, nothing_flag;
     dbref prog;
-
+    struct descriptor_data *curdescr = NULL;
     nothing_flag = 0;
     if (command == NULL) {
 	  nothing_flag = 1;
     }
-    FLAGS(player) &= ~(INTERACTIVE | READMODE);
-
+    if ( player != NOTHING )
+        FLAGS(player) &= ~(INTERACTIVE | READMODE);
+    else {
+        curdescr = get_descr(descr, NOTHING);
+        curdescr->interactive = 0;
+    }
     ptr = tqhead;
     lastevent = NULL;
     while (ptr) {
 	if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
-              						ptr->subtyp == TQ_MUF_TREAD) && ptr->uid == player) {
+            ptr->subtyp == TQ_MUF_TREAD) &&
+            ( player != NOTHING ? ptr->uid == player : ptr->descr == descr)) {
 	    break;
 	}
 	lastevent = ptr;
@@ -471,7 +491,10 @@ handle_read_event(int descr, dbref player, const char *command)
 	 * INTERACTIVE bit on the user, if it does NOT want the MUF
 	 * program to resume executing.
 	 */
-	flag = (FLAGS(player) & INTERACTIVE);
+        if ( player != NOTHING )
+    	    flag = (FLAGS(player) & INTERACTIVE);
+        else 
+            flag = 0;
 
 	if (!flag && fr) {
 	    interp_loop(player, prog, fr, 0);
@@ -486,7 +509,7 @@ handle_read_event(int descr, dbref player, const char *command)
 	while (ptr) {
 	    if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
 						   ptr->subtyp == TQ_MUF_TREAD)) {
-		if (ptr->uid == player) {
+		if (ptr->uid == player && player != NOTHING) {
 		    FLAGS(player) |= (INTERACTIVE | READMODE);
 		}
 	    }
@@ -505,7 +528,7 @@ next_timequeue_event(void)
     timequeue lastevent, event;
     int     maxruns = 0;
     time_t  rtime = current_systime;
-
+    struct descriptor_data *curdescr = NULL;
 
 
     lastevent = tqhead;
@@ -567,6 +590,11 @@ next_timequeue_event(void)
 		    interp_loop(event->uid,event->called_prog,event->fr,0);
 		    if (!tmpfg) {
 			DBFETCH(event->uid)->sp.player.block = tmpbl;
+                        if (event->uid == NOTHING) {
+                            curdescr = get_descr(event->descr, NOTHING);
+                            if (curdescr)
+                                curdescr->block = tmpbl;
+                        }
 		    }
 		} else if (event->subtyp == TQ_MUF_TIMER) {
 		    struct inst temp;
@@ -944,6 +972,63 @@ dequeue_prog(dbref program, int sleeponly)
     }
     return (count);
 }
+
+/* Needed to add this second dequeue function since there is
+ * a chance that the descr would match a player or prog dbref, which
+ * would've been a big problem. This function is intended to dequeue
+ * all the functions belonging to a descriptor and is only called
+ * if the descriptor never connected to a player, since there are 
+ * already routines that handle it when a player disconnects.
+ */
+int
+dequeue_prog_descr(int descr, int sleeponly)
+{
+    int    count = 0;
+    timequeue tmp, ptr;
+    struct descriptor_data *curdescr = NULL;
+    while (tqhead && tqhead->descr==descr  
+           && ((tqhead->fr) ? (!((tqhead->fr->multitask == BACKGROUND) &&
+           (sleeponly == 2))) : (!sleeponly))) {
+        ptr = tqhead;
+        tqhead = tqhead->next;
+        free_timenode(ptr);
+        process_count--;
+        count++;
+    }
+    
+    if (tqhead) {
+        tmp = tqhead;
+        ptr = tqhead->next;
+        while (ptr) {
+            if ((ptr->descr == descr) &&
+                 ((ptr->fr) ? (!((ptr->fr->multitask == BACKGROUND) &&
+                              (sleeponly == 2))) : (!sleeponly) )) {
+                tmp->next = ptr->next;
+                free_timenode(ptr);
+                process_count--;
+                count++;
+                ptr = ptr->next;
+            }
+            tmp = ptr;
+            ptr = ptr->next;
+        }
+    }
+    if ( sleeponly == 1 || sleeponly == 0 ) {
+        // treat MUF_EVENT processes as backgrounded
+        count += muf_event_dequeue_descr(descr);
+    }
+    for ( ptr = tqhead; ptr; ptr = ptr->next) {
+        if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
+                                        ptr->subtyp == TQ_MUF_TREAD )) {
+            curdescr = get_descr(descr, NOTHING);
+            curdescr->interactive = 0;
+        }
+    }
+    return(count);
+}
+        
+
+
 
 
 int

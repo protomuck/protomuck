@@ -405,7 +405,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->pc = DBFETCH(program)->sp.program.start;//TYPEROOM taken out for command props.
     fr->writeonly = ((source == -1) || /* (Typeof(source) == TYPE_ROOM)  || */
 		     ((Typeof(source) == TYPE_PLAYER) && (!online(source))) ||
-		     (FLAGS(player) & READMODE));
+		     ((FLAGS(player) & READMODE) && player != NOTHING));
     fr->level = 0;
     fr->error.is_flags = 0;
 
@@ -801,7 +801,8 @@ do_abort_loop(dbref player, dbref program, const char *msg,
 	      struct inst * clinst1, struct inst * clinst2)
 {
     char buffer[128];
-
+    struct descriptor_data *curdescr;
+      
 	if (fr->trys.top) {
 		fr->errorstr = string_dup(msg);
 		err++;
@@ -831,6 +832,13 @@ do_abort_loop(dbref player, dbref program, const char *msg,
 	    fr->level--;
 	    prog_clean(fr);
 	    DBSTORE(player, sp.player.block, 0);
+            if (player == NOTHING ) {
+                curdescr = get_descr(fr->descr, NOTHING);
+                if ( curdescr ) { 
+                    curdescr->block = 0;
+                    curdescr->interactive = 0;
+                }
+            } 
     }
 }
 
@@ -857,6 +865,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
     int     i, tmp, writeonly, mlev;
     static struct inst retval;
     char dbuf[BUFFER_LEN];
+    struct descriptor_data *curdescr = NULL;
 
     if(interp_depth) {
        fr->level = interp_depth++;
@@ -914,6 +923,11 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		fr->pc = pc;
 		reload(fr, atop, stop);
 		DBSTORE(player, sp.player.block, (!fr->been_background));
+                if (player == NOTHING ) {
+                    curdescr = get_descr(fr->descr, NOTHING);
+                    if (curdescr) 
+                        curdescr->block = !(fr->been_background);
+                }
 		add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING, program, fr,
 		    (fr->multitask==FOREGROUND) ? "FOREGROUND" : "BACKGROUND");
 		fr->level--;
@@ -980,6 +994,11 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			    fr->brkpt.bypass = 0;
 			    DBSTORE(player, sp.player.curr_prog, program);
 			    DBSTORE(player, sp.player.block, 0);
+                            if ( player == NOTHING ) {
+                                curdescr = get_descr(fr->descr, NOTHING);
+                                if (curdescr) 
+                                    curdescr->block = 0;
+                            }
 			    fr->level--;
 			    if (!fr->brkpt.showstack) {
 				m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
@@ -1364,6 +1383,11 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 				}
 
                         DBSTORE(player, sp.player.block, (!fr->been_background));
+                        if ( player == NOTHING ) {
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr) 
+                                curdescr->block = 1;
+                        }
 				CLEAR(temp1);
 				fr->level--;
 				calc_profile_timing(program,fr);
@@ -1379,8 +1403,16 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			reload(fr, atop, stop);
 			fr->brkpt.isread = 1;
 			fr->pc = pc + 1;
-			DBSTORE(player, sp.player.curr_prog, program);
-			DBSTORE(player, sp.player.block, 0);
+                        if (fr->player != NOTHING ) {         
+   			    DBSTORE(player, sp.player.curr_prog, program);
+			    DBSTORE(player, sp.player.block, 0);
+                        } else { 
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr) {
+                                curdescr->interactive = 2;
+                                curdescr->block = 0;
+                            }
+                        } 
 			add_muf_read_event(fr->descr, player, program, fr);
 			fr->level--;
 			calc_profile_timing(program,fr);
@@ -1407,6 +1439,11 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			fr->pc = pc + 1;
 			DBSTORE(player, sp.player.curr_prog, program);
 			DBSTORE(player, sp.player.block, 0);
+                        if (player == NOTHING) {
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr) 
+                                curdescr->block = 0;
+                        } 
 			add_muf_tread_event(fr->descr, player, program, fr, temp1->data.number);
 			fr->level--;
 			calc_profile_timing(program,fr);
@@ -1429,6 +1466,11 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			add_muf_delay_event(temp1->data.number, fr->descr, player,
 				NOTHING, NOTHING, program, fr, "SLEEPING");
 			DBSTORE(player, sp.player.block, (!fr->been_background));
+                        if (player == NOTHING) {
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr) 
+                                curdescr->block = !(fr->been_background);
+                        }
 			fr->level--;
 			calc_profile_timing(program,fr);
 			return NULL;
@@ -1480,6 +1522,11 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 				reload(fr, atop, stop);
 				prog_clean(fr);
 				DBSTORE(player, sp.player.block, 0);
+                                if ( player == NOTHING ) {
+                                    curdescr = get_descr(fr->descr, NOTHING);
+                                    if (curdescr)
+                                        curdescr->block = 0;
+                                }
 				fr->level--;
 				calc_profile_timing(program,fr);
 				return NULL;
@@ -1488,6 +1535,11 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
     }                           /* while */
 
     DBSTORE(player, sp.player.block, 0);
+    if ( player == NOTHING ) {
+        curdescr = get_descr(fr->descr, NOTHING);
+        if (curdescr)
+            curdescr->block = 0;
+    }
     if (atop) {
 	struct inst *rv;
 
