@@ -2455,11 +2455,10 @@ do_string(COMPSTATE *cstat)
             buf[i++] = '\r';
             cstat->next_char++;
             quoted = 0;
-/*		} else if (*cstat->next_char == 'n' && quoted) {
-			buf[i++] = '\n';
-			cstat->next_char++;
-			quoted = 0;
- Disabled \n in MUF until I can make it safe for the database. */
+        } else if (*cstat->next_char == 'n' && quoted) {
+            buf[i++] = '\n';
+            cstat->next_char++;
+            quoted = 0;
         } else if (*cstat->next_char == '[' && quoted) {
             buf[i++] = ESCAPE_CHAR;
             cstat->next_char++;
