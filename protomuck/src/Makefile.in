@@ -16,7 +16,8 @@
 # -g			Generate debugging information, suggested, you can
 #			alwase "strip protomuck" if you want the space.
 #
-OPTIM= -O 
+# Alynna -- prim_divide will now not support any optimizations
+OPTIM= -fomit-frame-pointer
 
 #
 # Paths

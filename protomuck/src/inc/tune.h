@@ -165,6 +165,7 @@ extern int tp_optimize_muf;
 extern int tp_socket_events;
 extern int tp_compatible_muf_perms;
 extern int tp_allow_unidle; 
+extern int tp_alt_infinity_handler;
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
