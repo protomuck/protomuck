@@ -1621,7 +1621,7 @@ prim_recycle(PRIM_PROTOTYPE)
 	int     ii;
 
 	for (ii = 0; ii < fr->caller.top; ii++)
-	    if (fr->caller.st[ii] == result)
+	    if ((Typeof(fr->caller.st[ii]) == TYPE_PROGRAM) && (fr->caller.st[ii] == result))
 		abort_interp("Cannot recycle active program");
     }
     if (Typeof(result) == TYPE_EXIT)
