@@ -3656,21 +3656,21 @@ dump_users(struct descriptor_data *d, char *user)
 		case 0: {
 			if (tp_who_doing) {
 				sprintf(buf, "%s%s%sOn For %sIdle  %s%-.43s\r\n",
-					ANSIFOREST, plyrbuf, ANSIVIOLET, ANSIBROWN, ANSIAQUA, dobuf);
+					ANSIGREEN, plyrbuf, ANSIPURPLE, ANSIYELLOW, ANSICYAN, dobuf);
 			} else {
 				sprintf(buf, "%s%s%sOn For %sIdle\r\n",
-					ANSIFOREST, plyrbuf, ANSIVIOLET, ANSIBROWN);
+					ANSIGREEN, plyrbuf, ANSIPURPLE, ANSIYELLOW);
 			}
 			break;
 		}
 		case 1: {
 			sprintf(buf, "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
-						ANSICRIMSON, ANSIFOREST, plyrbuf, ANSIAQUA, ANSIVIOLET, ANSIBROWN, ANSINAVY);
+						ANSIRED, ANSIGREEN, plyrbuf, ANSICYAN, ANSIPURPLE, ANSIYELLOW, ANSIBLUE);
 			break;
 		}
 		case 2: {
 			sprintf(buf, "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
-						ANSICRIMSON, ANSIFOREST, plyrbuf, ANSIGRAY, ANSIBROWN, ANSIAQUA, ANSINAVY);
+						ANSIRED, ANSIGREEN, plyrbuf, ANSIWHITE, ANSIYELLOW, ANSICYAN, ANSIBLUE);
 			break;
 		}
 	}
