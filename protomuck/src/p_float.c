@@ -717,3 +717,59 @@ prim_ftostr(PRIM_PROTOTYPE)
 	PushString(buf);
 }
 
+
+void
+prim_diff3(PRIM_PROTOTYPE)
+{
+	float xout, yout, zout;
+	double x, y, z;
+	double x2, y2, z2;
+
+	CHECKOP(3);
+	oper3 = POP();
+	oper2 = POP();
+	oper1 = POP();
+	if (oper1->type != PROG_FLOAT)
+		abort_interp("Non-float argument. (4)");
+	if (oper2->type != PROG_FLOAT)
+		abort_interp("Non-float argument. (5)");
+	if (oper3->type != PROG_FLOAT)
+		abort_interp("Non-float argument. (6)");
+
+	x = oper1->data.fnumber;
+	y = oper2->data.fnumber;
+	z = oper3->data.fnumber;
+
+	CLEAR(oper1);
+	CLEAR(oper2);
+	CLEAR(oper3);
+
+	CHECKOP(3);
+	oper3 = POP();
+	oper2 = POP();
+	oper1 = POP();
+	if (oper1->type != PROG_FLOAT)
+		abort_interp("Non-float argument. (1)");
+	if (oper2->type != PROG_FLOAT)
+		abort_interp("Non-float argument. (2)");
+	if (oper3->type != PROG_FLOAT)
+		abort_interp("Non-float argument. (3)");
+
+	x2 = oper1->data.fnumber;
+	y2 = oper2->data.fnumber;
+	z2 = oper3->data.fnumber;
+
+	CLEAR(oper1);
+	CLEAR(oper2);
+	CLEAR(oper3);
+
+	xout = x - x2;
+	yout = y - y2;
+	zout = z - z2;
+
+	PushFloat(xout);
+	PushFloat(yout);
+	PushFloat(zout);
+}
+
+

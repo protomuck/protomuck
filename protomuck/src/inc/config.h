@@ -103,6 +103,19 @@
  */
 #undef NO_EXITMSG
 
+/* Define this to compile in the traditional method of MUF comments.
+ * Leave #undef to use the ProtoMUCK comment parser. The traditional
+ * method allows for no nested comments, while the ProtoMUCK method
+ * matches opening ( marks against closing ) marks until they are
+ * equal in number before ending the comment, thus allowing for
+ * nested comments. A lot of ProtoMUCK MUF will probably have the
+ * new comments, while older FB code may not compile as-is without
+ * the old comments.
+ */
+#undef OLDCOMMENT
+
+
+
 /* Define this to set which server to use for e-mail registration.
  */
 #define MAILSERVER "mail.somewhere.com"

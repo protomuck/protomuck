@@ -188,5 +188,7 @@ extern char *displayprop(dbref player, dbref obj, const char *name, char *buf);
 extern int size_properties(dbref player, int load);
 extern void untouchprops_incremental(int limit);
 extern int Prop_SysPerms(dbref obj, const char *type);
-
+extern void reflist_add(dbref obj, const char* propname, dbref toadd);
+extern void reflist_del(dbref obj, const char* propname, dbref todel);
+extern int reflist_find(dbref obj, const char* propname, dbref tofind);
 
