@@ -107,7 +107,7 @@ create_player(const char *name, const char *password)
     DBFETCH(player)->sp.player.home = tp_player_start;
     DBFETCH(player)->exits = NOTHING;
     DBFETCH(player)->sp.player.pennies = tp_start_pennies;
-    DBFETCH(player)->sp.player.password = alloc_string("");
+    DBFETCH(player)->sp.player.password = NULL;
     DBFETCH(player)->sp.player.curr_prog = NOTHING;
     DBFETCH(player)->sp.player.insert_mode = 0;
 #ifdef IGNORE_SUPPORT
