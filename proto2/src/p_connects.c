@@ -667,9 +667,7 @@ prim_descr_htmlp(PRIM_PROTOTYPE)
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
 
-    result = ((pdescrtype(oper1->data.number) == CT_PUEBLO)
-              || (pdescrtype(oper1->data.number) == CT_HTML));
-
+    result = (pdescrtype(oper1->data.number) == CT_PUEBLO);
     CHECKOFLOW(1);
     CLEAR(oper1);
     CHECKOFLOW(1);
@@ -1141,22 +1139,6 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
-    temp1.type = PROG_STRING;
-    temp1.data.string = alloc_prog_string("HTTP_LOGIN");
-    temp2.type = PROG_INTEGER;
-    temp2.data.number = d->http_login;
-    array_setitem(&nw, &temp1, &temp2);
-    CLEAR(&temp1);
-    CLEAR(&temp2);
-#ifdef HTTPDELAY
-    temp1.type = PROG_STRING;
-    temp1.data.string = alloc_prog_string("HTTPDATA");
-    temp2.type = PROG_STRING;
-    temp2.data.string = alloc_prog_string(d->httpdata);
-    array_setitem(&nw, &temp1, &temp2);
-    CLEAR(&temp1);
-    CLEAR(&temp2);
-#endif
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("OUTPUTQUEUE");
     temp2.type = PROG_INTEGER;

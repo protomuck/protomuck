@@ -2910,14 +2910,56 @@ prim_find_array(PRIM_PROTOTYPE)
         if (((who == NOTHING) ? 1 : (OWNER(ref) == who)) &&
             checkflags(ref, check) && NAME(ref) &&
             (!*name || equalstr(buf, (char *) NAME(ref)))) {
-            temp1.type = PROG_OBJECT;
-            temp1.data.objref = ref;
-            result = array_appenditem(&nw, &temp1);
-            CLEAR(&temp1);
+            result = array_appendref(&nw, ref);
         }
     }
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
+    PushArrayRaw(nw);
+}
+
+void
+prim_entrances_array(PRIM_PROTOTYPE)
+{
+    stk_array *nw;
+    dbref i, j;
+
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (!valid_object(oper1))
+        abort_interp("Invalid dbref (1)");
+
+    ref = oper1->data.objref;
+    nw = new_array_packed(0);
+
+    for (i = 0; i < db_top; i++) {
+        switch (Typeof(i)) {
+        case TYPE_EXIT:
+            for (j = DBFETCH(i)->sp.exit.ndest; j--;) {
+                if (DBFETCH(i)->sp.exit.dest[j] == ref)
+                    array_appendref(&nw, i);
+            }
+            break;
+        case TYPE_PLAYER:
+            if (DBFETCH(i)->sp.player.home == ref)
+                array_appendref(&nw, i);
+            break;
+        case TYPE_THING:
+            if (DBFETCH(i)->sp.thing.home == ref)
+                array_appendref(&nw, i);
+            break;
+        case TYPE_ROOM:
+            if (DBFETCH(i)->sp.room.dropto == ref)
+                array_appendref(&nw, i);
+            break;
+        case TYPE_PROGRAM:
+        case TYPE_GARBAGE:
+            break;
+        }
+    }
+
+    CLEAR(oper1);
     PushArrayRaw(nw);
 }

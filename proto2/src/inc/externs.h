@@ -115,11 +115,11 @@ extern int add_event(int event_type, int subtyp, int dtime, int descr,
                      dbref player, dbref loc, dbref trig, dbref program,
                      struct frame *fr, const char *strdata, const char *strcmd,
                      const char *str3);
-void listenqueue(int descr, dbref player, dbref where, dbref trigger,
+extern void listenqueue(int descr, dbref player, dbref where, dbref trigger,
                  dbref what, dbref xclude, const char *propname,
                  const char *toparg, int mlev, int mt, int mpi_p);
 extern void next_timequeue_event(void);
-extern dequeue_prog_descr(int descr, int sleeponly);
+extern int dequeue_prog_descr(int descr, int sleeponly);
 extern int in_timequeue(int pid);
 extern void purge_timenode_free_pool();
 extern struct frame *timequeue_pid_frame(int pid);
@@ -462,6 +462,7 @@ extern const char *ansi_unparse_object(dbref player, dbref object);
 extern const char *unparse_object(dbref player, dbref object);
 extern const char *unparse_boolexp(dbref player, struct boolexp *b,
                                    int fullname);
+extern const char *ansiname(dbref loc, char buf[BUFFER_LEN]);
 
 /* From compress.c */
 #ifdef COMPRESS

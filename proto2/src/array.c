@@ -338,7 +338,7 @@ array_tree_insert(array_tree **avl, array_iter *key)
     array_tree *ret;
     register array_tree *p = *avl;
     register int cmp;
-    static short balancep;
+    static int balancep;
 
     if (p) {
         cmp = AVL_COMPARE(key, AVL_KEY(p));
@@ -586,35 +586,35 @@ array_decouple(stk_array *arr)
     new2 = new_array();
     new2->type = arr->type;
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            int i;
+    case ARRAY_PACKED:{
+        int i;
 
-            new2->items = arr->items;
-            new2->data.packed =
-                (array_data *) malloc(sizeof(array_data) * arr->items);
-            for (i = arr->items; i-- > 0;) {
-                copyinst(&arr->data.packed[i], &new2->data.packed[i]);
-            }
-            return new2;
-            break;
+        new2->items = arr->items;
+        new2->data.packed =
+            (array_data *) malloc(sizeof(array_data) * arr->items);
+        for (i = arr->items; i-- > 0;) {
+            copyinst(&arr->data.packed[i], &new2->data.packed[i]);
         }
+        return new2;
+        break;
+    }
 
-        case ARRAY_DICTIONARY:{
-            array_iter idx;
-            array_data *val;
+    case ARRAY_DICTIONARY:{
+        array_iter idx;
+        array_data *val;
 
-            if (array_first(arr, &idx)) {
-                do {
-                    val = array_getitem(arr, &idx);
-                    array_setitem(&new2, &idx, val);
-                } while (array_next(arr, &idx));
-            }
-            return new2;
-            break;
+        if (array_first(arr, &idx)) {
+            do {
+                val = array_getitem(arr, &idx);
+                array_setitem(&new2, &idx, val);
+            } while (array_next(arr, &idx));
         }
+        return new2;
+        break;
+    }
 
-        default:
-            break;
+    default:
+        break;
     }
     return NULL;
 }
@@ -658,21 +658,21 @@ array_free(stk_array *arr)
         return;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            int i;
+    case ARRAY_PACKED:{
+        int i;
 
-            for (i = arr->items; i-- > 0;) {
-                CLEAR(&arr->data.packed[i]);
-            }
-            free(arr->data.packed);
-            break;
+        for (i = arr->items; i-- > 0;) {
+            CLEAR(&arr->data.packed[i]);
         }
-        case ARRAY_DICTIONARY:
-            array_tree_delete_all(arr->data.dict);
+        free(arr->data.packed);
+        break;
+    }
+    case ARRAY_DICTIONARY:
+        array_tree_delete_all(arr->data.dict);
 
-        default:{
-            break;
-        }
+    default:{
+        break;
+    }
     }
     arr->items = 0;
     arr->data.packed = NULL;
@@ -710,25 +710,25 @@ array_contains_key(stk_array *arr, array_iter *item)
         return 0;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            if (item->type != PROG_INTEGER) {
-                return 0;
-            }
-            if (item->data.number >= 0 && item->data.number < arr->items) {
-                return 1;
-            }
-            return 0;
-            break;
-        }
-        case ARRAY_DICTIONARY:{
-            if (array_tree_find(arr->data.dict, item)) {
-                return 1;
-            }
+    case ARRAY_PACKED:{
+        if (item->type != PROG_INTEGER) {
             return 0;
         }
-        default:{
-            break;
+        if (item->data.number >= 0 && item->data.number < arr->items) {
+            return 1;
         }
+        return 0;
+        break;
+    }
+    case ARRAY_DICTIONARY:{
+        if (array_tree_find(arr->data.dict, item)) {
+            return 1;
+        }
+        return 0;
+    }
+    default:{
+        break;
+    }
     }
     return 0;
 }
@@ -741,34 +741,34 @@ array_contains_value(stk_array *arr, array_data *item)
         return 0;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            int i;
+    case ARRAY_PACKED:{
+        int i;
 
-            for (i = arr->items; i-- > 0;) {
-                if (!array_tree_compare(&arr->data.packed[i], item, 0, 0)) {
-                    return 1;
-                }
+        for (i = arr->items; i-- > 0;) {
+            if (!array_tree_compare(&arr->data.packed[i], item, 0, 0)) {
+                return 1;
             }
-            return 0;
-            break;
         }
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
+        return 0;
+        break;
+    }
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
 
-            p = array_tree_first_node(arr->data.dict);
-            if (!p)
-                return 0;
-            while (p) {
-                if (!array_tree_compare(&p->data, item, 0, 0)) {
-                    return 1;
-                }
-                p = array_tree_next_node(arr->data.dict, &p->data);
-            }
+        p = array_tree_first_node(arr->data.dict);
+        if (!p)
             return 0;
+        while (p) {
+            if (!array_tree_compare(&p->data, item, 0, 0)) {
+                return 1;
+            }
+            p = array_tree_next_node(arr->data.dict, &p->data);
         }
-        default:{
-            break;
-        }
+        return 0;
+    }
+    default:{
+        break;
+    }
     }
     return 0;
 }
@@ -781,24 +781,24 @@ array_first(stk_array *arr, array_iter *item)
         return 0;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            item->type = PROG_INTEGER;
-            item->data.number = 0;
-            return 1;
-            break;
-        }
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
+    case ARRAY_PACKED:{
+        item->type = PROG_INTEGER;
+        item->data.number = 0;
+        return 1;
+        break;
+    }
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
 
-            p = array_tree_first_node(arr->data.dict);
-            if (!p)
-                return 0;
-            copyinst(&p->key, item);
-            return 1;
-        }
-        default:{
-            break;
-        }
+        p = array_tree_first_node(arr->data.dict);
+        if (!p)
+            return 0;
+        copyinst(&p->key, item);
+        return 1;
+    }
+    default:{
+        break;
+    }
     }
     return 0;
 }
@@ -811,24 +811,24 @@ array_last(stk_array *arr, array_iter *item)
         return 0;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            item->type = PROG_INTEGER;
-            item->data.number = arr->items - 1;
-            return 1;
-            break;
-        }
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
+    case ARRAY_PACKED:{
+        item->type = PROG_INTEGER;
+        item->data.number = arr->items - 1;
+        return 1;
+        break;
+    }
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
 
-            p = array_tree_last_node(arr->data.dict);
-            if (!p)
-                return 0;
-            copyinst(&p->key, item);
-            return 1;
-        }
-        default:{
-            break;
-        }
+        p = array_tree_last_node(arr->data.dict);
+        if (!p)
+            return 0;
+        copyinst(&p->key, item);
+        return 1;
+    }
+    default:{
+        break;
+    }
     }
     return 0;
 }
@@ -841,45 +841,45 @@ array_prev(stk_array *arr, array_iter *item)
         return 0;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            int idx;
+    case ARRAY_PACKED:{
+        int idx;
 
-            if (item->type == PROG_STRING) {
-                CLEAR(item);
-                return 0;
-            } else if (item->type == PROG_FLOAT) {
-                if (item->data.fnumber >= arr->items) {
-                    idx = arr->items - 1;
-                } else {
-                    idx = (int) (item->data.fnumber - 1.0);
-                }
-            } else {
-                idx = item->data.number - 1;
-            }
+        if (item->type == PROG_STRING) {
             CLEAR(item);
-            if (idx >= arr->items) {
+            return 0;
+        } else if (item->type == PROG_FLOAT) {
+            if (item->data.fnumber >= arr->items) {
                 idx = arr->items - 1;
-            } else if (idx < 0) {
-                return 0;
+            } else {
+                idx = (int) (item->data.fnumber - 1.0);
             }
-            item->type = PROG_INTEGER;
-            item->data.number = idx;
-            return 1;
-            break;
+        } else {
+            idx = item->data.number - 1;
         }
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
+        CLEAR(item);
+        if (idx >= arr->items) {
+            idx = arr->items - 1;
+        } else if (idx < 0) {
+            return 0;
+        }
+        item->type = PROG_INTEGER;
+        item->data.number = idx;
+        return 1;
+        break;
+    }
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
 
-            p = array_tree_prev_node(arr->data.dict, item);
-            CLEAR(item);
-            if (!p)
-                return 0;
-            copyinst(&p->key, item);
-            return 1;
-        }
-        default:{
-            break;
-        }
+        p = array_tree_prev_node(arr->data.dict, item);
+        CLEAR(item);
+        if (!p)
+            return 0;
+        copyinst(&p->key, item);
+        return 1;
+    }
+    default:{
+        break;
+    }
     }
     return 0;
 }
@@ -892,45 +892,45 @@ array_next(stk_array *arr, array_iter *item)
         return 0;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            int idx;
+    case ARRAY_PACKED:{
+        int idx;
 
-            if (item->type == PROG_STRING) {
-                CLEAR(item);
-                return 0;
-            } else if (item->type == PROG_FLOAT) {
-                if (item->data.fnumber < 0.0) {
-                    idx = 0;
-                } else {
-                    idx = (int) (item->data.fnumber + 1.0);
-                }
-            } else {
-                idx = item->data.number + 1;
-            }
+        if (item->type == PROG_STRING) {
             CLEAR(item);
-            if (idx >= arr->items) {
-                return 0;
-            } else if (idx < 0) {
+            return 0;
+        } else if (item->type == PROG_FLOAT) {
+            if (item->data.fnumber < 0.0) {
                 idx = 0;
+            } else {
+                idx = (int) (item->data.fnumber + 1.0);
             }
-            item->type = PROG_INTEGER;
-            item->data.number = idx;
-            return 1;
-            break;
+        } else {
+            idx = item->data.number + 1;
         }
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
+        CLEAR(item);
+        if (idx >= arr->items) {
+            return 0;
+        } else if (idx < 0) {
+            idx = 0;
+        }
+        item->type = PROG_INTEGER;
+        item->data.number = idx;
+        return 1;
+        break;
+    }
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
 
-            p = array_tree_next_node(arr->data.dict, item);
-            CLEAR(item);
-            if (!p)
-                return 0;
-            copyinst(&p->key, item);
-            return 1;
-        }
-        default:{
-            break;
-        }
+        p = array_tree_next_node(arr->data.dict, item);
+        CLEAR(item);
+        if (!p)
+            return 0;
+        copyinst(&p->key, item);
+        return 1;
+    }
+    default:{
+        break;
+    }
     }
     return 0;
 }
@@ -943,28 +943,28 @@ array_getitem(stk_array *arr, array_iter *idx)
         return NULL;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:
-            if (idx->type != PROG_INTEGER) {
-                return NULL;
-            }
-            if (idx->data.number < 0 || idx->data.number >= arr->items) {
-                return NULL;
-            }
-            return &arr->data.packed[idx->data.number];
-            break;
-
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
-
-            p = array_tree_find(arr->data.dict, idx);
-            if (!p) {
-                return NULL;
-            }
-            return &p->data;
+    case ARRAY_PACKED:
+        if (idx->type != PROG_INTEGER) {
+            return NULL;
         }
+        if (idx->data.number < 0 || idx->data.number >= arr->items) {
+            return NULL;
+        }
+        return &arr->data.packed[idx->data.number];
+        break;
 
-        default:
-            break;
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
+
+        p = array_tree_find(arr->data.dict, idx);
+        if (!p) {
+            return NULL;
+        }
+        return &p->data;
+    }
+
+    default:
+        break;
     }
     return NULL;
 }
@@ -983,55 +983,55 @@ array_setitem(stk_array **harr, array_iter *idx, array_data *item)
         return -3;
     arr = *harr;
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            if (idx->type != PROG_INTEGER) {
-                return -4;
-            }
-            if (idx->data.number >= 0 && idx->data.number < arr->items) {
-                if (arr->links > 1) {
-                    arr->links--;
-                    arr = *harr = array_decouple(arr);
-                }
-                CLEAR(&arr->data.packed[idx->data.number]);
-                copyinst(item, &arr->data.packed[idx->data.number]);
-                return arr->items;
-            } else if (idx->data.number == arr->items) {
-                if (arr->links > 1) {
-                    arr->links--;
-                    arr = *harr = array_decouple(arr);
-                }
-                arr->data.packed = (array_data *)
-                    realloc(arr->data.packed,
-                            sizeof(array_data) * (arr->items + 1));
-                copyinst(item, &arr->data.packed[arr->items]);
-                return (++arr->items);
-            } else {
-                return -5;
-            }
-            break;
+    case ARRAY_PACKED:{
+        if (idx->type != PROG_INTEGER) {
+            return -4;
         }
-
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
-
+        if (idx->data.number >= 0 && idx->data.number < arr->items) {
             if (arr->links > 1) {
                 arr->links--;
                 arr = *harr = array_decouple(arr);
             }
-            p = array_tree_find(arr->data.dict, idx);
-            if (p) {
-                CLEAR(&p->data);
-            } else {
-                arr->items++;
-                p = array_tree_insert(&arr->data.dict, idx);
-            }
-            copyinst(item, &p->data);
+            CLEAR(&arr->data.packed[idx->data.number]);
+            copyinst(item, &arr->data.packed[idx->data.number]);
             return arr->items;
-            break;
+        } else if (idx->data.number == arr->items) {
+            if (arr->links > 1) {
+                arr->links--;
+                arr = *harr = array_decouple(arr);
+            }
+            arr->data.packed = (array_data *)
+                realloc(arr->data.packed,
+                        sizeof(array_data) * (arr->items + 1));
+            copyinst(item, &arr->data.packed[arr->items]);
+            return (++arr->items);
+        } else {
+            return -5;
         }
+        break;
+    }
 
-        default:
-            break;
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
+
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        p = array_tree_find(arr->data.dict, idx);
+        if (p) {
+            CLEAR(&p->data);
+        } else {
+            arr->items++;
+            p = array_tree_insert(&arr->data.dict, idx);
+        }
+        copyinst(item, &p->data);
+        return arr->items;
+        break;
+    }
+
+    default:
+        break;
     }
     return -6;
 }
@@ -1049,50 +1049,49 @@ array_insertitem(stk_array **harr, array_iter *idx, array_data *item)
     }
     arr = *harr;
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            if (idx->type != PROG_INTEGER) {
-                return -1;
-            }
-            if (idx->data.number < 0 || idx->data.number > arr->items) {
-                return -1;
-            }
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            arr->data.packed = (array_data *)
-                realloc(arr->data.packed,
-                        sizeof(array_data) * (arr->items + 1));
-            for (i = arr->items++; i > idx->data.number; i--) {
-                copyinst(&arr->data.packed[i - 1], &arr->data.packed[i]);
-                CLEAR(&arr->data.packed[i - 1]);
-            }
-            copyinst(item, &arr->data.packed[i]);
-            return arr->items;
-            break;
+    case ARRAY_PACKED:{
+        if (idx->type != PROG_INTEGER) {
+            return -1;
         }
-
-        case ARRAY_DICTIONARY:{
-            array_tree *p;
-
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            p = array_tree_find(arr->data.dict, idx);
-            if (p) {
-                CLEAR(&p->data);
-            } else {
-                arr->items++;
-                p = array_tree_insert(&arr->data.dict, idx);
-            }
-            copyinst(item, &p->data);
-            return arr->items;
-            break;
+        if (idx->data.number < 0 || idx->data.number > arr->items) {
+            return -1;
         }
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        arr->data.packed = (array_data *)
+            realloc(arr->data.packed, sizeof(array_data) * (arr->items + 1));
+        for (i = arr->items++; i > idx->data.number; i--) {
+            copyinst(&arr->data.packed[i - 1], &arr->data.packed[i]);
+            CLEAR(&arr->data.packed[i - 1]);
+        }
+        copyinst(item, &arr->data.packed[i]);
+        return arr->items;
+        break;
+    }
 
-        default:
-            break;
+    case ARRAY_DICTIONARY:{
+        array_tree *p;
+
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        p = array_tree_find(arr->data.dict, idx);
+        if (p) {
+            CLEAR(&p->data);
+        } else {
+            arr->items++;
+            p = array_tree_insert(&arr->data.dict, idx);
+        }
+        copyinst(item, &p->data);
+        return arr->items;
+        break;
+    }
+
+    default:
+        break;
     }
     return -1;
 }
@@ -1114,8 +1113,6 @@ array_appenditem(stk_array **harr, array_data *item)
     return array_setitem(harr, &key, item);
 }
 
-
-
 stk_array *
 array_getrange(stk_array *arr, array_iter *start, array_iter *end)
 {
@@ -1127,83 +1124,83 @@ array_getrange(stk_array *arr, array_iter *start, array_iter *end)
         return NULL;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            array_iter idx;
-            array_iter didx;
+    case ARRAY_PACKED:{
+        array_iter idx;
+        array_iter didx;
 
-            if (start->type != PROG_INTEGER) {
-                return NULL;
-            }
-            if (end->type != PROG_INTEGER) {
-                return NULL;
-            }
-            sidx = start->data.number;
-            eidx = end->data.number;
-            if (sidx < 0) {
-                sidx = 0;
-            } else if (sidx > arr->items) {
-                return NULL;
-            }
-            if (eidx > arr->items) {
-                eidx = arr->items - 1;
-            } else if (eidx < 0) {
-                return NULL;
-            }
-            if (sidx > eidx) {
-                return NULL;
-            }
-            idx.type = PROG_INTEGER;
-            idx.data.number = sidx;
-            didx.type = PROG_INTEGER;
-            didx.data.number = 0;
-            new2 = new_array_packed(eidx - sidx + 1);
-            while (idx.data.number <= eidx) {
-                tmp = array_getitem(arr, &idx);
-                if (!tmp)
-                    break;
-                array_setitem(&new2, &didx, tmp);
-                didx.data.number++;
-                idx.data.number++;
-            }
-            return new2;
-            break;
+        if (start->type != PROG_INTEGER) {
+            return NULL;
         }
+        if (end->type != PROG_INTEGER) {
+            return NULL;
+        }
+        sidx = start->data.number;
+        eidx = end->data.number;
+        if (sidx < 0) {
+            sidx = 0;
+        } else if (sidx > arr->items) {
+            return NULL;
+        }
+        if (eidx > arr->items) {
+            eidx = arr->items - 1;
+        } else if (eidx < 0) {
+            return NULL;
+        }
+        if (sidx > eidx) {
+            return NULL;
+        }
+        idx.type = PROG_INTEGER;
+        idx.data.number = sidx;
+        didx.type = PROG_INTEGER;
+        didx.data.number = 0;
+        new2 = new_array_packed(eidx - sidx + 1);
+        while (idx.data.number <= eidx) {
+            tmp = array_getitem(arr, &idx);
+            if (!tmp)
+                break;
+            array_setitem(&new2, &didx, tmp);
+            didx.data.number++;
+            idx.data.number++;
+        }
+        return new2;
+        break;
+    }
 
-        case ARRAY_DICTIONARY:{
-            stk_array *new2;
-            array_tree *s;
-            array_tree *e;
+    case ARRAY_DICTIONARY:{
+        stk_array *new2;
+        array_tree *s;
+        array_tree *e;
 
-            new2 = new_array_dictionary();
-            s = array_tree_find(arr->data.dict, start);
+        new2 = new_array_dictionary();
+        s = array_tree_find(arr->data.dict, start);
+        if (!s) {
+            s = array_tree_next_node(arr->data.dict, start);
             if (!s) {
-                s = array_tree_next_node(arr->data.dict, start);
-                if (!s) {
-                    return new2;
-                }
-            }
-            e = array_tree_find(arr->data.dict, end);
-            if (!e) {
-                e = array_tree_prev_node(arr->data.dict, end);
-                if (!e) {
-                    return new2;
-                }
-            }
-            if (array_tree_compare(&s->key, &e->key, 0, 0) > 0) {
                 return new2;
             }
-            while (s) {
-                array_setitem(&new2, &s->key, &s->data);
-                if (s == e)
-                    break;
-                s = array_tree_next_node(arr->data.dict, &s->key);
-            }
-            return new2;
-            break;
         }
+        e = array_tree_find(arr->data.dict, end);
+        if (!e) {
+            e = array_tree_prev_node(arr->data.dict, end);
+            if (!e) {
+                return new2;
+            }
+        }
+        if (array_tree_compare(&s->key, &e->key, 0, 0) > 0) {
+            return new2;
+        }
+        while (s) {
+            array_setitem(&new2, &s->key, &s->data);
+            if (s == e)
+                break;
+            s = array_tree_next_node(arr->data.dict, &s->key);
+        }
+        return new2;
+        break;
+    }
 
-        default:
-            break;
+    default:
+        break;
     }
     return NULL;
 }
@@ -1223,46 +1220,46 @@ array_setrange(stk_array **harr, array_iter *start, stk_array *inarr)
         return arr->items;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            if (!start) {
-                return -1;
-            }
-            if (start->type != PROG_INTEGER) {
-                return -1;
-            }
-            if (start->data.number < 0 || start->data.number > arr->items) {
-                return -1;
-            }
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            if (array_first(inarr, &idx)) {
-                do {
-                    array_setitem(&arr, start, array_getitem(inarr, &idx));
-                    start->data.number++;
-                } while (array_next(inarr, &idx));
-            }
-            return arr->items;
-            break;
+    case ARRAY_PACKED:{
+        if (!start) {
+            return -1;
         }
-
-        case ARRAY_DICTIONARY:{
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            if (array_first(inarr, &idx)) {
-                do {
-                    array_setitem(&arr, &idx, array_getitem(inarr, &idx));
-                } while (array_next(inarr, &idx));
-            }
-            return arr->items;
-            break;
+        if (start->type != PROG_INTEGER) {
+            return -1;
         }
+        if (start->data.number < 0 || start->data.number > arr->items) {
+            return -1;
+        }
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        if (array_first(inarr, &idx)) {
+            do {
+                array_setitem(&arr, start, array_getitem(inarr, &idx));
+                start->data.number++;
+            } while (array_next(inarr, &idx));
+        }
+        return arr->items;
+        break;
+    }
 
-        default:
-            break;
+    case ARRAY_DICTIONARY:{
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        if (array_first(inarr, &idx)) {
+            do {
+                array_setitem(&arr, &idx, array_getitem(inarr, &idx));
+            } while (array_next(inarr, &idx));
+        }
+        return arr->items;
+        break;
+    }
+
+    default:
+        break;
     }
     return -1;
 }
@@ -1284,62 +1281,62 @@ array_insertrange(stk_array **harr, array_iter *start, stk_array *inarr)
         return arr->items;
     }
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            if (!start) {
-                return -1;
-            }
-            if (start->type != PROG_INTEGER) {
-                return -1;
-            }
-            if (start->data.number < 0 || start->data.number > arr->items) {
-                return -1;
-            }
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            arr->data.packed = (array_data *)
-                realloc(arr->data.packed,
-                        sizeof(array_data) * (arr->items + inarr->items));
-            copyinst(start, &idx);
-            copyinst(start, &didx);
-            idx.data.number = arr->items - 1;
-            didx.data.number = arr->items + inarr->items - 1;
-            while (idx.data.number >= start->data.number) {
-                itm = array_getitem(arr, &idx);
-                copyinst(itm, &arr->data.packed[didx.data.number]);
-                CLEAR(itm);
-                idx.data.number--;
-                didx.data.number--;
-            }
-            if (array_first(inarr, &idx)) {
-                do {
-                    itm = array_getitem(inarr, &idx);
-                    copyinst(itm, &arr->data.packed[start->data.number]);
-                    start->data.number++;
-                } while (array_next(inarr, &idx));
-            }
-            arr->items += inarr->items;
-            return arr->items;
-            break;
+    case ARRAY_PACKED:{
+        if (!start) {
+            return -1;
         }
-
-        case ARRAY_DICTIONARY:{
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            if (array_first(inarr, &idx)) {
-                do {
-                    array_setitem(&arr, &idx, array_getitem(inarr, &idx));
-                } while (array_next(inarr, &idx));
-            }
-            return arr->items;
-            break;
+        if (start->type != PROG_INTEGER) {
+            return -1;
         }
+        if (start->data.number < 0 || start->data.number > arr->items) {
+            return -1;
+        }
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        arr->data.packed = (array_data *)
+            realloc(arr->data.packed,
+                    sizeof(array_data) * (arr->items + inarr->items));
+        copyinst(start, &idx);
+        copyinst(start, &didx);
+        idx.data.number = arr->items - 1;
+        didx.data.number = arr->items + inarr->items - 1;
+        while (idx.data.number >= start->data.number) {
+            itm = array_getitem(arr, &idx);
+            copyinst(itm, &arr->data.packed[didx.data.number]);
+            CLEAR(itm);
+            idx.data.number--;
+            didx.data.number--;
+        }
+        if (array_first(inarr, &idx)) {
+            do {
+                itm = array_getitem(inarr, &idx);
+                copyinst(itm, &arr->data.packed[start->data.number]);
+                start->data.number++;
+            } while (array_next(inarr, &idx));
+        }
+        arr->items += inarr->items;
+        return arr->items;
+        break;
+    }
 
-        default:
-            break;
+    case ARRAY_DICTIONARY:{
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        if (array_first(inarr, &idx)) {
+            do {
+                array_setitem(&arr, &idx, array_getitem(inarr, &idx));
+            } while (array_next(inarr, &idx));
+        }
+        return arr->items;
+        break;
+    }
+
+    default:
+        break;
     }
     return -1;
 }
@@ -1359,95 +1356,95 @@ array_delrange(stk_array **harr, array_iter *start, array_iter *end)
     }
     arr = *harr;
     switch (arr->type) {
-        case ARRAY_PACKED:{
-            if (start->type != PROG_INTEGER) {
-                return -1;
-            }
-            if (end->type != PROG_INTEGER) {
-                return -1;
-            }
-            if (arr->items == 0) { /* nothing to do here */
-                return 0;
-            }
-
-            sidx = start->data.number;
-            eidx = end->data.number;
-            if (sidx < 0) {
-                sidx = 0;
-            } else if (sidx >= arr->items) {
-                return -1;
-            }
-            if (eidx >= arr->items) {
-                eidx = arr->items - 1;
-            } else if (eidx < 0) {
-                return -1;
-            }
-            if (sidx > eidx) {
-                return -1;
-            }
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            start->data.number = sidx;
-            end->data.number = eidx;
-            copyinst(end, &idx);
-            copyinst(start, &didx);
-            idx.data.number += 1;
-            while (idx.data.number < arr->items) {
-                itm = array_getitem(arr, &idx);
-                copyinst(itm, &arr->data.packed[didx.data.number]);
-                CLEAR(itm);
-                idx.data.number++;
-                didx.data.number++;
-            }
-            arr->items -= (eidx - sidx + 1);
-            totsize = (arr->items) ? arr->items : 1;
-            arr->data.packed =
-                (array_data *) realloc(arr->data.packed,
-                                       sizeof(array_data) * totsize);
-            return arr->items;
-            break;
+    case ARRAY_PACKED:{
+        if (start->type != PROG_INTEGER) {
+            return -1;
+        }
+        if (end->type != PROG_INTEGER) {
+            return -1;
+        }
+        if (arr->items == 0) {  /* nothing to do here */
+            return 0;
         }
 
-        case ARRAY_DICTIONARY:{
-            array_tree *s;
-            array_tree *e;
+        sidx = start->data.number;
+        eidx = end->data.number;
+        if (sidx < 0) {
+            sidx = 0;
+        } else if (sidx >= arr->items) {
+            return -1;
+        }
+        if (eidx >= arr->items) {
+            eidx = arr->items - 1;
+        } else if (eidx < 0) {
+            return -1;
+        }
+        if (sidx > eidx) {
+            return -1;
+        }
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        start->data.number = sidx;
+        end->data.number = eidx;
+        copyinst(end, &idx);
+        copyinst(start, &didx);
+        idx.data.number += 1;
+        while (idx.data.number < arr->items) {
+            itm = array_getitem(arr, &idx);
+            copyinst(itm, &arr->data.packed[didx.data.number]);
+            CLEAR(itm);
+            idx.data.number++;
+            didx.data.number++;
+        }
+        arr->items -= (eidx - sidx + 1);
+        totsize = (arr->items) ? arr->items : 1;
+        arr->data.packed =
+            (array_data *) realloc(arr->data.packed,
+                                   sizeof(array_data) * totsize);
+        return arr->items;
+        break;
+    }
 
-            s = array_tree_find(arr->data.dict, start);
+    case ARRAY_DICTIONARY:{
+        array_tree *s;
+        array_tree *e;
+
+        s = array_tree_find(arr->data.dict, start);
+        if (!s) {
+            s = array_tree_next_node(arr->data.dict, start);
             if (!s) {
-                s = array_tree_next_node(arr->data.dict, start);
-                if (!s) {
-                    return arr->items;
-                }
-            }
-            e = array_tree_find(arr->data.dict, end);
-            if (!e) {
-                e = array_tree_prev_node(arr->data.dict, end);
-                if (!e) {
-                    return arr->items;
-                }
-            }
-            if (array_tree_compare(&s->key, &e->key, 0, 0) > 0) {
                 return arr->items;
             }
-            if (arr->links > 1) {
-                arr->links--;
-                arr = *harr = array_decouple(arr);
-            }
-            copyinst(&s->key, &idx);
-            while (s && array_tree_compare(&s->key, &e->key, 0, 0) <= 0) {
-                arr->data.dict = array_tree_delete(&s->key, arr->data.dict);
-                arr->items--;
-                s = array_tree_next_node(arr->data.dict, &idx);
-            }
-            CLEAR(&idx);
-            return arr->items;
-            break;
         }
+        e = array_tree_find(arr->data.dict, end);
+        if (!e) {
+            e = array_tree_prev_node(arr->data.dict, end);
+            if (!e) {
+                return arr->items;
+            }
+        }
+        if (array_tree_compare(&s->key, &e->key, 0, 0) > 0) {
+            return arr->items;
+        }
+        if (arr->links > 1) {
+            arr->links--;
+            arr = *harr = array_decouple(arr);
+        }
+        copyinst(&s->key, &idx);
+        while (s && array_tree_compare(&s->key, &e->key, 0, 0) <= 0) {
+            arr->data.dict = array_tree_delete(&s->key, arr->data.dict);
+            arr->items--;
+            s = array_tree_next_node(arr->data.dict, &idx);
+        }
+        CLEAR(&idx);
+        return arr->items;
+        break;
+    }
 
-        default:
-            break;
+    default:
+        break;
     }
     return -1;
 }
@@ -1704,4 +1701,20 @@ array_set_intkey_strval(stk_array **harr, int key, const char *val)
     CLEAR(&value);
 
     return result;
+}
+
+/* There was a bunch of redundant code in p_db.c doing this, so I */
+/*  added it as a global function. -Hinoserm                      */
+int
+array_appendref(stk_array **arr, dbref theref)
+{
+    struct inst temp;
+    int i;
+
+    temp.type = PROG_OBJECT;
+    temp.data.objref = theref;
+    i = array_appenditem(arr, &temp);
+    CLEAR(&temp);
+
+    return (i);
 }

@@ -31,6 +31,7 @@
 #include "externs.h"
 #include "mufevent.h"
 #include "interp.h"
+#include "newhttp.h"            /* hinoserm */
 
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(APPLE)
 typedef int socklen_t;
@@ -423,10 +424,10 @@ main(int argc, char **argv)
     if ((tp_textport > 1) && (tp_textport < 65536))
         listener_port[numsocks++] = tp_textport;
 //Only open a web port if support was #defined in config.h
-#ifdef HTTPD
-    if ((tp_wwwport > 1) && (tp_wwwport < 65536))
-        listener_port[numsocks++] = tp_wwwport;
-#endif
+#ifdef NEWHTTPD                 /* hinoserm */
+    if ((tp_wwwport > 1) && (tp_wwwport < 65536)) /* hinoserm */
+        listener_port[numsocks++] = tp_wwwport; /* hinoserm */
+#endif  /* NEWHTTPD */               /* hinoserm */
     if ((tp_puebloport > 1) && (tp_puebloport < 65536))
         listener_port[numsocks++] = tp_puebloport;
 
@@ -525,7 +526,9 @@ main(int argc, char **argv)
             portlist[0] = '\0';
             for (i = 0; i < numsocks; i++) {
                 if ((listener_port[i] != tp_textport)
-                    && (listener_port[i] != tp_wwwport)
+#ifdef NEWHTTPD                 /* hinoserm */
+                    && (listener_port[i] != tp_wwwport) /* hinoserm */
+#endif /* hinoserm */
                     && (listener_port[i] != tp_puebloport)) {
                     sprintf(numbuf, "%d", listener_port[i]);
                     if (*portlist) {
@@ -871,7 +874,7 @@ queue_ansi(struct descriptor_data *d, const char *msg)
     if (!msg || !*msg)
         return 0;
     if (d->connected) {
-        if ((FLAGS(d->player) & CHOWN_OK) && !(d->http_login)) {
+        if (FLAGS(d->player) & CHOWN_OK) {
             strip_bad_ansi(buf, msg);
         } else {
             strip_ansi(buf, msg);
@@ -892,8 +895,7 @@ queue_html(struct descriptor_data *d, char *msg)
     char buf[BUFFER_LEN];
 
     if ((d->connected
-         && OkObj(d->player)) ? (Html(d->player)) : ((d->type == CT_PUEBLO)
-                                                     || (d->type == CT_HTML))) {
+         && OkObj(d->player)) ? (Html(d->player)) : (d->type == CT_PUEBLO)) {
         strcpy(buf, msg);
         return queue_ansi(d, buf);
     } else {
@@ -908,16 +910,15 @@ queue_unhtml(struct descriptor_data *d, char *msg)
     char buf[BUFFER_LEN];
 
     if ((d->connected
-         && OkObj(d->player)) ? (Html(d->player)) : ((d->type == CT_PUEBLO)
-                                                     || (d->type == CT_HTML))) {
+         && OkObj(d->player)) ? (Html(d->player)) : (d->type == CT_PUEBLO)) {
 /*		if(strlen(msg) >= (BUFFER_LEN/6)) { */
-        strcpy(buf, html_escape2(msg, (d->type == CT_HTML)));
+        strcpy(buf, html_escape2(msg, 0));
 /*		} else {
 			strcpy(buf, html_escape(msg));
-			if (d->type == CT_HTML) {
+			if (d->type == CT_HTTP) {
 				strcat(buf, "<BR>");
 			}
-			strcpy(buf, html_escape2(msg, (d->type == CT_HTML)));
+			strcpy(buf, html_escape2(msg, 0));
 		} */
     } else {
         strcpy(buf, msg);
@@ -1412,28 +1413,49 @@ shovechars(void)
 
         for (d = descriptor_list; d; d = dnext) {
             dnext = d->next;
-            if (d->booted) {    /* booted = 3 means immediate clean drop */
-                if ((d->booted != 3) || (d->type == CT_HTML && !(d->http_login)
-                                         && !descr_running_queue(d->descriptor))
+#ifdef NEWHTTPD                 /* hinoserm */
+            if (d->http.file.fp) /* hinoserm */
+                http_sendfileblock(d); /* hinoserm */
+#endif  /* NEWHTTPD */               /* hinoserm */
+            /* booted = 3 means immediate clean drop */
+            /* booted = 4 means safeboot -hinoserm */
+            if (d->booted) {
+                if ((d->booted != 3 && (d->booted != 4 || (d->booted == 4
+                                                           &&
+                                                           !(descr_running_queue
+                                                             (d->descriptor)
+                                                             || d->output.
+                                                             lines))))
                     || (d->type == CT_MUF
                         && !descr_running_queue(d->descriptor))
-                    || (d->type == CT_INBOUND && d->booted == 1)) {
-#ifdef HTTPDELAY
-                    if ((d->httpdata) && (d->booted == 3)) {
-                        queue_ansi(d, d->httpdata);
-                        free((void *) d->httpdata);
-                        d->httpdata = NULL;
-                    }
-#endif
-                    process_output(d); /* send the queued notifies */
-                    if (d->booted == 2) { /* booted == 2 means QUIT command */
-                        goodbye_user(d);
-                    }
+                    || (d->type == CT_INBOUND && d->booted == 1)) { /* hinoserm */
+                    if (!(d->flags & DF_HALFCLOSE)) { /* hinoserm */
+                        process_output(d); /* send the queued notifies */
+                        if (d->booted == 2) { /* booted == 2 means QUIT command */
+                            goodbye_user(d);
+                        }
+                        process_output(d); /* send QUIT related notifies */
+                    }           /* hinoserm */
                     d->booted = 0;
-                    process_output(d); /* send QUIT related notifies */
-                    if (!d->connected) /* quit from login screen */
+#ifdef NEWHTTPD                 /* hinoserm */
+                    if (d->type == CT_HTTP) { /* hinoserm */
+                        struct frame *tmpfr; /* hinoserm */
+
+                        if ((tmpfr = timequeue_pid_frame(d->http.pid)) /* hinoserm */
+                            &&tmpfr->descr == d->descriptor) /* hinoserm */
+                            dequeue_process(d->http.pid); /* hinoserm */
+                        dequeue_prog_descr(d->descriptor, 2); /* hinoserm */
+                    }           /* hinoserm */
+#endif  /* NEWHTTPD */               /* hinoserm */
+                    if (!d->connected && d->type != CT_HTTP) /* quit from login screen (hinoserm changed) */
                         announce_disclogin(d);
-                    shutdownsock(d);
+
+                    if (d->type == CT_HTTP && !(d->flags & DF_HALFCLOSE)) { /* hinoserm */
+                        d->flags |= DF_HALFCLOSE; /* hinoserm */
+                        shutdown(d->descriptor, 1); /* hinoserm */
+                    } else {    /* hinoserm */
+                        shutdownsock(d); /* hinoserm */
+                    }           /* hinoserm */
                 }               /* if d->booted != 3 */
             }                   /* if (d->booted) */
         }                       /* for (d) */
@@ -1560,7 +1582,9 @@ shovechars(void)
                         if (DR_RAW_FLAGS(d, DF_IDLE))
                             DR_RAW_REM_FLAGS(d, DF_IDLE);
                     }           /* else */
-                }               /* if FD_ISSET... */
+                } else if (d->flags & DF_HALFCLOSE) { /* hinoserm */
+                    d->booted = 1; /* hinoserm */
+                }               /* hinoserm */
                 if (FD_ISSET(d->descriptor, &output_set)) {
                     if (!process_output(d)) { /* send text */
                         d->booted = 1; /* connection lost */
@@ -1632,7 +1656,7 @@ shovechars(void)
                         announce_idle(d);
                     }
                     /* check connidle times for normal and pueblo login */
-                    if (!((d->type == CT_HTML) || (d->type == CT_MUF))) {
+                    if (!((d->type == CT_HTTP) || (d->type == CT_MUF))) {
                         int curidle;
                         char buff[BUFFER_LEN];
 
@@ -1911,7 +1935,7 @@ get_ctype(int port)
             ctype = CT_MUCK;
             break;
         case 1:
-            ctype = CT_HTML;
+            ctype = CT_HTTP;
             break;
         case 2:
             ctype = CT_MUCK;
@@ -1924,18 +1948,23 @@ get_ctype(int port)
             break;
         }
     } else {
-        if (port == tp_wwwport) {
-            ctype = CT_HTML;
-        } else if (port == tp_puebloport) {
+        if (port == tp_puebloport) {
             ctype = CT_PUEBLO;
+#ifdef NEWHTTPD
+        } else if (port == tp_wwwport) { /* hinoserm */
+            ctype = CT_HTTP;    /* hinoserm */
+#endif
         } else
             ctype = CT_MUCK;
     }
-    switch (ctype) {
+
+    switch (ctype) {            /* This switch seems useless to me. -hinoserm */
     case CT_MUCK:
         return CT_MUCK;
-    case CT_HTML:
-        return CT_HTML;
+#ifdef NEWHTTPD
+    case CT_HTTP:
+        return CT_HTTP;
+#endif
     case CT_PUEBLO:
         return CT_PUEBLO;
     case CT_MUF:
@@ -1971,14 +2000,13 @@ new_connection(int port, int sock)
             closesocket(newsock);
             return 0;
         }
-        if (ctype != 1) {
-
+        if (ctype != CT_HTTP) { /* hinoserm */
             show_status("ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
                         hostname, ntohs(addr.sin_port),
                         host_as_hex(ntohl(addr.sin_addr.s_addr)),
                         ++crt_connect_count, port,
                         ctype == CT_MUCK ? "TEXT" : (ctype ==
-                                                     CT_HTML ? "WWW" : (ctype ==
+                                                     CT_HTTP ? "WWW" : (ctype ==
                                                                         CT_PUEBLO
                                                                         ?
                                                                         "PUEBLO"
@@ -1996,7 +2024,7 @@ new_connection(int port, int sock)
                              host_as_hex(ntohl(addr.sin_addr.s_addr)),
                              ++crt_connect_count, port,
                              ctype == CT_MUCK ? "TEXT" : (ctype ==
-                                                          CT_HTML ? "WWW"
+                                                          CT_HTTP ? "WWW"
                                                           : (ctype ==
                                                              CT_PUEBLO ?
                                                              "PUEBLO" : (ctype
@@ -2220,7 +2248,7 @@ clearstrings(struct descriptor_data *d)
 void
 shutdownsock(struct descriptor_data *d)
 {
-    if ((d->type != CT_HTML) || (d->http_login)) { /* Ignore HTTP */
+    if (d->type != CT_HTTP) {   /* hinoserm */
         if (d->connected) {
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG,
@@ -2255,10 +2283,6 @@ shutdownsock(struct descriptor_data *d)
         d->player = NOTHING;
         update_desc_count_table();
     }
-    if (d->identify)
-        FREE(d->identify);
-    if (d->lastmidi)
-        FREE(d->lastmidi);
     clearstrings(d);
     shutdown(d->descriptor, 2);
     closesocket(d->descriptor);
@@ -2272,12 +2296,9 @@ shutdownsock(struct descriptor_data *d)
     if (d->username)
         free((void *) d->username);
     mcp_frame_clear(&d->mcpframe);
-#ifdef HTTPD
-#ifdef HTTPDELAY
-    if (d->httpdata)
-        free((void *) d->httpdata);
-#endif /* HTTPDELAY */
-#endif /* HTTPD */
+#ifdef NEWHTTPD                 /* hinoserm */
+    http_deinitstruct(d);       /* hinoserm */
+#endif  /* NEWHTTPD */               /* hinoserm */
     FREE(d);
     ndescriptors--;
 }
@@ -2352,9 +2373,6 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     d->type = ctype;
     d->cport = cport;
     mcp_frame_init(&d->mcpframe, d);
-    d->http_login = 0;
-    d->identify = strdup("nohttpdlogin");
-    d->lastmidi = strdup("(none)");
     d->hostname = alloc_string(hostname);
     sprintf(buf, "%d", port);
     d->username = alloc_string(buf);
@@ -2364,9 +2382,9 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     d->block = 0;
     d->interactive = 0;
     d->idletime_set = tp_idletime;
-#ifdef HTTPDELAY
-    d->httpdata = NULL;
-#endif
+#ifdef NEWHTTPD
+    http_initstruct(d);         /* hinoserm */
+#endif /* NEWHTTPD */
     if (descriptor_list)
         descriptor_list->prev = &d->next;
     d->next = descriptor_list;
@@ -2375,7 +2393,7 @@ initializesock(int s, const char *hostname, int port, int hostaddr,
     if (remember_descriptor(d) < 0)
         d->booted = 1;          /* Drop the connection ASAP */
 
-    if (welcome) {
+    if (welcome && ctype != CT_HTTP) { /* hinoserm */
         announce_login(d);
         welcome_user(d);
     }
@@ -2502,9 +2520,15 @@ process_output(struct descriptor_data *d)
 
     /* drastic, but this may give us crash test data */
     if (!d || !d->descriptor) {
-        fprintf(stderr, "process_output: bad descriptor or connect struct!\n");
-        abort();
+        //fprintf(stderr, "process_output: bad descriptor or connect struct!\n"); /* hinoserm */
+        //abort();                  /* hinoserm */
+        log_status("process_output: bad descriptor or connect struct!\n"); /* hinoserm */
+        return 0;               /* hinoserm */
     }
+
+    if (d->flags & DF_HALFCLOSE) /* hinoserm */
+        return 1;               /* hinoserm */
+
 
     if (d->output.lines == 0) {
         return 1;
@@ -2670,22 +2694,41 @@ process_input(struct descriptor_data *d)
     p = d->raw_input_at;
     pend = d->raw_input + MAX_COMMAND_LEN - 1;
     for (q = buf, qend = buf + got; q < qend; q++) {
+#ifdef NEWHTTPD
+        /* Begin messy webserver content handling junk! -hinoserm */
+        if (d->type == CT_HTTP) {
+            if (d->booted)
+                break;          /* There's a reason for this. */
+            /* Do content stuff. */
+            if (d->http.body.elen) {
+                if (http_processcontent(d, *q))
+                    break;      /* Finished. */
+
+                continue;       /* Keep going! */
+            }
+        }
+        /* End messy webserver junk! -hinoserm */
+#endif /* NEWHTTPD */
         if (*q == '\n') {
             *p = '\0';
             if (p > d->raw_input) {
-                if (save_command(d, d->raw_input) != -1)
+                if (d->type == CT_HTTP) { /* hinoserm */
+                    /* There's a reason why I don't do this with  *//* hinoserm */
+                    /* the pre-existing queuing stuff. If I did,  *//* hinoserm */
+                    /* the content data stuff wouldn't work. This *//* hinoserm */
+                    /* might change if it becomes a problem.      *//* hinoserm */
+#ifdef NEWHTTPD
+                    http_process_input(d, d->raw_input); /* hinoserm */
+#endif /* NEWHTTPD */
+                } else if (save_command(d, d->raw_input) != -1) { /* hinoserm */
                     d->last_time = time(NULL);
+                }               /* hinoserm */
             } else {
                 /* BARE NEWLINE! */
-                if ((d->type == CT_HTML) && (d->http_login == 0)) {
-#ifdef HTTPDELAY
-                    if (d->httpdata) {
-                        queue_ansi(d, d->httpdata);
-                        free((void *) d->httpdata);
-                        d->httpdata = NULL;
-                    }
-#endif
-                    d->booted = 1;
+                if (d->type == CT_HTTP) { /* hinoserm */
+#ifdef NEWHTTPD
+                    http_process_input(d, ""); /* hinoserm */
+#endif /* NEWHTTPD */
                 } else if (p == d->raw_input) {
                     /* Blank lines get sent on to be caught by MUF */
                     save_command(d, d->raw_input);
@@ -2771,20 +2814,16 @@ process_input(struct descriptor_data *d)
         } else if (*q == '\377') {
             /* Got TELNET IAC, store for next byte */
             d->inIAC = 1;
-        } else if (p < pend && (isascii(*q) ||
-                                !((d->type == CT_MUCK) ||
-                                  (d->type == CT_PUEBLO) ||
-                                  (d->type == CT_HTML)))) {
-            if (isprint(*q) || !((d->type == CT_MUCK) || (d->type == CT_PUEBLO)
-                                 || (d->type == CT_HTML))) {
+        } else if (p < pend && (isascii(*q)
+                                || !(d->type == CT_MUCK
+                                     || d->type == CT_PUEBLO))) {
+            if (isprint(*q) || !(d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = *q;
-            } else if ((*q == '\t') && ((d->type == CT_MUCK) ||
-                                        (d->type == CT_PUEBLO)
-                                        || (d->type == CT_HTML))) {
+            } else if ((*q == '\t')
+                       && (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = ' ';
-            } else if ((*q == 8 || *q == 127) &&
-                       ((d->type == CT_MUCK) || (d->type == CT_PUEBLO) ||
-                        (d->type == CT_HTML))) {
+            } else if ((*q == 8 || *q == 127)
+                       && (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 /* if BS or DEL, delete last character */
                 if (p > d->raw_input)
                     p--;
@@ -2916,6 +2955,9 @@ do_command(struct descriptor_data *d, char *command)
     struct frame *tmpfr;
     char cmdbuf[BUFFER_LEN];
 
+    if (d->type == CT_HTTP)     /* hinoserm */
+        return 1;               /* hinoserm */
+
     if (d->connected)
         ts_lastuseobject(d->player);
 
@@ -2953,8 +2995,6 @@ do_command(struct descriptor_data *d, char *command)
         if (!d->connected) {
             if (tp_secure_who || (reg_site_is_barred(d->hostaddr) == TRUE)) {
                 queue_ansi(d, "Login and find out!\r\n");
-                if (d->type == CT_HTML)
-                    queue_ansi(d, "<BR>");
             } else {
                 if (valid_obj(tp_player_start)
                     && Typeof(tp_login_who_prog) == TYPE_PROGRAM) {
@@ -3029,428 +3069,6 @@ interact_warn(dbref player)
     }
 }
 
-#ifdef HTTPD
-
-int
-httpd_get_lsedit(struct descriptor_data *d, dbref what, const char *prop)
-{
-    const char *m = NULL;
-    int lines = 0;
-    char buf[BUFFER_LEN];
-
-    if (!OkObj(what))
-        return 0;
-
-    if (*prop && (Prop_Hidden(prop) || Prop_Private(prop)))
-        return 0;
-
-    while ((*prop == '/') || (*prop == ' '))
-        prop++;
-
-    while ((lines < 256) && (!lines || (m && *m))) {
-        if (*prop)
-            sprintf(buf, WWWDIR "/%.512s#/%d", prop, ++lines);
-        else
-            sprintf(buf, WWWDIR "#/%d", ++lines);
-        m = get_property_class(what, buf);
-#ifdef COMPRESS
-        if (m && *m)
-            m = uncompress(m);
-#endif
-        if (m && *m) {
-            sprintf(buf, "%.512s\r\n", m);
-            queue_ansi(d, buf);
-        }
-    }
-
-    return lines - 1;
-}
-
-void
-httpd_unknown(struct descriptor_data *d, const char *name)
-{
-    if (httpd_get_lsedit(d, tp_www_root, "http/404") <= 0) {
-        queue_ansi(d,
-                   "<HTML>\r\n<HEAD><TITLE>404 Not Found</TITLE></HEAD><BODY>\r\n"
-                   "<H1>404 Not Found</H1>\r\n" "The requested URL ");
-        queue_ansi(d, name);
-        queue_ansi(d,
-                   " was not found on this server.<P>\r\n</BODY></HTML>\r\n");
-    }
-    d->booted = 3;
-}
-
-void
-httpd_get(struct descriptor_data *d, char *name, const char *http)
-{
-    const char *prop = NULL, *m = NULL, **dit = infotext;
-    dbref what = 0;
-    PropPtr prpt;
-    int lines = 0, cold = CT_MUCK;
-    int foundit = 0;
-    char *params = NULL;
-    char buf[BUFFER_LEN];
-
-#ifdef MALLOC_PROFILING
-    queue_ansi(d,
-               "The webserver is disabled while MALLOC_PROFILING is turned on.");
-    d->booted = 1;
-    return;
-#endif
-
-#ifdef HTTPDELAY
-    if (d->httpdata) {
-        free((void *) d->httpdata);
-        d->httpdata = NULL;
-    }
-#endif
-
-    params = name;
-
-    while ((*params != '\0') && (*params != '?'))
-        params++;
-
-    if (*params == '?') {
-        *params = '\0';
-        params++;
-    }
-
-    if (strcmp(name, "")) {
-        if (string_prefix("login", name)) {
-            char buf[BUFFER_LEN];
-            char *identify;
-
-            sprintf(buf,
-                    "<!-- ProtoMUCK %s WebLogin Interface (Written by Loki of Neon fame) -->\n",
-                    PROTOBASE);
-
-            queue_ansi(d, buf);
-            queue_ansi(d, "<html>");
-
-            sprintf(buf, "<title>%s Web Login</title>\n", tp_muckname);
-
-            queue_ansi(d, buf);
-
-            sprintf(buf, "%s.%d", d->hostname, (int) current_systime);
-
-            identify = strdup(buf);
-
-            queue_ansi(d, "<FRAMESET ROWS=\"80%,*\">\n");
-
-            sprintf(buf,
-                    "<FRAME SRC=\"webinterface?id=%s\" NAME=\"muckwindow\"  SCROLLING=\"auto\" NORESIZE>\n",
-                    identify);
-            queue_ansi(d, buf);
-            queue_ansi(d, "<FRAMESET COLS=\"70%,*\">\n");
-            sprintf(buf,
-                    "<FRAME SRC=\"webinput?id=%s&muckinput=emp:ty\" NAME=\"input\" SCROLLING=\"no\" NORESIZE>\n",
-                    identify);
-            queue_ansi(d, buf);
-            queue_ansi(d, "<FRAME SRC=\"midicontrol\">");
-            queue_ansi(d, "</FRAMESET>\n");
-            queue_ansi(d, "</FRAMESET>\n");
-            queue_ansi(d, "<NOFRAMES>\n");
-            queue_ansi(d, "<h1>No frames support.</h1>");
-            queue_ansi(d,
-                       "We're sorry.  Your browser does not support frames.<BR>");
-            queue_ansi(d,
-                       "ProtoMuck's weblogin interface requires Frames support.<br>");
-            queue_ansi(d,
-                       "<BR>Try a browser such as <a href=\"http://www.netscape.com\">Netscape</a>.");
-            queue_ansi(d, "</NOFRAMES>");
-
-            FREE(identify);
-            d->booted = 3;
-            foundit = 1;
-        } else if (string_prefix("webinput", name)) {
-            char buf[MAX_COMMAND_LEN * 2];
-            char *identify;
-            char *temp;
-            char *p, *pend, *q, *qend;
-            struct descriptor_data *d2 = NULL;
-            int found = 0;
-            time_t now;
-
-            now = current_systime;
-            foundit = 1;
-            identify = strdup(getcgivar(params, "id"));
-
-            temp = getcgivar(params, "muckinput");
-            strcat(temp, "\n");
-            strcpy(buf, temp);
-
-            if (strcmp(temp, "emp:ty")) {
-
-                for (d2 = descriptor_list;
-                     d2 && (strcmp(d2->identify, identify)); d2 = d2->next) ;
-
-                if (d2)
-                    if (!strcmp(d2->identify, identify)) {
-                        found = 1;
-
-                        if (!d2->raw_input) {
-                            MALLOC(d2->raw_input, char, MAX_COMMAND_LEN);
-
-                            d2->raw_input_at = d2->raw_input;
-                        }
-
-                        p = d2->raw_input_at;
-                        d2->last_time = now;
-                        pend = d2->raw_input + MAX_COMMAND_LEN - 1;
-                        for (q = buf, qend = buf + strlen(temp); q < qend; q++) {
-                            if (*q == '\n') {
-                                *p = '\0';
-                                if (p > d2->raw_input) {
-                                    save_command(d2, d2->raw_input);
-                                }
-                                p = d2->raw_input;
-                            } else if (p < pend && isascii(*q)) {
-                                if (isprint(*q)) {
-                                    *p++ = *q;
-                                }
-                            }
-                        }
-                        if (p > d2->raw_input) {
-                            d2->raw_input_at = p;
-                        } else {
-                            FREE(d2->raw_input);
-                            d2->raw_input = 0;
-                            d2->raw_input_at = 0;
-                        }
-                    }
-            }
-/*        if (found) { */
-            sprintf(buf, "<!-- ProtoMUCK %s Input Window -->\n", PROTOBASE);
-            queue_ansi(d, buf);
-
-            queue_ansi(d, "<FORM METHOD=GET ACTION=\"webinput\">\n");
-            queue_ansi(d,
-                       "<INPUT TYPE=\"TEXT\" NAME=\"muckinput\" SIZE=50 maxlength=256>\n");
-
-            sprintf(buf, "<INPUT TYPE=\"HIDDEN\" NAME=\"id\" VALUE=\"%s\">\n",
-                    identify);
-            queue_ansi(d, buf);
-            queue_ansi(d, "</FORM>");
-            if (d2)
-                if (d2->connected) {
-                    sprintf(buf, "<b>Input for session:</b> %s@%s",
-                            NAME(d2->player), tp_muckname);
-                    queue_ansi(d, buf);
-                }
-            foundit = 1;
-            d->booted = 3;
-/*      } else
-	{
-	   queue_ansi(d, "<b>Server has disconnected.</b><BR>");
-	   queue_ansi(d, "Please reconnect.");
-	} */
-        } else if (string_prefix("midicontrol", name)) {
-            char buf[BUFFER_LEN];
-
-            sprintf(buf,
-                    "<embed src=\"%s\" name=\"muckmidi\" width=144 height=60>\n",
-                    tp_dummy_midi);
-            queue_ansi(d, buf);
-            foundit = 1;
-        } else if (string_prefix("webinterface", name)) {
-            FREE(d->identify);
-            d->booted = 0;
-            d->identify = strdup(getcgivar(params, "id"));
-            d->http_login = 1;
-            foundit = 1;
-            welcome_user(d);
-        }
-    }
-    if (!foundit) {
-        if (*name == '@') {
-            name++;
-            if (string_prefix("credits", name)) {
-                char bufftemp[BUFFER_LEN];
-
-                queue_string(d,
-                             "<HTML>\r\n<HEAD><TITLE>ProtoMuck Credits</TITLE></HEAD>\r\n");
-                queue_string(d, "<H1>ProtoMuck Credits</H1>\r\n");
-                queue_string(d, "<BODY><PRE>\r\n");
-                while (*dit) {
-                    unparse_ansi(bufftemp, *dit);
-                    (void) dit++;
-                    queue_unhtml(d, bufftemp);
-/*		queue_unhtml(d, "\r\n"); */
-                }
-                queue_string(d,
-                             "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
-                queue_string(d, "</BODY></HTML>\r\n");
-                d->booted = 3;
-            } else if (string_prefix("help", name)) {
-                queue_string(d,
-                             "<HTML>\r\n<HEAD><TITLE>Connection Help</TITLE></HEAD>\r\n");
-                queue_string(d, "<BODY><PRE>\r\n");
-                cold = d->type;
-                d->type = CT_MUCK;
-                help_user(d);
-                d->type = cold;
-                queue_string(d,
-                             "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
-                queue_string(d, "</BODY></HTML>\r\n");
-                d->booted = 3;
-            } else if (string_prefix("who", name)) {
-                queue_string(d,
-                             "<HTML>\r\n<HEAD><TITLE>Who's on now?</TITLE></HEAD>\r\n");
-                queue_string(d, "<H1>Who's on now?</H1>\r\n");
-                queue_string(d, "<BODY><PRE>\r\n");
-                if (tp_secure_who)
-                    queue_string(d, "Connect and find out!\r\n");
-                else
-                    dump_users(d, "");
-                queue_string(d,
-                             "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
-                queue_string(d, "</BODY></HTML>\r\n");
-                d->booted = 3;
-            } else if (string_prefix("welcome", name)) {
-                queue_ansi(d,
-                           "<HTML>\r\n<HEAD><TITLE>Welcome!</TITLE></HEAD>\r\n");
-                queue_ansi(d, "<H1>Welcome!</H1>\r\n");
-                queue_ansi(d, "<BODY><PRE>\r\n");
-                cold = d->type;
-                d->type = CT_MUCK;
-                welcome_user(d);
-                d->type = cold;
-                queue_string(d,
-                             "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
-                queue_string(d, "</BODY></HTML>\r\n");
-                d->booted = 3;
-            } else {
-                httpd_unknown(d, name);
-            }
-            return;
-        } else if (*name == '~') {
-            prop = ++name;
-            while (*prop && (*prop != '/'))
-                buf[prop - name] = (*(prop++));
-            buf[prop - name] = '\0';
-            if (*buf)
-                what = lookup_player(buf);
-            else
-                what = NOTHING;
-            while (*prop == '/')
-                prop++;
-        } else {
-            prop = name;
-            what = tp_www_root;
-        }
-        if (!OkObj(what)) {
-            httpd_unknown(d, name);
-            return;
-        }
-        /* First check if there is an lsedit style list here */
-
-        if (*prop && (Prop_Hidden(prop) || Prop_Private(prop))) {
-            httpd_unknown(d, prop);
-            return;
-        }
-
-        while ((lines < 256) && (!lines || (m && *m))) {
-            if (*prop)
-                sprintf(buf, WWWDIR "/%s#/%d", prop, ++lines);
-            else
-                sprintf(buf, WWWDIR "#/%d", ++lines);
-            m = get_property_class(what, buf);
-#ifdef COMPRESS
-            if (m && *m)
-                m = uncompress(m);
-#endif
-            if (m && *m) {
-                sprintf(buf, "%s\r\n", m);
-                queue_ansi(d, buf);
-            }
-        }
-        if (lines > 1) {
-            sprintf(buf,
-                    "<META NAME=\"server\" VALUE=\"ProtoMUCK %s -- Moose, Akari (Web support by Loki)\">",
-                    PROTOBASE);
-            queue_ansi(d, buf);
-        }
-        if (lines <= 1) {
-            /* There was no lsedit list, try a relocation */
-            if (*prop) {
-                sprintf(buf, WWWDIR "/%s", prop);
-                m = get_property_class(what, buf);
-            } else
-                m = get_property_class(what, WWWDIR);
-
-            if (*prop) {
-                prpt = get_property(what, buf);
-            } else
-                prpt = get_property(what, WWWDIR);
-#ifdef DISKBASE
-            if (prpt)
-                propfetch(what, prpt);
-#endif
-
-#ifdef COMPRESS
-            if (m && *m)
-                m = uncompress(m);
-#endif
-            if ((prpt) || (m && *m)) {
-                struct frame *tmpfr;
-
-                if (PropType(prpt) == PROP_REFTYP) { /* Program reference? */
-                    sprintf(buf, "%d|%s|%s|%s",
-                            d->descriptor, d->hostname, d->username, params);
-                    strcpy(match_args, buf);
-                    strcpy(match_cmdname, "(WWW)");
-                    tmpfr = interp(d->descriptor, tp_www_surfer, what,
-                                   PropDataRef(prpt), tp_www_root, BACKGROUND,
-                                   STD_HARDUID, 0);
-                    if (tmpfr) {
-                        interp_loop(tp_www_surfer, PropDataRef(prpt), tmpfr, 1);
-                    }
-                    strcpy(match_args, "");
-                    strcpy(match_cmdname, "");
-                    sprintf(buf,
-                            "<META NAME=\"server\" VALUE=\"ProtoMUCK %s -- Moose, Akari (Web support by Loki)\">",
-                            PROTOBASE);
-                    d->httpdata = string_dup(buf);
-                    d->booted = 3;
-                } else {
-
-#ifdef HTTPDELAY
-                    sprintf(buf, "HTTP/1.0 302 Found\r\n"
-                            "Status: 302 Found\r\n"
-                            "Location: %s\r\n"
-                            "Content-type: text/html\r\n\r\n"
-                            "<HTML>\r\n<HEAD><TITLE>302 Found</TITLE></HEAD>\r\n"
-                            "<H1>302 Found</H1>\r\n"
-                            "Your browser doesn't seem to support redirection.<P>\r\n"
-                            "Try clicking <A HREF=\"%s\">HERE</A>.\r\n</HTML>\r\n",
-                            m, m);
-                    d->httpdata = string_dup(buf);
-#else
-                    queue_ansi(d, "HTTP/1.0 302 Found\r\n"
-                               "Status: 302 Found\r\n" "Location: ");
-                    queue_ansi(d, m);
-                    queue_ansi(d, "\r\nContent-type: text/html\r\n\r\n"
-                               "<HTML>\r\n<HEAD><TITLE>302 Found</TITLE></HEAD>\r\n"
-                               "<H1>302 Found</H1>\r\n"
-                               "Your browser doesn't seem to support redirection.<P>\r\n"
-                               "Try clicking <A HREF=\"");
-                    queue_ansi(d, m);
-                    queue_ansi(d, "\">HERE</A>.\r\n</HTML>\r\n");
-#endif
-                    if (!*http)
-                        d->booted = 3;
-                }
-            } else {
-                httpd_unknown(d, prop);
-                return;
-            }
-        } else {
-            d->booted = 3;
-        }
-    }
-}
-#endif /* HTTPD */
-
 void
 check_connect(struct descriptor_data *d, const char *msg)
 {
@@ -3459,10 +3077,6 @@ check_connect(struct descriptor_data *d, const char *msg)
     char user[BUFFER_LEN];
     char password[80];
     const char *why;
-
-#ifdef HTTPD
-    char *name;
-#endif
     dbref player, mufprog;
     time_t now;
     int result, xref;
@@ -3488,51 +3102,7 @@ check_connect(struct descriptor_data *d, const char *msg)
         handle_read_event(d->descriptor, NOTHING, buf, NULL);
         return;
     }
-#ifdef HTTPD
-    if (d->type == CT_HTML && (d->http_login == 0)) {
-        if (OkObj(tp_www_surfer)) {
-            if ((FLAG2(tp_www_surfer) & F2PARENT) &&
-                (FLAGS(tp_www_surfer) & DARK)) {
-                if (tp_logwall_www)
-                    show_status("WWW: '%s %s %s'", command, user, password);
-            }
-        }
-        if (!strcmp(command, "get")) {
-            if (!string_prefix(user, "/webinput"))
-                if (tp_log_connects)
-                    log2filetime(CONNECT_LOG, "GET: '%s' '%s' %s(%s) %s P#%d\n",
-                                 user, "<hidden>", d->hostname, d->username,
-                                 host_as_hex(d->hostaddr), d->cport);
-            if (tp_logwall_www && tp_log_connects)
-                show_status("GET: '%s' '%s' %s(%s) %s P#%d\n",
-                            user, "<hidden>", d->hostname, d->username,
-                            host_as_hex(d->hostaddr), d->cport);
-            name = user;
-            while (*name == '/')
-                name++;
-            httpd_get(d, name, password);
-        } else if (index(msg, ':')) {
-            /* Ignore http request fields */
-        } else if (d->http_login == 0) {
-            if (tp_log_connects)
-                log2filetime(CONNECT_LOG, "XWWW: '%s' '%s' %s(%s) %s P#%d\n",
-                             user, "<HIDDEN>", d->hostname, d->username,
-                             host_as_hex(d->hostaddr), d->cport);
-            if (tp_logwall_www && tp_log_connects)
-                show_status("XWWW: '%s' '%s' %s(%s) %s P#%d\n",
-                            user, "<HIDDEN>", d->hostname, d->username,
-                            host_as_hex(d->hostaddr), d->cport);
-            queue_ansi(d,
-                       "<HTML>\r\n<HEAD><TITLE>400 Bad Request</TITLE></HEAD><BODY>\r\n"
-                       "<H1>400 Bad Request</H1>\r\n"
-                       "You sent a query this server doesn't understand.<P>\r\n"
-                       "Reason: Unknown method.<P>\r\n" "</BODY></HTML>\r\n");
-            d->booted = 1;
-        }
-        return;
-    } else if (d->type == CT_HTML && (index(msg, ':'))) { /* Ignore */
-    }
-#endif
+
     if ((string_prefix("connect", command) && !string_prefix("c", command))
         || !string_compare(command, "ch")) {
         player = connect_player(user, password);
@@ -3547,8 +3117,6 @@ check_connect(struct descriptor_data *d, const char *msg)
                 add_property(player, "@/Failed/Time", NULL, now);
                 add_property(player, "@/Failed/Count", NULL, result);
             }
-            if (d->type == CT_HTML)
-                queue_ansi(d, "<BR>");
             if (d->fails >= 3)
                 d->booted = 1;
             if (tp_log_connects)
@@ -3646,12 +3214,6 @@ check_connect(struct descriptor_data *d, const char *msg)
                     FLAG2(player) &= ~F2PUEBLO;
                 }
 
-                if (d->type == CT_HTML) {
-                    FLAG2(player) |= F2HTML;
-                } else {
-                    FLAG2(player) &= ~F2HTML;
-                }
-
                 /* cks: someone has to initialize this somewhere. */
                 DBFETCH(d->player)->sp.player.block = 0;
                 if (d->player == NOTHING)
@@ -3676,19 +3238,16 @@ check_connect(struct descriptor_data *d, const char *msg)
                     host_as_hex(d->hostaddr), d->commands, d->cport);
         help_user(d);
     } else {
-        if (d->type != CT_HTML) {
-            if (tp_log_connects)
-                log2filetime(CONNECT_LOG,
-                             "TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
-                             d->descriptor, d->hostname, d->username,
-                             host_as_hex(d->hostaddr), command, d->commands,
-                             d->cport);
-            show_status("TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
-                        d->descriptor, d->hostname, d->username,
-                        host_as_hex(d->hostaddr), command, d->commands,
-                        d->cport);
-            welcome_user(d);
-        }
+        if (tp_log_connects)
+            log2filetime(CONNECT_LOG,
+                         "TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
+                         d->descriptor, d->hostname, d->username,
+                         host_as_hex(d->hostaddr), command, d->commands,
+                         d->cport);
+        show_status("TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
+                    d->descriptor, d->hostname, d->username,
+                    host_as_hex(d->hostaddr), command, d->commands, d->cport);
+        welcome_user(d);
     }
 }
 void
@@ -3785,19 +3344,18 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                 /****/
+        if (d->next)                                                         /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                             /****/
+        if (d->hostname)                                                     /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                             /****/
+        if (d->username)                                                     /****/
             free((void *) d->username);
                                    /****/
-        if (d->lastmidi)
-            free((void *) d->lastmidi);
-        if (d->identify)
-            free((void *) d->identify);
-
+#ifdef NEWHTTPD
+        if (d->type == CT_HTTP) /* hinoserm */
+            http_deinitstruct(d); /* hinoserm */
+#endif /* NEWHTTPD */
         FREE(d);                         /****/
         ndescriptors--;                  /****/
     }
@@ -3875,8 +3433,8 @@ do_dinfo(dbref player, const char *arg)
     case CT_MUCK:
         ctype = "muck";
         break;
-    case CT_HTML:
-        ctype = "html";
+    case CT_HTTP:
+        ctype = "http";
         break;
     case CT_PUEBLO:
         ctype = "pueblo";
@@ -4167,20 +3725,6 @@ dump_users(struct descriptor_data *d, char *user)
                 strcpy(plyrbuf, "[Connecting]");
             }
             strcpy(typbuf, "Pueblo Port");
-            break;
-        }
-        case CT_HTML:{
-            if (dlist->http_login) {
-                if ((dlist->connected) && (OkObj(d->player))) {
-                    strcpy(plyrbuf, NAME(dlist->player));
-                } else {
-                    strcpy(plyrbuf, "[Connecting]");
-                }
-                strcpy(typbuf, "Http Login");
-            } else {
-                strcpy(plyrbuf, "[WWW]");
-                strcpy(typbuf, "Webport");
-            }
             break;
         }
         case CT_MUF:{
@@ -5257,11 +4801,6 @@ pset_user(struct descriptor_data *d, dbref who)
             } else {
                 FLAG2(d->player) &= ~F2PUEBLO;
             }
-            if (d->type == CT_HTML) {
-                FLAG2(d->player) |= F2HTML;
-            } else {
-                FLAG2(d->player) &= ~F2HTML;
-            }
         }
         return 1;
     }
@@ -5293,11 +4832,6 @@ plogin_user(struct descriptor_data *d, dbref who)
             FLAG2(d->player) |= F2PUEBLO;
         } else {
             FLAG2(d->player) &= ~F2PUEBLO;
-        }
-        if (d->type == CT_HTML) {
-            FLAG2(d->player) |= F2HTML;
-        } else {
-            FLAG2(d->player) &= ~F2HTML;
         }
     }
     return 1;
@@ -5476,11 +5010,10 @@ welcome_user(struct descriptor_data *d)
     char buf[BUFFER_LEN];
     const char *fname;
 
-    if ((d->type == CT_PUEBLO) || ((d->type == CT_HTML) && (d->http_login))) {
-        if (d->type == CT_PUEBLO) {
-            queue_ansi(d, "\r\nThis world is Pueblo 1.0 Enhanced.\r\n\r\n");
-            queue_ansi(d, "</xch_mudtext><img xch_mode=html>");
-        }
+    if (d->type == CT_PUEBLO) {
+        queue_ansi(d, "\r\nThis world is Pueblo 1.0 Enhanced.\r\n\r\n");
+        queue_ansi(d, "</xch_mudtext><img xch_mode=html>");
+
         fname = reg_site_welcome(d->hostaddr);
         if (fname && (*fname == '.')) {
             strcpy(buf, WELC_FILE);

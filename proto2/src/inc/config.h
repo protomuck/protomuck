@@ -103,7 +103,6 @@
  * and writes out a protomuck.pid file
  */
 
-
 #define DETACH
 
 // If you have problems compiling with DETACH defined, uncomment one
@@ -180,12 +179,9 @@
 /* all @tune options as before. */
 #undef W4_TUNEABLES
 
-/* Define to compile in HTTPD server WWW page support */
-#define HTTPD
-
-/* Define this to do proper delayed link references for HTTPD */
-/* The _/www:http://... links won't work on some clients without it. */
-#define HTTPDELAY
+/* Define this to compile in the new EXPERIMENTAL webserver. It will share all */
+/* it's other settings with the old webserver. They may both be compiled in.   */
+#define NEWHTTPD
 
 /* Define this to turn off the 'exiting insert mode' message in the
  * MUF editor for the picky programmer in you.
@@ -206,12 +202,6 @@
 /* Define this to set which server to use for e-mail registration.
  */
 #define MAILSERVER "mail.somewhere.com"
-
-/* Needed for a dummy load at startup.  Define to a small MIDI
- * somewhere which has the correct MIME type.  Preferably on
- * your local server.
- */
-#define DUMMYMIDI "http://www.somewhere.com/~user/asong.mid"
 
 /************************************************************************
    Game Options
@@ -362,10 +352,10 @@
 /* if do_memory() in wiz.c gives you problems compiling, define this */
 #define NO_MEMORY_COMMAND
 
-/* This gives some debug malloc profiling, but also eats some overhead,
+/* This gives some debug Bmalloc profiling, but also eats some overhead,
    so only define if your using it. */
 #undef MALLOC_PROFILING
-/* #undef CRT_DEBUG_ALSO TRUE */
+/* #define CRT_DEBUG_ALSO TRUE */
 
 /************************************************************************/
 /************************************************************************/

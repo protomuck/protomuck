@@ -1444,7 +1444,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
 /* copyprops():
  * Copy a property (sub)tree from one object to another. This is used by
  * the COPYPROPS primitive. Based muchly on FB6's copy_props function used
- * by @CLONE, with slight modifications to work with ProtoMUCK.  -Foxsteve
+ * by @CLONE, with slight modifications to work with ProtoMUCK.  -Hinoserm
  */
 int 
 copy_props(dbref source, dbref destination, const char *sourcedir, const char *destdir, int recurse) 
@@ -1466,7 +1466,6 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
 
         /* read property from source object */
         currprop = get_property(source, buf); 
-
 #ifdef DISKBASE 
         propfetch(source, currprop); 
 #endif

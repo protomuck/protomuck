@@ -5,7 +5,6 @@ extern const char *tp_dumpdeltas_mesg;
 extern const char *tp_dumping_mesg;
 extern const char *tp_dumpdone_mesg;
 
-extern const char *tp_dummy_midi;
 extern const char *tp_mailserver;
 extern const char *tp_servername;
 extern const char *tp_leave_message;
@@ -47,7 +46,6 @@ extern time_t tp_archive_interval;
 /* integers */
 
 extern int tp_textport;
-extern int tp_wwwport;
 extern int tp_puebloport;
 
 extern int tp_max_object_endowment;
@@ -86,6 +84,17 @@ extern int tp_mcp_muf_mlev;
 extern int tp_max_wiz_preempt_count;
 extern int tp_mysql_result_limit;
 
+#ifdef NEWHTTPD                 /* hinoserm */
+extern int tp_wwwport;          /* hinoserm */
+extern int tp_web_port;         /* hinoserm */
+extern int tp_web_logfile_lvl;  /* hinoserm */
+extern int tp_web_logwall_lvl;  /* hinoserm */
+extern int tp_web_htmuf_mlvl;   /* hinoserm */
+extern int tp_web_max_files;    /* hinoserm */
+extern int tp_web_max_filesize; /* hinoserm */
+extern int tp_web_max_users;    /* hinoserm */
+#endif                          /* hinoserm */
+
 /* dbrefs */
 extern dbref tp_quit_prog;
 extern dbref tp_login_who_prog;
@@ -94,11 +103,9 @@ extern dbref tp_reg_wiz;
 extern dbref tp_player_prototype;
 extern dbref tp_cron_prog;
 extern dbref tp_default_parent;
-#ifdef HTTPD
-extern dbref tp_www_root;
-extern dbref tp_www_surfer;
-#endif
-
+#ifdef NEWHTTPD                         /* hinoserm */
+extern dbref tp_www_root;               /* hinoserm */
+#endif                                  /* hinoserm */
 
 /* booleans */
 extern int tp_hostnames;
@@ -112,7 +119,6 @@ extern int tp_log_guests;
 extern int tp_log_files;
 extern int tp_log_sockets;
 extern int tp_log_failedhelp;
-extern int tp_logwall_www;
 extern int tp_dbdump_warning;
 extern int tp_deltadump_warning;
 extern int tp_periodic_program_purge;
@@ -167,6 +173,14 @@ extern int tp_socket_events;
 extern int tp_compatible_muf_perms;
 extern int tp_allow_unidle; 
 extern int tp_alt_infinity_handler;
+#ifdef NEWHTTPD                         /* hinoserm */
+extern int tp_web_allow_players;        /* hinoserm */
+extern int tp_web_allow_playerhtmuf;    /* hinoserm */
+extern int tp_web_allow_htmuf;          /* hinoserm */
+extern int tp_web_allow_vhosts;         /* hinoserm */
+extern int tp_web_allow_files;          /* hinoserm */
+extern int tp_web_allow_dirlist;        /* hinoserm */
+#endif
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
