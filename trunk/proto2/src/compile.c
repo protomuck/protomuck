@@ -1151,11 +1151,14 @@ OptimizeIntermediate(COMPSTATE *cstat)
 
                         /* int int % into Result */
                         if (IntermediateIsPrimitive(curr->next->next, ModNo)) {
-                            curr->in.data.number %= curr->next->in.data.number;
-                            RemoveNextIntermediate(cstat, curr);
-                            RemoveNextIntermediate(cstat, curr);
-                            advance = 0;
-                            break;
+                            if (curr->next->in.data.number != 0) {
+                                curr->in.data.number %= curr->next->in.data.
+                                    number;
+                                RemoveNextIntermediate(cstat, curr);
+                                RemoveNextIntermediate(cstat, curr);
+                                advance = 0;
+                                break;
+                            }
                         }       //end of % case 
                     }           //end of if PROG_INTEGER if
                 }               // end of 2 contiguous 
