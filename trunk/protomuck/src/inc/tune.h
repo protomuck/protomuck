@@ -154,6 +154,8 @@ extern int tp_quiet_connects;
 extern int tp_expanded_debug;
 extern int tp_proplist_int_counter;
 extern int tp_enable_mcp;
+extern int tp_enable_commandprops;
+extern int tp_old_parseprop;
 
 extern int tune_count_parms();
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);

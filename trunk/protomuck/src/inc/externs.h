@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.15 2000-11-23 20:21:30 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.16 2000-11-24 03:38:50 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.14  2000/11/12 08:37:12  akari
  * Added force_level prim.

@@ -617,7 +617,7 @@ process_command(int descr, dbref player, char *command)
 
 	strcpy(match_cmdname, command);
 	strcpy(match_args, full_command);
-        if (!( *command == OVERIDE_TOKEN && TMage(player) )) {
+        if (!( *command == OVERIDE_TOKEN && TMage(player) ) && tp_enable_commandprops) {
            if (prop_command(descr, player, command, full_command, "@command", 1))
                return;
            if (prop_command(descr, player, command, full_command, "@ocommand", 0))

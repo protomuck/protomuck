@@ -54,7 +54,7 @@ set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
 	FLAGS(player) |= LISTENER;
     }
 
-    if ((!(FLAG2(player) & F2COMMAND)) &&
+    if ( (!(FLAG2(player) & F2COMMAND) ) &&
 	    (string_prefix(type, "_command") ||
 	     string_prefix(type, "~command") ||
 	     string_prefix(type, "@command") ||
@@ -759,7 +759,8 @@ envprop_cmds(dbref *where, const char *propname, int typ)
 {
     PropPtr temp;
     while (*where != NOTHING) {
-      if ( typ ? 1 : ((FLAG2(*where) & F2COMMAND) && !(FLAG2(*where) & F2NO_COMMAND))) {
+      if ( typ ? 1 : ((FLAG2(*where) & F2COMMAND) && !(FLAG2(*where) & F2NO_COMMAND) &&
+                      ( (FLAGS(OWNER(*where)) & BUILDER) || (MLevel(OWNER(*where)) >= LMAGE) )) ) {
 	   temp = get_property(*where, propname);
 #ifdef DISKBASE
 	   if (temp) propfetch(*where, temp);

@@ -868,9 +868,11 @@ prim_set(PRIM_PROTOTYPE)
        if (!flag_set_perms(ref, tmp, mlev, ProgUID))
           abort_interp(tp_noperm_mesg);
        if (!result) {
+          ts_modifyobject(ref);
           FLAGS(ref) |= tmp;
           DBDIRTY(ref);
        } else {
+          ts_modifyobject(ref);
           FLAGS(ref) &= ~tmp;
           DBDIRTY(ref);
        }
@@ -878,9 +880,11 @@ prim_set(PRIM_PROTOTYPE)
        if (!flag_set_perms2(ref, tmp2, mlev))
           abort_interp(tp_noperm_mesg);
        if (!result) {
+          ts_modifyobject(ref);
           FLAG2(ref) |= tmp2;
           DBDIRTY(ref);
        } else {
+          ts_modifyobject(ref);
           FLAG2(ref) &= ~tmp2;
           DBDIRTY(ref);
        }

@@ -1311,12 +1311,16 @@ interp_err(dbref player, dbref program, struct inst *pc,
     if(FLAG2(origprog) & F2PARENT && OWNER(origprog) != player)
        notify_nolisten(OWNER(origprog), buf, 1);
 
+    log_status("MUF: %s\n", buf);
+
     errcount = get_property_value(origprog, ".debug/errcount");
     errcount++;
     add_property(origprog, ".debug/errcount", NULL, errcount);
     add_property(origprog, ".debug/lasterr", buf, 0);
     add_property(origprog, ".debug/lastcrash", NULL, (int)current_systime);
     add_property(origprog, ".debug/lastplayer", NULL, (int)player);
+    if(*match_cmdname)	add_property(origprog, ".debug/lastcmd", match_cmdname, 0);
+    if(*match_args)	add_property(origprog, ".debug/lastarg", match_args, 0);
 
     if (origprog != program) {
 	errcount = get_property_value(program, ".debug/errcount");
@@ -1325,6 +1329,7 @@ interp_err(dbref player, dbref program, struct inst *pc,
 	add_property(program, ".debug/lasterr", buf, 0);
 	add_property(program, ".debug/lastcrash", NULL, (int)current_systime);
       add_property(program, ".debug/lastplayer", NULL, (int)player);
+      add_property(program, ".debug/origprog", NULL, (int)origprog);
     }
 }
 

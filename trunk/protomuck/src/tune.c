@@ -293,6 +293,8 @@ int tp_quiet_connects              = 0;
 int tp_expanded_debug              = 0;
 int tp_proplist_int_counter        = 0;
 int tp_enable_mcp                  = 1;
+int tp_enable_commandprops         = 1;
+int tp_old_parseprop               = 0;
 
 struct tune_bool_entry {
     const char *name;
@@ -355,6 +357,8 @@ struct tune_bool_entry tune_bool_list[] =
     {"expanded_debug",         &tp_expanded_debug,           LARCH, LMUF },
     {"proplist_int_counter",   &tp_proplist_int_counter,     LARCH, LMUF },
     {"enable_mcp",             &tp_enable_mcp,               WBOY,  LMUF },
+    {"enable_commandprops",    &tp_enable_commandprops,      WBOY,  LMUF },
+    {"old_parseprop",          &tp_old_parseprop,            WBOY,  LMUF },
     {NULL, NULL, 0}
 };
 

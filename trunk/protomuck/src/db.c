@@ -891,7 +891,7 @@ skipproperties(FILE * f, dbref obj)
     } else {
 	FLAGS(obj) &= ~LISTENER;
     }
-    if (iscommand) {
+    if (iscommand) ) {
 	FLAG2(obj) |= F2COMMAND;
     } else {
 	FLAG2(obj) &= ~F2COMMAND;
