@@ -21,7 +21,7 @@
 #elif defined(HAVE_SYS_ERRNO_H)
 # include <sys/errno.h>
 #else
-  extern int errno;
+extern int errno;
 #endif
 #include <ctype.h>
 
@@ -116,6 +116,13 @@ void init_descr_count_lookup(void);
 void init_descriptor_lookup(void);
 void process_commands(void);
 void shovechars(void);
+
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+long descr_sendfile(struct descriptor_data *d, int start, int stop,
+                    const char *filename, int pid);
+void descr_sendfileblock(struct descriptor_data *d);
+void descr_fsenddisc(struct descriptor_data *d);
+#endif /* DESCRFILE_SUPPORT */
 
 char *time_format_1(time_t);
 
@@ -1661,10 +1668,10 @@ shovechars(void)
 
         for (d = descriptor_list; d; d = dnext) {
             dnext = d->next;
-#ifdef NEWHTTPD
-            if (d->http.file.fp)
-                http_sendfileblock(d);
-#endif /* NEWHTTPD */
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+            if (d->dfile)
+                descr_sendfileblock(d);
+#endif /* DESCRFILE_SUPPORT */
             /* booted = 3 means immediate clean drop */
             /* booted = 4 means safeboot -hinoserm */
             if (d->booted) {
@@ -1692,9 +1699,9 @@ shovechars(void)
                     if (d->type == CT_HTTP) {
                         struct frame *tmpfr;
 
-                        if ((tmpfr = timequeue_pid_frame(d->http.pid))
+                        if ((tmpfr = timequeue_pid_frame(d->http->pid))
                             && tmpfr->descr == d->descriptor)
-                            dequeue_process(d->http.pid);
+                            dequeue_process(d->http->pid);
                         dequeue_prog_descr(d->descriptor, 2);
                     }
                     if (!d->connected && (d->type != CT_HTTP)) /* quit from login screen (hinoserm changed) */
@@ -2001,6 +2008,117 @@ shovechars(void)
         add_property((dbref) 0, "_sys/shutdowntime", NULL, (int) now);
     }
 }
+
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+void
+descr_sendfileblock(struct descriptor_data *d)
+{
+    char buf[MAX_COMMAND_LEN + 2];
+    int x, r;
+
+    if (!d->dfile)
+        return;
+
+    if (d->dfile->size < 0) {
+        fclose(d->dfile->fp);
+        free((void *) d->dfile);
+        return;
+    }
+
+    for (x = 0; x < MAX_COMMAND_LEN; x++) {
+        if (d->dfile->sent + x >= d->dfile->size)
+            break;
+        if ((r = fgetc(d->dfile->fp)) == EOF)
+            break;
+        buf[x] = (char) r;
+    }
+
+    if (x) {
+        d->dfile->sent += x;
+        add_to_queue(&d->output, buf, x);
+        d->output_size += x;
+    }
+
+    if (d->dfile->sent >= d->dfile->size) {
+        fclose(d->dfile->fp);
+        if (d->dfile->pid == -1) {
+            httpfcount--;       /* This is in newhttp.c/newhttp.h */
+            d->booted = 4;
+        } else if (d->dfile->pid > 0 && in_timequeue(d->dfile->pid)) {
+            struct inst temp1;
+            struct frame *destfr = timequeue_pid_frame(d->dfile->pid);
+
+            if (destfr) {
+                temp1.type = PROG_INTEGER;
+                temp1.data.number = d->dfile->sent;
+                muf_event_add(destfr, "FILE.COMPLETE", &temp1, 0);
+                CLEAR(&temp1);
+            }
+        }
+        free((void *) d->dfile);
+        d->dfile = NULL;
+    }
+}
+
+long
+descr_sendfile(struct descriptor_data *d, int start, int stop,
+               const char *filename, int pid)
+{
+    FILE *fp;
+    long i, x;
+
+    if (d->dfile) {
+        return -2;
+    } else if ((fp = fopen(filename, "r"))) {
+        fseek(fp, 0, SEEK_END);
+        if ((x = start) < 0)
+            x = 0;
+        i = (int) ftell(fp);
+        if (stop >= 0 && stop < i)
+            i = stop;
+        if ((i -= x) < 0)
+            i = 0;
+
+        d->dfile = (struct dfile_struct *) malloc(sizeof(struct dfile_struct));
+        d->dfile->size = i;
+        d->dfile->pid = pid;
+        d->dfile->sent = 0;
+        d->dfile->fp = fp;
+        fseek(fp, x, SEEK_SET);
+        return i;
+    } else {
+        return -1;
+    }
+}
+
+/* descr_fsenddisc():                                                 */
+/*  This is called whenever a descr with a d->dfile is disconnected.  */
+/*   It does cleanup of the d->dfile struct and closes any files that */
+/*   might still be open.                                             */
+void
+descr_fsenddisc(struct descriptor_data *d)
+{
+    if (!d->dfile)
+        return;
+
+    if (d->dfile->pid > -1 && in_timequeue(d->dfile->pid)) {
+        struct inst temp1;
+        struct frame *destfr = timequeue_pid_frame(d->dfile->pid);
+
+        if (destfr) {
+            temp1.type = PROG_INTEGER;
+            temp1.data.number = d->dfile->sent;
+            muf_event_add(destfr, "FILE.INTERRUPT", &temp1, 0);
+            CLEAR(&temp1);
+        }
+    } else if (d->dfile->pid == -1)
+        httpfcount--;           /* This is in newhttp.c/newhttp.h */
+
+    fclose(d->dfile->fp);
+    free((void *) d->dfile);
+}
+
+#endif /* DESCRFILE_SUPPORT */
 
 
 void
@@ -2397,13 +2515,19 @@ shutdownsock(struct descriptor_data *d)
     *d->prev = d->next;
     if (d->next)
         d->next->prev = d->prev;
-    host_delete(d->hu);
 #ifdef MCP_SUPPORT
     mcp_frame_clear(&d->mcpframe);
 #endif
-#ifdef NEWHTTPD                 /* hinoserm */
-    http_deinitstruct(d);       /* hinoserm */
-#endif  /* NEWHTTPD */               /* hinoserm */
+#ifdef NEWHTTPD
+    if (d->http)
+        http_deinitstruct(d);
+#endif /* NEWHTTPD */
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+    if (d->dfile)
+        descr_fsenddisc(d);
+#endif /* DESCRFILE_SUPPORT */
+    host_delete(d->hu);
+
     FREE(d);
     ndescriptors--;
 }
@@ -2491,8 +2615,12 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     d->interactive = 0;
     d->idletime_set = tp_idletime;
 #ifdef NEWHTTPD
-    http_initstruct(d);         /* hinoserm */
+    d->http = NULL;
 #endif /* NEWHTTPD */
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+    d->dfile = NULL;
+#endif /* DESCRFILE_SUPPORT */
+
     if (descriptor_list)
         descriptor_list->prev = &d->next;
     d->next = descriptor_list;
@@ -2500,6 +2628,11 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     descriptor_list = d;
     if (remember_descriptor(d) < 0)
         d->booted = 1;          /* Drop the connection ASAP */
+
+#ifdef NEWHTTPD
+    if (ctype == CT_HTTP)
+        http_initstruct(d);     /* hinoserm */
+#endif /* NEWHTTPD */
 
     if (welcome
 #ifdef NEWHTTPD
@@ -2824,7 +2957,7 @@ process_input(struct descriptor_data *d)
             if (d->booted)
                 break;          /* There's a reason for this. */
             /* Do content stuff. */
-            if (d->http.body.elen) {
+            if (d->http->body.elen) {
                 if (http_processcontent(d, *q))
                     break;      /* Finished. */
 
@@ -3468,14 +3601,19 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                                                 /****/
+        if (d->next)                                                                                                                                                     /****/
             d->next->prev = d->prev;     /****/
-        host_delete(d->hu);
                                    /****/
 #ifdef NEWHTTPD
-        if (d->type == CT_HTTP) /* hinoserm */
-            http_deinitstruct(d); /* hinoserm */
+        if (d->http)
+            http_deinitstruct(d);
 #endif /* NEWHTTPD */
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+        if (d->dfile)
+            descr_fsenddisc(d);
+#endif /* DESCRFILE_SUPPORT */
+        host_delete(d->hu);
+
         FREE(d);                         /****/
         ndescriptors--;                  /****/
     }

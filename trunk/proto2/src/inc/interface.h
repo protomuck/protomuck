@@ -56,13 +56,6 @@ struct http_field {
 };
 
 struct http_struct {        /* hinoserm */  /************************************/
-    struct {                                /* File struct.                     */
-        FILE                *fp;            /* File handle for file transfers.  */
-        int                  size;          /* File size for file transfers.    */
-        int                  sent;          /* File amount sent for file trans. */
-        int                  ishttp;        /* Being used by the HTTP server.   */
-        int                  pid;           /* Pid of process that sent the file*/
-    } file;                                 /************************************/
     struct http_method      *smethod;       /* The method, in struct form.      */
     struct http_field       *fields;        /* The fields linked-list.          */
     char                    *rootdir;       /* The propdir the data is in.      */
@@ -84,9 +77,20 @@ struct http_struct {        /* hinoserm */  /***********************************
 
 #endif /* NEWHTTPD */
 
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+
+struct dfile_struct {       /* hinoserm */  /************************************/
+    FILE                    *fp;            /* File handle for file transfers.  */
+    size_t                   size;          /* File size for file transfers.    */
+    size_t                   sent;          /* File amount sent for file trans. */
+    int                      pid;           /* Pid of process that sent the file*/
+};                          /* hinoserm */  /************************************/
+
+#endif /* DESCRFILE_SUPPORT */
+
 /*- End hinoserm new code -*/
 
-struct huinfo; /* from newresolv.h -hinoserm */
+struct huinfo; /* from netresolve.h -hinoserm */
 
 struct descriptor_data {
     int                      descriptor;    /* Descriptor number */
@@ -133,10 +137,14 @@ struct descriptor_data {
     McpFrame                 mcpframe;      /* Muck-To-Client protocal information */
 #endif
 #ifdef NEWHTTPD
-    struct http_struct       http;          /* hinoserm: Struct for webserver stuff */
+    struct http_struct      *http;          /* hinoserm: Struct for webserver stuff */
 #endif /* NEWHTTPD */
-};
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+    struct dfile_struct     *dfile;         /* hinoserm: Used by descr_sendfile and newhttpd */
+#endif
 
+
+};
 
 #define DF_HTML          0x1 /* Connected to the internal WEB server. -- UNIMPLEMENTED */
 #define DF_PUEBLO        0x2 /* Allows for HTML/Pueblo extentions on a connected port. -- UNIMPLEMENTED */
@@ -288,6 +296,10 @@ extern void close_sockets(const char *msg);
 extern char ignorance(register dbref src, dbref tgt);
 extern void init_ignore(dbref tgt);
 #endif
+#if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
+extern void descr_sendfileblock(struct descriptor_data *d);
+extern long descr_sendfile(struct descriptor_data *d, int start, int stop, const char *filename, int pid);
+#endif /* DESCRFILE_SUPPORT */
 
 /* the following symbols are provided by game.c */
 

@@ -535,11 +535,11 @@ struct muf_socket {             /* struct for MUF socket data */
    int commands;                /* number of commands entered. */
    int port;                    /* port number that LSOCKET is listening on */
    int usequeue;                /* toggles recieve buffer behavior */
-   int usesmartqueue;          /* makes the socket completely telnet savy */
+   int usesmartqueue;           /* makes the socket completely telnet savy */
    int is_player;               /* means to not close the socket when clearing*/
    int readWaiting;             /* to support socket events */
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
-    SSL *ssl_session;                /* SSL session data                             */
+    SSL *ssl_session;           /* SSL session data                             */
 #endif
 };
 
@@ -686,22 +686,52 @@ struct mufwatchpidlist {
 #define STD_SETUID  1
 #define STD_HARDUID 2
 
+/* stuff for MUF "interrupts" */
+struct muf_interrupt { /* linked list of addresses and event ID names from ONEVENT */
+    struct inst  *addr;  /* the 'funcname address */
+    char         *event; /* event ID string to wait for */
+    char         *id;    /* this interrupt's ID name */
+    struct muf_interrupt *next; /* next element */
+    struct muf_interrupt *prev; /* previous element */
+};
+
+struct muf_ainterrupt { /* active interrupts */
+    struct muf_interrupt *interrupt; /* the interrupt */
+    struct inst *ret;     /* where to return */
+    struct muf_ainterrupt *next;
+};
+
+struct muf_qitem { /* queue item to put back later */
+    char type; /* queue type. 1 = eq, 2 = tq */
+    union {
+        struct mufevent_process *eq; /* any mufeventqueue item that was in place when this interrupt was thrown */
+        struct timenode         *tq; /* any timequeue item that was in place */
+    };
+};
+
 /* frame data structure necessary for executing programs */
 struct frame {
     struct frame *next;
+    struct muf_interrupt *interrupts; /* linked list of MUF interrupts */ 
+    struct muf_ainterrupt *ainttop; /* active interrupts, top of list */
+    struct muf_ainterrupt *aintbot; /* active interrupts, bottom of list */
+    struct muf_qitem      *qitem;   /* queue item, if any, to return later. */
     struct sysstack system;         /* system stack */
     struct stack argument;          /* argument stack */
     struct callstack caller;        /* caller prog stack */
     struct forstack fors;           /* for loop stack */
     struct trystack trys;           /* try block stack */
     struct localvars* lvars;        /* local variables */
+    short   use_interrupts;         /* ==1 if interrupts are enabled for this program */
     vars    variables;              /* global variables */
-    struct inst *pc;                /* next executing instruction */
+    struct inst *pc;                /* next executing instruction */ 
     int     writeonly;              /* This program should not do reads */
     int     multitask;              /* This program's multitasking mode */
     int     perms;                  /* permissions restrictions on program */
     int     level;                  /* prevent interp call loops */
     int     preemptlimit;           /* cap preempt insts in _/instlimit prop */
+    int     interrupt_count;        /* number of interrupts thrown */
+    int     interrupted;            /* level of interrupts the program is currently in */
     short   already_created;        /* this prog already created an object */
     short   been_background;        /* this prog has run in the background */
     short   skip_declare;           /* tells interp to skip next scoped var decl */
@@ -713,9 +743,9 @@ struct frame {
     int     instcnt;                /* How many instructions have run. */
     int     timercount;             /* How many timers currently exist. */
     int     pid;                    /* what is the process id? */
-    char    *errorstr;             /* the error string thrown */
-    char    *errorinst;            /* the instruction name that threw an error */
-    dbref   errorprog;             /* the program that threw an error */
+    char    *errorstr;              /* the error string thrown */
+    char    *errorinst;             /* the instruction name that threw an error */
+    dbref   errorprog;              /* the program that threw an error */
     int     errorline;              /* the program line that threw an error */
     int     aborted;                /* indicates program aborted */
     int     descr;                  /* Descriptor of running player */
@@ -727,17 +757,17 @@ struct frame {
     struct timeval totaltime;       /* profiling timing code */
     struct dlogidlist *dlogids;     /* List of dlogids this frame uses. */
     struct mufwatchpidlist *waiters;
-     struct mufwatchpidlist *waitees;
-	union {
-		struct {
-			unsigned int div_zero:1;	/* Divide by zero */
-			unsigned int nan:1;	/* Result would not be a number */
-			unsigned int imaginary:1;	/* Result would be imaginary */
-			unsigned int f_bounds:1;	/* Float boundary error */
-			unsigned int i_bounds:1;	/* Integer boundary error */
-		} error_flags;
-		int is_flags;
-	} error;
+    struct mufwatchpidlist *waitees;
+    union {
+            struct {
+            unsigned int div_zero:1;	/* Divide by zero */
+            unsigned int nan:1;         /* Result would not be a number */
+            unsigned int imaginary:1;	/* Result would be imaginary */
+            unsigned int f_bounds:1;	/* Float boundary error */
+            unsigned int i_bounds:1;	/* Integer boundary error */
+        } error_flags;
+        int is_flags;
+    } error;
 };
 
 

@@ -536,6 +536,13 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->descr = descr;
     fr->multitask = nosleeps;
     fr->perms = whichperms;
+    fr->use_interrupts = 0;
+    fr->interrupt_count = 0;
+    fr->interrupts = NULL;
+    fr->ainttop = NULL;
+    fr->aintbot = NULL;
+    fr->qitem = NULL;
+    fr->interrupted = 0;
     fr->already_created = 0;
     fr->been_background = (nosleeps == 2);
     fr->trig = source;
@@ -600,6 +607,9 @@ interp(int descr, dbref player, dbref location, dbref program,
         fr->variables[i].type = PROG_INTEGER;
         fr->variables[i].data.number = 0;
     }
+
+//    for (i = 0; i < STACK_SIZE; i++)
+//        fr->system.st[i].stopat = 0;
 
     fr->brkpt.force_debugging = 0;
     fr->brkpt.debugging = 0;
@@ -847,7 +857,9 @@ watchpid_process(struct frame *fr)
     }
 }
 
+#ifdef MUF_SOCKETS
 extern void muf_socket_clean(struct frame *fr); /* in p_socket.c */
+#endif /* MUF_SOCKETS */
 
 /* clean up the stack. */
 void
@@ -875,8 +887,9 @@ prog_clean(struct frame *fr)
         add_property(fr->prog, "~muf/who", NULL, fr->player);
         add_property(fr->prog, "~muf/trig", NULL, fr->trig);
     }
-
+#ifdef MUF_SOCKETS
     muf_socket_clean(fr);
+#endif /* MUF_SOCKETS */
 
     for (ptr = free_frames_list; ptr; ptr = ptr->next) {
         if (ptr == fr) {
@@ -957,12 +970,13 @@ prog_clean(struct frame *fr)
 
     dequeue_timers(fr->pid, NULL);
     muf_event_purge(fr);
+    muf_interrupt_clean(fr);
+    //muf_event_dequeue_frame(fr);
     fr->pid = 0;                /* cleared to keep socket events from hitting it again */
     fr->next = free_frames_list;
     free_frames_list = fr;
     err = 0;
 }
-
 
 void
 reload(struct frame *fr, int atop, int stop)
@@ -1110,17 +1124,19 @@ do_abort_loop(dbref player, dbref program, const char *msg,
         }
     }
 */
-       if (fr->trys.top) {
-               fr->errorstr = string_dup(msg);
-               fr->errorinst = string_dup(insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program));
-               fr->errorline = pc->line;
-               fr->errorprog = program;
-               err++;
-       } else {
-               if (pc) {
-                       calc_profile_timing(program, fr);
-               }
-       }
+    if (fr->trys.top) {
+        fr->errorstr = string_dup(msg);
+        fr->errorinst =
+            string_dup(insttotext
+                       (fr, 0, pc, buffer, sizeof(buffer), 30, program));
+        fr->errorline = pc->line;
+        fr->errorprog = program;
+        err++;
+    } else {
+        if (pc) {
+            calc_profile_timing(program, fr);
+        }
+    }
 
     if (clinst1)
         CLEAR(clinst1);
@@ -1235,6 +1251,18 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
     while (stop) {
         fr->instcnt++;
         instr_count++;
+
+        /* if there's an interrupt in queue && it hasn't had it's return set yet... */
+        if (fr->ainttop && !fr->ainttop->ret) {
+            sys[stop].progref = program;
+            sys[stop++].offset = pc; /* create return point for EXIT */
+            fr->ainttop->ret = pc; /* store program's current execution point. */
+            pc = fr->ainttop->interrupt->addr; /* change program's current execution point */
+            fr->interrupted++;
+            fr->interrupt_count++;
+            //log_status("muf_interrupt_interp():  %p\n", fr->ainttop); /* For debugging. */
+        }
+
         if (fr->preemptlimit)
             if (fr->instcnt > fr->preemptlimit)
                 abort_loop("Program specific instruction limit exceeded.", NULL,
@@ -1750,10 +1778,40 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         }
                         scopedvar_poplevel(fr);
                         pc = sys[--stop].offset;
+
+                        if (fr->ainttop && fr->ainttop->ret == pc) {
+                            if (muf_interrupt_exit(fr)) {
+                                /* if this function above returns a true value, it   */
+                                /*  means there was a timequeue item stored for this */
+                                /*  program, and it has already been restored into   */
+                                /*  the queue.  We need to stop program execution so */
+                                /*  that the new queue item can kick in next cycle.  */
+
+                                reload(fr, atop, stop);
+                                fr->pc = pc;
+
+                                if (OkObj(player)) {
+                                    DBSTORE(player, sp.player.block,
+                                            (!fr->been_background));
+                                } else {
+                                    if ((curdescr =
+                                         get_descr(fr->descr, NOTHING)))
+                                        curdescr->block =
+                                            !(fr->been_background);
+                                }
+
+                                fr->level--;
+                                calc_profile_timing(program, fr);
+                                return NULL;
+                            }
+                            /* a queuetype change wasn't needed, so we'll just keep */
+                            /*  running the program normally.                       */
+                        }
+
                         break;
 
                     case IN_CATCH:
-		    case IN_CATCH_DETAILED:
+                    case IN_CATCH_DETAILED:
                     {
                         int depth;
 
@@ -2023,6 +2081,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                     ("Program internal error. Unknown instruction type.", NULL,
                      NULL);
         }                       /* switch */
+
         if (err) {
             if (fr->trys.top) {
                 while (fr->trys.st->call_level < stop) {
@@ -2156,8 +2215,6 @@ interp_err(dbref player, dbref program, struct inst *pc,
         add_property(program, ".debug/origprog", NULL, (int) origprog);
     }
 }
-
-
 
 void
 push(struct inst *stack, int *top, int type, voidptr res)
@@ -2358,7 +2415,9 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
 
     if (fr->trys.top) {
         fr->errorstr = string_dup(msg);
-        fr->errorinst = string_dup(insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program));
+        fr->errorinst =
+            string_dup(insttotext
+                       (fr, 0, pc, buffer, sizeof(buffer), 30, program));
         fr->errorline = pc->line;
         fr->errorprog = program;
         err++;

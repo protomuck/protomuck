@@ -20,25 +20,6 @@
 #include <sys/types.h>
 #include <time.h>
 
-
-#define TQ_MUF_TYP 0
-#define TQ_MPI_TYP 1
-
-#define TQ_MUF_QUEUE    0x0
-#define TQ_MUF_DELAY    0x1
-#define TQ_MUF_LISTEN   0x2
-#define TQ_MUF_READ     0x3
-#define TQ_MUF_TREAD    0x4
-#define TQ_MUF_TIMER    0x5
-
-#define TQ_MPI_QUEUE    0x0
-#define TQ_MPI_DELAY    0x1
-
-#define TQ_MPI_SUBMASK  0x7
-#define TQ_MPI_LISTEN   0x8
-#define TQ_MPI_OMESG   0x10
-
-
 /*
  * Events types and data:
  *  What, typ, sub, when, user, where, trig, prog, frame, str1, cmdstr, str3
@@ -58,7 +39,7 @@
 
 /* definition for struct timenode moved to externs.h */
 
-static timequeue tqhead = NULL;
+timequeue tqhead = NULL;
 
 void prog_clean(struct frame *fr);
 int has_refs(dbref program, timequeue ptr);
@@ -110,7 +91,7 @@ alloc_timenode(int typ, int subtyp, time_t mytime, int descr, dbref player,
     return (ptr);
 }
 
-static void
+void
 free_timenode(timequeue ptr)
 {
     struct descriptor_data *curdescr;
@@ -176,23 +157,22 @@ purge_timenode_free_pool()
 }
 
 int
-control_process(dbref player, int count)
+control_process(dbref player, int pid)
 {
     timequeue tmp, ptr = tqhead;
 
     tmp = ptr;
-    while ((ptr) && (count != ptr->eventnum)) {
+    while ((ptr) && (pid != ptr->eventnum)) {
         tmp = ptr;
         ptr = ptr->next;
     }
 
-    if (!ptr) {
-        return muf_event_controls(player, count);
-    }
+    if (!ptr)
+        return muf_event_controls(player, pid);
 
-    if (!controls(player, ptr->called_prog) && !controls(player, ptr->trig)) {
+    if (!controls(player, ptr->called_prog) && !controls(player, ptr->trig))
         return 0;
-    }
+
     return 1;
 }
 
@@ -433,7 +413,7 @@ handle_read_event(int descr, dbref player, const char *command,
         ptr = ptr->next;
     }
     if (event)
-        ptr = event;            /* pointer now points to the passed TREAD event. */ 
+        ptr = event;            /* pointer now points to the passed TREAD event. */
     /* When execution gets to here, either ptr will point to the
      * READ event for the player, or else ptr will be NULL.
      */
@@ -697,6 +677,21 @@ in_timequeue(int pid)
     return 0;
 }
 
+int
+in_timequeue_only(int pid)
+{
+    timequeue ptr = tqhead;
+
+    if (!pid)
+        return 0;
+    if (!tqhead)
+        return 0;
+    while ((ptr) && (ptr->eventnum != pid))
+        ptr = ptr->next;
+    if (ptr)
+        return 1;
+    return 0;
+}
 
 struct frame *
 timequeue_pid_frame(int pid)
@@ -1173,7 +1168,6 @@ dequeue_process(int pid)
 
     return 1;
 }
-
 
 int
 dequeue_timers(int pid, char *id)

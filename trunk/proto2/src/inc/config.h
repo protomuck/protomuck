@@ -75,6 +75,12 @@
 /* Enable extensive hostname cache debugging */
 #undef HOSTCACHE_DEBUG
 
+/* Define this to enable the DESCR_SENDFILE primitive.  If this is
+ *  disabled and NEWHTTPD is disabled, the descr file send functions
+ *  in interface.c will be left out altogether.  -Hinoserm
+ */
+#define DESCRFILE_SUPPORT
+
 /* Alynna - Define this to have support for the @/ignore prop, a reflist
    on a player which will drop notifies from the players in the prop to
    the player specified.

@@ -71,8 +71,8 @@ static char index_64[128] = {
     41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
 };
 
-int httpucount = 0;
-int httpfcount = 0;
+unsigned int httpucount = 0;    /* number of total HTTP users */
+unsigned int httpfcount = 0;    /* number of total HTTP file transfers */
 
 struct http_statstruct http_statcodes[] = {
     {100, "Continue"},
@@ -282,7 +282,7 @@ http_mimelookup(const char *ext)
 struct http_field *
 http_fieldlookup(struct descriptor_data *d, const char *field)
 {
-    struct http_field *f = d->http.fields;
+    struct http_field *f = d->http->fields;
 
     while (f && !(f->field && !string_compare(f->field, field)))
         f = f->next;
@@ -298,7 +298,7 @@ http_gethost(struct descriptor_data *d)
 {
     struct http_field *f;
 
-    if (d->http.fields && (f = http_fieldlookup(d, "Host")) && f->data
+    if (d->http->fields && (f = http_fieldlookup(d, "Host")) && f->data
         && *f->data) {
         return f->data;
     } else {
@@ -394,8 +394,8 @@ http_senderror(struct descriptor_data *d, int statcode, const char *msg)
 
     free((void *) host);
 
-    d->http.body.elen = 0;
-    d->http.body.len = 0;
+    d->http->body.elen = 0;
+    d->http->body.len = 0;
     d->booted = 4;
     return;
 }
@@ -504,7 +504,7 @@ char *
 http_parsempi(struct descriptor_data *d, dbref what, const char *yerf,
               char *buf)
 {
-    d->http.flags |= HS_MPI;
+    d->http->flags |= HS_MPI;
 
     if (yerf)
         return (do_parse_mesg
@@ -523,14 +523,14 @@ http_parsedest(struct descriptor_data *d)
     const char *s;
     dbref ref = NOTHING;
 
-    strcpy(buf, d->http.dest);
+    strcpy(buf, d->http->dest);
     cgi = http_split(buf, '?');
 
     for (p = buf; *p && *p == '/'; p++) ;
     unescape_url(p);
 
     if (tp_web_allow_vhosts && OkObj(tp_www_root)
-        && (d->http.smethod->flags & HS_VHOST)) {
+        && (d->http->smethod->flags & HS_VHOST)) {
         char *host = alloc_string(http_gethost(d));
 
         http_split(host, ':');
@@ -545,7 +545,7 @@ http_parsedest(struct descriptor_data *d)
 
             dir = alloc_string(s);
             if (OkObj(ref) || dir)
-                d->http.flags |= HS_VHOST;
+                d->http->flags |= HS_VHOST;
         }
 
         /* else { */
@@ -556,8 +556,8 @@ http_parsedest(struct descriptor_data *d)
     }
 
     if (tp_web_allow_players && *p == '~'
-        && (d->http.smethod->flags & HS_PLAYER)
-        && !(d->http.flags & HS_VHOST)) {
+        && (d->http->smethod->flags & HS_PLAYER)
+        && !(d->http->flags & HS_VHOST)) {
         p++;
         q = http_split(p, '/');
         http_log(d, 4, "PLAYER:  '%s'\n", p);
@@ -567,7 +567,7 @@ http_parsedest(struct descriptor_data *d)
             http_senderror(d, 404, "Player not found.");
             return 1;
         }
-        d->http.flags |= HS_PLAYER;
+        d->http->flags |= HS_PLAYER;
         p = q;
     }
 
@@ -575,19 +575,19 @@ http_parsedest(struct descriptor_data *d)
         ref = tp_www_root;
 
     if (dir)
-        d->http.rootdir = dir;
+        d->http->rootdir = dir;
     else
-        d->http.rootdir = string_dup("/_/www");
+        d->http->rootdir = string_dup("/_/www");
 
-    d->http.cgidata = string_dup(cgi);
-    d->http.newdest = string_dup(p);
-    d->http.rootobj = ref;
+    d->http->cgidata = string_dup(cgi);
+    d->http->newdest = string_dup(p);
+    d->http->rootobj = ref;
 
-    /* http_log(d, 3, "URL:     '%s'\n", d->http.newdest); */
-    http_log(d, 4, "ROOTOBJ: '%s'\n", unparse_object(1, d->http.rootobj));
-    http_log(d, 4, "ROOTDIR: '%s'\n", d->http.rootdir);
+    /* http_log(d, 3, "URL:     '%s'\n", d->http->newdest); */
+    http_log(d, 4, "ROOTOBJ: '%s'\n", unparse_object(1, d->http->rootobj));
+    http_log(d, 4, "ROOTDIR: '%s'\n", d->http->rootdir);
     if (cgi && *cgi)
-        http_log(d, 5, "CGIDATA: '%s'\n", d->http.cgidata);
+        http_log(d, 5, "CGIDATA: '%s'\n", d->http->cgidata);
 
     return 0;
 
@@ -647,7 +647,7 @@ stk_array *
 http_makearray(struct descriptor_data *d)
 {
     stk_array *nw = new_array_dictionary();
-    char *p = d->http.body.data;
+    char *p = d->http->body.data;
 
     array_set_strkey_intval(&nw, "DESCR", d->descriptor);
     array_set_strkey_intval(&nw, "CONNECTED", d->connected);
@@ -658,33 +658,33 @@ http_makearray(struct descriptor_data *d)
     array_set_strkey_intval(&nw, "PORT", d->cport);
     array_set_strkey_strval(&nw, "HOSTNAME", d->hu->h->name);
     array_set_strkey_strval(&nw, "USERNAME", d->hu->u->user);
-    array_set_strkey_strval(&nw, "Method", d->http.method);
-    array_set_strkey_strval(&nw, "TheDEST", d->http.dest);
-    array_set_strkey_strval(&nw, "HTTPVer", d->http.ver);
+    array_set_strkey_strval(&nw, "Method", d->http->method);
+    array_set_strkey_strval(&nw, "TheDEST", d->http->dest);
+    array_set_strkey_strval(&nw, "HTTPVer", d->http->ver);
     array_set_strkey_intval(&nw, "SID", d->descriptor);
-    array_set_strkey_intval(&nw, "Flags", d->http.flags);
+    array_set_strkey_intval(&nw, "Flags", d->http->flags);
 
-    if ((d->http.smethod->flags & HS_BODY) && d->http.body.len && p) {
-        array_set_strkey_intval(&nw, "BODYLen", d->http.body.len);
+    if ((d->http->smethod->flags & HS_BODY) && d->http->body.len && p) {
+        array_set_strkey_intval(&nw, "BODYLen", d->http->body.len);
         if (strlen(p) < BUFFER_LEN)
             array_set_strkey_strval(&nw, "BODY", p);
         array_set_strkey_arrval(&nw, "POSTData", http_formarray(p));
     }
 
-    if (d->http.cgidata && strlen(d->http.cgidata) < BUFFER_LEN) {
-        array_set_strkey_strval(&nw, "CGIParams", d->http.cgidata);
-        if (*d->http.cgidata)
+    if (d->http->cgidata && strlen(d->http->cgidata) < BUFFER_LEN) {
+        array_set_strkey_strval(&nw, "CGIParams", d->http->cgidata);
+        if (*d->http->cgidata)
             array_set_strkey_arrval(&nw, "CGIData",
-                                    http_formarray(d->http.cgidata));
+                                    http_formarray(d->http->cgidata));
     }
 
-    if (d->http.fields) {
+    if (d->http->fields) {
         struct inst temp1;
         struct http_field *f;
         stk_array *nw2 = new_array_packed(0);
         stk_array *nw3 = new_array_dictionary();
 
-        for (f = d->http.fields; f; f = f->next) {
+        for (f = d->http->fields; f; f = f->next) {
             if (f->field && f->data && strlen(f->data) < BUFFER_LEN) {
                 temp1.type = PROG_STRING;
                 temp1.data.string = alloc_prog_string(f->field);
@@ -728,7 +728,7 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
     if (*prop && (Prop_Hidden(prop) || Prop_Private(prop)))
         return 0;
 
-    if ((ref = smart_prop_getref(d->http.rootobj, prop)) < 0)
+    if ((ref = smart_prop_getref(d->http->rootobj, prop)) < 0)
         return 0;
 
     if (!OkObj(ref)) {
@@ -737,7 +737,7 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
     } else if (Typeof(ref) != TYPE_PROGRAM) {
         http_senderror(d, 415, "Dbref not of type program.");
         return 1;
-    } else if (!tp_web_allow_playerhtmuf && (d->http.flags & HS_PLAYER)) {
+    } else if (!tp_web_allow_playerhtmuf && (d->http->flags & HS_PLAYER)) {
         http_senderror(d, 403, "Player HTMuf programs are currently disabled.");
         return 1;
     }
@@ -767,7 +767,7 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
     else
         strcpy(buf, "text/html");
 
-    d->http.flags |= HS_HTMUF;
+    d->http->flags |= HS_HTMUF;
 
     /* Send the header. */
     if (string_compare(buf, "noheader"))
@@ -775,11 +775,11 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
 
     /* Do it! */
     sprintf(match_args, "%d|%s|%s|%s", d->descriptor, d->hu->h->name,
-            d->hu->u->user, d->http.cgidata);
+            d->hu->u->user, d->http->cgidata);
     strcpy(match_cmdname, "(WWW)");
     tmpfr =
-        interp(d->descriptor, player, NOTHING, ref, d->http.rootobj, BACKGROUND,
-               STD_HARDUID, 0);
+        interp(d->descriptor, player, NOTHING, ref, d->http->rootobj,
+               BACKGROUND, STD_HARDUID, 0);
     if (tmpfr) {
         struct inst temp1;
         stk_array *nw = new_array_dictionary();
@@ -799,7 +799,7 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
 
         interp_loop(player, ref, tmpfr, 1);
 
-        d->http.pid = tmpfr->pid;
+        d->http->pid = tmpfr->pid;
     }
     d->booted = 4;
     return 1;
@@ -840,7 +840,7 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
     else
         strcpy(buf, "text/html");
 
-    d->http.flags |= HS_PROPLIST;
+    d->http->flags |= HS_PROPLIST;
     /* Send the header. */
     if (string_compare(buf, "noheader"))
         http_sendheader(d, statcode, buf, -1);
@@ -860,100 +860,21 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
     return i;
 }
 
-void
-http_sendfileblock(struct descriptor_data *d)
-{
-    char buf[MAX_COMMAND_LEN + 2];
-    int x, r;
-
-    if (!d->http.file.fp || d->http.file.size < 0)
-        return;
-
-    for (x = 0; x < MAX_COMMAND_LEN; x++) {
-        if (d->http.file.sent + x >= d->http.file.size)
-            break;
-        if ((r = fgetc(d->http.file.fp)) == EOF)
-            break;
-        buf[x] = (char) r;
-    }
-
-    if (x) {
-        d->http.file.sent += x;
-        add_to_queue(&d->output, buf, x);
-        d->output_size += x;
-    }
-
-    if (d->http.file.sent >= d->http.file.size) {
-        fclose(d->http.file.fp);
-        d->http.file.fp = NULL;
-        d->http.file.size = 0;
-        if (d->http.file.ishttp) {
-            httpfcount--;
-            d->booted = 4;
-        } else if (d->http.file.pid && in_timequeue(d->http.file.pid)) {
-            struct inst temp1;
-            struct frame *destfr = timequeue_pid_frame(d->http.file.pid);
-
-            if (destfr) {
-                temp1.type = PROG_INTEGER;
-                temp1.data.number = d->http.file.sent;
-                muf_event_add(destfr, "FILE.COMPLETE", &temp1, 0);
-                CLEAR(&temp1);
-            }
-        }
-        d->http.file.ishttp = 0;
-        d->http.file.sent = 0;
-    }
-}
-
-int
-descr_sendfile(struct descriptor_data *d, int start, int stop,
-               const char *filename)
-{
-    FILE *fp;
-    int i, x;
-
-    if (d->http.file.fp) {
-        return -2;
-    } else if ((fp = fopen(filename, "r"))) {
-        fseek(fp, 0, SEEK_END);
-        if ((x = start) < 0)
-            x = 0;
-        i = (int) ftell(fp);
-        if (stop >= 0 && stop < i)
-            i = stop;
-        if ((i -= x) < 0)
-            i = 0;
-        d->http.file.size = i;
-        d->http.file.sent = 0;
-        d->http.file.fp = fp;
-        fseek(fp, x, SEEK_SET);
-        return i;
-    } else {
-        return -1;
-    }
-}
-
 int
 http_sendfile(struct descriptor_data *d, const char *filename)
 {
     const char *p, *type;
+    long i;
 
     if (tp_web_max_files && (httpfcount + 1) > tp_web_max_files) {
         http_senderror(d, 503, "Too many file transfers.");
         return 1;
     }
 
-    d->http.file.ishttp = 1;
-    d->http.file.pid = 0;
-
-    if (descr_sendfile(d, -1, -1, filename) < 0)
+    if ((i = descr_sendfile(d, -1, -1, filename, -1)) < 0)
         return 0;
 
-    if (tp_web_max_filesize
-        && d->http.file.size > (tp_web_max_filesize * 1024L)) {
-        fclose(d->http.file.fp);
-        d->http.file.fp = NULL;
+    if (tp_web_max_filesize && i > (tp_web_max_filesize * 1024L)) {
         http_senderror(d, 500, "Requested file too large.");
         return 1;
     }
@@ -969,8 +890,8 @@ http_sendfile(struct descriptor_data *d, const char *filename)
 
     /* This should send out proper file dates. */
 
-    http_sendheader(d, 200, type, d->http.file.size);
-    http_sendfileblock(d);
+    http_sendheader(d, 200, type, i);
+    descr_sendfileblock(d);
 
     return 1;
 }
@@ -1010,7 +931,7 @@ http_listdir(struct descriptor_data *d, const char *dir, DIR * df)
                "<html><head>\r\n<title>Index of /%s</title>\r\n</head><body>"
                "\r\n<h1>Index of /%s</h1>\r\n<pre>   Name                    "
                "       Last modified           Size<hr />\r\n",
-               d->http.newdest, d->http.newdest);
+               d->http->newdest, d->http->newdest);
 
     while ((dp = readdir(df))) {
         if (*(dp->d_name) != '.') {
@@ -1022,7 +943,7 @@ http_listdir(struct descriptor_data *d, const char *dir, DIR * df)
                 strcpy(buf2, "-");
                 strcpy(tbuf, "");
             } else {
-                sprintf(buf2, "%s/%s%s", HTTP_DIR, d->http.newdest, buf);
+                sprintf(buf2, "%s/%s%s", HTTP_DIR, d->http->newdest, buf);
                 if (!stat(buf2, &fs)) {
                     sprintf(buf2, "%d", (int) fs.st_size);
                     format_time(tbuf, 40, "%d-%b-%Y %H:%M\0",
@@ -1032,7 +953,7 @@ http_listdir(struct descriptor_data *d, const char *dir, DIR * df)
                 }
             }
 
-            sprintf(url, "/%s%s", d->http.newdest, buf);
+            sprintf(url, "/%s%s", d->http->newdest, buf);
             escape_url(buf3, url);
             i = 30 - strlen(buf);
             queue_text(d, "   <a href=\"%s\">%s</a>%-*s %-24s %s\r\n", buf3,
@@ -1053,27 +974,27 @@ http_dofile(struct descriptor_data *d)
     int i = 0;
     DIR *df;
 
-    if (strstr(d->http.newdest, "..") != NULL)
+    if (strstr(d->http->newdest, "..") != NULL)
         return 0;
 
-    if ((i = strlen(d->http.newdest)) > BUFFER_LEN)
+    if ((i = strlen(d->http->newdest)) > BUFFER_LEN)
         return 0;
 
-    if (!*d->http.newdest || (i && d->http.newdest[i - 1] == '/')) {
+    if (!*d->http->newdest || (i && d->http->newdest[i - 1] == '/')) {
         for (; *m; m++) {
             if (**m) {
-                sprintf(buf, "%s/%s%s", HTTP_DIR, d->http.newdest, *m);
+                sprintf(buf, "%s/%s%s", HTTP_DIR, d->http->newdest, *m);
                 if ((i = http_sendfile(d, buf)))
                     return i;
             }
         }
     }
 
-    sprintf(buf, "%s/%s", HTTP_DIR, d->http.newdest);
+    sprintf(buf, "%s/%s", HTTP_DIR, d->http->newdest);
 
     if ((df = opendir(buf))) {
-        if (i && d->http.newdest[i - 1] != '/') {
-            sprintf(buf, "http://%s/%s/", http_gethost(d), d->http.newdest);
+        if (i && d->http->newdest[i - 1] != '/') {
+            sprintf(buf, "http://%s/%s/", http_gethost(d), d->http->newdest);
             http_sendredirect(d, buf);
         } else {
             http_listdir(d, buf, df);
@@ -1093,14 +1014,14 @@ http_doprop(struct descriptor_data *d, const char *prop)
     char buf[BUFFER_LEN];
     const char *m, *s;
 
-    if (!OkObj(d->http.rootobj))
+    if (!OkObj(d->http->rootobj))
         return 0;
 
     if (*prop && (Prop_Hidden(prop) || Prop_Private(prop)))
         return 0;
 
     /* Get the propery value. */
-    if (!(m = get_property_class(d->http.rootobj, prop)))
+    if (!(m = get_property_class(d->http->rootobj, prop)))
         return 0;
 
     if (!*m)
@@ -1108,7 +1029,7 @@ http_doprop(struct descriptor_data *d, const char *prop)
 
     if (tp_web_allow_mpi && *m == '&') {
         sprintf(buf, "%s/_type", prop);
-        if ((s = get_property_class(d->http.rootobj, buf)))
+        if ((s = get_property_class(d->http->rootobj, buf)))
             strcpy(buf, m);
         else
             strcpy(buf, "text/html");
@@ -1117,9 +1038,9 @@ http_doprop(struct descriptor_data *d, const char *prop)
         if (string_compare(buf, "noheader"))
             http_sendheader(d, 200, buf, -1);
 
-        queue_text(d, http_parsempi(d, d->http.rootobj, ++m, buf));
+        queue_text(d, http_parsempi(d, d->http->rootobj, ++m, buf));
     } else {
-        d->http.flags |= HS_REDIRECT;
+        d->http->flags |= HS_REDIRECT;
         http_sendredirect(d, m);
     }
 
@@ -1133,35 +1054,35 @@ http_dourl(struct descriptor_data *d)
     char prop[BUFFER_LEN];
     int i;
 
-    if (!OkObj(d->http.rootobj)) {
+    if (!OkObj(d->http->rootobj)) {
         http_senderror(d, 404, "Page not found.");
         return -1;
     }
 
-    sprintf(prop, "%s/%s", d->http.rootdir, d->http.newdest);
+    sprintf(prop, "%s/%s", d->http->rootdir, d->http->newdest);
     i = strlen(prop);
     while ((i-- > 0) && (prop[i] == '/'))
         prop[i] = '\0';
 
-    if ((d->http.smethod->flags & HS_PROPLIST)
-        && http_doproplist(d, d->http.rootobj, prop, 200))
+    if ((d->http->smethod->flags & HS_PROPLIST)
+        && http_doproplist(d, d->http->rootobj, prop, 200))
         return 1;
 
-    if (tp_web_allow_htmuf && (d->http.smethod->flags & HS_HTMUF)
+    if (tp_web_allow_htmuf && (d->http->smethod->flags & HS_HTMUF)
         && http_dohtmuf(d, prop))
         return 1;
 
     if (tp_web_allow_mpi && http_doprop(d, prop))
         return 1;
 
-    if (tp_web_allow_files && (d->http.smethod->flags & HS_FILE)
+    if (tp_web_allow_files && (d->http->smethod->flags & HS_FILE)
         && http_dofile(d))
         return 1;
 
     /* If it's a propdir and nothing else was found, */
     /* send a 403 error. Eventually, this'll be used */
     /* to display a directory listing.               */
-    if (is_propdir(d->http.rootobj, prop)) {
+    if (is_propdir(d->http->rootobj, prop)) {
         http_senderror(d, 403, "Access denied.");
         return -1;
     }
@@ -1194,18 +1115,18 @@ http_handler_post(struct descriptor_data *d)
 int
 http_processcontent(struct descriptor_data *d, const char in)
 {
-    if (d->booted || !d->http.body.elen)
+    if (d->booted || !d->http->body.elen)
         return 1;
 
-    d->http.body.data[d->http.body.len] = in;
-    d->http.body.len++;
+    d->http->body.data[d->http->body.len] = in;
+    d->http->body.len++;
 
     /* Update that idletime! */
     d->last_time = time(NULL);
 
     /* Finished? */
-    if (d->http.body.len >= d->http.body.elen) {
-        d->http.body.data[d->http.body.len] = '\0';
+    if (d->http->body.len >= d->http->body.elen) {
+        d->http->body.data[d->http->body.len] = '\0';
         http_finish(d);
         return 1;
     }
@@ -1223,7 +1144,7 @@ http_process_input(struct descriptor_data *d, const char *input)
     char *p, *q;
     int i;
 
-    if (d->http.body.elen || d->booted || d->type != CT_HTTP)
+    if (d->http->body.elen || d->booted || d->type != CT_HTTP)
         return;                 /* It's not ours. Handle it elsewhere. */
 
     strcpy(buf, input);
@@ -1238,24 +1159,25 @@ http_process_input(struct descriptor_data *d, const char *input)
 
     if (!strlen(buf)) {
         /* Empty string means bare newline. */
-        if (!d->http.smethod)
+        if (!d->http->smethod)
             http_processheader(d);
         return;
     }
 
-    if (!d->http.method) {
+    if (!d->http->method) {
         p = http_split(buf, ' ');
         q = http_split(p, ' ');
-        d->http.method = string_dup(buf);
-        d->http.ver = string_dup(q);
+        d->http->method = string_dup(buf);
+        d->http->ver = string_dup(q);
 
         /* Strip all but one / from beginning of dest. */
         for (; *p && *p == '/' && *(p + 1) == '/'; p++) ;
-        d->http.dest = string_dup(p);
+        d->http->dest = string_dup(p);
 
         http_log(d, 1, "WWW: %d %s '%s' %s(%s)\n", d->descriptor,
-                 d->http.method, d->http.dest, d->hu->h->name, d->hu->u->user);
-        http_log(d, 4, "VER:     '%s'\n", d->http.ver);
+                 d->http->method, d->http->dest, d->hu->h->name,
+                 d->hu->u->user);
+        http_log(d, 4, "VER:     '%s'\n", d->http->ver);
     } else {
         p = http_split(buf, ':');
         while (*p && isspace(*p))
@@ -1282,9 +1204,9 @@ http_process_input(struct descriptor_data *d, const char *input)
 
             f->field = string_dup(buf);
             f->data = string_dup(p);
-            f->next = d->http.fields;
+            f->next = d->http->fields;
 
-            d->http.fields = f;
+            d->http->fields = f;
         }
     }
 
@@ -1305,47 +1227,48 @@ http_processheader(struct descriptor_data *d)
         return;
     }
 
-    if (!d->http.method || (d->http.method && !*d->http.method) || !d->http.dest
-        || !d->http.ver || (d->http.ver && !*d->http.ver)) {
+    if (!d->http->method || (d->http->method && !*d->http->method)
+        || !d->http->dest || !d->http->ver || (d->http->ver
+                                               && !*d->http->ver)) {
         /* No method? Bad request. */
         http_senderror(d, 400, "A malformed request was sent to the server.");
         return;
     }
 
-    if (string_compare(d->http.ver, "HTTP/1.1")
-        && string_compare(d->http.ver, "HTTP/1.0")) {
+    if (string_compare(d->http->ver, "HTTP/1.1")
+        && string_compare(d->http->ver, "HTTP/1.0")) {
         /* No point wasting time if it's not the right version. */
         http_senderror(d, 505, "Only HTTP/1.1 is supported at this time.");
         return;
     }
 
-    d->http.smethod = http_methodlookup(d->http.method);
+    d->http->smethod = http_methodlookup(d->http->method);
 
-    if (!d->http.smethod || !d->http.smethod->handler) {
+    if (!d->http->smethod || !d->http->smethod->handler) {
         /* No method? No handler? No service. */
         http_senderror(d, 501, "Method not implemented or not supported.");
         return;
     }
 
-    if (d->http.fields && (d->http.smethod->flags & HS_BODY)
+    if (d->http->fields && (d->http->smethod->flags & HS_BODY)
         && (f = http_fieldlookup(d, "Content-Length"))) {
         /* Handle message-body stuff. */
         if (number(f->data)) {
-            d->http.flags |= HS_BODY;
+            d->http->flags |= HS_BODY;
             /* Content-Length can be zero, which is perfectly legal. */
             /* If it is, just continue through to http_finish(). */
-            if ((d->http.body.elen = atoi(f->data))) {
-                if (d->http.body.elen < 0) { /* It -can- be 0, but not below zero. */
+            if ((d->http->body.elen = atoi(f->data))) {
+                if (d->http->body.elen < 0) { /* It -can- be 0, but not below zero. */
                     http_senderror(d, 400,
                                    "A malformed request was sent to the server.");
                 } else if (tp_web_max_filesize
-                           && d->http.body.elen >
+                           && d->http->body.elen >
                            (tp_web_max_filesize * 1024L)) {
                     http_senderror(d, 413, "Message body too large.");
                 } else
                     if (!
-                        (d->http.body.data =
-                         (char *) malloc(d->http.body.elen +
+                        (d->http->body.data =
+                         (char *) malloc(d->http->body.elen +
                                          2 * sizeof(char)))) {
                     http_senderror(d, 413, "Not enough memory.");
                 }
@@ -1359,7 +1282,7 @@ http_processheader(struct descriptor_data *d)
                            "A malformed request was sent to the server.");
             return;
         }
-    } else if (d->http.smethod->flags & HS_BODY) {
+    } else if (d->http->smethod->flags & HS_BODY) {
         /* No Content-Length field, and method is set to require one. */
         http_senderror(d, 411, "Method requires a Content-Length field.");
         return;
@@ -1375,16 +1298,16 @@ http_processheader(struct descriptor_data *d)
 void
 http_finish(struct descriptor_data *d)
 {
-    if (d->http.body.len && d->http.body.len < MAX_COMMAND_LEN
-        && d->http.body.data)
-        http_log(d, 4, "BODY:    '%s' (%d)\n", d->http.body.data,
-                 d->http.body.len);
+    if (d->http->body.len && d->http->body.len < MAX_COMMAND_LEN
+        && d->http->body.data)
+        http_log(d, 4, "BODY:    '%s' (%d)\n", d->http->body.data,
+                 d->http->body.len);
 
     if (http_parsedest(d))
         return;
 
-    if (d->http.smethod->handler)
-        d->http.smethod->handler(d);
+    if (d->http->smethod->handler)
+        d->http->smethod->handler(d);
 
     return;
 }
@@ -1392,29 +1315,25 @@ http_finish(struct descriptor_data *d)
 void
 http_initstruct(struct descriptor_data *d)
 {
-    d->http.file.size = 0;
-    d->http.file.sent = 0;
-    d->http.file.fp = NULL;
-    d->http.file.ishttp = 0;
-    d->http.file.pid = 0;
+    d->http = (struct http_struct *) malloc(sizeof(struct http_struct));
 
     if (d->type == CT_HTTP) {
-        d->http.rootobj = NOTHING;
-        d->http.rootdir = NULL;
-        d->http.smethod = NULL;
-        d->http.cgidata = NULL;
-        d->http.newdest = NULL;
-        d->http.method = NULL;
-        d->http.fields = NULL;
-        d->http.dest = NULL;
-        d->http.ver = NULL;
-        d->http.flags = 0;
-        d->http.pid = 0;
+        d->http->rootobj = NOTHING;
+        d->http->rootdir = NULL;
+        d->http->smethod = NULL;
+        d->http->cgidata = NULL;
+        d->http->newdest = NULL;
+        d->http->method = NULL;
+        d->http->fields = NULL;
+        d->http->dest = NULL;
+        d->http->ver = NULL;
+        d->http->flags = 0;
+        d->http->pid = 0;
 
-        d->http.body.data = NULL;
-        d->http.body.elen = 0;
-        d->http.body.len = 0;
-        d->http.body.curr = 0;
+        d->http->body.data = NULL;
+        d->http->body.elen = 0;
+        d->http->body.len = 0;
+        d->http->body.curr = 0;
 
         if (tp_web_max_users && httpucount++ > tp_web_max_users) {
             http_senderror(d, 503, "Too many users connected to service.");
@@ -1429,55 +1348,39 @@ http_deinitstruct(struct descriptor_data *d)
 {
     struct http_field *f;
 
-    if (d->http.file.fp) {
-        if (!d->http.file.ishttp && d->http.file.pid
-            && in_timequeue(d->http.file.pid)) {
-            struct inst temp1;
-            struct frame *destfr = timequeue_pid_frame(d->http.file.pid);
+    if (!d->http)
+        return;
 
-            if (destfr) {
-                temp1.type = PROG_INTEGER;
-                temp1.data.number = d->http.file.sent;
-                muf_event_add(destfr, "FILE.INTERRUPT", &temp1, 0);
-                CLEAR(&temp1);
-            }
-        }
-        if (d->http.file.ishttp)
-            httpfcount--;
-        fclose(d->http.file.fp);
-        d->http.file.fp = NULL;
+    if (d->http->dest)
+        free((void *) d->http->dest);
+    if (d->http->ver)
+        free((void *) d->http->ver);
+    if (d->http->method)
+        free((void *) d->http->method);
+    if (d->http->rootdir)
+        free((void *) d->http->rootdir);
+    if (d->http->cgidata)
+        free((void *) d->http->cgidata);
+    if (d->http->newdest)
+        free((void *) d->http->newdest);
+    if (d->http->body.data)
+        free((void *) d->http->body.data);
+
+    while ((f = d->http->fields)) {
+        d->http->fields = f->next;
+        if (f->field)
+            free((void *) f->field);
+        if (f->data)
+            free((void *) f->data);
+        free((void *) f);
     }
 
-    if (d->type == CT_HTTP) {
-        if (d->http.dest)
-            free((void *) d->http.dest);
-        if (d->http.ver)
-            free((void *) d->http.ver);
-        if (d->http.method)
-            free((void *) d->http.method);
-        if (d->http.rootdir)
-            free((void *) d->http.rootdir);
-        if (d->http.cgidata)
-            free((void *) d->http.cgidata);
-        if (d->http.newdest)
-            free((void *) d->http.newdest);
-        if (d->http.body.data)
-            free((void *) d->http.body.data);
+    httpucount--;
 
-        while ((f = d->http.fields)) {
-            d->http.fields = f->next;
-            if (f->field)
-                free((void *) f->field);
-            if (f->data)
-                free((void *) f->data);
-            free((void *) f);
-        }
+    free((void *) d->http);
+    d->http = NULL;
 
-        httpucount--;
-    }
     return;
 }
 
 #endif /* NEWHTTPD */
-
-

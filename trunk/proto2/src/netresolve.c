@@ -27,7 +27,11 @@
 
 struct hostinfo *hostdb = NULL; /* the main host cache */
 struct husrinfo *userdb = NULL; /* the username list */
+unsigned long userdb_count = 0; /* number of username entries in user cache */
 unsigned long hostdb_count = 0; /* number of entries in the host cache */
+unsigned long hostdb_flushed = 0; /* number of entries purged during last flush */
+time_t hostdb_flushtime = 0;    /* time of last hostcache flush */
+dbref hostdb_flushplyr = NOTHING; /* ref of player if last flush was from #flush */
 
 #ifdef USE_RESLVD
 
@@ -149,8 +153,10 @@ reslvd_input(void)
                            (char *) &buf2);
                     for (j = buf2; isspace(*j); ++j) ; /* strip occasional leading spaces */
                     for (u = userdb; u; u = u->next) {
-                        if (u->uport == port && u->a == a)
-                            strcpy(u->user, j);
+                        if (u->uport == port && u->a == a) {
+                            free((void *) u->user);
+                            u->user = alloc_string(j);
+                        }
                     }
                 } else if (!strncmp(reslvd_buf, "HOST", 4)) {
                     struct hostinfo *h;
@@ -164,7 +170,8 @@ reslvd_input(void)
                         if (h->a == a) {
                             if (h->wupd && strcmp(h->name, buf2))
                                 log_status("*RES: %s to %s\n", h->name, buf2);
-                            strcpy(h->name, buf2);
+                            free((void *) h->name);
+                            h->name = alloc_string(buf2);
                             h->wupd = current_systime;
                         }
                     }
@@ -323,7 +330,8 @@ resolve_hostnames(void)
                             if (h->wupd && strcmp(h->name, hostname))
                                 log_status("*RES: %s to %s\n", h->name,
                                            hostname);
-                            strcpy(h->name, hostname);
+                            free((void *) h->name);
+                            h->name = alloc_string(hostname);
                             h->wupd = current_systime;
                         }
                     }
@@ -335,8 +343,10 @@ resolve_hostnames(void)
                             ++username; /* strip occasional leading spaces */
 
                         for (u = userdb; u; u = u->next) {
-                            if (u->uport == iport && u->a == ipnum)
-                                strcpy(u->user, username);
+                            if (u->uport == iport && u->a == ipnum) {
+                                free((void *) u->user);
+                                u->user = alloc_string(username);
+                            }
                         }
                     }
                 } else {
@@ -409,7 +419,8 @@ host_get_oldstyle(struct hostinfo * h)
         if (he) {
             if (h->wupd && strcmp(h->name, he->h_name))
                 log_status("*RES: %s to %s\n", h->name, he->h_name);
-            strcpy(h->name, he->h_name);
+            free((void *) h->name);
+            h->name = alloc_string(he->h_name);
             h->wupd = current_systime;
             return 1;
         }
@@ -449,8 +460,9 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
     a = ntohl(a);
 
     if (prt) {                  /* only if username is requested */
+        char smbuf[32];
         u = (struct husrinfo *) malloc(sizeof(struct husrinfo));
-        sprintf(u->user, "%d", prt);
+        u->user = alloc_string(intostr(smbuf, prt));
         u->next = userdb;
         u->a = a;
         u->uport = prt;
@@ -459,33 +471,39 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
             userdb->prev = u;
         userdb = u;
         hu->u = u;
-    } else
+        userdb_count++;
+    } else                      /* This case is mostly only for eventual MUF-based lookups. */
         hu->u = NULL;
 
     for (h = hostdb; h; h = h->next) {
         if (h->a == a) {
+            /* Found it in the cache. */
             h->links++;
             h->uses++;
 #ifdef HOSTCACHE_DEBUG
             log_status("HOST: In cache: %X (%s), %s\n", h->a, host_as_hex(h->a),
                        h->name);
 #endif /* HOSTCACHE_DEBUG */
-            if (current_systime - h->wupd > 80)
+            /* Only re-request if the time is right. Might eventually */
+            /*  want to move this to a seperate @tune.                */
+            if (current_systime - h->wupd > tp_clean_interval)
                 host_request(h, lport, prt);
             hu->h = h;
             return hu;
         }
     }
+
 #ifdef HOSTCACHE_DEBUG
     log_status("HOST: New (not in cache): %X (%s)\n", a, host_as_hex(a));
 #endif /* HOSTCACHE_DEBUG */
 
+    /* Not in the cache, make a new entry and request it. */
     h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
     h->links = 1;
     h->uses = 1;
     h->a = a;
     h->wupd = 0;
-    strcpy(h->name, host_as_hex(a));
+    h->name = alloc_string(host_as_hex(a));
     h->prev = NULL;
     h->next = hostdb;
     if (hostdb)
@@ -503,9 +521,6 @@ host_delete(struct huinfo *hu)
 {
     hu->h->links--;
 
-    /*    if (hostdb_count > 200 && current_systime - hu->h->wupd > 7200) *//* || tp_host_cache_cleantime < 0 */
-/*        host_free(hu->h); */
-
     if (hu->u) {
         if (hu->u->next)
             hu->u->next->prev = hu->u->prev;
@@ -513,7 +528,9 @@ host_delete(struct huinfo *hu)
             hu->u->prev->next = hu->u->next;
         if (hu->u == userdb)
             userdb = hu->u->next;
+        free((void *) hu->u->user);
         free((void *) hu->u);
+        userdb_count--;
     }
 
     free((void *) hu);
@@ -529,6 +546,7 @@ host_free(struct hostinfo *h)
     if (h == hostdb)
         hostdb = h->next;
     hostdb_count--;
+    free((void *) h->name);
     free((void *) h);
 }
 
@@ -566,7 +584,7 @@ host_load(void)
         h->uses = 0;
         h->wupd = 0;
         h->a = (int) ip;
-        strcpy(h->name, name);
+        h->name = alloc_string(name);
         h->prev = NULL;
         h->next = hostdb;
         if (hostdb)
@@ -588,7 +606,11 @@ host_save(void)
         return;
 
     for (h = hostdb; h; h = h->next) {
-        if (!strcmp(h->name, host_as_hex(h->a)))
+        /* We only want to store updated hostnames.  Since h->name will be */
+        /*  the same as the IP address if a hostname wasn't found, we use  */
+        /*  strcmp to make sure it never stores anything except hostnames  */
+        /*  into the file.  -Hinoserm                                      */
+        if (h->wupd && strcmp(h->name, host_as_hex(h->a)))
             fprintf(f, "%X %s\n", h->a, h->name);
     }
 
@@ -600,24 +622,78 @@ host_check_cache(void)
 {
     struct hostinfo *h;
 
+    if (hostdb_count > 512) {
+        hostdb_flushed = 0;
+        hostdb_flushtime = current_systime;
+        hostdb_flushplyr = NOTHING;
+    }
+
     for (h = hostdb; h; h = h->next) {
-        if (!h->wupd && h->links)
+        if (!h->wupd && h->links) {
+            /* If the host entry is in use, yet never got */
+            /*  a result, we try again to look it up.     */
             host_request(h, 0, 0);
+        } else if (!h->links && hostdb_count > 512 && (current_systime - h->wupd) > (tp_clean_interval * h->uses)) { /* tp_max_cached_hosts */
+            /* If the host entry is not in use, and the total entry  */
+            /*  count is above tp_max_cached_hosts, and the entry is */
+            /*  older than (tp_clean_interval * h->uses), free it.   */
+            host_free(h);
+            hostdb_flushed++;
+        }
     }
 }
 
 void
 host_init(void)
 {
+    /* This function is redundant, someone needs to take */
+    /* the time to rename host_load() to host_init().    */
     host_load();
 }
 
 void
 host_shutdown(void)
 {
-    host_save();
-    host_flush(1);
+    host_save();                /* Save active cache to file. */
+    host_flush(1);              /* And then wipe the cache from memory. */
 }
+
+unsigned long
+host_hostdb_size(void)
+{
+    struct hostinfo *h;
+    register unsigned long hsize =
+        ((sizeof(struct hostinfo) + 1) * hostdb_count) + sizeof(hostdb_count) +
+        sizeof(hostdb_flushed) + sizeof(hostdb_flushtime) +
+        sizeof(hostdb_flushplyr);
+    /* The +1 above is because each h->name string has a \0 byte, */
+    /*  which strlen won't see.  Keeps the add instruction out of */
+    /*  the loop.                                                 */
+
+    for (h = hostdb; h; h = h->next)
+        hsize += strlen(h->name);
+
+    return hsize;
+}
+
+unsigned long
+host_userdb_size(void)
+{
+    struct husrinfo *u;
+    register unsigned long usize =
+        ((sizeof(struct husrinfo) + 1) * userdb_count) + sizeof(userdb_count);
+    /* The +1 above is because each u->user string has a \0 byte, */
+    /*  which strlen won't see.  Keeps the add instruction out of */
+    /*  the loop.                                                 */
+
+    for (u = userdb; u; u = u->next)
+        usize += strlen(u->user);
+
+    return usize;
+}
+
+/*-- Everything past here is pretty much --*/
+/*--  for the @hostcache command.        --*/
 
 char *
 time_format_3(time_t dt)
@@ -679,6 +755,7 @@ do_hostcache(dbref player, const char *args)
         arg2++;
 
     if (string_prefix(arg1, "#re")) {
+        /* This code here is a notch messy, but it works. */
 #if defined(USE_RESLVD) && defined(SPAWN_HOST_RESOLVER)
         kill_resolver();
         reslvd_close();
@@ -691,7 +768,30 @@ do_hostcache(dbref player, const char *args)
         kill_resolver();
         spawn_resolver();
 #endif
+        /* Sure is non-informative.  Hope to eventually change that. */
         anotify_fmt(player, CSUCC "Done.");
+    } else if (string_prefix(arg1, "#fl")) {
+        register bool doall = (!strcasecmp(arg2, "all"));
+
+        hostdb_flushed = 0;
+        hostdb_flushplyr = player;
+
+        anotify_fmt(player, CINFO "Flushing...");
+
+        for (h = hostdb; h; h = h->next) {
+            if (!h->links
+                && (doall
+                    || (current_systime - h->wupd) >
+                    (tp_clean_interval * h->uses))) {
+                host_free(h);
+                hostdb_flushed++;
+            }
+        }
+
+        hostdb_flushtime = current_systime;
+        anotify_fmt(player, CSUCC "Done. " CINFO "%ld %s flushed.",
+                    hostdb_flushed,
+                    (hostdb_flushed == 1) ? "entry" : "entries");
     } else if (string_prefix(arg1, "#sh")) {
         struct hostinfo **harr;
         register long i = 0;
@@ -724,9 +824,17 @@ do_hostcache(dbref player, const char *args)
         anotify_fmt(player, CINFO "Top %d host%s displayed (%d total).", count,
                     count == 1 ? "" : "s", hostdb_count);
     } else {
-        anotify_fmt(player, "Bytes used by cache: %ld",
-                    sizeof(struct hostinfo) * hostdb_count);
-        anotify_fmt(player, "Hostnames in cache:  %ld", hostdb_count);
-        anotify_fmt(player, "Last cache flush:    %s", "...");
+        anotify_fmt(player, "Bytes used by cache:  %ld", host_hostdb_size());
+        anotify_fmt(player, "Hostnames in cache:   %ld", hostdb_count);
+        anotify_fmt(player, "Username entries:     %ld", userdb_count);
+        anotify_fmt(player, "Username bytes used:  %ld", host_userdb_size());
+        if (hostdb_flushtime)
+            anotify_fmt(player, "Last flush was:       %s",
+                        time_format_3(hostdb_flushtime));
+        if (hostdb_flushplyr != NOTHING)
+            anotify_fmt(player, "  Initiated by:       %s",
+                        unparse_object(player, hostdb_flushplyr));
+        if (hostdb_flushtime)
+            anotify_fmt(player, "  Entries flushed:    %ld", hostdb_flushed);
     }
 }

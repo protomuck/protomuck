@@ -71,6 +71,24 @@ extern void check_archive_time(void);
 extern int auto_archive_now(void);
 
 /* from timequeue.c */
+
+#define TQ_MUF_TYP 0
+#define TQ_MPI_TYP 1
+
+#define TQ_MUF_QUEUE    0x0
+#define TQ_MUF_DELAY    0x1
+#define TQ_MUF_LISTEN   0x2
+#define TQ_MUF_READ     0x3
+#define TQ_MUF_TREAD    0x4
+#define TQ_MUF_TIMER    0x5
+
+#define TQ_MPI_QUEUE    0x0
+#define TQ_MPI_DELAY    0x1
+
+#define TQ_MPI_SUBMASK  0x7
+#define TQ_MPI_LISTEN   0x8
+#define TQ_MPI_OMESG   0x10
+
 typedef struct timenode {
     struct timenode *next;
     int typ;
@@ -121,6 +139,7 @@ extern void listenqueue(int descr, dbref player, dbref where, dbref trigger,
 extern void next_timequeue_event(void);
 extern int dequeue_prog_descr(int descr, int sleeponly);
 extern int in_timequeue(int pid);
+extern int in_timequeue_only(int pid);
 extern void purge_timenode_free_pool(void);
 extern struct frame *timequeue_pid_frame(int pid);
 extern time_t next_event_time(void);
@@ -130,7 +149,7 @@ extern int dequeue_prog(dbref program, int sleeponly);
 extern int dequeue_process(int procnum);
 extern int dequeue_timers(int pid, char *id);
 extern void read_event_notify(int descr, dbref player);
-extern int control_process(dbref player, int procnum);
+extern int control_process(dbref player, int pid);
 extern void do_dequeue(int descr, dbref player, const char *arg1);
 extern void propqueue(int descr, dbref player, dbref where, dbref trigger,
                       dbref what, dbref xclude, const char *propname,
@@ -138,6 +157,7 @@ extern void propqueue(int descr, dbref player, dbref where, dbref trigger,
 extern void envpropqueue(int descr, dbref player, dbref where, dbref trigger,
                          dbref what, dbref xclude, const char *propname,
                          const char *toparg, int mlev, int mt);
+extern void free_timenode(timequeue ptr);
 
 /* From compress.c */
 extern void init_compress_from_file(FILE * dicto);

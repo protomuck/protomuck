@@ -1,5 +1,8 @@
 #ifdef NEWHTTPD
 
+extern unsigned int httpucount;
+extern unsigned int httpfcount;
+
 extern int  array_set_strkey_arrval(stk_array **arr, const char *key, stk_array *arr2);
 extern void http_log(struct descriptor_data *d, int debuglvl, char *format, ...);
 extern int  queue_text(struct descriptor_data *d, char *format, ...);
@@ -17,8 +20,6 @@ extern stk_array *http_makearray(struct descriptor_data *d);
 extern int http_compile(struct descriptor_data *d, dbref player, dbref ref);
 extern int http_dohtmuf(struct descriptor_data *d, const char *prop);
 extern int http_doproplist(struct descriptor_data *d, dbref what, const char *prop, int statcode);
-extern void http_sendfileblock(struct descriptor_data *d);
-extern int descr_sendfile(struct descriptor_data *d, int start, int stop, const char *filename);
 extern int http_sendfile(struct descriptor_data *d, const char *filename);
 extern int http_dofile(struct descriptor_data *d);
 extern int http_dourl(struct descriptor_data *d);
