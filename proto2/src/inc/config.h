@@ -66,6 +66,10 @@
    Note: MUF_MAX_IGNORES and MAX_IGNORES should be the same, just the MUF
    version should be in text, for the MAX_IGNORES MUF define.
  */
+
+/* Enable extensive hostname cache debugging */
+#undef HOSTCACHE_DEBUG
+
 /* Be aware, this is slightly resource intensive. -Hinoserm */
 #define IGNORE_SUPPORT
 #define MAX_IGNORES 16

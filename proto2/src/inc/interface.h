@@ -307,10 +307,14 @@ extern int bind_to;
 
 /* Ansi Colors */
 #define ANSINORMAL      "\033[0m"
-#define ANSIFLASH       "\033[5m"
-#define ANSIINVERT      "\033[7m"
-#define ANSIUNDERLINE   "\033[4m"
 #define ANSIBOLD        "\033[1m"
+#define ANSIDIM         "\033[2m"
+#define ANSIITALIC      "\033[3m"
+#define ANSIUNDERLINE   "\033[4m"
+#define ANSIFLASH       "\033[5m"
+#define ANSIFLASH2      "\033[6m"
+#define ANSIINVERT      "\033[7m"
+#define ANSIINVISIBLE   "\033[8m"
 
 #define ANSIBLACK       "\033[0;30m"
 #define ANSICRIMSON     "\033[0;31m"
@@ -330,6 +334,15 @@ extern int bind_to;
 #define ANSICYAN        "\033[1;36m"
 #define ANSIWHITE       "\033[1;37m"
 
+#define ANSIHBLACK      "\033[2;30m"
+#define ANSIHRED        "\033[2;31m"
+#define ANSIHGREEN      "\033[2;32m"
+#define ANSIHYELLOW     "\033[2;33m"
+#define ANSIHBLUE       "\033[2;34m"
+#define ANSIHPURPLE     "\033[2;35m"
+#define ANSIHCYAN       "\033[2;36m"
+#define ANSIHWHITE      "\033[2;37m"
+
 #define ANSICBLACK      "\033[30m"
 #define ANSICRED        "\033[31m"
 #define ANSICGREEN      "\033[32m"
@@ -347,6 +360,7 @@ extern int bind_to;
 #define ANSIBPURPLE     "\033[45m"
 #define ANSIBCYAN       "\033[46m"
 #define ANSIBGRAY       "\033[47m"
+
 
 /* Colors */
 #define NORMAL	  "^NORMAL^"
