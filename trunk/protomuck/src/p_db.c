@@ -390,14 +390,16 @@ prim_moveto(PRIM_PROTOTYPE)
     struct inst *oper1, *oper2;
 
     CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
+    oper1 = POP(); /* destination */
+    oper2 = POP(); /* victim */
     if (fr->level > 8)
 	abort_interp("Interp call loops not allowed");
-    if (!(valid_object(oper1) && valid_object(oper2)) && !is_home(oper1))
-	abort_interp("Non-object argument");
+    if (!(valid_object(oper2)))
+        abort_interp("Non-object argument (1)");
+    if (!(valid_object(oper1)) && !is_home(oper1))
+	abort_interp("Non-object argument (2)");
     {
-	dbref   victim, dest;
+	dbref victim, dest;
 
 	victim = oper2->data.objref;
 	dest = oper1->data.objref;
