@@ -135,7 +135,7 @@ Data Base Prims:
   OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?                    NEXTPLAYER_POWER   
-  PNAME-OK?     NAME-OK?
+  PNAME-OK?     NAME-OK?    FINDNEXT
         
 System Prims:
   SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
@@ -161,10 +161,11 @@ Array Prims:
   ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
   ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
   ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
-  ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML
+  ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
+  ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP
 
 File Prims: 
-  FWRITE    FREAD    FREADN    FAPPEND    FCR
+  FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
   BWRITE    BREAD    BAPPEND   FRM        FREN
   FPUBLISH  FSINFO   FSTATS    CURID      FSIZE
 
@@ -305,7 +306,7 @@ The following prims are used to work with the MUCK database:
   OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?                    NEXTPLAYER_POWER   
-  PNAME-OK?     NAME-OK?
+  PNAME-OK?     NAME-OK?    FINDNEXT
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -555,7 +556,20 @@ CYAN             AQUA    or CCYAN            BCYAN
 WHITE            GRAY    or CWHITE           BWHITE
                  GLOOM   or CBLACK
 
-See: MUSH ANSI, STANDARD ANSI
+In addition, the following ANSI tokens can be used:
+    ^CFAIL^ -- Color defined for when commands fail. 
+    ^CSUCC^ -- Color defined for when commands work.
+    ^CINFO^ -- A color used in various info outputs.
+    ^CNOTE^ -- Another info output color.
+    ^CMOVE^ -- The color defined for the arrive/depart messages.
+
+The actual color these tags represent may vary from place to place as well
+as character to character, depending on settings made both at compile time, 
+as well as in the muck. These can all be customized in-muck with:
+    _/colors/fail          _/colors/succ          _/colors/info
+    _/colors/note          _/colors/move
+
+See: MUSH ANSI, STANDARD ANSI, and NEON ANSI2
 ~~~
 MATH OPERATORS|+|-|*|/|%|MODULO|ADD|SUBTRACT|MULTIPLY|DIVIDE
 
@@ -2272,6 +2286,10 @@ Descriptors are numbers assigned to a player when they connect and do
 not change for the life of that connection. A connection number is the
 relative possition of a connection in the WHO list.
 
+As of Proto1.5 and newer, this prim will also include descriptors that
+are not yet connected to a character when given #-1. This would be 
+connections that are still at the login screen.
+
 See DESCRCON, CONDESCR.
 ~
 PID
@@ -3025,6 +3043,7 @@ nextprop            (d s1 -- s2)
 propdir?            (d s -- i)
 descridle           ( i -- i )
 descrtime           ( i -- i )
+findnext            ( d1 d2 s1 s2 -- d3 )
 
 See: M2, MUCKER LEVELS, invididual prim entries for more details
 ~
@@ -3080,7 +3099,7 @@ nextowned_flag      ( d s -- d )
 nextplayer_flag     ( d s -- d )
 nextthing_flag      ( d s -- d )
 nextplayer_power    ( d s -- d )
-nextentrance        ( d -- d )
+nextentrance        ( d d -- d )
 descrhost           ( i -- s )
 descripnum          ( i -- s )
 firstdescr          ( d -- i )
@@ -3142,7 +3161,8 @@ fwrite              ( s1 s2 i1 -- i2 )
 fappend             ( s1 s2 -- i )
 fread               ( s1 i -- s2 )
 freadn              ( s1 i1 i2 -- s2 )
-FPUBLISH              ( s -- i )
+freadto             ( s1 i1 s2 -- i2 s3 )
+fpublish            ( s -- i )
 fcr                 ( s -- i )
 bread               ( s1 i1 -- i2 )
 bwrite              ( i1 s i2 -- i3 )
@@ -3430,7 +3450,7 @@ This version of the MUF manual has been edited, and rewritten for use with
   WhiteFire (kinomon@glia.biostr.washington.edu), who cleaned them up a lot.
 
   ProtoMUCK is the result of the combined efforts of programmers: 
-                             Van and Akari
+                           Moose and Akari
        and is based initially on NeonMUCK version 2.17 and FB6.
 
 See: CREDITS2 for a list of contributors
@@ -3445,7 +3465,7 @@ Whitefire - Some of the older MUF prims.
 Points    - Author of the float support for FB6.
 Loki      - Many bug fixes and new prims added in NeonMUCK
 Nodaitsu  - Contributed file prims from MakoMUCK.
-Van       - Author of several of the ProtoMUCK exclusive prims.
+Moose     - Author of several of the ProtoMUCK exclusive prims.
 Akari     - Author of some ProtoMUCK prims, debugger, tester.
 
 No doubt many others have added their own contributions to MUF over
@@ -4524,7 +4544,7 @@ in the secure mode, they will only work if the directories and location
 of the MUCK are in the default arrangement that the MUCK comes in.
 
 A list of the file prims:
-FWRITE, FREAD, FREADN, FAPPEND, FCR - For use with characters.
+FWRITE, FREAD, FREADN, FREADTO, FAPPEND, FCR - For use with characters.
 BWRITE, BREAD, BAPPEND - For use with integer values for ASCII.
 FPUBLISH, FSINFO, FSTATS, CURID, FSIZE - Getting file/host information.
 FRM, FREN - For moving/removing files.
@@ -4620,10 +4640,24 @@ If the range of characters to be read in exceed the length of the
 file, then it will read in characters up to the end of the file.
 
 See: FILE PRIMS, SHORTCUTS
-~
+~~~
+FREADTO
+
+freadto ( s1 i1 s2 -- i2 s3 )
+-----------------------------
+Level: W4 Boy
+s1 = string containing the file name.
+i1 = integer representing the file offset. 
+s2 = 
+i2 = integer representing the  offset from that read.
+s3 = 
+
+Not finished.
+
+~~~
 FPUBLISH
 
-FPUBLISH ( s -- i )
+fpublish ( s -- i )
 -----------------
 Level: W4 Boy
 s = string representing file name to change the mode on.
@@ -5199,7 +5233,8 @@ ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS
 ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
 ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
 ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
-ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML
+ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
+ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP
 
 See: Individual entries for more information.
 ~~~~~~
@@ -6140,6 +6175,10 @@ Descriptors are numbers that always stay the same for a connection,
 while a connection# is the relative position in the WHO list of a
 connection.
 
+As of Proto1.5 and newer, the array will include descriptors that are not
+yet connected to a character when given #-1. These would be the connections
+that are open to the login screen that have not logged in yet.
+
 See DESCRIPTORS, DESCRCON, CONDESCR, ARRAY PRIMS
 ~~~~
 ONLINE_ARRAY|
@@ -6883,15 +6922,18 @@ See: NEXTPLAYER, NEXTEXIT, NEXTROOM, NEXTPROGRAM
 ~~~
 NEXTENTRANCE
 
-nextentrance( d1 -- d2 )
+nextentrance( d1 d2 -- d3 )
 ------------------------
 Level: W1 Mage
-d1 = Any valid dbref.
-d2 = First entrance to d1, or next entrance after d1.
+d1 = Dbref of object to check entrances for.
+d2 = Starting object to search from.
+d3 = Next entrance after d2, or #-1 if there are no more entrances.
 
-Works the same as the EXITS prim, except is used to search for
-entrances instead. Returns the first dbref that is linked -to- 
-the object, d1.
+Will search for entrances that link to object d1. The search begins
+at d2 and works its way up through the data base. d2 does not necessarially
+have to be an object linked to d1, or even a valid dbref. Passing #-1 as d2
+will make it so that the search begins at the bottom of the data base, before
+#0.
 ~~~~~
 NBSOCKOPEN
 
@@ -7424,7 +7466,7 @@ STANDARD ANSI (see 'man standard ansi'), -not- a normal Neon ANSI color tag.
 
 See: COLORS for details on how Proto custom color props operate.
 ~~~~~
-COLORS|CUSTOM COLORS|PARSE_NEON2
+COLORS|CUSTOM COLORS|PARSE_NEON2|CUSTOM ANSI|NEON ANSI2
 Color preferences are found under the _/colors/ directory on objects. 
 For example, if the ANSI tag in s1 is ^GREEN^, and player d has a prop:
 _/colors/green:forest
@@ -7591,3 +7633,143 @@ i = integer representing a descriptor.
 Given a valid player dbref, returns that player's first descriptor
 number to the MUCK. If given #-1, returns the very first descriptor
 connected to the MUCK out of all the players.
+~~~~
+ARRAY_JOIN|
+
+array_join ( a s1 -- s2 )
+-------------------------
+Level: M1 Apprentice
+a  = List array.
+s1 = Delimiter string.
+s2 = String containing the contents of the array seperated by s1.
+
+Given a list array, will return a string that is the contatenation of
+all the items in the array, with each item seperated by the string in 
+s1. For example:
+{ "one" 2 "three" 3.14159 } array_make "... " array_join
+would return:
+"one... 2... three... 3.14159"
+~~~
+ARRAY_MATCHVAL|
+
+array_matchval ( a1 s -- a2 )
+-----------------------------
+Level: M1 Apprentice
+a1 = An array with all strings for its values.
+s  = string containing a smatch pattern string.
+a2 = dictionary array with containing key-value pairs.
+
+Takes an array of all strings and a string representing a smatch pattern.
+It returns a dictionary array that contains all the key-value pairs where
+the value was a string that matched the given smatch wild card pattern.
+
+See: SMATCH, ARRAY_MATCHKEY
+~~~~
+ARRAY_MATCHKEY|
+
+array_matchkey ( a1 s -- a2 )
+-----------------------------
+Level: M1 Apprentice
+a1 = An array with all strings for its values.
+s  = string containing a smatch pattern string.
+a2 = dictionary array with containing key-value pairs.
+
+Takes a dictionary array of all strings and a string representing a smatch pattern.
+It returns a dictionary array that contains all the key-value pairs where
+the the key was a string that matches the smatch wild card pattern.
+
+See: SMATCH, ARRAY_MATCHKEY
+~~~~
+ARRAY_EXTRACT|
+
+array_extrat ( a1 a2 -- a3 )
+----------------------------
+Level: M1 Apprentice
+a1 = An array.
+a2 = A list array of indexes.
+a3 = A dictionary array.
+
+Given an array, and a second array that contains a list of index keys,
+returns an array that contains only the elements who's keys were listed
+in a2.
+~~~~
+FINDNEXT
+
+findnext ( d1 d2 s1 s2 -- d3 )
+------------------------------
+Level: M2 Journeyman
+d1 = dbref to start from.
+d2 = Owner to search for.
+s1 = Name smatch pattern.
+s2 = string containing a flag list.
+
+Searches for the next object in the data base that comes after d1 that
+is owned by d1, who's name matches the wildcard pattern in s1, and 
+who's flags match those specified in s2.
+
+A search can be started with #-1, to ensure that all objects owned
+by that player are checked. 
+
+Players of M3 or higher can have d2 be #-1, which will leave out the
+ownership checks. 
+Players at M2 level can only perform searches with an owner being
+the one that is the effective UID of the program.
+
+If s1 is an empty string, then name checks will not be done. 
+If s2 is an empty string, then flag checks will not be done.
+
+The s1 checks for patterns using the smatch method.
+The s2 is checked for the same sorts of flags used with the 
+in-server @find command. Eg: "F3!D" will match all MUF programs
+in the data base that are set mucker lefvel 3, and are not debug.
+
+If there are no matches remaining in the data base after d1, then #-1
+is returned. Otherwise d3 is the next matching objec that fits the 
+parameters.
+
+See also NEXT, NEXTOWNED, SMATCH, HELP @FIND.
+~~~~~
+FREADTO
+
+freadto ( s1 i1 s2 -- i2 s3 )
+-----------------------------
+Level: W4 Boy
+s1 = string containing the file name.
+i1 = integer representing starting offset.
+s2 = string containing a character to stop at.
+i2 = integer representing final offset.
+s3 = string read in from the file.
+
+Given a file name, a starting offset, and a character to search for, reads
+in the text file up until it either reaches the character contained in s2,
+the end of the file, or the buffer size limit is reached, and returns it as
+s3. i2 is the ending offset that the read in from the file ended at. 
+
+At the moment, s2 may only be a single character. If more than one character is
+passed, only the first one is considered. There are two special cases that can
+be used for s2 to find normally unprintable characters.
+$EOF$ - Will cause it to read until it finds the end of the file or hits the
+        buffer size limit.
+$CR$  - Will cause it to read until it reaches the next carriage return, '\n'.
+        This can be easily used to read in a file line by line. 
+In future versions of Proto, s2 will be able to be a full string, instead of
+just a single character.
+~~~~
+ARRAY_FILTER_PROP
+
+array_filter_prop ( a1 s1 s2 -- a2 )
+------------------------------------
+Level: M1 Apprentice
+a1 = A list array of all dbrefs.
+s1 = string representing prop name.
+s2 = smatch string representing prop contents.
+a2 = A list array with only the dbrefs that passed the filter.
+
+Given a list array of all dbrefs, a string representing the name of the
+prop to search for in s1, and a string that can be smatched to the contents
+of the props being checked in s2, returns an array that contains only
+the dbrefs that have the prop in s1 with contents that pass the smatch 
+matching with s2. 
+So if "*" is passed as s2, then all dbrefs that have that prop at all
+will get put into array a2.
+~~~~~

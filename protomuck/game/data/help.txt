@@ -98,7 +98,7 @@ on how to program, and manage and moniter running processes.
  
 @edit              @kill              @list               @program
 @ps                man                @mcpedit            @proginfo
-@mpitops           @muftops           @tops
+@mpitops           @muftops           @tops               mpi
 Type 'help <command>' to get more help on a command.
 ~
 Administrative Commands|index4|INDEX 4
@@ -124,7 +124,7 @@ dinfo              @purge             @newpassword        @pcreate
 Type 'help <command>' to get more help on a command.
 ~
 ~
-Object Flags|index5|FLAGS|FLAG|INDEX 5
+Object Flags|index5|FLAGS|FLAG|INDEX 5|FLAGLIST|FLAG-LIST
 Object Flags
 ------------
 This is a listing of the various types of FLAGS that might be found
@@ -136,13 +136,14 @@ ABODE/AUTOSTART/ABATE   (A)     BUILDER/BOUND           (B)
 CHOWN_OK/COLOR_ON/ANSI  (C)     DARK/DEBUG              (D)
 GUEST                   (G)     HAVEN/HARDUID/HIDE      (H)  
 JUMP_OK                 (J)     ANTIPROTECT             (K)  
-LINK_OK/LIGHT           (L)     NO_COMMAND              (N)  
-MOBILE/OFFER            (O)     QUELL                   (Q)  
+LINK_OK                 (L)     NO_COMMAND              (N)  
+LIGHT                   (O)     QUELL                   (Q)  
 SILENT/SETUID/STICKY    (S)     VEHICLE/VIEWABLE        (V)  
 XFORCIBLE               (X)     EXAMINE_OK              (Y)
 ZOMBIE/PUPPET           (Z)     LOGWALL                 (!)     
 MUFCOUNT                (+)     PROTECT                 (*)     
 PARENT/PROG_DEBUG       (%)     HIDDEN                  (#)     
+MOBILE                  
 
 Type 'help <flag>' to get more help on a flag.
 
@@ -448,7 +449,7 @@ Sends <message> to a file on the server. They are logged to a file
 called 'gripes' in the log directory on the server. Also, all 
 ArchWizards on at the time the gripe is made will be notifed of it.
 ~
-help
+help|#HELP|!GUEST
 help [<subject>]
 ----------------
 
@@ -470,6 +471,10 @@ in this document, such as 'page', 'say', 'look', etc, and they will very
 likely work differently that described in here. For most finished MUF run
 programs, you can get additional help by typing the command, followed by
 the word '#help'.
+
+The permissions needed to do certain commands are listed under the entries.
+Some are listed as !GUEST, which simply meas that command is unavailable to
+characters with with the GUEST flag.
 ~
 info
 info [<subject>]
@@ -560,7 +565,7 @@ Players set GUEST can only page those that are wizard or higher.
 Note: Most systems use a 'program' with a global 'page' action, which takes
       the place of the built-in 'page' command, and has more features.
 ~
-quit
+quit|DISCONNECT|LOG OFF|LOGOFF
 QUIT
 ----
 Must be in all capitals, and typed in full. Logs out of your character and
@@ -713,7 +718,7 @@ This command is the same as:
 The ansi function sets the iansidescription on an object, and the html
 one sets the ihtmldescription on an object.
 ~~~
-@describe|@ansidescribe|@htmldescribe
+@describe|@ansidescribe|@htmldescribe|@DESC
 @describe <object> [=<text>]
 @ansidescribe <object> [=<text>]
 @htmldescribe <object> [=<text>]
@@ -885,7 +890,7 @@ link to the room you are trying to open to.
 
 This command can be disabled by doing @tune building=no
 ~
-@osuccess
+@osuccess|@OSUCC
 @osuccess <object> [=<message>]
 -------------------------------
 Permissions: !GUEST
@@ -945,7 +950,7 @@ Adding up the RAM used by the garbage, the compiled MUFs, and the data base,
 will give one a rough approximate on the amount of RAM that the MUCK itself
 requires to run. 
 ~
-@success
+@success|@SUCC
 @success <object> [=<message>]
 ------------------------------
 Permissions: !GUEST
@@ -1613,7 +1618,7 @@ the execution exits this program, the multitasking mode returns to what
 it was before the function was called.  This lets libraries of atomic
 functions be written.
 ~
-CHOWN_OK|COLOR_ANSI|COLOR_ON|COLOR_OK
+CHOWN_OK|COLOR_ANSI|COLOR_ON|COLOR_OK|COLOR
 CHOWN_OK or COLOR_ANSI or COLOR_ON or COLOR_OK (C)
 --------------------------------------------------
 When set on a room, program, exit, or thing, it means that anyone
@@ -1687,8 +1692,8 @@ That gives the number of instructions processed, the name and dbref#
 of the MUF, and the seconds it took to run.
 ~
 MOBILE|OFFER
-MOBILE or OFFER (O)
--------------------
+MOBILE or OFFER
+---------------
 There is currently no function for this flag. It has been left in the
 code as a BOGUS flag that can be used on MUCKs to do whatever they would
 like. It can be checked for in MUF via the flag? prim.
@@ -1733,20 +1738,33 @@ However, if set on a player then it is also called PROG_DEBUG,
 except this will allow normal players that do not own the program to
 see the debug spam.  
 ~
-LINK_OK|LIGHT
-LINK_OK or LIGHT (L)
---------------------
+LINK_OK|
+LINK_OK (L)
+-----------
 
 If a room is LINK_OK, anyone can link exits to it (but still not from it).
 
-If a thing, player, or exit is set LINK_OK it is called LIGHT.  The flag
-conterattacks against DARK in this situation.
+If a player is LINK_OK, anyone can link exits to them. When a player uses
+an exit that is linked to another player, they get moved to that player's
+location.
+
+A thing that is set LINK_OK will let anyone @link exits to it. See STICKY 
+regarding some notes on linking exits to things.
 
 A program that is link_ok can be called by any other program, and can be run
 from actions and propqueues not owned by the owner of the program.
 
 See @LINK.
-~~
+~~~~
+LIGHT
+LIGHT (O)
+---------
+If a thing, player, or exit is set LINK_OK it is called LIGHT.  The flag
+conterattacks against DARK in this situation. I.e., players set light
+will still show up in dark rooms. Some MUF programs put this flag to use
+in other situations.
+Only W2 players and higher can set the LIGHT flag.
+~~~~
 LISTENER
 LISTENER
 --------
@@ -1910,7 +1928,7 @@ instruction by instruction through a muf program, setting breakpoints to
 stop at, and other nice things.  There is help available within the
 debugger, via the 'help' command.
 ~
-XFORCIBLE
+XFORCIBLE|XFORCEABLE|
 XFORCIBLE (X)
 -------------
 In order for an object to be able to be forced by some programs, it will
@@ -1965,7 +1983,7 @@ the W1 counts as a w-bitted character. Only W4 or #1 can set W1 bits.
 
 See: MAGE PERMISSIONS
 ~~~
-MAGE PERMISSIONS|
+MAGE PERMISSIONS|MAGE PRIVS
 Mage Permissions
 ----------------
 A W1 bitted character has access to a lot more MUF power. 
@@ -1991,13 +2009,13 @@ Can look up anyone's @stats and @owned lists.
 Can set the BUILDER, GUEST, VEHICLE, and ZOMBIE flags on other players.
 Can run '@kill all' to kill all running processes, and can view all proccess with @ps.
 ~~~~
-WIZARD2|W2|WIZARD|WIZARDS
+WIZARD2|W2|WIZARD|WIZARDS|
 WIZARD (W2)
 -----------
 Wizards are the first 'real' wizard level. They control everything on the
 muck, can examine the properties of anything, though they cannot view or
 alter @ props. Wizards can set props on players, and are able to set and
-remove ~ props.
+remove ~ props. Wizards are also the lowest level that can set the LIGHT flag.
 Wizards can obviously do everything that a Mage can do, so make sure to read
 up on the entry 'mage' and 'mage permissions' as well for more info
 on what tools are available to the Wizard level player. In addition, Wizards
@@ -2006,7 +2024,7 @@ bit. See 'man w2' for information on a wizard's access to MUF prims.
 
 See: WIZARD PERMISSIONS
 ~~~
-WIZARD PERMISSIONS
+WIZARD PERMISSIONS|WIZARD PRIVS
 Wizard Permissions
 ------------------
 Wizards are much like the normal W bitted character on FB style systems,
@@ -2043,7 +2061,7 @@ parameters that they cannot set. Only a W4 or #1 can set W3 bits.
 
 See: ARCHWIZARD PERMISSIONS
 ~~~~
-ARCHWIZARD PERMISSIONS
+ARCHWIZARD PERMISSIONS|ARCHIWIZARD PRIVS
 ArchWizard Permissions
 ----------------------
 Only ArchWizards or higher can:
@@ -2071,7 +2089,7 @@ W4 bits on characters.
 
 See: BOY PERMISSIONS
 ~~~
-BOY PERMISSIONS
+BOY PERMISSIONS|BOY PRIVS
 Boy Permissions
 ---------------
 In addition to being able to do everything a W3 can do, W4's
@@ -2376,7 +2394,7 @@ objects that can move and carry. Exits are the means by which objects move.
 Rooms are locations that contain objects and linked exits. Programs are
 player-written extensions to the game.
 ~
-PROPDIRS|PROPDIRS1
+PROPDIRS|PROPDIRS1|DIRS|DIR
 Propdirs (Property Directories)
 -------------------------------
 Properties are stored on objects, and organized into directories of
@@ -2717,7 +2735,7 @@ Container Key: <key>
 
 See: CONTAINERS, KEYS
 ~
-@flock
+@flock|@FORCELOCK
 @flock <object>=[<force lock>]
 ------------------------------
 Permissions: !GUEST
@@ -2826,7 +2844,8 @@ three supported formats are: STANDARD, NEON (or GLOW), and MUSH.
 To allow yourself to see ansi colors type: @set me=COLOR
 To turn off ansi colors type: @set me=!COLOR
 
-See also COLOR_ANSI, STANDARDANSI, NEONANSI, MUSHANSI, CUSTOM COLORS
+See also COLOR_ANSI, STANDARDANSI, NEONANSI, MUSHANSI
+See: 'man CUSTOM COLORS' for information about color customization.
 ~
 STANDARDANSI|STANDARD ANSI
 Standard ANSI
@@ -2947,7 +2966,7 @@ use the object, and the MPI string on the 'key' prop returns 1, then they
 will be able to. If the MPI string parses out to 0, then the player would be 
 unable to. 
 ~~~~~~
-PROP TYPES|PROPERTY TYPES|PROTECTED PROPS|WIZ ONLY PROPS|WIZPROPS|WIZ PROPS
+PROP TYPES|PROPERTY TYPES|PROTECTED PROPS|WIZ ONLY PROPS|WIZPROPS|WIZ PROPS|PROPERTIES|PROP
 PROPERTY TYPES
 --------------
 There are a couple special symbols used while setting props that players and
@@ -3205,7 +3224,7 @@ date indicated by the suspend-until prop. The date is in seconds, per the
 usual Unix manner of telling time. When the player gets booted from the 
 login screen, they get displayed the contents of the suspend-msg prop.
 ~~~~
-PROGRAMS|PRIMS|FUNCTIONS
+PROGRAMS|PRIMS|FUNCTIONS|MUF
 MUCK PROGRAMS
 -------------
 
