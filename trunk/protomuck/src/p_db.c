@@ -1280,11 +1280,12 @@ prog_can_link_to(int mlev, dbref who, object_flag_type what_type, dbref where)
 						   || Linkable(where)));
 	    break;
 	case TYPE_ROOM:
-	    return ((Typeof(where) == TYPE_ROOM)
+	    return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_THING)
 		    && (permissions(mlev, who, where) || Linkable(where)));
 	    break;
 	case TYPE_THING:
-	    return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_PLAYER)
+	    return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_PLAYER
+                    || Typeof(where) == TYPE_THING)
 		    && (permissions(mlev, who, where) || Linkable(where)));
 	    break;
 	case NOTYPE:

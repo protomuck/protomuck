@@ -114,7 +114,16 @@
  */
 #undef OLDCOMMENT
 
-
+/* Define the following to allow dynamic linked exits. This allows
+ * an action's destination to be changed by the message calls, 
+ * either by using MUF or MPI within the calls.  
+ * I.e., @succ, @odrop, ect. Only requirement is that the new
+ * destination must be of the same type as the old destination.
+ * If the exit points to a room, the reassigned destination must
+ * point to a room as well, and this does not work with actions
+ * that are pointing to programs.   
+ */
+#define DYNAMIC_LINKS
 
 /* Define this to set which server to use for e-mail registration.
  */
