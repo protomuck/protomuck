@@ -589,6 +589,7 @@ process_command(int descr, dbref player, char *command)
     char pbuf[BUFFER_LEN];
     char xbuf[BUFFER_LEN];
     char ybuf[BUFFER_LEN];
+    char zbuf[BUFFER_LEN];
     int isOverride = 0;
 
     //struct frame *tmpfr;
@@ -1579,16 +1580,26 @@ process_command(int descr, dbref player, char *command)
           bad:
             //bad2:
         {
+        /* Alynna's HUH propqueue support! 
+           This crazy crap written 20031115 */
+        /* FIX: Only do output when huh_mesg is not null */
+        if (*tp_huh_mesg)
             anotify_fmt(player, CINFO "%s", tp_huh_mesg);
-            if (tp_log_failed_commands
-                && !controls(player, DBFETCH(player)->location)) {
-                log_status("HUH from %s(%d) in %s(%d)[%s]: %s %s\n",
-                           NAME(player), player,
-                           NAME(DBFETCH(player)->location),
-                           DBFETCH(player)->location,
-                           NAME(OWNER(DBFETCH(player)->location)), command,
-                           full_command);
-            }
+
+        /* Do the propqueue, with the HUH args on the stack */
+        sprintf(zbuf, "HUH:%s %s", command, full_command);
+        propqueue(descr, player, DBFETCH(player)->location, player, 0, -1, "@huh", zbuf, 1, 1);
+
+        /* Regular logging */	    
+        if (tp_log_failed_commands
+		    && !controls(player, DBFETCH(player)->location)) {
+            log_status("HUH from %s(%d) in %s(%d)[%s]: %s %s\n",
+                   NAME(player), player,
+                   NAME(DBFETCH(player)->location),
+                   DBFETCH(player)->location,
+                   NAME(OWNER(DBFETCH(player)->location)), command,
+		    full_command);
+    	    }
         }
             break;
     }
