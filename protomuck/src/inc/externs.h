@@ -139,8 +139,8 @@ extern void do_list(dbref player, dbref program, int arg[], int argc, int commen
 
 /* From game.c */
 extern void do_dump(dbref player, const char *newfile);
-extern void do_shutdown(dbref player, const char *msg);
-extern void do_restart(dbref player, const char *msg);
+extern void do_shutdown(dbref player, const char *muckname, const char *msg);
+extern void do_restart(dbref player, const char *muckname, const char *msg);
 extern void fork_and_dump(void);
 extern void dump_database(void);
 extern int prop_command(int descr, dbref player, char *command, char *arg, char *type, int mt);
@@ -459,6 +459,7 @@ extern time_t sel_prof_start_time;
 extern long sel_prof_idle_sec;
 extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
+
 
 
 

@@ -898,6 +898,25 @@ CrT_alloc_string(const char *string, const char *file, int line)
 	return s;
 }
 
+struct shared_string *
+CrT_alloc_prog_string(const char *s, const char *file, int line)
+{
+    struct shared_string *ss;
+    int     length;
+
+    if (s == NULL || *s == '\0')
+	return (NULL);
+
+    length = strlen(s);
+    if ((ss = (struct shared_string *)
+	 CrT_malloc(sizeof(struct shared_string) + length, file, line)) == NULL)
+	abort();
+    ss->links = 1;
+    ss->length = length;
+    bcopy(s, ss->data, ss->length + 1);
+    return (ss);
+}
+
 /* }}} */
 /* {{{ CrT_string_dup							*/
 
@@ -926,3 +945,4 @@ fold-fold-on-startup: nil
 End:
 */
 /* }}} */
+

@@ -37,6 +37,8 @@ int  crt_connect_count = 0;
 
 
 //extern int errno;
+char    restart_message[BUFFER_LEN];
+char    shutdown_message[BUFFER_LEN];
 int     shutdown_flag = 0;
 int     restart_flag = 0;
 int total_loggedin_connects = 0;
@@ -44,7 +46,6 @@ int total_loggedin_connects = 0;
 static const char *connect_fail = "Incorrect login.\r\n";
 
 static const char *flushed_message = "<Flushed>\r\n";
-static const char *shutdown_message = "\r\nBe back in a few!\r\n";
 
 int resolver_sock[2];
 
@@ -202,6 +203,8 @@ main(int argc, char **argv)
     int   fd;
 #endif
 
+    strcpy(restart_message, "\r\nServer restarting, be back in a few!\r\n");
+    strcpy(shutdown_message, "\r\nServer shutting down, be back in a few!\r\n");
     time(&current_systime);
     init_descriptor_lookup();
     init_descr_count_lookup();
@@ -406,8 +409,8 @@ main(int argc, char **argv)
 	shovechars();
 
 	if (restart_flag) {
-	    close_sockets(
-		"\r\nServer restarting, be back in a few!\r\n.");
+	    close_sockets(restart_message);
+/*		"\r\nServer restarting, be back in a few!\r\n."); */
 	} else {
 	    close_sockets(shutdown_message);
 	}
@@ -2606,6 +2609,12 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
     int foundit = 0;
     char *params = NULL;
     char    buf[BUFFER_LEN];
+
+#ifdef MALLOC_PROFILING
+    queue_ansi(d, "The webserver is disabled while MALLOC_PROFILING is turned on.");
+    d->booted = 1;
+    return;
+#endif
 
 #ifdef HTTPDELAY
     if( d->httpdata ) {
@@ -4958,6 +4967,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

@@ -310,8 +310,6 @@ alloc_string(const char *string)
     return s;
 }
 
-#endif
-
 struct shared_string *
 alloc_prog_string(const char *s)
 {
@@ -331,6 +329,7 @@ alloc_prog_string(const char *s)
     return (ss);
 }
 
+#endif
 
 #if !defined(MALLOC_PROFILING)
 char   *
@@ -939,6 +938,7 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     *p = '\0';
     return out;
 }
+
 
 
 

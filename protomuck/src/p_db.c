@@ -1113,7 +1113,6 @@ prim_okp(PRIM_PROTOTYPE)
     CHECKOP(1);
     oper1 = POP();
     result = (valid_object(oper1));
-    CLEAR(oper1);
     PushInt(result);
 }
 
@@ -2388,6 +2387,10 @@ prim_setpassword(PRIM_PROTOTYPE)
     CHECKREMOTE(ref);
     if (oper2->type != PROG_STRING)
 	abort_interp("Password string expected");
+#ifdef MALLOC_PROFILING
+    if (!oper1->data.string)
+	abort_interp("NULL passwords cannot be set when MALLOC_PROFILING is turned on");
+#endif
     ptr = oper2->data.string? oper2->data.string->data : pad_char;
     ptr2 = oper1->data.string? oper1->data.string->data : pad_char;
     if (ref != NOTHING && strcmp(ptr, DBFETCH(ref)->sp.player.password))
@@ -2414,6 +2417,10 @@ prim_newpassword(PRIM_PROTOTYPE)
 	abort_interp("Password string expected");
     if (oper3->type != PROG_OBJECT)
 	abort_interp("Player dbref expected");
+#ifdef MALLOC_PROFILING
+    if (!oper1->data.string)
+	abort_interp("NULL passwords cannot be set when MALLOC_PROFILING is turned on");
+#endif
     ptr2 = oper1->data.string? oper1->data.string->data : pad_char;
     ref = oper3->data.objref;
     if (ref != NOTHING && !valid_player(oper3))
@@ -3159,6 +3166,7 @@ prim_getobjinfo(PRIM_PROTOTYPE)
 	CLEAR(oper1);
 	PushArrayRaw(nw);
 }
+
 
 
 

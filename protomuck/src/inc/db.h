@@ -737,7 +737,9 @@ extern void write_program(struct line * first, dbref i);
 
 extern void log_program_text(struct line * first, dbref player, dbref i);
 
+#ifndef MALLOC_PROFILING
 extern struct shared_string *alloc_prog_string(const char *);
+#endif
 
 extern dbref new_object(void);	/* return a new object */
 
@@ -814,6 +816,7 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 
