@@ -1635,4 +1635,9 @@ db_read(FILE * f)
 
 
 
+WLevel(dbref player)
+{
+    int mlev = MLevel(player);
 
+    return mlev >= LMAGE ? mlev : 0;
+}   
