@@ -1,0 +1,36 @@
+                   *ProtoMUCK MUF Editor Help*
+While in the MUF editor, the following commands are available:
+
+These commands are used to work with the program text:
+----------------
+compile             (c)     compile program
+<num> [<num>]delete (d)     delete a single line or range of lines
+<num> insert        (i)     insert at the line number given
+<num> [<num>]list   (l)     list a single line, or a range of lines
+uncompile           (u)     serves no point in current MUCK versions
+numbers             (n)     toggle line numbers in program listings
+.                   (.)     enter . to exit insert mode
+quit                (q)     exit and save changes to the MUF code
+cancel              (x)     exit editor without saving any changes
+
+These commands are used to work with the global MUF macros:
+----------------
+abridged [<letter>] (a)     list global MUF macros by name only
+<macro name> kill   (k)     remove a global MUF macro (W1 Command)
+show [<letter>]     (s)     list a full display of global MUF macros
+<num> view          (v)     to list the given program's header
+
+All editor commands may be abbreviated to their first letter.
+
+To define a macro, use the following syntax:
+def <macro name> <macro definition>
+Then that macro may be used in any MUF program as:  .<macro name>
+
+def sample me @ "Sample Macro" notify
+would create a macro that notifies the user that string and is called
+by using .sample in a MUF.
+Be careful when defining a macro, as only w-bitted characters can
+delete or change them.
+
+~~~~~~Refer to the MUF manual, 'man', to read about MUF prims.~~~~~~~
+
