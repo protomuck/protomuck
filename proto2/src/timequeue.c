@@ -1401,7 +1401,7 @@ propqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
                     the_prog = NOTHING;
                 } else if (Typeof(the_prog) != TYPE_PROGRAM) {
                     the_prog = NOTHING;
-                } else if ((OWNER(the_prog) != OWNER(player)) &&
+                } else if (OkObj(player) && (OWNER(the_prog) != OWNER(player)) &&
                            !(FLAGS(the_prog) & LINK_OK)) {
                     the_prog = NOTHING;
                 } else if (MLevel(the_prog) < mlev) {
