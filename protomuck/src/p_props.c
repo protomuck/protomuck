@@ -1054,6 +1054,9 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
 			if (prop_read_perms(ProgUID, ref, prop, mlev)) {
 				ptr = get_property_class(ref, prop);
 				if (ptr) {
+#ifdef COMPRESS
+                                        uncompress(ptr);
+#endif
 					strcpy(buf, ptr);
 					if (equalstr(pat, buf)) {
 						array_appenditem(&nu, in);
