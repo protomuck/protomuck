@@ -595,3 +595,18 @@ running at to change the userflag (MOBILE).  Change this if your
 MUCK uses the userflags for its own purposes, and you dont want
 unpriveleged players changing it.  Also see the tune 
 'username_flag'.
+~~~
+reslvd_address
+This is a string that describes the host and port of the reslvd
+daemon, in <host>:<port> format. If either the host or port are
+missing, ProtoMUCK defaults to the values specified in config.h
+under RESOLVER_HOST and RESOLVER_PORT. Setting this option to
+NULL disables the reslvd connection. Note that, while a hostname
+will work, an IP address is recommended, as the muck will hang
+while the name is initially resolved.
+~~~
+sslport
+The port SSL-aware clients use for secured connections.
+~~~
+ssl_keyfile_passwd
+This field provides a password for commercial or personal SSL certificates that require a password or passphrase for their use.
