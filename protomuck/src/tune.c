@@ -207,7 +207,6 @@ struct tune_val_entry tune_val_list[] =
 dbref tp_quit_prog         = -1;
 dbref tp_login_who_prog    = -1;
 dbref tp_player_start      = PLAYER_START;
-dbref tp_reg_wiz           = -1;
 dbref tp_player_prototype  = -1;
 dbref tp_cron_prog         = -1;
 #ifdef HTTPD
@@ -229,7 +228,6 @@ struct tune_ref_entry tune_ref_list[] =
     {"quit_prog",         TYPE_PROGRAM,   &tp_quit_prog,        WBOY , LMAGE},
     {"login_who_prog",    TYPE_PROGRAM,   &tp_login_who_prog,   WBOY , LMAGE},
     {"player_start",      TYPE_ROOM,      &tp_player_start,     LARCH, LMAGE},
-    {"reg_wiz",           TYPE_PLAYER,    &tp_reg_wiz,          WBOY , LMAGE},
     {"player_prototype",  TYPE_PLAYER,    &tp_player_prototype, LARCH, LMAGE},
     {"cron_prog",         TYPE_PROGRAM,   &tp_cron_prog,        LARCH, LMAGE},
 #ifdef HTTPD
