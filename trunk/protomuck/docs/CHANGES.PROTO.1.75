@@ -1,4 +1,15 @@
 Changes from 1.70 to 1.71
+**Foxsteve**
+- Added the RESTART, SHUTDOWN, DELTA, DUMP, and ARMAGEDDON prims to MUF. 
+- Fixed various overflow crashes caused by checks not being implemented
+    where they should be.
+- Submitted MUF editing prims for review. Note that the MUF editng prims
+    were not included in Proto1.75, but will show up in 1.80. The reason
+    for this is that they will be redesigned to work with arrays instead
+    of stack ranges. 
+- Fixed }array, }list, and }dict to actually work. Those had gotten lost
+    from compile.c at some point along the line.
+
 **Alynna**
 * Added the define CYGWIN for defining a compile under CYGWIN.  Off by default.
   If you are compiling for Win32 under Cygwin, and define this, all will go off
