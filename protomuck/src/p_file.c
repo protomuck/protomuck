@@ -1219,7 +1219,7 @@ prim_mkdir(PRIM_PROTOTYPE)
 #endif
     /* Everything has been checked, make the directory now */
     result = mkdir(directoryName, S_IRWXU); 
-
+    result = !result;
     PushInt(result);
 }
 
