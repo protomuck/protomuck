@@ -49,6 +49,8 @@ set SITEARCHIVE = $HOME
 
 ###################################################################
 # You should not normally need to change anything after this point.
+# Unless you want to make it so that some of the logs do not get
+# cleared. See below
 
 set timestamp = `date +'%y.%m.%d.%H.%M'`
 
@@ -71,7 +73,18 @@ endif
 # Now clear the old logs
 echo "Removing old log files."
 cd $LOGDIR
-rm -f ttyerr.log status commands connects programs files sockets help restarts muf-errors
+
+# Just comment out the ones you don't want getting cleared.
+rm -f ttyerr.log 
+rm -f status
+rm -f commands
+rm -f connects
+rm -f programs
+rm -f files
+rm -f sockets
+rm -f help
+rm -f restarts
+rm -f muf-errors
 touch $LOGDIR/ttyerr.log
 touch $LOGDIR/status
 
@@ -93,6 +106,11 @@ if ( $ARCHIVE_MUF >= 1 ) then
         @ mcount = $mcount - 1
         @ ncount = $ncount - 1
     end 
+# Now remove the extra one
+    @ ncount = $ARCHIVE_MUF + 1
+    if ( -r muf$ncount.tgz ) then
+        rm -f muf$ncount.tgz
+    endif
 # Now to make the new archive!
     cd $MUFDIR
     tar -zcf muf1.tgz *.m macros
