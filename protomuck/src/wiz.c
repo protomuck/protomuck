@@ -436,6 +436,7 @@ do_stats(dbref player, const char *name)
     int     tpcnt=0;
     int     tocnt=0;
     int     memtemp = 0;
+    int     memtemp2 = 0;
     dbref   i;
     dbref   owner = NOTHING;
 
@@ -572,23 +573,20 @@ do_stats(dbref player, const char *name)
 	/* Bandwidth Usage Stats */
 	if (Mage(OWNER(player))) {
             memtemp = bytesIn / 1000;
+	    memtemp2 = bytesOut / 1000;
 	    anotify_fmt(player, BROWN
-                "%7d %s input", 
+                "%7d %s input             " AQUA "%7d %s output", 
 		memtemp < 100000 ? memtemp : memtemp / 1000,
-		memtemp < 100000 ? "Kbytes" : "Mbytes" );
-	    memtemp = bytesOut / 1000;
-	    anotify_fmt(player, AQUA
-	        "%7d %s output",
-		memtemp < 100000 ? memtemp : memtemp / 1000,
-		memtemp < 100000 ? "Kbytes" : "Mbytes" );
+		memtemp < 100000 ? "Kbytes" : "Mbytes",
+		memtemp2 < 100000 ? memtemp2 : memtemp2 / 1000, 
+		memtemp2 < 100000 ? "Kbytes" : "Mbytes");
 	    memtemp = bytesIn + bytesOut;
 	    memtemp = memtemp / 1000;
 	    anotify_fmt(player, FOREST
-	        "%7d %s total traffic",
+	        "%7d %s total traffic     " VIOLET "%7d commands",
 		memtemp < 100000 ? memtemp : memtemp / 1000,
-		memtemp < 100000 ? "KBytes" : "Mbytes" );
-	    anotify_fmt(player, VIOLET
-	        "%7d total commands entered", commandTotal);
+		memtemp < 100000 ? "KBytes" : "Mbytes",
+		commandTotal);
 	}
 
 }

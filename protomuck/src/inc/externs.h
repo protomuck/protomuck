@@ -347,6 +347,8 @@ extern struct boolexp *negate_boolexp(struct boolexp *b);
 extern void free_boolexp(struct boolexp *b);
 
 /* From unparse.c */
+extern       char  flag_2char(char *flag);
+extern       char  power_2char(char *flag);
 extern const char *unparse_flags(dbref thing, char buf[BUFFER_LEN]);
 extern const char *ansi_unparse_object(dbref player, dbref object);
 extern const char *unparse_object(dbref player, dbref object);

@@ -49,9 +49,9 @@ static const char *flushed_message = "<Flushed>\r\n";
 
 int resolver_sock[2];
 
-long int bytesIn = 0; /* Total bytes sent TO the muck */
-long int bytesOut = 0; /* Total bytes sent FROM the muck */
-long int commandTotal = 0; /* Total commands entered by players */
+unsigned int bytesIn = 0; /* Total bytes sent TO the muck */
+unsigned int bytesOut = 0; /* Total bytes sent FROM the muck */
+unsigned int commandTotal = 0; /* Total commands entered by players */
 
 struct descriptor_data  *descriptor_list = 0;
 

@@ -120,7 +120,8 @@ int check_flag2(char *flag, int *nbol)
       return F2NO_COMMAND;
    if (string_prefix("examine_ok", flag))
       return F2EXAMINE_OK;
-   if (string_prefix("mobile", flag) || string_prefix("offer", flag))
+   if (string_prefix("mobile", flag) || string_prefix("offer", flag) ||
+		    string_prefix("~", flag) )
       return F2MOBILE;
    if (string_prefix("pueblo", flag))
       return F2PUEBLO;
