@@ -989,6 +989,7 @@ prim_testlock(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
     if (oper1->type != PROG_LOCK)
         abort_interp("Invalid argument (2)");
+
     interp_set_depth(fr);
     result = eval_boolexp(fr->descr, oper2->data.objref, oper1->data.lock, 
                           PSafe);
@@ -1002,7 +1003,8 @@ prim_testlock(PRIM_PROTOTYPE)
 
 void 
 prim_lockedp(PRIM_PROTOTYPE)
-{       
+{   
+    dbref ref2;
     /* d d - i */
     CHECKOP(2);
     oper1 = POP();              /* objdbref */
@@ -1017,12 +1019,18 @@ prim_lockedp(PRIM_PROTOTYPE)
     if (!valid_object(oper1))
         abort_interp("invalid object (2)");
     CHECKREMOTE(oper1->data.objref);
-    interp_set_depth(fr);
-    result = !could_doit(fr->descr, oper2->data.objref, oper1->data.objref);
-    fr->level--; 
-    interp_set_depth(fr);
+
+    ref = oper2->data.objref;
+    ref2 = oper1->data.objref;
+
     CLEAR(oper1);
     CLEAR(oper2);
+    nargs -= 2;
+
+    interp_set_depth(fr);
+    result = !could_doit(fr->descr, ref, ref2);
+    fr->level--; 
+    interp_set_depth(fr);
     PushInt(result);
 }
 
@@ -1032,9 +1040,9 @@ prim_islockedp(PRIM_PROTOTYPE)
     /* d d s - i */
 
     char  *tmpptr;
+    dbref ref2;
 
     CHECKOP(3);
-
     oper1 = POP();
     oper2 = POP();
     oper3 = POP();
@@ -1057,20 +1065,24 @@ prim_islockedp(PRIM_PROTOTYPE)
      CHECKREMOTE(oper2->data.objref);
      CHECKREMOTE(oper3->data.objref);
 
-     tmpptr = oper1->data.string->data;
+     strcpy(buf, oper1->data.string->data);
+     ref = oper3->data.objref;
+     ref2 = oper2->data.objref;
+
+     CLEAR(oper1);
+     CLEAR(oper2);
+     CLEAR(oper3);
+     nargs -= 3;
+
+     tmpptr = buf;
      while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
          if (!(*(++tmpptr)))
              abort_interp("Cannot access a propdir directly");
 
      interp_set_depth(fr);
-     result = !(could_doit2(fr->descr, oper3->data.objref, oper2->data.objref, 
-                oper1->data.string->data, 0));
+     result = !(could_doit2(fr->descr, ref, ref2,  buf, 0));
      fr->level--;
      interp_set_depth(fr);
-
-     CLEAR(oper1);
-     CLEAR(oper2);
-     CLEAR(oper3);
 
      PushInt(result);
 }
@@ -1082,6 +1094,7 @@ prim_checklock(PRIM_PROTOTYPE)
     /* This is just a copy and paste of the islocked? code. The only
      * difference is that it will try MUF called from the lock. */
     char  *tmpptr;
+    dbref ref2;
 
     CHECKOP(3);
 
@@ -1107,20 +1120,24 @@ prim_checklock(PRIM_PROTOTYPE)
      CHECKREMOTE(oper2->data.objref);
      CHECKREMOTE(oper3->data.objref);
 
-     tmpptr = oper1->data.string->data;
+     strcpy(buf, oper1->data.string->data);
+     ref = oper3->data.objref;
+     ref2 = oper2->data.objref;
+
+     CLEAR(oper1);
+     CLEAR(oper2);
+     CLEAR(oper3);
+     nargs -= 3;
+
+     tmpptr = buf;
      while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
          if (!(*(++tmpptr)))
              abort_interp("Cannot access a propdir directly");
 
      interp_set_depth(fr);
-     result = !(could_doit2(fr->descr, oper3->data.objref, oper2->data.objref,
-                oper1->data.string->data, 1));
+     result = !(could_doit2(fr->descr, ref, ref2, buf, 1));
      fr->level--;
      interp_set_depth(fr);
-
-     CLEAR(oper1);
-     CLEAR(oper2);
-     CLEAR(oper3);
 
      PushInt(result);
 }
