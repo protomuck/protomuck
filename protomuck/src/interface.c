@@ -73,14 +73,6 @@ static int ndescriptors = 0;
 static int maxd = 0; /* Moved from shovechars since needed in p_socket.c */
 extern void fork_and_dump(void);
 
-#ifdef RWHO
-extern int rwhocli_setup(const char *server, const char *serverpw, const char *myname, const char *comment);
-extern int rwhocli_shutdown(void);
-extern int rwhocli_pingalive(void);
-extern int rwhocli_userlogin(const char *uid, const char *name,time_t tim);
-extern int rwhocli_userlogout(const char *uid);
-#endif
-
 #ifdef COMPRESS
 extern const char *uncompress(const char *);
 #endif
@@ -451,10 +443,6 @@ main(int argc, char **argv)
 
 	do_dequeue(-1, (dbref) 1, "all");
 
-#ifdef RWHO
-	if (tp_rwho)
-	    rwhocli_shutdown();
-#endif
 	host_shutdown();
       }
 
@@ -4218,14 +4206,6 @@ announce_connect(int descr, dbref player)
 
 	total_loggedin_connects++;
 
-#ifdef RWHO
-    if (tp_rwho) {
-	time(&tt);
-	sprintf(buf, "%d@%s", player, tp_muckname);
-	rwhocli_userlogin(buf, NAME(player), tt);
-    }
-#endif
-
     if(Guest(player)) {
 	FLAGS(player) &= ~CHOWN_OK;
     }
@@ -4306,13 +4286,6 @@ announce_disconnect(struct descriptor_data *d)
     )	return;
 
 	total_loggedin_connects--;
-
-#ifdef RWHO
-    if (tp_rwho) {
-	sprintf(buf, "%d@%s", player, tp_muckname);
-	rwhocli_userlogout(buf);
-    }
-#endif
 
     if (dequeue_prog(player, 2))
 	anotify(player, CINFO "Foreground program aborted.");
@@ -5297,26 +5270,6 @@ partial_pmatch(const char *name)
     }
     return (last);
 }
-
-
-#ifdef RWHO
-void
-update_rwho(void)
-{
-    struct descriptor_data *d;
-    char buf[BUFFER_LEN];
-
-    rwhocli_pingalive();
-    d = descriptor_list;
-    while (d) {
-	if (d->connected) {
-	    sprintf(buf, "%d@%s", d->player, tp_muckname);
-	    rwhocli_userlogin(buf, NAME(d->player), d->connected_at);
-	}
-	d = d->next;
-    }
-}
-#endif
 
 void 
 welcome_user(struct descriptor_data * d)

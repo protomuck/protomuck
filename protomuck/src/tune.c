@@ -39,10 +39,6 @@ const char *tp_pennies              = PENNIES;
 const char *tp_cpenny               = CPENNY;
 const char *tp_cpennies             = CPENNIES;
 const char *tp_muckname             = MUCKNAME;
-#ifdef RWHO
-const char *tp_rwho_passwd          = RWHO_PASSWD;
-const char *tp_rwho_server          = RWHO_SERVER;
-#endif
 const char *tp_reg_email            = "admin@your.host.here";
 const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt   = "P#/N";
@@ -77,10 +73,6 @@ struct tune_str_entry tune_str_list[] =
     {"Legacy",   "dummy_midi",        &tp_dummy_midi,         WBOY , LMUF , 1},
     {"Legacy",   "mailserver",        &tp_mailserver,         WBOY , LWIZ , 1},
     {"Identity", "servername",        &tp_servername,         WBOY , LMUF , 1},
-#ifdef RWHO
-    {"RWHO",     "rwho_passwd",       &tp_rwho_passwd,        WBOY , RBOY , 1},
-    {"RWHO",     "rwho_server",       &tp_rwho_server,        WBOY , LMAGE, 1},
-#endif
     {"Legacy",   "reg_email",         &tp_reg_email,          WBOY , LARCH, 1},
     {"Props", "proplist_counter_fmt",&tp_proplist_counter_fmt,LARCH, LMUF , 1},
     {"Props",   "proplist_entry_fmt",&tp_proplist_entry_fmt,  LARCH, LMUF , 1},
@@ -90,9 +82,6 @@ struct tune_str_entry tune_str_list[] =
 
 
 /* times */
-#ifdef RWHO
-time_t tp_rwho_interval           = RWHO_INTERVAL;
-#endif
 time_t tp_dump_interval           = DUMP_INTERVAL;
 time_t tp_dump_warntime           = DUMP_WARNTIME;
 time_t tp_monolithic_interval     = MONOLITHIC_INTERVAL;
@@ -114,9 +103,6 @@ struct tune_time_entry {
 
 struct tune_time_entry tune_time_list[] =
 {
-#ifdef RWHO
-    {"RWHO",     "rwho_interval",       &tp_rwho_interval,       WBOY , LWIZ },
-#endif
     {"Database", "dump_interval",       &tp_dump_interval,       LARCH, LMUF },
     {"Database", "dump_warntime",       &tp_dump_warntime,       LARCH, LMUF },
     {"Database", "monolithic_interval", &tp_monolithic_interval, LARCH, LMUF },
@@ -271,9 +257,6 @@ int tp_logwall_www                 = 1;
 int tp_dbdump_warning              = DBDUMP_WARNING;
 int tp_deltadump_warning           = DELTADUMP_WARNING;
 int tp_periodic_program_purge      = PERIODIC_PROGRAM_PURGE;
-#ifdef RWHO
-int tp_rwho                        = 0;
-#endif
 int tp_secure_who                  = SECURE_WHO;
 int tp_who_doing                   = WHO_DOING;
 int tp_realms_control              = REALMS_CONTROL;
@@ -350,9 +333,6 @@ struct tune_bool_entry tune_bool_list[] =
     {"Database", "dbdump_warning",      &tp_dbdump_warning,      LARCH, LMUF },
     {"Database", "deltadump_warning",   &tp_deltadump_warning,   LARCH, LMUF },
     {"System","periodic_program_purge",&tp_periodic_program_purge,LARCH, LMUF },
-#ifdef RWHO
-    {"RWHO",     "run_rwho",            &tp_rwho,                WBOY , LMUF },
-#endif
     {"Commands", "secure_who",          &tp_secure_who,          LARCH, LMUF },
     {"Commands", "who_doing",           &tp_who_doing,           LARCH, LMUF },
     {"Building", "realms_control",      &tp_realms_control,      WBOY , LMUF },

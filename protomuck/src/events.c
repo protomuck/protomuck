@@ -272,70 +272,6 @@ auto_archive_now(void)
 }
 
 
-
-
-
-/****************
- * RWHO updates *
- ****************/
-
-#ifdef RWHO
-
-static time_t last_rwho_time = 0L;
-static int last_rwho_nogo = 1;
-
-time_t
-next_rwho_time()
-{
-    time_t currtime;
-
-    if (!tp_rwho) {
-        if (!last_rwho_nogo)
-            rwhocli_shutdown();
-        last_rwho_nogo = 1;
-        return(3600L);
-    }
-
-    currtime = time((time_t *) NULL);
-
-    if (last_rwho_nogo) {
-        rwhocli_setup(tp_rwho_server, tp_rwho_passwd, tp_muckname, VERSION);
-        last_rwho_time = currtime;
-        update_rwho();
-    }
-    last_rwho_nogo = 0;
-
-    if (!last_rwho_time)
-        last_rwho_time = currtime;
-
-    if ((last_rwho_time + tp_rwho_interval) < currtime)
-        return (0L);
-
-    return (last_rwho_time + tp_rwho_interval - currtime);
-}                             
-
-
-void
-check_rwho_time (void)
-{
-    time_t currtime;
-
-    if (!tp_rwho) return;
-
-    currtime = time((time_t *) NULL);
-
-    if (!last_rwho_time)
-        last_rwho_time = currtime;
-
-    if ((last_rwho_time + tp_rwho_interval) < currtime) {
-        last_rwho_time = currtime;
-        update_rwho();
-    }
-}
-
-#endif /* RWHO */
-
-
 /**********************************************************************
  *  general handling for timed events like dbdumps, timequeues, etc.
  **********************************************************************/
@@ -356,9 +292,6 @@ next_muckevent_time(void)
     nexttime = mintime(next_clean_time(), nexttime);
     nexttime = mintime(next_cron_time(), nexttime);
     nexttime = mintime(next_archive_time(), nexttime);
-#ifdef RWHO      
-    nexttime = mintime(next_rwho_time(), nexttime);
-#endif
 
     return (nexttime);
 }
@@ -371,9 +304,6 @@ next_muckevent (void)
     check_clean_time();
     check_cron_time();
     check_archive_time();
-#ifdef RWHO
-    check_rwho_time();
-#endif
 }         
 
 
