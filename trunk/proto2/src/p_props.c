@@ -922,8 +922,9 @@ prim_propqueue(PRIM_PROTOTYPE)
    if (!valid_object(oper4))
       abort_interp("Invalid object. (1)");
    
-   propqueue(fr->descr, player, getloc(player), oper4->data.objref, oper2->data.objref, NOTHING,
-             oper3->data.string->data, oper1->data.string->data, 1, 1);
+   propqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, oper4->data.objref, 
+             oper2->data.objref, NOTHING, oper3->data.string->data,
+             oper1->data.string->data, 1, 1);
 
    CLEAR(oper1);
    CLEAR(oper2);
