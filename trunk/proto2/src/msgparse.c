@@ -804,8 +804,7 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
     char dbuf[BUFFER_LEN];
-
-    //char ebuf[BUFFER_LEN];
+    char ebuf[BUFFER_LEN];
     char cmdbuf[MAX_MFUN_NAME_LEN + 1];
     char argv[9][BUFFER_LEN];
     register const char *ptr;
@@ -919,7 +918,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                             }
                             if (argc == -1) {
                                 char *zptr = get_mvar("how");
-                                char ebuf[BUFFER_LEN];
 
                                 sprintf(ebuf, "%s %c%s%c: End brace not found.",
                                         zptr, MFUN_LEADCHAR, cmdbuf,
@@ -934,8 +932,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                             argc++;
                             zptr = get_mvar(cmdbuf + 1);
                             if (!zptr) {
-                                char ebuf[BUFFER_LEN];
-
                                 zptr = get_mvar("how");
                                 sprintf(ebuf,
                                         "%s %c%s%c: Unrecognized variable.",
@@ -955,8 +951,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                     (varflag ? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGSTART);
                             for (i = (varflag ? 1 : 0); i < argc; i++) {
-                                char ebuf[BUFFER_LEN];
-
                                 if (i)
                                     sprintf(dbuf, "%.512s%c ", dbuf,
                                             MFUN_ARGSEP);
@@ -1003,8 +997,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                     MFUN_ARGSTART);
 
                             for (i = (varflag ? 1 : 0); i < argc; i++) {
-                                char ebuf[BUFFER_LEN];
-
                                 if (i)
                                     sprintf(dbuf, "%.512s%c ", dbuf,
                                             MFUN_ARGSEP);
@@ -1020,7 +1012,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                         }
                         if (argc < mfun_list[s].minargs) {
                             char *zptr = get_mvar("how");
-                            char ebuf[BUFFER_LEN];
 
                             sprintf(ebuf, "%s %c%s%c: Too few arguments",
                                     zptr, MFUN_LEADCHAR,
@@ -1032,7 +1023,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                         } else if (mfun_list[s].maxargs > 0 &&
                                    argc > mfun_list[s].maxargs) {
                             char *zptr = get_mvar("how");
-                            char ebuf[BUFFER_LEN];
 
                             sprintf(ebuf, "%s %c%s%c: Too many arguments",
                                     zptr, MFUN_LEADCHAR,
@@ -1054,7 +1044,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                 dptr = MesgParse(ptr, buf);
                                 if (!dptr) {
                                     char *zptr = get_mvar("how");
-                                    char ebuf[BUFFER_LEN];
 
                                     sprintf(ebuf, "%s %c%s%c (returned string)",
                                             zptr, MFUN_LEADCHAR,
@@ -1068,8 +1057,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                             }
                         }
                         if (mesgtyp & MPI_ISDEBUG) {
-                            char ebuf[BUFFER_LEN];
-
                             sprintf(dbuf, "%.512s = \"%.512s\"", dbuf,
                                     cr2slash(ebuf, ptr));
                             smnotify(descr, player, dbuf);
@@ -1085,7 +1072,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                              MFUN_LITCHAR, 9);
                             if (argc == -1) {
                                 char *zptr = get_mvar("how");
-                                char ebuf[BUFFER_LEN];
 
                                 sprintf(ebuf, "%s %c%s%c: End brace not found.",
                                         zptr, MFUN_LEADCHAR, cmdbuf,
@@ -1102,7 +1088,6 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                     } else {
                         /* unknown function */
                         char *zptr = get_mvar("how");
-                        char ebuf[BUFFER_LEN];
 
                         sprintf(ebuf, "%s %c%s%c: Unrecognized function.",
                                 zptr, MFUN_LEADCHAR, cmdbuf, MFUN_ARGEND);
