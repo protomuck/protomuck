@@ -610,8 +610,8 @@ do_stats(dbref player, const char *name)
                 tocnt, tpcnt ? "other " : "",
                 (tocnt == 1) ? "" : "s", (tocnt == 1) ? "is" : "are", tosize);
     anotify_fmt(player, SYSYELLOW
-                "%7d cached host %s using %d bytes of RAM.",
-                hostdb_count, (hostdb_count == 1) ? "entry is" : "entries are", hostdb_count * sizeof(struct hostinfo));
+                "%7ld cached host %s using %ld bytes of RAM.",
+                hostdb_count, (hostdb_count == 1L) ? "entry is" : "entries are", hostdb_count * sizeof(struct hostinfo));
     /* Bandwidth Usage Stats */
     if (Mage(OWNER(player))) {
         memtemp = bytesIn / 1000;

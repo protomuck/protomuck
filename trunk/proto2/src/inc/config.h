@@ -60,15 +60,26 @@
 
 /* #define USE_SSL */
 
+/* Define this to enable support for the experimental resolver daemon.
+ * If this is enabled, ProtoMUCK will attempt to connect to the daemon
+ *  as per the address stored in the reslvd_address @tune.  #define
+ *  RESOLVER_PORT and RESOLVER_HOST as the defaults for if this @tune
+ *  isn't set.  Note that these also affect the defaults when building
+ *  the resolver daemon itself as well.
+ */
+#define USE_RESLVD
+#define RESOLVER_HOST "127.0.0.1" /* I suggest using only an IP here. */
+#define RESOLVER_PORT 12111
+
+/* Enable extensive hostname cache debugging */
+#undef HOSTCACHE_DEBUG
+
 /* Alynna - Define this to have support for the @/ignore prop, a reflist
    on a player which will drop notifies from the players in the prop to
    the player specified.
    Note: MUF_MAX_IGNORES and MAX_IGNORES should be the same, just the MUF
    version should be in text, for the MAX_IGNORES MUF define.
  */
-
-/* Enable extensive hostname cache debugging */
-#undef HOSTCACHE_DEBUG
 
 /* Be aware, this is slightly resource intensive. -Hinoserm */
 #define IGNORE_SUPPORT
