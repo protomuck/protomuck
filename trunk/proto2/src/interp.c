@@ -1319,7 +1319,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         } else {
             fr->brkpt.debugging = 0;
         }
-        if (OkObj(player) && ((FLAGS(program) & DARK) ||
+        if (OkObj(player) && OkObj(OWNER(player))) { 
+         if (((FLAGS(program) & DARK) ||
                               (fr->brkpt.debugging && fr->brkpt.showstack
                                && !fr->brkpt.bypass))
             && (controls(OWNER(player), program)
@@ -1330,7 +1331,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                  atop, program);
 
             notify_nolisten(player, m, 1);
-        }
+        } }
         if (FLAGS(program) & DARK && FLAG2(program) & F2PARENT
             && (OWNER(program) != player || !OkObj(player))) {
             char *m = debug_inst(fr, 0, pc, fr->pid, arg, dbuf, sizeof(dbuf),
