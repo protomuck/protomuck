@@ -84,7 +84,7 @@ add_socket_to_queue(struct muf_socket *newSock, struct frame *fr)
 void
 remove_socket_from_queue(struct muf_socket *oldSock)
 {
-    struct muf_socket_queue *curr, *temp;
+    struct muf_socket_queue *curr, *temp = NULL;
 
     curr = socket_list;
     if (!curr)
