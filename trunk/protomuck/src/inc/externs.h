@@ -476,7 +476,7 @@ extern void host_shutdown(void);
 /* from random.c */
 extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
-extern unsigned long rnd(void *buffer);
+extern unsigned long rndn(void *buffer);
 
 /* from mcppkgs.c */
 extern void show_mcp_error(McpFrame * mfr, char *topic, char *text);
@@ -490,9 +490,5 @@ extern long sel_prof_idle_sec;
 extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
 
-
-
-
-
-
-
+/* From p_mysql.c */
+void do_sql(int descr, dbref player, const char *arg);

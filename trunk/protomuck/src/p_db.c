@@ -118,6 +118,8 @@ int check_flag2(char *flag, int *nbol)
       return F2COMMAND;
    if (string_prefix("no_command", flag))
       return F2NO_COMMAND;
+   if (string_prefix("no_optimize", flag))
+      return F2NO_COMMAND;
    if (string_prefix("examine_ok", flag))
       return F2EXAMINE_OK;
    if (string_prefix("mobile", flag) || string_prefix("offer", flag) ||
