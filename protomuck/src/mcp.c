@@ -197,32 +197,32 @@ mcp_initialize(void)
 	mcp_package_register("dns-org-mud-moo-simpleedit", oneoh, oneoh, mcppkg_simpleedit, NULL, NULL);
 }
 
-  /***************************************************************** 
-    * 
-    * void mcp_negotiation_start(McpFrame* mfr); 
-    * 
-    *   Starts MCP negotiations, if any are to be had. 
-    * 
-    *****************************************************************/ 
+/***************************************************************** 
+ * 
+ * void mcp_negotiation_start(McpFrame* mfr); 
+ * 
+ *   Starts MCP negotiations, if any are to be had. 
+ * 
+ *****************************************************************/ 
     
 void 
 mcp_negotiation_start(McpFrame * mfr, connection_t con) 
 { 
-    McpMesg reply; 
+	McpMesg reply; 
 
-        if ( ( (((struct descriptor_data *) con)->type == CT_MUCK  ) ||
-		   (((struct descriptor_data *) con)->type == CT_PUEBLO)   )
-                   && tp_enable_mcp) {
-     
+	if ( ( (((struct descriptor_data *) con)->type == CT_MUCK  ) ||
+	       (((struct descriptor_data *) con)->type == CT_PUEBLO)   )
+	       && tp_enable_mcp) {
+	
 
-        mfr->enabled = 1; 
-        mcp_mesg_init(&reply, MCP_INIT_PKG, ""); 
-        mcp_mesg_arg_append(&reply, "version", "2.1"); 
-        mcp_mesg_arg_append(&reply, "to", "2.1"); 
-        mcp_frame_output_mesg(mfr, &reply); 
-        mcp_mesg_clear(&reply); 
-        mfr->enabled = 0; 
-    }
+		mfr->enabled = 1; 
+		mcp_mesg_init(&reply, MCP_INIT_PKG, ""); 
+		mcp_mesg_arg_append(&reply, "version", "2.1"); 
+		mcp_mesg_arg_append(&reply, "to", "2.1"); 
+		mcp_frame_output_mesg(mfr, &reply); 
+		mcp_mesg_clear(&reply); 
+		mfr->enabled = 0; 
+	}
 } 
 
 
@@ -263,10 +263,10 @@ mcp_frame_init(McpFrame * mfr, connection_t con)
 	mfr->messages = NULL;
 
 
-        if ( ( (((struct descriptor_data *) con)->type == CT_MUCK  ) ||
-		   (((struct descriptor_data *) con)->type == CT_PUEBLO)   )
-             && tp_enable_mcp) {
-        }
+	if ( ( (((struct descriptor_data *) con)->type == CT_MUCK  ) ||
+	       (((struct descriptor_data *) con)->type == CT_PUEBLO)   )
+	       && tp_enable_mcp) {
+	}
 	mfr->enabled = 0;
 }
 
@@ -1690,5 +1690,6 @@ mcp_internal_parse(McpFrame * mfr, const char *in)
 * Added log to bottom and comment to top
 *
 */
+
 
 

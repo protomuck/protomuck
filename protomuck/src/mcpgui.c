@@ -80,13 +80,13 @@ gui_dlog_get_descr(const char *dlogid)
 int
 GuiClosed(const char *dlogid) 
 { 
-    DlogData *ptr = gui_dlog_find(dlogid); 
-    
-    if (ptr) { 
-        return ptr->dismissed; 
-    } else { 
-       return EGUINODLOG; 
-    } 
+	DlogData *ptr = gui_dlog_find(dlogid); 
+	
+	if (ptr) { 
+		return ptr->dismissed; 
+	} else { 
+		return EGUINODLOG; 
+	}
 } 
 
 
@@ -307,7 +307,7 @@ gui_dlog_alloc(int descr, Gui_CB callback, GuiErr_CB error_cb, void *context)
 	ptr->id = (char *) malloc(strlen(tmpid) + 1);
 	strcpy(ptr->id, tmpid);
 	ptr->descr = descr;
-        ptr->dismissed = 0;
+	ptr->dismissed = 0;
 	ptr->callback = callback;
 	ptr->error_cb = error_cb;
 	ptr->context = context;
@@ -374,7 +374,8 @@ gui_dlog_closeall_descr(int descr)
         if (!ptr) { 
             return 0; 
         } 
-        if (ptr->callback) { 
+        if (ptr->callback) {
+		mcp_mesg_init(&msg, GUI_PACKAGE, "ctrl-event");
             mcp_mesg_arg_append(&msg, "dlogid", ptr->id); 
             mcp_mesg_arg_append(&msg, "id", "_closed"); 
             mcp_mesg_arg_append(&msg, "dismissed", "1"); 
@@ -567,12 +568,12 @@ GuiShow(const char *id)
 		return EGUINODLOG;
 	}
 	if (GuiSupported(descr)) {
-                if (!GuiClosed(id)) {
-		mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-show");
-		mcp_mesg_arg_append(&msg, "dlogid", id);
-		mcp_frame_output_mesg(mfr, &msg);
-		mcp_mesg_clear(&msg);
-                }
+		if (!GuiClosed(id)) {
+			mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-show");
+			mcp_mesg_arg_append(&msg, "dlogid", id);
+			mcp_frame_output_mesg(mfr, &msg);
+			mcp_mesg_clear(&msg);
+		}
 		return 0;
 	}
 	return EGUINOSUPPORT;
@@ -592,12 +593,12 @@ GuiClose(const char *id)
 		return EGUINODLOG;
 	}
 	if (GuiSupported(descr)) {
-           if (!GuiClosed(id)) {
-		mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-close");
-		mcp_mesg_arg_append(&msg, "dlogid", id);
-		mcp_frame_output_mesg(mfr, &msg);
-		mcp_mesg_clear(&msg);
-           }
+		if (!GuiClosed(id)) {
+			mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-close");
+			mcp_mesg_arg_append(&msg, "dlogid", id);
+			mcp_frame_output_mesg(mfr, &msg);
+			mcp_mesg_clear(&msg);
+		}
 		return 0;
 	}
 	return EGUINOSUPPORT;
@@ -1145,4 +1146,5 @@ do_post_dlog(int descr, const char *text)
 
 	GuiShow(dlg);
 }
+
 
