@@ -69,10 +69,8 @@ struct descriptor_data  *descriptor_list = 0;
 static int numsocks = 0;
 static int listener_port[MAX_LISTEN_SOCKS];
 static int sock[MAX_LISTEN_SOCKS];
-/* static int sock = 0;
-static int sock_html = 0;
-static int sock_pueblo = 0; */
 static int ndescriptors = 0;
+static int maxd = 0; /* Moved from shovechars since needed in p_socket.c */
 extern void fork_and_dump(void);
 
 #ifdef RWHO
@@ -90,7 +88,7 @@ extern const char *uncompress(const char *);
 void    process_commands(void);
 void    shovechars(void);
 void    shutdownsock(struct descriptor_data * d);
-struct  descriptor_data *initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, int cport);
+struct  descriptor_data *initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, int cport, int welcome);
 void    make_nonblocking(int s);
 void    freeqs(struct descriptor_data * d);
 void    welcome_user(struct descriptor_data * d);
@@ -1301,6 +1299,12 @@ idleboot_user(struct descriptor_data * d)
     writesocket(d->descriptor, "\r\n\r\n", 4);
     d->booted=1;
 }
+void
+check_maxd(struct descriptor_data *d)
+{ /* needed by p_socket.c's socket_setuer prim */
+    if (d->descriptor >= maxd)
+        maxd = d->descriptor + 1;
+}
 
 static int con_players_max = 0;  /* one of Cynbe's good ideas. */
 static int con_players_curr = 0;  /* for playermax checks. */
@@ -1316,7 +1320,7 @@ shovechars(void)
     struct timeval last_slice, current_time;
     struct timeval next_slice;
     struct timeval timeout, slice_timeout;
-    int     maxd, cnt;
+    int    cnt;
     struct descriptor_data *d, *dnext;
     struct descriptor_data *newd;
     int     avail_descriptors;
@@ -1328,7 +1332,6 @@ shovechars(void)
         sock[i] = make_socket(listener_port[i]);
         maxd = sock[i] +1;
     } //fixes the socket blocking problem at startup.
-    //maxd = sock[0] + 1;
     gettimeofday(&last_slice, (struct timezone *) 0);
 
     openfiles_max =  max_open_files();
@@ -1908,7 +1911,7 @@ new_connection(int port, int sock)
             add_property((dbref)0, "_sys/concount", NULL, result);
 	return initializesock( newsock,
 	    hostname, ntohs(addr.sin_port),
-	    ntohl(addr.sin_addr.s_addr), ctype, port
+	    ntohl(addr.sin_addr.s_addr), ctype, port, 0
 	);
     }
 }
@@ -2189,7 +2192,8 @@ mcpframe_to_user(McpFrame * ptr)
 }
 
 struct descriptor_data *
-initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, int cport)
+initializesock(int s, const char *hostname, int port, int hostaddr, 
+               int ctype, int cport, int welcome)
 {
     struct descriptor_data *d;
     char buf[128];
@@ -2249,9 +2253,11 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, i
     descriptor_list = d;
     if(remember_descriptor(d) < 0)
 	d->booted = 1; /* Drop the connection ASAP */
-   
-    announce_login(d);
-    welcome_user(d);
+  
+    if (welcome) { 
+        announce_login(d);
+        welcome_user(d);
+    }
     return d;
 }
 
