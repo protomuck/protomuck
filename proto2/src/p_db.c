@@ -2281,7 +2281,7 @@ prim_setpassword(PRIM_PROTOTYPE)
 #endif
     ptr = oper2->data.string ? oper2->data.string->data : pad_char;
     ptr2 = oper1->data.string ? oper1->data.string->data : pad_char;
-    if (ref != NOTHING && check_password(ref, ptr))
+    if (ref != NOTHING && !check_password(ref, ptr))
         abort_interp("Incorrect password");
     set_password(ref, ptr2);
     CLEAR(oper1);
