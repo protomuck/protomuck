@@ -1,5 +1,13 @@
 #!/bin/csh -f
 #
+# The default ports that the MUCK server should listen to, if no port
+# numbers were supplied as command line arguments to this script.
+# To list multiple ports, separate them with spaces.  ie:
+# PORTS="8801 8802 8803"
+# Note: These ports do not override the ports in @tune.
+set PORTS="1 $*"
+
+#
 # You'll want to edit this to match the base directory of your muck's files.
 # This should be the directory containig the 'data' amd 'muf' directories.
 #
@@ -148,6 +156,6 @@ if ($diskfree < $diskneeded) then
 endif
 
 # echo "Server started at: `date`"
-( ./protomuck $DBIN $DBOUT 1990 >& logs/ttyerr.log; ./coremail ) &
+( ./protomuck $DBIN $DBOUT $PORTS >& logs/ttyerr.log; ./coremail ) &
 # echo "Server stopped at: `date`"
 
