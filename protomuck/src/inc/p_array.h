@@ -20,6 +20,10 @@ extern void prim_array_delrange(PRIM_PROTOTYPE);
 extern void prim_array_findval(PRIM_PROTOTYPE);
 extern void prim_array_excludeval(PRIM_PROTOTYPE);
 extern void prim_array_sort(PRIM_PROTOTYPE);
+extern void prim_array_join(PRIM_PROTOTYPE);
+extern void prim_array_matchkey(PRIM_PROTOTYPE);
+extern void prim_array_matchval(PRIM_PROTOTYPE);
+extern void prim_array_extract(PRIM_PROTOTYPE);
 
 extern void prim_array_n_union(PRIM_PROTOTYPE);
 extern void prim_array_n_intersection(PRIM_PROTOTYPE);
@@ -52,7 +56,8 @@ extern void prim_explode_array(PRIM_PROTOTYPE);
         prim_array_put_proplist, prim_array_get_reflist, \
         prim_array_put_reflist, prim_array_appenditem, prim_array_findval, \
         prim_array_excludeval, prim_explode_array, prim_array_sort, \
-        prim_array_ansi_notify, prim_array_notify_html
+        prim_array_ansi_notify, prim_array_notify_html, prim_array_join, \
+        prim_array_matchkey, prim_array_matchval, prim_array_extract
 
 #define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT",        \
         "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS",              \
@@ -67,7 +72,8 @@ extern void prim_explode_array(PRIM_PROTOTYPE);
         "ARRAY_PUT_PROPLIST", "ARRAY_GET_REFLIST",                \
         "ARRAY_PUT_REFLIST", "ARRAY_APPENDITEM", "ARRAY_FINDVAL", \
         "ARRAY_EXCLUDEVAL", "EXPLODE_ARRAY", "ARRAY_SORT",        \
-        "ARRAY_ANSI_NOTIFY", "ARRAY_NOTIFY_HTML"
+        "ARRAY_ANSI_NOTIFY", "ARRAY_NOTIFY_HTML", "ARRAY_JOIN",   \
+        "ARRAY_MATCHKEY", "ARRAY_MATCHVAL", "ARRAY_EXTRACT"
 
-#define PRIMS_ARRAY_CNT 45
+#define PRIMS_ARRAY_CNT 49
 
