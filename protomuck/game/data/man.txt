@@ -9556,3 +9556,36 @@ f = floating point number
 This prim returns the systime time with an accuracy down to millisecond
 accuracy. Can be used for high precision timing loops.
 ~~~~~
+ARRAY_INTERPRET|}CAT|STR|CAT
+
+array_interpret ( a -- s )
+---------------
+Level: M1 Apprentice
+
+This primitive takes the array given, converts all floats to strings with
+the least significant zeros truncated, converts all integers to strings, 
+converts all locks to strings, converts all dbrefs to names, and contencates
+all strings into one, returning the string.
+
+Example: 
+{ #2 " has " 2 3 + " apples and gave " 1 2 / " to you. } array_make array_interpret
+Results in "Alynna has 5 apples and gave 0.5 to you." if #2 is named Alynna.
+
+}cat is an inserver define for '} array_make array_interpret', so the following
+works: { "The answer is: " 2 3 4 5 + + + }cat
+
+For compatibility with older libraries:
+ str is inserver defined to {
+ cat is inserver defined to }cat
+~~~~~
+FTOSTRC
+
+ftostrc ( f -- s )
+-------
+Level: M1 Apprentice
+
+Takes the float on the stack, and converts it to a string representation of the
+float with all significant digits removed.   So 1.000000 becomes '1', and 
+0.666000 becomes "0.666".
+
+It should also in most cases round 5.9999999999... right up to "6" for you.
