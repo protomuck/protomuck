@@ -28,6 +28,7 @@ const char *tp_dumping_mesg = DUMPING_MESG;
 const char *tp_dumpdone_mesg = DUMPDONE_MESG;
 const char *tp_leave_message = LEAVE_MESSAGE;
 const char *tp_huh_mesg = HUH_MESG;
+
 #ifdef MAILSERVER
 const char *tp_mailserver = MAILSERVER;
 #endif
@@ -44,6 +45,7 @@ const char *tp_reg_email = "admin@your.host.here";
 const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt = "P#/N";
 const char *tp_unidle_command = "";
+
 #ifdef USE_SSL
 const char *tp_ssl_keyfile_passwd = "";
 #endif
@@ -125,6 +127,7 @@ struct tune_time_entry tune_time_list[] = {
 /* integers */
 int tp_textport = TINYPORT;
 int tp_puebloport = TINYPORT - 2;
+
 #ifdef USE_SSL
 int tp_sslport = TINYPORT + 1;
 #endif
@@ -156,6 +159,7 @@ int tp_playermax_limit = PLAYERMAX_LIMIT;
 int tp_process_timer_limit = 4;
 int tp_dump_copies = 10;
 int tp_min_progbreak_lev = 0;
+
 #ifdef MCP_SUPPORT
 int tp_mcp_muf_mlev = MCP_MUF_MLEV;
 #endif
@@ -325,6 +329,7 @@ int tp_user_idle_propqueue = 0;
 int tp_quiet_moves = 0;
 int tp_quiet_connects = 0;
 int tp_proplist_int_counter = 0;
+
 #ifdef MCP_SUPPORT
 int tp_enable_mcp = 1;
 #endif
@@ -349,9 +354,7 @@ int tp_web_allow_htmuf = 1;     /* hinoserm */
 int tp_web_allow_vhosts = 1;    /* hinoserm */
 int tp_web_allow_files = 1;     /* hinoserm */
 int tp_web_allow_dirlist = 1;   /* hinoserm */
-#ifdef HTTP_MPI_SUPPORT
-int tp_web_allow_mpi = 1;   /* alynna */
-#endif
+int tp_web_allow_mpi = 1;       /* alynna */
 #endif /* hinoserm */
 
 struct tune_bool_entry {
@@ -437,9 +440,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"HTTPD", "web_allow_vhosts", &tp_web_allow_vhosts, LARCH, LMUF},
     {"HTTPD", "web_allow_files", &tp_web_allow_files, LARCH, LMUF},
     {"HTTPD", "web_allow_dirlist", &tp_web_allow_dirlist, LARCH, LMUF},
-#ifdef HTTP_MPI_SUPPORT
     {"HTTPD", "web_allow_mpi", &tp_web_allow_mpi, LARCH, LMUF},
-#endif
 #endif
     {NULL, NULL, NULL, 0, 0}
 };
@@ -535,30 +536,30 @@ tune_parms_array(const char *pattern, int mlev)
                 array_set_strkey_intval(&item, "readmlev", tref->readmlev);
                 array_set_strkey_intval(&item, "writemlev", tref->writemlev);
                 switch (tref->typ) {
-                case NOTYPE:
-                    array_set_strkey_strval(&item, "objtype", "any");
-                    break;
-                case TYPE_PLAYER:
-                    array_set_strkey_strval(&item, "objtype", "player");
-                    break;
-                case TYPE_THING:
-                    array_set_strkey_strval(&item, "objtype", "thing");
-                    break;
-                case TYPE_ROOM:
-                    array_set_strkey_strval(&item, "objtype", "room");
-                    break;
-                case TYPE_EXIT:
-                    array_set_strkey_strval(&item, "objtype", "exit");
-                    break;
-                case TYPE_PROGRAM:
-                    array_set_strkey_strval(&item, "objtype", "program");
-                    break;
-                case TYPE_GARBAGE:
-                    array_set_strkey_strval(&item, "objtype", "garbage");
-                    break;
-                default:
-                    array_set_strkey_strval(&item, "objtype", "unknown");
-                    break;
+                    case NOTYPE:
+                        array_set_strkey_strval(&item, "objtype", "any");
+                        break;
+                    case TYPE_PLAYER:
+                        array_set_strkey_strval(&item, "objtype", "player");
+                        break;
+                    case TYPE_THING:
+                        array_set_strkey_strval(&item, "objtype", "thing");
+                        break;
+                    case TYPE_ROOM:
+                        array_set_strkey_strval(&item, "objtype", "room");
+                        break;
+                    case TYPE_EXIT:
+                        array_set_strkey_strval(&item, "objtype", "exit");
+                        break;
+                    case TYPE_PROGRAM:
+                        array_set_strkey_strval(&item, "objtype", "program");
+                        break;
+                    case TYPE_GARBAGE:
+                        array_set_strkey_strval(&item, "objtype", "garbage");
+                        break;
+                    default:
+                        array_set_strkey_strval(&item, "objtype", "unknown");
+                        break;
                 }
                 temp1.type = PROG_ARRAY;
                 temp1.data.array = item;
@@ -1048,40 +1049,40 @@ tune_setparm(const dbref player, const char *parmname, const char *val)
             days = hrs = mins = secs = 0;
             end = parmval + strlen(parmval) - 1;
             switch (*end) {
-            case 's':
-            case 'S':
-                *end = '\0';
-                if (!number(parmval))
-                    return 2;
-                secs = atoi(parmval);
-                break;
-            case 'm':
-            case 'M':
-                *end = '\0';
-                if (!number(parmval))
-                    return 2;
-                mins = atoi(parmval);
-                break;
-            case 'h':
-            case 'H':
-                *end = '\0';
-                if (!number(parmval))
-                    return 2;
-                hrs = atoi(parmval);
-                break;
-            case 'd':
-            case 'D':
-                *end = '\0';
-                if (!number(parmval))
-                    return 2;
-                days = atoi(parmval);
-                break;
-            default:
-                result = sscanf(parmval, "%dd %2d:%2d:%2d",
-                                &days, &hrs, &mins, &secs);
-                if (result != 4)
-                    return 2;
-                break;
+                case 's':
+                case 'S':
+                    *end = '\0';
+                    if (!number(parmval))
+                        return 2;
+                    secs = atoi(parmval);
+                    break;
+                case 'm':
+                case 'M':
+                    *end = '\0';
+                    if (!number(parmval))
+                        return 2;
+                    mins = atoi(parmval);
+                    break;
+                case 'h':
+                case 'H':
+                    *end = '\0';
+                    if (!number(parmval))
+                        return 2;
+                    hrs = atoi(parmval);
+                    break;
+                case 'd':
+                case 'D':
+                    *end = '\0';
+                    if (!number(parmval))
+                        return 2;
+                    days = atoi(parmval);
+                    break;
+                default:
+                    result = sscanf(parmval, "%dd %2d:%2d:%2d",
+                                    &days, &hrs, &mins, &secs);
+                    if (result != 4)
+                        return 2;
+                    break;
             }
             *ttim->tim = (days * 86400) + (3600 * hrs) + (60 * mins) + secs;
             return 0;
@@ -1176,18 +1177,18 @@ tune_load_parms_from_file(FILE * f, dbref player, int cnt)
                     result = tune_setparm(player, p, c);
                 }
                 switch (result) {
-                case TUNESET_SUCCESS:
-                    strcat(p, ": Parameter set.");
-                    break;
-                case TUNESET_UNKNOWN:
-                    strcat(p, ": Unknown parameter.");
-                    break;
-                case TUNESET_SYNTAX:
-                    strcat(p, ": Bad parameter syntax.");
-                    break;
-                case TUNESET_BADVAL:
-                    strcat(p, ": Bad parameter value.");
-                    break;
+                    case TUNESET_SUCCESS:
+                        strcat(p, ": Parameter set.");
+                        break;
+                    case TUNESET_UNKNOWN:
+                        strcat(p, ": Unknown parameter.");
+                        break;
+                    case TUNESET_SYNTAX:
+                        strcat(p, ": Bad parameter syntax.");
+                        break;
+                    case TUNESET_BADVAL:
+                        strcat(p, ": Bad parameter value.");
+                        break;
                 }
                 if (result && player != NOTHING)
                     notify(player, p);
@@ -1231,23 +1232,23 @@ do_tune(dbref player, char *parmname, char *parmval)
     if (*parmname && *parmval) {
         result = tune_setparm(player, parmname, parmval);
         switch (result) {
-        case TUNESET_SUCCESS:
-            log_status("TUNE: %s(%d) tuned %s to %s\n",
-                       NAME(player), player, parmname, parmval);
-            anotify_nolisten2(player, CSUCC "Parameter set.");
-            tune_display_parms(player, parmname);
-            break;
-        case TUNESET_UNKNOWN:
-            anotify_nolisten2(player, CINFO "Unknown parameter.");
-            break;
-        case TUNESET_SYNTAX:
-            anotify_nolisten2(player, CFAIL "Bad parameter syntax.");
-            break;
-        case TUNESET_BADVAL:
-            anotify_nolisten2(player, CFAIL "Bad parameter value.");
-            break;
-        case TUNESET_NOPERM:
-            anotify_nolisten2(player, CFAIL "Permission denied.");
+            case TUNESET_SUCCESS:
+                log_status("TUNE: %s(%d) tuned %s to %s\n",
+                           NAME(player), player, parmname, parmval);
+                anotify_nolisten2(player, CSUCC "Parameter set.");
+                tune_display_parms(player, parmname);
+                break;
+            case TUNESET_UNKNOWN:
+                anotify_nolisten2(player, CINFO "Unknown parameter.");
+                break;
+            case TUNESET_SYNTAX:
+                anotify_nolisten2(player, CFAIL "Bad parameter syntax.");
+                break;
+            case TUNESET_BADVAL:
+                anotify_nolisten2(player, CFAIL "Bad parameter value.");
+                break;
+            case TUNESET_NOPERM:
+                anotify_nolisten2(player, CFAIL "Permission denied.");
         }
         return;
     } else if (*parmname) {

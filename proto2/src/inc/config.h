@@ -60,7 +60,7 @@
    version should be in text, for the MAX_IGNORES MUF define.
  */
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#define IGNORE_SUPPORT
+#undef IGNORE_SUPPORT
 #define MAX_IGNORES 16
 #define MUF_MAX_IGNORES "16"
 
@@ -102,7 +102,7 @@
  * compromises.  You might want to do this if you decided that
  * ProtoMUCK is a better webserver than Apache. 
  */
-#define PROTO_AS_ROOT
+#undef PROTO_AS_ROOT
 
 /* Define MUF_SOCKETS to include the MUF socket prims.
  * MUF socket support is necessary for any MUF programs
@@ -138,7 +138,6 @@
  */
 
 #define CONTROLS_SUPPORT	/* Alynna 20030907 */
-#define HTTP_MPI_SUPPORT	/* Alynna 20030907 */
 
 // If you have problems compiling with DETACH defined, uncomment one
 // of these:

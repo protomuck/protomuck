@@ -190,9 +190,7 @@ extern int tp_web_allow_htmuf;          /* hinoserm */
 extern int tp_web_allow_vhosts;         /* hinoserm */
 extern int tp_web_allow_files;          /* hinoserm */
 extern int tp_web_allow_dirlist;        /* hinoserm */
-#ifdef HTTP_MPI_SUPPORT
-extern int tp_web_allow_mpi;        /* alynna */
-#endif
+extern int tp_web_allow_mpi;            /* alynna */
 #endif
 
 extern int tune_count_parms(void);
