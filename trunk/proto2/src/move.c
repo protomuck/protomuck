@@ -334,17 +334,17 @@ can_move2(int descr, dbref player, const char *direction, int lev)
 
     matched = last_match_result(&md);
 
-    if (OkObj(matched))
-        if ((FLAG2(player) & F2IMMOBILE) &&
-            !(FLAG2(matched) & F2IMMOBILE) &&
-            !((Typeof(DBFETCH(matched)->sp.exit.dest[0]) == TYPE_PROGRAM)
-              || matched == NIL)) {
+    if (OkObj(matched)) {
+        dbref dest = DBFETCH(matched)->sp.exit.dest[0];
+
+        if ((FLAG2(player) & F2IMMOBILE) && !(FLAG2(matched) & F2IMMOBILE) &&
+            (!OkObj(dest) || Typeof(dest) != TYPE_PROGRAM)) {
             envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
                          player, player, NOTHING, "@immobile", "Immobile", 1,
                          1);
             return 2;
         }
-
+    }
     return (matched != NOTHING);
 }
 
