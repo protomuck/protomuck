@@ -391,13 +391,13 @@ prim_descr_array(PRIM_PROTOTYPE)
 
 	CLEAR(oper1);
 
-	result = pcount();
 	temp1.type = PROG_INTEGER;
 	temp2.type = PROG_INTEGER;
 	temp1.line = 0;
 	temp2.line = 0;
-	newarr = new_array_packed(result);
     if (ref == NOTHING) {
+                result = pcount();
+                newarr = new_array_packed(result);
 		for (i = 0; i < result; i++) {
 			temp1.data.number = i;
 			temp2.data.number = pdescr(i + 1);
@@ -405,6 +405,7 @@ prim_descr_array(PRIM_PROTOTYPE)
         }
 	} else {
         darr = get_player_descrs(ref, &dcount);
+        newarr = new_array_packed(dcount);
         for (di = 0; di < dcount; di++) {
                   descr = index_descr(darr[di]);
 			temp1.data.number = di;
