@@ -218,12 +218,12 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
         return 0;
     if (flag == XFORCIBLE)
         return 0;
-    if (flag == QUELL)
+    if (flag == QUELL && Typeof(ref) != TYPE_THING )
         return 0;
     if (flag == BUILDER && mlev < LARCH)
         return 0;
     if (((flag == ZOMBIE && ((Typeof(ref) == TYPE_THING &&
-                              (FLAGS(prog) & ZOMBIE))
+                              (FLAGS(OWNER(prog)) & ZOMBIE))
                              || Typeof(ref) == TYPE_PLAYER)) && mlev < LARCH))
         return 0;
     if (flag == INTERACTIVE)
