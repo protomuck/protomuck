@@ -18,6 +18,7 @@ Message shown to all players once dump or delta save is done.
 ~~~
 huh_mesg
 Message seen when a player enters a line the server doesn't understand.
+Please see 'help huh' for more information.
 ~~~~
 leave_message
 Message shown to players when they QUIT.

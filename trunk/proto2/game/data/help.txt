@@ -3589,8 +3589,9 @@ unidle     - When a player unidles.
 look       - When something is looked at.
 login      - When a connection is made to the login screen.
 disclogin  - When a connection drops from the login screen.
-@dump      - On #0 only as @dump/, triggered when the MUCK saves the db.
-@dumpwarn  - On #0 only as @dumpwarn/, triggered when the MUCK warns of saves.
+@dump      - On #0 only as @dump, triggered when the MUCK saves the db.
+@dumpwarn  - On #0 only as @dumpwarn, triggered when the MUCK warns of saves.
+@huh       - On #0 only as @huh, triggered when an invalid command is entered.
 ~~~~
 SCORE|
 score
@@ -3708,3 +3709,24 @@ Disclaimer: While every measure was taken to make sure @autoarchive support is
             unusal behavior after switching to autoarchiving, turn off the 
             auto_archive immediately and report it to the ProtoMUCK authors.
 ~~~~~~
+@HUH|HUH
+
+HUH propqueue
+-------------
+The propqueue @huh which exists only on #0 allows you to customize the actions
+of the MUCK when someone enters a command that is invalid or doesn't exist.
+
+The output of the huh_mesg is still outputted unless you set it null by using:
+ @tune huh_mesg=-
+
+The trigger is the player executing the command, and what is passed on the stack
+as either arguments or the MUF program, or as the {&cmd} in MPI is:
+ HUH:<command> <arguments>
+
+You can parse this out as needed.
+
+Protected props (~props) can be used to make sure a program runs after any other
+properties, which is good if you want to filter some commands earlier on and have
+another command catch the rest.  The semaphores required to implement something
+like this are up to you to code.
+~~~~~
