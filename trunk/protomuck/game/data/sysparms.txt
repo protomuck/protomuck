@@ -496,3 +496,11 @@ multi_wizlevels
 This @tune can turn off tiered wiz levels. With it on, there
 will be W5/W4/W3/W2/W1 (The Neon/Glow scheme). Turning it off
 will make it so that there is only #1/W (Fuzzball scheme).
+~~~
+optimize_muf
+Turning this on enables the byte-code optimizer when compiling
+MUF programs. MUF optimization can be turned off on a program
+by program basis by setting the program = N.
+~~~
+dump_propqueues
+This enables a @dumpwarn and @dump propqueue to be used on #0.
