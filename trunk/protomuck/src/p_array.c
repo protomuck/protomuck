@@ -785,6 +785,96 @@ prim_array_reverse(PRIM_PROTOTYPE)
         PushArrayRaw(new);
 }
 
+int
+sortcomp_case_ascend(const void* x, const void* y)
+{
+     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 1));
+}
+
+int
+sortcomp_nocase_ascend(const void* x, const void* y)
+{
+     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 0));
+}
+ 
+int
+sortcomp_case_descend(const void* x, const void* y)
+{
+     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 1));
+}
+ 
+int
+sortcomp_nocase_descend(const void* x, const void* y)
+{
+     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 0));
+}
+ 
+ 
+/* Sort types:
+ * 1: case, ascending
+ * 2: nocase, ascending
+ * 3: case, descending
+ * 4: nocase, descending
+ */
+void
+prim_array_sort(PRIM_PROTOTYPE)
+{
+     stk_array *arr;
+     stk_array *new;
+     int count, i;
+     int (*comparator)(const void*, const void*);
+     struct inst** tmparr = NULL;
+ 
+     CHECKOP(2);
+     oper2 = POP();                                /* int  sort_type   */
+     oper1 = POP();                                /* arr  Array   */
+     if (oper1->type != PROG_ARRAY)
+             abort_interp("Argument not an array. (1)");
+     arr = oper1->data.array;
+     if (arr->type != ARRAY_PACKED)
+             abort_interp("Argument must be a list type array. (1)");
+       if (oper2->type != PROG_INTEGER)
+             abort_interp("Expected integer argument to specify sort type. (2)");
+       switch (oper2->data.number) {
+             case SORTTYPE_CASE_ASCEND:
+                     comparator = sortcomp_case_ascend;
+                     break;
+             case SORTTYPE_NOCASE_ASCEND:
+                     comparator = sortcomp_nocase_ascend;
+                     break;
+             case SORTTYPE_CASE_DESCEND:
+                     comparator = sortcomp_case_descend;
+                     break;
+             case SORTTYPE_NOCASE_DESCEND:
+                     comparator = sortcomp_nocase_descend;
+                     break;
+             default:
+                     abort_interp("Sort type argument contained an unexpected value. (2)");
+     }
+ 
+     temp1.type = PROG_INTEGER;
+     count = array_count(arr);
+     new = new_array_packed(count);
+     tmparr = (struct inst**)malloc(count * sizeof(struct inst*));
+ 
+     for (i = 0; i < count; i++) {
+             temp1.data.number = i;
+             tmparr[i] = array_getitem(arr, &temp1);
+     }
+ 
+     qsort(tmparr, count, sizeof(struct inst*), comparator);
+
+     for (i = 0; i < count; i++) {
+             temp1.data.number = i;
+             array_setitem(&new, &temp1, tmparr[i]);
+     }
+ 
+     CLEAR(oper1);
+     CLEAR(oper2);
+     PushArrayRaw(new);
+}
+
+
 
 void
 prim_array_get_propdirs(PRIM_PROTOTYPE)
