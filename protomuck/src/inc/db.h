@@ -457,7 +457,6 @@ struct muf_socket {             /* struct for MUF socket data */
 struct muf_socket_queue {
     struct muf_socket *theSock;     /* points to the MUF socket item */
     struct frame *fr;               /* the frame the socket belongs to */
-    int listening;
     struct muf_socket_queue *next;
 };
 

@@ -117,6 +117,19 @@ remove_socket_from_queue(struct muf_socket *oldSock)
     }
 }
 
+void
+update_socket_frame(struct muf_socket *mufSock, struct frame *newfr)
+{
+    struct muf_socket_queue *curr = socket_list;
+
+    while (curr && curr->theSock != mufSock) 
+        curr = curr->next; 
+
+    if (curr) /* socket found in queue, so update frame */
+        curr->fr = newfr;
+
+}
+
 /* checks all of the sockets in the queue to see if they
  * are in the 'readable' set. If so, passes an event
  * to that program frame.
@@ -824,6 +837,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
         log2filetime( "logs/sockets", "#%d by %s SOCKACCEPT: Port:%d -> %d\n",
                       program, unparse_object(player, (dbref) 1),
                       oper1->data.number, result->data.sock->socknum);
+    oper1->data.sock->readWaiting = 0;
 
     CLEAR(oper1);
 
@@ -855,8 +869,8 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     array_set_strkey_intval(&nw, "LAST_TIME", theSock->last_time);
     array_set_strkey_intval(&nw, "COMMANDS", theSock->commands);
     array_set_strkey_intval(&nw, "PORT", theSock->port);
-    array_set_strkey_intval(&nw, "SOCKQUEUE", theSock->usequeue);
-    array_set_strkey_intval(&nw, "SMARTQUEUE", theSock->usesmartqueue);
+    array_set_strkey_intval(&nw, "SIMPLEQUEUE", theSock->usequeue);
+    array_set_strkey_intval(&nw, "TELNETQUEUE", theSock->usesmartqueue);
     array_set_strkey_intval(&nw, "READWAITING", theSock->readWaiting);
     array_set_strkey_strval(&nw, "HOSTNAME", 
                                 theSock->hostname ? theSock->hostname : "" ); 
@@ -978,6 +992,9 @@ prim_set_sockopt(PRIM_PROTOTYPE)
     } else if (flag == 2) {
         theSock->usequeue = 1;
         theSock->usesmartqueue = 1;
+        result = 1;
+    } else if (flag == 5) {
+        update_socket_frame(theSock, fr);
         result = 1;
     } else
         result = 0;

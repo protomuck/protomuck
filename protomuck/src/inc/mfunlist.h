@@ -119,6 +119,7 @@ MFNDAT mfun_list[] =
     {"OTELL",     mfn_otell,     1, 0, 0,  1, 3},
     {"OWNER",     mfn_owner,     1, 0, 1,  1, 1},
     {"PARSE",     mfn_parse,     0, 0, 0,  3, 5},
+    {"PARSE_ANSI",mfn_parse_ansi,1, 0, 0,  2, 2},
     {"PLAYMIDI",  mfn_playmidi,  1, 0, 0,  1, 2},
     {"PMATCH",    mfn_pmatch,    1, 0, 1,  1,-1},
     {"PRONOUNS",  mfn_pronouns,  1, 0, 0,  1, 2},
