@@ -159,7 +159,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
        while (readme > 0 && charCount < BUFFER_LEN)
        {
            if ((*mystring == '\0') || (((*mystring == '\n') ||
-               (*mystring == '\r') || !isascii(*mystring) )))
+               (*mystring == '\r') || (unsigned int) *mystring > 127 )))
                break;
            gotmessage = 1;
 	   ++charCount;
