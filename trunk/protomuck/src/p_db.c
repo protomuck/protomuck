@@ -192,28 +192,30 @@ flag_check_perms2(dbref ref, int flag, int mlev)
 int
 flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
 {
-   if((flag == DARK && mlev < LARCH) &&
-      ((Typeof(ref) == TYPE_PLAYER) ||
-       (!tp_exit_darking  && Typeof(ref) == TYPE_EXIT) ||
-       (!tp_thing_darking && Typeof(ref) == TYPE_THING) ) )
+    if (flag == LMPI && MLevel(ref) > LMPI)
+        return 0;
+    if((flag == DARK && mlev < LARCH) &&
+        ((Typeof(ref) == TYPE_PLAYER) ||
+        (!tp_exit_darking  && Typeof(ref) == TYPE_EXIT) ||
+        (!tp_thing_darking && Typeof(ref) == TYPE_THING) ) )
       return 0;
-   if(flag == ABODE && Typeof(ref) == TYPE_PROGRAM)
-      return 0;
-   if(flag == LISTENER)
-      return 0;
-   if(flag == XFORCIBLE)
-      return 0;
-   if(flag == QUELL)
-      return 0;
-   if(flag == BUILDER && mlev < LARCH)
-      return 0;
-   if(((flag == ZOMBIE && ( (Typeof(ref) == TYPE_THING &&
-     (FLAGS(prog) & ZOMBIE)) || Typeof(ref) == TYPE_PLAYER)) && mlev < LARCH))
-      return 0;
-   if(flag == INTERACTIVE)
-      return 0;
+    if(flag == ABODE && Typeof(ref) == TYPE_PROGRAM)
+        return 0;
+    if(flag == LISTENER)
+        return 0;
+    if(flag == XFORCIBLE)
+        return 0;
+    if(flag == QUELL)
+        return 0;
+    if(flag == BUILDER && mlev < LARCH)
+        return 0;
+    if(((flag == ZOMBIE && ( (Typeof(ref) == TYPE_THING &&
+       (FLAGS(prog) & ZOMBIE)) || Typeof(ref) == TYPE_PLAYER)) && mlev < LARCH))
+        return 0;
+    if(flag == INTERACTIVE)
+        return 0;
 
-   return 1;
+    return 1;
 }
 
 int
@@ -925,17 +927,29 @@ prim_set(PRIM_PROTOTYPE)
     }
     tmp = check_flag1(flag);
     if (!tmp) {
-       tmp = check_mlev(flag, &tWiz);
-       if (tmp) {
-          abort_interp(tp_noperm_mesg);
-       } else {
-          tmp = 0;
-          tmp2 = check_flag2(flag, &tWiz);
-          if (!tmp2)
-             abort_interp("Unrecognized flag");
-       }
+        tmp = check_mlev(flag, &tWiz);
+        if (tmp > LMPI || (tmp == LMPI && mlev < LWIZ)) {
+            abort_interp(tp_noperm_mesg);
+        } else if (tmp != LMPI) {
+            tmp = 0;
+            tmp2 = check_flag2(flag, &tWiz);
+            if (!tmp2)
+                abort_interp("Unrecognized flag");
+        }
     }
-    if (tmp) {
+    if (tmp == LMPI) {
+        if (!flag_set_perms(ref, tmp, mlev, ProgUID))
+            abort_interp(tp_noperm_mesg);
+        if (!result) {
+            ts_modifyobject(ref);
+            SetMLevel(ref, LMPI);
+            DBDIRTY(ref);
+        } else {
+            ts_modifyobject(ref);
+            SetMLevel(ref, 0);
+            DBDIRTY(ref);
+        } 
+    } else if (tmp) {
        if (!flag_set_perms(ref, tmp, mlev, ProgUID))
           abort_interp(tp_noperm_mesg);
        if (!result) {
