@@ -619,7 +619,7 @@ prim_rsplit(PRIM_PROTOTYPE)
 void
 prim_ctoi(PRIM_PROTOTYPE)
 {
-    char c;
+    unsigned char c;
 
     CHECKOP(1);
     oper1 = POP();
