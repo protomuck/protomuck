@@ -3,7 +3,7 @@
 
 #ifdef SOLARIS
 #  ifndef _POSIX_SOURCE
-#    define _POSIX_SOURCE  		/* Solaris needs this */
+#    define _POSIX_SOURCE       /* Solaris needs this */
 #  endif
 #endif
 
@@ -35,11 +35,11 @@
 #define IDENTD_TIMEOUT 60
 
 
-int 
-notify(int player, const char* msg) 
-{ 
-    return printf("%s\n", msg); 
-} 
+int
+notify(int player, const char *msg)
+{
+    return printf("%s\n", msg);
+}
 
 /* extern int errno; */
 
@@ -65,14 +65,15 @@ void
 hostdel(int ip)
 {
     struct hostcache *ptr;
+
     for (ptr = hostcache_list; ptr; ptr = ptr->next) {
         if (ptr->ipnum == ip) {
             if (ptr->next) {
                 ptr->next->prev = ptr->prev;
-	    }
-	    *ptr->prev = ptr->next;
-	    FREE(ptr);
-	    return;
+            }
+            *ptr->prev = ptr->next;
+            FREE(ptr);
+            return;
         }
     }
 }
@@ -81,6 +82,7 @@ const char *
 hostfetch(int ip)
 {
     struct hostcache *ptr;
+
     for (ptr = hostcache_list; ptr; ptr = ptr->next) {
         if (ptr->ipnum == ip) {
             if (time(NULL) - ptr->time > EXPIRE_TIME) {
@@ -132,6 +134,7 @@ hostadd(int ip, const char *name)
     struct hostcache *ptr;
 
     MALLOC(ptr, struct hostcache, 1);
+
     ptr->next = hostcache_list;
     if (ptr->next) {
         ptr->next->prev = &ptr->next;
@@ -159,10 +162,10 @@ hostadd_timestamp(int ip, const char *name)
 
 
 
-void    set_signals(void);
+void set_signals(void);
 
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)(int));
+void our_signal(int signo, void (*sighandler) (int));
 #else
 # define our_signal(s,f) signal((s),(f))
 #endif
@@ -176,10 +179,11 @@ void our_signal(int signo, void (*sighandler)(int));
  * Calls sigaction() to set a signal, if we are posix.
  */
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)(int))
+void
+our_signal(int signo, void (*sighandler) (int))
 {
-    struct sigaction	act, oact;
-    
+    struct sigaction act, oact;
+
     act.sa_handler = sighandler;
     sigemptyset(&act.sa_mask);
     act.sa_flags = 0;
@@ -206,7 +210,8 @@ void our_signal(int signo, void (*sighandler)(int))
  * Called from main() and bailout()
  */
 
-void set_signals(void)
+void
+set_signals(void)
 {
     /* we don't care about SIGPIPE, we notice it in select() and write() */
     our_signal(SIGPIPE, SIG_IGN);
@@ -220,22 +225,22 @@ void set_signals(void)
 
 
 
-void 
+void
 make_nonblocking(int s)
 {
-#if !defined(O_NONBLOCK) || defined(ULTRIX)	/* POSIX ME HARDER */
-# ifdef FNDELAY 	/* SUN OS */
-#  define O_NONBLOCK FNDELAY 
+#if !defined(O_NONBLOCK) || defined(ULTRIX) /* POSIX ME HARDER */
+# ifdef FNDELAY                 /* SUN OS */
+#  define O_NONBLOCK FNDELAY
 # else
-#  ifdef O_NDELAY 	/* SyseVil */
+#  ifdef O_NDELAY               /* SyseVil */
 #   define O_NONBLOCK O_NDELAY
 #  endif /* O_NDELAY */
 # endif /* FNDELAY */
 #endif
 
     if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
-	perror("make_nonblocking: fcntl");
-	abort();
+        perror("make_nonblocking: fcntl");
+        abort();
     }
 }
 
@@ -252,7 +257,7 @@ get_username(int a, int prt, int myprt)
 
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("resolver ident socket");
-        return(0);
+        return (0);
     }
 
     make_nonblocking(fd);
@@ -260,13 +265,14 @@ get_username(int a, int prt, int myprt)
     len = sizeof(addr);
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = a;
-    addr.sin_port = htons((short)113);
+    addr.sin_port = htons((short) 113);
 
     do {
-	result = connect(fd, (struct sockaddr *) &addr, len);
-	lasterr = errno;
+        result = connect(fd, (struct sockaddr *) &addr, len);
+        lasterr = errno;
         if (result < 0) {
-            if (!timeout--) break;
+            if (!timeout--)
+                break;
             sleep(1);
         }
     } while (result < 0 && lasterr == EINPROGRESS);
@@ -276,48 +282,59 @@ get_username(int a, int prt, int myprt)
 
     sprintf(buf, "%d,%d\n", prt, myprt);
     do {
-	result = write(fd ,buf, strlen(buf));
-	lasterr = errno;
-	if (result < 0) {
-	    if (!timeout--) break;
-	    sleep(1);
-	}
+        result = write(fd, buf, strlen(buf));
+        lasterr = errno;
+        if (result < 0) {
+            if (!timeout--)
+                break;
+            sleep(1);
+        }
     } while (result < 0 && lasterr == EAGAIN);
-    if (result < 0) goto bad2;
+    if (result < 0)
+        goto bad2;
 
     do {
-	result = read(fd, buf, sizeof(buf));
-	lasterr = errno;
-	if (result < 0) {
-	    if (!timeout--) break;
-	    sleep(1);
-	}
+        result = read(fd, buf, sizeof(buf));
+        lasterr = errno;
+        if (result < 0) {
+            if (!timeout--)
+                break;
+            sleep(1);
+        }
     } while (result < 0 && lasterr == EAGAIN);
-    if (result < 0) goto bad2;
+    if (result < 0)
+        goto bad2;
 
     ptr = index(buf, ':');
-    if (!ptr) goto bad2;
+    if (!ptr)
+        goto bad2;
     ptr++;
-    if (*ptr) ptr++;
-    if(strncmp(ptr, "USERID", 6)) goto bad2;
+    if (*ptr)
+        ptr++;
+    if (strncmp(ptr, "USERID", 6))
+        goto bad2;
 
     ptr = index(ptr, ':');
-    if (!ptr) goto bad2;
+    if (!ptr)
+        goto bad2;
     ptr = index(ptr + 1, ':');
-    if (!ptr) goto bad2;
+    if (!ptr)
+        goto bad2;
     ptr++;
     shutdown(fd, 2);
     close(fd);
-    if ((ptr2 = index(ptr, '\r'))) *ptr2 = '\0';
-    if (!*ptr) return(0);
+    if ((ptr2 = index(ptr, '\r')))
+        *ptr2 = '\0';
+    if (!*ptr)
+        return (0);
     return ptr;
 
-bad2:
+  bad2:
     shutdown(fd, 2);
 
-bad:
+  bad:
     close(fd);
-    return(0);
+    return (0);
 }
 
 
@@ -330,46 +347,42 @@ addrout(int a, int prt, int myprt)
     const char *ptr, *ptr2;
     struct in_addr addr;
     struct hostent *he;
-    
+
     addr.s_addr = a;
-    
+
     ptr = hostfetch(ntohl(a));
     if (ptr) {
         ptr2 = get_username(a, prt, myprt);
         if (ptr2) {
-	    sprintf(buf, "%s(%s)", ptr, ptr2);
-	} else {
-	    sprintf(buf, "%s(%d)", ptr, prt);
+            sprintf(buf, "%s(%s)", ptr, ptr2);
+        } else {
+            sprintf(buf, "%s(%d)", ptr, prt);
         }
-	return buf;
+        return buf;
     }
 
-    he = gethostbyaddr(((char *)&addr), sizeof(addr), AF_INET);
+    he = gethostbyaddr(((char *) &addr), sizeof(addr), AF_INET);
     if (he) {
         strcpy(tmpbuf, he->h_name);
         hostadd(ntohl(a), tmpbuf);
         ptr = get_username(a, prt, myprt);
         if (ptr) {
-	    sprintf(buf, "%s(%s)", tmpbuf, ptr);
-	} else {
-	    sprintf(buf, "%s(%d)", tmpbuf, prt);
+            sprintf(buf, "%s(%s)", tmpbuf, ptr);
+        } else {
+            sprintf(buf, "%s(%d)", tmpbuf, prt);
         }
-	return buf;
+        return buf;
     }
 
     a = ntohl(a);
     sprintf(tmpbuf, "%ld.%ld.%ld.%ld",
-            (a >> 24) & 0xff,
-            (a >> 16) & 0xff,
-            (a >> 8)  & 0xff,
-             a        & 0xff
-    );
+            (a >> 24) & 0xff, (a >> 16) & 0xff, (a >> 8) & 0xff, a & 0xff);
     hostadd_timestamp(a, tmpbuf);
     ptr = get_username(htonl(a), prt, myprt);
     if (ptr) {
-	sprintf(buf, "%s(%s)", tmpbuf, ptr);
+        sprintf(buf, "%s(%s)", tmpbuf, ptr);
     } else {
-	sprintf(buf, "%s(%d)", tmpbuf, prt);
+        sprintf(buf, "%s(%d)", tmpbuf, prt);
     }
     return buf;
 }
@@ -378,7 +391,7 @@ addrout(int a, int prt, int myprt)
 #define erreturn { \
                      return 0; \
 		 }
-int 
+int
 do_resolve(void)
 {
     int ip1, ip2, ip3, ip4;
@@ -393,34 +406,37 @@ do_resolve(void)
     do {
         doagain = 0;
         *buf = '\0';
-	result = fgets(buf, sizeof(buf), stdin);
-	if (!result) {
-	    if (errno == EAGAIN) {
-		doagain = 1;
-		sleep(1);
-	    } else {
-		if (feof(stdin)) erreturn;
-	        perror("fgets");
-	        erreturn;
-	    }
+        result = fgets(buf, sizeof(buf), stdin);
+        if (!result) {
+            if (errno == EAGAIN) {
+                doagain = 1;
+                sleep(1);
+            } else {
+                if (feof(stdin))
+                    erreturn;
+                perror("fgets");
+                erreturn;
+            }
         }
-    } while (doagain || !strcmp(buf,"\n"));
+    } while (doagain || !strcmp(buf, "\n"));
 
-    if (!strcmp(buf,"QUIT")) exit(0);
+    if (!strcmp(buf, "QUIT"))
+        exit(0);
 
     sscanf(buf, "%d.%d.%d.%d(%d)%d", &ip1, &ip2, &ip3, &ip4, &prt, &myprt);
-    if (ip1 < 0 || ip2 < 0 || ip3 < 0 || ip4 < 0 || prt < 0) erreturn;
-    if (ip1>255 || ip2>255 || ip3>255 || ip4>255 || prt>65535) erreturn;
-    if (myprt > 65535 || myprt < 0) erreturn;
+    if (ip1 < 0 || ip2 < 0 || ip3 < 0 || ip4 < 0 || prt < 0)
+        erreturn;
+    if (ip1 > 255 || ip2 > 255 || ip3 > 255 || ip4 > 255 || prt > 65535)
+        erreturn;
+    if (myprt > 65535 || myprt < 0)
+        erreturn;
 
     fullip = (ip1 << 24) | (ip2 << 16) | (ip3 << 8) | ip4;
     fullip = htonl(fullip);
     ptr = addrout(fullip, prt, myprt);
-    printf("%d.%d.%d.%d(%d):%s\n",
-            ip1, ip2, ip3, ip4, prt, ptr
-    );
+    printf("%d.%d.%d.%d(%d):%s\n", ip1, ip2, ip3, ip4, prt, ptr);
     fflush(stdout);
-    return 1;  
+    return 1;
 }
 
 
@@ -430,20 +446,16 @@ int
 main(int argc, char **argv)
 {
     if (argc > 1) {
-	fprintf(stderr, "Usage: %s\n", *argv);
-	exit(1);
+        fprintf(stderr, "Usage: %s\n", *argv);
+        exit(1);
     }
 
     /* remember to ignore certain signals */
     set_signals();
 
     /* go do it */
-    while(do_resolve());
+    while (do_resolve()) ;
     fprintf(stderr, "Resolver exited.\n");
 
     exit(0);
 }
-
-
-
-

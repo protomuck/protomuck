@@ -16,24 +16,25 @@
 #include "msgparse.h"
 
 
-extern int tune_setparm(const dbref player, const char *parmname, const char *val);
+extern int tune_setparm(const dbref player, const char *parmname,
+                        const char *val);
 struct line *get_new_line(void);
 
 void
-show_mcp_error(McpFrame * mfr, char *topic, char *text)
+show_mcp_error(McpFrame *mfr, char *topic, char *text)
 {
-	McpMesg msg;
-	McpVer supp = mcp_frame_package_supported(mfr, "org-fuzzball-notify");
+    McpMesg msg;
+    McpVer supp = mcp_frame_package_supported(mfr, "org-fuzzball-notify");
 
-	if (supp.verminor != 0 || supp.vermajor != 0) {
-		mcp_mesg_init(&msg, "org-fuzzball-notify", "error");
-		mcp_mesg_arg_append(&msg, "text", text);
-		mcp_mesg_arg_append(&msg, "topic", topic);
-		mcp_frame_output_mesg(mfr, &msg);
-		mcp_mesg_clear(&msg);
-	} else {
-		notify(mcpframe_to_user(mfr), text);
-	}
+    if (supp.verminor != 0 || supp.vermajor != 0) {
+        mcp_mesg_init(&msg, "org-fuzzball-notify", "error");
+        mcp_mesg_arg_append(&msg, "text", text);
+        mcp_mesg_arg_append(&msg, "topic", topic);
+        mcp_frame_output_mesg(mfr, &msg);
+        mcp_mesg_clear(&msg);
+    } else {
+        notify(mcpframe_to_user(mfr), text);
+    }
 }
 
 
@@ -55,240 +56,240 @@ show_mcp_error(McpFrame * mfr, char *topic, char *text)
  * Any other values are ignored.
  */
 void
-mcppkg_simpleedit(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
+mcppkg_simpleedit(McpFrame *mfr, McpMesg *msg, McpVer ver, void *context)
 {
-	if (!string_compare(msg->mesgname, "set")) {
-		dbref obj = NOTHING;
-		char *reference;
-		char *valtype;
-		char category[BUFFER_LEN];
-		char *ptr;
-		int lines;
-		dbref player;
-		char buf[BUFFER_LEN];
-		char *content;
-		int line;
-		int descr;
+    if (!string_compare(msg->mesgname, "set")) {
+        dbref obj = NOTHING;
+        char *reference;
+        char *valtype;
+        char category[BUFFER_LEN];
+        char *ptr;
+        int lines;
+        dbref player;
+        char buf[BUFFER_LEN];
+        char *content;
+        int line;
+        int descr;
 
-		reference = mcp_mesg_arg_getline(msg, "reference", 0);
-		valtype = mcp_mesg_arg_getline(msg, "type", 0);
-		lines = mcp_mesg_arg_linecount(msg, "content");
-		player = mcpframe_to_user(mfr);
-		descr = mcpframe_to_descr(mfr);
+        reference = mcp_mesg_arg_getline(msg, "reference", 0);
+        valtype = mcp_mesg_arg_getline(msg, "type", 0);
+        lines = mcp_mesg_arg_linecount(msg, "content");
+        player = mcpframe_to_user(mfr);
+        descr = mcpframe_to_descr(mfr);
 
-		/* extract object number.  -1 for none.  */
-		if (isdigit(*reference)) {
-			obj = 0;
-			while (isdigit(*reference)) {
-				obj = (10 * obj) + (*reference++ - '0');
-				if (obj >= 100000000) {
-					show_mcp_error(mfr, "simpleedit-set", "Bad reference object.");
-					return;
-				}
-			}
-		}
-		if (*reference != '.') {
-			show_mcp_error(mfr, "simpleedit-set", "Bad reference value.");
-			return;
-		}
-		reference++;
+        /* extract object number.  -1 for none.  */
+        if (isdigit(*reference)) {
+            obj = 0;
+            while (isdigit(*reference)) {
+                obj = (10 * obj) + (*reference++ - '0');
+                if (obj >= 100000000) {
+                    show_mcp_error(mfr, "simpleedit-set",
+                                   "Bad reference object.");
+                    return;
+                }
+            }
+        }
+        if (*reference != '.') {
+            show_mcp_error(mfr, "simpleedit-set", "Bad reference value.");
+            return;
+        }
+        reference++;
 
-		/* extract category string */
-		ptr = category;
-		while (*reference && *reference != '.') {
-			*ptr++ = *reference++;
-		}
-		*ptr = '\0';
-		if (*reference != '.') {
-			show_mcp_error(mfr, "simpleedit-set", "Bad reference value.");
-			return;
-		}
-		reference++;
+        /* extract category string */
+        ptr = category;
+        while (*reference && *reference != '.') {
+            *ptr++ = *reference++;
+        }
+        *ptr = '\0';
+        if (*reference != '.') {
+            show_mcp_error(mfr, "simpleedit-set", "Bad reference value.");
+            return;
+        }
+        reference++;
 
-		/* the rest is category specific data. */
-		if (!string_compare(category, "prop")) {
-			if (obj < 0 || obj >= db_top || Typeof(obj) == TYPE_GARBAGE) {
-				show_mcp_error(mfr, "simpleedit-set", "Bad reference object.");
-				return;
-			}
-			if (!controls(player, obj)) {
-				show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
-				return;
-			}
-			for (ptr = reference; *ptr; ptr++) {
-				if (*ptr == ':') {
-					show_mcp_error(mfr, "simpleedit-set", "Bad property name.");
-					return;
-				}
-			}
-			if (!Wizard(player)) {
-				if (Prop_SeeOnly(reference) || Prop_Hidden(reference)) {
-					show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
-					return;
-				}
-			}
-			if (!string_compare(valtype, "string-list") || !string_compare(valtype, "string")) {
-				int left = BUFFER_LEN - 1;
-				int len;
+        /* the rest is category specific data. */
+        if (!string_compare(category, "prop")) {
+            if (obj < 0 || obj >= db_top || Typeof(obj) == TYPE_GARBAGE) {
+                show_mcp_error(mfr, "simpleedit-set", "Bad reference object.");
+                return;
+            }
+            if (!controls(player, obj)) {
+                show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
+                return;
+            }
+            for (ptr = reference; *ptr; ptr++) {
+                if (*ptr == ':') {
+                    show_mcp_error(mfr, "simpleedit-set", "Bad property name.");
+                    return;
+                }
+            }
+            if (!Wizard(player)) {
+                if (Prop_SeeOnly(reference) || Prop_Hidden(reference)) {
+                    show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
+                    return;
+                }
+            }
+            if (!string_compare(valtype, "string-list")
+                || !string_compare(valtype, "string")) {
+                int left = BUFFER_LEN - 1;
+                int len;
 
-				buf[0] = '\0';
-				for (line = 0; line < lines; line++) {
-					content = mcp_mesg_arg_getline(msg, "content", line);
-					if (line > 0) {
-						if (left >= 1) {
-							strcat(buf, "\r");
-							left--;
-						} else {
-							break;
-						}
-					}
-					len = strlen(content);
-					if (len >= left - 1) {
-						strncat(buf, content, left);
-						left = 0;
-						break;
-					} else {
-						strcat(buf, content);
-						left -= len;
-					}
-				}
-				buf[BUFFER_LEN - 1] = '\0';
-				add_property(obj, reference, buf, 0);
+                buf[0] = '\0';
+                for (line = 0; line < lines; line++) {
+                    content = mcp_mesg_arg_getline(msg, "content", line);
+                    if (line > 0) {
+                        if (left >= 1) {
+                            strcat(buf, "\r");
+                            left--;
+                        } else {
+                            break;
+                        }
+                    }
+                    len = strlen(content);
+                    if (len >= left - 1) {
+                        strncat(buf, content, left);
+                        left = 0;
+                        break;
+                    } else {
+                        strcat(buf, content);
+                        left -= len;
+                    }
+                }
+                buf[BUFFER_LEN - 1] = '\0';
+                add_property(obj, reference, buf, 0);
 
-			} else if (!string_compare(valtype, "integer")) {
-				if (lines != 1) {
-					show_mcp_error(mfr, "simpleedit-set", "Bad integer value.");
-					return;
-				}
-				content = mcp_mesg_arg_getline(msg, "content", 0);
-				add_property(obj, reference, NULL, atoi(content));
-			}
+            } else if (!string_compare(valtype, "integer")) {
+                if (lines != 1) {
+                    show_mcp_error(mfr, "simpleedit-set", "Bad integer value.");
+                    return;
+                }
+                content = mcp_mesg_arg_getline(msg, "content", 0);
+                add_property(obj, reference, NULL, atoi(content));
+            }
 
-		} else if (!string_compare(category, "proplist")) {
-			if (obj < 0 || obj >= db_top || Typeof(obj) == TYPE_GARBAGE) {
-				show_mcp_error(mfr, "simpleedit-set", "Bad reference object.");
-				return;
-			}
-			if (!controls(player, obj)) {
-				show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
-				return;
-			}
-			for (ptr = reference; *ptr; ptr++) {
-				if (*ptr == ':') {
-					show_mcp_error(mfr, "simpleedit-set", "Bad property name.");
-					return;
-				}
-			}
-			if (!Wizard(player)) {
-				if (Prop_SeeOnly(reference) || Prop_Hidden(reference)) {
-					show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
-					return;
-				}
-			}
-			if (!string_compare(valtype, "string-list")) {
-				int left = BUFFER_LEN - 1;
-				int len;
+        } else if (!string_compare(category, "proplist")) {
+            if (obj < 0 || obj >= db_top || Typeof(obj) == TYPE_GARBAGE) {
+                show_mcp_error(mfr, "simpleedit-set", "Bad reference object.");
+                return;
+            }
+            if (!controls(player, obj)) {
+                show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
+                return;
+            }
+            for (ptr = reference; *ptr; ptr++) {
+                if (*ptr == ':') {
+                    show_mcp_error(mfr, "simpleedit-set", "Bad property name.");
+                    return;
+                }
+            }
+            if (!Wizard(player)) {
+                if (Prop_SeeOnly(reference) || Prop_Hidden(reference)) {
+                    show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
+                    return;
+                }
+            }
+            if (!string_compare(valtype, "string-list")) {
+                int left = BUFFER_LEN - 1;
+                int len;
 
-				if (lines == 0) {
-					sprintf(buf, "%s#", reference);
-					remove_property(obj, buf);
-				} else {
-					sprintf(buf, "%s#", reference);
-					remove_property(obj, buf);
-					add_property(obj, buf, "", lines);
-					for (line = 0; line < lines; line++) {
-						content = mcp_mesg_arg_getline(msg, "content", line);
-						if (!content || !*content) {
-							content = " ";
-						}
-						sprintf(buf, "%s#/%d", reference, line + 1);
-						add_property(obj, buf, content, 0);
-					}
-				}
-			} else if (!string_compare(valtype, "string") ||
-					   !string_compare(valtype, "integer")) {
-				show_mcp_error(mfr, "simpleedit-set", "Bad value type for proplist.");
-				return;
-			}
-		} else if (!string_compare(category, "prog")) {
-			struct line *tmpline;
-			struct line *curr = NULL;
-			struct line *new_line;
+                if (lines == 0) {
+                    sprintf(buf, "%s#", reference);
+                    remove_property(obj, buf);
+                } else {
+                    sprintf(buf, "%s#", reference);
+                    remove_property(obj, buf);
+                    add_property(obj, buf, "", lines);
+                    for (line = 0; line < lines; line++) {
+                        content = mcp_mesg_arg_getline(msg, "content", line);
+                        if (!content || !*content) {
+                            content = " ";
+                        }
+                        sprintf(buf, "%s#/%d", reference, line + 1);
+                        add_property(obj, buf, content, 0);
+                    }
+                }
+            } else if (!string_compare(valtype, "string") ||
+                       !string_compare(valtype, "integer")) {
+                show_mcp_error(mfr, "simpleedit-set",
+                               "Bad value type for proplist.");
+                return;
+            }
+        } else if (!string_compare(category, "prog")) {
+            struct line *tmpline;
+            struct line *curr = NULL;
+            struct line *new_line;
 
-			if (obj < 0 || obj >= db_top || Typeof(obj) == TYPE_GARBAGE) {
-				show_mcp_error(mfr, "simpleedit-set", "Bad reference object.");
-				return;
-			}
-			if (Typeof(obj) != TYPE_PROGRAM || !controls(player, obj)) {
-				show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
-				return;
-			}
-			if (!Mucker(player)) {
-				show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
-				return;
-			}
-			if (FLAGS(obj) & INTERNAL) {
-				show_mcp_error(mfr, "simpleedit-set",
-							   "Sorry, this program is currently being edited.  Try again later.");
-				return;
-			}
-                        tmpline = DBFETCH(obj)->sp.program.first;
-                        DBFETCH(obj)->sp.program.first = 0;
+            if (obj < 0 || obj >= db_top || Typeof(obj) == TYPE_GARBAGE) {
+                show_mcp_error(mfr, "simpleedit-set", "Bad reference object.");
+                return;
+            }
+            if (Typeof(obj) != TYPE_PROGRAM || !controls(player, obj)) {
+                show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
+                return;
+            }
+            if (!Mucker(player)) {
+                show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
+                return;
+            }
+            if (FLAGS(obj) & INTERNAL) {
+                show_mcp_error(mfr, "simpleedit-set",
+                               "Sorry, this program is currently being edited.  Try again later.");
+                return;
+            }
+            tmpline = DBFETCH(obj)->sp.program.first;
+            DBFETCH(obj)->sp.program.first = 0;
 
-			for (line = 0; line < lines; line++) {
-				new_line = get_new_line();
-				content = mcp_mesg_arg_getline(msg, "content", line);
-				if (!content || !*content) {
-					new_line->this_line = alloc_string(" ");
-				} else {
-					new_line->this_line = alloc_string(content);
-				}
-				new_line->next = NULL;
-				if (line == 0) {
-                                        DBFETCH(obj)->sp.program.first = new_line;
-				} else {
-					curr->next = new_line;
-				}
-				curr = new_line;
-			}
+            for (line = 0; line < lines; line++) {
+                new_line = get_new_line();
+                content = mcp_mesg_arg_getline(msg, "content", line);
+                if (!content || !*content) {
+                    new_line->this_line = alloc_string(" ");
+                } else {
+                    new_line->this_line = alloc_string(content);
+                }
+                new_line->next = NULL;
+                if (line == 0) {
+                    DBFETCH(obj)->sp.program.first = new_line;
+                } else {
+                    curr->next = new_line;
+                }
+                curr = new_line;
+            }
 
-			log_status("PROGRAM SAVED: %s by %s(%d)\n",
-					   unparse_object(player, obj), NAME(player), player);
+            log_status("PROGRAM SAVED: %s by %s(%d)\n",
+                       unparse_object(player, obj), NAME(player), player);
 
-			write_program(DBFETCH(obj)->sp.program.first, obj);
+            write_program(DBFETCH(obj)->sp.program.first, obj);
 
-			if (tp_log_programs)
-				log_program_text(DBFETCH(obj)->sp.program.first, player, obj);
+            if (tp_log_programs)
+                log_program_text(DBFETCH(obj)->sp.program.first, player, obj);
 
-			do_compile(descr, player, obj, 1);
+            do_compile(descr, player, obj, 1);
 
-			free_prog_text(DBFETCH(obj)->sp.program.first);
+            free_prog_text(DBFETCH(obj)->sp.program.first);
 
-			DBFETCH(obj)->sp.program.first = tmpline;
+            DBFETCH(obj)->sp.program.first = tmpline;
 
-			DBDIRTY(player);
-			DBDIRTY(obj);
+            DBDIRTY(player);
+            DBDIRTY(obj);
 
-		} else if (!string_compare(category, "sysparm")) {
-			if (!Wizard(player)) {
-				show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
-				return;
-			}
-			if (lines != 1) {
-				show_mcp_error(mfr, "simpleedit-set", "Bad @tune value.");
-				return;
-			}
-			content = mcp_mesg_arg_getline(msg, "content", 0);
-			tune_setparm(player, reference, content);
+        } else if (!string_compare(category, "sysparm")) {
+            if (!Wizard(player)) {
+                show_mcp_error(mfr, "simpleedit-set", "Permission denied.");
+                return;
+            }
+            if (lines != 1) {
+                show_mcp_error(mfr, "simpleedit-set", "Bad @tune value.");
+                return;
+            }
+            content = mcp_mesg_arg_getline(msg, "content", 0);
+            tune_setparm(player, reference, content);
 
-		} else if (!string_compare(category, "user")) {
-		} else {
-			show_mcp_error(mfr, "simpleedit-set", "Unknown reference category.");
-			return;
-		}
-	}
+        } else if (!string_compare(category, "user")) {
+        } else {
+            show_mcp_error(mfr, "simpleedit-set",
+                           "Unknown reference category.");
+            return;
+        }
+    }
 }
-
-
-
-

@@ -8,10 +8,10 @@
  * compatible systems by Peter A. Torkelson, aka WhiteFire.
  */
 
-/* #define _POSIX_SOURCE */             /* Solaris needs this */
+                                        /* #define _POSIX_SOURCE *//* Solaris needs this */
 #ifdef SOLARIS
 #  ifndef _POSIX_SOURCE
-#    define _POSIX_SOURCE               /* Solaris needs this */
+#    define _POSIX_SOURCE       /* Solaris needs this */
 #  endif
 #endif
 
@@ -36,13 +36,13 @@
 /*
  * Function prototypes
  */
-void    set_signals(void);
+void set_signals(void);
 RETSIGTYPE sig_shutdown(int);
 RETSIGTYPE bailout(int);
 RETSIGTYPE sig_reap_resolver(int);
 
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)(int));
+void our_signal(int signo, void (*sighandler) (int));
 #else
 # define our_signal(s,f) signal((s),(f))
 #endif
@@ -56,10 +56,11 @@ void our_signal(int signo, void (*sighandler)(int));
  * Calls sigaction() to set a signal, if we are posix.
  */
 #ifdef _POSIX_VERSION
-void our_signal(int signo, void (*sighandler)(int))
+void
+our_signal(int signo, void (*sighandler) (int))
 {
-    struct sigaction    act, oact;
-    
+    struct sigaction act, oact;
+
     act.sa_handler = sighandler;
     sigemptyset(&act.sa_mask);
     act.sa_flags = 0;
@@ -91,7 +92,8 @@ void our_signal(int signo, void (*sighandler)(int))
 #define SET_DUMP (bail ? SIG_DFL : sig_dump) */
 #define SET_IGN  (bail ? SIG_DFL : SIG_IGN)
 
-static void set_sigs_intern(int bail)
+static void
+set_sigs_intern(int bail)
 {
     /* we don't care about SIGPIPE, we notice it in select() and write() */
 #ifdef SIGPIPE
@@ -112,7 +114,7 @@ static void set_sigs_intern(int bail)
     our_signal(SIGTRAP, SET_BAIL);
 #endif
 #ifdef SIGIOT
-    /* our_signal(SIGIOT, SET_BAIL); */ /* This is SIGABRT, want cores from it. CrT */
+    /* our_signal(SIGIOT, SET_BAIL); *//* This is SIGABRT, want cores from it. CrT */
 #endif
 #ifdef SIGEMT
     our_signal(SIGEMT, SET_BAIL);
@@ -137,11 +139,11 @@ static void set_sigs_intern(int bail)
 #endif
 #ifdef SIGUSR1
 /*    our_signal(SIGUSR1, SET_REST); */
-	our_signal(SIGUSR1, SET_SHUT);
+    our_signal(SIGUSR1, SET_SHUT);
 #endif
 #ifdef SIGUSR2
 /*    our_signal(SIGUSR2, SET_DUMP); */
-	our_signal(SIGUSR2, SET_SHUT);
+    our_signal(SIGUSR2, SET_SHUT);
 #endif
 
     /* standard termination signals */
@@ -154,7 +156,8 @@ static void set_sigs_intern(int bail)
 #endif
 }
 
-void set_signals(void)
+void
+set_signals(void)
 {
     set_sigs_intern(FALSE);
 }
@@ -168,22 +171,24 @@ void set_signals(void)
 extern int shutdown_flag;
 extern int restart_flag;
 
-RETSIGTYPE sig_shutdown(int i)
+RETSIGTYPE
+sig_shutdown(int i)
 {
-	shutdown_flag = 1;
-	restart_flag = 0;
+    shutdown_flag = 1;
+    restart_flag = 0;
 }
 
 /*
  * BAIL!
  */
-RETSIGTYPE bailout(int sig)
+RETSIGTYPE
+bailout(int sig)
 {
-    char    message[128];
+    char message[128];
 
     /* turn off signals */
     set_sigs_intern(TRUE);
-    
+
     sprintf(message, "BAILOUT: caught signal %d", sig);
 
     panic(message);
@@ -197,10 +202,12 @@ RETSIGTYPE bailout(int sig)
 /*
  * Clean out Zombie Resolver Process.
  */
-RETSIGTYPE sig_reap_resolver(int i)
+RETSIGTYPE
+sig_reap_resolver(int i)
 {
-	int status = 0;
-	int pid = waitpid(-1, &status, WNOHANG);
+    int status = 0;
+    int pid = waitpid(-1, &status, WNOHANG);
+
 /* #if defined(SPAWN_HOST_RESOLVER)
         extern void kill_resolver(void);
 	kill_resolver();
@@ -210,10 +217,3 @@ RETSIGTYPE sig_reap_resolver(int i)
     return 0;
 #endif
 }
-
-
-
-
-
-
-

@@ -20,14 +20,15 @@ void
 host_del(int ip)
 {
     struct hostcache *ptr;
+
     for (ptr = hostcache_list; ptr; ptr = ptr->next) {
         if (ptr->ipnum == ip) {
             if (ptr->next) {
                 ptr->next->prev = ptr->prev;
-	    }
-	    *ptr->prev = ptr->next;
-	    FREE(ptr);
-	    return;
+            }
+            *ptr->prev = ptr->next;
+            FREE(ptr);
+            return;
         }
     }
 }
@@ -63,6 +64,7 @@ host_add(int ip, const char *name)
     struct hostcache *ptr;
 
     MALLOC(ptr, struct hostcache, 1);
+
     ptr->next = hostcache_list;
     if (ptr->next) {
         ptr->next->prev = &ptr->next;
@@ -78,15 +80,16 @@ host_free(void)
 {
     struct hostcache *next, *list;
 
-    if( !hostcache_list ) return;
+    if (!hostcache_list)
+        return;
 
     list = hostcache_list;
     hostcache_list = NULL;
 
-    while( list ) {
-	next = list->next;
-	FREE( list );
-	list = next;
+    while (list) {
+        next = list->next;
+        FREE(list);
+        list = next;
     }
 }
 
@@ -98,14 +101,16 @@ host_load(void)
     char name[80];
     char *p = name;
 
-    if(!( f = fopen( "nethost.cache", "r" ))) return;
+    if (!(f = fopen("nethost.cache", "r")))
+        return;
 
-    if( hostcache_list ) host_free();
+    if (hostcache_list)
+        host_free();
 
-    while( fscanf( f, "%x %s\n", &ip, p ) == 2 )
-	host_add(ip, name);	
+    while (fscanf(f, "%x %s\n", &ip, p) == 2)
+        host_add(ip, name);
 
-    fclose( f );
+    fclose(f);
 }
 
 void
@@ -114,12 +119,13 @@ host_save(void)
     FILE *f;
     struct hostcache *ptr;
 
-    if(!( f = fopen( "nethost.cache", "w" ))) return;
+    if (!(f = fopen("nethost.cache", "w")))
+        return;
 
     for (ptr = hostcache_list; ptr; ptr = ptr->next)
-	fprintf( f, "%X %s\n", ptr->ipnum, ptr->name );
+        fprintf(f, "%X %s\n", ptr->ipnum, ptr->name);
 
-    fclose( f );
+    fclose(f);
 }
 
 void
@@ -134,4 +140,3 @@ host_shutdown(void)
     host_save();
     host_free();
 }
-

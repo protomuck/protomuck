@@ -12,13 +12,13 @@
  * same value.
  */
 
-unsigned 
+unsigned
 hash(register const char *s, unsigned hash_size)
 {
     unsigned hashval;
 
     for (hashval = 0; *s != '\0'; s++)
-	hashval = (*s | 0x20) + 31 * hashval;
+        hashval = (*s | 0x20) + 31 * hashval;
     return hashval % hash_size;
 }
 
@@ -27,13 +27,13 @@ hash(register const char *s, unsigned hash_size)
  * returns NULL if not found, otherwise a pointer to the data union.
  */
 hash_data *
-find_hash(register const char *s, hash_tab * table, unsigned size)
+find_hash(register const char *s, hash_tab *table, unsigned size)
 {
     register hash_entry *hp;
 
     for (hp = table[hash(s, size)]; hp != NULL; hp = hp->next)
-	if (string_compare(s, hp->name) == 0)
-	    return &(hp->dat);  /* found */
+        if (string_compare(s, hp->name) == 0)
+            return &(hp->dat);  /* found */
     return NULL;                /* not found */
 }
 
@@ -48,7 +48,7 @@ find_hash(register const char *s, hash_tab * table, unsigned size)
  */
 hash_entry *
 add_hash(register const char *name, hash_data data,
-	 hash_tab * table, unsigned size)
+         hash_tab *table, unsigned size)
 {
     register hash_entry *hp;
     unsigned hashval;
@@ -57,18 +57,18 @@ add_hash(register const char *name, hash_data data,
 
     /* an inline find_hash */
     for (hp = table[hashval]; hp != NULL; hp = hp->next)
-	if (string_compare(name, hp->name) == 0)
-	    break;
+        if (string_compare(name, hp->name) == 0)
+            break;
 
     /* If not found, set up a new entry */
     if (hp == NULL) {
-	hp = (hash_entry *) malloc(sizeof(*hp));
-	if (hp == NULL)
-	    /* can't allocate new entry -- die */
-	    return NULL;
-	hp->next = table[hashval];
-	table[hashval] = hp;
-	hp->name = (char *) string_dup(name);
+        hp = (hash_entry *) malloc(sizeof(*hp));
+        if (hp == NULL)
+            /* can't allocate new entry -- die */
+            return NULL;
+        hp->next = table[hashval];
+        table[hashval] = hp;
+        hp->name = (char *) string_dup(name);
     }
     /* One way or another, the pointer is now valid */
     hp->dat = data;
@@ -80,38 +80,37 @@ add_hash(register const char *name, hash_data data,
  * frees the dynamically allocated hash table entry associated with
  * a name.  Returns 0 on success, or -1 if the name cannot be found.
  */
-int 
-free_hash(register const char *name, hash_tab * table, unsigned size)
+int
+free_hash(register const char *name, hash_tab *table, unsigned size)
 {
     register hash_entry **lp, *hp;
 
     lp = &table[hash(name, size)];
     for (hp = *lp; hp != NULL; lp = &hp->next, hp = hp->next)
-	if (string_compare(name, hp->name) == 0) {
-	    *lp = hp->next;     /* got it.  fix the pointers */
-	    free((void *) hp->name);
-	    free((void *) hp);
-	    return 0;
-	}
+        if (string_compare(name, hp->name) == 0) {
+            *lp = hp->next;     /* got it.  fix the pointers */
+            free((void *) hp->name);
+            free((void *) hp);
+            return 0;
+        }
     return -1;                  /* not found */
 }
 
 /* kill_hash:  kill an entire hash table, by freeing every entry */
-void 
-kill_hash(hash_tab * table, unsigned size, int freeptrs)
+void
+kill_hash(hash_tab *table, unsigned size, int freeptrs)
 {
     register hash_entry *hp, *np;
-    unsigned     i;
+    unsigned i;
 
     for (i = 0; i < size; i++) {
-	for (hp = table[i]; hp != NULL; hp = np) {
-	    np = hp->next;      /* Don't dereference the pointer after */
-	    free((void *) hp->name);
-	    if (freeptrs)
-		free((void *) hp->dat.pval);
-	    free((void *) hp);  /* we've freed it! */
-	}
-	table[i] = NULL;
+        for (hp = table[i]; hp != NULL; hp = np) {
+            np = hp->next;      /* Don't dereference the pointer after */
+            free((void *) hp->name);
+            if (freeptrs)
+                free((void *) hp->dat.pval);
+            free((void *) hp);  /* we've freed it! */
+        }
+        table[i] = NULL;
     }
 }
-
