@@ -505,7 +505,190 @@ strdecrypt(const char *data, const char *key)
     return buf;
 }
 
+const char *color_lookup( dbref player, const char *color )
+{
+   const char *tempcolor;
 
+   if( (!color) || (!*color) )
+	return ANSINORMAL;
+
+    if( !strcasecmp( "SUCC", color ) || !strcasecmp( "CSUCC", color ) ) {
+      tempcolor = GETMESG(player, "_/COLORS/SUCC");
+      if(!tempcolor)
+         tempcolor = GETMESG(0, "_/COLORS/SUCC");
+      if(!tempcolor)
+  	   tempcolor = CCSUCC;
+      color = tempcolor;
+    } else if( !strcasecmp( "FAIL", color ) || !strcasecmp( "CFAIL", color)) {
+      tempcolor = GETMESG(player, "_/COLORS/FAIL");
+      if(!tempcolor)
+         tempcolor = GETMESG(0, "_/COLORS/FAIL");
+      if(!tempcolor)
+  	   tempcolor = CCFAIL;
+      color = tempcolor;
+    } else if( !strcasecmp( "INFO", color ) || !strcasecmp( "CINFO", color)) {
+      tempcolor = GETMESG(player, "_/COLORS/INFO");
+      if(!tempcolor)
+         tempcolor = GETMESG(0, "_/COLORS/INFO");
+      if(!tempcolor)
+  	   tempcolor = CCINFO;
+      color = tempcolor;
+    } else if( !strcasecmp( "NOTE", color ) || !strcasecmp( "CNOTE", color)) {
+      tempcolor = GETMESG(player, "_/COLORS/NOTE");
+      if(!tempcolor)
+         tempcolor = GETMESG(0, "_/COLORS/NOTE");
+      if(!tempcolor)
+  	   tempcolor = CCNOTE;
+      color = tempcolor;
+    } else if( !strcasecmp( "MOVE", color ) || !strcasecmp( "CMOVE", color)) {
+      tempcolor = GETMESG(player, "_/COLORS/MOVE");
+      if(!tempcolor)
+         tempcolor = GETMESG(0, "_/COLORS/MOVE");
+      if(!tempcolor)
+  	   tempcolor = CCMOVE;
+      color = tempcolor;
+    }
+
+    if( !strcasecmp( "NORMAL", color )) {
+	return ANSINORMAL;
+    } else if( !strcasecmp( "FLASH", color ) || !strcasecmp( "BLINK", color )) {
+	return ANSIFLASH;
+    } else if( !strcasecmp( "INVERT", color ) || !strcasecmp( "REVERSE", color)) {
+	return ANSIINVERT;
+    } else if( !strcasecmp( "UNDERLINE", color )) {
+	return ANSIUNDERLINE;
+    } else if( !strcasecmp( "BOLD", color )) {
+	return ANSIBOLD;
+    } else if( !strcasecmp( "BLACK", color )) {
+	return ANSIBLACK;
+    } else if( !strcasecmp( "CRIMSON", color )) {
+	return ANSICRIMSON;
+    } else if( !strcasecmp( "FOREST", color )) {
+	return ANSIFOREST;
+    } else if( !strcasecmp( "BROWN", color )) {
+	return ANSIBROWN;
+    } else if( !strcasecmp( "NAVY", color )) {
+	return ANSINAVY;
+    } else if( !strcasecmp( "VIOLET", color )) {
+	return ANSIVIOLET;
+    } else if( !strcasecmp( "AQUA", color )) {
+	return ANSIAQUA;
+    } else if( !strcasecmp( "GRAY", color )) {
+	return ANSIGRAY;
+    } else if( !strcasecmp( "GLOOM", color )) {
+	return ANSIGLOOM;
+    } else if( !strcasecmp( "RED", color )) {
+	return ANSIRED;
+    } else if( !strcasecmp( "GREEN", color )) {
+	return ANSIGREEN;
+    } else if( !strcasecmp( "YELLOW", color )) {
+	return ANSIYELLOW;
+    } else if( !strcasecmp( "BLUE", color )) {
+	return ANSIBLUE;
+    } else if( !strcasecmp( "PURPLE", color )) {
+	return ANSIPURPLE;
+    } else if( !strcasecmp( "CYAN", color )) {
+	return ANSICYAN;
+    } else if( !strcasecmp( "WHITE", color )) {
+	return ANSIWHITE;
+    } else if( !strcasecmp( "CBLACK", color )) {
+	return ANSICBLACK;
+    } else if( !strcasecmp( "CRED", color )) {
+	return ANSICRED;
+    } else if( !strcasecmp( "CGREEN", color )) {
+	return ANSICGREEN;
+    } else if( !strcasecmp( "CYELLOW", color )) {
+	return ANSICYELLOW;
+    } else if( !strcasecmp( "CBLUE", color )) {
+	return ANSICBLUE;
+    } else if( !strcasecmp( "CPURPLE", color )) {
+	return ANSICPURPLE;
+    } else if( !strcasecmp( "CCYAN", color )) {
+	return ANSICCYAN;
+    } else if( !strcasecmp( "CWHITE", color )) {
+	return ANSICWHITE;
+    } else if( !strcasecmp( "BBLACK", color )) {
+	return ANSIBBLACK;
+    } else if( !strcasecmp( "BRED", color )) {
+	return ANSIBRED;
+    } else if( !strcasecmp( "BGREEN", color )) {
+	return ANSIBGREEN;
+    } else if( !strcasecmp( "BBROWN", color )) {
+	return ANSIBBROWN;
+    } else if( !strcasecmp( "BBLUE", color )) {
+	return ANSIBBLUE;
+    } else if( !strcasecmp( "BPURPLE", color )) {
+	return ANSIBPURPLE;
+    } else if( !strcasecmp( "BCYAN", color )) {
+	return ANSIBCYAN;
+    } else if( !strcasecmp( "BGRAY", color )) {
+	return ANSIBGRAY;
+    } else {
+	return ANSINORMAL;
+    }
+}
+
+char *
+parse_ansi( dbref player, char *buf, const char *from )
+{
+    char *to, *color, cbuf[BUFFER_LEN + 2];
+    const char *ansi;
+
+    to=buf;
+    while(*from) {
+	if(*from == '^') {
+	    from++;
+	    color = cbuf;
+	    while(*from && *from != '^')
+		*(color++) = (*(from++));
+	    *color = '\0';
+	    if(*from) from++;
+	    if(*cbuf) {
+		if((ansi = color_lookup(player, cbuf)))
+		    while(*ansi)
+			*(to++) = (*(ansi++));
+	    } else
+		*(to++) = '^';
+	} else
+	    *(to++) = (*(from++));
+    }
+    *to='\0';
+    return buf;
+}
+
+char *
+tct( const char *in, char out[BUFFER_LEN] )
+{
+    char *p=out;
+    if(!out) perror("tct: Null buffer");
+
+    if(in && (*in))
+	while ( *in && (p - out < (BUFFER_LEN-2)) )
+	    if ( (*(p++) = (*(in++))) == '^')
+		*(p++) = '^';
+    *p = '\0';
+    return out;
+}
+
+char *
+unparse_ansi( char *buf, const char *from )
+{
+    char *to;
+
+    to=buf;
+    while(*from) {
+	if(*from == '^') {
+	    from++;
+	    if(*from == '^')
+		*(to++) = (*(from++));
+	    else
+		while(*(from++)) if(*from == '^') { from++; break; }
+	} else
+	    *(to++) = (*(from++));
+    }
+    *to='\0';
+    return buf;
+}
 
 
 char *
@@ -726,4 +909,5 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     *p = '\0';
     return out;
 }
+
 

@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.5 2000-09-18 02:57:37 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.6 2000-09-18 03:04:30 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands
@@ -10,6 +10,8 @@
  * removed hackandslash in-server code
  *
  */
+/* Definition of 'McpFrame' */
+#include "mcp.h"
 
 /* Prototypes for externs not defined elsewhere */
 
@@ -56,6 +58,7 @@ void listenqueue(int descr, dbref player, dbref where, dbref trigger, dbref what
 		int mlev, int mt, int mpi_p);
 extern void next_timequeue_event();
 extern int  in_timequeue(int pid);
+extern struct frame* timequeue_pid_frame(int pid);
 extern time_t next_event_time();
 extern void list_events(dbref program);
 extern int  dequeue_prog(dbref program, int sleeponly);
@@ -247,6 +250,16 @@ extern int string_prefix(const char *string, const char *prefix);
 extern const char *string_match(const char *src, const char *sub);
 extern char *pronoun_substitute(int descr, dbref player, const char *str);
 extern char *intostr(int i);
+extern char *html_escape (const char *str);
+extern char *parse_ansi( dbref player, char *buf, const char *from );
+extern char *unparse_ansi( char *buf, const char *from );
+extern char *tct( const char *in, char out[BUFFER_LEN]);
+extern char *strip_ansi(char *buf, const char *input);
+extern char *strip_bad_ansi(char *buf, const char *input);
+extern char *escape_ansi(char *buf, const char *input);
+extern char *parse_mush_ansi( char *buf, char *from );
+extern char *unparse_mush_ansi( char *buf, char *from );
+extern char *mush_tct( const char *in, char out[BUFFER_LEN] );
 
 #if !defined(MALLOC_PROFILING)
 extern char *string_dup(const char *s);
@@ -273,8 +286,12 @@ extern void do_stats(dbref player, const char *name);
 extern void do_toad(int descr, dbref player, const char *name, const char *recip);
 extern void do_purge(int descr, dbref player, const char *arg1, const char *arg2);
 extern void do_boot(dbref player, const char *name);
+extern void do_powers(int descr, dbref player, const char *name, const char *power);
 extern void do_pcreate(dbref player, const char *arg1, const char *arg2);
 extern void do_usage(dbref player);
+extern void do_muf_topprofs(dbref player, char *arg1);
+extern void do_mpi_topprofs(dbref player, char *arg1);
+extern void do_all_topprofs(dbref player, char *arg1);
 
 /* From boolexp.c */
 extern int size_boolexp(struct boolexp * b);
@@ -394,6 +411,9 @@ extern void host_shutdown();
 extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
 extern unsigned long rnd(void *buffer);
+
+/* from mcppkgs.c */
+extern void show_mcp_error(McpFrame * mfr, char *topic, char *text);
 
 
 /* For MPI profiling */

@@ -26,6 +26,7 @@
 #include "externs.h"
 #include "reg.h"
 #include "maillib.h"
+#include "strings.h"
 
 extern	int resolver_sock[2];
 
@@ -367,7 +368,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 	match_here(&md);
 	match_absolute(&md);
 	match_registered(&md);
-	if (Wiz(OWNER(player)))
+	if (Wiz(OWNER(player)) || (POWERS(player) & POW_TPORT_ANYTHING))
 	    match_player(&md);
 
 	if ((victim = noisy_match_result(&md)) == NOTHING) {
@@ -385,7 +386,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
     match_home(&md);
     match_absolute(&md);
     match_registered(&md);
-    if (Wiz(OWNER(player))) {
+    if (Wiz(OWNER(player)) || (POWERS(player) & POW_TPORT_ANYWHERE)) {
 	match_player(&md);
     }
     switch (destination = match_result(&md)) {
@@ -421,7 +422,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 	default:
 	    switch (Typeof(victim)) {
 		case TYPE_PLAYER:
-		    if (    !controls(player, victim) || 
+		    if (    !controls(player, victim) ||
 			    ( (!controls(player, destination)) &&
 			      (!(FLAGS(destination)&JUMP_OK)) &&
 			      (destination!=DBFETCH(victim)->sp.player.home)
@@ -432,7 +433,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			    ) ||
 			    ( (Typeof(destination) == TYPE_THING) &&
 			      !controls(player, getloc(destination))
-			    )
+			    ) && !(POWERS(player) & POW_TPORT_ANYTHING)
 		    ) {
 			anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 			break;
@@ -443,7 +444,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			anotify_nolisten2(player, CFAIL "Bad destination.");
 			break;
 		    }
-                    if (!Wiz(victim) &&
+                    if (!Wiz(victim) && !(POWERS(player) & POW_TPORT_ANYWHERE) &&
                             (Typeof(destination) == TYPE_THING &&
                                 !(FLAGS(destination) & VEHICLE))) {
                         anotify_nolisten2(player, CFAIL "Destination object is not a vehicle.");
@@ -481,7 +482,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			anotify_nolisten2(player, CFAIL "Bad destination.");
 			break;
 		    }
-		    if (!((controls(player, destination) ||
+		    if (!((controls(player, destination) || (POWERS(player) & POW_TPORT_ANYWHERE) ||
 			    can_link_to(player, NOTYPE, destination)) &&
 			    (controls(player, victim) ||
 			    controls(player, DBFETCH(victim)->location)))) {
@@ -501,7 +502,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			anotify_nolisten2(player, CFAIL "Bad destination.");
 			break;
 		    }
-		    if (!controls(player, victim)
+		    if (!(controls(player, victim) || (POWERS(player) & POW_TPORT_ANYTHING))
 			    || !can_link_to(player, NOTYPE, destination)
 			    || victim == GLOBAL_ENVIRONMENT) {
 			anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -644,7 +645,7 @@ do_stats(dbref player, const char *name)
     int     tpcnt=0;
     int     tocnt=0;
     dbref   i;
-    dbref   owner;
+    dbref   owner = NOTHING;
 
 	if (name != NULL && *name != '\0') {
 	    if( !strcmp(name, "me") )
@@ -786,7 +787,7 @@ do_boot(dbref player, const char *name)
 
     if ( Typeof(player) != TYPE_PLAYER ) return;
 
-    if (!Mage(player)) {
+    if (!Mage(player) || (POWERS(player) & POW_BOOT)) {
 	anotify_nolisten2(player, CFAIL "Only wizards can boot someone off.");
 	return;
     }
@@ -826,7 +827,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
     dbref   stuff;
     char    buf[BUFFER_LEN];
 
-    if (!Arch(player) || Typeof(player) != TYPE_PLAYER) {
+    if (!(Typeof(player) == TYPE_PLAYER && (Arch(player) || (POWERS(player) & POW_PLAYER_CREATE)))) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
@@ -892,7 +893,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
 	anotify_fmt(player, CSUCC "You frob %s.", PNAME(victim));
 	log_status("FROB: %s(%d) by %s(%d)\n", NAME(victim),
 		   victim, NAME(player), player);
-
+      if (Typeof(victim) != TYPE_PLAYER) return;
 	boot_player_off_too(victim);
 	delete_player(victim);
 	/* reset name */
@@ -1027,7 +1028,7 @@ do_pcreate(dbref player, const char *user, const char *password)
 {
     dbref   newguy;
 
-    if (!Arch(player) || Typeof(player) != TYPE_PLAYER) {
+    if (!(Typeof(player) == TYPE_PLAYER && (Arch(player) || (POWERS(player) & POW_PLAYER_CREATE)))) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
@@ -1041,7 +1042,184 @@ do_pcreate(dbref player, const char *user, const char *password)
     }
 }
 
+static const char *
+power_description(dbref thing)
+{
+    static char buf[BUFFER_LEN];
 
+    strcpy(buf, GREEN "Powers: " YELLOW );
+	if (POWERS(thing) & POW_ANNOUNCE)
+	    strcat(buf, "ANNOUNCE ");
+      if (POWERS(thing) & POW_BOOT)
+          strcat(buf, "BOOT ");
+      if (POWERS(thing) & POW_CHOWN_ANYTHING)
+          strcat(buf, "CHOWN_ANYTHING ");
+      if (POWERS(thing) & POW_EXPANDED_WHO)
+          strcat(buf, "EXPANDED_WHO ");
+      if (POWERS(thing) & POW_HIDE)
+          strcat(buf, "HIDE ");
+      if (POWERS(thing) & POW_IDLE)
+          strcat(buf, "IDLE ");
+      if (POWERS(thing) & POW_LINK_ANYWHERE)
+          strcat(buf, "LINK_ANYWHERE ");
+      if (POWERS(thing) & POW_LONG_FINGERS)
+          strcat(buf, "LONG_FINGERS ");
+      if (POWERS(thing) & POW_NO_PAY)
+          strcat(buf, "NO_PAY ");
+      if (POWERS(thing) & POW_OPEN_ANYWHERE)
+          strcat(buf, "OPEN_ANYWHERE ");
+      if (POWERS(thing) & POW_PLAYER_CREATE)
+          strcat(buf, "PLAYER_CREATE ");
+      if (POWERS(thing) & POW_SEARCH)
+          strcat(buf, "SEARCH ");
+      if (POWERS(thing) & POW_SEE_ALL)
+          strcat(buf, "SEE_ALL ");
+      if (POWERS(thing) & POW_TPORT_ANYTHING)
+          strcat(buf, "TPORT_ANYTHING ");
+      if (POWERS(thing) & POW_TPORT_ANYWHERE)
+          strcat(buf, "TPORT_ANYWHERE ");
+    return buf;
+}
+
+void
+do_powers(int descr, dbref player, const char *name, const char *power)
+{
+    dbref thing;
+    const char *p;
+    char  buf[BUFFER_LEN];
+    object_flag_type pow=0;
+
+    if(tp_db_readonly) return;
+    if (!Boy(player) || Typeof(player) != TYPE_PLAYER) {
+	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+	return;
+    }
+
+    if (tp_db_readonly) {
+	anotify_nolisten2(player, CFAIL DBRO_MESG);
+	return;
+    }
+
+    if (force_level) {
+      anotify_nolisten2(player, CFAIL "Can't set a @power from a @force or {force}.");
+      return;
+    }
+
+    if (!name || !*name) {
+      anotify_nolisten2(player, CNOTE "Powers List");
+      anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+      anotify_nolisten2(player,       "ANNOUNCE        - Can use @wall and dwall commands");
+      anotify_nolisten2(player,       "BOOT            - Can use @boot and dboot commands");
+      anotify_nolisten2(player,       "CHOWN_ANYTHING  - Can @chown anything, unless it is PROTECTed");
+      anotify_nolisten2(player,       "EXPANDED_WHO    - Gets the wizard version of WHO");
+      anotify_nolisten2(player,       "HIDE            - Can set themselves DARK or login HIDDEN");
+      anotify_nolisten2(player,       "IDLE            - Not effected by the idle limit");
+      anotify_nolisten2(player,       "LINK_ANYWHERE   - Can @link an exit to anywhere");
+      anotify_nolisten2(player,       "LONG_FINGERS    - Can do anything from a long distance");
+      anotify_nolisten2(player,       "NO_PAY          - Infinite money");
+      anotify_nolisten2(player,       "OPEN_ANYWHERE   - Can @open an exit from any location");
+      anotify_nolisten2(player,       "PLAYER_CREATE   - Can use @pcreate, @frob, and @toad");
+      anotify_nolisten2(player,       "SEARCH          - Can use @find, @entrances, and @contents");
+      anotify_nolisten2(player,       "SEE_ALL         - Can examine any object, and @list any program");
+      anotify_nolisten2(player,       "TPORT_ANYTHING  - Can teleport any object");
+      anotify_nolisten2(player,       "TPORT_ANYWHERE  - Can teleport to any location");
+      anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+      anotify_nolisten2(player,       "Syntax: @power <player>=[!]<power>");
+      anotify_nolisten2(player, CINFO "Done.");
+      return;
+    }
+
+    /* find thing */
+    if (!string_compare(name,"me")) name = NAME(player);
+    if ((thing = lookup_player(name)) == NOTHING) {
+      anotify_nolisten2(player, CFAIL "I can't find that player.");
+	return;
+    }
+
+    /* move p past NOT_TOKEN if present */
+    for (p = power; *p && (*p == NOT_TOKEN || isspace(*p)); p++);
+
+    if (*p == '\0') {
+        sprintf(buf, CINFO "%s:", unparse_object(MAN, thing));
+        anotify_nolisten2(player, buf);
+        anotify_nolisten2(player, power_description(thing));
+        anotify_nolisten2(player, CINFO "Done.");
+	return;
+    } else if ( string_prefix("ANNOUNCE", p) ) {
+       pow = POW_ANNOUNCE;
+    } else if ( string_prefix("BOOT", p) ) {
+       pow = POW_BOOT;
+    } else if ( string_prefix("CHOWN_ANYTHING", p) ) {
+       pow = POW_CHOWN_ANYTHING;
+    } else if ( string_prefix("EXPANDED_WHO", p) ) {
+       pow = POW_EXPANDED_WHO;
+    } else if ( string_prefix("HIDE", p) ) {
+       pow = POW_HIDE;
+    } else if ( string_prefix("IDLE", p) ) {
+       pow = POW_IDLE;
+    } else if ( string_prefix("LINK_ANYWHERE", p) ) {
+       pow = POW_LINK_ANYWHERE;
+    } else if ( string_prefix("LONG_FINGERS", p) ) {
+       pow = POW_LONG_FINGERS;
+    } else if ( string_prefix("NO_PAY", p) ) {
+       pow = POW_NO_PAY;
+    } else if ( string_prefix("OPEN_ANYWHERE", p) ) {
+       pow = POW_OPEN_ANYWHERE;
+    } else if ( string_prefix("PLAYER_CREATE", p) ) {
+       pow = POW_PLAYER_CREATE;
+    } else if ( string_prefix("SEARCH", p) ) {
+       pow = POW_SEARCH;
+    } else if ( string_prefix("SEE_ALL", p) ) {
+       pow = POW_SEE_ALL;
+    } else if ( string_prefix("TPORT_ANYTHING", p) ) {
+       pow = POW_TPORT_ANYTHING;
+    } else if ( string_prefix("TPORT_ANYWHERE", p) ) {
+       pow = POW_TPORT_ANYWHERE;
+    } else {
+       anotify_nolisten2(player, CINFO "I don't recognize that power.");
+       return;
+    }
+
+    if (*power == NOT_TOKEN) {
+	ts_modifyobject(thing);
+	POWERS(thing) &= ~pow;
+	DBDIRTY(thing);
+	anotify_nolisten2(player, CSUCC "Power removed.");
+    } else {
+	ts_modifyobject(thing);
+	POWERS(thing) |= pow;
+	DBDIRTY(thing);
+	anotify_nolisten2(player, CSUCC "Power given.");
+    }
+}
+
+void
+do_ports(int descr, dbref player, const char *arg1, const char *arg2)
+{
+    if (!Boy(OWNER(player))) {
+	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+	return;
+    }
+
+    if(!arg1 || !*arg1 || !string_compare(arg1, "#help") ) {
+       anotify_nolisten2(player, CNOTE "@Ports Help");
+       anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+       anotify_nolisten2(player,       " @Ports #help           - This screen");
+       anotify_nolisten2(player,       " @Ports #list           - List the ports");
+       anotify_nolisten2(player,       " @ports <Port>          - Add a new port");
+       anotify_nolisten2(player,       " @Ports !<Port>         - Remove the port");
+       anotify_nolisten2(player,       " @Ports <Port>=<1..4>   - Change the port-type");
+       anotify_nolisten2(player,       " @Ports <Port>=#<dbref> - Change the MUF program for MUF-type ports");
+       anotify_nolisten2(player,       " @Ports <Port>=&<Port>  - Change the port number");
+       anotify_nolisten2(player,       " @Ports <Port>=t<Time>  - Set the idle timeout in seconds");
+       anotify_nolisten2(player,       "Port types:");
+       anotify_nolisten2(player,       "  1 = Normal Port  2 = Pueblo Port  3 = Webserver Port  4 = MUF Port");
+       anotify_nolisten2(player,       "Note: You can not remove the top normal port shown in @Ports #list, but");
+       anotify_nolisten2(player,       "      you can change the port number and idle timeout.");
+       anotify_nolisten2(player, CINFO "Done.");
+       return;
+    }
+}
 
 #ifdef DISKBASE
 extern int propcache_hits;
@@ -1124,387 +1302,398 @@ do_usage(dbref player)
 void
 do_muf_topprofs(dbref player, char *arg1)
 {
-    struct profnode {
-        struct profnode *next;
-        dbref  prog;
-        double proftime;
-        double pcnt;
-        long   comptime;
-        long   usecount;
-    } *tops = NULL;
-    struct profnode *curr = NULL;
-    int nodecount = 0;
-    char buf[BUFFER_LEN];
-    dbref i = NOTHING;
-    int count = atoi(arg1);
+	struct profnode {
+		struct profnode *next;
+		dbref  prog;
+		double proftime;
+		double pcnt;
+		long   comptime;
+		long   usecount;
+	} *tops = NULL;
 
-    if (!Mage(OWNER(player))) {
-	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-	return;
-    }
-    if (!string_compare(arg1, "reset")) {
-        for (i = db_top; i-->0; ) {
-	    if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code) {
-		struct inst *first = DBFETCH(i)->sp.program.code;
-		first->data.number = 0;
-		first[1].data.number = 0;
-		first[2].data.number = current_systime;
-		first[3].data.number = 0;
-	    }
-        }
-        anotify_nolisten2(player, CSUCC "MUF profiling statistics cleared.");
-        return;
-    }
-    if (count < 0) {
-	anotify_nolisten2(player, CFAIL "Count has to be a positive number.");
-	return;
-    } else if (count == 0) {
-        count = 10;
-    }
+	struct profnode *curr = NULL;
+	int nodecount = 0;
+	char buf[BUFFER_LEN];
+	dbref i = NOTHING;
+	int count = atoi(arg1);
+	time_t current_systime = time(NULL);
 
-    for (i = db_top; i-->0; ) {
-        if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code) {
-            struct inst *first = DBFETCH(i)->sp.program.code;
-            struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
-	    newnode->next = NULL;
-            newnode->prog = i;
-            newnode->proftime = first->data.number;
-            newnode->proftime += (first[1].data.number / 1000000.0);
-            newnode->comptime = current_systime - first[2].data.number;
-            newnode->usecount = first[3].data.number;
-            if (newnode->comptime > 0) {
-		newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
-            } else {
-		newnode->pcnt =  0.0;
-            }
-	    if (!tops) {
-		tops = newnode;
-		nodecount++;
-	    } else if (newnode->pcnt < tops->pcnt) {
-		if (nodecount < count) {
-		    newnode->next = tops;
-		    tops = newnode;
-		    nodecount++;
-		} else {
-		    free(newnode);
-		}
-	    } else {
-	        if (nodecount >= count) {
-	            curr = tops;
-	            tops = tops->next;
-	            free(curr);
-	        } else {
-		    nodecount++;
-		}
-		if (!tops) {
-		    tops = newnode;
-		} else if (newnode->pcnt < tops->pcnt) {
-		    newnode->next = tops;
-		    tops = newnode;
-		} else {
-		    for (curr = tops; curr->next; curr = curr->next) {
-			if (newnode->pcnt < curr->next->pcnt) {
-			    break;
+	if (!Mage(OWNER(player))) {
+		anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+		return;
+	}
+
+	if (!string_compare(arg1, "reset")) {
+		for (i = db_top; i-->0; ) {
+			if (Typeof(i) == TYPE_PROGRAM) {
+				DBFETCH(i)->sp.program.proftime.tv_sec = 0;
+				DBFETCH(i)->sp.program.proftime.tv_usec = 0;
+				DBFETCH(i)->sp.program.profstart = current_systime;
+				DBFETCH(i)->sp.program.profuses = 0;
 			}
-		    }
-		    newnode->next = curr->next;
-		    curr->next = newnode;
 		}
-	    }
-        }
-    }
-    anotify_nolisten2(player, YELLOW "     %CPU   TotalTime  UseCount  Program");
-    while (tops) {
-        curr = tops;
-        sprintf(buf, "%10.3f %10.3f %9d %s", curr->pcnt, curr->proftime, curr->usecount, unparse_object(player, curr->prog));
-        notify(player, buf);
-        tops = tops->next;
-        free(curr);
-    }
-    sprintf(buf, WHITE "Profile Length (sec): " NORMAL "%5ld  " WHITE "%%idle: " NORMAL "%5.2f%%  " WHITE "Total Cycles: " NORMAL "%5lu",
-	    (current_systime-sel_prof_start_time),
-            ((double)(sel_prof_idle_sec+(sel_prof_idle_usec/1000000.0))*100.0)/
-	    (double)((current_systime-sel_prof_start_time)+0.01),
-	    sel_prof_idle_use);
-    anotify_nolisten2(player,buf);
-    anotify_nolisten2(player, YELLOW "Done.");
+		anotify_nolisten2(player, CSUCC "MUF profiling statistics cleared.");
+		return;
+	}
+	if (count < 0) {
+		anotify_nolisten2(player, CFAIL "Count has to be a positive number.");
+		return;
+	} else if (count == 0) {
+		count = 10;
+	}
+
+	for (i = db_top; i-->0; ) {
+		if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code) {
+			struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
+			struct timeval tmpt = DBFETCH(i)->sp.program.proftime;
+
+			newnode->next = NULL;
+			newnode->prog = i;
+			newnode->proftime = tmpt.tv_sec;
+			newnode->proftime += (tmpt.tv_usec / 1000000.0);
+			newnode->comptime = current_systime - DBFETCH(i)->sp.program.profstart;
+			newnode->usecount = DBFETCH(i)->sp.program.profuses;
+			if (newnode->comptime > 0) {
+				newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
+			} else {
+				newnode->pcnt =  0.0;
+			}
+			if (!tops) {
+				tops = newnode;
+				nodecount++;
+			} else if (newnode->pcnt < tops->pcnt) {
+				if (nodecount < count) {
+					newnode->next = tops;
+					tops = newnode;
+					nodecount++;
+				} else {
+					free(newnode);
+				}
+			} else {
+				if (nodecount >= count) {
+					curr = tops;
+					tops = tops->next;
+					free(curr);
+				} else {
+					nodecount++;
+				}
+				if (!tops) {
+					tops = newnode;
+				} else if (newnode->pcnt < tops->pcnt) {
+					newnode->next = tops;
+					tops = newnode;
+				} else {
+					for (curr = tops; curr->next; curr = curr->next) {
+						if (newnode->pcnt < curr->next->pcnt) {
+							break;
+						}
+					}
+					newnode->next = curr->next;
+					curr->next = newnode;
+				}
+			}
+		}
+	}
+	anotify_nolisten2(player, CINFO "     %CPU   TotalTime  UseCount  Program");
+	while (tops) {
+		curr = tops;
+		sprintf(buf, "%10.3f %10.3f %9d %s", curr->pcnt, curr->proftime, curr->usecount, unparse_object(player, curr->prog));
+		notify(player, buf);
+		tops = tops->next;
+		free(curr);
+	}
+	sprintf(buf, CNOTE "Profile Length (sec): " NORMAL "%5ld  " CNOTE "%%idle: " NORMAL "%5.2f%%  " CNOTE "Total Cycles: " NORMAL "%5lu",
+			(current_systime-sel_prof_start_time),
+			((double)(sel_prof_idle_sec+(sel_prof_idle_usec/1000000.0))*100.0)/
+			(double)((current_systime-sel_prof_start_time)+0.01),
+			sel_prof_idle_use);
+	anotify_nolisten2(player,buf);
+	anotify_nolisten2(player, CINFO "Done.");
 }
+
 
 void
 do_mpi_topprofs(dbref player, char *arg1)
 {
-    struct profnode {
-        struct profnode *next;
-        dbref  prog;
-        double proftime;
-        double pcnt;
-        long   comptime;
-        long   usecount;
-    } *tops = NULL;
-    struct profnode *curr = NULL;
-    int nodecount = 0;
-    char buf[BUFFER_LEN];
-    dbref i = NOTHING;
-    int count = atoi(arg1);
+	struct profnode {
+		struct profnode *next;
+		dbref  prog;
+		double proftime;
+		double pcnt;
+		long   comptime;
+		long   usecount;
+	} *tops = NULL;
 
-    if (!Mage(OWNER(player))) {
-	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-	return;
-    }
-    if (!string_compare(arg1, "reset")) {
-        for (i = db_top; i-->0; ) {
-	    if (DBFETCH(i)->mpi_prof_use) {
-	      DBFETCH(i)->mpi_prof_use = 0;
-	      DBFETCH(i)->mpi_prof_usec = 0;
-	      DBFETCH(i)->mpi_prof_sec = 0;
-	    }
-        }
-	mpi_prof_start_time = current_systime;
-        anotify_nolisten2(player, CSUCC "MPI profiling statistics cleared.");
-        return;
-    }
-    if (count < 0) {
-	anotify_nolisten2(player, CFAIL "Count has to be a positive number.");
-	return;
-    } else if (count == 0) {
-        count = 10;
-    }
+	struct profnode *curr = NULL;
+	int nodecount = 0;
+	char buf[BUFFER_LEN];
+	dbref i = NOTHING;
+	int count = atoi(arg1);
+	time_t current_systime = time(NULL);
 
-    for (i = db_top; i-->0; ) {
-        if (DBFETCH(i)->mpi_prof_use) {
-            struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
-	    newnode->next = NULL;
-            newnode->prog = i;
-            newnode->proftime = DBFETCH(i)->mpi_prof_sec;
-            newnode->proftime += (DBFETCH(i)->mpi_prof_usec / 1000000.0);
-            newnode->comptime = current_systime - mpi_prof_start_time;
-            newnode->usecount = DBFETCH(i)->mpi_prof_use;
-            if (newnode->comptime > 0) {
-		newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
-            } else {
-		newnode->pcnt =  0.0;
-            }
-	    if (!tops) {
-		tops = newnode;
-		nodecount++;
-	    } else if (newnode->pcnt < tops->pcnt) {
-		if (nodecount < count) {
-		    newnode->next = tops;
-		    tops = newnode;
-		    nodecount++;
-		} else {
-		    free(newnode);
-		}
-	    } else {
-	        if (nodecount >= count) {
-	            curr = tops;
-	            tops = tops->next;
-	            free(curr);
-	        } else {
-		    nodecount++;
-		}
-		if (!tops) {
-		    tops = newnode;
-		} else if (newnode->pcnt < tops->pcnt) {
-		    newnode->next = tops;
-		    tops = newnode;
-		} else {
-		    for (curr = tops; curr->next; curr = curr->next) {
-			if (newnode->pcnt < curr->next->pcnt) {
-			    break;
+	if (!Mage(OWNER(player))) {
+		anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+		return;
+	}
+
+	if (!string_compare(arg1, "reset")) {
+		for (i = db_top; i-->0; ) {
+			if (DBFETCH(i)->mpi_prof_use) {
+				DBFETCH(i)->mpi_prof_use = 0;
+				DBFETCH(i)->mpi_proftime.tv_usec = 0;
+				DBFETCH(i)->mpi_proftime.tv_sec = 0;
 			}
-		    }
-		    newnode->next = curr->next;
-		    curr->next = newnode;
 		}
-	    }
-        }
-    }
-    anotify_nolisten2(player, YELLOW "     %CPU   TotalTime  UseCount  Object");
-    while (tops) {
-        curr = tops;
-        sprintf(buf, "%10.3f %10.3f %9d %s", curr->pcnt, curr->proftime, curr->usecount, unparse_object(player, curr->prog));
-        notify(player, buf);
-        tops = tops->next;
-        free(curr);
-    }
-    sprintf(buf, WHITE "Profile Length (sec): " NORMAL "%5ld  " WHITE "%%idle: " NORMAL "%5.2f%%  " WHITE "Total Cycles: " NORMAL "%5lu",
-	    (current_systime-sel_prof_start_time),
-            (((double)sel_prof_idle_sec+(sel_prof_idle_usec/1000000.0))*100.0)/
-	    (double)((current_systime-sel_prof_start_time)+0.01),
-	    sel_prof_idle_use);
-    anotify_nolisten2(player,buf);
-    anotify_nolisten2(player, YELLOW "Done.");
+		mpi_prof_start_time = current_systime;
+		anotify_nolisten2(player, CSUCC "MPI profiling statistics cleared.");
+		return;
+	}
+	if (count < 0) {
+		anotify_nolisten2(player, CFAIL "Count has to be a positive number.");
+		return;
+	} else if (count == 0) {
+		count = 10;
+	}
+
+	for (i = db_top; i-->0; ) {
+		if (DBFETCH(i)->mpi_prof_use) {
+			struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
+			newnode->next = NULL;
+			newnode->prog = i;
+			newnode->proftime = DBFETCH(i)->mpi_proftime.tv_sec;
+			newnode->proftime += (DBFETCH(i)->mpi_proftime.tv_usec / 1000000.0);
+			newnode->comptime = current_systime - mpi_prof_start_time;
+			newnode->usecount = DBFETCH(i)->mpi_prof_use;
+			if (newnode->comptime > 0) {
+				newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
+			} else {
+				newnode->pcnt =  0.0;
+			}
+			if (!tops) {
+				tops = newnode;
+				nodecount++;
+			} else if (newnode->pcnt < tops->pcnt) {
+				if (nodecount < count) {
+					newnode->next = tops;
+					tops = newnode;
+					nodecount++;
+				} else {
+					free(newnode);
+				}
+			} else {
+				if (nodecount >= count) {
+					curr = tops;
+					tops = tops->next;
+					free(curr);
+				} else {
+					nodecount++;
+				}
+				if (!tops) {
+					tops = newnode;
+				} else if (newnode->pcnt < tops->pcnt) {
+					newnode->next = tops;
+					tops = newnode;
+				} else {
+					for (curr = tops; curr->next; curr = curr->next) {
+						if (newnode->pcnt < curr->next->pcnt) {
+							break;
+						}
+					}
+					newnode->next = curr->next;
+					curr->next = newnode;
+				}
+			}
+		}
+	}
+	anotify_nolisten2(player, CINFO "     %CPU   TotalTime  UseCount  Object");
+	while (tops) {
+		curr = tops;
+		sprintf(buf, "%10.3f %10.3f %9d %s", curr->pcnt, curr->proftime, curr->usecount, unparse_object(player, curr->prog));
+		notify(player, buf);
+		tops = tops->next;
+		free(curr);
+	}
+	sprintf(buf, CNOTE "Profile Length (sec): " NORMAL "%5ld  " CNOTE "%%idle: " NORMAL "%5.2f%%  " CNOTE "Total Cycles: " NORMAL "%5lu",
+			(current_systime-sel_prof_start_time),
+			(((double)sel_prof_idle_sec+(sel_prof_idle_usec/1000000.0))*100.0)/
+			(double)((current_systime-sel_prof_start_time)+0.01),
+			sel_prof_idle_use);
+	anotify_nolisten2(player,buf);
+	anotify_nolisten2(player, CINFO "Done.");
 }
+
 
 void
 do_all_topprofs(dbref player, char *arg1)
 {
-    struct profnode {
-        struct profnode *next;
-        dbref  prog;
-        double proftime;
-        double pcnt;
-        long   comptime;
-        long   usecount;
-        short  type;
-    } *tops = NULL;
-    struct profnode *curr = NULL;
-    int nodecount = 0;
-    char buf[BUFFER_LEN];
-    dbref i = NOTHING;
-    int count = atoi(arg1);
+	struct profnode {
+		struct profnode *next;
+		dbref  prog;
+		double proftime;
+		double pcnt;
+		long   comptime;
+		long   usecount;
+		short  type;
+	} *tops = NULL;
 
-    if (!Mage(OWNER(player))) {
-	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-	return;
-    }
-    if (!string_compare(arg1, "reset")) {
-        for (i = db_top; i-->0; ) {
-	    if (DBFETCH(i)->mpi_prof_use) {
-	      DBFETCH(i)->mpi_prof_use = 0;
-	      DBFETCH(i)->mpi_prof_usec = 0;
-	      DBFETCH(i)->mpi_prof_sec = 0;
-	    }
-	    if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code) {
-                struct inst *first = DBFETCH(i)->sp.program.code;
-                first->data.number = 0;
-                first[1].data.number = 0;
-                first[2].data.number = current_systime;
-                first[3].data.number = 0;
-            }
-        }
-	sel_prof_idle_sec = 0;
-	sel_prof_idle_usec = 0;
-	sel_prof_start_time = current_systime;
-	sel_prof_idle_use = 0;
-	mpi_prof_start_time = current_systime;
-        anotify_nolisten2(player, CSUCC "All profiling statistics cleared.");
-        return;
-    }
-    if (count < 0) {
-	anotify_nolisten2(player, CFAIL "Count has to be a positive number.");
-	return;
-    } else if (count == 0) {
-        count = 10;
-    }
+	struct profnode *curr = NULL;
+	int nodecount = 0;
+	char buf[BUFFER_LEN];
+	dbref i = NOTHING;
+	int count = atoi(arg1);
+	time_t current_systime = time(NULL);
 
-    for (i = db_top; i-->0; ) {
-        if (DBFETCH(i)->mpi_prof_use) {
-            struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
-	    newnode->next = NULL;
-            newnode->prog = i;
-            newnode->proftime = DBFETCH(i)->mpi_prof_sec;
-            newnode->proftime += (DBFETCH(i)->mpi_prof_usec / 1000000.0);
-            newnode->comptime = current_systime - mpi_prof_start_time;
-            newnode->usecount = DBFETCH(i)->mpi_prof_use;
-	    newnode->type = 0;
-            if (newnode->comptime > 0) {
-		newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
-            } else {
-		newnode->pcnt =  0.0;
-            }
-	    if (!tops) {
-		tops = newnode;
-		nodecount++;
-	    } else if (newnode->pcnt < tops->pcnt) {
-		if (nodecount < count) {
-		    newnode->next = tops;
-		    tops = newnode;
-		    nodecount++;
-		} else {
-		    free(newnode);
-		}
-	    } else {
-	        if (nodecount >= count) {
-	            curr = tops;
-	            tops = tops->next;
-	            free(curr);
-	        } else {
-		    nodecount++;
-		}
-		if (!tops) {
-		    tops = newnode;
-		} else if (newnode->pcnt < tops->pcnt) {
-		    newnode->next = tops;
-		    tops = newnode;
-		} else {
-		    for (curr = tops; curr->next; curr = curr->next) {
-			if (newnode->pcnt < curr->next->pcnt) {
-			    break;
+	if (!Mage(OWNER(player))) {
+		anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+		return;
+	}
+
+	if (!string_compare(arg1, "reset")) {
+		for (i = db_top; i-->0; ) {
+			if (DBFETCH(i)->mpi_prof_use) {
+				DBFETCH(i)->mpi_prof_use = 0;
+				DBFETCH(i)->mpi_proftime.tv_usec = 0;
+				DBFETCH(i)->mpi_proftime.tv_sec = 0;
 			}
-		    }
-		    newnode->next = curr->next;
-		    curr->next = newnode;
+			if (Typeof(i) == TYPE_PROGRAM) {
+				DBFETCH(i)->sp.program.proftime.tv_sec = 0;
+				DBFETCH(i)->sp.program.proftime.tv_usec = 0;
+				DBFETCH(i)->sp.program.profstart = current_systime;
+				DBFETCH(i)->sp.program.profuses = 0;
+			}
 		}
-	    }
-        }
-        if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code) {
-            struct inst *first = DBFETCH(i)->sp.program.code;
-            struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
-            newnode->next = NULL;
-            newnode->prog = i;
-            newnode->proftime = first->data.number;
-            newnode->proftime += (first[1].data.number / 1000000.0);
-            newnode->comptime = current_systime - first[2].data.number;
-            newnode->usecount = first[3].data.number;
-	    newnode->type = 1;
-            if (newnode->comptime > 0) {
-                newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
-            } else {
-                newnode->pcnt =  0.0;
-            }
-            if (!tops) {
-                tops = newnode;
-                nodecount++;
-            } else if (newnode->pcnt < tops->pcnt) {
-                if (nodecount < count) {
-                    newnode->next = tops;
-                    tops = newnode;
-                    nodecount++;
-                } else {
-                    free(newnode);
-                }
-            } else {
-                if (nodecount >= count) {
-                    curr = tops;
-                    tops = tops->next;
-                    free(curr);
-                } else {
-                    nodecount++;
-                }
-                if (!tops) {
-                    tops = newnode;
-                } else if (newnode->pcnt < tops->pcnt) {
-                    newnode->next = tops;
-                    tops = newnode;
-                } else {
-                    for (curr = tops; curr->next; curr = curr->next) {
-                        if (newnode->pcnt < curr->next->pcnt) {
-                            break;
-                        }
-                    }
-                    newnode->next = curr->next;
-                    curr->next = newnode;
-                }
-            }
-        }
-    }
-    anotify_nolisten2(player, YELLOW "     %CPU   TotalTime  UseCount  Type  Object");
-    while (tops) {
-        curr = tops;
-        sprintf(buf, "%10.3f %10.3f %9d%5s   %s", curr->pcnt, curr->proftime, curr->usecount, curr->type?"MUF":"MPI",unparse_object(player, curr->prog));
-        notify(player, buf);
-        tops = tops->next;
-        free(curr);
-    }
-    sprintf(buf, WHITE "Profile Length (sec): " NORMAL "%5ld  " WHITE "%%idle: " NORMAL "%5.2f%%  " WHITE "Total Cycles: " NORMAL "%5lu",
-	    (current_systime-sel_prof_start_time),
-            ((double)(sel_prof_idle_sec+(sel_prof_idle_usec/1000000.0))*100.0)/
-	    (double)((current_systime-sel_prof_start_time)+0.01),
-	    sel_prof_idle_use);
-    anotify_nolisten2(player,buf);
-    anotify_nolisten2(player, YELLOW "Done.");
+		sel_prof_idle_sec = 0;
+		sel_prof_idle_usec = 0;
+		sel_prof_start_time = current_systime;
+		sel_prof_idle_use = 0;
+		mpi_prof_start_time = current_systime;
+		anotify_nolisten2(player, CSUCC "All profiling statistics cleared.");
+		return;
+	}
+	if (count < 0) {
+		anotify_nolisten2(player, CFAIL "Count has to be a positive number.");
+		return;
+	} else if (count == 0) {
+		count = 10;
+	}
+
+	for (i = db_top; i-->0; ) {
+		if (DBFETCH(i)->mpi_prof_use) {
+			struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
+			newnode->next = NULL;
+			newnode->prog = i;
+			newnode->proftime = DBFETCH(i)->mpi_proftime.tv_sec;
+			newnode->proftime += (DBFETCH(i)->mpi_proftime.tv_usec / 1000000.0);
+			newnode->comptime = current_systime - mpi_prof_start_time;
+			newnode->usecount = DBFETCH(i)->mpi_prof_use;
+			newnode->type = 0;
+			if (newnode->comptime > 0) {
+				newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
+			} else {
+				newnode->pcnt =  0.0;
+			}
+			if (!tops) {
+				tops = newnode;
+				nodecount++;
+			} else if (newnode->pcnt < tops->pcnt) {
+				if (nodecount < count) {
+					newnode->next = tops;
+					tops = newnode;
+					nodecount++;
+				} else {
+					free(newnode);
+				}
+			} else {
+				if (nodecount >= count) {
+					curr = tops;
+					tops = tops->next;
+					free(curr);
+				} else {
+					nodecount++;
+				}
+				if (!tops) {
+					tops = newnode;
+				} else if (newnode->pcnt < tops->pcnt) {
+					newnode->next = tops;
+					tops = newnode;
+				} else {
+					for (curr = tops; curr->next; curr = curr->next) {
+						if (newnode->pcnt < curr->next->pcnt) {
+							break;
+						}
+					}
+					newnode->next = curr->next;
+					curr->next = newnode;
+				}
+			}
+		}
+		if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code) {
+			struct profnode *newnode = (struct profnode *)malloc(sizeof(struct profnode));
+			struct timeval tmpt = DBFETCH(i)->sp.program.proftime;
+
+			newnode->next = NULL;
+			newnode->prog = i;
+			newnode->proftime = tmpt.tv_sec;
+			newnode->proftime += (tmpt.tv_usec / 1000000.0);
+			newnode->comptime = current_systime - DBFETCH(i)->sp.program.profstart;
+			newnode->usecount = DBFETCH(i)->sp.program.profuses;
+			newnode->type = 1;
+			if (newnode->comptime > 0) {
+				newnode->pcnt = 100.0 * newnode->proftime / newnode->comptime;
+			} else {
+				newnode->pcnt =  0.0;
+			}
+			if (!tops) {
+				tops = newnode;
+				nodecount++;
+			} else if (newnode->pcnt < tops->pcnt) {
+				if (nodecount < count) {
+					newnode->next = tops;
+					tops = newnode;
+					nodecount++;
+				} else {
+					free(newnode);
+				}
+			} else {
+				if (nodecount >= count) {
+					curr = tops;
+					tops = tops->next;
+					free(curr);
+				} else {
+					nodecount++;
+				}
+				if (!tops) {
+					tops = newnode;
+				} else if (newnode->pcnt < tops->pcnt) {
+					newnode->next = tops;
+					tops = newnode;
+				} else {
+					for (curr = tops; curr->next; curr = curr->next) {
+						if (newnode->pcnt < curr->next->pcnt) {
+							break;
+						}
+					}
+					newnode->next = curr->next;
+					curr->next = newnode;
+				}
+			}
+		}
+	}
+	anotify_nolisten2(player, CINFO "     %CPU   TotalTime  UseCount  Type  Object");
+	while (tops) {
+		curr = tops;
+		sprintf(buf, "%10.3f %10.3f %9d%5s   %s", curr->pcnt, curr->proftime, curr->usecount, curr->type?"MUF":"MPI",unparse_object(player, curr->prog));
+		notify(player, buf);
+		tops = tops->next;
+		free(curr);
+	}
+	sprintf(buf, CNOTE "Profile Length (sec): " NORMAL "%5ld  " CNOTE "%%idle: " NORMAL "%5.2f%%  " CNOTE "Total Cycles: " NORMAL "%5lu",
+			(current_systime-sel_prof_start_time),
+			((double)(sel_prof_idle_sec+(sel_prof_idle_usec/1000000.0))*100.0)/
+			(double)((current_systime-sel_prof_start_time)+0.01),
+			sel_prof_idle_use);
+	anotify_nolisten2(player,buf);
+	anotify_nolisten2(player, CINFO "Done.");
 }
 
 void 

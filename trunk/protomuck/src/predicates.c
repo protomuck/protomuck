@@ -22,26 +22,26 @@ can_link_to(dbref who, object_flag_type what_type, dbref where)
 	return 0;
     switch (what_type) {
 	case TYPE_EXIT:
-	    return (controls(who, where) || (FLAGS(where) & LINK_OK));
+	    return (controls(who, where) || (FLAGS(where) & LINK_OK) || (POWERS(who) & POW_LINK_ANYWHERE));
 	    /* NOTREACHED */
 	    break;
 	case TYPE_PLAYER:
 	    return (Typeof(where) == TYPE_ROOM && (controls(who, where)
-						   || Linkable(where)));
+						   || Linkable(where) || (POWERS(who) & POW_LINK_ANYWHERE)));
 	    /* NOTREACHED */
 	    break;
 	case TYPE_ROOM:
             return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_THING)
-		    && (controls(who, where) || Linkable(where)));
+		    && (controls(who, where) || Linkable(where) || (POWERS(who) & POW_LINK_ANYWHERE)));
 	    /* NOTREACHED */
 	    break;
 	case TYPE_THING:
             return ((Typeof(where) == TYPE_ROOM || Typeof(where) == TYPE_PLAYER || Typeof(where) == TYPE_THING)
-		    && (controls(who, where) || Linkable(where)));
+		    && (controls(who, where) || Linkable(where) || (POWERS(who) & POW_LINK_ANYWHERE)));
 	    /* NOTREACHED */
 	    break;
 	case NOTYPE:
-	    return (controls(who, where) || (FLAGS(where) & LINK_OK) ||
+	    return (controls(who, where) || (FLAGS(where) & LINK_OK) || (POWERS(who) & POW_LINK_ANYWHERE) ||
 		    (Typeof(where) != TYPE_THING && (FLAGS(where) & ABODE)));
 	    /* NOTREACHED */
 	    break;
@@ -244,14 +244,14 @@ can_see(dbref player, dbref thing, int can_see_loc)
     if (can_see_loc) {
 	switch (Typeof(thing)) {
 	    case TYPE_PROGRAM:
-		return ((FLAGS(thing) & LINK_OK) || controls(player, thing));
+		return ((FLAGS(thing) & LINK_OK) || controls(player, thing) || (POWERS(player) & POW_SEE_ALL));
             case TYPE_PLAYER:
 		if (tp_dark_sleepers) {
-		    return (!Dark(thing) || online(thing));
+		    return (!Dark(thing) || online(thing) || (POWERS(player) & POW_SEE_ALL));
 		}
 	    default:
 		return 1;
-		return (!Dark(thing) ||
+		return (!Dark(thing) || (POWERS(player) & POW_SEE_ALL) ||
 		     (controls(player, thing) && !(FLAGS(player) & STICKY)));
 		
 	}
@@ -315,7 +315,7 @@ restricted(dbref player, dbref thing, object_flag_type flag)
 	    }
 	    return(0);
 	case DARK:
-            if (!Arch(OWNER(player))) {
+            if (!Arch(OWNER(player)) || !(POWERS(player) & POW_HIDE)) {
 		if (Typeof(thing) == TYPE_PLAYER)
 		    return(1);
 		if (!tp_exit_darking && Typeof(thing) == TYPE_EXIT)
@@ -355,7 +355,7 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
 	case F2LOGWALL:
 	    return (!Arch(OWNER(player)));
 	case F2HIDDEN:
-	    if (Typeof(thing) == TYPE_PLAYER) { return (!Arch(OWNER(player))); } else { return 1; }
+	    if (Typeof(thing) == TYPE_PLAYER) { return (!Arch(OWNER(player)) || !(POWERS(player) & POW_HIDE)); } else { return 1; }
       case F2ANTIPROTECT:
           if (Typeof(thing) == TYPE_PLAYER) { return (!Boy(OWNER(player))); } else { return 1; }
 
@@ -371,7 +371,7 @@ int
 payfor(dbref who, int cost)
 {
     who = OWNER(who);
-    if (Mage(who)) {
+    if (Mage(who) || (POWERS(who) & POW_NO_PAY)) {
 	return 1;
     } else if (DBFETCH(who)->sp.player.pennies >= cost) {
 	DBFETCH(who)->sp.player.pennies -= cost;
@@ -451,6 +451,7 @@ ok_password(const char *password)
 
     return 1;
 }
+
 
 
 

@@ -49,7 +49,7 @@ p_null(PRIM_PROTOTYPE)
 }
 
 /* void    (*prim_func[]) (PRIM_PROTOTYPE) = */
-void    (*prim_func[])() =
+void    (*prim_func[]) (PRIM_PROTOTYPE) =
 {
     p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null,
     /* JMP, READ, TREAD, SLEEP,  CALL,   EXECUTE, RETURN, EVENT_WAIT */
@@ -64,7 +64,10 @@ void    (*prim_func[])() =
     PRIMS_ERROR_FUNCS,
     PRIMS_FILE_FUNCS,
     PRIMS_ARRAY_FUNCS,
-    PRIMS_INTERNAL_FUNCS, (void *) NULL};
+    PRIMS_MCP_FUNCS,
+    PRIMS_INTERNAL_FUNCS,
+    NULL
+};
 
 struct localvars*
 localvars_get(struct frame *fr, dbref prog)
@@ -421,7 +424,7 @@ interp(int descr, dbref player, dbref location, dbref program,
 
     ts_useobject(program);
     if (DBFETCH(program)->sp.program.code) {
-	DBFETCH(program)->sp.program.code[3].data.number++;
+       DBFETCH(program)->sp.program.profuses++;
     }
 
     DBFETCH(program)->sp.program.instances++;
@@ -539,7 +542,7 @@ prog_clean(struct frame * fr)
     if (fr->rndbuf)
       delete_seed(fr->rndbuf);
 
-/*    muf_dlog_purge(fr); */
+    muf_dlog_purge(fr);
 
     dequeue_timers(fr->pid, NULL);
 
@@ -628,22 +631,24 @@ void
 calc_profile_timing(dbref prog, struct frame *fr)
 {
     struct timeval tv;
-    struct inst *first, *second;
+    struct timeval tv2;
+
     gettimeofday(&tv, NULL);
-    tv.tv_usec -= fr->proftime.tv_usec;
-    tv.tv_sec -= fr->proftime.tv_sec;
-    if (tv.tv_usec < 0) {
+    if (tv.tv_usec < fr->proftime.tv_usec) {
         tv.tv_usec += 1000000;
         tv.tv_sec -= 1;
     }
-    first = DBFETCH(prog)->sp.program.code;
-    second = &first[1];
-    first->data.number += tv.tv_sec;
-    second->data.number += tv.tv_usec;
-    if (second->data.number >= 1000000) {
-        second->data.number -= 1000000;
-        first->data.number += 1;
+    tv.tv_usec -= fr->proftime.tv_usec;
+    tv.tv_sec -= fr->proftime.tv_sec;
+    tv2 = DBFETCH(prog)->sp.program.proftime;
+    tv2.tv_sec += tv.tv_sec;
+    tv2.tv_usec += tv.tv_usec;
+    if (tv2.tv_usec >= 1000000) {
+        tv2.tv_usec -= 1000000;
+        tv2.tv_sec += 1;
     }
+    DBFETCH(prog)->sp.program.proftime.tv_usec = tv2.tv_usec;
+    DBFETCH(prog)->sp.program.proftime.tv_sec = tv2.tv_sec;
     fr->totaltime.tv_sec += tv.tv_sec;
     fr->totaltime.tv_usec += tv.tv_usec;
     if (fr->totaltime.tv_usec > 1000000) {
@@ -730,9 +735,9 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	if (!pc) {
 	    abort_loop("Program not compilable. Cannot run.", NULL, NULL);
 	}
-	DBFETCH(program)->sp.program.code[3].data.number++;
+	DBFETCH(program)->sp.program.profuses++;
     }
-/*    ts_useobject(program); */
+    ts_useobject(program);
     err = 0;
 
     instr_count = 0;
@@ -1070,7 +1075,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			    DBFETCH(program)->sp.program.instances++;
 			    mlev = ProgMLevel(program);
 			}
-			DBFETCH(program)->sp.program.code[3].data.number++;
+			DBFETCH(program)->sp.program.profuses++;
 			ts_useobject(program);
 			CLEAR(temp1);
 			if (temp2)
@@ -1408,7 +1413,7 @@ do_abort_interp(dbref player, const char *msg, struct inst * pc,
 
 
 void
-do_abort_silent()
+do_abort_silent(void)
 {
     err++;
 }

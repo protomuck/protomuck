@@ -186,6 +186,50 @@ has_flagp(dbref ref, char *flag, int mlev)
   return result;
 }
 
+int
+check_power(char *power)
+{
+	tmp = 0;
+
+	while (*power == '!') {
+	    power++;
+	}
+
+	if (string_prefix("announce", power)) {
+         tmp = POW_ANNOUNCE;
+      } else if (string_prefix("boot", power)) {
+         tmp = POW_BOOT;
+      } else if (string_prefix("chown_anything", power)) {
+         tmp = POW_CHOWN_ANYTHING;
+      } else if (string_prefix("expanded_who", power)) {
+         tmp = POW_EXPANDED_WHO;
+      } else if (string_prefix("hide", power)) {
+         tmp = POW_HIDE;
+      } else if (string_prefix("idle", power)) {
+         tmp = POW_IDLE;
+      } else if (string_prefix("link_anywhere", power)) {
+         tmp = POW_LINK_ANYWHERE;
+      } else if (string_prefix("long_fingers", power)) {
+         tmp = POW_LONG_FINGERS;
+      } else if (string_prefix("no_pay", power)) {
+         tmp = POW_NO_PAY;
+      } else if (string_prefix("open_anywhere", power)) {
+         tmp = POW_OPEN_ANYWHERE;
+      } else if (string_prefix("player_create", power)) {
+         tmp = POW_PLAYER_CREATE;
+      } else if (string_prefix("search", power)) {
+         tmp = POW_SEARCH;
+      } else if (string_prefix("see_all", power)) {
+         tmp = POW_SEE_ALL;
+      } else if (string_prefix("tport_anything", power)) {
+         tmp = POW_TPORT_ANYTHING;
+      } else if (string_prefix("tport_anywhere", power)) {
+         tmp = POW_TPORT_ANYWHERE;
+      }
+
+      return tmp;
+}
+
 void 
 prim_addpennies(PRIM_PROTOTYPE)
 {
@@ -991,6 +1035,49 @@ prim_flagp(PRIM_PROTOTYPE)
     PushInt(result); */
 }
 
+void
+prim_powerp(PRIM_PROTOTYPE)
+{
+    int pow = 0;
+
+    result = 0;
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    if (!valid_object(oper2))
+	abort_interp("Invalid object");
+    if (Typeof(oper2->data.objref) != TYPE_PLAYER)
+      abort_interp("Not a valid player");
+    pow = check_power(oper1->data.string->data);
+    if(!pow)
+      abort_interp("Not a valid power");
+    if(POWERS(oper2->data.objref) & pow)
+      result = 1;
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
+}
+
+void
+prim_ispowerp(PRIM_PROTOTYPE)
+{
+    int pow = 0;
+
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    pow = check_power(oper1->data.string->data);
+    result = !(!pow);
+    CLEAR(oper1);
+    PushInt(result);
+}
 
 void 
 prim_playerp(PRIM_PROTOTYPE)
@@ -2464,6 +2551,41 @@ prim_nextplayer_flag(PRIM_PROTOTYPE)
     }
     if(result == 0 || ref >= db_top)
        ref = NOTHING;
+    PushObject(ref);
+
+}
+void
+prim_nextplayer_power(PRIM_PROTOTYPE)
+{
+    int pow = 0;
+
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    if (!valid_object(oper2))
+	abort_interp("Invalid object");
+    if (Typeof(oper2->data.objref) != TYPE_PLAYER)
+      ref = 0;
+    else
+      ref = oper2->data.objref;
+    pow = check_power(oper1->data.string->data);
+    if(!pow)
+      abort_interp("Not a valid power");
+    for(; ref < db_top; ref++) {
+      result = 0;
+      if (POWERS(ref) & pow)
+         result = 1;
+      if (result && Typeof(ref) == TYPE_PLAYER)
+         break;
+    }
+    if(ref >= db_top)
+      ref = NOTHING;
+    CLEAR(oper1);
+    CLEAR(oper2);
     PushObject(ref);
 }
 

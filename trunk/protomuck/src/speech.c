@@ -125,7 +125,7 @@ do_wall(dbref player, const char *message)
 {
     char    buf[BUFFER_LEN];
 
-    if (Mage(player) && Typeof(player) == TYPE_PLAYER) {
+    if ((Mage(player) || (POWERS(player) & POW_ANNOUNCE)) && Typeof(player) == TYPE_PLAYER) {
 	if (!*message) {
 	    anotify_nolisten2(player, CINFO "Shout what?");
 	    return;
@@ -507,6 +507,7 @@ blank(const char *s)
 
     return !(*s);
 }
+
 
 
 

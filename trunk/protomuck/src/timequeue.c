@@ -398,8 +398,7 @@ handle_read_event(int descr, dbref player, const char *command)
 	    }
 	} else {
 	    /* This is a MUF READ event. */
-          if (command)
- 	    if (!string_compare(command, BREAK_COMMAND)) {
+          if (command) if (!string_compare(command, BREAK_COMMAND)) {
 
 		/* Whoops!  The user typed @Q.  Free the frame and exit. */
 		prog_clean(fr);
@@ -443,8 +442,10 @@ handle_read_event(int descr, dbref player, const char *command)
 	 */
 	flag = (FLAGS(player) & INTERACTIVE);
 
-	if (!flag) {
+	if (!flag && fr) {
 	    interp_loop(player, prog, fr, 0);
+
+
 	}
 
 	/*
@@ -465,7 +466,7 @@ handle_read_event(int descr, dbref player, const char *command)
 
 
 void
-next_timequeue_event()
+next_timequeue_event(void)
 {
     struct frame *tmpfr;
     dbref   tmpcp;
@@ -540,7 +541,7 @@ next_timequeue_event()
 		    temp.type = PROG_INTEGER;
 		    temp.data.number = tqhead->when;
 		    tqhead->fr->timercount--;
-		    muf_event_add(event->fr, event->called_data, &temp);
+		    muf_event_add(event->fr, event->called_data, &temp, 0);
 		} else if (event->subtyp == TQ_MUF_TREAD) {
 		    handle_read_event(event->descr, event->uid, NULL);
 		} else {
@@ -610,7 +611,7 @@ timequeue_pid_frame(int pid)
 }
 
 time_t
-next_event_time()
+next_event_time(void)
 {
     time_t  rtime = time((time_t *) NULL);
 
@@ -705,7 +706,7 @@ list_events(dbref player)
 	ptr = ptr->next;
 	count++;
     }
-    count += muf_event_list(player, "%8d %4s %4s %5d #%-6d %-16s %.512s");
+    count += muf_event_list(player, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s");
     sprintf(buf, CINFO "%d events.", count);
     anotify_nolisten(player, buf, 1);
 }
@@ -925,11 +926,11 @@ do_dequeue(int descr, dbref player, const char *arg1)
 		anotify_nolisten(player, buf, 1);
 	    } else {
 		if ((count = atoi(arg1))) {
-		    if (!control_process(player, count)) {
+		    if (!(control_process(player, count))) {
 			anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 			return;
 		    }
-		    if (!dequeue_process(count)) {
+		    if (!(dequeue_process(count))) {
 			anotify_nolisten(player, CINFO "No such process.", 1);
 			return;
 		    }

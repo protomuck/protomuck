@@ -22,7 +22,7 @@ void    do_quit(dbref player, dbref program);
 void    do_list(dbref player, dbref program, int arg[], int argc);
 void    insert(dbref player, const char *line);
 struct line *get_new_line(void);
-struct line *read_program(dbref i, int editor);
+struct line *read_program(dbref i);
 void    do_compile(int descr, dbref player, dbref program, int force_err_disp);
 void    free_line(struct line * l);
 void    free_prog_text(struct line * l);
@@ -500,8 +500,7 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
         anotify_nolisten2(player, CINFO "You can't list anything but a program.");
         return;
     }
-    if (!controls(player, thing) && !Viewable(thing) &&
-	!(Mage(player) && (OWNER(thing) != MAN))) 
+    if ( !controls(player, thing) && !Viewable(thing) && !(POWERS(player) & POW_SEE_ALL) )
     {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
@@ -538,7 +537,7 @@ match_and_list(int descr, dbref player, const char *name, char *linespec, int ed
         }
     }
     tmpline = DBFETCH(thing)->sp.program.first;
-    DBSTORE(thing, sp.program.first, read_program(thing,editor));
+    DBSTORE(thing, sp.program.first, read_program(thing));
     do_list(player, thing, range, argc);
     free_prog_text(DBFETCH(thing)->sp.program.first);
     DBSTORE(thing, sp.program.first, tmpline);
@@ -624,7 +623,7 @@ val_and_head(dbref player, int arg[], int argc)
 void
 do_list_header(dbref player, dbref program)
 {
-    struct line *curr = read_program(program,1);
+    struct line *curr = read_program(program);
 
     while (curr && (((curr->this_line)[0] == '(') ||
           (((curr->this_line)[0] == '/') && ((curr->this_line)[1] == '*'))))
@@ -663,7 +662,7 @@ list_publics(int descr, dbref player, int arg[], int argc)
             struct line *tmpline;
 
             tmpline = DBFETCH(program)->sp.program.first;
-            DBFETCH(program)->sp.program.first = (struct line *) read_program(program,0);
+            DBFETCH(program)->sp.program.first = (struct line *) read_program(program);
             do_compile(descr, OWNER(program), program, 0);
             free_prog_text(DBFETCH(program)->sp.program.first);
             DBSTORE(program, sp.program.first, tmpline);

@@ -897,6 +897,11 @@ process_command(int descr, dbref player, char *command)
 		    case 'm':
 		    case 'M':
 			switch (command[2]) {
+			    case 'c':
+			    case 'C':
+				Matched("@mcpedit");
+				do_mcpedit(descr, player, arg1);
+				break;
 			    case 'e':
 			    case 'E':
 				Matched("@memory");
@@ -989,6 +994,11 @@ process_command(int descr, dbref player, char *command)
 			    case 'E':
 				Matched("@pecho");
 				do_pecho(descr, player, arg1, arg2);
+				break;
+			    case 'o':
+			    case 'O':
+				Matched("@powers");
+				do_powers(descr, player, arg1, arg2);
 				break;
 			    case 'r':
 			    case 'R':

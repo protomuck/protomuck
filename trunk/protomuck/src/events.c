@@ -1,6 +1,7 @@
 
 
 #include <time.h>
+#include <sys/time.h>
 #include "db.h"
 #include "props.h"
 #include "config.h"
@@ -301,5 +302,6 @@ next_muckevent (void)
     check_rwho_time();
 #endif
 }         
+
 
 

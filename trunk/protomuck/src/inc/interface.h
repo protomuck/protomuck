@@ -2,6 +2,7 @@
 #include "copyright.h"
 #include "db.h"
 #include "defaults.h"
+#include "mcp.h"
 
 /* structures */
 
@@ -50,6 +51,7 @@ struct descriptor_data {
 #endif
     struct descriptor_data *next;
     struct descriptor_data **prev;
+    McpFrame mcpframe;
 };
 
 #define CT_MUCK		0
@@ -60,13 +62,9 @@ struct descriptor_data {
 
 #ifdef HTTPD
 extern void httpd(struct descriptor_data *d, const char *name, const char *http);
-extern void httpd_unknown(struct descriptor_data *d);
+extern void httpd_unknown(struct descriptor_data *d, const char *name);
 #endif
 
-extern char *html_escape (const char *str);
-extern char *parse_ansi( char *buf, const char *from );
-extern char *unparse_ansi( char *buf, const char *from );
-extern char *tct( const char *in, char out[BUFFER_LEN]);
 extern int notify(dbref player, const char *msg);
 extern int notify_nolisten(dbref player, const char *msg, int ispriv);
 extern void notify_descriptor(int c, const char *msg);
@@ -113,6 +111,7 @@ extern void pboot(int c);
 extern void pnotify(int c, char *outstr);
 extern int pdescr(int c);
 extern int pdescrcon(int c);
+extern McpFrame *descr_mcpframe(int c);
 extern int pnextdescr(int c);
 extern int pfirstconn(dbref who);
 extern int pset_user(int c, dbref who);
@@ -232,11 +231,11 @@ extern void panic(const char *);
 #define BGRAY	"^BGRAY^"
 
 /* These are defined in defaults.h */
-#define CFAIL "^" CCFAIL "^"
-#define CSUCC "^" CCSUCC "^"
-#define CINFO "^" CCINFO "^"
-#define CNOTE "^" CCNOTE "^"
-#define CMOVE "^" CCMOVE "^"
+#define CFAIL "^FAIL^"
+#define CSUCC "^SUCC^"
+#define CINFO "^INFO^"
+#define CNOTE "^NOTE^"
+#define CMOVE "^MOVE^"
 
 /* ANSI attributes and color codes for FB6 style ansi routines */
 

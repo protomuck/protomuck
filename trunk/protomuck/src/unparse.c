@@ -118,7 +118,7 @@ unparse_object(dbref player, dbref loc)
 #endif
 #ifndef SANITY
 	    if (!(FLAGS(player) & STICKY) &&
-		    (TMage(player) ||
+		    (TMage(player) || POWERS(player) & POW_SEE_ALL ||
 		     can_link_to(player, NOTYPE, loc) ||
 		     controls_link(player, loc) ||
 		     ((Typeof(loc) != TYPE_PLAYER) &&
@@ -182,7 +182,7 @@ ansi_unparse_object(dbref player, dbref loc)
 		return RED "*INVALID*";
 #ifndef SANITY
 	    if (!(FLAGS(player) & STICKY) &&
-		    (TMage(player) ||
+		    (TMage(player) || POWERS(player) & POW_SEE_ALL ||
 		     can_link_to(player, NOTYPE, loc) ||
 		     controls_link(player, loc) ||
 		     ((Typeof(loc) != TYPE_PLAYER) &&
@@ -275,6 +275,7 @@ unparse_boolexp(dbref player, struct boolexp * b, int fullname)
 
     return boolexp_buf;
 }
+
 
 
 
