@@ -1011,37 +1011,34 @@ prim_onevent(PRIM_PROTOTYPE)
 {
     struct muf_interrupt *e;
 
-    CHECKOP(2)
-        oper1 = POP();          /* function addr */
-    oper2 = POP();              /* interrupt id */
-    oper3 = POP();              /* event id */
+    CHECKOP(4);
+    oper1 = POP();              /* keep in queue */
+    oper2 = POP();              /* function addr */
+    oper3 = POP();              /* interrupt id  */
+    oper4 = POP();              /* event id      */
 
-    if (oper1->type != PROG_ADD)
-        abort_interp("Expected a function address. (1)");
-    if (oper2->type != PROG_STRING)
-        abort_interp("String argument expected. (2)");
-    if (!oper2->data.string)
-        abort_interp("Interrupt ID cannot be null. (2)");
+    if (oper2->type != PROG_ADD)
+        abort_interp("Expected a function address. (2)");
     if (oper3->type != PROG_STRING)
         abort_interp("String argument expected. (3)");
     if (!oper3->data.string)
-        abort_interp("Event ID cannot be null. (3)");
+        abort_interp("Interrupt ID cannot be null. (3)");
+    if (oper4->type != PROG_STRING)
+        abort_interp("String argument expected. (4)");
+    if (!oper4->data.string)
+        abort_interp("Event ID cannot be null. (4)");
 
-    if (!OkObj(oper1->data.addr->progref)
-        || (Typeof(oper1->data.addr->progref) != TYPE_PROGRAM))
+    if (!OkObj(oper2->data.addr->progref)
+        || (Typeof(oper2->data.addr->progref) != TYPE_PROGRAM))
         abort_interp("Internal error.  Invalid address. (1)");
-    if (program != oper1->data.addr->progref)
+    if (program != oper2->data.addr->progref)
         abort_interp("Destination address outside current program. (1)");
 
-    if ((e = muf_interrupt_find(fr, oper2->data.string->data))) {
-        e->addr = oper1->data.addr->data;
+    if ((e = muf_interrupt_find(fr, oper3->data.string->data))) {
         free((void *) e->event);
-        e->event = alloc_string(oper3->data.string->data);
     } else {
         e = (struct muf_interrupt *) malloc(sizeof(struct muf_interrupt));
-        e->event = alloc_string(oper3->data.string->data);
-        e->id = alloc_string(oper2->data.string->data);
-        e->addr = oper1->data.addr->data;
+        e->id = alloc_string(oper3->data.string->data);
         e->prev = NULL;
         e->next = fr->interrupts;
         if (fr->interrupts)
@@ -1049,11 +1046,15 @@ prim_onevent(PRIM_PROTOTYPE)
         fr->interrupts = e;
     }
 
-    fr->use_interrupts = 1;
+    e->event = alloc_string(oper4->data.string->data);
+    e->addr = oper2->data.addr->data;
+    e->keep = (oper1->data.number != 0);
+
 
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
+    CLEAR(oper4);
 }
 
 void

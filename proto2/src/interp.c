@@ -536,7 +536,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->descr = descr;
     fr->multitask = nosleeps;
     fr->perms = whichperms;
-    fr->use_interrupts = 0;
+    fr->use_interrupts = 1;
     fr->interrupt_count = 0;
     fr->interrupts = NULL;
     fr->ainttop = NULL;
@@ -1254,12 +1254,20 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 
         /* if there's an interrupt in queue && it hasn't had it's return set yet... */
         if (fr->ainttop && !fr->ainttop->ret) {
+            register struct muf_ainterrupt *a = fr->ainttop;
+
             sys[stop].progref = program;
             sys[stop++].offset = pc; /* create return point for EXIT */
-            fr->ainttop->ret = pc; /* store program's current execution point. */
-            pc = fr->ainttop->interrupt->addr; /* change program's current execution point */
+            a->ret = pc;        /* store program's current execution point. */
+            pc = a->interrupt->addr; /* change program's current execution point */
             fr->interrupted++;
             fr->interrupt_count++;
+
+            copyinst(a->data, arg + atop);
+            arg[++atop].type = PROG_STRING;
+            arg[atop++].data.string = alloc_prog_string(a->eventid);
+            arg[atop].type = PROG_STRING;
+            arg[atop++].data.string = alloc_prog_string(a->interrupt->id);
             //log_status("muf_interrupt_interp():  %p\n", fr->ainttop); /* For debugging. */
         }
 
@@ -1789,17 +1797,6 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 
                                 reload(fr, atop, stop);
                                 fr->pc = pc;
-
-                                if (OkObj(player)) {
-                                    DBSTORE(player, sp.player.block,
-                                            (!fr->been_background));
-                                } else {
-                                    if ((curdescr =
-                                         get_descr(fr->descr, NOTHING)))
-                                        curdescr->block =
-                                            !(fr->been_background);
-                                }
-
                                 fr->level--;
                                 calc_profile_timing(program, fr);
                                 return NULL;
@@ -2129,7 +2126,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         if ((curdescr = get_descr(fr->descr, NOTHING)))
             curdescr->block = 0;
     }
-/* End of TODO */ 
+/* End of TODO */
     if (atop) {
         struct inst *rv;
 
