@@ -1,4 +1,4 @@
-#define PROTOBASE "1.80b6"
+#define PROTOBASE "1.80b7"
   #define PROTOVER "Proto" PROTOBASE
 #define NEONVER "Neon2.17"
 #define VERSION "Muck2.2fb6.00b"

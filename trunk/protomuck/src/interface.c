@@ -127,6 +127,7 @@ int online(dbref player);
 int online_init(void);
 dbref online_next(int *ptr);
 long max_open_files(void);
+void add_to_queue(struct text_queue *q, const char *b, int n);
 
 #ifdef SPAWN_HOST_RESOLVER
 void kill_resolver(void);
@@ -569,6 +570,23 @@ notify_descriptor(int descr, const char *msg)
         queue_ansi(d, buf);
         process_output(d);
     }
+}
+
+
+/* Just like notify_descriptor, except no changes are made to the buffer
+ * at all. This is for the purpos of sending unaltered binaries. 
+ * Still experimental at this point. */
+void
+notify_descriptor_raw(int descr, const char *msg, int length)
+{
+    struct descriptor_data *d;
+    if (!msg || !*msg)
+        return;
+    for (d = descriptor_list; d && (d->descriptor != descr); d = d->next) ;
+    if (!d || d->descriptor != descr)
+       return;
+    add_to_queue(&d->output, msg, length);
+    d->output_size += length;
 }
 
 /* To go with the descriptor_notify_char prim, this has a singular
