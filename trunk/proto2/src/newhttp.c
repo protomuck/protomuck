@@ -36,6 +36,8 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include "db.h"
+#include "netresolve.h"
 #include "interface.h"
 #include "mufevent.h"
 #include "externs.h"
@@ -47,11 +49,6 @@
 #include "tune.h"
 #include "cgi.h"
 #include "mpi.h"
-#include "db.h"
-//#include "defaults.h"
-//#include "strings.h"
-//#include "mpi.h"
-//#include "reg.h"
 
 #define MALLOC(result, type, number) { if (!((result) = (type *)malloc((number)*sizeof(type)))) \
                                          panic("Out of memory"); }
@@ -208,21 +205,6 @@ http_log(struct descriptor_data *d, int debuglvl, char *format, ...)
     }
 }
 
-/* isascii_string():                                    */
-/*   Checks all characters in a string with isascii()   */
-/*   and returns the result.                            */
-int
-isascii_string(const char *str)
-{
-    const char *p;
-
-    for (p = str; *p; p++)
-        if (!isascii(*p))
-            return 0;
-
-    return 1;
-}
-
 /* queue_text():                                        */
 /*   Works exactly like queue_write(), but can format   */
 /*   like sprintf().                                    */
@@ -334,11 +316,9 @@ http_sendheader(struct descriptor_data *d, int statcode,
                 const char *content_type, int content_length)
 {
     char tbuf[BUFFER_LEN];
-    time_t i;
+    time_t t = time(NULL) + get_tz_offset();
 
-    i = time(NULL) + get_tz_offset();
-    format_time(tbuf, BUFFER_LEN, "%a, %d %b %Y %T GMT",
-                localtime(&i));
+    format_time(tbuf, BUFFER_LEN, "%a, %d %b %Y %T GMT", localtime(&t));
 
     queue_text(d, "HTTP/1.1 %d %s\r\nDate: %s\r\n"
                "Server: ProtoMUCK/%s\r\n"
@@ -361,14 +341,14 @@ http_sendredirect(struct descriptor_data *d, const char *url)
 {
     const char *statmsg = http_statlookup(301);
     char *host = alloc_string(http_gethost(d));
-    time_t i = time(NULL) + get_tz_offset();
+    time_t t = time(NULL) + get_tz_offset();
     char tbuf[50];
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
 
     escape_url(buf2, (char *) url);
     http_split(host, ':');
-    format_time(tbuf, 48, "%a, %d %b %Y %T GMT", localtime(&i));
+    format_time(tbuf, 48, "%a, %d %b %Y %T GMT", localtime(&t));
 
     sprintf(buf, "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\r\n"
             "<html><head>\r\n  <title>%d %s</title>\r\n  </head><body>\r\n"
@@ -430,10 +410,6 @@ smart_prop_getref(dbref what, const char *propname)
 
     if (((ref = get_property_dbref(what, propname)) != NOTHING) ||
         (tmpchar = get_property_class(what, propname))) {
-#ifdef COMPRESS
-        if (tmpchar)
-            tmpchar = uncompress(tmpchar);
-#endif
         if (tmpchar) {
             if (*tmpchar == NUMBER_TOKEN && number(tmpchar + 1)) {
                 ref = (dbref) atoi(++tmpchar);
@@ -528,7 +504,7 @@ char *
 http_parsempi(struct descriptor_data *d, dbref what, const char *yerf,
               char *buf)
 {
-	d->http.flags |= HS_MPI;
+    d->http.flags |= HS_MPI;
 
     if (yerf)
         return (do_parse_mesg
@@ -545,14 +521,10 @@ http_parsedest(struct descriptor_data *d)
     char *cgi, *dir = NULL;
     char *p, *q;
     const char *s;
-
-    //int i;
     dbref ref = NOTHING;
 
     strcpy(buf, d->http.dest);
     cgi = http_split(buf, '?');
-
-    //p = buf;
 
     for (p = buf; *p && *p == '/'; p++) ;
     unescape_url(p);
@@ -570,10 +542,7 @@ http_parsedest(struct descriptor_data *d)
 
             sprintf(buf2, "@vhosts/%s/rootDir", host);
             s = get_property_class(tp_www_root, buf2);
-#ifdef COMPRESS
-            if (s)
-                s = uncompress(s);
-#endif
+
             dir = alloc_string(s);
             if (OkObj(ref) || dir)
                 d->http.flags |= HS_VHOST;
@@ -614,7 +583,7 @@ http_parsedest(struct descriptor_data *d)
     d->http.newdest = string_dup(p);
     d->http.rootobj = ref;
 
-    //http_log(d, 3, "URL:     '%s'\n", d->http.newdest);
+    /* http_log(d, 3, "URL:     '%s'\n", d->http.newdest); */
     http_log(d, 4, "ROOTOBJ: '%s'\n", unparse_object(1, d->http.rootobj));
     http_log(d, 4, "ROOTDIR: '%s'\n", d->http.rootdir);
     if (cgi && *cgi)
@@ -682,13 +651,13 @@ http_makearray(struct descriptor_data *d)
 
     array_set_strkey_intval(&nw, "DESCR", d->descriptor);
     array_set_strkey_intval(&nw, "CONNECTED", d->connected);
-    array_set_strkey_strval(&nw, "HOST", host_as_hex(d->hostaddr));
+    array_set_strkey_strval(&nw, "HOST", host_as_hex(d->hu->h->a));
     array_set_strkey_intval(&nw, "CONNECTED_AT", (int) d->connected_at);
     array_set_strkey_intval(&nw, "LAST_TIME", (int) d->last_time);
     array_set_strkey_intval(&nw, "COMMANDS", d->commands);
     array_set_strkey_intval(&nw, "PORT", d->cport);
-    array_set_strkey_strval(&nw, "HOSTNAME", d->hostname);
-    array_set_strkey_strval(&nw, "USERNAME", d->username);
+    array_set_strkey_strval(&nw, "HOSTNAME", d->hu->h->name);
+    array_set_strkey_strval(&nw, "USERNAME", d->hu->u->user);
     array_set_strkey_strval(&nw, "Method", d->http.method);
     array_set_strkey_strval(&nw, "TheDEST", d->http.dest);
     array_set_strkey_strval(&nw, "HTTPVer", d->http.ver);
@@ -697,11 +666,9 @@ http_makearray(struct descriptor_data *d)
 
     if ((d->http.smethod->flags & HS_BODY) && d->http.body.len && p) {
         array_set_strkey_intval(&nw, "BODYLen", d->http.body.len);
-        //if (isascii_string(p)) {
         if (strlen(p) < BUFFER_LEN)
             array_set_strkey_strval(&nw, "BODY", p);
         array_set_strkey_arrval(&nw, "POSTData", http_formarray(p));
-        //}
     }
 
     if (d->http.cgidata && strlen(d->http.cgidata) < BUFFER_LEN) {
@@ -795,14 +762,10 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
     }
 
     /* Get the type. */
-    if ((m = get_property_class(ref, "/_type"))) {
-#ifdef COMPRESS
-        m = uncompress(m);
-#endif
+    if ((m = get_property_class(ref, "/_type")))
         strcpy(buf, m);
-    } else {
+    else
         strcpy(buf, "text/html");
-    }
 
     d->http.flags |= HS_HTMUF;
 
@@ -811,8 +774,8 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
         http_sendheader(d, 200, buf, -1);
 
     /* Do it! */
-    sprintf(match_args, "%d|%s|%s|%s", d->descriptor, d->hostname, d->username,
-            d->http.cgidata);
+    sprintf(match_args, "%d|%s|%s|%s", d->descriptor, d->hu->h->name,
+            d->hu->u->user, d->http.cgidata);
     strcpy(match_cmdname, "(WWW)");
     tmpfr =
         interp(d->descriptor, player, NOTHING, ref, d->http.rootobj, BACKGROUND,
@@ -861,13 +824,8 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
     sprintf(buf, "%s#", prop);
     if ((lines = get_property_value(what, buf))
         || (m = get_property_class(what, buf))) {
-        if (m) {
-#ifdef COMPRESS
-            m = uncompress(m);
-#endif
-            if (number(m))
-                lines = atoi(m);
-        }
+        if (number(m))
+            lines = atoi(m);
     }
 
     /* If 0 or below, exit. */
@@ -877,14 +835,10 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
 
     /* Get the type. */
     sprintf(buf, "%s/_type", prop);
-    if ((m = get_property_class(what, buf))) {
-#ifdef COMPRESS
-        m = uncompress(m);
-#endif
+    if ((m = get_property_class(what, buf)))
         strcpy(buf, m);
-    } else {
+    else
         strcpy(buf, "text/html");
-    }
 
     d->http.flags |= HS_PROPLIST;
     /* Send the header. */
@@ -895,9 +849,6 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
     for (i = 1; i <= lines; i++) {
         sprintf(buf, "%s#/%d", prop, i);
         if ((m = get_property_class(what, buf))) {
-#ifdef COMPRESS
-            m = uncompress(m);
-#endif
             if (tp_web_allow_mpi && *m == '&')
                 m = http_parsempi(d, what, ++m, buf);
 
@@ -930,7 +881,6 @@ http_sendfileblock(struct descriptor_data *d)
         d->http.file.sent += x;
         add_to_queue(&d->output, buf, x);
         d->output_size += x;
-        //process_output(d);
     }
 
     if (d->http.file.sent >= d->http.file.size) {
@@ -1153,17 +1103,14 @@ http_doprop(struct descriptor_data *d, const char *prop)
     if (!(m = get_property_class(d->http.rootobj, prop)))
         return 0;
 
-    m = get_uncompress(m);
-
     if (!*m)
         return 0;
 
     if (tp_web_allow_mpi && *m == '&') {
         sprintf(buf, "%s/_type", prop);
-        if ((s = get_property_class(d->http.rootobj, buf))) {
-            m = get_uncompress(m);
+        if ((s = get_property_class(d->http.rootobj, buf)))
             strcpy(buf, m);
-        } else
+        else
             strcpy(buf, "text/html");
 
         /* Send the header. */
@@ -1307,7 +1254,7 @@ http_process_input(struct descriptor_data *d, const char *input)
         d->http.dest = string_dup(p);
 
         http_log(d, 1, "WWW: %d %s '%s' %s(%s)\n", d->descriptor,
-                 d->http.method, d->http.dest, d->hostname, d->username);
+                 d->http.method, d->http.dest, d->hu->h->name, d->hu->u->user);
         http_log(d, 4, "VER:     '%s'\n", d->http.ver);
     } else {
         p = http_split(buf, ':');
@@ -1428,8 +1375,6 @@ http_processheader(struct descriptor_data *d)
 void
 http_finish(struct descriptor_data *d)
 {
-    //int i = 0;
-
     if (d->http.body.len && d->http.body.len < MAX_COMMAND_LEN
         && d->http.body.data)
         http_log(d, 4, "BODY:    '%s' (%d)\n", d->http.body.data,
@@ -1441,7 +1386,6 @@ http_finish(struct descriptor_data *d)
     if (d->http.smethod->handler)
         d->http.smethod->handler(d);
 
-    //http_senderror(d, 501, "New HTTP server not yet implemented.");
     return;
 }
 
@@ -1522,7 +1466,6 @@ http_deinitstruct(struct descriptor_data *d)
 
         while ((f = d->http.fields)) {
             d->http.fields = f->next;
-            //log_status("FIELD: %s: %s", f->field, f->data);
             if (f->field)
                 free((void *) f->field);
             if (f->data)
@@ -1536,3 +1479,5 @@ http_deinitstruct(struct descriptor_data *d)
 }
 
 #endif /* NEWHTTPD */
+
+
