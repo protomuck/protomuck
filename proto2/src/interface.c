@@ -3607,12 +3607,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                         /****/
+        if (d->next)                                                                                                             /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                                     /****/
+        if (d->hostname)                                                                                                         /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                                     /****/
+        if (d->username)                                                                                                         /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
@@ -3833,17 +3833,19 @@ do_dboot(dbref player, const char *name)
         return;
     }
     who = d->player;
-    if (Man(who)) {
-        anotify(player, CFAIL "You cannot dboot the man!");
-        return;
-    }
-    if (Boy(who) && !Man(player)) {
-        anotify(player, CFAIL "Only the man can dboot boys.");
-        return;
-    }
-    if (Arch(who) && !Boy(player)) {
-        anotify(player, CFAIL "You cannot dboot ArchWizards.");
-        return;
+    if (OkObj(who) && OkObj(player)) {
+        if (Man(who)) {
+            anotify(player, CFAIL "You cannot dboot the man!");
+            return;
+        }
+        if (Boy(who) && !Man(player)) {
+            anotify(player, CFAIL "Only the man can dboot boys.");
+            return;
+        }
+        if (Arch(who) && !Boy(player)) {
+            anotify(player, CFAIL "You cannot dboot ArchWizards.");
+            return;
+        }
     }
 
     d->booted = 1;
