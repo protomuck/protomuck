@@ -2519,8 +2519,16 @@ for returns instead of %r.
 
 Example:  @ofail teapot=burns %p hand on the hot teapot.
 
-See GENDER.
+As of Proto 2, it now supports FB6 style _pronouns support.  An example
+of how to use this (for hermaphrodites) is given below:
 
+@set #0=/_pronouns/hermaphrodite/%a:hirs
+@set #0=/_pronouns/hermaphrodite/%o:hir
+@set #0=/_pronouns/hermaphrodite/%p:hirs
+@set #0=/_pronouns/hermaphrodite/%r:hirself
+@set #0=/_pronouns/hermaphrodite/%s:sie
+
+See GENDER.
 ~
 success
 Success
