@@ -77,13 +77,12 @@ check_dump_time(void)
 #ifdef DELTADUMPS
         dump_deltas();
 #else
-        fork_and_dump();
+        fork_and_dump(1);
 #endif
 
         dump_warned = 0;
     }
 }
-
 
 void
 dump_db_now(void)
@@ -94,7 +93,7 @@ dump_db_now(void)
     if (tp_allow_old_trigs) {
         add_property((dbref) 0, "_sys/lastdumptime", NULL, (int) currtime);
     }
-    fork_and_dump();
+    fork_and_dump(1);
     last_dump_time = currtime;
     dump_warned = 0;
 }
@@ -114,8 +113,6 @@ delta_dump_now(void)
     dump_warned = 0;
 }
 #endif
-
-
 
 /*********************
  * Periodic cleanups *

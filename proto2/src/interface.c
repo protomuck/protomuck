@@ -39,7 +39,6 @@
 typedef int socklen_t;
 #endif
 
-
 /* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
 char crt_last_command[ CRT_LAST_COMMAND_MAX ];
@@ -55,11 +54,12 @@ int shutdown_flag = 0;
 int restart_flag = 0;
 int total_loggedin_connects = 0;
 
-static const char *connect_fail = "Incorrect login.\r\n";
-
-static const char *flushed_message = "<Flushed>\r\n";
-
+#ifdef SPAWN_HOST_RESOLVER
 int resolver_sock[2];
+#endif
+
+static const char *connect_fail = "Incorrect login.\r\n";
+static const char *flushed_message = "<Flushed>\r\n";
 
 unsigned int bytesIn = 0;       /* Total bytes sent TO the muck */
 unsigned int bytesOut = 0;      /* Total bytes sent FROM the muck */
@@ -69,78 +69,42 @@ struct descriptor_data *descriptor_list = 0;
 
 #define MAX_LISTEN_SOCKS 16
 
-static int numsocks = 0;
 static int listener_port[MAX_LISTEN_SOCKS];
 static int sock[MAX_LISTEN_SOCKS];
 static int ndescriptors = 0;
+static int numsocks = 0;
 static int maxd = 0;            /* Moved from shovechars since needed in p_socket.c */
-extern void fork_and_dump(void);
 
-#ifdef USE_SSL
-ssize_t socket_read(struct descriptor_data *d, char *buf, size_t count);
-ssize_t socket_write(struct descriptor_data *d, const char *buf, size_t count);
-#endif
-
-/* ssl.h is included in interface.h */
-
+void parse_connect(const char *msg, char *command, char *user, char *pass);
+void check_connect(struct descriptor_data *d, const char *msg);
+void dump_users(struct descriptor_data *d, char *user);
+void announce_disconnect(struct descriptor_data *);
+void announce_disclogin(struct descriptor_data *);
+void forget_descriptor(struct descriptor_data *);
+void announce_unidle(struct descriptor_data *d);
+void announce_login(struct descriptor_data *d);
+void announce_idle(struct descriptor_data *d);
+void remember_player_descr(dbref player, int);
+void welcome_user(struct descriptor_data *d);
+void forget_player_descr(dbref player, int);
+void help_user(struct descriptor_data *d);
+void announce_connect(int descr, dbref);
+void freeqs(struct descriptor_data *d);
+void update_desc_count_table(void);
+void init_descr_count_lookup(void);
+void init_descriptor_lookup(void);
 void process_commands(void);
 void shovechars(void);
-void shutdownsock(struct descriptor_data *d);
-struct descriptor_data *initializesock(int s, const char *hostname, int port,
-                                       int hostaddr, int ctype, int cport,
-                                       int welcome);
-void make_nonblocking(int s);
-void freeqs(struct descriptor_data *d);
-void welcome_user(struct descriptor_data *d);
-void help_user(struct descriptor_data *d);
-void check_connect(struct descriptor_data *d, const char *msg);
-void close_sockets(const char *msg);
-int boot_off(dbref player);
-void boot_player_off(dbref player);
-const char *addrout(int lport, int, unsigned short);
-void dump_users(struct descriptor_data *d, char *user);
+
+char *time_format_1(time_t);
+
 struct descriptor_data *new_connection(int port, int sock);
-void parse_connect(const char *msg, char *command, char *user, char *pass);
-void set_userstring(char **userstring, const char *command);
-int do_command(struct descriptor_data *d, char *command);
-char *strsave(const char *s);
-int make_socket(int);
-int queue_string(struct descriptor_data *, const char *);
 int queue_ansi(struct descriptor_data *d, const char *msg);
-int queue_write(struct descriptor_data *, const char *, int);
+int do_command(struct descriptor_data *d, char *command);
+int remember_descriptor(struct descriptor_data *);
 int process_output(struct descriptor_data *d);
 int process_input(struct descriptor_data *d);
-void announce_login(struct descriptor_data *d);
-void announce_disclogin(struct descriptor_data *d);
-void announce_idle(struct descriptor_data *d);
-void announce_unidle(struct descriptor_data *d);
-void announce_connect(int descr, dbref);
-void announce_disconnect(struct descriptor_data *);
-char *time_format_1(time_t);
-char *time_format_2(time_t);
-void init_descriptor_lookup(void);
-void init_descr_count_lookup(void);
-int remember_descriptor(struct descriptor_data *);
-void remember_player_descr(dbref player, int);
-void update_desc_count_table(void);
-int *get_player_descrs(dbref player, int *count);
-void forget_player_descr(dbref player, int);
-void forget_descriptor(struct descriptor_data *);
-struct descriptor_data *descrdata_by_index(int index);
-struct descriptor_data *descrdata_by_descr(int i);
-struct descriptor_data *lookup_descriptor(int);
-int online(dbref player);
-int online_init(void);
-dbref online_next(int *ptr);
-long max_open_files(void);
-void add_to_queue(struct text_queue *q, const char *b, int n);
-
-#ifdef SPAWN_HOST_RESOLVER
-void kill_resolver(void);
-void spawn_resolver(void);
-void resolve_hostnames(void);
-#endif
-
+int make_socket(int);
 
 #define MALLOC(result, type, number) do {   \
 				       if (!((result) = (type *) malloc ((number) * sizeof (type)))) \
@@ -169,77 +133,15 @@ SSL_CTX *ssl_ctx;
 SSL_CTX *ssl_ctx_client;
 #endif
 
-short db_conversion_flag = 0;
-short db_decompression_flag = 0;
-short wizonly_mode = 0;
-short verboseload = 0;
-short dump_godpw = 0;
+bool db_conversion_flag = 0;
+bool db_decompression_flag = 0;
+bool wizonly_mode = 0;
+bool verboseload = 0;
 
 time_t sel_prof_start_time;
 long sel_prof_idle_sec;
 long sel_prof_idle_usec;
 unsigned long sel_prof_idle_use;
-
-int
-check_password(dbref player, const char *check_pw)
-{
-/* Alynna's new toy to load DBs with FB6 passwords in them!
- */
-    if (player != NOTHING) {
-        const char *password = DBFETCH(player)->sp.player.password;
-        char md5buf[64];
-
-        /*
-           Note. We wanted to detect here whether we were running
-           a FB6 DB (type 8) or a Proto DB (type 7), but it turns 
-           out the passwords have to stay encrypted (because you cant
-           decrypt an MD5 hash, and the DB will be saved as type 7,
-           thus breaking the detection.  Therefore we must ALWAYS
-           check if the password is an MD5 hash. 
-         */
-
-        if (!password || !*password)
-            return 1;
-
-        if (!strcmp(check_pw, password))
-            return 1;
-
-        MD5base64(md5buf, check_pw, strlen(check_pw));
-        if (!strcmp(md5buf, password))
-            return 1;
-    }
-    return 0;
-}
-
-int
-set_password(dbref player, const char *set_pw)
-{
-/* Proto now sets passwords encrypted.
- */
-/* Does not! -Hinoserm */
-//    char md5buf[64]; /* Must... stop... C++... comments... -Hinoserm */
-
-    if (player != NOTHING) {
-        if (!set_pw || !*set_pw) {
-            if (DBFETCH(player)->sp.player.password)
-                free((void *) DBFETCH(player)->sp.player.password);
-            DBSTORE(player, sp.player.password, NULL);
-            return 1;
-        }
-
-        if (!ok_password(set_pw))
-            return 0;
-
-        //MD5base64(md5buf, set_pw, strlen(set_pw));
-        if (DBFETCH(player)->sp.player.password)
-            free((void *) DBFETCH(player)->sp.player.password);
-        DBSTORE(player, sp.player.password, alloc_string(set_pw));
-        return 1;
-    }
-
-    return 0;
-}
-
 
 void
 show_program_usage(char *prog)
@@ -253,7 +155,7 @@ show_program_usage(char *prog)
     fprintf(stderr,
             "       outfile           output db to save to. optional with -dbout.\n");
     fprintf(stderr,
-            "       portnum           port num to listen for conns on. (16 ports max)\n");
+            "       portnum           port num to listen for conns on. (%d ports max)\n", MAX_LISTEN_SOCKS);
     fprintf(stderr, "   Options:\n");
     fprintf(stderr,
             "       -dbin INFILE      uses INFILE as the database to load at startup.\n");
@@ -277,8 +179,6 @@ show_program_usage(char *prog)
     fprintf(stderr,
             "       -version          display this server's version.\n");
     fprintf(stderr, "       -verboseload      show messages while loading.\n");
-    fprintf(stderr,
-            "       -godpw            dump #1's password or MD5 hash (you can log in with it)\n");
     fprintf(stderr, "       -help             display this message.\n");
     exit(1);
 }
@@ -359,9 +259,6 @@ main(int argc, char **argv)
                 sanity_interactive = 1;
             } else if (!strcmp(argv[i], "-wizonly")) {
                 wizonly_mode = 1;
-            } else if (!strcmp(argv[i], "-godpw")) {
-                db_conversion_flag = 1;
-                dump_godpw = 1;
             } else if (!strcmp(argv[i], "-sanfix")) {
                 sanity_autofix = 1;
             } else if (!strcmp(argv[i], "-version")) {
@@ -584,17 +481,11 @@ main(int argc, char **argv)
         host_shutdown();
     }
 
-
-
     if (sanity_interactive) {
         san_main();
     } else {
-        dump_database();
+        dump_database(0);
         tune_save_parmsfile();
-
-        if (dump_godpw)
-            fprintf(stderr, "#1's password or MD5 hash: %s\n",
-                    DBFETCH(1)->sp.player.password);
 
 #ifdef SPAWN_HOST_RESOLVER
         kill_resolver();
@@ -611,7 +502,7 @@ main(int argc, char **argv)
         purge_timenode_free_pool();
         purge_for_pool();
         purge_for_pool();       /* 2nd time is needed to completely purge */
-        purge_try_pool();
+        purge_try_pool();       /* 3rd time is needed to... oh... wait... */
         purge_try_pool();       /* 2nd time is needed to completely purge */
         purge_mfns();
         cleanup_game();
@@ -2262,7 +2153,7 @@ new_connection(int port, int sock)
 
 #ifdef SPAWN_HOST_RESOLVER
 
-int resolverpid;
+int resolverpid = 0;
 
 void
 kill_resolver(void)
@@ -2365,8 +2256,8 @@ resolve_hostnames(void)
                         FREE(d->username);
                         while (isspace(*username))
                             ++username; /* strip occasional leading spaces */
-                        d->hostname = strsave(hostname);
-                        d->username = strsave(username);
+                        d->hostname = string_dup(hostname);
+                        d->username = string_dup(username);
                     }
                 }
             }
@@ -2861,18 +2752,6 @@ freeqs(struct descriptor_data *d)
     d->raw_input_at = 0;
 }
 
-char *
-strsave(const char *s)
-{
-    char *p;
-
-    MALLOC(p, char, strlen(s) + 1);
-
-    if (p)
-        strcpy(p, s);
-    return p;
-}
-
 /* Returns -1 if the @tune UNIDLE word is used. */
 /* At the moment, the UNIDLE word won't get queued in the input 
  * queue, though this might change in the future.
@@ -3100,7 +2979,7 @@ set_userstring(char **userstring, const char *command)
     while (*command && isascii(*command) && isspace(*command))
         command++;
     if (*command)
-        *userstring = strsave(command);
+        *userstring = string_dup(command);
 }
 
 void

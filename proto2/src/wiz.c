@@ -34,8 +34,6 @@
 
 #define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
 
-extern int resolver_sock[2];
-
 void
 get_inquotes(char *buf, char *retbuf, int which)
 {

@@ -738,8 +738,6 @@ next_event_time(void)
     return (-1L);
 }
 
-extern char *time_format_2(time_t dt);
-
 void
 list_events(dbref player)
 {

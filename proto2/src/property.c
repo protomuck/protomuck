@@ -860,9 +860,6 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
 }
 #endif
 
-extern short db_conversion_flag;
-extern short db_decompression_flag;
-
 int
 db_get_single_prop(FILE * f, dbref obj, int pos)
 {
