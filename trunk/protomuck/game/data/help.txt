@@ -117,6 +117,7 @@ Server and Data Base tools:
 @armageddon        @restart           @shutdown           @restrict    
 @sanity            @sanchange         @sanfix             @examine
 @uncompile         @fixwizbits        @tune               @dbginfo
+@ports suppport    MUF Ports
 
 'Player Relations' Tools:
 @boot              @frob              dboot               @toad
@@ -1517,6 +1518,7 @@ Returns a lot of information about that specific descriptor. The
 information provided is:
 Name and descr #
 Type of connection: MUCK (for telnet), HTML, and PUEBLO
+Any Descriptor Flags that have been set.
 Connection host name.
 Numerical version of their IP host.
 Current online time for that descriptor. 
@@ -3432,3 +3434,72 @@ score
 Just tells you how many credits you have... pretty much just some old
 legacy command. 
 ~~~
+@PORTS SUPPORT|@PORTS
+
+@Ports Support
+--------------
+Finalized in Proto 1.7, @ports support allows for server admin to
+start the MUCK up with using ports different from the defaults 
+handled by @tune. Using this support, one can add additional ports
+that duplicate the existing ones, or take advantage of a new concept
+called MUF ports. There will be a MUF front end for @ports support
+eventually, but for now, the manual steps to set it up are as follows:
+#1
+Add a list of ports in the ./proto start up script. The location to do so
+is marked as:
+PORTS="";
+Simply insert between the "" marks a space deliminated list of additional
+ports desired. This is all that is needed to open the port on start up of
+the MUCK.
+
+See @PORTS2
+~~~~~
+@PORTS2
+
+@Ports - Continued
+------------------
+The next step is to configure how the new port is to behave, or, in other
+words, what type of port it is. This is done by setting certain props on
+#0. The MUCK does not have to be restarted for changes to the @ports/ 
+directory to take affect.
+
+@ports/<port#>/type:<integer prop representing the port type>
+    This integer sets the type of port that the new port is to be. 
+    If none is set, it defaults to behaving as a normal text port into
+    the MUCK.
+    0 = Text Port     (Telnet)
+    1 = HTTP/WWW Port (Webserver)
+    2 = Pueblo Port   (Pueblo)
+    3 = MUF Port      (MUF Program)
+@ports/<port#>/idle:<integer prop representing time in seconds>
+    This sets how idle a connection can get to the new port before it is
+    disconnected. This does not apply to MUF ports or webserver ports. It is
+    optional.
+@ports/<port#>/MUF:<dbref prop representing the MUF port program to call>
+    If the port type is a MUF Port, then when a connection is made to the
+    MUCK, this program will be run instead of the normal in-server connection
+    routines.
+
+See MUF PORTS
+~~~~
+MUF PORTS|MUFPORT|MUF PORT|MUFPORTS
+
+MUF Ports
+---------
+A new concept introduced in ProtoMUCK is the method of creating alternate
+connection routines via MUF when a connection is made to the MUCK. These 
+are called when a connection is opened to a new port of type MUF. 
+(See help @PORTS SUPPORT)
+
+MUF ports behave entirely differently than normal ports. When a connection
+is made to the MUF port, instead of getting the login screen and standard
+connection routines, a MUF program is called. When the MUF program ceases
+to run, the connection is automatically dropped from the MUCK. 
+
+The descr_setuser prim CAN be used via a MUF port program to connect the
+connection to a player, at which point, the player's connection mode changes
+from MUF port to a normal text port connection.
+
+There are some other prims that may be useful in working with MUF ports, such
+as ANSI_NOTIFY_DESCRIPTOR, DESCR, DESCR_SETFLAG, and DESCR_FLAG?
+~~~~
