@@ -19,6 +19,7 @@
 #include "msgparse.h"
 #include "externs.h"
 #include "strings.h"
+#include "netresolve.h"
 
 #define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
 
@@ -372,7 +373,8 @@ fork_and_dump(register bool dofork)
         dump_database_internal();
 #endif
     time(&current_systime);
-    //host_save(); /* hinoserm finish */
+    host_check_cache();
+    host_save();
 }
 
 #ifdef DELTADUMPS
@@ -958,8 +960,17 @@ process_command(int descr, dbref player, char *command)
                     break;
                 case 'h':
                 case 'H':
-                    Matched("@htmldescribe");
-                    do_htmldescribe(descr, player, arg1, arg2);
+                    switch (command[2]) {
+                        case 'o':
+                        case 'O':
+                            Matched("@hostcache");
+                            do_hostcache(player, arg1);
+                            break;
+                        default:
+                            Matched("@htmldescribe");
+                            do_htmldescribe(descr, player, arg1, arg2);
+                            break;
+                    }
                     break;
                 case 'i':
                 case 'I':
