@@ -40,7 +40,7 @@ extern void prim_lreverse(PRIM_PROTOTYPE);
 extern void prim_dupn(PRIM_PROTOTYPE);
 extern void prim_ldup(PRIM_PROTOTYPE);
 extern void prim_socketp(PRIM_PROTOTYPE);
-extern void prim_mysqlp(PRIM_PROTOTYPE);
+extern void prim_sqlp(PRIM_PROTOTYPE);
 extern void prim_markp(PRIM_PROTOTYPE);
 
 /* Internal functions */
@@ -58,7 +58,7 @@ extern void prim_trypop(PRIM_PROTOTYPE);
     prim_sort, prim_popn, prim_variablep, prim_mark, prim_findmark,          \
     prim_floatp, prim_arrayp, prim_dictionaryp, prim_reverse, prim_lreverse, \
     prim_dupn, prim_ldup, prim_for, prim_foreach, prim_socketp, prim_markp, \
-    prim_mysqlp
+    prim_sqlp
 
 #define PRIMS_STACK_NAMES "POP", "DUP", "@", "!", "VARIABLE",  \
     "LOCALVAR", "SWAP", "OVER", "PICK", "PUT", "ROT",          \
@@ -67,7 +67,7 @@ extern void prim_trypop(PRIM_PROTOTYPE);
     "LOCK?", "CHECKARGS", "MODE", "SETMODE", "INTERP",	   \
     "SORT", "POPN", "VARIABLE?", "{", "}", "FLOAT?", "ARRAY?", \
     "DICTIONARY?", "REVERSE", "LREVERSE", "DUPN", "LDUP",      \
-    " FOR", " FOREACH", "SOCKET?", "MARK?", "MYSQL?"
+    " FOR", " FOREACH", "SOCKET?", "MARK?", "SQL?"
 
 #define PRIMS_STACK_CNT 43
 
