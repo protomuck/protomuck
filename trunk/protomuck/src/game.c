@@ -172,6 +172,7 @@ dump_database_internal(void)
 	if ((input_file = fopen(in_filename, "r")) == NULL)
 	    perror(dumpfile);
 
+
 #ifdef DELTADUMPS
 	fclose(delta_outfile);
 	if ((delta_outfile = fopen(DELTAFILE_NAME, "w")) == NULL)
@@ -182,7 +183,6 @@ dump_database_internal(void)
 	    perror(DELTAFILE_NAME);
 #endif
 #endif
-
 #endif
 
     } else {
@@ -336,6 +336,7 @@ time_for_monolithic(void)
 	return 1;
     }
 
+#ifdef DISKBASE
     fseek(delta_infile, 0L, 2);
     a = ftell(delta_infile);
     fseek(input_file, 0L, 2);
@@ -343,6 +344,7 @@ time_for_monolithic(void)
     if (a >= b) {
 	return 1;
     }
+#endif 
     return 0;
 }
 #endif
