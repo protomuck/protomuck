@@ -1939,13 +1939,18 @@ locate_begin(COMPSTATE * cstat)
 struct INTERMEDIATE *
 locate_for(COMPSTATE * cstat)
 {
-	struct CONTROL_STACK *tempeef;
+	struct CONTROL_STACK *loop;
 
-	tempeef = cstat->control_stack;
-	if (tempeef->type != CTYPE_FOR)
-		return 0;
+	loop = cstat->control_stack;
+        while (loop) {
+            if ( loop->type == CTYPE_FOR ){
+               return loop->place;
+            }
+	    loop = loop->next;
+        }	
+        
+        return 0;
 
-	return tempeef->place;
 }
 
 /* pops topmost begin or for off the stack */
