@@ -23,7 +23,7 @@
 
 struct hostinfo *hostdb = NULL; /* the main host cache */
 struct husrinfo *userdb = NULL; /* the username list */
-unsigned short hostdb_count = 0; /* number of entries in the host cache */
+unsigned int hostdb_count = 0; /* number of entries in the host cache */
 
 #ifdef SPAWN_HOST_RESOLVER
 
@@ -251,6 +251,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         hu->u = NULL;
 
     for (h = hostdb; h; h = h->next) {
+//log_status("h->a: %X == %X, %s", h->a, a, h->name);
         if (h->a == a) {
             h->links++;
             h->uses++;
@@ -285,11 +286,10 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
 void
 host_delete(struct huinfo *hu)
 {
-    if (--hu->h->links > 0)
-        return;
+    hu->h->links--;
 
-    if (hostdb_count > 200 && current_systime - hu->h->wupd > 7200) /* || tp_host_cache_cleantime < 0 */
-        host_free(hu->h);
+//    if (hostdb_count > 200 && current_systime - hu->h->wupd > 7200) /* || tp_host_cache_cleantime < 0 */
+//        host_free(hu->h);
 
     if (hu->u) {
         if (hu->u->next)
@@ -442,7 +442,7 @@ hostsort_mostused(const void *x, const void *y)
     else if (a->wupd < b->wupd)
         return -1;
     else
-        return 0;
+        return string_compare(b->name, a->name);
 }
 
 void
@@ -459,7 +459,7 @@ do_hostcache(dbref player, const char *args)
         *arg2++ = '\0';
     while(isspace(*arg2)) arg2++;
 
-    if (!strcasecmp(arg2, "#show")) {
+    if (string_prefix(arg1, "#sh")) {
         struct hostinfo **harr;
         register int i = 0;
         register int count = 0;
@@ -489,8 +489,6 @@ do_hostcache(dbref player, const char *args)
         anotify_fmt(player, "Last cache flush:    %s", "...");
     }
 }
-
-
 
 
 

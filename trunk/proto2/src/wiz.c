@@ -30,6 +30,7 @@
 #include "reg.h"
 #include "maillib.h"
 #include "strings.h"
+#include "netresolve.h"
 
 #define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
 
@@ -608,6 +609,9 @@ do_stats(dbref player, const char *name)
                 "%7d %sobject%s %s using %d bytes of RAM.",
                 tocnt, tpcnt ? "other " : "",
                 (tocnt == 1) ? "" : "s", (tocnt == 1) ? "is" : "are", tosize);
+    anotify_fmt(player, SYSYELLOW
+                "%7d cached host %s using %d bytes of RAM.",
+                hostdb_count, (hostdb_count == 1) ? "entry is" : "entries are", hostdb_count * sizeof(struct hostinfo));
     /* Bandwidth Usage Stats */
     if (Mage(OWNER(player))) {
         memtemp = bytesIn / 1000;
