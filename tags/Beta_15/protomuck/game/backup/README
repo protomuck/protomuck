@@ -1,0 +1,4 @@
+Proto will keep backups in this directory (under 'data').  Only the last
+ten DB saves will be kept if this option is selected (the 'KEEPDUMPS'
+option at compile time).
+
