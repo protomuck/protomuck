@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <time.h>
 #include <ctype.h>
+#include <assert.h>
+#include <float.h>
 #include "db.h"
 #include "tune.h"
 #include "inst.h"
@@ -41,7 +43,8 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
         char pad_char[] = "";
 	if (a->type != b->type) {
 		if (a->type == PROG_INTEGER && b->type == PROG_FLOAT) {
-			if (a->data.number > b->data.fnumber) {
+                        if (((float)a->data.number - b->data.fnumber) 
+                            >= FLT_EPSILON) {
 				return 1;
 			} else if (a->data.number < b->data.fnumber) {
 				return -1;
@@ -49,9 +52,11 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
 				return 0;
 			}
 		} else if (b->type == PROG_INTEGER && a->type == PROG_FLOAT) {
-			if (a->data.fnumber > b->data.number) {
+                        if ((a->data.fnumber - (float)b->data.number) 
+                            >= FLT_EPSILON) {
 				return 1;
-			} else if (a->data.fnumber < b->data.number) {
+                        } else if (((float)b->data.number - a->data.fnumber) 
+                                   >= FLT_EPSILON) {
 				return -1;
 			} else {
 				return 0;
@@ -96,9 +101,10 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
             else return 0;
         }
 	if (a->type == PROG_FLOAT) {
-		if (a->data.fnumber > b->data.fnumber) {
+                if ((a->data.fnumber - b->data.fnumber) >= FLT_EPSILON) {
 			return 1;
-		} else if (a->data.fnumber < b->data.fnumber) {
+                } else if ((b->data.fnumber - a->data.fnumber) 
+                           >= FLT_EPSILON) {
 			return -1;
 		} else {
 			return 0;
@@ -152,10 +158,10 @@ array_tree_find(array_tree * avl, array_iter * key)
 	return avl;
 }
 
-static int
+static short 
 array_tree_height_of(array_tree * node)
 {
-	if (node)
+	if (node != NULL)
 		return node->height;
 	else
 		return 0;
@@ -164,7 +170,7 @@ array_tree_height_of(array_tree * node)
 static int
 array_tree_height_diff(array_tree * node)
 {
-	if (node)
+	if (node != NULL)
 		return (array_tree_height_of(AVL_RT(node)) - array_tree_height_of(AVL_LF(node)));
 	else
 		return 0;
@@ -180,8 +186,9 @@ static void
 array_tree_fixup_height(array_tree * node)
 {
 	if (node)
-		node->height = 1 + max(array_tree_height_of(AVL_LF(node)),
-							   array_tree_height_of(AVL_RT(node)));
+		node->height = (short)1 + 
+			max(array_tree_height_of(AVL_LF(node)),
+			array_tree_height_of(AVL_RT(node)));
 }
 
 static array_tree *
@@ -295,6 +302,8 @@ array_tree_alloc_node(array_iter * key)
 void
 array_tree_free_node(array_tree * p)
 {
+	assert(AVL_LF(p) == NULL); 
+	assert(AVL_RT(p) == NULL); 
 	CLEAR(AVL_KEY(p));
 	CLEAR(&p->data);
 	free(p);
@@ -358,8 +367,8 @@ array_tree_remove_node(array_iter * key, array_tree ** root)
 		} else if (!(AVL_RT(avl))) {
 			avl = AVL_LF(avl);
 		} else {
-			tmp =
-					array_tree_remove_node(AVL_KEY(array_tree_getmax(AVL_LF(avl))),
+			tmp = array_tree_remove_node(
+			      AVL_KEY(array_tree_getmax(AVL_LF(avl))),
 										   &AVL_LF(avl));
 			if (!tmp)
 				abort();		/* this shouldn't be possible. */
@@ -396,6 +405,8 @@ array_tree_delete_all(array_tree * p)
 		return;
 	array_tree_delete_all(AVL_LF(p));
 	array_tree_delete_all(AVL_RT(p));
+        AVL_LF(p) = NULL; 
+        AVL_RT(p) = NULL; 
 	array_tree_free_node(p);
 }
 

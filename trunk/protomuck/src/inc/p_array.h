@@ -20,6 +20,7 @@ extern void prim_array_delrange(PRIM_PROTOTYPE);
 extern void prim_array_findval(PRIM_PROTOTYPE);
 extern void prim_array_excludeval(PRIM_PROTOTYPE);
 extern void prim_array_sort(PRIM_PROTOTYPE);
+extern void prim_array_sort_indexed(PRIM_PROTOTYPE);
 extern void prim_array_join(PRIM_PROTOTYPE);
 extern void prim_array_matchkey(PRIM_PROTOTYPE);
 extern void prim_array_matchval(PRIM_PROTOTYPE);
@@ -60,7 +61,7 @@ extern void prim_array_compare(PRIM_PROTOTYPE);
         prim_array_excludeval, prim_explode_array, prim_array_sort, \
         prim_array_ansi_notify, prim_array_notify_html, prim_array_join, \
         prim_array_matchkey, prim_array_matchval, prim_array_extract, \
-        prim_array_cut, prim_array_compare
+        prim_array_cut, prim_array_compare, prim_array_sort_indexed
 
 #define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT",        \
         "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS",              \
@@ -77,7 +78,7 @@ extern void prim_array_compare(PRIM_PROTOTYPE);
         "ARRAY_EXCLUDEVAL", "EXPLODE_ARRAY", "ARRAY_SORT",        \
         "ARRAY_ANSI_NOTIFY", "ARRAY_NOTIFY_HTML", "ARRAY_JOIN",   \
         "ARRAY_MATCHKEY", "ARRAY_MATCHVAL", "ARRAY_EXTRACT",      \
-        "ARRAY_CUT", "ARRAY_COMPARE"
+        "ARRAY_CUT", "ARRAY_COMPARE", "ARRAY_SORT_INDEXED"
 
-#define PRIMS_ARRAY_CNT 51 
+#define PRIMS_ARRAY_CNT 52
 
