@@ -448,7 +448,7 @@ delete_seed(void *buffer)
 }
 
 word32
-rnd(void *buffer)
+rndm(void *buffer)
 {
     word32 *digest = (word32 *) buffer;
 
@@ -471,7 +471,7 @@ int main(int argc, char **argv) {
     seed = init_seed(buff);
   }
   for (loop = 0; loop < 16; loop++)
-    printf("%2d:  %12lu\n",loop,rnd(seed));
+    printf("%2d:  %12lu\n",loop,rndm(seed));
   delete_seed(seed);
   exit(1);
 }
