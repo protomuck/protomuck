@@ -86,7 +86,7 @@ extern void prim_notify_descriptor_char(PRIM_PROTOTYPE);
     "TEXTATTR", "PARSE_NEON", "DESCRNOTIFY", "FLAG_2CHAR",           \
     "POWER_2CHAR", "NOTIFY_DESCRIPTOR_CHAR", "ARRAY_FMTSTRINGS"
 
-#define PRIMS_STRINGS_CNT 57
+#define PRIMS_STRINGS_CNT 56
 
 
 

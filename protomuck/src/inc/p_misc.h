@@ -57,5 +57,5 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     "EVENT_EXISTS", "WATCHPID",           \
     "GETPIDS", "GETPIDINFO", "READ_WANTS_BLANKS"   \
 
-#define PRIMS_MISC_CNT 35 
+#define PRIMS_MISC_CNT 33
 

@@ -439,7 +439,6 @@ include_internal_defs(COMPSTATE * cstat)
 	insert_def(cstat, "__version", VERSION);
         insert_def(cstat, "__neon", NEONVER);
         insert_def(cstat, "__proto", PROTOVER);
-	insert_def(cstat, "__muckname", tp_muckname);
 	insert_def(cstat, "strip", "striplead striptail");
 	insert_def(cstat, "instring", "tolower swap tolower swap instr");
 	insert_def(cstat, "rinstring", "tolower swap tolower swap rinstr");

@@ -3808,8 +3808,11 @@ dump_users(struct descriptor_data *d, char *user)
 		}
 	}
 	while (*user && isspace(*user)) user++;
-
-	if (OkObj(d->player) ? !Mage(d->player) : 1 ) {
+        //I must apologize for the absurd logical check below 
+	//In fixing EXPANDED_WHO, I didn't feel like rewriting
+	//the already badly done logic check
+	if (OkObj(d->player) ? 
+            !Mage(d->player) && !(POWERS(d->player) & POW_EXPANDED_WHO) : 1 ) {
 		wizwho = 0;
 	}
 	if (!(d->connected))
