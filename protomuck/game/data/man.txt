@@ -1,5 +1,5 @@
 ==================================================================
-                     ProtoMUCK 1.8 MUF Manual
+                     ProtoMUCK 1.80 MUF Manual
 
 Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
