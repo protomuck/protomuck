@@ -307,6 +307,7 @@ int tp_optimize_muf = OPTIMIZE_MUF;
 int tp_socket_events = 1;
 int tp_compatible_muf_perms = 0;
 int tp_allow_unidle = 0;
+int tp_alt_infinity_handler = 1;
 
 struct tune_bool_entry {
     const char *group;
@@ -383,6 +384,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"MUF", "socket_events", &tp_socket_events, LARCH, LMUF},
     {"MUF", "compatible_muf_perms", &tp_compatible_muf_perms, LBOY, LMAGE},
     {"Idletime", "allow_unidle", &tp_allow_unidle, LARCH, LMUF},
+    {"Math", "alt_infinity_handler", &tp_alt_infinity_handler, LARCH, LMUF},
     {NULL, NULL, NULL, 0, 0}
 };
 

@@ -1514,14 +1514,21 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
     if (!prop_write_perms(ProgUID, ref, propname, mlev))
         abort_interp
             ("Permission denied while trying to set protected property.");
+    
     if (tp_proplist_int_counter) {
+    /* Alynna - Fix a bug where it wont set the proper value if you try to write an int directly.. */
+        memset(buf, 0, sizeof(buf));
+    /*    sprintf(buf, "%d", array_count(arr));
+        protoflags = PROP_STRTYP;
+        set_property(ref, propname, protoflags, (char *) buf); */
         protoflags = PROP_INTTYP;
-        sprintf(buf, "%d", array_count(arr));
+        set_property_nofetch(ref, propname, protoflags, (char *) array_count(arr)); 
     } else {
+        memset(buf, 0, sizeof(buf));
         sprintf(buf, "%d", array_count(arr));
         protoflags = PROP_STRTYP;
+        set_property(ref, propname, protoflags, buf);
     }
-    set_property(ref, propname, protoflags, buf);
     if (array_first(arr, &temp1)) {
         do {
             oper4 = array_getitem(arr, &temp1);

@@ -438,6 +438,25 @@ get_property_class(dbref player, const char *type)
     }
 }
 
+/* return class (string value) of property as PTYPE */
+PTYPE
+get_property_ptype(dbref player, const char *type)
+{
+    PropPtr p;
+
+    p = get_property(player, type);
+    if (p) {
+#ifdef DISKBASE
+        propfetch(player, p);
+#endif
+        if (PropType(p) != PROP_STRTYP)
+            return (char *) NULL;
+        return (PTYPE) (PropDataStr(p));
+    } else {
+        return (PTYPE) NULL;
+    }
+}
+
 /* return value of property */
 int
 get_property_value(dbref player, const char *type)

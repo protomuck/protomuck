@@ -550,3 +550,16 @@ Allows players to use whatever the unidle_command is set to
 without making their character unidle. See the information under
 '@tune unidle_command' for an explanation. 
 ~~~
+alt_infinity_handler
+(By Alynna, if you have error with this email
+ alynna@animaltracks.net)
+Turns on IEEE style handling of infinity and not_a_number 
+conditions, so that inf 5 + returns inf (instead of zero), 3 asin 
+returns nan (not 0).  
+Also errors are only flagged if the inf or nan returned would be
+an unexpected result, so inf 5 + does not return an error, but
+inf sin returns nan with an error.  This makes it reasonably safe
+to use floats without checking if you triggered an error when you
+get a zero result, since all error conditions return either inf
+(for true floating point overflows) or nan (for 'not a number'
+conditions.

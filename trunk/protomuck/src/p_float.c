@@ -11,6 +11,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <float.h>
+#include <bits/nan.h>
 #include "db.h"
 #include "tune.h"
 #include "inst.h"
@@ -29,19 +30,8 @@ static char buf[BUFFER_LEN];
 int
 no_good(double test)
 {
-    return (((test == INF) || (test == NINF)));
+    return (((test == INF) || (test == NINF)) || (test == NAN));
 }
-
-/*
-void
-prim_inf(PRIM_PROTOTYPE)
-{
-	CHECKOP(0);
-	fresult = INF;
-	CHECKOFLOW(1);
-	PushFloat(fresult);
-}
-*/
 
 void
 prim_ceil(PRIM_PROTOTYPE)
@@ -90,14 +80,19 @@ prim_sqrt(PRIM_PROTOTYPE)
         abort_interp("Non-float argument. (1)");
     if (!no_good(oper1->data.fnumber)) {
         if (oper1->data.fnumber < 0.0) {
-            fresult = 0.0;
+            fresult = tp_alt_infinity_handler ? NAN : 0.0;
             fr->error.error_flags.imaginary = 1;
         } else {
             fresult = sqrt((double) oper1->data.fnumber);
         }
     } else {
-        fresult = oper1->data.fnumber;
-        fr->error.error_flags.f_bounds = 1;
+         if (isnan(oper1->data.fnumber)) {
+            fresult = tp_alt_infinity_handler ? NAN : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
+         } else {
+            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
+         }
     }
     CLEAR(oper1);
     PushFloat(fresult);
@@ -148,8 +143,13 @@ prim_round(PRIM_PROTOTYPE)
         fstore = fstore / temp;
         fresult = fstore;
     } else {
-        fresult = 0.0;
-        fr->error.error_flags.f_bounds = 1;
+         if (isnan(oper2->data.fnumber)) {
+            fresult = tp_alt_infinity_handler ? NAN : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
+         } else {
+            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
+         }
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -170,9 +170,9 @@ prim_sin(PRIM_PROTOTYPE)
     if (!no_good(oper1->data.fnumber)) {
         fresult = sin(oper1->data.fnumber);
     } else {
-        /* TODO: This should be NaN */
-        fresult = 0.0;
-        fr->error.error_flags.f_bounds = 1;
+        /* TODO: This should be NaN -- Alynna: alright, its NaN */
+            fresult = tp_alt_infinity_handler ? NAN : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
     }
     CLEAR(oper1);
     PushFloat(fresult);
@@ -192,8 +192,8 @@ prim_cos(PRIM_PROTOTYPE)
     if (!no_good(oper1->data.fnumber)) {
         fresult = cos(oper1->data.fnumber);
     } else {
-        fresult = 0.0;
-        fr->error.error_flags.f_bounds = 1;
+            fresult = tp_alt_infinity_handler ? NAN : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
     }
     CLEAR(oper1);
     PushFloat(fresult);
@@ -215,12 +215,17 @@ prim_tan(PRIM_PROTOTYPE)
         if (fabs(fresult) > DBL_EPSILON && fabs(fresult - F_PI) > DBL_EPSILON) {
             fresult = tan(oper1->data.fnumber);
         } else {
-            fresult = 0.0;
-            fr->error.error_flags.nan = 1;
+            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            fr->error.error_flags.f_bounds = 1;
         }
     } else {
-        fresult = 0.0;
-        fr->error.error_flags.f_bounds = 1;
+         if (isnan(oper1->data.fnumber)) {
+            fresult = tp_alt_infinity_handler ? NAN : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
+         } else {
+            fresult = tp_alt_infinity_handler ? INF : 0.0;
+            if (!tp_alt_infinity_handler) fr->error.error_flags.f_bounds = 1;
+         }
     }
     CLEAR(oper1);
     PushFloat(fresult);
@@ -240,7 +245,7 @@ prim_asin(PRIM_PROTOTYPE)
     if ((oper1->data.fnumber >= -1.0) && (oper1->data.fnumber <= 1.0)) {
         fresult = asin(oper1->data.fnumber);
     } else {
-        fresult = 0.0;
+        fresult = tp_alt_infinity_handler ? NAN : 0.0;
         fr->error.error_flags.nan = 1;
     }
     CLEAR(oper1);
@@ -261,7 +266,7 @@ prim_acos(PRIM_PROTOTYPE)
     if ((oper1->data.fnumber >= -1.0) && (oper1->data.fnumber <= 1.0)) {
         fresult = acos(oper1->data.fnumber);
     } else {
-        fresult = 0.0;
+        fresult = tp_alt_infinity_handler ? NAN : 0.0;
         fr->error.error_flags.nan = 1;
     }
     CLEAR(oper1);
@@ -476,11 +481,11 @@ prim_exp(PRIM_PROTOTYPE)
         abort_interp("Non-float argument. (1)");
     if (!no_good(oper1->data.fnumber)) {
         fresult = exp((double) oper1->data.fnumber);
-    } else if (oper1->data.fnumber == INF) {
-        fresult = INF;
+    } else if (isinf(oper1->data.fnumber)) {
+        fresult = oper1->data.fnumber;
         fr->error.error_flags.f_bounds = 1;
     } else {
-        fresult = 0.0;
+        fresult = tp_alt_infinity_handler ? NAN : 0.0;
         fr->error.error_flags.f_bounds = 1;
     }
     CLEAR(oper1);
@@ -504,7 +509,7 @@ prim_log(PRIM_PROTOTYPE)
         fresult = INF;
         fr->error.error_flags.f_bounds = 1;
     } else {
-        fresult = 0.0;
+        fresult = tp_alt_infinity_handler ? NAN : 0.0;
         fr->error.error_flags.imaginary = 1;
     }
     CLEAR(oper1);
@@ -528,7 +533,7 @@ prim_log10(PRIM_PROTOTYPE)
         fresult = INF;
         fr->error.error_flags.f_bounds = 1;
     } else {
-        fresult = 0.0;
+        fresult = tp_alt_infinity_handler ? NAN : 0.0;
         fr->error.error_flags.imaginary = 1;
     }
     CLEAR(oper1);
@@ -590,13 +595,13 @@ prim_pow(PRIM_PROTOTYPE)
     if (!no_good(oper1->data.fnumber) && !no_good(oper2->data.fnumber)) {
         if (oper2->data.fnumber < 0.0 &&
             oper1->data.fnumber != floor(oper1->data.fnumber)) {
-            fresult = 0.0;
+            fresult = tp_alt_infinity_handler ? NAN : 0.0;
             fr->error.error_flags.imaginary = 1;
         } else {
             fresult = (double) pow(oper2->data.fnumber, oper1->data.fnumber);
         }
     } else {
-        fresult = 0.0;
+        fresult = tp_alt_infinity_handler ? INF : 0.0;
         fr->error.error_flags.f_bounds = 1;
     }
     CLEAR(oper1);
@@ -672,7 +677,7 @@ prim_modf(PRIM_PROTOTYPE)
     if (!no_good(oper1->data.fnumber)) {
         fresult = modf(oper1->data.fnumber, &dresult);
     } else {
-        fresult = 0.0;
+        fresult = tp_alt_infinity_handler ? INF : 0.0;
         dresult = oper1->data.fnumber;
         fr->error.error_flags.f_bounds = 1;
     }
