@@ -1535,9 +1535,6 @@ do_fixw(dbref player, const char *msg)
 	anotify_nolisten2(player, CINFO "What's the magic phrase?");
 	return;
     }
-    if( RawMLevel(player) != LM3 ) {
-	anotify_nolisten2(player, CFAIL "If you want to do @fixw, you must be set M3.");
-    }
     for( i = 0; i < db_top; i++ ) {
 	if(FLAGS(i) & W3)
 	    SetMLevel(i, LWIZ);

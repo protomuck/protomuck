@@ -1028,7 +1028,8 @@ dequeue_prog_descr(int descr, int sleeponly)
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                         ptr->subtyp == TQ_MUF_TREAD )) {
             curdescr = get_descr(descr, NOTHING);
-            curdescr->interactive = 0;
+            if (curdescr)
+                curdescr->interactive = 0;
         }
     }
     return(count);
