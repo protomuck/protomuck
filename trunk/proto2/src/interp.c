@@ -505,7 +505,7 @@ interp(int descr, dbref player, dbref location, dbref program,
 //        return NULL;
 
     if (!MLevel(program) || !MLevel(OWNER(program)) ||
-        ((source != NOTHING) && !TMage(OWNER(source)) &&
+        ((OkObj(source)) && !TMage(OWNER(source)) &&
          !can_link_to(OWNER(source), TYPE_EXIT, program))) {
         anotify_nolisten(player, CFAIL "Program call: Permission denied.", 1);
         return 0;
@@ -556,9 +556,8 @@ interp(int descr, dbref player, dbref location, dbref program,
 
     fr->argument.top = 0;
     fr->pc = DBFETCH(program)->sp.program.start; //TYPEROOM taken out for command props.
-    fr->writeonly = ((source == -1) || /* (Typeof(source) == TYPE_ROOM)  || */
-                     ((Typeof(source) == TYPE_PLAYER) && (!online(source))) ||
-                     ((FLAGS(player) & READMODE) && player != NOTHING));
+    fr->writeonly = ((OkObj(source) && (Typeof(source) == TYPE_PLAYER) && (!online(source))) ||
+                     (OkObj(player) && (FLAGS(player) & READMODE)));
     fr->level = 0;
     fr->error.is_flags = 0;
 
@@ -840,7 +839,7 @@ prog_clean(struct frame *fr)
 
     now = current_systime;
 
-    if ((FLAG2(fr->player) & F2MUFCOUNT) && (controls(fr->player, fr->prog)
+    if (OkObj(fr->player) && (FLAG2(fr->player) & F2MUFCOUNT) && (controls(fr->player, fr->prog)
                                              || (Mage(fr->player)
                                                  && (OWNER(fr->prog) != MAN)))
         ) {
@@ -1113,10 +1112,10 @@ do_abort_loop(dbref player, dbref program, const char *msg,
         fr->level--;
         fr->aborted = 1;
         prog_clean(fr);
-        DBSTORE(player, sp.player.block, 0);
-        if (player == NOTHING) {
-            curdescr = get_descr(fr->descr, NOTHING);
-            if (curdescr) {
+        if (OkObj(player)) {
+            DBSTORE(player, sp.player.block, 0);
+        } else {
+            if ((curdescr = get_descr(fr->descr, NOTHING))) {
                 curdescr->block = 0;
                 curdescr->interactive = 0;
                 DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
@@ -1224,10 +1223,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 && (instr_count >= tp_instr_slice)) {
                 fr->pc = pc;
                 reload(fr, atop, stop);
-                DBSTORE(player, sp.player.block, (!fr->been_background));
-                if (player == NOTHING) {
-                    curdescr = get_descr(fr->descr, NOTHING);
-                    if (curdescr)
+                if (OkObj(player)) {
+                    DBSTORE(player, sp.player.block, (!fr->been_background));
+                } else {
+                    if ((curdescr = get_descr(fr->descr, NOTHING)))
                         curdescr->block = !(fr->been_background);
                 }
                 add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
@@ -1257,7 +1256,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
             notify_nolisten(player, m, 1);
         }
         if (FLAGS(program) & DARK && FLAG2(program) & F2PARENT
-            && (OWNER(program) != player || player == -1)) {
+            && (OWNER(program) != player || OkObj(player))) {
             char *m = debug_inst(fr, 0, pc, fr->pid, arg, dbuf, sizeof(dbuf),
                                  atop, program);
 
@@ -1308,11 +1307,11 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                             fr->brkpt.lastlisted = 0;
                             fr->brkpt.bypass = 0;
                             fr->brkpt.dosyspop = 0;
-                            DBSTORE(player, sp.player.curr_prog, program);
-                            DBSTORE(player, sp.player.block, 0);
-                            if (player == NOTHING) {
-                                curdescr = get_descr(fr->descr, NOTHING);
-                                if (curdescr) {
+                            if (OkObj(player)) {
+                                DBSTORE(player, sp.player.curr_prog, program);
+                                DBSTORE(player, sp.player.block, 0);
+                            } else {
+                                if ((curdescr = get_descr(fr->descr, NOTHING))) {
                                     curdescr->block = 0;
                                     DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
                                 }
@@ -1810,11 +1809,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                             free(events);
                         }
 
-                        DBSTORE(player, sp.player.block,
-                                (!fr->been_background));
-                        if (player == NOTHING) {
-                            curdescr = get_descr(fr->descr, NOTHING);
-                            if (curdescr) {
+                        if (OkObj(player)) {
+                            DBSTORE(player, sp.player.block, (!fr->been_background));
+                        } else {
+                            if ((curdescr = get_descr(fr->descr, NOTHING))) {
                                 curdescr->block = 1;
                                 DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
                             }
@@ -1835,12 +1833,11 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         reload(fr, atop, stop);
                         fr->brkpt.isread = 1;
                         fr->pc = pc + 1;
-                        if (fr->player != NOTHING) {
+                        if (OkObj(fr->player)) {
                             DBSTORE(player, sp.player.curr_prog, program);
                             DBSTORE(player, sp.player.block, 0);
                         } else {
-                            curdescr = get_descr(fr->descr, NOTHING);
-                            if (curdescr) {
+                            if ((curdescr = get_descr(fr->descr, NOTHING))) {
                                 DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
                                 curdescr->interactive = 2;
                                 curdescr->block = 0;
@@ -1872,12 +1869,11 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         reload(fr, atop, stop);
                         fr->brkpt.isread = 1;
                         fr->pc = pc + 1;
-                        if (fr->player != NOTHING) {
+                        if (OkObj(fr->player)) {
                             DBSTORE(player, sp.player.curr_prog, program);
                             DBSTORE(player, sp.player.block, 0);
                         } else {
-                            curdescr = get_descr(fr->descr, NOTHING);
-                            if (curdescr) {
+                            if ((curdescr = get_descr(fr->descr, NOTHING))) {
                                 curdescr->block = 0;
                                 curdescr->interactive = 2;
                                 DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
@@ -1907,11 +1903,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         add_muf_delay_event(temp1->data.number, fr->descr,
                                             player, NOTHING, NOTHING, program,
                                             fr, "SLEEPING");
-                        DBSTORE(player, sp.player.block,
-                                (!fr->been_background));
-                        if (player == NOTHING) {
-                            curdescr = get_descr(fr->descr, NOTHING);
-                            if (curdescr)
+                        if (OkObj(player)) {
+                            DBSTORE(player, sp.player.block, (!fr->been_background));
+                        } else {
+                            if ((curdescr = get_descr(fr->descr, NOTHING)))
                                 curdescr->block = !(fr->been_background);
                         }
                         fr->level--;
@@ -1971,10 +1966,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
             } else {
                 reload(fr, atop, stop);
                 prog_clean(fr);
-                DBSTORE(player, sp.player.block, 0);
-                if (player == NOTHING) {
-                    curdescr = get_descr(fr->descr, NOTHING);
-                    if (curdescr)
+                if (OkObj(player)) {
+                    DBSTORE(player, sp.player.block, 0);
+                } else {
+                    if ((curdescr = get_descr(fr->descr, NOTHING)))
                         curdescr->block = 0;
                 }
                 fr->level--;
@@ -1984,10 +1979,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         }
     }                           /* while */
 
-    DBSTORE(player, sp.player.block, 0);
-    if (player == NOTHING) {
-        curdescr = get_descr(fr->descr, NOTHING);
-        if (curdescr)
+    if (OkObj(player)) {
+        DBSTORE(player, sp.player.block, 0);
+    } else {
+        if ((curdescr = get_descr(fr->descr, NOTHING)))
             curdescr->block = 0;
     }
     if (atop) {

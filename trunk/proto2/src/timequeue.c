@@ -554,8 +554,7 @@ void
 next_timequeue_event(void)
 {
     struct frame *tmpfr;
-    dbref tmpcp;
-    int tmpbl, tmpfg;
+    int tmpfg;
     timequeue lastevent, event;
     int maxruns = 0;
     int forced_pid = 0;
@@ -618,15 +617,22 @@ next_timequeue_event(void)
         } else if (event->typ == TQ_MUF_TYP) {
             if (Typeof(event->called_prog) == TYPE_PROGRAM) {
                 if (event->subtyp == TQ_MUF_DELAY) {
-                    tmpcp = DBFETCH(event->uid)->sp.player.curr_prog;
-                    tmpbl = DBFETCH(event->uid)->sp.player.block;
+                    short tmpbl = 0;
+
+                    if (OkObj(event->uid)) {
+                        /* tmpcp = DBFETCH(event->uid)->sp.player.curr_prog; */
+                        tmpbl = DBFETCH(event->uid)->sp.player.block;
+                    } else {
+                        if ((curdescr = get_descr(event->descr, NOTHING)))
+                            tmpbl = curdescr->block;
+                    }
                     tmpfg = (event->fr->multitask != BACKGROUND);
                     interp_loop(event->uid, event->called_prog, event->fr, 0);
                     if (!tmpfg) {
-                        DBFETCH(event->uid)->sp.player.block = tmpbl;
-                        if (event->uid == NOTHING) {
-                            curdescr = get_descr(event->descr, NOTHING);
-                            if (curdescr)
+                        if (OkObj(event->uid)) {
+                            DBFETCH(event->uid)->sp.player.block = tmpbl;
+                        } else {
+                            if ((curdescr = get_descr(event->descr, NOTHING)))
                                 curdescr->block = tmpbl;
                         }
                     }
@@ -754,14 +760,16 @@ list_events(dbref player)
                            ptr->eventnum, buf2,
                            time_format_2((long) etime),
                            (ptr->fr->instcnt / 1000), pcnt,
-                           ptr->called_prog, NAME(ptr->uid), ptr->called_data);
+                           ptr->called_prog,
+                           (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
+                           ptr->called_data);
         } else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_READ) {
             (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
                            ptr->eventnum, "--",
                            time_format_2((long) etime),
                            (ptr->fr->instcnt / 1000), pcnt,
                            ptr->called_prog,
-                           (ptr->uid != NOTHING) ? NAME(ptr->uid) : "(Login)",
+                           (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
         } else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TIMER) {
             (void) sprintf(buf, "(%6d) %4s %4s %5d %4.1f #%-6d %-16s %.512s",
@@ -769,7 +777,7 @@ list_events(dbref player)
                            time_format_2((long) etime),
                            (ptr->fr->instcnt / 1000), pcnt,
                            ptr->called_prog,
-                           (ptr->uid != NOTHING) ? NAME(ptr->uid) : "(Login)",
+                           (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
 
         } else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TREAD) {
@@ -778,7 +786,7 @@ list_events(dbref player)
                            time_format_2((long) etime),
                            (ptr->fr->instcnt / 1000), pcnt,
                            ptr->called_prog,
-                           (ptr->uid != NOTHING) ? NAME(ptr->uid) : "(Login)",
+                           (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
         } else if (ptr->typ == TQ_MPI_TYP) {
             (void) sprintf(buf,
