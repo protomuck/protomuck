@@ -1995,14 +1995,15 @@ kill_resolver(void)
     p = wait(&i);
 }
 
-
+int resolverpid;
 
 void
 spawn_resolver(void)
 {
     socketpair(AF_UNIX, SOCK_STREAM, 0, resolver_sock);
     make_nonblocking(resolver_sock[1]);
-    if (!fork()) {
+    resolverpid = fork();
+    if (!resolverpid) {
         close(0);
         close(1);
         dup(resolver_sock[0]);
