@@ -156,7 +156,7 @@ struct INTERMEDIATE *locate_for(COMPSTATE *);
 struct INTERMEDIATE *find_begin(COMPSTATE *);
 struct INTERMEDIATE *find_while(COMPSTATE *);
 void cleanpubs(struct publics *mypub);
-/* void clean_mcpbinds(struct mcp_binding *mcpbinds); */
+void clean_mcpbinds(struct mcp_binding *mcpbinds);
 void cleanup(COMPSTATE *);
 void add_proc(COMPSTATE *, const char *, struct INTERMEDIATE *, int rettype);
 void addif(COMPSTATE *, struct INTERMEDIATE *);
@@ -227,8 +227,8 @@ do_abort_compile(COMPSTATE * cstat, const char *c)
 	free_prog(cstat->program);
 	cleanpubs(DBFETCH(cstat->program)->sp.program.pubs);
       DBFETCH(cstat->program)->sp.program.pubs = NULL;
-/*	clean_mcpbinds(DBFETCH(cstat->program)->sp.program.mcpbinds); */
-/*	DBFETCH(cstat->program)->sp.program.mcpbinds = NULL; */
+	clean_mcpbinds(DBFETCH(cstat->program)->sp.program.mcpbinds);
+	DBFETCH(cstat->program)->sp.program.mcpbinds = NULL;
 }
 
 /* abort compile macro */
@@ -492,7 +492,7 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "end", "break then dup");
 	insert_def(cstat, "default", "pop 1 if");
 	insert_def(cstat, "endcase", "pop pop 1 until");
-      insert_def(cstat, "sockopen", "nbsockopen pop 1 10 1 for pop dup sockcheck if \"noerr\" break then 1 sleep repeat swap \"timed out\"");
+      insert_def(cstat, "sockopen", "nbsockopen \"Invalid host.\" over strcmp if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck if \"noerr\" break then 1 sleep repeat then");
 
 	/* MUF Error defines */
 	insert_def(cstat, "err_divzero?", "0 is_set?");
@@ -511,12 +511,12 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "array_intersect", "2 array_nintersect");
 
 	/* GUI dialog types */
-/*	insert_def(cstat, "d_simple", "\"simple\"");
+	insert_def(cstat, "d_simple", "\"simple\"");
 	insert_def(cstat, "d_tabbed", "\"tabbed\"");
-	insert_def(cstat, "d_helper", "\"helper\""); */
+	insert_def(cstat, "d_helper", "\"helper\"");
 
 	/* GUI control types */
-/*	insert_def(cstat, "c_datum", "\"datum\"");
+	insert_def(cstat, "c_datum", "\"datum\"");
 	insert_def(cstat, "c_label", "\"text\"");
 	insert_def(cstat, "c_hrule", "\"hrule\"");
 	insert_def(cstat, "c_vrule", "\"vrule\"");
@@ -531,12 +531,12 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "c_frame", "\"frame\"");
 	insert_def(cstat, "c_notebook", "\"notebook\"");
 	insert_def(cstat, "c_image",     "\"image\"");
-	insert_def(cstat, "c_radiobtn",  "\"radio\""); */
+	insert_def(cstat, "c_radiobtn",  "\"radio\"");
 
 	/* Backwards compatibility for old GUI dialog creation prims */
-/*	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict");
+	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict");
 	insert_def(cstat, "gui_dlog_tabbed", "d_tabbed swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
-	insert_def(cstat, "gui_dlog_helper", "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create"); */
+	insert_def(cstat, "gui_dlog_helper", "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
 
 	/* Include any defines set in #0's _defs/ propdir. */
 	include_defs(cstat, (dbref) 0);
@@ -554,8 +554,8 @@ uncompile_program(dbref i)
 	free_prog(i);
 	cleanpubs(DBFETCH(i)->sp.program.pubs);
 	DBFETCH(i)->sp.program.pubs = NULL;
-/*	clean_mcpbinds(DBFETCH(i)->sp.program.mcpbinds);
-	DBFETCH(i)->sp.program.mcpbinds = NULL; */
+	clean_mcpbinds(DBFETCH(i)->sp.program.mcpbinds);
+	DBFETCH(i)->sp.program.mcpbinds = NULL;
 	DBFETCH(i)->sp.program.code = NULL;
 	DBFETCH(i)->sp.program.siz = 0;
 	DBFETCH(i)->sp.program.start = NULL;
@@ -699,8 +699,8 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	free_prog(cstat.program);
 	cleanpubs(DBFETCH(cstat.program)->sp.program.pubs);
 	DBFETCH(cstat.program)->sp.program.pubs = NULL;
-/*	clean_mcpbinds(DBFETCH(cstat.program)->sp.program.mcpbinds);
-	DBFETCH(cstat.program)->sp.program.mcpbinds = NULL; */
+	clean_mcpbinds(DBFETCH(cstat.program)->sp.program.mcpbinds);
+	DBFETCH(cstat.program)->sp.program.mcpbinds = NULL;
 
 	if (!cstat.curr_line)
 		v_abort_compile(&cstat, "Missing program text.");
@@ -2206,7 +2206,6 @@ cleanpubs(struct publics *mypub)
 	}
 }
 
-/*
 void
 clean_mcpbinds(struct mcp_binding *mypub)
 {
@@ -2220,7 +2219,6 @@ clean_mcpbinds(struct mcp_binding *mypub)
 		mypub = tmppub;
 	}
 }
-*/
 
 void
 append_intermediate_chain(struct INTERMEDIATE *chain, struct INTERMEDIATE *add)

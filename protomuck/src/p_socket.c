@@ -195,8 +195,9 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 
     strcpy(buf, oper1->data.string->data);
     myhost = gethostbyname(buf);
-    if (myhost == 0)
-       abort_interp("Unknown host provided...socket error!");
+    if (myhost == 0) {
+      strcpy(myresult, "Invalid host."); 
+    } else {
 
     name.sin_port = htons(oper2->data.number);
     name.sin_family = AF_INET;                                         
@@ -212,7 +213,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         strcpy(myresult, sys_errlist[errnosocket]);
 #endif
         else strcpy(myresult, "noerr");
-
+    }
     result = malloc(sizeof(struct inst));
     mufsock = malloc(sizeof(struct muf_socket));
 

@@ -1305,6 +1305,37 @@ mfn_debug(MFUNARGS)
 
 
 const char *
+mfn_timing(MFUNARGS)
+{
+	char buf2[128];
+	char *ptr;
+	struct timeval start_time, end_time;
+	int secs;
+	int usecs;
+	double timelen;
+	
+	gettimeofday(&start_time, (struct timezone *) 0);
+
+	ptr = mesg_parse(descr, player, what, perms, argv[0],
+						   buf, BUFFER_LEN, mesgtyp);
+	CHECKRETURN(ptr, "DEBUG", "arg 1");
+
+	gettimeofday(&end_time, (struct timezone *) 0);
+	secs = end_time.tv_sec - start_time.tv_sec;
+	usecs = end_time.tv_usec - start_time.tv_usec;
+	if (usecs > 1000000) {
+		secs += 1;
+		usecs -= 1000000;
+	}
+	timelen = ((double)secs) + (((double)usecs) / 1000000);
+	sprintf(buf2, "Time elapsed: %.6f seconds", timelen);
+	notify_nolisten(player, buf2, 1);
+
+	return buf;
+}
+
+
+const char *
 mfn_delay(MFUNARGS)
 {
     char *argchr, *cmdchr;
@@ -1354,7 +1385,7 @@ const char *
 mfn_muf(MFUNARGS)
 {
     char *ptr;
-    struct inst *rv;
+    struct inst *rv = NULL;
     struct frame *tmpfr;
     dbref obj = mesg_dbref_raw(descr, player, what, perms, argv[0]);
 
@@ -1378,8 +1409,6 @@ mfn_muf(MFUNARGS)
     if (tmpfr) {
 	rv = interp_loop(player, obj, tmpfr, 1);
     }
-/*    rv = interp(descr, player, DBFETCH(player)->location,
-                obj, perms, PREEMPT, STD_HARDUID, 1); */
 
     mpi_muf_call_levels--;
 

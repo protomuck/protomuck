@@ -52,9 +52,15 @@ typedef int dbref;		/* offset into db */
 #define NAME(x)     (db[x].name)
 #define PNAME(x)    (db[x].name)
 #define RNAME(x)    (db[x].name)
+#define OWNER(x)    (db[x].owner)
 #define FLAGS(x)    (db[x].flags)
 #define FLAG2(x)    (db[x].flag2)
-#define OWNER(x)    (db[x].owner)
+#define FLAG3(x)    (db[x].flag3)
+#define FLAG4(x)    (db[x].flag4)
+#define POWERS(x)   (db[OWNER(x)].powers)
+#define POWERSDB(x) (db[x].powers)
+#define POWER2(x)   (db[OWNER(x)].power2)
+#define POWER2DB(x) (db[x].power2)
 
 /* defines for possible data access mods. */
 #define GETMESG(x,y)   (get_property_class(x, y))
@@ -181,11 +187,36 @@ typedef int dbref;		/* offset into db */
 #define F2EXAMINE_OK      0x800     /* The new EXAMINE_OK flag */
 #define F2ANTIPROTECT    0x1000     /* Anti-protect flag to allow a wizard to combat against PROTECT. */
 
+/* Proto @Powers */
+
+#define POW_ANNOUNCE          0x1   /* Can use @wall and dwall commands */
+#define POW_BOOT              0x2   /* Can use @boot and dboot commands */
+#define POW_CHOWN_ANYTHING    0x4   /* Can @chown anything, unless it is PROTECTed */
+#define POW_EXPANDED_WHO      0x8   /* Gets the wizard version of WHO */
+#define POW_HIDE             0x10   /* Can set themselves DARK or login HIDDEN */
+#define POW_IDLE             0x20   /* Not effected by the idle limit */
+#define POW_LINK_ANYWHERE    0x40   /* Can @link an exit to anywhere */
+#define POW_LONG_FINGERS     0x80   /* Can do anything from a long distance */
+#define POW_NO_PAY          0x100   /* Infinite money */
+#define POW_OPEN_ANYWHERE   0x200   /* @open an exit from any location */
+#define POW_PLAYER_CREATE   0x400   /* Can use @pcreate, @frob, and @toad */
+#define POW_SEARCH          0x800   /* Can use @find, @entrances, and @contents */
+#define POW_SEE_ALL        0x1000   /* Can examine any object, and @list any program */
+#define POW_TPORT_ANYTHING 0x2000   /* Can teleport any object */
+#define POW_TPORT_ANYWHERE 0x4000   /* Can teleport to any location */
+
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
 #define DUM2_MASK	(0)
+#define DUM3_MASK (0)
+#define DUM4_MASK (0)
+
+/* what powers to NOT dump to disk. */
+#define POWERS_DUMP_MASK (0)
+#define POWER2_DUMP_MASK (0)
 
 typedef int object_flag_type;
+typedef int object_power_type;
 
 #define DoNull(s) ((s) ? (s) : "")
 #define Typeof(x) ((x == HOME) ? TYPE_ROOM : (FLAGS(x) & TYPE_MASK))
@@ -271,6 +302,15 @@ typedef int object_flag_type;
 #define Protect(x)  (FLAG2(x) & F2PROTECT)
 #define Hidden(x)   (FLAG2(x) & F2HIDDEN)
 
+#define OkObj(x)  ( ((x) >= 0) && ((x) < db_top) )
+#define OkRoom(x) ( OkObj(x) && (Typeof(x)==TYPE_ROOM) )
+#define EnvRoom   ( OkRoom(GLOBAL_ENVIRONMENT) ? GLOBAL_ENVIRONMENT : 0 )
+#define RootRoom  ( (const) (OkRoom(tp_player_start) ? tp_player_start : EnvRoom) )
+#define OkType(x) (	(Typeof(x)==TYPE_THING) ||	\
+			(Typeof(x)==TYPE_ROOM) ||	\
+			(Typeof(x)==TYPE_EXIT) ||	\
+			(Typeof(x)==TYPE_PLAYER) ||	\
+			(Typeof(x)==TYPE_PROGRAM)	)
 
 /* Boolean expressions, for locks */
 typedef char boolexp_type;
@@ -530,6 +570,15 @@ struct publics {
     struct publics *next;
 };
 
+
+struct mcp_binding {
+	struct mcp_binding *next;
+
+	char *pkgname;
+	char *msgname;
+	struct inst *addr;
+};
+
 /* union of type-specific fields */
 
 union specific {      /* I've been railroaded! */
@@ -554,67 +603,20 @@ union specific {      /* I've been railroaded! */
         int*    descrs;
         short   descr_count;
     }       player;
-    struct {			/* PROGRAM-specific fields */
-	short   curr_line;	/* current-line */
-	unsigned short instances;  /* #instances of this prog running */
-	int     siz;		/* size of code */
-	struct inst *code;	/* byte-compiled code */
-	struct inst *start;	/* place to start executing */
-	struct line *first;	/* first line */
-	struct publics *pubs;	/* public subroutine addresses */
+    struct {			      /* PROGRAM-specific fields */
+	short   curr_line;	      /* current-line */
+	unsigned short instances;     /* #instances of this prog running */
+	int     siz;		      /* size of code */
+	struct inst *code;	      /* byte-compiled code */
+	struct inst *start;	      /* place to start executing */
+	struct line *first;	      /* first line */
+	struct publics *pubs;	      /* public subroutine addresses */
+	struct mcp_binding *mcpbinds;	/* MCP message bindings. */
+      struct timeval proftime;      /* Profiling time spent in this program */
+      time_t profstart;             /* Time when profiling started for this prog */
+      unsigned int profuses;        /* # calls to this program while profiling */
     }       program;
 };
-
-#define PROGRAM_SP(x)			(DBFETCH(x)->sp.program)
-
-
-#define PROGRAM_INSTANCES(x)		(PROGRAM_SP(x)->instances)
-#define PROGRAM_CURR_LINE(x)		(PROGRAM_SP(x)->curr_line)
-#define PROGRAM_SIZ(x)			(PROGRAM_SP(x)->siz)
-#define PROGRAM_CODE(x)			(PROGRAM_SP(x)->code)
-#define PROGRAM_START(x)		(PROGRAM_SP(x)->start)
-#define PROGRAM_FIRST(x)		(PROGRAM_SP(x)->first)
-#define PROGRAM_PUBS(x)			(PROGRAM_SP(x)->pubs)
-#define PROGRAM_MCPBINDS(x)		(PROGRAM_SP(x)->mcpbinds)
-
-#define PROGRAM_INC_INSTANCES(x)	(PROGRAM_SP(x)->instances++)
-#define PROGRAM_DEC_INSTANCES(x)	(PROGRAM_SP(x)->instances--)
-
-#define PROGRAM_SET_INSTANCES(x,y)	(PROGRAM_SP(x)->instances = y)
-#define PROGRAM_SET_CURR_LINE(x,y)	(PROGRAM_SP(x)->curr_line = y)
-#define PROGRAM_SET_SIZ(x,y)		(PROGRAM_SP(x)->siz = y)
-#define PROGRAM_SET_CODE(x,y)		(PROGRAM_SP(x)->code = y)
-#define PROGRAM_SET_START(x,y)		(PROGRAM_SP(x)->start = y)
-#define PROGRAM_SET_FIRST(x,y)		(PROGRAM_SP(x)->first = y)
-#define PROGRAM_SET_PUBS(x,y)		(PROGRAM_SP(x)->pubs = y)
-#define PROGRAM_SET_MCPBINDS(x,y)	(PROGRAM_SP(x)->mcpbinds = y)
-
-#define THING_SP(x)		(DBFETCH(x)->sp.thing)
-
-#define THING_HOME(x)		(THING_SP(x)->home)
-#define THING_VALUE(x)		(THING_SP(x)->pennies)
-
-#define THING_SET_HOME(x,y)	(THING_SP(x)->home = y)
-#define THING_SET_VALUE(x,y)	(THING_SP(x)->pennies = y)
-
-
-#define PLAYER_SP(x)		(DBFETCH(x)->sp.player)
-
-#define PLAYER_HOME(x)		(PLAYER_SP(x)->home)
-#define PLAYER_PENNIES(x)	(PLAYER_SP(x)->pennies)
-#define PLAYER_CURR_PROG(x)	(PLAYER_SP(x)->curr_prog)
-#define PLAYER_INSERT_MODE(x)	(PLAYER_SP(x)->insert_mode)
-#define PLAYER_BLOCK(x)		(PLAYER_SP(x)->block)
-#define PLAYER_PASSWORD(x)	(PLAYER_SP(x)->password)
-
-#define PLAYER_SET_HOME(x,y)		(PLAYER_SP(x)->home = y)
-#define PLAYER_SET_PENNIES(x,y)		(PLAYER_SP(x)->pennies = y)
-#define PLAYER_ADD_PENNIES(x,y)		(PLAYER_SP(x)->pennies += y)
-#define PLAYER_SET_CURR_PROG(x,y)	(PLAYER_SP(x)->curr_prog = y)
-#define PLAYER_SET_INSERT_MODE(x,y)	(PLAYER_SP(x)->insert_mode = y)
-#define PLAYER_SET_BLOCK(x,y)		(PLAYER_SP(x)->block = y)
-#define PLAYER_SET_PASSWORD(x,y)	(PLAYER_SP(x)->password = y)
-
 
 /* timestamps record */
 
@@ -645,12 +647,12 @@ struct object {
     short   spacer;
 #endif
 
-    object_flag_type flags, flag2;
+    object_flag_type flags, flag2, flag3, flag4;
+    object_power_type powers, power2;
     struct timestamps ts;
     union specific sp;
-    unsigned int     mpi_prof_sec;
-    unsigned int     mpi_prof_usec;
     unsigned int     mpi_prof_use;
+    struct timeval   mpi_proftime;
 };
 
 struct macrotable {
@@ -705,7 +707,7 @@ extern void log_program_text(struct line * first, dbref player, dbref i);
 
 extern struct shared_string *alloc_prog_string(const char *);
 
-extern dbref new_object();	/* return a new object */
+extern dbref new_object(void);	/* return a new object */
 
 extern dbref getref(FILE *);	/* Read a database reference from a file. */
 
@@ -742,7 +744,7 @@ extern void db_clear_object(dbref i);
 
 extern void macrodump(struct macrotable *node, FILE *f);
 
-extern void macroload();
+extern void macroload(FILE *f);
 
 #define DOLIST(var, first) \
   for((var) = (first); (var) != NOTHING; (var) = DBFETCH(var)->next)

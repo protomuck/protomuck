@@ -7,11 +7,11 @@
     When you're happy with the changes...
 
 	cd src            # Enter the src directory.
-	./configure       # This will call the configuration script
+	make              # This will call the configuration script
+(opt)	make depend       # Makes the dependancies appropriate to your system
 	make              # Compiles the source code
 	make install      # This puts the binaries in ../game/
 	cd ../game/data   # This will put you into the games data directory
-(opt)	cp minimal.proto proto.db # Make the minimal dbase your dbase
 	cd ../..          # Directory should be $(HOME)/proto
 	./proto start     # This starts the server.
 	

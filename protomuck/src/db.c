@@ -5,7 +5,6 @@
 #include <ctype.h>
 
 #include "db.h"
-#include "mcp.h"
 #include "props.h"
 #include "params.h"
 #include "tune.h"
@@ -33,6 +32,8 @@ struct macrotable *macrotop;
 #ifndef MALLOC_PROFILING
 extern char *alloc_string(const char *);
 #endif
+
+#define VERBOSELOAD
 
 extern short db_conversion_flag;
 extern short db_decompression_flag;
@@ -196,9 +197,9 @@ putref(FILE * f, dbref ref)
 }
 
 void 
-putfref(FILE * f, dbref ref, dbref ref2)
+putfref(FILE * f, dbref ref, dbref ref2, dbref ref3, dbref ref4, dbref pow1, dbref pow2)
 {
-    if (fprintf(f, "%d %d\n", ref, ref2) == EOF) {
+    if (fprintf(f, "%d %d %d %d %d %d\n", ref, ref2, ref3, ref4, pow1, pow2) == EOF) {
 	abort();
     }
 }
@@ -452,7 +453,8 @@ write_program(struct line * first, dbref i)
     f = fopen(fname, "w");
     if (!f) {
 	log_status("Couldn't open file %s!\n", fname);
-    } else
+      return;
+    }
     while (first) {
 	if (!first->this_line)
 	    continue;
@@ -481,7 +483,8 @@ db_write_object(FILE * f, dbref i)
     putref(f, o->contents);
     putref(f, o->next);
     /* write non-internal flags */
-    putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK));
+    putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK), (FLAG3(i) & ~DUM3_MASK), \
+               (FLAG4(i) & ~DUM4_MASK), (POWERS(i) & ~POWERS_DUMP_MASK), (POWER2(i) & ~POWER2_DUMP_MASK));
 
     putref(f, o->ts.created);
     putref(f, o->ts.lastused);
@@ -587,7 +590,7 @@ db_write(FILE * f)
     putref(f, DB_PARMSINFO
 #ifdef COMPRESS
         + (db_decompression_flag? 0 : DB_COMPRESSED)
-#endif
+#endif + DB_POWERS
     );
     putref(f, tune_count_parms());
     tune_save_parms_to_file(f);
@@ -676,7 +679,7 @@ getref(FILE * f)
 
 
 dbref 
-getfref(FILE * f, dbref *f2)
+getfref(FILE * f, dbref *f2, dbref *f3, dbref *f4, dbref *p1, dbref *p2)
 {
     char buf[BUFFER_LEN];
     dbref f1;
@@ -687,8 +690,12 @@ getfref(FILE * f, dbref *f2)
     }
     fgets(buf, sizeof(buf), f);
 
-    got = sscanf(buf, "%d %d", &f1, f2);
+    got = sscanf(buf, "%d %d %d %d %d %d", &f1, f2, f3, f4, p1, p2);
 
+    if (got < 6) (*p2) = 0;
+    if (got < 5) (*p1) = 0;
+    if (got < 4) (*f4) = 0;
+    if (got < 3) (*f3) = 0;
     if (got < 2) (*f2) = 0;
     if (got < 1) {
         fprintf(stderr, "getfref: scanf failed\n");
@@ -746,6 +753,8 @@ number(const char *s)
 	s++;
     if (*s == '+' || *s == '-')
 	s++;
+    if (!*s) 
+	return 0;
     for (; *s; s++)
 	if (*s < '0' || *s > '9')
 	    return 0;
@@ -928,11 +937,12 @@ db_free(void)
 
 
 struct line *
-get_new_line()
+get_new_line(void)
 {
     struct line *new;
 
     new = (struct line *) malloc(sizeof(struct line));
+
     if (!new) {
         fprintf(stderr, "get_new_line(): Out of memory!\n");
         abort();
@@ -944,27 +954,29 @@ get_new_line()
 }
 
 struct line *
-read_program(dbref i, int editor)
+read_program(dbref i)
 {
     char    buf[BUFFER_LEN];
     struct line *first;
     struct line *prev = NULL;
     struct line *new;
     FILE   *f;
+    int len;
 
     first = NULL;
-    if (MCP(i) && (editor))
-      sprintf(buf, "mcp/%d.mcp", (int) i); 
-    else
-      sprintf(buf, "muf/%d.m", (int) i);
+    sprintf(buf, "muf/%d.m", (int) i);
     f = fopen(buf, "r");
     if (!f)
 	return 0;
 
     while (fgets(buf, BUFFER_LEN, f)) {
 	new = get_new_line();
-	buf[strlen(buf) - 1] = '\0';
-	if (!*buf) strcpy(buf, " ");
+	len = strlen(buf);
+	if (len > 0 && buf[len - 1] == '\n') {
+	    buf[len - 1] = '\0';
+	}
+	if (!*buf)
+          strcpy(buf, " ");
 	new->this_line = alloc_string(buf);
 	if (!first) {
 	    prev = new;
@@ -989,13 +1001,17 @@ read_program(dbref i, int editor)
 void 
 db_read_object_old(FILE * f, struct object * o, dbref objno)
 {
-    dbref   exits, f2;
+    dbref   exits, f2, f3, f4, p1, p2;
     int     pennies;
     const char *password;
 
     db_clear_object(objno);
     FLAGS(objno) = 0;
     FLAG2(objno) = 0;
+    FLAG3(objno) = 0;
+    FLAG4(objno) = 0;
+    POWERSDB(objno) = 0;
+    POWER2DB(objno) = 0;
     NAME(objno) = getstring(f);
     LOADDESC(objno, getstring_oldcomp_noalloc(f));
     o->location = getref(f);
@@ -1016,8 +1032,12 @@ db_read_object_old(FILE * f, struct object * o, dbref objno)
     o->ts.usecount = 0;
     o->ts.modified = current_systime;
 
-    FLAGS(objno) |= getfref(f, &f2);
-    FLAG2(objno) |= f2;
+    FLAGS(objno)  |= getfref(f, &f2, &f3, &f4, &p1, &p2);
+    FLAG2(objno)  |= f2;
+    FLAG3(objno)  |= f3;
+    FLAG4(objno)  |= f4;
+    POWERSDB(objno) |= p1;
+    POWER2DB(objno) |= p2;
     /*
      * flags have to be checked for conflict --- if they happen to coincide
      * with chown_ok flags and jump_ok flags, we bump them up to the
@@ -1079,6 +1099,8 @@ db_read_object_old(FILE * f, struct object * o, dbref objno)
 	    o->exits = NOTHING;
 	    o->sp.player.pennies = pennies;
 	    o->sp.player.password = password;
+          o->sp.player.curr_prog = NOTHING;
+          o->sp.player.insert_mode = 0;
           o->sp.player.descrs = NULL;
           o->sp.player.descr_count = 0;
 	    break;
@@ -1101,17 +1123,20 @@ db_read_object_old(FILE * f, struct object * o, dbref objno)
 void 
 db_read_object_new(FILE * f, struct object * o, dbref objno)
 {
-    dbref f2;
+    dbref f2, f3, f4, p1, p2;
     int j;
 
     db_clear_object(objno);
     FLAGS(objno) = 0;
     FLAG2(objno) = 0;
+    FLAG3(objno) = 0;
+    FLAG4(objno) = 0;
+    POWERSDB(objno) = 0;
+    POWER2DB(objno) = 0;
     NAME(objno) = getstring(f);
     LOADDESC(objno, getstring_noalloc(f));
     o->location = getref(f);
     o->contents = getref(f);
-    /* o->exits = getref(f); */
     o->next = getref(f);
     LOADLOCK(objno, getboolexp(f));
     LOADFAIL(objno, getstring_oldcomp_noalloc(f));
@@ -1127,8 +1152,12 @@ db_read_object_new(FILE * f, struct object * o, dbref objno)
 
     /* OWNER(objno) = getref(f); */
     /* o->pennies = getref(f); */
-    FLAGS(objno) |= getfref(f, &f2);
-    FLAG2(objno) |= f2;
+    FLAGS(objno)  |= getfref(f, &f2, &f3, &f4, &p1, &p2);
+    FLAG2(objno)  |= f2;
+    FLAG3(objno)  |= f3;
+    FLAG4(objno)  |= f4;
+    POWERSDB(objno) |= p1;
+    POWER2DB(objno) |= p2;
     /*
      * flags have to be checked for conflict --- if they happen to coincide
      * with chown_ok flags and jump_ok flags, we bump them up to the
@@ -1190,6 +1219,8 @@ db_read_object_new(FILE * f, struct object * o, dbref objno)
 	    o->exits = getref(f);
 	    o->sp.player.pennies = getref(f);
 	    o->sp.player.password = getstring(f);
+          o->sp.player.curr_prog = NOTHING;
+          o->sp.player.insert_mode = 0;
           o->sp.player.descrs = NULL;
           o->sp.player.descr_count = 0;
 	    break;
@@ -1201,7 +1232,7 @@ void
 db_read_object_foxen(FILE * f, struct object * o, dbref objno,
 		     int dtype, int read_before)
 {
-    dbref f2;
+    dbref f2, f3, f4, p1, p2;
     int     tmp, c, prop_flag = 0;
     int j = 0;
 
@@ -1210,8 +1241,12 @@ db_read_object_foxen(FILE * f, struct object * o, dbref objno,
     }
     db_clear_object(objno);
 
-    FLAGS(objno) = 0;
-    FLAG2(objno) = 0;
+    FLAGS(objno)  = 0;
+    FLAG2(objno)  = 0;
+    FLAG3(objno)  = 0;
+    FLAG4(objno)  = 0;
+    POWERSDB(objno) = 0;
+    POWER2DB(objno) = 0;
 
 #ifdef VERBOSELOAD
     fprintf(stderr, "#%d: obj...", objno);
@@ -1250,13 +1285,21 @@ db_read_object_foxen(FILE * f, struct object * o, dbref objno,
     fprintf(stderr, "flags...");
 #endif
 
-    tmp = getfref(f, &f2);
+    tmp = getfref(f, &f2, &f3, &f4, &p1, &p2);
     if (dtype >= 4) {
-	tmp &= ~DUMP_MASK;
+	 tmp &= ~DUMP_MASK;
         f2 &= ~DUM2_MASK;
+        f3 &= ~DUM3_MASK;
+        f4 &= ~DUM4_MASK;
+        p1 &= ~POWERS_DUMP_MASK;
+        p2 &= ~POWER2_DUMP_MASK;
     }
     FLAGS(objno) |= tmp;
     FLAG2(objno) |= f2;
+    FLAG3(objno) |= f3;
+    FLAG4(objno) |= f4;
+    POWERSDB(objno) |= p1;
+    POWER2DB(objno) |= p2;
 
 #ifdef FLUSHCHANGED
     FLAGS(objno) &= ~SAVED_DELTA;
@@ -1389,6 +1432,11 @@ db_read_object_foxen(FILE * f, struct object * o, dbref objno,
 	    o->sp.program.siz = 0;
 	    o->sp.program.start = 0;
 	    o->sp.program.pubs = 0;
+	    o->sp.program.mcpbinds = 0;
+          o->sp.program.proftime.tv_sec = 0;
+          o->sp.program.proftime.tv_usec = 0;
+          o->sp.program.profstart = 0;
+          o->sp.program.profuses = 0;
 
 	    if (dtype < 5 && MLevel(objno) == 0)
 		SetMLevel(objno, 2);
@@ -1406,7 +1454,7 @@ db_read_object_foxen(FILE * f, struct object * o, dbref objno,
 }
 
 void
-autostart_progs()
+autostart_progs(void)
 {
     dbref i;
     struct object *o;
@@ -1423,7 +1471,7 @@ autostart_progs()
 		/* They queue up when they finish compiling. */
 		o = DBFETCH(i);
 		tmp = o->sp.program.first;
-		o->sp.program.first = (struct line *) read_program(i,0);
+		o->sp.program.first = (struct line *) read_program(i);
 		do_compile(-1, OWNER(i), i, 0);
 		free_prog_text(o->sp.program.first);
 		o->sp.program.first = tmp;

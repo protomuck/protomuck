@@ -128,11 +128,12 @@ prim_fmtstring(PRIM_PROTOTYPE)
 				sfmt[1] = '\0';
 				if (slrj == 1)
 					strcat(sfmt, "-");
-				if (spad1)
+				if (spad1) {
 					if (spad1 == 1)
 						strcat(sfmt, "+");
 					else
 						strcat(sfmt, " ");
+				}
 				if (spad2)
 					strcat(sfmt, "0");
 				if (slen1 != -1) {
@@ -451,7 +452,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
 void
 prim_split(PRIM_PROTOTYPE)
 {
-	char *temp;
+	char *temp = NULL;
 
 	CHECKOP(2);
 	oper1 = POP();
@@ -477,7 +478,7 @@ prim_split(PRIM_PROTOTYPE)
 	}
 	CLEAR(oper1);
 	CLEAR(oper2);
-	if (result) {
+	if (result > 0) {
 		if (result == 1) {
 			if (buf[0] == '\0') {
 				PushNullStr;
@@ -494,7 +495,7 @@ prim_split(PRIM_PROTOTYPE)
 			PushNullStr;
 		}
 	} else {
-		PushNullStr;
+		PushString(buf);
 		PushNullStr;
 	}
 }
@@ -502,7 +503,7 @@ prim_split(PRIM_PROTOTYPE)
 void
 prim_rsplit(PRIM_PROTOTYPE)
 {
-	char *temp, *hold;
+	char *temp = NULL, *hold = NULL;
 
 	CHECKOP(2);
 	oper1 = POP();
@@ -546,7 +547,7 @@ prim_rsplit(PRIM_PROTOTYPE)
 			} else {
 				PushString(buf);
 			}
-			if (hold[0] == '\0') {
+			if (hold && hold[0] == '\0') {
 				PushNullStr;
 			} else {
 				PushString(hold);
@@ -556,7 +557,7 @@ prim_rsplit(PRIM_PROTOTYPE)
 			PushNullStr;
 		}
 	} else {
-		PushNullStr;
+		PushString(buf);
 		PushNullStr;
 	}
 }
@@ -589,7 +590,7 @@ prim_itoc(PRIM_PROTOTYPE)
 		abort_interp("Argument must be a positive integer. (1)");
 	if (oper1->data.number > 127 || (!isprint((char) oper1->data.number) &&
 									 ((char) oper1->data.number != '\r') &&
-									 ((char) oper1->data.number != '\['))) {
+									 ((char) oper1->data.number != ESCAPE_CHAR))) {
 		result = 0;
 	} else {
 		result = 1;
@@ -1360,13 +1361,39 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 void 
 prim_intostr(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type == PROG_STRING)
-	abort_interp("Invalid argument.");
-    sprintf(buf, "%d", oper1->data.number);
-    CLEAR(oper1);
-    PushString(buf);
+	char *ptr=NULL;
+	int val;
+	int negflag;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (oper1->type == PROG_STRING)
+		abort_interp("Invalid argument.");
+	if (oper1->type == PROG_FLOAT) {
+		sprintf(buf, "%g", oper1->data.fnumber);
+		ptr=buf;
+	} else {
+		val = oper1->data.number;
+		ptr = &buf[BUFFER_LEN];
+		negflag = (val < 0) ? 1 : 0;
+		val = abs(val);
+
+		*(--ptr) = '\0';
+		if (!val) {
+			*(--ptr) = '0';
+		} else {
+			while (val) {
+				*(--ptr) = '0' + (val % 10);
+				val /= 10;
+			}
+		}
+		if (negflag) {
+			*(--ptr) = '-';
+		}
+		/* sprintf(buf, "%d", oper1->data.number); */
+	}
+	CLEAR(oper1);
+	PushString(ptr);
 }
 
 void 
@@ -1681,10 +1708,8 @@ prim_stringpfx(PRIM_PROTOTYPE)
 	abort_interp("Non-string argument.");
     if (oper1->data.string == oper2->data.string)
 	result = 0;
-    else if (!(oper2->data.string && oper1->data.string))
-	result = oper1->data.string ? -1 : 1;
     else {
-	result = string_prefix(oper2->data.string->data, oper1->data.string->data);
+        result = string_prefix(DoNullInd(oper2->data.string), DoNullInd(oper1->data.string));
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1830,7 +1855,7 @@ prim_parse_ansi(PRIM_PROTOTYPE)
       if (ctype == 0)
         sprintf(buf4, "%s", buf3);
       if (ctype == 1)
-         sprintf(buf4, "%s", parse_ansi(buf, buf3));
+         sprintf(buf4, "%s", parse_ansi(player, buf, buf3));
       if (ctype == 2)
         sprintf(buf4, "%s", parse_mush_ansi(buf, buf3));
 
@@ -2017,7 +2042,7 @@ prim_ansi_strcut(PRIM_PROTOTYPE)
 	while (*ptr) {
 		if ((*op++ = *ptr++) == ESCAPE_CHAR) {
 			if (*ptr == '\0') {
-				*op++ = *ptr++;
+				break;
 			} else if (*ptr != '[') {
 				*op++ = *ptr++;
 			} else {
@@ -2067,6 +2092,96 @@ prim_ansi_strip(PRIM_PROTOTYPE)
 	PushString(buf);
 }
 
+
+void
+prim_ansi_midstr(PRIM_PROTOTYPE)
+{
+	int loc, start, range;
+	const char* ptr;
+	char* op;
+	
+	CHECKOP(3);
+	oper1 = POP(); /* length */
+	oper2 = POP(); /* begin */
+	oper3 = POP(); /* string */
+	
+	if (oper3->type != PROG_STRING)
+		abort_interp("Non-string argument! (3)");
+	if (oper2->type != PROG_INTEGER)
+		abort_interp("Non-integer argument! (2)");
+	if (oper1->type != PROG_INTEGER)
+		abort_interp("Non-integer argument! (1)");
+	if (oper2->data.number < 1)
+		abort_interp("Data must be a positve integer. (2)");
+	if (oper1->data.number < 0)
+		abort_interp("Data must be a postive integer. (1)");
+
+	start = oper2->data.number - 1;
+	range = oper1->data.number;
+	
+	if (!oper3->data.string || start > oper3->data.string->length ||
+			range == 0) {
+		CLEAR(oper1);
+		CLEAR(oper2);
+		CLEAR(oper3);
+		PushNullStr;
+		return;
+	}
+	
+	ptr = oper3->data.string->data;
+	op = buf;
+	loc = 0;
+
+	if (start != 0) {
+		/* First, loop till the beginning of the section to copy... */
+		while (*ptr && loc < start) {
+			if ((*ptr++) == ESCAPE_CHAR) {
+				if (*ptr == '\0') {
+					break;
+				} else if (*ptr != '[') {
+					ptr++;
+				} else {
+					ptr++;
+					while (isdigit(*ptr) || *ptr == ';')
+						ptr++;
+					if (*ptr == 'm')
+						ptr++;
+				}
+			} else {
+				loc++;
+			}
+		}
+	}
+	
+	loc = 0;				
+	/* Then, start copying, and counting while we do... */
+	while (*ptr) {
+		if ((*op++ = *ptr++) == ESCAPE_CHAR) {
+			if (*ptr == '\0') {
+				break;
+			} else if (*ptr != '[') {
+				*op++ = *ptr++;
+			} else {
+				*op++ = *ptr++;
+				while (isdigit(*ptr) || *ptr == ';')
+					*op++ = *ptr++;
+				if (*ptr == 'm')
+					*op++ = *ptr++;
+			}
+		} else {
+			loc++;
+			if (loc == range) {
+				break;
+			}
+		}
+	}
+	*op = '\0';
+
+	CLEAR(oper1);
+	CLEAR(oper2);
+	CLEAR(oper3);
+	PushString(buf);
+}
 
 
 void

@@ -172,7 +172,7 @@ void enter_room(int descr, dbref player, dbref loc, dbref exit)
 
 	    /* notify others unless DARK */
 	    if (!Hidden(player) && !Dark(old) && !Dark(player)
-		    && (Typeof(exit) != TYPE_EXIT || !Dark(exit)) && !tp_quiet_moves) {
+		    /* && (Typeof(exit) != TYPE_EXIT || !Dark(exit) ) */ && !tp_quiet_moves) {
 #if !defined(QUIET_MOVES)
 		sprintf(buf, CMOVE "%s has left.", PNAME(player));
 		anotify_except(DBFETCH(old)->contents, player, buf, player);
@@ -189,7 +189,7 @@ void enter_room(int descr, dbref player, dbref loc, dbref exit)
 
 	/* tell other folks in new location if not DARK */
 	if (!Hidden(player) && !Dark(loc) && !Dark(player)
-		&& (Typeof(exit) != TYPE_EXIT || !Dark(exit)) && !tp_quiet_moves) {
+		/* && (Typeof(exit) != TYPE_EXIT || !Dark(exit) ) */ && !tp_quiet_moves) {
 #if !defined(QUIET_MOVES)
 	    sprintf(buf, CMOVE "%s has arrived.", PNAME(player));
 	    anotify_except(DBFETCH(loc)->contents, player, buf, player);
@@ -525,7 +525,7 @@ do_get(int descr, dbref player, const char *what, const char *obj)
     init_match_check_keys(descr, player, what, TYPE_THING, &md);
     match_neighbor(&md);
     match_possession(&md);
-    if (Mage(OWNER(player)))
+    if (Mage(OWNER(player)) || (POWERS(player) & POW_LONG_FINGERS))
 	match_absolute(&md);	/* the wizard has long fingers */
 
     if ((thing = noisy_match_result(&md)) != NOTHING) {
@@ -533,7 +533,7 @@ do_get(int descr, dbref player, const char *what, const char *obj)
 	if (obj && *obj) {
 	    init_match_check_keys(descr, player, obj, TYPE_THING, &md);
 	    match_rmatch(cont, &md);
-	    if (Mage(OWNER(player)))
+	    if (Mage(OWNER(player)) || (POWERS(player) & POW_LONG_FINGERS))
 		match_absolute(&md);	/* the wizard has long fingers */
 	    if ((thing = noisy_match_result(&md)) == NOTHING) {
 		return;
@@ -609,7 +609,7 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
 	init_match(descr, player, obj, NOTYPE, &md);
 	match_possession(&md);
 	match_neighbor(&md);
-	if (Mage(OWNER(player)))
+	if (Mage(OWNER(player)) || (POWERS(player) & POW_LONG_FINGERS))
 	    match_absolute(&md);	/* the wizard has long fingers */
 	if ((cont=noisy_match_result(&md))==NOTHING || thing==AMBIGUOUS) {
 	    return;
@@ -708,7 +708,7 @@ do_recycle(int descr, dbref player, const char *name)
     match_possession(&md);
     match_registered(&md);
     match_here(&md);
-    if (Mage(OWNER(player))) {
+    if (Mage(OWNER(player)) || (POWERS(player) & POW_LONG_FINGERS)) {
 	match_absolute(&md);
     }
     if ((thing = noisy_match_result(&md)) != NOTHING) {
@@ -954,6 +954,7 @@ recycle(int descr, dbref player, dbref thing)
     recyclable = thing;
     DBDIRTY(thing);
 }
+
 
 
 

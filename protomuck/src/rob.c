@@ -45,7 +45,7 @@ do_give(int descr, dbref player, const char *recipient, int amount)
 	    anotify_nolisten2(player, CINFO "I don't know who you mean!");
 	    return;
 	default:
-	    if (!Mage(OWNER(player))) {
+	    if (!Mage(OWNER(player)) && !(POWERS(player) & POW_NO_PAY)) {
 		if (Typeof(who) != TYPE_PLAYER) {
 		    anotify_nolisten2(player, CFAIL "You can only give to other players.");
 		    return;
@@ -94,5 +94,6 @@ do_give(int descr, dbref player, const char *recipient, int amount)
 	DBDIRTY(who);
     }
 }
+
 
 

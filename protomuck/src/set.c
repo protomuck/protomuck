@@ -868,7 +868,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
 	return;
     }
     if (!controls(OWNER(player),thing) && (
-	!(FLAGS(thing) & CHOWN_OK) ||
+	!(FLAGS(thing) & CHOWN_OK) || (POWERS(player) & POW_CHOWN_ANYTHING) ||
 	Typeof(thing) == TYPE_PROGRAM ||
 	!test_lock(descr, player, thing, "_/chlk") )) {
 	anotify_nolisten2(player, CFAIL "You can't take possession of that.");
@@ -1390,6 +1390,7 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
     }
     anotify_nolisten2(player, CSUCC "Property set.");
 }
+
 
 
 

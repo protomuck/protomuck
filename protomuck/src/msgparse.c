@@ -480,7 +480,7 @@ get_mvar(const char *varname)
 }
 
 int
-free_top_mvar()
+free_top_mvar(void)
 {
     if (varc < 1) return 1;
     varc--;
@@ -1085,20 +1085,21 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf, const char
       char *tmp = NULL;
 	struct timeval st, et;
 
+	gettimeofday(&st,NULL);
 	tmp = do_parse_mesg_2(descr, player, what, what, inbuf, abuf, outbuf, mesgtyp);
 	gettimeofday(&et,NULL);
 	if (strcmp(tmp,inbuf)) {
-	  et.tv_usec -= st.tv_usec;
-	  et.tv_sec -= st.tv_sec;
-	  if (et.tv_usec < 0) {
+	  if (st.tv_usec > et.tv_usec) {
 	    et.tv_usec += 1000000;
 	    et.tv_sec -= 1;
 	  }
-	  DBFETCH(what)->mpi_prof_sec += et.tv_sec;
-	  DBFETCH(what)->mpi_prof_usec += et.tv_usec;
-	  if (DBFETCH(what)->mpi_prof_usec >= 1000000) {
-	    DBFETCH(what)->mpi_prof_usec -= 1000000;
-	    DBFETCH(what)->mpi_prof_sec += 1;
+	  et.tv_usec -= st.tv_usec;
+	  et.tv_sec -= st.tv_sec;
+	  DBFETCH(what)->mpi_proftime.tv_sec += et.tv_sec;
+	  DBFETCH(what)->mpi_proftime.tv_usec += et.tv_usec;
+	  if (DBFETCH(what)->mpi_proftime.tv_usec >= 1000000) {
+	    DBFETCH(what)->mpi_proftime.tv_usec -= 1000000;
+	    DBFETCH(what)->mpi_proftime.tv_sec += 1;
 	  }
 	  DBFETCH(what)->mpi_prof_use++;
 	}

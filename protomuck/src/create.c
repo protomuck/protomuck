@@ -13,7 +13,7 @@
 #include "strings.h"
 #include <ctype.h>
 
-struct line *read_program(dbref i, int editor);
+struct line *read_program(dbref i);
 
 int link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref *dest_list);
 
@@ -135,7 +135,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 	anotify_nolisten2(player, CINFO "That's a strange name for an exit!");
 	return;
     }
-    if (!controls(player, loc)) {
+    if (!controls(player, loc) || (POWERS(player) & POW_OPEN_ANYWHERE)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     } else if (!payfor(player, tp_exit_cost)) {
@@ -588,6 +588,11 @@ do_prog(int descr, dbref player, const char *name)
 	DBFETCH(newprog)->sp.program.code = 0;
 	DBFETCH(newprog)->sp.program.start = 0;
 	DBFETCH(newprog)->sp.program.pubs = 0;
+	DBFETCH(newprog)->sp.program.mcpbinds = 0;
+      DBFETCH(newprog)->sp.program.proftime.tv_sec = 0;
+      DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
+      DBFETCH(newprog)->sp.program.profstart = 0;
+      DBFETCH(newprog)->sp.program.profuses = 0;
 
 	DBFETCH(player)->sp.player.curr_prog = newprog;
 
@@ -609,7 +614,7 @@ do_prog(int descr, dbref player, const char *name)
 	    anotify_nolisten2(player, CFAIL NOEDIT_MESG);
 	    return;
 	}
-	DBFETCH(i)->sp.program.first = read_program(i,1);
+	DBFETCH(i)->sp.program.first = read_program(i);
 	FLAGS(i) |= INTERNAL;
 	DBFETCH(player)->sp.player.curr_prog = i;
 	anotify_nolisten2(player, CINFO "Entering editor.");
@@ -663,7 +668,7 @@ do_edit(int descr, dbref player, const char *name)
 	return;
     }
     FLAGS(i) |= INTERNAL;
-    DBFETCH(i)->sp.program.first = read_program(i,1);
+    DBFETCH(i)->sp.program.first = read_program(i);
     DBFETCH(player)->sp.player.curr_prog = i;
     anotify_nolisten2(player, CINFO "Entering editor.");
     /* list current line */
@@ -671,6 +676,85 @@ do_edit(int descr, dbref player, const char *name)
     FLAGS(player) |= INTERACTIVE;
     DBDIRTY(i);
     DBDIRTY(player);
+}
+
+void
+do_mcpedit(int descr, dbref player, const char *name)
+{
+	dbref i;
+	struct match_data md;
+	char namestr[BUFFER_LEN];
+	char refstr[BUFFER_LEN];
+	struct line *curr;
+	McpMesg msg;
+	McpFrame *mfr;
+	McpVer supp;
+
+	mfr = descr_mcpframe(descr);
+	if (!mfr) {
+		do_edit(descr, player, name);
+		return;
+	}
+
+	supp = mcp_frame_package_supported(mfr, "dns-org-mud-moo-simpleedit");
+
+	if (supp.verminor == 0 && supp.vermajor == 0) {
+		do_edit(descr, player, name);
+		return;
+	}
+
+	if (Typeof(player) != TYPE_PLAYER) {
+		show_mcp_error(mfr, "@mcpedit", "Only players can edit programs.");
+		return;
+	}
+	if (!Mucker(player)) {
+		show_mcp_error(mfr, "@mcpedit", NOMBIT_MESG);
+		return;
+	}
+      if (tp_db_readonly) {
+	      show_mcp_error(mfr, "@mcpedit", DBRO_MESG);
+	      return;
+      }
+	if (!*name) {
+		show_mcp_error(mfr, "@mcpedit", "No program name given.");
+		return;
+	}
+	init_match(descr, player, name, TYPE_PROGRAM, &md);
+
+	match_possession(&md);
+	match_neighbor(&md);
+	match_registered(&md);
+	match_absolute(&md);
+
+	if ((i = noisy_match_result(&md)) == NOTHING || i == AMBIGUOUS)
+		return;
+
+	if ((Typeof(i) != TYPE_PROGRAM) || !controls(player, i)) {
+		show_mcp_error(mfr, "@mcpedit", "Permission denied!");
+		return;
+	}
+	if (FLAGS(i) & INTERNAL) {
+		show_mcp_error(mfr, "@mcpedit",
+					   "Sorry, this program is currently being edited.  Try again later.");
+		return;
+	}
+      DBFETCH(i)->sp.program.first = read_program(i);
+      DBFETCH(player)->sp.player.curr_prog = i;
+
+	sprintf(refstr, "%d.prog.", i);
+	sprintf(namestr, "a program named %s(%d)", NAME(i), i);
+	mcp_mesg_init(&msg, "dns-org-mud-moo-simpleedit", "content");
+	mcp_mesg_arg_append(&msg, "reference", refstr);
+	mcp_mesg_arg_append(&msg, "type", "muf-code");
+	mcp_mesg_arg_append(&msg, "name", namestr);
+	for (curr = DBFETCH(i)->sp.program.first; curr; curr = curr->next) {
+		mcp_mesg_arg_append(&msg, "content", DoNull(curr->this_line));
+	}
+	mcp_frame_output_mesg(mfr, &msg);
+	mcp_mesg_clear(&msg);
+
+	free_prog_text(DBFETCH(i)->sp.program.first);
+      DBFETCH(i)->sp.program.first = 0;
 }
 
 /*

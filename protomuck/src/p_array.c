@@ -605,7 +605,7 @@ prim_array_n_union(PRIM_PROTOTYPE)
                 abort_interp("Stack underflow.");
 
         if (result > 0) {
-                new_mash = new_array_dictionary(0);
+                new_mash = new_array_dictionary();
                 for (num_arrays = 0; num_arrays < result; num_arrays++) {
                         oper1 = POP();
                         array_mash(oper1->data.array, &new_mash, 1);
@@ -641,7 +641,7 @@ prim_array_n_intersection(PRIM_PROTOTYPE)
                 abort_interp("Stack underflow.");
 
         if (result > 0) {
-                new_mash = new_array_dictionary(0);
+                new_mash = new_array_dictionary();
                 for (num_arrays = 0; num_arrays < result; num_arrays++) {
                         oper1 = POP();
                         array_mash(oper1->data.array, &new_mash, 1);
@@ -677,7 +677,7 @@ prim_array_n_difference(PRIM_PROTOTYPE)
                 abort_interp("Stack underflow.");
 
         if (result > 0) {
-                new_mash = new_array_dictionary(0);
+                new_mash = new_array_dictionary();
 
                 oper1 = POP();
                 array_mash(oper1->data.array, &new_mash, 1);

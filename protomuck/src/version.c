@@ -16,8 +16,8 @@
 #include "interface.h"
 #include "externs.h"
 
-const char *generation = "448";
-const char *creation = "Sun Aug 27 2000 at 15:45:09 EDT";
+const char *generation = "538";
+const char *creation = "Sun Sep 3 2000 at 14:06:06 EDT";
 const char *version = PATCHLEVEL;
 
 const char *infotext[] =
