@@ -176,6 +176,7 @@ index_file(dbref player, const char *onwhat, const char *file)
 {
     FILE   *f;
     char    buf[BUFFER_LEN];
+    char    wallBuf[BUFFER_LEN];
     char    topic[BUFFER_LEN];
     char   *p;
     int     arglen, found;
@@ -192,6 +193,8 @@ index_file(dbref player, const char *onwhat, const char *file)
 	anotify_nolisten2(player, buf);
 	fprintf(stderr, "help: No file %s!\n", file);
         log2file(HELP_LOG, "MISSING: %s", file);
+        sprintf(wallBuf, "MISSING: %s", file);
+        wall_logwizards(wallBuf);
     } else {
 	arglen = strlen(topic);
 	if (*topic && (arglen > 1)) {
@@ -206,6 +209,9 @@ index_file(dbref player, const char *onwhat, const char *file)
                             log2file(HELP_LOG, "%s tried to look up '%s' in: %s.",
                                      unparse_object(player, player), onwhat, 
                                      file);
+                        sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
+                                unparse_object(player, player), onwhat, file);
+                        wall_logwizards(wallBuf);
 			return;
 		    }
 		} while (*buf != '~');
@@ -219,6 +225,9 @@ index_file(dbref player, const char *onwhat, const char *file)
                             log2file(HELP_LOG, "%s tried to look up '%s' in: %s.",
                                      unparse_object(player, player), onwhat, 
                                      file);
+                        sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
+                                unparse_object(player, player), onwhat, file);
+                        wall_logwizards(wallBuf);
 			return;
 		    }
 		} while (*buf == '~');
