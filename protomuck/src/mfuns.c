@@ -1642,15 +1642,15 @@ mfn_money(MFUNARGS)
     if (obj == PERMDENIED)
         ABORT_MPI("MONEY", tp_noperm_mesg);
     switch (Typeof(obj)) {
-    case TYPE_THING:
-        sprintf(buf, "%d", DBFETCH(obj)->sp.thing.value);
-        break;
-    case TYPE_PLAYER:
-        sprintf(buf, "%d", DBFETCH(obj)->sp.player.pennies);
-        break;
-    default:
-        strcpy(buf, "0");
-        break;
+        case TYPE_THING:
+            sprintf(buf, "%d", DBFETCH(obj)->sp.thing.value);
+            break;
+        case TYPE_PLAYER:
+            sprintf(buf, "%d", DBFETCH(obj)->sp.player.pennies);
+            break;
+        default:
+            strcpy(buf, "0");
+            break;
     }
     return buf;
 }

@@ -101,13 +101,13 @@ int
 reg_site_can_request(int site)
 {
     switch (siteState(site, REG_OBJ)) {
-    case REG_BLOCKED:
-    case REG_LOCKOUT:
-    case REG_GUEST:
-    case REG_REQUEST:
-        return FALSE;
-    default:
-        return TRUE;
+        case REG_BLOCKED:
+        case REG_LOCKOUT:
+        case REG_GUEST:
+        case REG_REQUEST:
+            return FALSE;
+        default:
+            return TRUE;
     }
 }
 
@@ -117,12 +117,12 @@ int
 reg_site_is_barred(int site)
 {
     switch (siteState(site, REG_OBJ)) {
-    case REG_BLOCKED:
-    case REG_LOCKOUT:
-    case REG_GUEST:
-        return TRUE;
-    default:
-        return FALSE;
+        case REG_BLOCKED:
+        case REG_LOCKOUT:
+        case REG_GUEST:
+            return TRUE;
+        default:
+            return FALSE;
     }
 }
 
@@ -134,10 +134,10 @@ reg_site_is_blocked(int site)
     if (site == 0x7F000001)
         return FALSE;           /* localhost */
     switch (siteState(site, REG_OBJ)) {
-    case REG_BLOCKED:
-        return TRUE;
-    default:
-        return FALSE;
+        case REG_BLOCKED:
+            return TRUE;
+        default:
+            return FALSE;
     }
 }
 
@@ -155,20 +155,20 @@ reg_user_is_barred(int site, int user)
     /* Barring is default on registered sites, */
     /* and mandatory on locked out sites: */
     switch (siteState(site, REG_OBJ)) {
-    case REG_BLOCKED:
-    case REG_LOCKOUT:
-        barred = TRUE;
-        opensite = TRUE;
-        break;
-    case REG_GUEST:
-        guest = TRUE;
-        opensite = TRUE;
-        break;
-    case REG_OPEN:
-        opensite = TRUE;
-        break;
-    default:
-        break;
+        case REG_BLOCKED:
+        case REG_LOCKOUT:
+            barred = TRUE;
+            opensite = TRUE;
+            break;
+        case REG_GUEST:
+            guest = TRUE;
+            opensite = TRUE;
+            break;
+        case REG_OPEN:
+            opensite = TRUE;
+            break;
+        default:
+            break;
     }
 
     if (!Guest(user) && get_property_class(user, REG_LOGIN))
@@ -509,32 +509,32 @@ siteStatekey(int site, int obj, const char *startkey)
             if (siteMatch(site, s)) {
                 switch (state[0]) {
 
-                case 'x':
-                case 'X':
-                    return REG_BLOCKED;
-                    break;
-                case 'l':
-                case 'L':
-                    return REG_LOCKOUT;
-                    break;
-                case 'g':
-                case 'G':
-                    return REG_GUEST;
-                    break;
-                case 'u':
-                case 'U':
-                    return REG_USER;
-                    break;
-                case 'r':
-                case 'R':
-                    return REG_REQUEST;
-                    break;
-                case 'o':
-                case 'O':
-                    return REG_OPEN;
-                    break;
-                default:
-                    return REG_DEFAULT;
+                    case 'x':
+                    case 'X':
+                        return REG_BLOCKED;
+                        break;
+                    case 'l':
+                    case 'L':
+                        return REG_LOCKOUT;
+                        break;
+                    case 'g':
+                    case 'G':
+                        return REG_GUEST;
+                        break;
+                    case 'u':
+                    case 'U':
+                        return REG_USER;
+                        break;
+                    case 'r':
+                    case 'R':
+                        return REG_REQUEST;
+                        break;
+                    case 'o':
+                    case 'O':
+                        return REG_OPEN;
+                        break;
+                    default:
+                        return REG_DEFAULT;
                 }
             }
         }

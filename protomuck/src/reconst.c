@@ -27,37 +27,37 @@ readd_contents(dbref obj)
     dbref where = db[obj].location;
 
     switch (db[obj].flags & TYPE_MASK) {
-    case TYPE_ROOM:
-    case TYPE_THING:
-    case TYPE_PROGRAM:
-    case TYPE_PLAYER:
-        if (db[where].contents == NOTHING) {
-            db[where].contents = obj;
-            return;
-        }
-        what = db[where].contents;
-        while (db[what].next != NOTHING)
-            what = db[what].next;
-        db[what].next = obj;
-        break;
-    case TYPE_EXIT:
-        switch (db[where].flags & TYPE_MASK) {
         case TYPE_ROOM:
         case TYPE_THING:
+        case TYPE_PROGRAM:
         case TYPE_PLAYER:
-            if (db[where].exits == NOTHING) {
-                db[where].exits = obj;
+            if (db[where].contents == NOTHING) {
+                db[where].contents = obj;
                 return;
             }
-            what = db[where].exits;
+            what = db[where].contents;
+            while (db[what].next != NOTHING)
+                what = db[what].next;
+            db[what].next = obj;
             break;
-        }
-        while (db[what].next != NOTHING)
-            what = db[what].next;
-        db[what].next = obj;
-        break;
-    case TYPE_GARBAGE:
-        break;
+        case TYPE_EXIT:
+            switch (db[where].flags & TYPE_MASK) {
+                case TYPE_ROOM:
+                case TYPE_THING:
+                case TYPE_PLAYER:
+                    if (db[where].exits == NOTHING) {
+                        db[where].exits = obj;
+                        return;
+                    }
+                    what = db[where].exits;
+                    break;
+            }
+            while (db[what].next != NOTHING)
+                what = db[what].next;
+            db[what].next = obj;
+            break;
+        case TYPE_GARBAGE:
+            break;
     }
 }
 
@@ -267,27 +267,27 @@ main(int argc, char **argv)
     for (i = 0; i < db_top; i++) {
         check_common(i);
         switch (db[i].flags & TYPE_MASK) {
-        case TYPE_ROOM:
-            check_room(i);
-            break;
-        case TYPE_THING:
-            check_thing(i);
-            break;
-        case TYPE_EXIT:
-            check_exit(i);
-            break;
-        case TYPE_PLAYER:
-            check_player(i);
-            break;
-        case TYPE_PROGRAM:
-            check_program(i);
-            break;
-        case TYPE_GARBAGE:
-            break;
-        default:
-            db[i].flags &= ~TYPE_MASK;
-            db[i].flags |= TYPE_GARBAGE;
-            break;
+            case TYPE_ROOM:
+                check_room(i);
+                break;
+            case TYPE_THING:
+                check_thing(i);
+                break;
+            case TYPE_EXIT:
+                check_exit(i);
+                break;
+            case TYPE_PLAYER:
+                check_player(i);
+                break;
+            case TYPE_PROGRAM:
+                check_program(i);
+                break;
+            case TYPE_GARBAGE:
+                break;
+            default:
+                db[i].flags &= ~TYPE_MASK;
+                db[i].flags |= TYPE_GARBAGE;
+                break;
         }
     }
     for (i = 0; i < db_top; i++)

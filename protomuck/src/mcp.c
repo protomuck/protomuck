@@ -666,9 +666,8 @@ mcp_frame_process_input(McpFrame *mfr, const char *linein, char *outbuf,
 void
 mcp_frame_output_inband(McpFrame *mfr, const char *lineout)
 {
-    if (!mfr->enabled ||
-        (strncmp(lineout, MCP_MESG_PREFIX, 3)
-         && strncmp(lineout, MCP_QUOTE_PREFIX, 3))
+    if (!mfr->enabled || (strncmp(lineout, MCP_MESG_PREFIX, 3)
+                          && strncmp(lineout, MCP_QUOTE_PREFIX, 3))
         ) {
         SendText(mfr, lineout);
     } else {

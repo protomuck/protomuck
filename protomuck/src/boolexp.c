@@ -67,37 +67,37 @@ copy_bool(struct boolexp *old)
     o->type = old->type;
 
     switch (old->type) {
-    case BOOLEXP_AND:
-    case BOOLEXP_OR:
-        o->sub1 = copy_bool(old->sub1);
-        o->sub2 = copy_bool(old->sub2);
-        break;
-    case BOOLEXP_NOT:
-        o->sub1 = copy_bool(old->sub1);
-        break;
-    case BOOLEXP_CONST:
-        o->thing = old->thing;
-        break;
-    case BOOLEXP_PROP:
-        if (!old->prop_check) {
-            free_boolnode(o);
-            return 0;
-        }
-        o->prop_check = alloc_propnode(PropName(old->prop_check));
-        SetPFlagsRaw(o->prop_check, PropFlagsRaw(old->prop_check));
-        switch (PropType(old->prop_check)) {
-        case PROP_STRTYP:
-            SetPDataStr(o->prop_check,
-                        alloc_string(PropDataStr(old->prop_check)));
+        case BOOLEXP_AND:
+        case BOOLEXP_OR:
+            o->sub1 = copy_bool(old->sub1);
+            o->sub2 = copy_bool(old->sub2);
+            break;
+        case BOOLEXP_NOT:
+            o->sub1 = copy_bool(old->sub1);
+            break;
+        case BOOLEXP_CONST:
+            o->thing = old->thing;
+            break;
+        case BOOLEXP_PROP:
+            if (!old->prop_check) {
+                free_boolnode(o);
+                return 0;
+            }
+            o->prop_check = alloc_propnode(PropName(old->prop_check));
+            SetPFlagsRaw(o->prop_check, PropFlagsRaw(old->prop_check));
+            switch (PropType(old->prop_check)) {
+                case PROP_STRTYP:
+                    SetPDataStr(o->prop_check,
+                                alloc_string(PropDataStr(old->prop_check)));
+                    break;
+                default:
+                    SetPDataVal(o->prop_check, PropDataVal(old->prop_check));
+                    break;
+            }
             break;
         default:
-            SetPDataVal(o->prop_check, PropDataVal(old->prop_check));
-            break;
-        }
-        break;
-    default:
-        log_status("PANIC: copy_boolexp: Error in boolexp!\n");
-        abort();
+            log_status("PANIC: copy_boolexp: Error in boolexp!\n");
+            abort();
     }
     return o;
 }
@@ -111,59 +111,59 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
         return 1;
     } else {
         switch (b->type) {
-        case BOOLEXP_AND:
-            return (eval_boolexp_rec2
-                    (descr, player, b->sub1, thing, evalprogram)
-                    && eval_boolexp_rec2(descr, player, b->sub2, thing,
-                                         evalprogram));
-        case BOOLEXP_OR:
-            return (eval_boolexp_rec2
-                    (descr, player, b->sub1, thing, evalprogram)
-                    || eval_boolexp_rec2(descr, player, b->sub2, thing,
-                                         evalprogram));
-        case BOOLEXP_NOT:
-            return !eval_boolexp_rec2(descr, player, b->sub1, thing,
-                                      evalprogram);
-        case BOOLEXP_CONST:
+            case BOOLEXP_AND:
+                return (eval_boolexp_rec2
+                        (descr, player, b->sub1, thing, evalprogram)
+                        && eval_boolexp_rec2(descr, player, b->sub2, thing,
+                                             evalprogram));
+            case BOOLEXP_OR:
+                return (eval_boolexp_rec2
+                        (descr, player, b->sub1, thing, evalprogram)
+                        || eval_boolexp_rec2(descr, player, b->sub2, thing,
+                                             evalprogram));
+            case BOOLEXP_NOT:
+                return !eval_boolexp_rec2(descr, player, b->sub1, thing,
+                                          evalprogram);
+            case BOOLEXP_CONST:
 #ifndef SANITY
-            if (b->thing == NOTHING)
-                return 0;
-            if (Typeof(b->thing) == TYPE_PROGRAM && evalprogram != 0) {
-                if (Typeof(player) == TYPE_PLAYER ||
-                    Typeof(player) == TYPE_THING) {
-                    struct inst *rv;
-                    struct frame *tmpfr;
+                if (b->thing == NOTHING)
+                    return 0;
+                if (Typeof(b->thing) == TYPE_PROGRAM && evalprogram != 0) {
+                    if (Typeof(player) == TYPE_PLAYER ||
+                        Typeof(player) == TYPE_THING) {
+                        struct inst *rv;
+                        struct frame *tmpfr;
 
-                    tmpfr =
-                        interp(descr, player, DBFETCH(player)->location,
-                               b->thing, thing, PREEMPT, STD_HARDUID, 0);
-                    if (!tmpfr)
-                        return (0);
-                    rv = interp_loop(player, b->thing, tmpfr, 0);
-                    return (rv != NULL);
+                        tmpfr =
+                            interp(descr, player, DBFETCH(player)->location,
+                                   b->thing, thing, PREEMPT, STD_HARDUID, 0);
+                        if (!tmpfr)
+                            return (0);
+                        rv = interp_loop(player, b->thing, tmpfr, 0);
+                        return (rv != NULL);
+                    }
                 }
-            }
-            return (b->thing == player || b->thing == OWNER(player)
-                    || member(b->thing, DBFETCH(player)->contents)
-                    || b->thing == DBFETCH(player)->location);
+                return (b->thing == player || b->thing == OWNER(player)
+                        || member(b->thing, DBFETCH(player)->contents)
+                        || b->thing == DBFETCH(player)->location);
 #else /* !SANITY */
-            return 0;
+                return 0;
 #endif /* !SANITY */
-        case BOOLEXP_PROP:
-            if (PropType(b->prop_check) == PROP_STRTYP) {
-                if (has_property_strict(descr, player, thing,
-                                        PropName(b->prop_check),
-                                        PropDataStr(b->prop_check), 0))
-                    return 1;
-                if (has_property(descr, player, player,
-                                 PropName(b->prop_check),
-                                 PropDataStr(b->prop_check), 0))
-                    return 1;
-            }
-            return 0;
-        default:
-            fprintf(stderr, "PANIC: Unknown type of bool expression.\n");
-            abort();            /* bad type */
+            case BOOLEXP_PROP:
+                if (PropType(b->prop_check) == PROP_STRTYP) {
+                    if (has_property_strict(descr, player, thing,
+                                            PropName(b->prop_check),
+                                            PropDataStr(b->prop_check), 0))
+                        return 1;
+                    if (has_property(descr, player, player,
+                                     PropName(b->prop_check),
+                                     PropDataStr(b->prop_check), 0))
+                        return 1;
+                }
+                return 0;
+            default:
+                fprintf(stderr, "PANIC: Unknown type of bool expression.\n");
+                abort();        /* bad type */
         }
     }
 }
@@ -230,90 +230,90 @@ parse_boolexp_F(int descr, const char **parsebuf, dbref player, int dbloadp)
 
     skip_whitespace(parsebuf);
     switch (**parsebuf) {
-    case '(':
-        (*parsebuf)++;
-        b = parse_boolexp_E(descr, parsebuf, player, dbloadp);
-        skip_whitespace(parsebuf);
-        if (b == TRUE_BOOLEXP || *(*parsebuf)++ != ')') {
-            free_boolexp(b);
-            return TRUE_BOOLEXP;
-        } else {
-            return b;
-        }
-        /* break; */
-    case NOT_TOKEN:
-        (*parsebuf)++;
-        b = alloc_boolnode();
-        b->type = BOOLEXP_NOT;
-        b->sub1 = parse_boolexp_F(descr, parsebuf, player, dbloadp);
-        if (b->sub1 == TRUE_BOOLEXP) {
-            free_boolnode(b);
-            return TRUE_BOOLEXP;
-        } else {
-            return b;
-        }
-        /* break */
-    default:
-        /* must have hit an object ref */
-        /* load the name into our buffer */
-        p = buf;
-        while (**parsebuf
-               && **parsebuf != AND_TOKEN && **parsebuf != OR_TOKEN
-               && **parsebuf != ')') {
-            *p++ = *(*parsebuf)++;
-        }
-        /* strip trailing whitespace */
-        *p-- = '\0';
-        while (isspace(*p))
+        case '(':
+            (*parsebuf)++;
+            b = parse_boolexp_E(descr, parsebuf, player, dbloadp);
+            skip_whitespace(parsebuf);
+            if (b == TRUE_BOOLEXP || *(*parsebuf)++ != ')') {
+                free_boolexp(b);
+                return TRUE_BOOLEXP;
+            } else {
+                return b;
+            }
+            /* break; */
+        case NOT_TOKEN:
+            (*parsebuf)++;
+            b = alloc_boolnode();
+            b->type = BOOLEXP_NOT;
+            b->sub1 = parse_boolexp_F(descr, parsebuf, player, dbloadp);
+            if (b->sub1 == TRUE_BOOLEXP) {
+                free_boolnode(b);
+                return TRUE_BOOLEXP;
+            } else {
+                return b;
+            }
+            /* break */
+        default:
+            /* must have hit an object ref */
+            /* load the name into our buffer */
+            p = buf;
+            while (**parsebuf
+                   && **parsebuf != AND_TOKEN && **parsebuf != OR_TOKEN
+                   && **parsebuf != ')') {
+                *p++ = *(*parsebuf)++;
+            }
+            /* strip trailing whitespace */
             *p-- = '\0';
+            while (isspace(*p))
+                *p-- = '\0';
 
-        /* check to see if this is a property expression */
-        if (index(buf, PROP_DELIMITER)) {
-            return parse_boolprop(buf);
-        }
-        b = alloc_boolnode();
-        b->type = BOOLEXP_CONST;
+            /* check to see if this is a property expression */
+            if (index(buf, PROP_DELIMITER)) {
+                return parse_boolprop(buf);
+            }
+            b = alloc_boolnode();
+            b->type = BOOLEXP_CONST;
 
-        /* do the match */
-        if (!dbloadp) {
-            init_match(descr, player, buf, TYPE_THING, &md);
-            match_neighbor(&md);
-            match_possession(&md);
-            match_me(&md);
-            match_here(&md);
-            match_absolute(&md);
-            match_registered(&md);
-            match_player(&md);
-            b->thing = match_result(&md);
+            /* do the match */
+            if (!dbloadp) {
+                init_match(descr, player, buf, TYPE_THING, &md);
+                match_neighbor(&md);
+                match_possession(&md);
+                match_me(&md);
+                match_here(&md);
+                match_absolute(&md);
+                match_registered(&md);
+                match_player(&md);
+                b->thing = match_result(&md);
 
-            if (b->thing == NOTHING) {
-                sprintf(msg, "I don't see %s here.", buf);
-                notify(player, msg);
-                free_boolnode(b);
-                return TRUE_BOOLEXP;
-            } else if (b->thing == AMBIGUOUS) {
-                sprintf(msg, "I don't know which %s you mean!", buf);
-                notify(player, msg);
-                free_boolnode(b);
-                return TRUE_BOOLEXP;
+                if (b->thing == NOTHING) {
+                    sprintf(msg, "I don't see %s here.", buf);
+                    notify(player, msg);
+                    free_boolnode(b);
+                    return TRUE_BOOLEXP;
+                } else if (b->thing == AMBIGUOUS) {
+                    sprintf(msg, "I don't know which %s you mean!", buf);
+                    notify(player, msg);
+                    free_boolnode(b);
+                    return TRUE_BOOLEXP;
+                } else {
+                    return b;
+                }
             } else {
-                return b;
+                if (*buf != NUMBER_TOKEN || !number(buf + 1)) {
+                    free_boolnode(b);
+                    return TRUE_BOOLEXP;
+                }
+                b->thing = (dbref) atoi(buf + 1);
+                if (b->thing < 0 || b->thing >= db_top
+                    || Typeof(b->thing) == TYPE_GARBAGE) {
+                    free_boolnode(b);
+                    return TRUE_BOOLEXP;
+                } else {
+                    return b;
+                }
             }
-        } else {
-            if (*buf != NUMBER_TOKEN || !number(buf + 1)) {
-                free_boolnode(b);
-                return TRUE_BOOLEXP;
-            }
-            b->thing = (dbref) atoi(buf + 1);
-            if (b->thing < 0 || b->thing >= db_top
-                || Typeof(b->thing) == TYPE_GARBAGE) {
-                free_boolnode(b);
-                return TRUE_BOOLEXP;
-            } else {
-                return b;
-            }
-        }
-        /* break */
+            /* break */
     }
 }
 
@@ -445,22 +445,22 @@ size_boolexp(struct boolexp *b)
     } else {
         result = sizeof(*b);
         switch (b->type) {
-        case BOOLEXP_AND:
-        case BOOLEXP_OR:
-            result += size_boolexp(b->sub2);
-        case BOOLEXP_NOT:
-            result += size_boolexp(b->sub1);
-        case BOOLEXP_CONST:
-            break;
-        case BOOLEXP_PROP:
-            result += sizeof(*b->prop_check);
-            result += strlen(PropName(b->prop_check)) + 1;
-            if (PropDataStr(b->prop_check))
-                result += strlen(PropDataStr(b->prop_check)) + 1;
-            break;
-        default:
-            fprintf(stderr, "PANIC: Unknown type of bool.\n");
-            abort();            /* bad type */
+            case BOOLEXP_AND:
+            case BOOLEXP_OR:
+                result += size_boolexp(b->sub2);
+            case BOOLEXP_NOT:
+                result += size_boolexp(b->sub1);
+            case BOOLEXP_CONST:
+                break;
+            case BOOLEXP_PROP:
+                result += sizeof(*b->prop_check);
+                result += strlen(PropName(b->prop_check)) + 1;
+                if (PropDataStr(b->prop_check))
+                    result += strlen(PropDataStr(b->prop_check)) + 1;
+                break;
+            default:
+                fprintf(stderr, "PANIC: Unknown type of bool.\n");
+                abort();        /* bad type */
         }
         return (result);
     }
@@ -495,101 +495,101 @@ getboolexp1(FILE * f)
 
     c = getc(f);
     switch (c) {
-    case '\n':
-        ungetc(c, f);
-        return TRUE_BOOLEXP;
-        /* break; */
-    case EOF:
-        fprintf(stderr, "PANIC: Unexpected EOF in reading bool.\n");
-        abort();                /* unexpected EOF in boolexp */
-        break;
-    case '(':
-        b = alloc_boolnode();
-        if ((c = getc(f)) == '!') {
-            b->type = BOOLEXP_NOT;
-            b->sub1 = getboolexp1(f);
-            if (getc(f) != ')')
-                goto error;
-            return b;
-        } else {
+        case '\n':
             ungetc(c, f);
-            b->sub1 = getboolexp1(f);
-            switch (c = getc(f)) {
-            case AND_TOKEN:
-                b->type = BOOLEXP_AND;
-                break;
-            case OR_TOKEN:
-                b->type = BOOLEXP_OR;
-                break;
-            default:
-                goto error;
-                /* break */
+            return TRUE_BOOLEXP;
+            /* break; */
+        case EOF:
+            fprintf(stderr, "PANIC: Unexpected EOF in reading bool.\n");
+            abort();            /* unexpected EOF in boolexp */
+            break;
+        case '(':
+            b = alloc_boolnode();
+            if ((c = getc(f)) == '!') {
+                b->type = BOOLEXP_NOT;
+                b->sub1 = getboolexp1(f);
+                if (getc(f) != ')')
+                    goto error;
+                return b;
+            } else {
+                ungetc(c, f);
+                b->sub1 = getboolexp1(f);
+                switch (c = getc(f)) {
+                    case AND_TOKEN:
+                        b->type = BOOLEXP_AND;
+                        break;
+                    case OR_TOKEN:
+                        b->type = BOOLEXP_OR;
+                        break;
+                    default:
+                        goto error;
+                        /* break */
+                }
+                b->sub2 = getboolexp1(f);
+                if (getc(f) != ')')
+                    goto error;
+                return b;
             }
-            b->sub2 = getboolexp1(f);
-            if (getc(f) != ')')
+            /* break; */
+        case '-':
+            /* obsolete NOTHING key */
+            /* eat it */
+            while ((c = getc(f)) != '\n')
+                if (c == EOF) {
+                    fprintf(stderr, "PANIC: Unexpected EOF in bool exp.\n");
+                    abort();    /* unexp EOF */
+                }
+            ungetc(c, f);
+            return TRUE_BOOLEXP;
+            /* break */
+        case '[':
+            /* property type */
+            b = alloc_boolnode();
+            b->type = BOOLEXP_PROP;
+            b->sub1 = b->sub2 = 0;
+            i = 0;
+            while ((c = getc(f)) != PROP_DELIMITER && i < BUFFER_LEN) {
+                buf[i] = c;
+                i++;
+            }
+            if (i >= BUFFER_LEN && c != PROP_DELIMITER)
                 goto error;
+            buf[i] = '\0';
+
+            p = b->prop_check = alloc_propnode(buf);
+
+            i = 0;
+            while ((c = getc(f)) != ']') {
+                if (c == '\\')
+                    c = getc(f);
+                buf[i] = c;
+                i++;
+            }
+            buf[i] = '\0';
+            if (i >= BUFFER_LEN && c != ']')
+                goto error;
+            if (!number(buf)) {
+                SetPDataStr(p, alloc_string(buf));
+                SetPType(p, PROP_STRTYP);
+            } else {
+                SetPDataVal(p, atol(buf));
+                SetPType(p, PROP_INTTYP);
+            }
             return b;
-        }
-        /* break; */
-    case '-':
-        /* obsolete NOTHING key */
-        /* eat it */
-        while ((c = getc(f)) != '\n')
-            if (c == EOF) {
-                fprintf(stderr, "PANIC: Unexpected EOF in bool exp.\n");
-                abort();        /* unexp EOF */
+        default:
+            /* better be a dbref */
+            ungetc(c, f);
+            b = alloc_boolnode();
+            b->type = BOOLEXP_CONST;
+            b->thing = 0;
+
+            /* NOTE possibly non-portable code */
+            /* Will need to be changed if putref/getref change */
+            while (isdigit(c = getc(f))) {
+                b->thing = b->thing * 10 + c - '0';
             }
-        ungetc(c, f);
-        return TRUE_BOOLEXP;
-        /* break */
-    case '[':
-        /* property type */
-        b = alloc_boolnode();
-        b->type = BOOLEXP_PROP;
-        b->sub1 = b->sub2 = 0;
-        i = 0;
-        while ((c = getc(f)) != PROP_DELIMITER && i < BUFFER_LEN) {
-            buf[i] = c;
-            i++;
-        }
-        if (i >= BUFFER_LEN && c != PROP_DELIMITER)
-            goto error;
-        buf[i] = '\0';
-
-        p = b->prop_check = alloc_propnode(buf);
-
-        i = 0;
-        while ((c = getc(f)) != ']') {
-            if (c == '\\')
-                c = getc(f);
-            buf[i] = c;
-            i++;
-        }
-        buf[i] = '\0';
-        if (i >= BUFFER_LEN && c != ']')
-            goto error;
-        if (!number(buf)) {
-            SetPDataStr(p, alloc_string(buf));
-            SetPType(p, PROP_STRTYP);
-        } else {
-            SetPDataVal(p, atol(buf));
-            SetPType(p, PROP_INTTYP);
-        }
-        return b;
-    default:
-        /* better be a dbref */
-        ungetc(c, f);
-        b = alloc_boolnode();
-        b->type = BOOLEXP_CONST;
-        b->thing = 0;
-
-        /* NOTE possibly non-portable code */
-        /* Will need to be changed if putref/getref change */
-        while (isdigit(c = getc(f))) {
-            b->thing = b->thing * 10 + c - '0';
-        }
-        ungetc(c, f);
-        return b;
+            ungetc(c, f);
+            return b;
     }
 
   error:
@@ -615,23 +615,23 @@ free_boolexp(struct boolexp *b)
 {
     if (b != TRUE_BOOLEXP) {
         switch (b->type) {
-        case BOOLEXP_AND:
-        case BOOLEXP_OR:
-            free_boolexp(b->sub1);
-            free_boolexp(b->sub2);
-            free_boolnode(b);
-            break;
-        case BOOLEXP_NOT:
-            free_boolexp(b->sub1);
-            free_boolnode(b);
-            break;
-        case BOOLEXP_CONST:
-            free_boolnode(b);
-            break;
-        case BOOLEXP_PROP:
-            free_propnode(b->prop_check);
-            free_boolnode(b);
-            break;
+            case BOOLEXP_AND:
+            case BOOLEXP_OR:
+                free_boolexp(b->sub1);
+                free_boolexp(b->sub2);
+                free_boolnode(b);
+                break;
+            case BOOLEXP_NOT:
+                free_boolexp(b->sub1);
+                free_boolnode(b);
+                break;
+            case BOOLEXP_CONST:
+                free_boolnode(b);
+                break;
+            case BOOLEXP_PROP:
+                free_propnode(b->prop_check);
+                free_boolnode(b);
+                break;
         }
     }
 }

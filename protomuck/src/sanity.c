@@ -97,37 +97,40 @@ sane_dump_object(dbref player, const char *arg)
     }
 
     switch (TYPEOF(d)) {
-    case TYPE_THING:
-        SanPrint(player, "  Home:           %s",
-                 unparse(DBFETCH(d)->sp.thing.home));
-        SanPrint(player, "  Value:          %d", DBFETCH(d)->sp.thing.value);
-        break;
+        case TYPE_THING:
+            SanPrint(player, "  Home:           %s",
+                     unparse(DBFETCH(d)->sp.thing.home));
+            SanPrint(player, "  Value:          %d",
+                     DBFETCH(d)->sp.thing.value);
+            break;
 
-    case TYPE_ROOM:
-        SanPrint(player, "  Drop-to:        %s",
-                 unparse(DBFETCH(d)->sp.room.dropto));
-        break;
+        case TYPE_ROOM:
+            SanPrint(player, "  Drop-to:        %s",
+                     unparse(DBFETCH(d)->sp.room.dropto));
+            break;
 
-    case TYPE_PLAYER:
-        SanPrint(player, "  Home:           %s",
-                 unparse(DBFETCH(d)->sp.player.home));
-        SanPrint(player, "  Pennies:        %d", DBFETCH(d)->sp.player.pennies);
-        if (player < 0) {
-            SanPrint(player, "  Password:       %s",
-                     DBFETCH(d)->sp.player.password);
-        }
-        break;
+        case TYPE_PLAYER:
+            SanPrint(player, "  Home:           %s",
+                     unparse(DBFETCH(d)->sp.player.home));
+            SanPrint(player, "  Pennies:        %d",
+                     DBFETCH(d)->sp.player.pennies);
+            if (player < 0) {
+                SanPrint(player, "  Password:       %s",
+                         DBFETCH(d)->sp.player.password);
+            }
+            break;
 
-    case TYPE_EXIT:
-        SanPrint(player, "  Links:");
-        for (i = 0; i < DBFETCH(d)->sp.exit.ndest; i++)
-            SanPrint(player, "    %s", unparse(DBFETCH(d)->sp.exit.dest[i]));
-        break;
+        case TYPE_EXIT:
+            SanPrint(player, "  Links:");
+            for (i = 0; i < DBFETCH(d)->sp.exit.ndest; i++)
+                SanPrint(player, "    %s",
+                         unparse(DBFETCH(d)->sp.exit.dest[i]));
+            break;
 
-    case TYPE_PROGRAM:
-    case TYPE_GARBAGE:
-    default:
-        break;
+        case TYPE_PROGRAM:
+        case TYPE_GARBAGE:
+        default:
+            break;
     }
     SanPrint(player, "Referring Objects:");
     for (i = 0; i < db_top; i++) {
@@ -180,15 +183,15 @@ valid_obj(dbref obj)
         return 0;
     }
     switch (TYPEOF(obj)) {
-    case TYPE_ROOM:
-    case TYPE_EXIT:
-    case TYPE_PLAYER:
-    case TYPE_PROGRAM:
-    case TYPE_THING:
-        return 1;
-        break;
-    default:
-        return 0;
+        case TYPE_ROOM:
+        case TYPE_EXIT:
+        case TYPE_PLAYER:
+        case TYPE_PROGRAM:
+        case TYPE_THING:
+            return 1;
+            break;
+        default:
+            return 0;
     }
     return 1;
 }
@@ -496,28 +499,28 @@ check_object(dbref player, dbref obj)
     check_exits_list(player, obj);
 
     switch (TYPEOF(obj)) {
-    case TYPE_ROOM:
-        check_room(player, obj);
-        break;
-    case TYPE_THING:
-        check_thing(player, obj);
-        break;
-    case TYPE_PLAYER:
-        check_player(player, obj);
-        break;
-    case TYPE_EXIT:
-        check_exit(player, obj);
-        break;
-    case TYPE_PROGRAM:
-        check_program(player, obj);
-        break;
-    case TYPE_GARBAGE:
-        check_garbage(player, obj);
-        break;
-    default:
-        violate(player, obj,
-                "has an unknown object type, and its flags may also be corrupt");
-        break;
+        case TYPE_ROOM:
+            check_room(player, obj);
+            break;
+        case TYPE_THING:
+            check_thing(player, obj);
+            break;
+        case TYPE_PLAYER:
+            check_player(player, obj);
+            break;
+        case TYPE_EXIT:
+            check_exit(player, obj);
+            break;
+        case TYPE_PROGRAM:
+            check_program(player, obj);
+            break;
+        case TYPE_GARBAGE:
+            check_garbage(player, obj);
+            break;
+        default:
+            violate(player, obj,
+                    "has an unknown object type, and its flags may also be corrupt");
+            break;
     }
 }
 
@@ -872,24 +875,24 @@ find_misplaced_objects(void)
         if (!NAME(loop) || !(*NAME(loop))) {
             switch TYPEOF
                 (loop) {
-            case TYPE_GARBAGE:
-                NAME(loop) = "<garbage>";
-                break;
-            case TYPE_PLAYER:
-            {
-                char name[PLAYER_NAME_LIMIT + 1] = "Unnamed";
-                int temp = 0;
+                case TYPE_GARBAGE:
+                    NAME(loop) = "<garbage>";
+                    break;
+                case TYPE_PLAYER:
+                {
+                    char name[PLAYER_NAME_LIMIT + 1] = "Unnamed";
+                    int temp = 0;
 
-                while (lookup_player(name) != NOTHING &&
-                       strlen(name) < PLAYER_NAME_LIMIT) {
-                    sprintf(name, "Unnamed%d", ++temp);
+                    while (lookup_player(name) != NOTHING &&
+                           strlen(name) < PLAYER_NAME_LIMIT) {
+                        sprintf(name, "Unnamed%d", ++temp);
+                    }
+                    NAME(loop) = alloc_string(name);
+                    add_player(loop);
                 }
-                NAME(loop) = alloc_string(name);
-                add_player(loop);
-            }
-                break;
-            default:
-                NAME(loop) = alloc_string("Unnamed");
+                    break;
+                default:
+                    NAME(loop) = alloc_string("Unnamed");
                 }
             SanFixed(loop, "Gave a name to %s");
             DBDIRTY(loop);
@@ -965,24 +968,24 @@ find_misplaced_objects(void)
             }
         }
         switch (TYPEOF(loop)) {
-        case TYPE_ROOM:
-            fix_room(loop);
-            break;
-        case TYPE_THING:
-            fix_thing(loop);
-            break;
-        case TYPE_PLAYER:
-            fix_player(loop);
-            break;
-        case TYPE_EXIT:
-            fix_exit(loop);
-            break;
-        case TYPE_PROGRAM:
-            fix_program(loop);
-            break;
-        case TYPE_GARBAGE:
-            fix_garbage(loop);
-            break;
+            case TYPE_ROOM:
+                fix_room(loop);
+                break;
+            case TYPE_THING:
+                fix_thing(loop);
+                break;
+            case TYPE_PLAYER:
+                fix_player(loop);
+                break;
+            case TYPE_EXIT:
+                fix_exit(loop);
+                break;
+            case TYPE_PROGRAM:
+                fix_program(loop);
+                break;
+            case TYPE_GARBAGE:
+                fix_garbage(loop);
+                break;
         }
     }
 }
@@ -996,29 +999,29 @@ adopt_orphans(void)
         if (!(FLAGS(loop) & SANEBIT)) {
             DBDIRTY(loop);
             switch (TYPEOF(loop)) {
-            case TYPE_ROOM:
-            case TYPE_THING:
-            case TYPE_PLAYER:
-            case TYPE_PROGRAM:
-                DBFETCH(loop)->next = DBFETCH(LOCATION(loop))->contents;
-                DBFETCH(LOCATION(loop))->contents = loop;
-                SanFixed2(loop, LOCATION(loop),
-                          "Orphaned object %s added to contents of %s");
-                break;
-            case TYPE_EXIT:
-                DBFETCH(loop)->next = DBFETCH(LOCATION(loop))->exits;
-                DBFETCH(LOCATION(loop))->exits = loop;
-                SanFixed2(loop, LOCATION(loop),
-                          "Orphaned exit %s added to exits of %s");
-                break;
-            case TYPE_GARBAGE:
-                DBFETCH(loop)->next = recyclable;
-                recyclable = loop;
-                SanFixedRef(loop, "Litter object %d moved to recycle bin");
-                break;
-            default:
-                sanity_violated = 1;
-                break;
+                case TYPE_ROOM:
+                case TYPE_THING:
+                case TYPE_PLAYER:
+                case TYPE_PROGRAM:
+                    DBFETCH(loop)->next = DBFETCH(LOCATION(loop))->contents;
+                    DBFETCH(LOCATION(loop))->contents = loop;
+                    SanFixed2(loop, LOCATION(loop),
+                              "Orphaned object %s added to contents of %s");
+                    break;
+                case TYPE_EXIT:
+                    DBFETCH(loop)->next = DBFETCH(LOCATION(loop))->exits;
+                    DBFETCH(LOCATION(loop))->exits = loop;
+                    SanFixed2(loop, LOCATION(loop),
+                              "Orphaned exit %s added to exits of %s");
+                    break;
+                case TYPE_GARBAGE:
+                    DBFETCH(loop)->next = recyclable;
+                    recyclable = loop;
+                    SanFixedRef(loop, "Litter object %d moved to recycle bin");
+                    break;
+                default:
+                    sanity_violated = 1;
+                    break;
             }
         }
     }
@@ -1177,17 +1180,17 @@ sanechange(dbref player, const char *command)
 
     } else if (!string_compare(field, "home")) {
         switch (TYPEOF(d)) {
-        case TYPE_PLAYER:
-            ip = &(DBFETCH(d)->sp.player.home);
-            break;
+            case TYPE_PLAYER:
+                ip = &(DBFETCH(d)->sp.player.home);
+                break;
 
-        case TYPE_THING:
-            ip = &(DBFETCH(d)->sp.thing.home);
-            break;
+            case TYPE_THING:
+                ip = &(DBFETCH(d)->sp.thing.home);
+                break;
 
-        default:
-            printf("%s has no home to set.\n", unparse(d));
-            return;
+            default:
+                printf("%s has no home to set.\n", unparse(d));
+                return;
         }
 
         strcpy(buf2, unparse(*ip));
@@ -1240,34 +1243,34 @@ extract_prop(FILE * f, const char *dir, PropPtr p)
 
     ptr2 = "";
     switch (PropType(p)) {
-    case PROP_INTTYP:
-        if (!PropDataVal(p))
-            return;
-        ptr2 = intostr(num, PropDataVal(p));
-        break;
-    case PROP_FLTTYP:
-        if (PropDataFVal(p) == 0.0)
-            return;
-        snprintf(tbuf, sizeof(tbuf), "%.16lg", PropDataFVal(p));
-        ptr2 = tbuf;
-        break;
-    case PROP_REFTYP:
-        if (PropDataRef(p) == NOTHING)
-            return;
-        ptr2 = intostr(num, (int) PropDataRef(p));
-        break;
-    case PROP_STRTYP:
-        if (!*PropDataStr(p))
-            return;
-        ptr2 = uncompress(PropDataStr(p));
-        break;
-    case PROP_LOKTYP:
-        if (PropFlags(p) & PROP_ISUNLOADED)
-            return;
-        if (PropDataLok(p) == TRUE_BOOLEXP)
-            return;
-        ptr2 = unparse_boolexp((dbref) 1, PropDataLok(p), 0);
-        break;
+        case PROP_INTTYP:
+            if (!PropDataVal(p))
+                return;
+            ptr2 = intostr(num, PropDataVal(p));
+            break;
+        case PROP_FLTTYP:
+            if (PropDataFVal(p) == 0.0)
+                return;
+            snprintf(tbuf, sizeof(tbuf), "%.16lg", PropDataFVal(p));
+            ptr2 = tbuf;
+            break;
+        case PROP_REFTYP:
+            if (PropDataRef(p) == NOTHING)
+                return;
+            ptr2 = intostr(num, (int) PropDataRef(p));
+            break;
+        case PROP_STRTYP:
+            if (!*PropDataStr(p))
+                return;
+            ptr2 = uncompress(PropDataStr(p));
+            break;
+        case PROP_LOKTYP:
+            if (PropFlags(p) & PROP_ISUNLOADED)
+                return;
+            if (PropDataLok(p) == TRUE_BOOLEXP)
+                return;
+            ptr2 = unparse_boolexp((dbref) 1, PropDataLok(p), 0);
+            break;
     }
     while (*ptr2)
         *ptr++ = *ptr2++;
@@ -1339,38 +1342,38 @@ extract_object(FILE * f, dbref d)
     fprintf(f, "  Next:           %s\n", unparse(NEXTOBJ(d)));
 
     switch (TYPEOF(d)) {
-    case TYPE_THING:
-        fprintf(f, "  Home:           %s\n",
-                unparse(DBFETCH(d)->sp.thing.home));
-        fprintf(f, "  Value:          %d\n", DBFETCH(d)->sp.thing.value);
-        break;
+        case TYPE_THING:
+            fprintf(f, "  Home:           %s\n",
+                    unparse(DBFETCH(d)->sp.thing.home));
+            fprintf(f, "  Value:          %d\n", DBFETCH(d)->sp.thing.value);
+            break;
 
-    case TYPE_ROOM:
-        fprintf(f, "  Drop-to:        %s\n",
-                unparse(DBFETCH(d)->sp.room.dropto));
-        break;
+        case TYPE_ROOM:
+            fprintf(f, "  Drop-to:        %s\n",
+                    unparse(DBFETCH(d)->sp.room.dropto));
+            break;
 
-    case TYPE_PLAYER:
-        fprintf(f, "  Home:           %s\n",
-                unparse(DBFETCH(d)->sp.player.home));
-        fprintf(f, "  Pennies:        %d\n", DBFETCH(d)->sp.player.pennies);
-        break;
+        case TYPE_PLAYER:
+            fprintf(f, "  Home:           %s\n",
+                    unparse(DBFETCH(d)->sp.player.home));
+            fprintf(f, "  Pennies:        %d\n", DBFETCH(d)->sp.player.pennies);
+            break;
 
-    case TYPE_EXIT:
-        fprintf(f, "  Links:         ");
-        for (i = 0; i < DBFETCH(d)->sp.exit.ndest; i++)
-            fprintf(f, " %s;", unparse(DBFETCH(d)->sp.exit.dest[i]));
-        fprintf(f, "\n");
-        break;
+        case TYPE_EXIT:
+            fprintf(f, "  Links:         ");
+            for (i = 0; i < DBFETCH(d)->sp.exit.ndest; i++)
+                fprintf(f, " %s;", unparse(DBFETCH(d)->sp.exit.dest[i]));
+            fprintf(f, "\n");
+            break;
 
-    case TYPE_PROGRAM:
-        fprintf(f, "  Listing:\n");
-        extract_program(f, d);
-        break;
+        case TYPE_PROGRAM:
+            fprintf(f, "  Listing:\n");
+            extract_program(f, d);
+            break;
 
-    case TYPE_GARBAGE:
-    default:
-        break;
+        case TYPE_GARBAGE:
+        default:
+            break;
     }
 
 #ifdef DISKBASE
@@ -1470,70 +1473,70 @@ hack_it_up(void)
         fgets(cbuf, sizeof(cbuf), stdin);
 
         switch (tolower(cbuf[0])) {
-        case 's':
-            printf("Running Sanity...\n");
-            sanity(NOTHING);
-            break;
+            case 's':
+                printf("Running Sanity...\n");
+                sanity(NOTHING);
+                break;
 
-        case 'f':
-            printf("Running Sanfix...\n");
-            sanfix(NOTHING);
-            break;
+            case 'f':
+                printf("Running Sanfix...\n");
+                sanfix(NOTHING);
+                break;
 
-        case 'p':
-            for (ptr = cbuf; *ptr && !isspace(*ptr); ptr++) ;
-            if (*ptr)
-                ptr++;
-            sane_dump_object(NOTHING, ptr);
-            break;
+            case 'p':
+                for (ptr = cbuf; *ptr && !isspace(*ptr); ptr++) ;
+                if (*ptr)
+                    ptr++;
+                sane_dump_object(NOTHING, ptr);
+                break;
 
-        case 'w':
-            *buf2 = '\0';
-            sscanf(cbuf, "%*s %s", buf2);
-            if (*buf2) {
-                printf("Writing database to %s...\n", buf2);
-            } else {
-                printf("Writing database...\n");
-            }
-            do_dump(MAN, buf2);
-            printf("Done.\n");
-            break;
+            case 'w':
+                *buf2 = '\0';
+                sscanf(cbuf, "%*s %s", buf2);
+                if (*buf2) {
+                    printf("Writing database to %s...\n", buf2);
+                } else {
+                    printf("Writing database...\n");
+                }
+                do_dump(MAN, buf2);
+                printf("Done.\n");
+                break;
 
-        case 'c':
-            for (ptr = cbuf; *ptr && !isspace(*ptr); ptr++) ;
-            if (*ptr)
-                ptr++;
-            sanechange(NOTHING, ptr);
-            break;
+            case 'c':
+                for (ptr = cbuf; *ptr && !isspace(*ptr); ptr++) ;
+                if (*ptr)
+                    ptr++;
+                sanechange(NOTHING, ptr);
+                break;
 
-        case 'x':
-            extract();
-            break;
+            case 'x':
+                extract();
+                break;
 
-        case 'y':
-            extract_single();
-            break;
+            case 'y':
+                extract_single();
+                break;
 
-        case 'h':
-        case '?':
-            printf("\n");
-            printf
-                ("s                           Run Sanity checks on database\n");
-            printf
-                ("f                           Automatically fix the database\n");
-            printf("p <dbref>                   Print an object\n");
-            printf("q                           Quit\n");
-            printf("w <file>                    Write database to file.\n");
-            printf
-                ("c <dbref> <field> <value>   Change a field on an object.\n");
-            printf("                              (\"c ? ?\" for list)\n");
-            printf
-                ("x <dbref> [<filename>]      Extract all objects belonging to <dbref>\n");
-            printf
-                ("y <dbref> [<filename>]      Extract the single object <dbref>\n");
-            printf
-                ("?                           Help! (Displays this screen.\n");
-            break;
+            case 'h':
+            case '?':
+                printf("\n");
+                printf
+                    ("s                           Run Sanity checks on database\n");
+                printf
+                    ("f                           Automatically fix the database\n");
+                printf("p <dbref>                   Print an object\n");
+                printf("q                           Quit\n");
+                printf("w <file>                    Write database to file.\n");
+                printf
+                    ("c <dbref> <field> <value>   Change a field on an object.\n");
+                printf("                              (\"c ? ?\" for list)\n");
+                printf
+                    ("x <dbref> [<filename>]      Extract all objects belonging to <dbref>\n");
+                printf
+                    ("y <dbref> [<filename>]      Extract the single object <dbref>\n");
+                printf
+                    ("?                           Help! (Displays this screen.\n");
+                break;
         }
     }
 

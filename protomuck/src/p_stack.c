@@ -410,24 +410,24 @@ prim_sort(PRIM_PROTOTYPE)
     tmp = oper2->data.number;
 
     switch (oper1->data.number) {
-    case 1:
-        comparator = sort1;
-        break;
-    case 2:
-        comparator = sort2;
-        break;
-    case 3:
-        comparator = sort3;
-        break;
-    case 4:
-        comparator = sort4;
-        break;
-    case 5:
-        comparator = sort5;
-        break;
-    case 0:
-    default:
-        comparator = sort0;
+        case 1:
+            comparator = sort1;
+            break;
+        case 2:
+            comparator = sort2;
+            break;
+        case 3:
+            comparator = sort3;
+            break;
+        case 4:
+            comparator = sort4;
+            break;
+        case 5:
+            comparator = sort5;
+            break;
+        case 0:
+        default:
+            comparator = sort0;
     }
 
     qsort(&arg[*top - tmp], tmp, sizeof(arg[0]), comparator);
@@ -707,136 +707,136 @@ prim_checkargs(PRIM_PROTOTYPE)
             }
         } else {
             switch (buf[currpos]) {
-            case 'i':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow");
-                if (arg[stackpos].type != PROG_INTEGER)
-                    ABORT_CHECKARGS("Expected an integer");
-                break;
-            case 'n':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow.");
-                if (arg[stackpos].type != PROG_FLOAT)
-                    ABORT_CHECKARGS("Expected a float.");
-                break;
-            case 's':
-            case 'S':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow");
-                if (arg[stackpos].type != PROG_STRING)
-                    ABORT_CHECKARGS("Expected a string");
-                if (buf[currpos] == 'S' && !arg[stackpos].data.string)
-                    ABORT_CHECKARGS("Expected a non-null string");
-                break;
-            case 'd':
-            case 'p':
-            case 'r':
-            case 't':
-            case 'e':
-            case 'f':
-            case 'D':
-            case 'P':
-            case 'R':
-            case 'T':
-            case 'E':
-            case 'F':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow");
-                if (arg[stackpos].type != PROG_OBJECT)
-                    ABORT_CHECKARGS("Expected a dbref");
-                ref = arg[stackpos].data.objref;
-                if ((ref >= db_top) || (ref < HOME))
-                    ABORT_CHECKARGS("Invalid dbref");
-                switch (buf[currpos]) {
-                case 'D':
-                    if ((ref < 0) && (ref != HOME))
-                        ABORT_CHECKARGS("Invalid dbref");
-                    if (Typeof(ref) == TYPE_GARBAGE)
-                        ABORT_CHECKARGS("Invalid dbref");
+                case 'i':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow");
+                    if (arg[stackpos].type != PROG_INTEGER)
+                        ABORT_CHECKARGS("Expected an integer");
+                    break;
+                case 'n':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow.");
+                    if (arg[stackpos].type != PROG_FLOAT)
+                        ABORT_CHECKARGS("Expected a float.");
+                    break;
+                case 's':
+                case 'S':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow");
+                    if (arg[stackpos].type != PROG_STRING)
+                        ABORT_CHECKARGS("Expected a string");
+                    if (buf[currpos] == 'S' && !arg[stackpos].data.string)
+                        ABORT_CHECKARGS("Expected a non-null string");
+                    break;
                 case 'd':
-                    if (ref < HOME)
-                        ABORT_CHECKARGS("Invalid dbref");
-                    break;
-
-                case 'P':
-                    if (ref < 0)
-                        ABORT_CHECKARGS("Expected player dbref");
                 case 'p':
-                    if ((ref >= 0) && (Typeof(ref) != TYPE_PLAYER))
-                        ABORT_CHECKARGS("Expected player dbref");
-                    if (ref == HOME)
-                        ABORT_CHECKARGS("Expected player dbref");
-                    break;
-
-                case 'R':
-                    if ((ref < 0) && (ref != HOME))
-                        ABORT_CHECKARGS("Expected room dbref");
                 case 'r':
-                    if ((ref >= 0) && (Typeof(ref) != TYPE_ROOM))
-                        ABORT_CHECKARGS("Expected room dbref");
-                    break;
-
-                case 'T':
-                    if (ref < 0)
-                        ABORT_CHECKARGS("Expected thing dbref");
                 case 't':
-                    if ((ref >= 0) && (Typeof(ref) != TYPE_THING))
-                        ABORT_CHECKARGS("Expected thing dbref");
-                    if (ref == HOME)
-                        ABORT_CHECKARGS("Expected player dbref");
-                    break;
-
-                case 'E':
-                    if (ref < 0)
-                        ABORT_CHECKARGS("Expected exit dbref");
                 case 'e':
-                    if ((ref >= 0) && (Typeof(ref) != TYPE_EXIT))
-                        ABORT_CHECKARGS("Expected exit dbref");
-                    if (ref == HOME)
-                        ABORT_CHECKARGS("Expected player dbref");
-                    break;
-
-                case 'F':
-                    if (ref < 0)
-                        ABORT_CHECKARGS("Expected program dbref");
                 case 'f':
-                    if ((ref >= 0) && (Typeof(ref) != TYPE_PROGRAM))
-                        ABORT_CHECKARGS("Expected program dbref");
-                    if (ref == HOME)
-                        ABORT_CHECKARGS("Expected player dbref");
+                case 'D':
+                case 'P':
+                case 'R':
+                case 'T':
+                case 'E':
+                case 'F':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow");
+                    if (arg[stackpos].type != PROG_OBJECT)
+                        ABORT_CHECKARGS("Expected a dbref");
+                    ref = arg[stackpos].data.objref;
+                    if ((ref >= db_top) || (ref < HOME))
+                        ABORT_CHECKARGS("Invalid dbref");
+                    switch (buf[currpos]) {
+                        case 'D':
+                            if ((ref < 0) && (ref != HOME))
+                                ABORT_CHECKARGS("Invalid dbref");
+                            if (Typeof(ref) == TYPE_GARBAGE)
+                                ABORT_CHECKARGS("Invalid dbref");
+                        case 'd':
+                            if (ref < HOME)
+                                ABORT_CHECKARGS("Invalid dbref");
+                            break;
+
+                        case 'P':
+                            if (ref < 0)
+                                ABORT_CHECKARGS("Expected player dbref");
+                        case 'p':
+                            if ((ref >= 0) && (Typeof(ref) != TYPE_PLAYER))
+                                ABORT_CHECKARGS("Expected player dbref");
+                            if (ref == HOME)
+                                ABORT_CHECKARGS("Expected player dbref");
+                            break;
+
+                        case 'R':
+                            if ((ref < 0) && (ref != HOME))
+                                ABORT_CHECKARGS("Expected room dbref");
+                        case 'r':
+                            if ((ref >= 0) && (Typeof(ref) != TYPE_ROOM))
+                                ABORT_CHECKARGS("Expected room dbref");
+                            break;
+
+                        case 'T':
+                            if (ref < 0)
+                                ABORT_CHECKARGS("Expected thing dbref");
+                        case 't':
+                            if ((ref >= 0) && (Typeof(ref) != TYPE_THING))
+                                ABORT_CHECKARGS("Expected thing dbref");
+                            if (ref == HOME)
+                                ABORT_CHECKARGS("Expected player dbref");
+                            break;
+
+                        case 'E':
+                            if (ref < 0)
+                                ABORT_CHECKARGS("Expected exit dbref");
+                        case 'e':
+                            if ((ref >= 0) && (Typeof(ref) != TYPE_EXIT))
+                                ABORT_CHECKARGS("Expected exit dbref");
+                            if (ref == HOME)
+                                ABORT_CHECKARGS("Expected player dbref");
+                            break;
+
+                        case 'F':
+                            if (ref < 0)
+                                ABORT_CHECKARGS("Expected program dbref");
+                        case 'f':
+                            if ((ref >= 0) && (Typeof(ref) != TYPE_PROGRAM))
+                                ABORT_CHECKARGS("Expected program dbref");
+                            if (ref == HOME)
+                                ABORT_CHECKARGS("Expected player dbref");
+                            break;
+                    }
                     break;
-                }
-                break;
-            case '?':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow");
-                break;
-            case 'l':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow");
-                if (arg[stackpos].type != PROG_LOCK)
-                    ABORT_CHECKARGS("Expected a lock boolean expression");
-                break;
-            case 'v':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow");
-                if ((arg[stackpos].type != PROG_VAR) &&
-                    (arg[stackpos].type != PROG_LVAR))
-                    ABORT_CHECKARGS("Expected a variable");
-                break;
-            case 'a':
-                if (stackpos < 0)
-                    ABORT_CHECKARGS("Stack underflow");
-                if (arg[stackpos].type != PROG_ADD)
-                    ABORT_CHECKARGS("Expected a function address");
-                break;
-            case ' ':
-                /* this is meaningless space.  Ignore it. */
-                stackpos++;
-                break;
-            default:
-                abort_interp("Unkown argument type in expression");
-                break;
+                case '?':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow");
+                    break;
+                case 'l':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow");
+                    if (arg[stackpos].type != PROG_LOCK)
+                        ABORT_CHECKARGS("Expected a lock boolean expression");
+                    break;
+                case 'v':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow");
+                    if ((arg[stackpos].type != PROG_VAR) &&
+                        (arg[stackpos].type != PROG_LVAR))
+                        ABORT_CHECKARGS("Expected a variable");
+                    break;
+                case 'a':
+                    if (stackpos < 0)
+                        ABORT_CHECKARGS("Stack underflow");
+                    if (arg[stackpos].type != PROG_ADD)
+                        ABORT_CHECKARGS("Expected a function address");
+                    break;
+                case ' ':
+                    /* this is meaningless space.  Ignore it. */
+                    stackpos++;
+                    break;
+                default:
+                    abort_interp("Unkown argument type in expression");
+                    break;
             }
 
             currpos--;          /* decrement string index */
@@ -882,19 +882,19 @@ prim_setmode(PRIM_PROTOTYPE)
         abort_interp("Invalid argument type");
     result = oper1->data.number;
     switch (result) {
-    case BACKGROUND:
-        fr->been_background = 1;
-        fr->writeonly = 1;
-        break;
-    case FOREGROUND:
-        if (fr->been_background)
-            abort_interp("Cannot FOREGROUND a BACKGROUNDed program");
-        break;
-    case PREEMPT:
-        break;
-    default:
-        abort_interp("Invalid mode");
-        break;
+        case BACKGROUND:
+            fr->been_background = 1;
+            fr->writeonly = 1;
+            break;
+        case FOREGROUND:
+            if (fr->been_background)
+                abort_interp("Cannot FOREGROUND a BACKGROUNDed program");
+            break;
+        case PREEMPT:
+            break;
+        default:
+            abort_interp("Invalid mode");
+            break;
     }
     fr->multitask = result;
     CLEAR(oper1);

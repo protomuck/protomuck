@@ -532,37 +532,37 @@ db_write_object(FILE * f, dbref i)
 
 
     switch (Typeof(i)) {
-    case TYPE_THING:
-        putref(f, o->sp.thing.home);
-        putref(f, o->exits);
-        putref(f, OWNER(i));
-        putref(f, o->sp.thing.value);
-        break;
+        case TYPE_THING:
+            putref(f, o->sp.thing.home);
+            putref(f, o->exits);
+            putref(f, OWNER(i));
+            putref(f, o->sp.thing.value);
+            break;
 
-    case TYPE_ROOM:
-        putref(f, o->sp.room.dropto);
-        putref(f, o->exits);
-        putref(f, OWNER(i));
-        break;
+        case TYPE_ROOM:
+            putref(f, o->sp.room.dropto);
+            putref(f, o->exits);
+            putref(f, OWNER(i));
+            break;
 
-    case TYPE_EXIT:
-        putref(f, o->sp.exit.ndest);
-        for (j = 0; j < o->sp.exit.ndest; j++) {
-            putref(f, (o->sp.exit.dest)[j]);
-        }
-        putref(f, OWNER(i));
-        break;
+        case TYPE_EXIT:
+            putref(f, o->sp.exit.ndest);
+            for (j = 0; j < o->sp.exit.ndest; j++) {
+                putref(f, (o->sp.exit.dest)[j]);
+            }
+            putref(f, OWNER(i));
+            break;
 
-    case TYPE_PLAYER:
-        putref(f, o->sp.player.home);
-        putref(f, o->exits);
-        putref(f, o->sp.player.pennies);
-        putstring(f, o->sp.player.password);
-        break;
+        case TYPE_PLAYER:
+            putref(f, o->sp.player.home);
+            putref(f, o->exits);
+            putref(f, o->sp.player.pennies);
+            putstring(f, o->sp.player.password);
+            break;
 
-    case TYPE_PROGRAM:
-        putref(f, OWNER(i));
-        break;
+        case TYPE_PROGRAM:
+            putref(f, OWNER(i));
+            break;
     }
 
     return 0;
@@ -1154,17 +1154,17 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
     password = getstring(f);
     /* convert GENDER flag to property */
     switch ((FLAGS(objno) & GENDER_MASK) >> GENDER_SHIFT) {
-    case GENDER_NEUTER:
-        add_property(objno, "sex", "neuter", 0);
-        break;
-    case GENDER_FEMALE:
-        add_property(objno, "sex", "female", 0);
-        break;
-    case GENDER_MALE:
-        add_property(objno, "sex", "male", 0);
-        break;
-    default:
-        break;
+        case GENDER_NEUTER:
+            add_property(objno, "sex", "neuter", 0);
+            break;
+        case GENDER_FEMALE:
+            add_property(objno, "sex", "female", 0);
+            break;
+        case GENDER_MALE:
+            add_property(objno, "sex", "male", 0);
+            break;
+        default:
+            break;
     }
     /* For downward compatibility with databases using the */
     /* obsolete ANTILOCK flag. */
@@ -1173,50 +1173,50 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
             FLAGS(objno) &= ~ANTILOCK;
     }
     switch (FLAGS(objno) & TYPE_MASK) {
-    case TYPE_THING:
-        o->sp.thing.home = exits;
-        o->exits = NOTHING;
-        o->sp.thing.value = pennies;
-        break;
-    case TYPE_ROOM:
-        o->sp.room.dropto = o->location;
-        o->location = NOTHING;
-        o->exits = exits;
-        break;
-    case TYPE_EXIT:
-        if (o->location == NOTHING) {
-            o->sp.exit.ndest = 0;
-            o->sp.exit.dest = NULL;
-        } else {
-            o->sp.exit.ndest = 1;
-            o->sp.exit.dest = (dbref *) malloc(sizeof(dbref));
-            (o->sp.exit.dest)[0] = o->location;
-        }
-        o->location = NOTHING;
-        break;
-    case TYPE_PLAYER:
-        o->sp.player.home = exits;
-        o->exits = NOTHING;
-        o->sp.player.pennies = pennies;
-        o->sp.player.password = password;
-        o->sp.player.curr_prog = NOTHING;
-        o->sp.player.insert_mode = 0;
-        o->sp.player.descrs = NULL;
-        o->sp.player.descr_count = 0;
-        break;
-    case TYPE_GARBAGE:
-        OWNER(objno) = NOTHING;
-        o->next = recyclable;
-        recyclable = objno;
+        case TYPE_THING:
+            o->sp.thing.home = exits;
+            o->exits = NOTHING;
+            o->sp.thing.value = pennies;
+            break;
+        case TYPE_ROOM:
+            o->sp.room.dropto = o->location;
+            o->location = NOTHING;
+            o->exits = exits;
+            break;
+        case TYPE_EXIT:
+            if (o->location == NOTHING) {
+                o->sp.exit.ndest = 0;
+                o->sp.exit.dest = NULL;
+            } else {
+                o->sp.exit.ndest = 1;
+                o->sp.exit.dest = (dbref *) malloc(sizeof(dbref));
+                (o->sp.exit.dest)[0] = o->location;
+            }
+            o->location = NOTHING;
+            break;
+        case TYPE_PLAYER:
+            o->sp.player.home = exits;
+            o->exits = NOTHING;
+            o->sp.player.pennies = pennies;
+            o->sp.player.password = password;
+            o->sp.player.curr_prog = NOTHING;
+            o->sp.player.insert_mode = 0;
+            o->sp.player.descrs = NULL;
+            o->sp.player.descr_count = 0;
+            break;
+        case TYPE_GARBAGE:
+            OWNER(objno) = NOTHING;
+            o->next = recyclable;
+            recyclable = objno;
 
 #ifdef DISKBASE
-        dirtyprops(objno);
+            dirtyprops(objno);
 #endif
 
-        free((void *) NAME(objno));
-        NAME(objno) = "<garbage>";
-        SETDESC(objno, "<recyclable>");
-        break;
+            free((void *) NAME(objno));
+            NAME(objno) = "<garbage>";
+            SETDESC(objno, "<recyclable>");
+            break;
     }
 }
 
@@ -1273,17 +1273,17 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
     }
     /* convert GENDER flag to property */
     switch ((FLAGS(objno) & GENDER_MASK) >> GENDER_SHIFT) {
-    case GENDER_NEUTER:
-        add_property(objno, "sex", "neuter", 0);
-        break;
-    case GENDER_FEMALE:
-        add_property(objno, "sex", "female", 0);
-        break;
-    case GENDER_MALE:
-        add_property(objno, "sex", "male", 0);
-        break;
-    default:
-        break;
+        case GENDER_NEUTER:
+            add_property(objno, "sex", "neuter", 0);
+            break;
+        case GENDER_FEMALE:
+            add_property(objno, "sex", "female", 0);
+            break;
+        case GENDER_MALE:
+            add_property(objno, "sex", "male", 0);
+            break;
+        default:
+            break;
     }
 
     /* o->password = getstring(f); */
@@ -1294,36 +1294,36 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
             FLAGS(objno) &= ~ANTILOCK;
     }
     switch (FLAGS(objno) & TYPE_MASK) {
-    case TYPE_THING:
-        o->sp.thing.home = getref(f);
-        o->exits = getref(f);
-        OWNER(objno) = getref(f);
-        o->sp.thing.value = getref(f);
-        break;
-    case TYPE_ROOM:
-        o->sp.room.dropto = getref(f);
-        o->exits = getref(f);
-        OWNER(objno) = getref(f);
-        break;
-    case TYPE_EXIT:
-        o->sp.exit.ndest = getref(f);
-        o->sp.exit.dest = (dbref *) malloc(sizeof(dbref)
-                                           * o->sp.exit.ndest);
-        for (j = 0; j < o->sp.exit.ndest; j++) {
-            (o->sp.exit.dest)[j] = getref(f);
-        }
-        OWNER(objno) = getref(f);
-        break;
-    case TYPE_PLAYER:
-        o->sp.player.home = getref(f);
-        o->exits = getref(f);
-        o->sp.player.pennies = getref(f);
-        o->sp.player.password = getstring(f);
-        o->sp.player.curr_prog = NOTHING;
-        o->sp.player.insert_mode = 0;
-        o->sp.player.descrs = NULL;
-        o->sp.player.descr_count = 0;
-        break;
+        case TYPE_THING:
+            o->sp.thing.home = getref(f);
+            o->exits = getref(f);
+            OWNER(objno) = getref(f);
+            o->sp.thing.value = getref(f);
+            break;
+        case TYPE_ROOM:
+            o->sp.room.dropto = getref(f);
+            o->exits = getref(f);
+            OWNER(objno) = getref(f);
+            break;
+        case TYPE_EXIT:
+            o->sp.exit.ndest = getref(f);
+            o->sp.exit.dest = (dbref *) malloc(sizeof(dbref)
+                                               * o->sp.exit.ndest);
+            for (j = 0; j < o->sp.exit.ndest; j++) {
+                (o->sp.exit.dest)[j] = getref(f);
+            }
+            OWNER(objno) = getref(f);
+            break;
+        case TYPE_PLAYER:
+            o->sp.player.home = getref(f);
+            o->exits = getref(f);
+            o->sp.player.pennies = getref(f);
+            o->sp.player.password = getstring(f);
+            o->sp.player.curr_prog = NOTHING;
+            o->sp.player.insert_mode = 0;
+            o->sp.player.descrs = NULL;
+            o->sp.player.descr_count = 0;
+            break;
     }
 }
 
@@ -1456,17 +1456,17 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         /* set gender stuff */
         /* convert GENDER flag to property */
         switch ((FLAGS(objno) & GENDER_MASK) >> GENDER_SHIFT) {
-        case GENDER_NEUTER:
-            add_property(objno, "sex", "neuter", 0);
-            break;
-        case GENDER_FEMALE:
-            add_property(objno, "sex", "female", 0);
-            break;
-        case GENDER_MALE:
-            add_property(objno, "sex", "male", 0);
-            break;
-        default:
-            break;
+            case GENDER_NEUTER:
+                add_property(objno, "sex", "neuter", 0);
+                break;
+            case GENDER_FEMALE:
+                add_property(objno, "sex", "female", 0);
+                break;
+            case GENDER_MALE:
+                add_property(objno, "sex", "male", 0);
+                break;
+            default:
+                break;
         }
     }
 
@@ -1478,77 +1478,77 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             FLAGS(objno) &= ~ANTILOCK;
     }
     switch (FLAGS(objno) & TYPE_MASK) {
-    case TYPE_THING:
+        case TYPE_THING:
 #ifdef VERBOSELOAD
-        fprintf(stderr, "thing...");
+            fprintf(stderr, "thing...");
 #endif
-        o->sp.thing.home = prop_flag ? getref(f) : j;
-        o->exits = getref(f);
-        OWNER(objno) = getref(f);
-        o->sp.thing.value = getref(f);
-        break;
-    case TYPE_ROOM:
+            o->sp.thing.home = prop_flag ? getref(f) : j;
+            o->exits = getref(f);
+            OWNER(objno) = getref(f);
+            o->sp.thing.value = getref(f);
+            break;
+        case TYPE_ROOM:
 #ifdef VERBOSELOAD
-        fprintf(stderr, "room...");
+            fprintf(stderr, "room...");
 #endif
-        o->sp.room.dropto = prop_flag ? getref(f) : j;
-        o->exits = getref(f);
-        OWNER(objno) = getref(f);
-        break;
-    case TYPE_EXIT:
+            o->sp.room.dropto = prop_flag ? getref(f) : j;
+            o->exits = getref(f);
+            OWNER(objno) = getref(f);
+            break;
+        case TYPE_EXIT:
 #ifdef VERBOSELOAD
-        fprintf(stderr, "exit...");
+            fprintf(stderr, "exit...");
 #endif
-        o->sp.exit.ndest = prop_flag ? getref(f) : j;
-        if (o->sp.exit.ndest)   /* only allocate space for linked exits */
-            o->sp.exit.dest =
-                (dbref *) malloc(sizeof(dbref) * (o->sp.exit.ndest));
-        for (j = 0; j < o->sp.exit.ndest; j++) {
-            (o->sp.exit.dest)[j] = getref(f);
-        }
-        OWNER(objno) = getref(f);
-        break;
-    case TYPE_PLAYER:
+            o->sp.exit.ndest = prop_flag ? getref(f) : j;
+            if (o->sp.exit.ndest) /* only allocate space for linked exits */
+                o->sp.exit.dest =
+                    (dbref *) malloc(sizeof(dbref) * (o->sp.exit.ndest));
+            for (j = 0; j < o->sp.exit.ndest; j++) {
+                (o->sp.exit.dest)[j] = getref(f);
+            }
+            OWNER(objno) = getref(f);
+            break;
+        case TYPE_PLAYER:
 #ifdef VERBOSELOAD
-        fprintf(stderr, "player...");
+            fprintf(stderr, "player...");
 #endif
-        o->sp.player.home = prop_flag ? getref(f) : j;
-        o->exits = getref(f);
-        o->sp.player.pennies = getref(f);
-        o->sp.player.password = getstring(f);
-        o->sp.player.curr_prog = NOTHING;
-        o->sp.player.insert_mode = 0;
-        o->sp.player.descrs = NULL;
-        o->sp.player.descr_count = 0;
-        break;
-    case TYPE_PROGRAM:
+            o->sp.player.home = prop_flag ? getref(f) : j;
+            o->exits = getref(f);
+            o->sp.player.pennies = getref(f);
+            o->sp.player.password = getstring(f);
+            o->sp.player.curr_prog = NOTHING;
+            o->sp.player.insert_mode = 0;
+            o->sp.player.descrs = NULL;
+            o->sp.player.descr_count = 0;
+            break;
+        case TYPE_PROGRAM:
 #ifdef VERBOSELOAD
-        fprintf(stderr, "program...");
+            fprintf(stderr, "program...");
 #endif
-        OWNER(objno) = getref(f);
-        FLAGS(objno) &= ~INTERNAL;
-        o->sp.program.curr_line = 0;
-        o->sp.program.first = 0;
-        o->sp.program.code = 0;
-        o->sp.program.siz = 0;
-        o->sp.program.start = 0;
-        o->sp.program.pubs = 0;
-        o->sp.program.mcpbinds = 0;
-        o->sp.program.proftime.tv_sec = 0;
-        o->sp.program.proftime.tv_usec = 0;
-        o->sp.program.profstart = 0;
-        o->sp.program.profuses = 0;
-        o->sp.program.instances = 0;
+            OWNER(objno) = getref(f);
+            FLAGS(objno) &= ~INTERNAL;
+            o->sp.program.curr_line = 0;
+            o->sp.program.first = 0;
+            o->sp.program.code = 0;
+            o->sp.program.siz = 0;
+            o->sp.program.start = 0;
+            o->sp.program.pubs = 0;
+            o->sp.program.mcpbinds = 0;
+            o->sp.program.proftime.tv_sec = 0;
+            o->sp.program.proftime.tv_usec = 0;
+            o->sp.program.profstart = 0;
+            o->sp.program.profuses = 0;
+            o->sp.program.instances = 0;
 
-        if (dtype < 5 && MLevel(objno) == 0)
-            SetMLevel(objno, 2);
+            if (dtype < 5 && MLevel(objno) == 0)
+                SetMLevel(objno, 2);
 
-        break;
-    case TYPE_GARBAGE:
+            break;
+        case TYPE_GARBAGE:
 #ifdef VERBOSELOAD
-        fprintf(stderr, "garbage...");
+            fprintf(stderr, "garbage...");
 #endif
-        break;
+            break;
     }
 #ifdef VERBOSELOAD
     fprintf(stderr, "done.\n");
@@ -1660,112 +1660,114 @@ db_read(FILE * f)
     }
     for (i = 0;; i++) {
         switch (c) {
-        case NUMBER_TOKEN:
-            /* another entry, yawn */
-            thisref = getref(f);
+            case NUMBER_TOKEN:
+                /* another entry, yawn */
+                thisref = getref(f);
 
 #ifndef SANITY
-            if (thisref < db_top) {
-                if (doing_deltas && Typeof(thisref) == TYPE_PLAYER) {
-                    delete_player(thisref);
+                if (thisref < db_top) {
+                    if (doing_deltas && Typeof(thisref) == TYPE_PLAYER) {
+                        delete_player(thisref);
+                    }
                 }
-            }
 #endif
 
-            /* make space */
-            db_grow(thisref + 1);
+                /* make space */
+                db_grow(thisref + 1);
 
-            /* read it in */
-            o = DBFETCH(thisref);
-            switch (db_load_format) {
-            case 0:
-                db_read_object_old(f, o, thisref);
+                /* read it in */
+                o = DBFETCH(thisref);
+                switch (db_load_format) {
+                    case 0:
+                        db_read_object_old(f, o, thisref);
+                        break;
+                    case 1:
+                        db_read_object_new(f, o, thisref);
+                        break;
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                        db_read_object_foxen(f, o, thisref,
+                                             db_load_format, doing_deltas);
+                        break;
+                }
+                if (Typeof(thisref) == TYPE_PLAYER) {
+                    OWNER(thisref) = thisref;
+                    add_player(thisref);
+                }
                 break;
-            case 1:
-                db_read_object_new(f, o, thisref);
-                break;
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-                db_read_object_foxen(f, o, thisref,
-                                     db_load_format, doing_deltas);
-                break;
-            }
-            if (Typeof(thisref) == TYPE_PLAYER) {
-                OWNER(thisref) = thisref;
-                add_player(thisref);
-            }
-            break;
-        case LOOKUP_TOKEN:
-            special = getstring(f);
-            if (strcmp(special, "**END OF DUMP***")) {
-                free((void *) special);
-                return -1;
-            } else {
-                free((void *) special);
+            case LOOKUP_TOKEN:
                 special = getstring(f);
-                if (!special || strcmp(special,
-                                       "***Foxen Deltas Dump Extention***")) {
+                if (strcmp(special, "**END OF DUMP***")) {
+                    free((void *) special);
+                    return -1;
+                } else {
+                    free((void *) special);
+                    special = getstring(f);
                     if (!special || strcmp(special,
-                                           "***Foxen2 Deltas Dump Extention***"))
+                                           "***Foxen Deltas Dump Extention***"))
                     {
                         if (!special
                             || strcmp(special,
-                                      "***Foxen4 Deltas Dump Extention***")) {
+                                      "***Foxen2 Deltas Dump Extention***")) {
                             if (!special
                                 || strcmp(special,
-                                          "***Foxen5 Deltas Dump Extention***")
-                                || strcmp(special,
-                                          "***NeonMuck V2 Deltas Dump Format***"))
+                                          "***Foxen4 Deltas Dump Extention***"))
                             {
-                                if (special)
-                                    free((void *) special);
-                                if (main_db_format == 7
-                                    && (dbflags & DB_PARMSINFO)) {
-                                    rewind(f);
-                                    free((void *) getstring(f));
-                                    getref(f);
-                                    getref(f);
-                                    parmcnt = getref(f);
-                                    tune_load_parms_from_file(f, NOTHING,
-                                                              parmcnt);
-                                }
-                                for (i = 0; i < db_top; i++) {
-                                    if (Typeof(i) == TYPE_GARBAGE) {
-                                        DBFETCH(i)->next = recyclable;
-                                        recyclable = i;
+                                if (!special
+                                    || strcmp(special,
+                                              "***Foxen5 Deltas Dump Extention***")
+                                    || strcmp(special,
+                                              "***NeonMuck V2 Deltas Dump Format***"))
+                                {
+                                    if (special)
+                                        free((void *) special);
+                                    if (main_db_format == 7
+                                        && (dbflags & DB_PARMSINFO)) {
+                                        rewind(f);
+                                        free((void *) getstring(f));
+                                        getref(f);
+                                        getref(f);
+                                        parmcnt = getref(f);
+                                        tune_load_parms_from_file(f, NOTHING,
+                                                                  parmcnt);
                                     }
+                                    for (i = 0; i < db_top; i++) {
+                                        if (Typeof(i) == TYPE_GARBAGE) {
+                                            DBFETCH(i)->next = recyclable;
+                                            recyclable = i;
+                                        }
+                                    }
+                                    autostart_progs();
+                                    return db_top;
+                                } else {
+                                    free((void *) special);
+                                    db_load_format = 7;
+                                    doing_deltas = 1;
                                 }
-                                autostart_progs();
-                                return db_top;
                             } else {
                                 free((void *) special);
-                                db_load_format = 7;
+                                db_load_format = 6;
                                 doing_deltas = 1;
                             }
                         } else {
                             free((void *) special);
-                            db_load_format = 6;
+                            db_load_format = 5;
                             doing_deltas = 1;
                         }
                     } else {
                         free((void *) special);
-                        db_load_format = 5;
+                        db_load_format = 4;
                         doing_deltas = 1;
                     }
-                } else {
-                    free((void *) special);
-                    db_load_format = 4;
-                    doing_deltas = 1;
                 }
-            }
-            break;
-        default:
-            return -1;
-            /* break; */
+                break;
+            default:
+                return -1;
+                /* break; */
         }
         c = getc(f);
     }                           /* for */
@@ -1775,14 +1777,14 @@ int
 RawMWLevel(dbref thing)
 {
     switch (CheckMWLevel(thing)) {
-    case LBOY:
-        return (tp_multi_wizlevels ? LBOY : LARCH);
-    case LWIZ:
-        return (tp_multi_wizlevels ? LWIZ : LARCH);
-    case LMAGE:
-        return (tp_multi_wizlevels ? LMAGE : LM3);
-    default:
-        return CheckMWLevel(thing);
+        case LBOY:
+            return (tp_multi_wizlevels ? LBOY : LARCH);
+        case LWIZ:
+            return (tp_multi_wizlevels ? LWIZ : LARCH);
+        case LMAGE:
+            return (tp_multi_wizlevels ? LMAGE : LM3);
+        default:
+            return CheckMWLevel(thing);
     }
 }
 

@@ -30,27 +30,27 @@ print_owner(dbref player, dbref thing)
     dbref ref;
 
     switch (Typeof(thing)) {
-    case TYPE_PLAYER:
-        anotify_fmt(player, SYSYELLOW "%s is a player.", NAME(thing));
-        break;
-    case TYPE_ROOM:
-    case TYPE_THING:
-    case TYPE_PROGRAM:
-        anotify_fmt(player, SYSYELLOW "Owner: %s", NAME(OWNER(thing)));
-        break;
-    case TYPE_EXIT:
-        anotify_fmt(player, SYSYELLOW "Owner: %s", NAME(OWNER(thing)));
-        if (DBFETCH(thing)->sp.exit.ndest) {
-            ref = (DBFETCH(thing)->sp.exit.dest)[0];
-            if (Typeof(ref) == TYPE_PROGRAM && FLAGS(ref) & VEHICLE) {
-                anotify_fmt(player, SYSCYAN "And is linked to: %s",
-                            ansi_unparse_object(MAN, ref));
+        case TYPE_PLAYER:
+            anotify_fmt(player, SYSYELLOW "%s is a player.", NAME(thing));
+            break;
+        case TYPE_ROOM:
+        case TYPE_THING:
+        case TYPE_PROGRAM:
+            anotify_fmt(player, SYSYELLOW "Owner: %s", NAME(OWNER(thing)));
+            break;
+        case TYPE_EXIT:
+            anotify_fmt(player, SYSYELLOW "Owner: %s", NAME(OWNER(thing)));
+            if (DBFETCH(thing)->sp.exit.ndest) {
+                ref = (DBFETCH(thing)->sp.exit.dest)[0];
+                if (Typeof(ref) == TYPE_PROGRAM && FLAGS(ref) & VEHICLE) {
+                    anotify_fmt(player, SYSCYAN "And is linked to: %s",
+                                ansi_unparse_object(MAN, ref));
+                }
             }
-        }
-        break;
-    case TYPE_GARBAGE:
-        anotify_fmt(player, SYSBLUE "%s is garbage.", NAME(thing));
-        break;
+            break;
+        case TYPE_GARBAGE:
+            anotify_fmt(player, SYSBLUE "%s is garbage.", NAME(thing));
+            break;
     }
 }
 
@@ -398,55 +398,55 @@ do_look_at(int descr, dbref player, const char *name, const char *detail)
         thing = match_result(&md);
         if (thing != NOTHING && thing != AMBIGUOUS && !*detail) {
             switch (Typeof(thing)) {
-            case TYPE_ROOM:
-                if (getloc(player) != thing
-                    && !can_link_to(player, TYPE_ROOM, thing)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-                } else {
-                    look_room(descr, player, thing, 1);
-                }
-                break;
-            case TYPE_PLAYER:
-                if (getloc(player) != getloc(thing)
-                    && !controls(player, thing)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-                } else {
-                    look_simple(descr, player, thing, name);
-                    look_contents(player, thing, SYSBLUE "Carrying:");
-                    if (tp_look_propqueues) {
-                        sprintf(obj_num, "#%d", thing);
-                        envpropqueue(descr, player, thing, player, thing,
-                                     NOTHING, "_lookq", obj_num, 1, 1);
+                case TYPE_ROOM:
+                    if (getloc(player) != thing
+                        && !can_link_to(player, TYPE_ROOM, thing)) {
+                        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                    } else {
+                        look_room(descr, player, thing, 1);
                     }
-                }
-                break;
-            case TYPE_THING:
-                if (getloc(player) != getloc(thing)
-                    && getloc(thing) != player && !controls(player, thing)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-                } else {
+                    break;
+                case TYPE_PLAYER:
+                    if (getloc(player) != getloc(thing)
+                        && !controls(player, thing)) {
+                        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                    } else {
+                        look_simple(descr, player, thing, name);
+                        look_contents(player, thing, SYSBLUE "Carrying:");
+                        if (tp_look_propqueues) {
+                            sprintf(obj_num, "#%d", thing);
+                            envpropqueue(descr, player, thing, player, thing,
+                                         NOTHING, "_lookq", obj_num, 1, 1);
+                        }
+                    }
+                    break;
+                case TYPE_THING:
+                    if (getloc(player) != getloc(thing)
+                        && getloc(thing) != player && !controls(player, thing)) {
+                        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                    } else {
+                        look_simple(descr, player, thing, name);
+                        if (!(FLAGS(thing) & HAVEN)) {
+                            look_contents(player, thing, SYSBLUE "Contains:");
+                            ts_useobject(thing);
+                        }
+                        if (tp_look_propqueues) {
+                            sprintf(obj_num, "#%d", thing);
+                            envpropqueue(descr, player, thing, player, thing,
+                                         NOTHING, "_lookq", obj_num, 1, 1);
+                        }
+                    }
+                    break;
+                default:
                     look_simple(descr, player, thing, name);
-                    if (!(FLAGS(thing) & HAVEN)) {
-                        look_contents(player, thing, SYSBLUE "Contains:");
+                    if (Typeof(thing) != TYPE_PROGRAM)
                         ts_useobject(thing);
-                    }
                     if (tp_look_propqueues) {
                         sprintf(obj_num, "#%d", thing);
                         envpropqueue(descr, player, thing, player, thing,
                                      NOTHING, "_lookq", obj_num, 1, 1);
                     }
-                }
-                break;
-            default:
-                look_simple(descr, player, thing, name);
-                if (Typeof(thing) != TYPE_PROGRAM)
-                    ts_useobject(thing);
-                if (tp_look_propqueues) {
-                    sprintf(obj_num, "#%d", thing);
-                    envpropqueue(descr, player, thing, player, thing,
-                                 NOTHING, "_lookq", obj_num, 1, 1);
-                }
-                break;
+                    break;
             }
         } else if (thing == NOTHING || (*detail && thing != AMBIGUOUS)) {
             char propname[BUFFER_LEN];
@@ -532,27 +532,27 @@ flag_description(dbref thing)
 
     strcpy(buf, SYSGREEN "Type: " SYSYELLOW);
     switch (Typeof(thing)) {
-    case TYPE_ROOM:
-        strcat(buf, "ROOM");
-        break;
-    case TYPE_EXIT:
-        strcat(buf, "EXIT/ACTION");
-        break;
-    case TYPE_THING:
-        strcat(buf, "THING");
-        break;
-    case TYPE_PLAYER:
-        strcat(buf, "PLAYER");
-        break;
-    case TYPE_PROGRAM:
-        strcat(buf, "PROGRAM");
-        break;
-    case TYPE_GARBAGE:
-        strcat(buf, "GARBAGE");
-        break;
-    default:
-        strcat(buf, "***UNKNOWN TYPE***");
-        break;
+        case TYPE_ROOM:
+            strcat(buf, "ROOM");
+            break;
+        case TYPE_EXIT:
+            strcat(buf, "EXIT/ACTION");
+            break;
+        case TYPE_THING:
+            strcat(buf, "THING");
+            break;
+        case TYPE_PLAYER:
+            strcat(buf, "PLAYER");
+            break;
+        case TYPE_PROGRAM:
+            strcat(buf, "PROGRAM");
+            break;
+        case TYPE_GARBAGE:
+            strcat(buf, "GARBAGE");
+            break;
+        default:
+            strcat(buf, "***UNKNOWN TYPE***");
+            break;
     }
 
     if (FLAGS(thing) & ~TYPE_MASK || FLAG2(thing)) {
@@ -562,33 +562,33 @@ flag_description(dbref thing)
             strcat(buf, " MAN");
         } else {
             switch (RawMLevel(thing)) {
-            case LMAN:
-                strcat(buf, " MAN");
-                break;
-            case LBOY:
-                strcat(buf, " BOY");
-                break;
-            case LARCH:
-                strcat(buf, " ARCHWIZARD");
-                break;
-            case LWIZ:
-                strcat(buf, " WIZARD");
-                break;
-            case LMAGE:
-                strcat(buf, " MAGE");
-                break;
-            case LM3:
-                strcat(buf, " MUCKER3");
-                break;
-            case LM2:
-                strcat(buf, " MUCKER2");
-                break;
-            case LM1:
-                strcat(buf, " MUCKER");
-                break;
-            case LMPI:
-                strcat(buf, " MEEPER");
-                break;
+                case LMAN:
+                    strcat(buf, " MAN");
+                    break;
+                case LBOY:
+                    strcat(buf, " BOY");
+                    break;
+                case LARCH:
+                    strcat(buf, " ARCHWIZARD");
+                    break;
+                case LWIZ:
+                    strcat(buf, " WIZARD");
+                    break;
+                case LMAGE:
+                    strcat(buf, " MAGE");
+                    break;
+                case LM3:
+                    strcat(buf, " MUCKER3");
+                    break;
+                case LM2:
+                    strcat(buf, " MUCKER2");
+                    break;
+                case LM1:
+                    strcat(buf, " MUCKER");
+                    break;
+                case LMPI:
+                    strcat(buf, " MEEPER");
+                    break;
             }
         }
         if (FLAGS(thing) & QUELL)
@@ -842,34 +842,37 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
         return;
     }
     switch (Typeof(thing)) {
-    case TYPE_ROOM:
-        sprintf(buf, "%.*s" SYSNORMAL "  Owner: %s  Parent: ",
-                (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
-                ansi_unparse_object(OWNER(player), thing), NAME(OWNER(thing)));
-        strcat(buf, ansi_unparse_object(OWNER(player),
-                                        DBFETCH(thing)->location));
-        break;
-    case TYPE_THING:
-        sprintf(buf, "%.*s" SYSNORMAL "  Owner: %s  Value: %d",
-                (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
-                ansi_unparse_object(OWNER(player), thing),
-                NAME(OWNER(thing)), DBFETCH(thing)->sp.thing.value);
-        break;
-    case TYPE_PLAYER:
-        sprintf(buf, "%.*s" SYSNORMAL "  %s: %d  ",
-                (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
-                ansi_unparse_object(OWNER(player), thing),
-                tp_cpennies, DBFETCH(thing)->sp.player.pennies);
-        break;
-    case TYPE_EXIT:
-    case TYPE_PROGRAM:
-        sprintf(buf, "%.*s" SYSNORMAL "  Owner: %s",
-                (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
-                ansi_unparse_object(OWNER(player), thing), NAME(OWNER(thing)));
-        break;
-    case TYPE_GARBAGE:
-        strcpy(buf, ansi_unparse_object(OWNER(player), thing));
-        break;
+        case TYPE_ROOM:
+            sprintf(buf, "%.*s" SYSNORMAL "  Owner: %s  Parent: ",
+                    (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
+                    ansi_unparse_object(OWNER(player), thing),
+                    NAME(OWNER(thing)));
+            strcat(buf,
+                   ansi_unparse_object(OWNER(player),
+                                       DBFETCH(thing)->location));
+            break;
+        case TYPE_THING:
+            sprintf(buf, "%.*s" SYSNORMAL "  Owner: %s  Value: %d",
+                    (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
+                    ansi_unparse_object(OWNER(player), thing),
+                    NAME(OWNER(thing)), DBFETCH(thing)->sp.thing.value);
+            break;
+        case TYPE_PLAYER:
+            sprintf(buf, "%.*s" SYSNORMAL "  %s: %d  ",
+                    (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
+                    ansi_unparse_object(OWNER(player), thing),
+                    tp_cpennies, DBFETCH(thing)->sp.player.pennies);
+            break;
+        case TYPE_EXIT:
+        case TYPE_PROGRAM:
+            sprintf(buf, "%.*s" SYSNORMAL "  Owner: %s",
+                    (BUFFER_LEN - strlen(NAME(OWNER(thing))) - 35),
+                    ansi_unparse_object(OWNER(player), thing),
+                    NAME(OWNER(thing)));
+            break;
+        case TYPE_GARBAGE:
+            strcpy(buf, ansi_unparse_object(OWNER(player), thing));
+            break;
     }
     anotify_nolisten(player, buf, 1);
 
@@ -1024,147 +1027,152 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
         }
     }
     switch (Typeof(thing)) {
-    case TYPE_ROOM:
-        /* tell him about exits */
-        if (DBFETCH(thing)->exits != NOTHING) {
-            anotify_nolisten(player, SYSBLUE "Exits:", 1);
-            DOLIST(exit, DBFETCH(thing)->exits) {
-                strcpy(buf, ansi_unparse_object(OWNER(player), exit));
-                anotify_fmt(player, "%s " SYSCYAN "to %s", buf,
-                            ansi_unparse_object(OWNER(player),
-                                                DBFETCH(exit)->sp.exit.ndest > 0
-                                                ? DBFETCH(exit)->sp.exit.
-                                                dest[0] : NOTHING)
-                    );
+        case TYPE_ROOM:
+            /* tell him about exits */
+            if (DBFETCH(thing)->exits != NOTHING) {
+                anotify_nolisten(player, SYSBLUE "Exits:", 1);
+                DOLIST(exit, DBFETCH(thing)->exits) {
+                    strcpy(buf, ansi_unparse_object(OWNER(player), exit));
+                    anotify_fmt(player, "%s " SYSCYAN "to %s", buf,
+                                ansi_unparse_object(OWNER(player),
+                                                    DBFETCH(exit)->sp.exit.
+                                                    ndest >
+                                                    0 ? DBFETCH(exit)->sp.exit.
+                                                    dest[0] : NOTHING)
+                        );
+                }
+            } else {
+                anotify_nolisten(player, SYSBLUE "No exits.", 1);
             }
-        } else {
-            anotify_nolisten(player, SYSBLUE "No exits.", 1);
-        }
 
-        /* print dropto if present */
-        if (DBFETCH(thing)->sp.room.dropto != NOTHING) {
-            sprintf(buf, SYSAQUA "Dropped objects go to: %s",
-                    ansi_unparse_object(OWNER(player),
-                                        DBFETCH(thing)->sp.room.dropto));
-            anotify_nolisten(player, buf, 1);
-        }
-        break;
-    case TYPE_THING:
-        /* print home */
-        sprintf(buf, SYSAQUA "Home: %s", ansi_unparse_object(OWNER(player), DBFETCH(thing)->sp.thing.home)); /* home */
-        anotify_nolisten(player, buf, 1);
-        /* print location if player can link to it */
-        if (DBFETCH(thing)->location != NOTHING
-            && (controls(OWNER(player), DBFETCH(thing)->location)
-                || can_link_to(OWNER(player), NOTYPE,
-                               DBFETCH(thing)->location))) {
-            sprintf(buf, SYSAQUA "Location: %s",
-                    ansi_unparse_object(OWNER(player),
-                                        DBFETCH(thing)->location));
-            anotify_nolisten(player, buf, 1);
-        }
-        /* print thing's actions, if any */
-        if (DBFETCH(thing)->exits != NOTHING) {
-            anotify_nolisten(player, SYSBLUE "Actions/exits:", 1);
-            DOLIST(exit, DBFETCH(thing)->exits) {
-                strcpy(buf, ansi_unparse_object(OWNER(player), exit));
-                anotify_fmt(player, "%s " SYSCYAN "to %s", buf,
-                            ansi_unparse_object(OWNER(player),
-                                                DBFETCH(exit)->sp.exit.ndest > 0
-                                                ? DBFETCH(exit)->sp.exit.
-                                                dest[0] : NOTHING)
-                    );
-            }
-        } else {
-            anotify_nolisten(player, SYSBLUE "No actions attached.", 1);
-        }
-        break;
-    case TYPE_PLAYER:
-
-        /* print home */
-        sprintf(buf, SYSAQUA "Home: %s", ansi_unparse_object(OWNER(player), DBFETCH(thing)->sp.player.home)); /* home */
-        anotify_nolisten(player, buf, 1);
-
-        /* print location if player can link to it */
-        if (DBFETCH(thing)->location != NOTHING
-            && (controls(OWNER(player), DBFETCH(thing)->location)
-                || can_link_to(OWNER(player), NOTYPE,
-                               DBFETCH(thing)->location))) {
-            sprintf(buf, SYSAQUA "Location: %s",
-                    ansi_unparse_object(OWNER(player),
-                                        DBFETCH(thing)->location));
-            anotify_nolisten(player, buf, 1);
-        }
-        /* print player's actions, if any */
-        if (DBFETCH(thing)->exits != NOTHING) {
-            anotify_nolisten(player, SYSBLUE "Actions/exits:", 1);
-            DOLIST(exit, DBFETCH(thing)->exits) {
-                strcpy(buf, ansi_unparse_object(OWNER(player), exit));
-                anotify_fmt(player, "%s " SYSCYAN "to %s", buf,
-                            ansi_unparse_object(player,
-                                                DBFETCH(exit)->sp.exit.ndest > 0
-                                                ? DBFETCH(exit)->sp.exit.
-                                                dest[0] : NOTHING)
-                    );
-            }
-        } else {
-            anotify_nolisten(player, SYSBLUE "No actions attached.", 1);
-        }
-        break;
-    case TYPE_EXIT:
-        if (DBFETCH(thing)->location != NOTHING) {
-            sprintf(buf, SYSAQUA "Source: %s",
-                    ansi_unparse_object(OWNER(player),
-                                        DBFETCH(thing)->location));
-            anotify_nolisten(player, buf, 1);
-        }
-        /* print destinations */
-        if (DBFETCH(thing)->sp.exit.ndest == 0)
-            break;
-        for (i = 0; i < DBFETCH(thing)->sp.exit.ndest; i++) {
-            switch ((DBFETCH(thing)->sp.exit.dest)[i]) {
-            case NOTHING:
-                break;
-            case HOME:
-                anotify_nolisten(player, SYSAQUA "Destination: *HOME*", 1);
-                break;
-            default:
-                sprintf(buf, SYSAQUA "Destination: %s",
+            /* print dropto if present */
+            if (DBFETCH(thing)->sp.room.dropto != NOTHING) {
+                sprintf(buf, SYSAQUA "Dropped objects go to: %s",
                         ansi_unparse_object(OWNER(player),
-                                            (DBFETCH(thing)->sp.exit.dest)[i]));
+                                            DBFETCH(thing)->sp.room.dropto));
                 anotify_nolisten(player, buf, 1);
-                break;
             }
-        }
-        break;
-    case TYPE_PROGRAM:
-        if (DBFETCH(thing)->sp.program.siz) {
-            struct timeval tv = DBFETCH(thing)->sp.program.proftime;
+            break;
+        case TYPE_THING:
+            /* print home */
+            sprintf(buf, SYSAQUA "Home: %s", ansi_unparse_object(OWNER(player), DBFETCH(thing)->sp.thing.home)); /* home */
+            anotify_nolisten(player, buf, 1);
+            /* print location if player can link to it */
+            if (DBFETCH(thing)->location != NOTHING
+                && (controls(OWNER(player), DBFETCH(thing)->location)
+                    || can_link_to(OWNER(player), NOTYPE,
+                                   DBFETCH(thing)->location))) {
+                sprintf(buf, SYSAQUA "Location: %s",
+                        ansi_unparse_object(OWNER(player),
+                                            DBFETCH(thing)->location));
+                anotify_nolisten(player, buf, 1);
+            }
+            /* print thing's actions, if any */
+            if (DBFETCH(thing)->exits != NOTHING) {
+                anotify_nolisten(player, SYSBLUE "Actions/exits:", 1);
+                DOLIST(exit, DBFETCH(thing)->exits) {
+                    strcpy(buf, ansi_unparse_object(OWNER(player), exit));
+                    anotify_fmt(player, "%s " SYSCYAN "to %s", buf,
+                                ansi_unparse_object(OWNER(player),
+                                                    DBFETCH(exit)->sp.exit.
+                                                    ndest >
+                                                    0 ? DBFETCH(exit)->sp.exit.
+                                                    dest[0] : NOTHING)
+                        );
+                }
+            } else {
+                anotify_nolisten(player, SYSBLUE "No actions attached.", 1);
+            }
+            break;
+        case TYPE_PLAYER:
 
-            sprintf(buf, SYSVIOLET "Program compiled size: " SYSPURPLE
-                    "%d instructions", DBFETCH(thing)->sp.program.siz);
+            /* print home */
+            sprintf(buf, SYSAQUA "Home: %s", ansi_unparse_object(OWNER(player), DBFETCH(thing)->sp.player.home)); /* home */
             anotify_nolisten(player, buf, 1);
-            sprintf(buf, SYSVIOLET "Cumulative runtime: " SYSPURPLE
-                    "%ld.%06ld seconds", tv.tv_sec, tv.tv_usec);
-            anotify_nolisten(player, buf, 1);
-        } else {
-            anotify_nolisten(player, SYSVIOLET "Program not compiled.", 1);
-        }
 
-        /* print location if player can link to it */
-        if (DBFETCH(thing)->location != NOTHING
-            && (controls(OWNER(player), DBFETCH(thing)->location)
-                || can_link_to(OWNER(player), NOTYPE,
-                               DBFETCH(thing)->location))) {
-            sprintf(buf, SYSAQUA "Location: %s",
-                    ansi_unparse_object(OWNER(player),
-                                        DBFETCH(thing)->location));
-            anotify_nolisten(player, buf, 1);
-        }
-        break;
-    default:
-        /* do nothing */
-        break;
+            /* print location if player can link to it */
+            if (DBFETCH(thing)->location != NOTHING
+                && (controls(OWNER(player), DBFETCH(thing)->location)
+                    || can_link_to(OWNER(player), NOTYPE,
+                                   DBFETCH(thing)->location))) {
+                sprintf(buf, SYSAQUA "Location: %s",
+                        ansi_unparse_object(OWNER(player),
+                                            DBFETCH(thing)->location));
+                anotify_nolisten(player, buf, 1);
+            }
+            /* print player's actions, if any */
+            if (DBFETCH(thing)->exits != NOTHING) {
+                anotify_nolisten(player, SYSBLUE "Actions/exits:", 1);
+                DOLIST(exit, DBFETCH(thing)->exits) {
+                    strcpy(buf, ansi_unparse_object(OWNER(player), exit));
+                    anotify_fmt(player, "%s " SYSCYAN "to %s", buf,
+                                ansi_unparse_object(player,
+                                                    DBFETCH(exit)->sp.exit.
+                                                    ndest >
+                                                    0 ? DBFETCH(exit)->sp.exit.
+                                                    dest[0] : NOTHING)
+                        );
+                }
+            } else {
+                anotify_nolisten(player, SYSBLUE "No actions attached.", 1);
+            }
+            break;
+        case TYPE_EXIT:
+            if (DBFETCH(thing)->location != NOTHING) {
+                sprintf(buf, SYSAQUA "Source: %s",
+                        ansi_unparse_object(OWNER(player),
+                                            DBFETCH(thing)->location));
+                anotify_nolisten(player, buf, 1);
+            }
+            /* print destinations */
+            if (DBFETCH(thing)->sp.exit.ndest == 0)
+                break;
+            for (i = 0; i < DBFETCH(thing)->sp.exit.ndest; i++) {
+                switch ((DBFETCH(thing)->sp.exit.dest)[i]) {
+                    case NOTHING:
+                        break;
+                    case HOME:
+                        anotify_nolisten(player, SYSAQUA "Destination: *HOME*",
+                                         1);
+                        break;
+                    default:
+                        sprintf(buf, SYSAQUA "Destination: %s",
+                                ansi_unparse_object(OWNER(player),
+                                                    (DBFETCH(thing)->sp.exit.
+                                                     dest)[i]));
+                        anotify_nolisten(player, buf, 1);
+                        break;
+                }
+            }
+            break;
+        case TYPE_PROGRAM:
+            if (DBFETCH(thing)->sp.program.siz) {
+                struct timeval tv = DBFETCH(thing)->sp.program.proftime;
+
+                sprintf(buf, SYSVIOLET "Program compiled size: " SYSPURPLE
+                        "%d instructions", DBFETCH(thing)->sp.program.siz);
+                anotify_nolisten(player, buf, 1);
+                sprintf(buf, SYSVIOLET "Cumulative runtime: " SYSPURPLE
+                        "%ld.%06ld seconds", tv.tv_sec, tv.tv_usec);
+                anotify_nolisten(player, buf, 1);
+            } else {
+                anotify_nolisten(player, SYSVIOLET "Program not compiled.", 1);
+            }
+
+            /* print location if player can link to it */
+            if (DBFETCH(thing)->location != NOTHING
+                && (controls(OWNER(player), DBFETCH(thing)->location)
+                    || can_link_to(OWNER(player), NOTYPE,
+                                   DBFETCH(thing)->location))) {
+                sprintf(buf, SYSAQUA "Location: %s",
+                        ansi_unparse_object(OWNER(player),
+                                            DBFETCH(thing)->location));
+                anotify_nolisten(player, buf, 1);
+            }
+            break;
+        default:
+            /* do nothing */
+            break;
     }
 }
 
@@ -1284,445 +1292,445 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
             check->anypower = 1;
         } else {
             switch (inflags ? UPCASE(*flags) : DOWNCASE(*flags)) {
-            case '!':
-                if (mode)
-                    mode = 0;
-                else
-                    mode = 2;
-                break;
-            case 'R':
-                if (mode) {
-                    check->isnotroom = 1;
-                } else {
-                    check->fortype = 1;
-                    check->istype = TYPE_ROOM;
-                }
-                break;
-            case 'T':
-                if (mode) {
-                    check->isnotthing = 1;
-                } else {
-                    check->fortype = 1;
-                    check->istype = TYPE_THING;
-                }
-                break;
-            case 'E':
-                if (mode) {
-                    check->isnotexit = 1;
-                } else {
-                    check->fortype = 1;
-                    check->istype = TYPE_EXIT;
-                }
-                break;
-            case 'P':
-                if (mode) {
-                    check->isnotplayer = 1;
-                } else {
-                    check->fortype = 1;
-                    check->istype = TYPE_PLAYER;
-                }
-                break;
-            case 'F':
-                if (mode) {
-                    check->isnotprog = 1;
-                } else {
-                    check->fortype = 1;
-                    check->istype = TYPE_PROGRAM;
-                }
-                break;
-            case '~':
-            case '^':
-                check->loadedsize = (Mage(OWNER(player)) && *flags == '^');
-                check->size = atoi(flags + 1);
-                check->issize = !mode;
-                while (isdigit(flags[1]))
-                    flags++;
-                break;
-            case 'U':
-                check->forlink = 1;
-                if (mode) {
-                    check->islinked = 1;
-                } else {
-                    check->islinked = 0;
-                }
-                break;
-            case '@':
-                check->forold = 1;
-                if (mode) {
-                    check->isold = 0;
-                } else {
-                    check->isold = 1;
-                }
-                break;
-            case '0':
-                if (mode) {
-                    check->isnotzero = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = 0;
-                }
-                break;
-            case '1':
-                if (mode) {
-                    check->isnotone = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = 1;
-                }
-                break;
-            case '2':
-                if (mode) {
-                    check->isnottwo = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = 2;
-                }
-                break;
-            case '3':
-                if (mode) {
-                    check->isnotthree = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = 3;
-                }
-                break;
-            case '4':
-                if (mode) {
-                    check->isnotfour = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = 4;
-                }
-                break;
-            case '5':
-                if (mode) {
-                    check->isnotfive = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = tp_multi_wizlevels ? 5 : 4;
-                }
-                break;
-            case '6':
-                if (mode) {
-                    check->isnotsix = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = tp_multi_wizlevels ? 6 : 7;
-                }
-                break;
-            case '7':
-                if (mode) {
-                    check->isnotseven = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = 7;
-                }
-                break;
-            case '8':
-                if (mode) {
-                    check->isnoteight = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = tp_multi_wizlevels ? 8 : 7;
-                }
-                break;
-            case '9':
-                if (mode) {
-                    check->isnotnine = 1;
-                } else {
-                    check->forlevel = 1;
-                    check->islevel = 9;
-                }
-                break;
-            case 'M':
-                if (mode) {
-                    check->forlevel = 1;
-                    check->islevel = 0;
-                } else {
-                    check->isnotzero = 1;
-                }
-                break;
-            case 'A':
-                if (mode)
-                    check->clearflags |= ABODE;
-                else
-                    check->setflags |= ABODE;
-                break;
-            case 'B':
-                if (mode)
-                    check->clearflags |= BUILDER;
-                else
-                    check->setflags |= BUILDER;
-                break;
-            case 'C':
-                if (mode)
-                    check->clearflags |= CHOWN_OK;
-                else
-                    check->setflags |= CHOWN_OK;
-                break;
-            case 'D':
-                if (mode)
-                    check->clearflags |= DARK;
-                else
-                    check->setflags |= DARK;
-                break;
-            case 'H':
-                if (mode)
-                    check->clearflags |= HAVEN;
-                else
-                    check->setflags |= HAVEN;
-                break;
-            case 'J':
-                if (mode)
-                    check->clearflags |= JUMP_OK;
-                else
-                    check->setflags |= JUMP_OK;
-                break;
-            case 'L':
-                if (mode)
-                    check->clearflags |= LINK_OK;
-                else
-                    check->setflags |= LINK_OK;
-                break;
-            case 'Q':
-                if (mode)
-                    check->clearflags |= QUELL;
-                else
-                    check->setflags |= QUELL;
-                break;
-            case 'S':
-                if (mode)
-                    check->clearflags |= STICKY;
-                else
-                    check->setflags |= STICKY;
-                break;
-            case 'V':
-                if (mode)
-                    check->clearflags |= VEHICLE;
-                else
-                    check->setflags |= VEHICLE;
-                break;
-            case 'Z':
-                if (mode)
-                    check->clearflags |= ZOMBIE;
-                else
-                    check->setflags |= ZOMBIE;
-                break;
-            case 'W':
-                if (mode)
-                    check->isnotwiz = 1;
-                else
-                    check->iswiz = 1;
-                break;
-            case 'G':
-                if (mode)
-                    check->clearflag2 |= F2GUEST;
-                else
-                    check->setflag2 |= F2GUEST;
-                break;
-            case '%':
-                if (mode)
-                    check->clearflag2 |= F2PARENT;
-                else
-                    check->setflag2 |= F2PARENT;
-                break;
-            case '#':
-                if (mode)
-                    check->clearflag2 |= F2HIDDEN;
-                else
-                    check->setflag2 |= F2HIDDEN;
-                break;
-            case 'O':
-                if (mode)
-                    check->clearflag2 |= F2LIGHT;
-                else
-                    check->setflag2 |= F2LIGHT;
-                break;
-            case '*':
-                if (mode)
-                    check->clearflag2 |= F2PROTECT;
-                else
-                    check->setflag2 |= F2PROTECT;
-                break;
-            case '+':
-                if (mode)
-                    check->clearflag2 |= F2MUFCOUNT;
-                else
-                    check->setflag2 |= F2MUFCOUNT;
-                break;
-            case 'K':
-                if (mode)
-                    check->clearflag2 |= F2ANTIPROTECT;
-                else
-                    check->setflag2 |= F2ANTIPROTECT;
-                break;
-            case 'I':
-                if (mode)
-                    check->clearflag2 |= F2IDLE;
-                else
-                    check->setflag2 |= F2IDLE;
-                break;
-            case 'N':
-                if (mode)
-                    check->clearflag2 |= F2NO_COMMAND;
-                else
-                    check->setflag2 |= F2NO_COMMAND;
-                break;
-            case 'Y':
-                if (mode)
-                    check->clearflag2 |= F2EXAMINE_OK;
-                else
-                    check->setflag2 |= F2EXAMINE_OK;
-                break;
-            case '?':
-                if (mode)
-                    check->clearflag2 |= F2MOBILE;
-                else
-                    check->setflag2 |= F2MOBILE;
-                break;
-            case 'a':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_ANNOUNCE;
-                else
-                    check->setpowers |= POW_ANNOUNCE;
-                break;
-            case 'b':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_BOOT;
-                else
-                    check->setpowers |= POW_BOOT;
-                break;
-            case 'c':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_CHOWN_ANYTHING;
-                else
-                    check->setpowers |= POW_CHOWN_ANYTHING;
-                break;
-            case 'x':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_EXPANDED_WHO;
-                else
-                    check->setpowers |= POW_EXPANDED_WHO;
-                break;
-            case 'h':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_HIDE;
-                else
-                    check->setpowers |= POW_HIDE;
-                break;
-            case 'i':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_IDLE;
-                else
-                    check->setpowers |= POW_IDLE;
-                break;
-            case 'l':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_LINK_ANYWHERE;
-                else
-                    check->setpowers |= POW_LINK_ANYWHERE;
-                break;
-            case 'g':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_LONG_FINGERS;
-                else
-                    check->setpowers |= POW_LONG_FINGERS;
-                break;
-            case 'n':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_NO_PAY;
-                else
-                    check->setpowers |= POW_NO_PAY;
-                break;
-            case 'o':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_OPEN_ANYWHERE;
-                else
-                    check->setpowers |= POW_OPEN_ANYWHERE;
-                break;
-            case 'p':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_PLAYER_CREATE;
-                else
-                    check->setpowers |= POW_PLAYER_CREATE;
-                break;
-            case 'u':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_PLAYER_PURGE;
-                else
-                    check->setpowers |= POW_PLAYER_PURGE;
-            case 's':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_SEARCH;
-                else
-                    check->setpowers |= POW_SEARCH;
-                break;
-            case 'e':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_SEE_ALL;
-                else
-                    check->setpowers |= POW_SEE_ALL;
-                break;
-            case 't':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_TELEPORT;
-                else
-                    check->setpowers |= POW_TELEPORT;
-                break;
-            case 'd':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_SHUTDOWN;
-                else
-                    check->setpowers |= POW_SHUTDOWN;
-                break;
-            case 'f':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_CONTROL_MUF;
-                else
-                    check->setpowers |= POW_CONTROL_MUF;
-                break;
-            case 'r':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_CONTROL_ALL;
-                else
-                    check->setpowers |= POW_CONTROL_ALL;
-                break;
-            case 'm':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_ALL_MUF_PRIMS;
-                else
-                    check->setpowers |= POW_ALL_MUF_PRIMS;
-                break;
-            case 'w':
-                check->anypower = 0;
-                if (mode)
-                    check->clearpowers |= POW_STAFF;
-                else
-                    check->setpowers |= POW_STAFF;
-                break;
-            case ' ':
-                if (mode)
-                    mode = 2;
-                break;
+                case '!':
+                    if (mode)
+                        mode = 0;
+                    else
+                        mode = 2;
+                    break;
+                case 'R':
+                    if (mode) {
+                        check->isnotroom = 1;
+                    } else {
+                        check->fortype = 1;
+                        check->istype = TYPE_ROOM;
+                    }
+                    break;
+                case 'T':
+                    if (mode) {
+                        check->isnotthing = 1;
+                    } else {
+                        check->fortype = 1;
+                        check->istype = TYPE_THING;
+                    }
+                    break;
+                case 'E':
+                    if (mode) {
+                        check->isnotexit = 1;
+                    } else {
+                        check->fortype = 1;
+                        check->istype = TYPE_EXIT;
+                    }
+                    break;
+                case 'P':
+                    if (mode) {
+                        check->isnotplayer = 1;
+                    } else {
+                        check->fortype = 1;
+                        check->istype = TYPE_PLAYER;
+                    }
+                    break;
+                case 'F':
+                    if (mode) {
+                        check->isnotprog = 1;
+                    } else {
+                        check->fortype = 1;
+                        check->istype = TYPE_PROGRAM;
+                    }
+                    break;
+                case '~':
+                case '^':
+                    check->loadedsize = (Mage(OWNER(player)) && *flags == '^');
+                    check->size = atoi(flags + 1);
+                    check->issize = !mode;
+                    while (isdigit(flags[1]))
+                        flags++;
+                    break;
+                case 'U':
+                    check->forlink = 1;
+                    if (mode) {
+                        check->islinked = 1;
+                    } else {
+                        check->islinked = 0;
+                    }
+                    break;
+                case '@':
+                    check->forold = 1;
+                    if (mode) {
+                        check->isold = 0;
+                    } else {
+                        check->isold = 1;
+                    }
+                    break;
+                case '0':
+                    if (mode) {
+                        check->isnotzero = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = 0;
+                    }
+                    break;
+                case '1':
+                    if (mode) {
+                        check->isnotone = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = 1;
+                    }
+                    break;
+                case '2':
+                    if (mode) {
+                        check->isnottwo = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = 2;
+                    }
+                    break;
+                case '3':
+                    if (mode) {
+                        check->isnotthree = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = 3;
+                    }
+                    break;
+                case '4':
+                    if (mode) {
+                        check->isnotfour = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = 4;
+                    }
+                    break;
+                case '5':
+                    if (mode) {
+                        check->isnotfive = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = tp_multi_wizlevels ? 5 : 4;
+                    }
+                    break;
+                case '6':
+                    if (mode) {
+                        check->isnotsix = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = tp_multi_wizlevels ? 6 : 7;
+                    }
+                    break;
+                case '7':
+                    if (mode) {
+                        check->isnotseven = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = 7;
+                    }
+                    break;
+                case '8':
+                    if (mode) {
+                        check->isnoteight = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = tp_multi_wizlevels ? 8 : 7;
+                    }
+                    break;
+                case '9':
+                    if (mode) {
+                        check->isnotnine = 1;
+                    } else {
+                        check->forlevel = 1;
+                        check->islevel = 9;
+                    }
+                    break;
+                case 'M':
+                    if (mode) {
+                        check->forlevel = 1;
+                        check->islevel = 0;
+                    } else {
+                        check->isnotzero = 1;
+                    }
+                    break;
+                case 'A':
+                    if (mode)
+                        check->clearflags |= ABODE;
+                    else
+                        check->setflags |= ABODE;
+                    break;
+                case 'B':
+                    if (mode)
+                        check->clearflags |= BUILDER;
+                    else
+                        check->setflags |= BUILDER;
+                    break;
+                case 'C':
+                    if (mode)
+                        check->clearflags |= CHOWN_OK;
+                    else
+                        check->setflags |= CHOWN_OK;
+                    break;
+                case 'D':
+                    if (mode)
+                        check->clearflags |= DARK;
+                    else
+                        check->setflags |= DARK;
+                    break;
+                case 'H':
+                    if (mode)
+                        check->clearflags |= HAVEN;
+                    else
+                        check->setflags |= HAVEN;
+                    break;
+                case 'J':
+                    if (mode)
+                        check->clearflags |= JUMP_OK;
+                    else
+                        check->setflags |= JUMP_OK;
+                    break;
+                case 'L':
+                    if (mode)
+                        check->clearflags |= LINK_OK;
+                    else
+                        check->setflags |= LINK_OK;
+                    break;
+                case 'Q':
+                    if (mode)
+                        check->clearflags |= QUELL;
+                    else
+                        check->setflags |= QUELL;
+                    break;
+                case 'S':
+                    if (mode)
+                        check->clearflags |= STICKY;
+                    else
+                        check->setflags |= STICKY;
+                    break;
+                case 'V':
+                    if (mode)
+                        check->clearflags |= VEHICLE;
+                    else
+                        check->setflags |= VEHICLE;
+                    break;
+                case 'Z':
+                    if (mode)
+                        check->clearflags |= ZOMBIE;
+                    else
+                        check->setflags |= ZOMBIE;
+                    break;
+                case 'W':
+                    if (mode)
+                        check->isnotwiz = 1;
+                    else
+                        check->iswiz = 1;
+                    break;
+                case 'G':
+                    if (mode)
+                        check->clearflag2 |= F2GUEST;
+                    else
+                        check->setflag2 |= F2GUEST;
+                    break;
+                case '%':
+                    if (mode)
+                        check->clearflag2 |= F2PARENT;
+                    else
+                        check->setflag2 |= F2PARENT;
+                    break;
+                case '#':
+                    if (mode)
+                        check->clearflag2 |= F2HIDDEN;
+                    else
+                        check->setflag2 |= F2HIDDEN;
+                    break;
+                case 'O':
+                    if (mode)
+                        check->clearflag2 |= F2LIGHT;
+                    else
+                        check->setflag2 |= F2LIGHT;
+                    break;
+                case '*':
+                    if (mode)
+                        check->clearflag2 |= F2PROTECT;
+                    else
+                        check->setflag2 |= F2PROTECT;
+                    break;
+                case '+':
+                    if (mode)
+                        check->clearflag2 |= F2MUFCOUNT;
+                    else
+                        check->setflag2 |= F2MUFCOUNT;
+                    break;
+                case 'K':
+                    if (mode)
+                        check->clearflag2 |= F2ANTIPROTECT;
+                    else
+                        check->setflag2 |= F2ANTIPROTECT;
+                    break;
+                case 'I':
+                    if (mode)
+                        check->clearflag2 |= F2IDLE;
+                    else
+                        check->setflag2 |= F2IDLE;
+                    break;
+                case 'N':
+                    if (mode)
+                        check->clearflag2 |= F2NO_COMMAND;
+                    else
+                        check->setflag2 |= F2NO_COMMAND;
+                    break;
+                case 'Y':
+                    if (mode)
+                        check->clearflag2 |= F2EXAMINE_OK;
+                    else
+                        check->setflag2 |= F2EXAMINE_OK;
+                    break;
+                case '?':
+                    if (mode)
+                        check->clearflag2 |= F2MOBILE;
+                    else
+                        check->setflag2 |= F2MOBILE;
+                    break;
+                case 'a':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_ANNOUNCE;
+                    else
+                        check->setpowers |= POW_ANNOUNCE;
+                    break;
+                case 'b':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_BOOT;
+                    else
+                        check->setpowers |= POW_BOOT;
+                    break;
+                case 'c':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_CHOWN_ANYTHING;
+                    else
+                        check->setpowers |= POW_CHOWN_ANYTHING;
+                    break;
+                case 'x':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_EXPANDED_WHO;
+                    else
+                        check->setpowers |= POW_EXPANDED_WHO;
+                    break;
+                case 'h':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_HIDE;
+                    else
+                        check->setpowers |= POW_HIDE;
+                    break;
+                case 'i':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_IDLE;
+                    else
+                        check->setpowers |= POW_IDLE;
+                    break;
+                case 'l':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_LINK_ANYWHERE;
+                    else
+                        check->setpowers |= POW_LINK_ANYWHERE;
+                    break;
+                case 'g':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_LONG_FINGERS;
+                    else
+                        check->setpowers |= POW_LONG_FINGERS;
+                    break;
+                case 'n':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_NO_PAY;
+                    else
+                        check->setpowers |= POW_NO_PAY;
+                    break;
+                case 'o':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_OPEN_ANYWHERE;
+                    else
+                        check->setpowers |= POW_OPEN_ANYWHERE;
+                    break;
+                case 'p':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_PLAYER_CREATE;
+                    else
+                        check->setpowers |= POW_PLAYER_CREATE;
+                    break;
+                case 'u':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_PLAYER_PURGE;
+                    else
+                        check->setpowers |= POW_PLAYER_PURGE;
+                case 's':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_SEARCH;
+                    else
+                        check->setpowers |= POW_SEARCH;
+                    break;
+                case 'e':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_SEE_ALL;
+                    else
+                        check->setpowers |= POW_SEE_ALL;
+                    break;
+                case 't':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_TELEPORT;
+                    else
+                        check->setpowers |= POW_TELEPORT;
+                    break;
+                case 'd':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_SHUTDOWN;
+                    else
+                        check->setpowers |= POW_SHUTDOWN;
+                    break;
+                case 'f':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_CONTROL_MUF;
+                    else
+                        check->setpowers |= POW_CONTROL_MUF;
+                    break;
+                case 'r':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_CONTROL_ALL;
+                    else
+                        check->setpowers |= POW_CONTROL_ALL;
+                    break;
+                case 'm':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_ALL_MUF_PRIMS;
+                    else
+                        check->setpowers |= POW_ALL_MUF_PRIMS;
+                    break;
+                case 'w':
+                    check->anypower = 0;
+                    if (mode)
+                        check->clearpowers |= POW_STAFF;
+                    else
+                        check->setpowers |= POW_STAFF;
+                    break;
+                case ' ':
+                    if (mode)
+                        mode = 2;
+                    break;
             }
         }
         if (mode)
@@ -1801,22 +1809,23 @@ checkflags(dbref what, struct flgchkdat check)
 
     if (check.forlink) {
         switch (Typeof(what)) {
-        case TYPE_ROOM:
-            if ((DBFETCH(what)->sp.room.dropto == NOTHING) != (!check.islinked))
-                return (0);
-            break;
-        case TYPE_EXIT:
-            if ((!DBFETCH(what)->sp.exit.ndest) != (!check.islinked))
-                return (0);
-            break;
-        case TYPE_PLAYER:
-        case TYPE_THING:
-            if (!check.islinked)
-                return (0);
-            break;
-        default:
-            if (check.islinked)
-                return (0);
+            case TYPE_ROOM:
+                if ((DBFETCH(what)->sp.room.dropto == NOTHING) !=
+                    (!check.islinked))
+                    return (0);
+                break;
+            case TYPE_EXIT:
+                if ((!DBFETCH(what)->sp.exit.ndest) != (!check.islinked))
+                    return (0);
+                break;
+            case TYPE_PLAYER:
+            case TYPE_THING:
+                if (!check.islinked)
+                    return (0);
+                break;
+            default:
+                if (check.islinked)
+                    return (0);
         }
     }
     if (check.forold) {
@@ -1846,54 +1855,58 @@ display_objinfo(dbref player, dbref obj, int output_type)
     strcat(buf2, NORMAL);
 
     switch (output_type) {
-    case 1:                    /* owners */
-        sprintf(buf, "%-38.512s  %.512s", buf2,
-                ansi_unparse_object(player, OWNER(obj)));
-        break;
-    case 2:                    /* links */
-        switch (Typeof(obj)) {
-        case TYPE_ROOM:
+        case 1:                /* owners */
             sprintf(buf, "%-38.512s  %.512s", buf2,
-                    ansi_unparse_object(player, DBFETCH(obj)->sp.room.dropto));
+                    ansi_unparse_object(player, OWNER(obj)));
             break;
-        case TYPE_EXIT:
-            if (DBFETCH(obj)->sp.exit.ndest == 0) {
-                sprintf(buf, "%-38.512s  %.512s", buf2, "*UNLINKED*");
-                break;
+        case 2:                /* links */
+            switch (Typeof(obj)) {
+                case TYPE_ROOM:
+                    sprintf(buf, "%-38.512s  %.512s", buf2,
+                            ansi_unparse_object(player,
+                                                DBFETCH(obj)->sp.room.dropto));
+                    break;
+                case TYPE_EXIT:
+                    if (DBFETCH(obj)->sp.exit.ndest == 0) {
+                        sprintf(buf, "%-38.512s  %.512s", buf2, "*UNLINKED*");
+                        break;
+                    }
+                    if (DBFETCH(obj)->sp.exit.ndest > 1) {
+                        sprintf(buf, "%-38.512s  %.512s", buf2, "*METALINKED*");
+                        break;
+                    }
+                    sprintf(buf, "%-38.512s  %.512s", buf2,
+                            ansi_unparse_object(player,
+                                                DBFETCH(obj)->sp.exit.dest[0]));
+                    break;
+                case TYPE_PLAYER:
+                    sprintf(buf, "%-38.512s  %.512s", buf2,
+                            ansi_unparse_object(player,
+                                                DBFETCH(obj)->sp.player.home));
+                    break;
+                case TYPE_THING:
+                    sprintf(buf, "%-38.512s  %.512s", buf2,
+                            ansi_unparse_object(player,
+                                                DBFETCH(obj)->sp.thing.home));
+                    break;
+                default:
+                    sprintf(buf, "%-38.512s  %.512s", buf2, "N/A");
+                    break;
             }
-            if (DBFETCH(obj)->sp.exit.ndest > 1) {
-                sprintf(buf, "%-38.512s  %.512s", buf2, "*METALINKED*");
-                break;
-            }
-            sprintf(buf, "%-38.512s  %.512s", buf2,
-                    ansi_unparse_object(player, DBFETCH(obj)->sp.exit.dest[0]));
             break;
-        case TYPE_PLAYER:
+        case 3:                /* locations */
             sprintf(buf, "%-38.512s  %.512s", buf2,
-                    ansi_unparse_object(player, DBFETCH(obj)->sp.player.home));
+                    ansi_unparse_object(player, DBFETCH(obj)->location));
             break;
-        case TYPE_THING:
-            sprintf(buf, "%-38.512s  %.512s", buf2,
-                    ansi_unparse_object(player, DBFETCH(obj)->sp.thing.home));
+        case 4:
+            return;
+        case 5:
+            sprintf(buf, "%-38.512s  %d bytes.", buf2, size_object(obj, 0));
             break;
+        case 0:
         default:
-            sprintf(buf, "%-38.512s  %.512s", buf2, "N/A");
+            strcpy(buf, buf2);
             break;
-        }
-        break;
-    case 3:                    /* locations */
-        sprintf(buf, "%-38.512s  %.512s", buf2,
-                ansi_unparse_object(player, DBFETCH(obj)->location));
-        break;
-    case 4:
-        return;
-    case 5:
-        sprintf(buf, "%-38.512s  %d bytes.", buf2, size_object(obj, 0));
-        break;
-    case 0:
-    default:
-        strcpy(buf, buf2);
-        break;
     }
     anotify_nolisten(player, buf, 1);
 }
@@ -2046,35 +2059,35 @@ do_entrances(int descr, dbref player, const char *name, const char *flags)
     for (i = 0; i < db_top; i++) {
         if (checkflags(i, check)) {
             switch (Typeof(i)) {
-            case TYPE_EXIT:
-                for (j = DBFETCH(i)->sp.exit.ndest; j--;) {
-                    if (DBFETCH(i)->sp.exit.dest[j] == thing) {
+                case TYPE_EXIT:
+                    for (j = DBFETCH(i)->sp.exit.ndest; j--;) {
+                        if (DBFETCH(i)->sp.exit.dest[j] == thing) {
+                            display_objinfo(player, i, output_type);
+                            total++;
+                        }
+                    }
+                    break;
+                case TYPE_PLAYER:
+                    if (DBFETCH(i)->sp.player.home == thing) {
                         display_objinfo(player, i, output_type);
                         total++;
                     }
-                }
-                break;
-            case TYPE_PLAYER:
-                if (DBFETCH(i)->sp.player.home == thing) {
-                    display_objinfo(player, i, output_type);
-                    total++;
-                }
-                break;
-            case TYPE_THING:
-                if (DBFETCH(i)->sp.thing.home == thing) {
-                    display_objinfo(player, i, output_type);
-                    total++;
-                }
-                break;
-            case TYPE_ROOM:
-                if (DBFETCH(i)->sp.room.dropto == thing) {
-                    display_objinfo(player, i, output_type);
-                    total++;
-                }
-                break;
-            case TYPE_PROGRAM:
-            case TYPE_GARBAGE:
-                break;
+                    break;
+                case TYPE_THING:
+                    if (DBFETCH(i)->sp.thing.home == thing) {
+                        display_objinfo(player, i, output_type);
+                        total++;
+                    }
+                    break;
+                case TYPE_ROOM:
+                    if (DBFETCH(i)->sp.room.dropto == thing) {
+                        display_objinfo(player, i, output_type);
+                        total++;
+                    }
+                    break;
+                case TYPE_PROGRAM:
+                case TYPE_GARBAGE:
+                    break;
             }
         }
     }
@@ -2128,16 +2141,16 @@ do_contents(int descr, dbref player, const char *name, const char *flags)
         }
     }
     switch (Typeof(thing)) {
-    case TYPE_EXIT:
-    case TYPE_PROGRAM:
-    case TYPE_GARBAGE:
-        i = NOTHING;
-        break;
-    case TYPE_ROOM:
-    case TYPE_THING:
-    case TYPE_PLAYER:
-        i = DBFETCH(thing)->exits;
-        break;
+        case TYPE_EXIT:
+        case TYPE_PROGRAM:
+        case TYPE_GARBAGE:
+            i = NOTHING;
+            break;
+        case TYPE_ROOM:
+        case TYPE_THING:
+        case TYPE_PLAYER:
+            i = DBFETCH(thing)->exits;
+            break;
     }
     DOLIST(i, i) {
         if (checkflags(i, check)) {
@@ -2234,52 +2247,52 @@ do_sweep(int descr, dbref player, const char *name)
     ref = DBFETCH(thing)->contents;
     for (; ref != NOTHING; ref = DBFETCH(ref)->next) {
         switch (Typeof(ref)) {
-        case TYPE_PLAYER:
-            if ( /* !Dark(thing) || */ online(ref)) {
-                sprintf(buf, "  %s" NORMAL " is a %splayer.",
-                        ansi_unparse_object(player, ref),
-                        online(ref) ? "" : "sleeping ");
-                anotify_nolisten(player, buf, 1);
-            }
-            break;
-        case TYPE_THING:
-            if (FLAGS(ref) & (VEHICLE | ZOMBIE | LISTENER)) {
-                tellflag = 0;
-                sprintf(buf, "  %.255s" NORMAL " is a",
-                        ansi_unparse_object(player, ref));
-                if (FLAGS(ref) & ZOMBIE) {
-                    tellflag = 1;
-                    if (!online(OWNER(ref))) {
-                        tellflag = 0;
-                        strcat(buf, " sleeping");
-                    }
-                    strcat(buf, " zombie");
-                }
-                if (FLAGS(ref) & VEHICLE) {
-                    tellflag = 1;
-                    strcat(buf, " vehicle");
-                }
-                if ((FLAGS(ref) & LISTENER) &&
-                    (get_property(ref, "_listen") ||
-                     get_property(ref, "_olisten") ||
-                     get_property(ref, "~listen") ||
-                     get_property(ref, "~olisten") ||
-                     get_property(ref, "@olisten") ||
-                     get_property(ref, "@listen"))) {
-                    strcat(buf, " listener");
-                    tellflag = 1;
-                }
-                strcat(buf, " object owned by ");
-                strcat(buf, ansi_unparse_object(player, OWNER(ref)));
-                strcat(buf, NORMAL ".");
-                if (tellflag)
+            case TYPE_PLAYER:
+                if ( /* !Dark(thing) || */ online(ref)) {
+                    sprintf(buf, "  %s" NORMAL " is a %splayer.",
+                            ansi_unparse_object(player, ref),
+                            online(ref) ? "" : "sleeping ");
                     anotify_nolisten(player, buf, 1);
-            }
-            exit_match_exists(player, ref, "page");
-            exit_match_exists(player, ref, "whisper");
-            exit_match_exists(player, ref, "pose");
-            exit_match_exists(player, ref, "say");
-            break;
+                }
+                break;
+            case TYPE_THING:
+                if (FLAGS(ref) & (VEHICLE | ZOMBIE | LISTENER)) {
+                    tellflag = 0;
+                    sprintf(buf, "  %.255s" NORMAL " is a",
+                            ansi_unparse_object(player, ref));
+                    if (FLAGS(ref) & ZOMBIE) {
+                        tellflag = 1;
+                        if (!online(OWNER(ref))) {
+                            tellflag = 0;
+                            strcat(buf, " sleeping");
+                        }
+                        strcat(buf, " zombie");
+                    }
+                    if (FLAGS(ref) & VEHICLE) {
+                        tellflag = 1;
+                        strcat(buf, " vehicle");
+                    }
+                    if ((FLAGS(ref) & LISTENER) &&
+                        (get_property(ref, "_listen") ||
+                         get_property(ref, "_olisten") ||
+                         get_property(ref, "~listen") ||
+                         get_property(ref, "~olisten") ||
+                         get_property(ref, "@olisten") ||
+                         get_property(ref, "@listen"))) {
+                        strcat(buf, " listener");
+                        tellflag = 1;
+                    }
+                    strcat(buf, " object owned by ");
+                    strcat(buf, ansi_unparse_object(player, OWNER(ref)));
+                    strcat(buf, NORMAL ".");
+                    if (tellflag)
+                        anotify_nolisten(player, buf, 1);
+                }
+                exit_match_exists(player, ref, "page");
+                exit_match_exists(player, ref, "whisper");
+                exit_match_exists(player, ref, "pose");
+                exit_match_exists(player, ref, "say");
+                break;
         }
     }
     flag = 0;

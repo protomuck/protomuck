@@ -578,22 +578,22 @@ do_conlock(int descr, dbref player, const char *name, const char *keyname)
     match_everything(&md);
 
     switch (thing = match_result(&md)) {
-    case NOTHING:
-        anotify_nolisten2(player,
-                          CINFO
-                          "I don't see what you want to set the container-lock on!");
-        return;
-    case AMBIGUOUS:
-        anotify_nolisten2(player,
-                          CINFO
-                          "I don't know which one you want to set the container-lock on!");
-        return;
-    default:
-        if (!controls(player, thing)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        case NOTHING:
+            anotify_nolisten2(player,
+                              CINFO
+                              "I don't see what you want to set the container-lock on!");
             return;
-        }
-        break;
+        case AMBIGUOUS:
+            anotify_nolisten2(player,
+                              CINFO
+                              "I don't know which one you want to set the container-lock on!");
+            return;
+        default:
+            if (!controls(player, thing)) {
+                anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                return;
+            }
+            break;
     }
 
     if (force_level) {
@@ -640,18 +640,18 @@ do_flock(int descr, dbref player, const char *name, const char *keyname)
     match_everything(&md);
 
     switch (thing = match_result(&md)) {
-    case NOTHING:
-        anotify_nolisten2(player, CINFO "I don't see that here.");
-        return;
-    case AMBIGUOUS:
-        anotify_nolisten2(player, CINFO "I don't know which one you mean!");
-        return;
-    default:
-        if (!controls(player, thing)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        case NOTHING:
+            anotify_nolisten2(player, CINFO "I don't see that here.");
             return;
-        }
-        break;
+        case AMBIGUOUS:
+            anotify_nolisten2(player, CINFO "I don't know which one you mean!");
+            return;
+        default:
+            if (!controls(player, thing)) {
+                anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                return;
+            }
+            break;
     }
 
     if (!*keyname) {
@@ -691,18 +691,18 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
     match_everything(&md);
 
     switch (thing = match_result(&md)) {
-    case NOTHING:
-        anotify_nolisten2(player, CINFO "I don't see that here.");
-        return;
-    case AMBIGUOUS:
-        anotify_nolisten2(player, CINFO "I don't know which one you mean!");
-        return;
-    default:
-        if (!controls(player, thing)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        case NOTHING:
+            anotify_nolisten2(player, CINFO "I don't see that here.");
             return;
-        }
-        break;
+        case AMBIGUOUS:
+            anotify_nolisten2(player, CINFO "I don't know which one you mean!");
+            return;
+        default:
+            if (!controls(player, thing)) {
+                anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                return;
+            }
+            break;
     }
 
     if (!*keyname) {
@@ -742,18 +742,18 @@ do_lock(int descr, dbref player, const char *name, const char *keyname)
     match_everything(&md);
 
     switch (thing = match_result(&md)) {
-    case NOTHING:
-        anotify_nolisten2(player, CINFO "I don't see that here.");
-        return;
-    case AMBIGUOUS:
-        anotify_nolisten2(player, CINFO "I don't know which one you mean!");
-        return;
-    default:
-        if (!controls(player, thing)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        case NOTHING:
+            anotify_nolisten2(player, CINFO "I don't see that here.");
             return;
-        }
-        break;
+        case AMBIGUOUS:
+            anotify_nolisten2(player, CINFO "I don't know which one you mean!");
+            return;
+        default:
+            if (!controls(player, thing)) {
+                anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                return;
+            }
+            break;
     }
     if (keyname && *keyname) {
         key = parse_boolexp(descr, player, keyname, 0);
@@ -793,43 +793,43 @@ int
 controls_link(dbref who, dbref what)
 {
     switch (Typeof(what)) {
-    case TYPE_EXIT:
-    {
-        int i = DBFETCH(what)->sp.exit.ndest;
+        case TYPE_EXIT:
+        {
+            int i = DBFETCH(what)->sp.exit.ndest;
 
-        while (i > 0) {
-            if (controls(who, DBFETCH(what)->sp.exit.dest[--i]))
+            while (i > 0) {
+                if (controls(who, DBFETCH(what)->sp.exit.dest[--i]))
+                    return 1;
+            }
+            if (who == OWNER(DBFETCH(what)->location))
                 return 1;
+            return 0;
         }
-        if (who == OWNER(DBFETCH(what)->location))
-            return 1;
-        return 0;
-    }
 
-    case TYPE_ROOM:
-    {
-        if (controls(who, DBFETCH(what)->sp.room.dropto))
-            return 1;
-        return 0;
-    }
+        case TYPE_ROOM:
+        {
+            if (controls(who, DBFETCH(what)->sp.room.dropto))
+                return 1;
+            return 0;
+        }
 
-    case TYPE_PLAYER:
-    {
-        if (controls(who, DBFETCH(what)->sp.player.home))
-            return 1;
-        return 0;
-    }
+        case TYPE_PLAYER:
+        {
+            if (controls(who, DBFETCH(what)->sp.player.home))
+                return 1;
+            return 0;
+        }
 
-    case TYPE_THING:
-    {
-        if (controls(who, DBFETCH(what)->sp.thing.home))
-            return 1;
-        return 0;
-    }
+        case TYPE_THING:
+        {
+            if (controls(who, DBFETCH(what)->sp.thing.home))
+                return 1;
+            return 0;
+        }
 
-    case TYPE_PROGRAM:
-    default:
-        return 0;
+        case TYPE_PROGRAM:
+        default:
+            return 0;
     }
 }
 
@@ -857,70 +857,74 @@ _do_unlink(int descr, dbref player, const char *name, int quiet)
     match_absolute(&md);
     match_player(&md);
     switch (exit = match_result(&md)) {
-    case NOTHING:
-        anotify_nolisten2(player, CINFO "I don't see that here.");
-        break;
-    case AMBIGUOUS:
-        anotify_nolisten2(player, CINFO "I don't know which one you mean!");
-        break;
-    default:
-        if (!controls(player, exit) && !controls_link(player, exit)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-        } else {
-            switch (Typeof(exit)) {
-            case TYPE_EXIT:
-                if (DBFETCH(exit)->sp.exit.ndest != 0) {
-                    DBFETCH(OWNER(exit))->sp.player.pennies += tp_link_cost;
-                    DBDIRTY(OWNER(exit));
-                }
-                ts_modifyobject(exit);
-                DBSTORE(exit, sp.exit.ndest, 0);
-                if (DBFETCH(exit)->sp.exit.dest) {
-                    strcpy(destin,
-                           unparse_object(player,
-                                          DBFETCH(exit)->sp.exit.dest[0]));
-                    free((void *) DBFETCH(exit)->sp.exit.dest);
-                    DBSTORE(exit, sp.exit.dest, NULL);
-                }
-                if (!quiet)
-                    anotify_fmt(player, CSUCC "%s unlinked from %s.",
-                                unparse_object(player, exit), destin);
-                if (MLevel(exit)) {
-                    SetMLevel(exit, 0);
-                    if (!quiet)
+        case NOTHING:
+            anotify_nolisten2(player, CINFO "I don't see that here.");
+            break;
+        case AMBIGUOUS:
+            anotify_nolisten2(player, CINFO "I don't know which one you mean!");
+            break;
+        default:
+            if (!controls(player, exit) && !controls_link(player, exit)) {
+                anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+            } else {
+                switch (Typeof(exit)) {
+                    case TYPE_EXIT:
+                        if (DBFETCH(exit)->sp.exit.ndest != 0) {
+                            DBFETCH(OWNER(exit))->sp.player.pennies +=
+                                tp_link_cost;
+                            DBDIRTY(OWNER(exit));
+                        }
+                        ts_modifyobject(exit);
+                        DBSTORE(exit, sp.exit.ndest, 0);
+                        if (DBFETCH(exit)->sp.exit.dest) {
+                            strcpy(destin,
+                                   unparse_object(player,
+                                                  DBFETCH(exit)->sp.exit.
+                                                  dest[0]));
+                            free((void *) DBFETCH(exit)->sp.exit.dest);
+                            DBSTORE(exit, sp.exit.dest, NULL);
+                        }
+                        if (!quiet)
+                            anotify_fmt(player, CSUCC "%s unlinked from %s.",
+                                        unparse_object(player, exit), destin);
+                        if (MLevel(exit)) {
+                            SetMLevel(exit, 0);
+                            if (!quiet)
+                                anotify_nolisten2(player,
+                                                  CINFO
+                                                  "Action priority Level reset to 0.");
+                        }
+                        break;
+                    case TYPE_ROOM:
+                        ts_modifyobject(exit);
+                        DBSTORE(exit, sp.room.dropto, NOTHING);
+                        if (!quiet)
+                            anotify_fmt(player, CSUCC "Dropto removed from %s.",
+                                        unparse_object(player, exit));
+                        break;
+                    case TYPE_THING:
+                        ts_modifyobject(exit);
+                        DBSTORE(exit, sp.thing.home, OWNER(exit));
+                        if (!quiet)
+                            anotify_fmt(player,
+                                        CSUCC "%s's home reset to owner.",
+                                        NAME(exit));
+                        break;
+                    case TYPE_PLAYER:
+                        ts_modifyobject(exit);
+                        DBSTORE(exit, sp.player.home, tp_player_start);
+                        if (!quiet)
+                            anotify_fmt(player,
+                                        CSUCC
+                                        "%s's home reset to default player start room.",
+                                        NAME(exit));
+                        break;
+                    default:
                         anotify_nolisten2(player,
-                                          CINFO
-                                          "Action priority Level reset to 0.");
+                                          CFAIL "You can't unlink that!");
+                        break;
                 }
-                break;
-            case TYPE_ROOM:
-                ts_modifyobject(exit);
-                DBSTORE(exit, sp.room.dropto, NOTHING);
-                if (!quiet)
-                    anotify_fmt(player, CSUCC "Dropto removed from %s.",
-                                unparse_object(player, exit));
-                break;
-            case TYPE_THING:
-                ts_modifyobject(exit);
-                DBSTORE(exit, sp.thing.home, OWNER(exit));
-                if (!quiet)
-                    anotify_fmt(player,
-                                CSUCC "%s's home reset to owner.", NAME(exit));
-                break;
-            case TYPE_PLAYER:
-                ts_modifyobject(exit);
-                DBSTORE(exit, sp.player.home, tp_player_start);
-                if (!quiet)
-                    anotify_fmt(player,
-                                CSUCC
-                                "%s's home reset to default player start room.",
-                                NAME(exit));
-                break;
-            default:
-                anotify_nolisten2(player, CFAIL "You can't unlink that!");
-                break;
             }
-        }
     }
 }
 
@@ -966,79 +970,80 @@ do_relink(int descr, dbref player, const char *thing_name,
 
     /* check if new target would be valid. */
     switch (Typeof(thing)) {
-    case TYPE_EXIT:
-        if (DBFETCH(thing)->sp.exit.ndest != 0)
-            if (!controls(player, thing)) {
+        case TYPE_EXIT:
+            if (DBFETCH(thing)->sp.exit.ndest != 0)
+                if (!controls(player, thing)) {
+                    anotify(player, CFAIL "Permission denied.");
+                    return;
+                }
+            if (!Wizard(OWNER(player)) && (DBFETCH(player)->sp.player.pennies <
+                                           (tp_link_cost + tp_exit_cost))) {
+                anotify_fmt(player, CFAIL "It costs %d %s to link this exit.",
+                            (tp_link_cost + tp_exit_cost),
+                            (tp_link_cost + tp_exit_cost == 1) ? tp_penny :
+                            tp_pennies);
+                return;
+            }
+            if (!Builder(player)) {
+                anotify(player,
+                        CFAIL "Only authoried builders may seize exits.");
+                return;
+            }
+            ndest = link_exit_dry(descr, player, thing, (char *) dest_name,
+                                  good_dest);
+            if (ndest == 0) {
+                anotify(player, CINFO "Invalid target.");
+                return;
+            }
+            break;
+        case TYPE_THING:
+        case TYPE_PLAYER:
+            init_match(descr, player, dest_name, TYPE_ROOM, &md);
+            match_neighbor(&md);
+            match_absolute(&md);
+            match_registered(&md);
+            match_me(&md);
+            match_here(&md);
+            if (Typeof(thing) == TYPE_THING)
+                match_possession(&md);
+            if ((dest = noisy_match_result(&md)) == NOTHING)
+                return;
+            if (!controls(player, thing)
+                || !can_link_to(player, Typeof(thing), dest)) {
                 anotify(player, CFAIL "Permission denied.");
                 return;
             }
-        if (!Wizard(OWNER(player)) && (DBFETCH(player)->sp.player.pennies <
-                                       (tp_link_cost + tp_exit_cost))) {
-            anotify_fmt(player, CFAIL "It costs %d %s to link this exit.",
-                        (tp_link_cost + tp_exit_cost),
-                        (tp_link_cost + tp_exit_cost == 1) ? tp_penny :
-                        tp_pennies);
-            return;
-        }
-        if (!Builder(player)) {
-            anotify(player, CFAIL "Only authoried builders may seize exits.");
-            return;
-        }
-        ndest = link_exit_dry(descr, player, thing, (char *) dest_name,
-                              good_dest);
-        if (ndest == 0) {
-            anotify(player, CINFO "Invalid target.");
-            return;
-        }
-        break;
-    case TYPE_THING:
-    case TYPE_PLAYER:
-        init_match(descr, player, dest_name, TYPE_ROOM, &md);
-        match_neighbor(&md);
-        match_absolute(&md);
-        match_registered(&md);
-        match_me(&md);
-        match_here(&md);
-        if (Typeof(thing) == TYPE_THING)
+            if (parent_loop_check(thing, dest)) {
+                anotify(player, CFAIL "That would cause a parent paradox.");
+                return;
+            }
+            break;
+        case TYPE_ROOM:
+            init_match(descr, player, dest_name, TYPE_ROOM, &md);
+            match_neighbor(&md);
             match_possession(&md);
-        if ((dest = noisy_match_result(&md)) == NOTHING)
-            return;
-        if (!controls(player, thing)
-            || !can_link_to(player, Typeof(thing), dest)) {
-            anotify(player, CFAIL "Permission denied.");
-            return;
-        }
-        if (parent_loop_check(thing, dest)) {
-            anotify(player, CFAIL "That would cause a parent paradox.");
-            return;
-        }
-        break;
-    case TYPE_ROOM:
-        init_match(descr, player, dest_name, TYPE_ROOM, &md);
-        match_neighbor(&md);
-        match_possession(&md);
-        match_registered(&md);
-        match_absolute(&md);
-        match_home(&md);
+            match_registered(&md);
+            match_absolute(&md);
+            match_home(&md);
 
-        if ((dest = noisy_match_result(&md)) == NOTHING)
+            if ((dest = noisy_match_result(&md)) == NOTHING)
+                return;
+            if (!controls(player, thing)
+                || !can_link_to(player, Typeof(thing), dest)
+                || (thing == dest)) {
+                anotify(player, CFAIL "Permission denied.");
+                return;
+            }
+            break;
+        case TYPE_PROGRAM:
+            anotify(player, CFAIL "You can't link programs to things.");
             return;
-        if (!controls(player, thing)
-            || !can_link_to(player, Typeof(thing), dest)
-            || (thing == dest)) {
-            anotify(player, CFAIL "Permission denied.");
+            break;
+        default:
+            anotify(player, CFAIL "Unknown object type.");
+            log_status("PANIC: weird object: Typeof(%d) = %d\n", thing,
+                       Typeof(thing));
             return;
-        }
-        break;
-    case TYPE_PROGRAM:
-        anotify(player, CFAIL "You can't link programs to things.");
-        return;
-        break;
-    default:
-        anotify(player, CFAIL "Unknown object type.");
-        log_status("PANIC: weird object: Typeof(%d) = %d\n", thing,
-                   Typeof(thing));
-        return;
     }
 
     do_unlink_quiet(descr, player, thing_name);
@@ -1099,33 +1104,33 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
     }
     oldOwner = OWNER(thing);
     switch (Typeof(thing)) {
-    case TYPE_ROOM:
-        if (!Mage(OWNER(player)) && DBFETCH(player)->location != thing) {
-            anotify_nolisten2(player, CINFO "You can only chown \"here\".");
+        case TYPE_ROOM:
+            if (!Mage(OWNER(player)) && DBFETCH(player)->location != thing) {
+                anotify_nolisten2(player, CINFO "You can only chown \"here\".");
+                return;
+            }
+            ts_modifyobject(thing);
+            OWNER(thing) = OWNER(owner);
+            break;
+        case TYPE_THING:
+            if (!Mage(OWNER(player)) && DBFETCH(thing)->location != player) {
+                anotify_nolisten2(player, CINFO "You aren't carrying that.");
+                return;
+            }
+            ts_modifyobject(thing);
+            OWNER(thing) = OWNER(owner);
+            break;
+        case TYPE_PLAYER:
+            anotify_nolisten2(player, CFAIL "Players always own themselves.");
             return;
-        }
-        ts_modifyobject(thing);
-        OWNER(thing) = OWNER(owner);
-        break;
-    case TYPE_THING:
-        if (!Mage(OWNER(player)) && DBFETCH(thing)->location != player) {
-            anotify_nolisten2(player, CINFO "You aren't carrying that.");
+        case TYPE_EXIT:
+        case TYPE_PROGRAM:
+            ts_modifyobject(thing);
+            OWNER(thing) = OWNER(owner);
+            break;
+        case TYPE_GARBAGE:
+            anotify_nolisten2(player, CFAIL "Nobody wants garbage.");
             return;
-        }
-        ts_modifyobject(thing);
-        OWNER(thing) = OWNER(owner);
-        break;
-    case TYPE_PLAYER:
-        anotify_nolisten2(player, CFAIL "Players always own themselves.");
-        return;
-    case TYPE_EXIT:
-    case TYPE_PROGRAM:
-        ts_modifyobject(thing);
-        OWNER(thing) = OWNER(owner);
-        break;
-    case TYPE_GARBAGE:
-        anotify_nolisten2(player, CFAIL "Nobody wants garbage.");
-        return;
     }
     if (owner == player) {
         char buf[BUFFER_LEN], buf1[BUFFER_LEN];
@@ -1383,15 +1388,15 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         f = ABODE;
     } else if (!string_compare("0", p) || !string_compare("M0", p) ||
                !string_compare("W0", p)
-               ||
-               ((string_prefix("MEEPER", p) || string_prefix("MPI", p)
-                 || string_prefix("MUCKER", p) || string_prefix("MAGE", p)
-                 || string_prefix("WIZARD", p) || string_prefix("ARCHWIZARD", p)
-                 || !string_compare("M1", p) || !string_compare("M2", p)
-                 || !string_compare("M3", p) || !string_compare("W1", p)
-                 || !string_compare("W2", p) || !string_compare("W3", p)
-                 || !string_compare("W4", p) || !string_compare("BOY", p)
-                ) && (*flag == NOT_TOKEN))) {
+               || ((string_prefix("MEEPER", p) || string_prefix("MPI", p)
+                    || string_prefix("MUCKER", p) || string_prefix("MAGE", p)
+                    || string_prefix("WIZARD", p)
+                    || string_prefix("ARCHWIZARD", p)
+                    || !string_compare("M1", p) || !string_compare("M2", p)
+                    || !string_compare("M3", p) || !string_compare("W1", p)
+                    || !string_compare("W2", p) || !string_compare("W3", p)
+                    || !string_compare("W4", p) || !string_compare("BOY", p)
+                   ) && (*flag == NOT_TOKEN))) {
         do_sm(player, thing, 0);
         return;
     } else if (string_prefix("MPI", p) || string_prefix("MEEPER", p)) {
@@ -1496,7 +1501,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("IDLE", p) || !string_compare("I", p)) {
         f2 = F2IDLE;
 /*    } else if (string_prefix("PUEBLO", p)) {
-                anotify_nolisten2(player, CFAIL "This flag can't be user-set."); *//* Why did we have this here? It is unrequired */
+                                anotify_nolisten2(player, CFAIL "This flag can't be user-set."); *//* Why did we have this here? It is unrequired */
     } else {
         anotify_nolisten2(player, CINFO "I don't recognize that flag.");
         return;

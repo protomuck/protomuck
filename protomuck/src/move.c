@@ -27,26 +27,26 @@ moveto(dbref what, dbref where)
     }
     /* test for special cases */
     switch (where) {
-    case NOTHING:
-        DBSTORE(what, location, NOTHING);
-        return;                 /* NOTHING doesn't have contents */
-    case HOME:
-        switch (Typeof(what)) {
-        case TYPE_PLAYER:
-            where = DBFETCH(what)->sp.player.home;
-            break;
-        case TYPE_THING:
-            where = DBFETCH(what)->sp.thing.home;
-            if (parent_loop_check(what, where))
-                where = DBFETCH(OWNER(what))->sp.player.home;
-            break;
-        case TYPE_ROOM:
-            where = GLOBAL_ENVIRONMENT;
-            break;
-        case TYPE_PROGRAM:
-            where = OWNER(what);
-            break;
-        }
+        case NOTHING:
+            DBSTORE(what, location, NOTHING);
+            return;             /* NOTHING doesn't have contents */
+        case HOME:
+            switch (Typeof(what)) {
+                case TYPE_PLAYER:
+                    where = DBFETCH(what)->sp.player.home;
+                    break;
+                case TYPE_THING:
+                    where = DBFETCH(what)->sp.thing.home;
+                    if (parent_loop_check(what, where))
+                        where = DBFETCH(OWNER(what))->sp.player.home;
+                    break;
+                case TYPE_ROOM:
+                    where = GLOBAL_ENVIRONMENT;
+                    break;
+                case TYPE_PROGRAM:
+                    where = OWNER(what);
+                    break;
+            }
     }
 
     /* now put what in where */
@@ -250,29 +250,29 @@ void
 send_home(int descr, dbref thing, int puppethome)
 {
     switch (Typeof(thing)) {
-    case TYPE_PLAYER:
-        /* send his possessions home first! */
-        /* that way he sees them when he arrives */
-        send_contents(descr, thing, HOME);
-        enter_room(descr, thing, DBFETCH(thing)->sp.player.home,
-                   DBFETCH(thing)->location);
-        break;
-    case TYPE_THING:
-        if (puppethome)
+        case TYPE_PLAYER:
+            /* send his possessions home first! */
+            /* that way he sees them when he arrives */
             send_contents(descr, thing, HOME);
-        if (FLAGS(thing) & (ZOMBIE | LISTENER)) {
             enter_room(descr, thing, DBFETCH(thing)->sp.player.home,
                        DBFETCH(thing)->location);
             break;
-        }
-        moveto(thing, HOME);    /* home */
-        break;
-    case TYPE_PROGRAM:
-        moveto(thing, OWNER(thing));
-        break;
-    default:
-        /* no effect */
-        break;
+        case TYPE_THING:
+            if (puppethome)
+                send_contents(descr, thing, HOME);
+            if (FLAGS(thing) & (ZOMBIE | LISTENER)) {
+                enter_room(descr, thing, DBFETCH(thing)->sp.player.home,
+                           DBFETCH(thing)->location);
+                break;
+            }
+            moveto(thing, HOME); /* home */
+            break;
+        case TYPE_PROGRAM:
+            moveto(thing, OWNER(thing));
+            break;
+        default:
+            /* no effect */
+            break;
     }
     return;
 }
@@ -329,68 +329,38 @@ trigger(int descr, dbref player, dbref exit, int pflag)
         if (dest == HOME)
             dest = DBFETCH(player)->sp.player.home;
         switch (Typeof(dest)) {
-        case TYPE_ROOM:
-            if (pflag) {
-                if (parent_loop_check(player, dest)) {
-                    anotify_nolisten2(player,
-                                      CINFO "That would cause a paradox.");
-                    break;
-                }
-                if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
-                    && ((FLAGS(dest) | FLAGS(exit)) & ZOMBIE)) {
-                    anotify_nolisten2(player,
-                                      CFAIL "Puppets can't go that way.");
-                    break;
-                }
-                if ((FLAGS(player) & VEHICLE) && Typeof(player) == TYPE_THING &&
-                    ((FLAGS(dest) | FLAGS(exit)) & VEHICLE)) {
-                    anotify_nolisten2(player,
-                                      CFAIL "Vehicles can't go that way.");
-                    break;
-                }
-                if (Guest(player) && (tp_guest_needflag ?
-                                      !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) &
-                                                                  F2GUEST))) {
-                    anotify_nolisten2(player,
-                                      CFAIL "Guests can't go in there.");
-                    break;
-                }
-                if (Guest(player) && (0 ?
-                                      !(FLAG2(exit) & F2GUEST) : (FLAG2(exit) &
-                                                                  F2GUEST))) {
-                    anotify_nolisten2(player, CFAIL "Guests can't do that.");
-                    break;
-                }
-                if (GETSUCC(exit)) {
-                    exec_or_notify(descr, player, exit, GETSUCC(exit),
-                                   "(@Succ)");
-                }
-                if (GETOSUCC(exit) && !Dark(player)) {
-                    parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
-                                   NAME(player), "(@Osucc)");
-                }
-                if (GETDROP(exit))
-                    exec_or_notify(descr, player, exit, GETDROP(exit),
-                                   "(@Drop)");
-                if (GETODROP(exit) && !Dark(player)) {
-                    parse_omessage(descr, player, dest, exit, GETODROP(exit),
-                                   PNAME(player), "(@Odrop)");
-                }
-#ifdef DYNAMIC_LINKS
-                dest = (DBFETCH(exit)->sp.exit.dest)[i];
-                if (Typeof(dest) != TYPE_ROOM)
-                    break;
-#endif
-                enter_room(descr, player, dest, exit);
-                succ = 1;
-            }
-            break;
-        case TYPE_THING:
-            if (dest == getloc(exit) && (FLAGS(dest) & VEHICLE)) {
+            case TYPE_ROOM:
                 if (pflag) {
                     if (parent_loop_check(player, dest)) {
                         anotify_nolisten2(player,
                                           CINFO "That would cause a paradox.");
+                        break;
+                    }
+                    if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
+                        && ((FLAGS(dest) | FLAGS(exit)) & ZOMBIE)) {
+                        anotify_nolisten2(player,
+                                          CFAIL "Puppets can't go that way.");
+                        break;
+                    }
+                    if ((FLAGS(player) & VEHICLE)
+                        && Typeof(player) == TYPE_THING
+                        && ((FLAGS(dest) | FLAGS(exit)) & VEHICLE)) {
+                        anotify_nolisten2(player,
+                                          CFAIL "Vehicles can't go that way.");
+                        break;
+                    }
+                    if (Guest(player) && (tp_guest_needflag ?
+                                          !(FLAG2(dest) & F2GUEST)
+                                          : (FLAG2(dest) & F2GUEST))) {
+                        anotify_nolisten2(player,
+                                          CFAIL "Guests can't go in there.");
+                        break;
+                    }
+                    if (Guest(player) && (0 ?
+                                          !(FLAG2(exit) & F2GUEST)
+                                          : (FLAG2(exit) & F2GUEST))) {
+                        anotify_nolisten2(player,
+                                          CFAIL "Guests can't do that.");
                         break;
                     }
                     if (GETSUCC(exit)) {
@@ -411,105 +381,146 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                     }
 #ifdef DYNAMIC_LINKS
                     dest = (DBFETCH(exit)->sp.exit.dest)[i];
-                    if (Typeof(dest) != TYPE_THING)
+                    if (Typeof(dest) != TYPE_ROOM)
                         break;
 #endif
                     enter_room(descr, player, dest, exit);
                     succ = 1;
                 }
-            } else {
-                if (Typeof(DBFETCH(exit)->location) == TYPE_THING) {
-                    if (parent_loop_check(dest, getloc(getloc(exit)))) {
-                        anotify_nolisten2(player,
-                                          CINFO "That would cause a paradox.");
-                        break;
-                    }
-                    moveto(dest, DBFETCH(DBFETCH(exit)->location)->location);
-                    if (!(FLAGS(exit) & STICKY)) {
-                        /* send home source object */
-                        sobjact = 1;
+                break;
+            case TYPE_THING:
+                if (dest == getloc(exit) && (FLAGS(dest) & VEHICLE)) {
+                    if (pflag) {
+                        if (parent_loop_check(player, dest)) {
+                            anotify_nolisten2(player,
+                                              CINFO
+                                              "That would cause a paradox.");
+                            break;
+                        }
+                        if (GETSUCC(exit)) {
+                            exec_or_notify(descr, player, exit, GETSUCC(exit),
+                                           "(@Succ)");
+                        }
+                        if (GETOSUCC(exit) && !Dark(player)) {
+                            parse_omessage(descr, player, loc, exit,
+                                           GETOSUCC(exit), NAME(player),
+                                           "(@Osucc)");
+                        }
+                        if (GETDROP(exit))
+                            exec_or_notify(descr, player, exit, GETDROP(exit),
+                                           "(@Drop)");
+                        if (GETODROP(exit) && !Dark(player)) {
+                            parse_omessage(descr, player, dest, exit,
+                                           GETODROP(exit), PNAME(player),
+                                           "(@Odrop)");
+                        }
+#ifdef DYNAMIC_LINKS
+                        dest = (DBFETCH(exit)->sp.exit.dest)[i];
+                        if (Typeof(dest) != TYPE_THING)
+                            break;
+#endif
+                        enter_room(descr, player, dest, exit);
+                        succ = 1;
                     }
                 } else {
-                    if (parent_loop_check(dest, getloc(exit))) {
-                        anotify_nolisten2(player,
-                                          CINFO "That would cause a paradox.");
-                        break;
+                    if (Typeof(DBFETCH(exit)->location) == TYPE_THING) {
+                        if (parent_loop_check(dest, getloc(getloc(exit)))) {
+                            anotify_nolisten2(player,
+                                              CINFO
+                                              "That would cause a paradox.");
+                            break;
+                        }
+                        moveto(dest,
+                               DBFETCH(DBFETCH(exit)->location)->location);
+                        if (!(FLAGS(exit) & STICKY)) {
+                            /* send home source object */
+                            sobjact = 1;
+                        }
+                    } else {
+                        if (parent_loop_check(dest, getloc(exit))) {
+                            anotify_nolisten2(player,
+                                              CINFO
+                                              "That would cause a paradox.");
+                            break;
+                        }
+                        moveto(dest, DBFETCH(exit)->location);
                     }
-                    moveto(dest, DBFETCH(exit)->location);
+                    if (GETSUCC(exit))
+                        succ = 1;
                 }
+                break;
+            case TYPE_EXIT:    /* It's a meta-link(tm)! */
+                ts_useobject(dest);
+                trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0);
                 if (GETSUCC(exit))
                     succ = 1;
-            }
-            break;
-        case TYPE_EXIT:        /* It's a meta-link(tm)! */
-            ts_useobject(dest);
-            trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0);
-            if (GETSUCC(exit))
-                succ = 1;
-            break;
-        case TYPE_PLAYER:
-            if (pflag && DBFETCH(dest)->location != NOTHING) {
-                if (parent_loop_check(player, dest)) {
-                    anotify_nolisten2(player,
-                                      CINFO "That would cause a paradox.");
-                    break;
-                }
-                succ = 1;
-                if (FLAGS(dest) & JUMP_OK) {
-                    if (GETDROP(exit)) {
-                        exec_or_notify(descr, player, exit,
-                                       GETDROP(exit), "(@Drop)");
-                    }
-                    if (GETODROP(exit) && !Dark(player)) {
-                        parse_omessage(descr, player, getloc(dest), exit,
-                                       GETODROP(exit), PNAME(player),
-                                       "(@Odrop)");
-                    }
-#ifdef DYNAMIC_LINKS
-                    dest = (DBFETCH(exit)->sp.exit.dest)[i];
-                    if (Typeof(dest) != TYPE_PLAYER)
+                break;
+            case TYPE_PLAYER:
+                if (pflag && DBFETCH(dest)->location != NOTHING) {
+                    if (parent_loop_check(player, dest)) {
+                        anotify_nolisten2(player,
+                                          CINFO "That would cause a paradox.");
                         break;
+                    }
+                    succ = 1;
+                    if (FLAGS(dest) & JUMP_OK) {
+                        if (GETDROP(exit)) {
+                            exec_or_notify(descr, player, exit,
+                                           GETDROP(exit), "(@Drop)");
+                        }
+                        if (GETODROP(exit) && !Dark(player)) {
+                            parse_omessage(descr, player, getloc(dest), exit,
+                                           GETODROP(exit), PNAME(player),
+                                           "(@Odrop)");
+                        }
+#ifdef DYNAMIC_LINKS
+                        dest = (DBFETCH(exit)->sp.exit.dest)[i];
+                        if (Typeof(dest) != TYPE_PLAYER)
+                            break;
 #endif
-                    enter_room(descr, player, DBFETCH(dest)->location, exit);
-                } else {
-                    anotify_nolisten2(player,
-                                      CINFO
-                                      "That player does not wish to be disturbed.");
+                        enter_room(descr, player, DBFETCH(dest)->location,
+                                   exit);
+                    } else {
+                        anotify_nolisten2(player,
+                                          CINFO
+                                          "That player does not wish to be disturbed.");
+                    }
                 }
-            }
-            break;
-        case TYPE_PROGRAM:
-            if (Guest(player) && (0 ?
-                                  !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) &
-                                                              F2GUEST))) {
-                anotify_nolisten2(player,
-                                  CFAIL "Guests can't use that program.");
                 break;
-            }
-            if (Guest(player) && (0 ?
-                                  !(FLAG2(exit) & F2GUEST) : (FLAG2(exit) &
-                                                              F2GUEST))) {
-                anotify_nolisten2(player, CFAIL "Guests can't do that.")
+            case TYPE_PROGRAM:
+                if (Guest(player) && (0 ?
+                                      !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) &
+                                                                  F2GUEST))) {
+                    anotify_nolisten2(player,
+                                      CFAIL "Guests can't use that program.");
                     break;
-            }
-            if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
-                && (FLAGS(exit) & ZOMBIE)) {
-                anotify_nolisten2(player, CFAIL "Puppets can't go that way.");
-                break;
-            }
-            if (GETSUCC(exit)) {
-                exec_or_notify(descr, player, exit, GETSUCC(exit), "(@Succ)");
-            }
-            if (GETOSUCC(exit) && !Dark(player)) {
-                parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
-                               NAME(player), "(@Osucc)");
-            }
-            tmpfr = interp(descr, player, DBFETCH(player)->location, dest,
-                           exit, FOREGROUND, STD_REGUID, 0);
-            if (tmpfr) {
-                interp_loop(player, dest, tmpfr, 0);
-            }
-            return;
+                }
+                if (Guest(player) && (0 ?
+                                      !(FLAG2(exit) & F2GUEST) : (FLAG2(exit) &
+                                                                  F2GUEST))) {
+                    anotify_nolisten2(player, CFAIL "Guests can't do that.")
+                        break;
+                }
+                if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
+                    && (FLAGS(exit) & ZOMBIE)) {
+                    anotify_nolisten2(player,
+                                      CFAIL "Puppets can't go that way.");
+                    break;
+                }
+                if (GETSUCC(exit)) {
+                    exec_or_notify(descr, player, exit, GETSUCC(exit),
+                                   "(@Succ)");
+                }
+                if (GETOSUCC(exit) && !Dark(player)) {
+                    parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
+                                   NAME(player), "(@Osucc)");
+                }
+                tmpfr = interp(descr, player, DBFETCH(player)->location, dest,
+                               exit, FOREGROUND, STD_REGUID, 0);
+                if (tmpfr) {
+                    interp_loop(player, dest, tmpfr, 0);
+                }
+                return;
         }
     }
     if (sobjact)
@@ -544,21 +555,22 @@ do_move(int descr, dbref player, const char *direction, int lev)
         md.match_level = lev;
         match_all_exits(&md);
         switch (exit = match_result(&md)) {
-        case NOTHING:
-            anotify_nolisten2(player, CFAIL "You can't go that way.");
-            break;
-        case AMBIGUOUS:
-            anotify_nolisten2(player, CINFO "I don't know which way you mean!");
-            break;
-        default:
-            /* we got one */
-            /* check to see if we got through */
-            ts_useobject(exit);
-            loc = DBFETCH(player)->location;
-            if (can_doit(descr, player, exit, "You can't go that way.")) {
-                trigger(descr, player, exit, 1);
-            }
-            break;
+            case NOTHING:
+                anotify_nolisten2(player, CFAIL "You can't go that way.");
+                break;
+            case AMBIGUOUS:
+                anotify_nolisten2(player,
+                                  CINFO "I don't know which way you mean!");
+                break;
+            default:
+                /* we got one */
+                /* check to see if we got through */
+                ts_useobject(exit);
+                loc = DBFETCH(player)->location;
+                if (can_doit(descr, player, exit, "You can't go that way.")) {
+                    trigger(descr, player, exit, 1);
+                }
+                break;
         }
     }
 }
@@ -672,33 +684,35 @@ do_get(int descr, dbref player, const char *what, const char *obj)
             return;
         }
         switch (Typeof(thing)) {
-        case TYPE_THING:
-            ts_useobject(thing);
-        case TYPE_PROGRAM:
-            if (obj && *obj) {
-                cando = could_doit(descr, player, thing);
-                if (!cando)
-                    anotify_nolisten2(player, CFAIL "You can't get that.");
-            } else {
-                cando =
-                    can_doit(descr, player, thing, "You can't pick that up.");
-            }
-            if (cando) {
-                if (GETSUCC(thing)) {
-                    exec_or_notify(descr, player, thing, GETSUCC(thing),
-                                   "(@Succ)");
+            case TYPE_THING:
+                ts_useobject(thing);
+            case TYPE_PROGRAM:
+                if (obj && *obj) {
+                    cando = could_doit(descr, player, thing);
+                    if (!cando)
+                        anotify_nolisten2(player, CFAIL "You can't get that.");
+                } else {
+                    cando =
+                        can_doit(descr, player, thing,
+                                 "You can't pick that up.");
                 }
-                if (GETOSUCC(thing)) {
-                    parse_omessage(descr, player, getloc(thing), thing,
-                                   GETOSUCC(thing), NAME(player), "(@Osucc)");
+                if (cando) {
+                    if (GETSUCC(thing)) {
+                        exec_or_notify(descr, player, thing, GETSUCC(thing),
+                                       "(@Succ)");
+                    }
+                    if (GETOSUCC(thing)) {
+                        parse_omessage(descr, player, getloc(thing), thing,
+                                       GETOSUCC(thing), NAME(player),
+                                       "(@Osucc)");
+                    }
+                    moveto(thing, player);
+                    anotify_nolisten2(player, CSUCC "Taken.");
                 }
-                moveto(thing, player);
-                anotify_nolisten2(player, CSUCC "Taken.");
-            }
-            break;
-        default:
-            anotify_nolisten2(player, CFAIL "You can't take that!");
-            break;
+                break;
+            default:
+                anotify_nolisten2(player, CFAIL "You can't take that!");
+                break;
         }
     }
 }
@@ -736,78 +750,80 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
         }
     }
     switch (Typeof(thing)) {
-    case TYPE_THING:
-        ts_useobject(thing);
-    case TYPE_PROGRAM:
-        if (DBFETCH(thing)->location != player) {
-            /* Shouldn't ever happen. */
+        case TYPE_THING:
+            ts_useobject(thing);
+        case TYPE_PROGRAM:
+            if (DBFETCH(thing)->location != player) {
+                /* Shouldn't ever happen. */
+                anotify_nolisten2(player, CFAIL "You can't drop that.");
+                break;
+            }
+            if (Typeof(cont) != TYPE_ROOM && Typeof(cont) != TYPE_PLAYER &&
+                Typeof(cont) != TYPE_THING) {
+                anotify_nolisten2(player,
+                                  CFAIL "You can't put anything in that.");
+                break;
+            }
+            if (Typeof(cont) != TYPE_ROOM &&
+                !test_lock_false_default(descr, player, cont, "_/clk")) {
+                anotify_nolisten2(player,
+                                  CFAIL
+                                  "You don't have permission to put something in that.");
+                break;
+            }
+            if (parent_loop_check(thing, cont)) {
+                anotify_nolisten2(player,
+                                  CFAIL
+                                  "You can't put something inside of itself.");
+                break;
+            }
+            if (Typeof(cont) == TYPE_ROOM && (FLAGS(thing) & STICKY) &&
+                Typeof(thing) == TYPE_THING) {
+                send_home(descr, thing, 0);
+            } else {
+                int immediate_dropto = (Typeof(cont) == TYPE_ROOM &&
+                                        DBFETCH(cont)->sp.room.dropto != NOTHING
+                                        && !(FLAGS(cont) & STICKY));
+
+                moveto(thing,
+                       immediate_dropto ? DBFETCH(cont)->sp.room.dropto : cont);
+            }
+            if (Typeof(cont) == TYPE_THING) {
+                anotify_nolisten2(player, CSUCC "Put away.");
+                return;
+            } else if (Typeof(cont) == TYPE_PLAYER) {
+                anotify_fmt(cont, CNOTE "%s hands you %s.", PNAME(player),
+                            PNAME(thing));
+                anotify_fmt(player, CSUCC "You hand %s to %s.", PNAME(thing),
+                            PNAME(cont));
+                return;
+            }
+
+            if (GETDROP(thing))
+                exec_or_notify(descr, player, thing, GETDROP(thing), "(@Drop)");
+            else
+                anotify_nolisten2(player, CSUCC "Dropped.");
+
+            if (GETDROP(loc))
+                exec_or_notify(descr, player, loc, GETDROP(loc), "(@Drop)");
+
+            if (GETODROP(thing)) {
+                parse_omessage(descr, player, loc, thing, GETODROP(thing),
+                               PNAME(player), "(@Odrop)");
+            } else {
+                sprintf(buf, SYSBLUE "%s drops %s.", PNAME(player),
+                        PNAME(thing));
+                anotify_except(DBFETCH(loc)->contents, player, buf, player);
+            }
+
+            if (GETODROP(loc)) {
+                parse_omessage(descr, player, loc, loc, GETODROP(loc),
+                               PNAME(thing), "(@Odrop)");
+            }
+            break;
+        default:
             anotify_nolisten2(player, CFAIL "You can't drop that.");
             break;
-        }
-        if (Typeof(cont) != TYPE_ROOM && Typeof(cont) != TYPE_PLAYER &&
-            Typeof(cont) != TYPE_THING) {
-            anotify_nolisten2(player, CFAIL "You can't put anything in that.");
-            break;
-        }
-        if (Typeof(cont) != TYPE_ROOM &&
-            !test_lock_false_default(descr, player, cont, "_/clk")) {
-            anotify_nolisten2(player,
-                              CFAIL
-                              "You don't have permission to put something in that.");
-            break;
-        }
-        if (parent_loop_check(thing, cont)) {
-            anotify_nolisten2(player,
-                              CFAIL
-                              "You can't put something inside of itself.");
-            break;
-        }
-        if (Typeof(cont) == TYPE_ROOM && (FLAGS(thing) & STICKY) &&
-            Typeof(thing) == TYPE_THING) {
-            send_home(descr, thing, 0);
-        } else {
-            int immediate_dropto = (Typeof(cont) == TYPE_ROOM &&
-                                    DBFETCH(cont)->sp.room.dropto != NOTHING
-                                    && !(FLAGS(cont) & STICKY));
-
-            moveto(thing,
-                   immediate_dropto ? DBFETCH(cont)->sp.room.dropto : cont);
-        }
-        if (Typeof(cont) == TYPE_THING) {
-            anotify_nolisten2(player, CSUCC "Put away.");
-            return;
-        } else if (Typeof(cont) == TYPE_PLAYER) {
-            anotify_fmt(cont, CNOTE "%s hands you %s.", PNAME(player),
-                        PNAME(thing));
-            anotify_fmt(player, CSUCC "You hand %s to %s.", PNAME(thing),
-                        PNAME(cont));
-            return;
-        }
-
-        if (GETDROP(thing))
-            exec_or_notify(descr, player, thing, GETDROP(thing), "(@Drop)");
-        else
-            anotify_nolisten2(player, CSUCC "Dropped.");
-
-        if (GETDROP(loc))
-            exec_or_notify(descr, player, loc, GETDROP(loc), "(@Drop)");
-
-        if (GETODROP(thing)) {
-            parse_omessage(descr, player, loc, thing, GETODROP(thing),
-                           PNAME(player), "(@Odrop)");
-        } else {
-            sprintf(buf, SYSBLUE "%s drops %s.", PNAME(player), PNAME(thing));
-            anotify_except(DBFETCH(loc)->contents, player, buf, player);
-        }
-
-        if (GETODROP(loc)) {
-            parse_omessage(descr, player, loc, loc, GETODROP(loc),
-                           PNAME(thing), "(@Odrop)");
-        }
-        break;
-    default:
-        anotify_nolisten2(player, CFAIL "You can't drop that.");
-        break;
     }
 }
 
@@ -843,62 +859,64 @@ do_recycle(int descr, dbref player, const char *name)
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         } else {
             switch (Typeof(thing)) {
-            case TYPE_ROOM:
-                if (OWNER(thing) != OWNER(player)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-                    return;
-                }
-                if (thing == tp_player_start || thing == GLOBAL_ENVIRONMENT) {
+                case TYPE_ROOM:
+                    if (OWNER(thing) != OWNER(player)) {
+                        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                        return;
+                    }
+                    if (thing == tp_player_start || thing == GLOBAL_ENVIRONMENT) {
+                        anotify_nolisten2(player,
+                                          CFAIL
+                                          "This room may not be recycled.");
+                        return;
+                    }
+                    break;
+                case TYPE_THING:
+                    if (OWNER(thing) != OWNER(player)) {
+                        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                        return;
+                    }
+                    if (thing == player) {
+                        sprintf(buf,
+                                SYSBLUE
+                                "%.512s's owner commands it to kill itself.  It blinks a few times in shock, and says, \"But.. but.. WHY?\"  It suddenly clutches it's heart, grimacing with pain..  Staggers a few steps before falling to it's knees, then plops down on it's face.  *thud*  It kicks it's legs a few times, with weakening force, as it suffers a seizure.  It's color slowly starts changing to purple, before it explodes with a fatal *POOF*!",
+                                PNAME(thing));
+                        anotify_except(DBFETCH(getloc(thing))->contents, thing,
+                                       buf, player);
+                        anotify_nolisten2(OWNER(player), buf);
+                        anotify_nolisten2(OWNER(player),
+                                          CINFO "Now don't you feel guilty?");
+                    }
+                    break;
+                case TYPE_EXIT:
+                    if (OWNER(thing) != OWNER(player)) {
+                        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                        return;
+                    }
+                    if (!unset_source(player, DBFETCH(player)->location, thing)) {
+                        anotify_nolisten2(player,
+                                          CFAIL
+                                          "You can't do that to an exit in another room.");
+                        return;
+                    }
+                    break;
+                case TYPE_PLAYER:
                     anotify_nolisten2(player,
-                                      CFAIL "This room may not be recycled.");
+                                      CFAIL "You can't recycle a player!");
                     return;
-                }
-                break;
-            case TYPE_THING:
-                if (OWNER(thing) != OWNER(player)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                    /* NOTREACHED */
+                    break;
+                case TYPE_PROGRAM:
+                    if (OWNER(thing) != OWNER(player)) {
+                        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                        return;
+                    }
+                    break;
+                case TYPE_GARBAGE:
+                    anotify_nolisten2(player, CINFO "That's already garbage.");
                     return;
-                }
-                if (thing == player) {
-                    sprintf(buf,
-                            SYSBLUE
-                            "%.512s's owner commands it to kill itself.  It blinks a few times in shock, and says, \"But.. but.. WHY?\"  It suddenly clutches it's heart, grimacing with pain..  Staggers a few steps before falling to it's knees, then plops down on it's face.  *thud*  It kicks it's legs a few times, with weakening force, as it suffers a seizure.  It's color slowly starts changing to purple, before it explodes with a fatal *POOF*!",
-                            PNAME(thing));
-                    anotify_except(DBFETCH(getloc(thing))->contents, thing, buf,
-                                   player);
-                    anotify_nolisten2(OWNER(player), buf);
-                    anotify_nolisten2(OWNER(player),
-                                      CINFO "Now don't you feel guilty?");
-                }
-                break;
-            case TYPE_EXIT:
-                if (OWNER(thing) != OWNER(player)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-                    return;
-                }
-                if (!unset_source(player, DBFETCH(player)->location, thing)) {
-                    anotify_nolisten2(player,
-                                      CFAIL
-                                      "You can't do that to an exit in another room.");
-                    return;
-                }
-                break;
-            case TYPE_PLAYER:
-                anotify_nolisten2(player, CFAIL "You can't recycle a player!");
-                return;
-                /* NOTREACHED */
-                break;
-            case TYPE_PROGRAM:
-                if (OWNER(thing) != OWNER(player)) {
-                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-                    return;
-                }
-                break;
-            case TYPE_GARBAGE:
-                anotify_nolisten2(player, CINFO "That's already garbage.");
-                return;
-                /* NOTREACHED */
-                break;
+                    /* NOTREACHED */
+                    break;
             }
             recycle(descr, player, thing);
             anotify_nolisten2(player, CINFO "Thank you for recycling.");
@@ -919,137 +937,137 @@ recycle(int descr, dbref player, dbref thing)
 
     depth++;
     switch (Typeof(thing)) {
-    case TYPE_ROOM:
-        if (!Mage(OWNER(thing)))
-            DBFETCH(OWNER(thing))->sp.player.pennies += tp_room_cost;
-        DBDIRTY(OWNER(thing));
-        for (first = DBFETCH(thing)->exits; first != NOTHING; first = rest) {
-            rest = DBFETCH(first)->next;
-            if (DBFETCH(first)->location == NOTHING
-                || DBFETCH(first)->location == thing)
-                recycle(descr, player, first);
-        }
-        anotify_except(DBFETCH(thing)->contents, NOTHING, CNOTE
-                       "You feel a wrenching sensation...", player);
-        break;
-    case TYPE_THING:
-        if (!Mage(OWNER(thing)))
-            DBFETCH(OWNER(thing))->sp.player.pennies +=
-                DBFETCH(thing)->sp.thing.value;
-        DBDIRTY(OWNER(thing));
-        for (first = DBFETCH(thing)->exits; first != NOTHING; first = rest) {
-            rest = DBFETCH(first)->next;
-            if (DBFETCH(first)->location == NOTHING
-                || DBFETCH(first)->location == thing)
-                recycle(descr, player, first);
-        }
-        break;
-    case TYPE_EXIT:
-        if (!Mage(OWNER(thing)))
-            DBFETCH(OWNER(thing))->sp.player.pennies += tp_exit_cost;
-        if (!Mage(OWNER(thing)))
-            if (DBFETCH(thing)->sp.exit.ndest != 0)
-                DBFETCH(OWNER(thing))->sp.player.pennies += tp_link_cost;
-        DBDIRTY(OWNER(thing));
-        break;
-    case TYPE_PROGRAM:
-        dequeue_prog(thing, 0);
-        sprintf(buf, "muf/%d.m", (int) thing);
-        unlink(buf);
-        sprintf(buf, "mcp/%d.mcp", (int) thing);
-        unlink(buf);
-        break;
+        case TYPE_ROOM:
+            if (!Mage(OWNER(thing)))
+                DBFETCH(OWNER(thing))->sp.player.pennies += tp_room_cost;
+            DBDIRTY(OWNER(thing));
+            for (first = DBFETCH(thing)->exits; first != NOTHING; first = rest) {
+                rest = DBFETCH(first)->next;
+                if (DBFETCH(first)->location == NOTHING
+                    || DBFETCH(first)->location == thing)
+                    recycle(descr, player, first);
+            }
+            anotify_except(DBFETCH(thing)->contents, NOTHING, CNOTE
+                           "You feel a wrenching sensation...", player);
+            break;
+        case TYPE_THING:
+            if (!Mage(OWNER(thing)))
+                DBFETCH(OWNER(thing))->sp.player.pennies +=
+                    DBFETCH(thing)->sp.thing.value;
+            DBDIRTY(OWNER(thing));
+            for (first = DBFETCH(thing)->exits; first != NOTHING; first = rest) {
+                rest = DBFETCH(first)->next;
+                if (DBFETCH(first)->location == NOTHING
+                    || DBFETCH(first)->location == thing)
+                    recycle(descr, player, first);
+            }
+            break;
+        case TYPE_EXIT:
+            if (!Mage(OWNER(thing)))
+                DBFETCH(OWNER(thing))->sp.player.pennies += tp_exit_cost;
+            if (!Mage(OWNER(thing)))
+                if (DBFETCH(thing)->sp.exit.ndest != 0)
+                    DBFETCH(OWNER(thing))->sp.player.pennies += tp_link_cost;
+            DBDIRTY(OWNER(thing));
+            break;
+        case TYPE_PROGRAM:
+            dequeue_prog(thing, 0);
+            sprintf(buf, "muf/%d.m", (int) thing);
+            unlink(buf);
+            sprintf(buf, "mcp/%d.mcp", (int) thing);
+            unlink(buf);
+            break;
     }
 
     for (rest = 0; rest < db_top; rest++) {
         switch (Typeof(rest)) {
-        case TYPE_ROOM:
-            if (DBFETCH(rest)->sp.room.dropto == thing) {
-                DBFETCH(rest)->sp.room.dropto = NOTHING;
-                DBDIRTY(rest);
-            }
-            if (DBFETCH(rest)->exits == thing) {
-                DBFETCH(rest)->exits = DBFETCH(thing)->next;
-                DBDIRTY(rest);
-            }
-            if (OWNER(rest) == thing) {
-                OWNER(rest) = MAN;
-                DBDIRTY(rest);
-            }
-            break;
-        case TYPE_THING:
-            if (DBFETCH(rest)->sp.thing.home == thing) {
-                if (DBFETCH(OWNER(rest))->sp.player.home == thing)
-                    DBSTORE(OWNER(rest), sp.player.home, tp_player_start);
-                DBFETCH(rest)->sp.thing.home =
-                    DBFETCH(OWNER(rest))->sp.player.home;
-                DBDIRTY(rest);
-            }
-            if (DBFETCH(rest)->exits == thing) {
-                DBFETCH(rest)->exits = DBFETCH(thing)->next;
-                DBDIRTY(rest);
-            }
-            if (OWNER(rest) == thing) {
-                OWNER(rest) = MAN;
-                DBDIRTY(rest);
-            }
-            break;
-        case TYPE_EXIT:
-        {
-            int i, j;
+            case TYPE_ROOM:
+                if (DBFETCH(rest)->sp.room.dropto == thing) {
+                    DBFETCH(rest)->sp.room.dropto = NOTHING;
+                    DBDIRTY(rest);
+                }
+                if (DBFETCH(rest)->exits == thing) {
+                    DBFETCH(rest)->exits = DBFETCH(thing)->next;
+                    DBDIRTY(rest);
+                }
+                if (OWNER(rest) == thing) {
+                    OWNER(rest) = MAN;
+                    DBDIRTY(rest);
+                }
+                break;
+            case TYPE_THING:
+                if (DBFETCH(rest)->sp.thing.home == thing) {
+                    if (DBFETCH(OWNER(rest))->sp.player.home == thing)
+                        DBSTORE(OWNER(rest), sp.player.home, tp_player_start);
+                    DBFETCH(rest)->sp.thing.home =
+                        DBFETCH(OWNER(rest))->sp.player.home;
+                    DBDIRTY(rest);
+                }
+                if (DBFETCH(rest)->exits == thing) {
+                    DBFETCH(rest)->exits = DBFETCH(thing)->next;
+                    DBDIRTY(rest);
+                }
+                if (OWNER(rest) == thing) {
+                    OWNER(rest) = MAN;
+                    DBDIRTY(rest);
+                }
+                break;
+            case TYPE_EXIT:
+            {
+                int i, j;
 
-            for (i = j = 0; i < DBFETCH(rest)->sp.exit.ndest; i++) {
-                if ((DBFETCH(rest)->sp.exit.dest)[i] != thing)
-                    (DBFETCH(rest)->sp.exit.dest)[j++] =
-                        (DBFETCH(rest)->sp.exit.dest)[i];
-            }
-            if (j < DBFETCH(rest)->sp.exit.ndest) {
-                DBFETCH(OWNER(rest))->sp.player.pennies += tp_link_cost;
-                DBDIRTY(OWNER(rest));
-                DBFETCH(rest)->sp.exit.ndest = j;
-                DBDIRTY(rest);
-            }
-        }
-            if (OWNER(rest) == thing) {
-                OWNER(rest) = MAN;
-                DBDIRTY(rest);
-            }
-            break;
-        case TYPE_PLAYER:
-            if (Typeof(thing) == TYPE_PROGRAM && (FLAGS(rest) & INTERACTIVE)
-                && (DBFETCH(rest)->sp.player.curr_prog == thing)) {
-                if (FLAGS(rest) & READMODE) {
-                    anotify_nolisten2(rest,
-                                      CINFO
-                                      "The program you were running has been recycled.  Aborting program.");
-                } else {
-                    free_prog_text(DBFETCH(thing)->sp.program.first);
-                    DBFETCH(thing)->sp.program.first = NULL;
-                    DBFETCH(rest)->sp.player.insert_mode = 0;
-                    FLAGS(thing) &= ~INTERNAL;
-                    FLAGS(rest) &= ~INTERACTIVE;
-                    DBFETCH(rest)->sp.player.curr_prog = NOTHING;
-                    anotify_nolisten2(rest,
-                                      CINFO
-                                      "The program you were editing has been recycled.  Exiting Editor.");
+                for (i = j = 0; i < DBFETCH(rest)->sp.exit.ndest; i++) {
+                    if ((DBFETCH(rest)->sp.exit.dest)[i] != thing)
+                        (DBFETCH(rest)->sp.exit.dest)[j++] =
+                            (DBFETCH(rest)->sp.exit.dest)[i];
+                }
+                if (j < DBFETCH(rest)->sp.exit.ndest) {
+                    DBFETCH(OWNER(rest))->sp.player.pennies += tp_link_cost;
+                    DBDIRTY(OWNER(rest));
+                    DBFETCH(rest)->sp.exit.ndest = j;
+                    DBDIRTY(rest);
                 }
             }
-            if (DBFETCH(rest)->sp.player.home == thing) {
-                DBFETCH(rest)->sp.player.home = tp_player_start;
-                DBDIRTY(rest);
-            }
-            if (DBFETCH(rest)->exits == thing) {
-                DBFETCH(rest)->exits = DBFETCH(thing)->next;
-                DBDIRTY(rest);
-            }
-            if (DBFETCH(rest)->sp.player.curr_prog == thing)
-                DBFETCH(rest)->sp.player.curr_prog = 0;
-            break;
-        case TYPE_PROGRAM:
-            if (OWNER(rest) == thing) {
-                OWNER(rest) = MAN;
-                DBDIRTY(rest);
-            }
+                if (OWNER(rest) == thing) {
+                    OWNER(rest) = MAN;
+                    DBDIRTY(rest);
+                }
+                break;
+            case TYPE_PLAYER:
+                if (Typeof(thing) == TYPE_PROGRAM && (FLAGS(rest) & INTERACTIVE)
+                    && (DBFETCH(rest)->sp.player.curr_prog == thing)) {
+                    if (FLAGS(rest) & READMODE) {
+                        anotify_nolisten2(rest,
+                                          CINFO
+                                          "The program you were running has been recycled.  Aborting program.");
+                    } else {
+                        free_prog_text(DBFETCH(thing)->sp.program.first);
+                        DBFETCH(thing)->sp.program.first = NULL;
+                        DBFETCH(rest)->sp.player.insert_mode = 0;
+                        FLAGS(thing) &= ~INTERNAL;
+                        FLAGS(rest) &= ~INTERACTIVE;
+                        DBFETCH(rest)->sp.player.curr_prog = NOTHING;
+                        anotify_nolisten2(rest,
+                                          CINFO
+                                          "The program you were editing has been recycled.  Exiting Editor.");
+                    }
+                }
+                if (DBFETCH(rest)->sp.player.home == thing) {
+                    DBFETCH(rest)->sp.player.home = tp_player_start;
+                    DBDIRTY(rest);
+                }
+                if (DBFETCH(rest)->exits == thing) {
+                    DBFETCH(rest)->exits = DBFETCH(thing)->next;
+                    DBDIRTY(rest);
+                }
+                if (DBFETCH(rest)->sp.player.curr_prog == thing)
+                    DBFETCH(rest)->sp.player.curr_prog = 0;
+                break;
+            case TYPE_PROGRAM:
+                if (OWNER(rest) == thing) {
+                    OWNER(rest) = MAN;
+                    DBDIRTY(rest);
+                }
         }
         /*
          *if (DBFETCH(rest)->location == thing)

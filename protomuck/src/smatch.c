@@ -178,94 +178,94 @@ smatch(char *s1, char *s2)
 
     while (*s1) {
         switch (*s1) {
-        case '\\':
-            if (!*(s1 + 1)) {
-                return 1;
-            } else {
-                s1++;
-                if (DOWNCASE(*s1++) != DOWNCASE(*s2++))
+            case '\\':
+                if (!*(s1 + 1)) {
                     return 1;
-            }
-            break;
-        case '?':
-            if (!*s2++)
-                return 1;
-            s1++;
-            break;
-        case '*':
-            while (*s1 == '*' || (*s1 == '?' && *s2++))
+                } else {
+                    s1++;
+                    if (DOWNCASE(*s1++) != DOWNCASE(*s2++))
+                        return 1;
+                }
+                break;
+            case '?':
+                if (!*s2++)
+                    return 1;
                 s1++;
-            if (*s1 == '?')
-                return 1;
-            if (*s1 == '{') {
-                if (s2 == start)
+                break;
+            case '*':
+                while (*s1 == '*' || (*s1 == '?' && *s2++))
+                    s1++;
+                if (*s1 == '?')
+                    return 1;
+                if (*s1 == '{') {
+                    if (s2 == start)
+                        if (!smatch(s1, s2))
+                            return 0;
+                    while ((s2 = strchr(s2, ' ')) != NULL)
+                        if (!smatch(s1, ++s2))
+                            return 0;
+                    return 1;
+                } else if (*s1 == '[') {
+                    while (*s2)
+                        if (!smatch(s1, s2++))
+                            return 0;
+                    return 1;
+                }
+                if (*s1 == '\\' && *(s1 + 1))
+                    ch = *(s1 + 1);
+                else
+                    ch = *s1;
+                while ((s2 = cstrchr(s2, ch)) != NULL) {
                     if (!smatch(s1, s2))
                         return 0;
-                while ((s2 = strchr(s2, ' ')) != NULL)
-                    if (!smatch(s1, ++s2))
-                        return 0;
+                    s2++;
+                }
                 return 1;
-            } else if (*s1 == '[') {
-                while (*s2)
-                    if (!smatch(s1, s2++))
-                        return 0;
-                return 1;
-            }
-            if (*s1 == '\\' && *(s1 + 1))
-                ch = *(s1 + 1);
-            else
-                ch = *s1;
-            while ((s2 = cstrchr(s2, ch)) != NULL) {
-                if (!smatch(s1, s2))
-                    return 0;
-                s2++;
-            }
-            return 1;
-        case '[':
-        {
-            char *end;
-            int tmpflg;
-
-            if (!(end = estrchr(s1, ']', '\\'))) {
-                return 1;
-            }
-            *end = '\0';
-            tmpflg = cmatch(&s1[1], *s2++);
-            *end = ']';
-
-            if (tmpflg) {
-                return 1;
-            }
-            s1 = end + 1;
-        }
-            break;
-        case '{':
-            if (s2 != start && *(s2 - 1) != ' ')
-                return 1;
+            case '[':
             {
                 char *end;
-                int tmpflg = 0;
+                int tmpflg;
 
-                if (s1[1] == '^')
-                    tmpflg = 1;
-
-                if (!(end = estrchr(s1, '}', '\\'))) {
+                if (!(end = estrchr(s1, ']', '\\'))) {
                     return 1;
                 }
                 *end = '\0';
-                tmpflg -= (wmatch(&s1[tmpflg + 1], &s2)) ? 1 : 0;
-                *end = '}';
+                tmpflg = cmatch(&s1[1], *s2++);
+                *end = ']';
 
                 if (tmpflg) {
                     return 1;
                 }
                 s1 = end + 1;
             }
-            break;
-        default:
-            if (DOWNCASE(*s1++) != DOWNCASE(*s2++))
-                return 1;
-            break;
+                break;
+            case '{':
+                if (s2 != start && *(s2 - 1) != ' ')
+                    return 1;
+                {
+                    char *end;
+                    int tmpflg = 0;
+
+                    if (s1[1] == '^')
+                        tmpflg = 1;
+
+                    if (!(end = estrchr(s1, '}', '\\'))) {
+                        return 1;
+                    }
+                    *end = '\0';
+                    tmpflg -= (wmatch(&s1[tmpflg + 1], &s2)) ? 1 : 0;
+                    *end = '}';
+
+                    if (tmpflg) {
+                        return 1;
+                    }
+                    s1 = end + 1;
+                }
+                break;
+            default:
+                if (DOWNCASE(*s1++) != DOWNCASE(*s2++))
+                    return 1;
+                break;
         }
     }
     return DOWNCASE(*s1) - DOWNCASE(*s2);

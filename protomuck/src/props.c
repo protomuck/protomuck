@@ -365,26 +365,26 @@ copy_proplist(dbref obj, PropPtr *new2, PropPtr old)
         p = new_prop(new2, PropName(old));
         SetPFlagsRaw(p, PropFlagsRaw(old));
         switch (PropType(old)) {
-        case PROP_STRTYP:
-            SetPDataStr(p, alloc_string(PropDataStr(old)));
-            break;
-        case PROP_LOKTYP:
-            if (PropFlags(old) & PROP_ISUNLOADED) {
-                SetPDataLok(p, TRUE_BOOLEXP);
-                SetPFlags(p, (PropFlags(p) & ~PROP_ISUNLOADED));
-            } else {
-                SetPDataLok(p, copy_bool(PropDataLok(old)));
-            }
-            break;
-        case PROP_DIRTYP:
-            SetPDataVal(p, 0);
-            break;
-        case PROP_FLTTYP:
-            SetPDataFVal(p, PropDataFVal(old));
-            break;
-        default:
-            SetPDataVal(p, PropDataVal(old));
-            break;
+            case PROP_STRTYP:
+                SetPDataStr(p, alloc_string(PropDataStr(old)));
+                break;
+            case PROP_LOKTYP:
+                if (PropFlags(old) & PROP_ISUNLOADED) {
+                    SetPDataLok(p, TRUE_BOOLEXP);
+                    SetPFlags(p, (PropFlags(p) & ~PROP_ISUNLOADED));
+                } else {
+                    SetPDataLok(p, copy_bool(PropDataLok(old)));
+                }
+                break;
+            case PROP_DIRTYP:
+                SetPDataVal(p, 0);
+                break;
+            case PROP_FLTTYP:
+                SetPDataFVal(p, PropDataFVal(old));
+                break;
+            default:
+                SetPDataVal(p, PropDataVal(old));
+                break;
         }
         copy_proplist(obj, &PropDir(p), PropDir(old));
         copy_proplist(obj, new2, AVL_LF(old));
@@ -405,14 +405,14 @@ size_proplist(PropPtr avl)
     bytes += strlen(PropName(avl));
     if (!(PropFlags(avl) & PROP_ISUNLOADED)) {
         switch (PropType(avl)) {
-        case PROP_STRTYP:
-            bytes += strlen(PropDataStr(avl)) + 1;
-            break;
-        case PROP_LOKTYP:
-            bytes += size_boolexp(PropDataLok(avl));
-            break;
-        default:
-            break;
+            case PROP_STRTYP:
+                bytes += strlen(PropDataStr(avl)) + 1;
+                break;
+            case PROP_LOKTYP:
+                bytes += size_boolexp(PropDataLok(avl));
+                break;
+            default:
+                break;
         }
     }
     bytes += size_proplist(AVL_LF(avl));

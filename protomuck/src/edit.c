@@ -330,66 +330,67 @@ editor(int descr, dbref player, const char *command)
         return;
     } else {
         switch (word[i][0]) {
-        case KILL_COMMAND:
-            if (!Mage(player)) {
-                anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-            } else {
-                if (kill_macro(word[0], player, &macrotop))
-                    anotify_nolisten(player, CSUCC "Macro entry deleted.", 1);
-                else
-                    anotify_nolisten(player, CINFO "Macro to delete not found.",
-                                     1);
-            }
-            break;
-        case SHOW_COMMAND:
-            list_macros(word, i, player, 1);
-            break;
-        case SHORTSHOW_COMMAND:
-            list_macros(word, i, player, 0);
-            break;
-        case INSERT_COMMAND:
-            do_insert(player, program, arg, i);
-            anotify_nolisten(player, CINFO "Entering insert mode.", 1);
-            break;
-        case DELETE_COMMAND:
-            do_delete(player, program, arg, i);
-            break;
-        case QUIT_EDIT_COMMAND:
-            do_quit(player, program);
-            anotify_nolisten(player, CINFO "Editor exited.", 1);
-            break;
-        case CANCEL_EDIT_COMMAND:
-            /* Just figured this was due. We'll see how it goes. -Akari */
-            do_cancel(player, program);
-            anotify_nolisten(player, SYSBLUE "Changes cancelled.", 1);
-            break;
-        case COMPILE_COMMAND:
-            /* compile code belongs in compile.c, not in the editor */
-            notify(player, "Compiling...");
-            do_compile(descr, player, program, 1);
-            anotify_nolisten(player, CSUCC "Compiler done.", 1);
-            break;
-        case LIST_COMMAND:
-            do_list(player, program, arg, i, 0);
-            break;
-        case EDITOR_HELP_COMMAND:
-            spit_file(player, EDITOR_HELP_FILE);
-            break;
-        case VIEW_COMMAND:
-            val_and_head(player, arg, i);
-            break;
-        case UNASSEMBLE_COMMAND:
-            disassemble(player, program);
-            break;
-        case NUMBER_COMMAND:
-            toggle_numbers(player, arg, i);
-            break;
-        case PUBLICS_COMMAND:
-            list_publics(descr, player, arg, i);
-            break;
-        default:
-            anotify_nolisten(player, CFAIL "Illegal editor command.", 1);
-            break;
+            case KILL_COMMAND:
+                if (!Mage(player)) {
+                    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+                } else {
+                    if (kill_macro(word[0], player, &macrotop))
+                        anotify_nolisten(player, CSUCC "Macro entry deleted.",
+                                         1);
+                    else
+                        anotify_nolisten(player,
+                                         CINFO "Macro to delete not found.", 1);
+                }
+                break;
+            case SHOW_COMMAND:
+                list_macros(word, i, player, 1);
+                break;
+            case SHORTSHOW_COMMAND:
+                list_macros(word, i, player, 0);
+                break;
+            case INSERT_COMMAND:
+                do_insert(player, program, arg, i);
+                anotify_nolisten(player, CINFO "Entering insert mode.", 1);
+                break;
+            case DELETE_COMMAND:
+                do_delete(player, program, arg, i);
+                break;
+            case QUIT_EDIT_COMMAND:
+                do_quit(player, program);
+                anotify_nolisten(player, CINFO "Editor exited.", 1);
+                break;
+            case CANCEL_EDIT_COMMAND:
+                /* Just figured this was due. We'll see how it goes. -Akari */
+                do_cancel(player, program);
+                anotify_nolisten(player, SYSBLUE "Changes cancelled.", 1);
+                break;
+            case COMPILE_COMMAND:
+                /* compile code belongs in compile.c, not in the editor */
+                notify(player, "Compiling...");
+                do_compile(descr, player, program, 1);
+                anotify_nolisten(player, CSUCC "Compiler done.", 1);
+                break;
+            case LIST_COMMAND:
+                do_list(player, program, arg, i, 0);
+                break;
+            case EDITOR_HELP_COMMAND:
+                spit_file(player, EDITOR_HELP_FILE);
+                break;
+            case VIEW_COMMAND:
+                val_and_head(player, arg, i);
+                break;
+            case UNASSEMBLE_COMMAND:
+                disassemble(player, program);
+                break;
+            case NUMBER_COMMAND:
+                toggle_numbers(player, arg, i);
+                break;
+            case PUBLICS_COMMAND:
+                list_publics(descr, player, arg, i);
+                break;
+            default:
+                anotify_nolisten(player, CFAIL "Illegal editor command.", 1);
+                break;
         }
     }
     for (; i >= 0; i--) {
@@ -421,44 +422,44 @@ do_delete(dbref player, dbref program, int arg[], int argc)
     int i;
 
     switch (argc) {
-    case 0:
-        arg[0] = DBFETCH(program)->sp.program.curr_line;
-    case 1:
-        arg[1] = arg[0];
-    case 2:
-        /* delete from line 1 to line 2 */
-        /* first, check for conflict */
-        if (arg[0] > arg[1]) {
-            anotify_nolisten(player, CFAIL "Nonsensical arguments.", 1);
-            return;
-        }
-        i = arg[0] - 1;
-        for (curr = DBFETCH(program)->sp.program.first; curr && i; i--)
-            curr = curr->next;
-        if (curr) {
-            DBFETCH(program)->sp.program.curr_line = arg[0];
-            i = arg[1] - arg[0] + 1;
-            /* delete n lines */
-            while (i && curr) {
-                temp = curr;
-                if (curr->prev)
-                    curr->prev->next = curr->next;
-                else
-                    DBFETCH(program)->sp.program.first = curr->next;
-                if (curr->next)
-                    curr->next->prev = curr->prev;
-                curr = curr->next;
-                free_line(temp);
-                i--;
+        case 0:
+            arg[0] = DBFETCH(program)->sp.program.curr_line;
+        case 1:
+            arg[1] = arg[0];
+        case 2:
+            /* delete from line 1 to line 2 */
+            /* first, check for conflict */
+            if (arg[0] > arg[1]) {
+                anotify_nolisten(player, CFAIL "Nonsensical arguments.", 1);
+                return;
             }
-            sprintf(buf, CSUCC "%d lines deleted", arg[1] - arg[0] - i + 1);
-            anotify_nolisten(player, buf, 1);
-        } else
-            anotify_nolisten(player, CINFO "No line to delete.", 1);
-        break;
-    default:
-        anotify_nolisten(player, CINFO "Too many arguments.", 1);
-        break;
+            i = arg[0] - 1;
+            for (curr = DBFETCH(program)->sp.program.first; curr && i; i--)
+                curr = curr->next;
+            if (curr) {
+                DBFETCH(program)->sp.program.curr_line = arg[0];
+                i = arg[1] - arg[0] + 1;
+                /* delete n lines */
+                while (i && curr) {
+                    temp = curr;
+                    if (curr->prev)
+                        curr->prev->next = curr->next;
+                    else
+                        DBFETCH(program)->sp.program.first = curr->next;
+                    if (curr->next)
+                        curr->next->prev = curr->prev;
+                    curr = curr->next;
+                    free_line(temp);
+                    i--;
+                }
+                sprintf(buf, CSUCC "%d lines deleted", arg[1] - arg[0] - i + 1);
+                anotify_nolisten(player, buf, 1);
+            } else
+                anotify_nolisten(player, CINFO "No line to delete.", 1);
+            break;
+        default:
+            anotify_nolisten(player, CINFO "Too many arguments.", 1);
+            break;
     }
 }
 
@@ -612,62 +613,64 @@ do_list(dbref player, dbref program, int oarg[], int argc, int commentit)
     } else
         arg[0] = arg[1] = 0;
     switch (argc) {
-    case 0:
-        arg[0] = DBFETCH(program)->sp.program.curr_line;
-    case 1:
-        arg[1] = arg[0];
-    case 2:
-        if ((arg[0] > arg[1]) && (arg[1] != -1)) {
-            if (commentit) {
-                anotify_nolisten(player,
-                                 CFAIL "( Arguments don't make sense. )", 1);
-            } else {
-                anotify_nolisten(player, CFAIL "Arguments don't make sense.",
-                                 1);
-            }
-            return;
-        }
-        i = arg[0] - 1;
-        for (curr = DBFETCH(program)->sp.program.first; i && curr; i--)
-            curr = curr->next;
-        if (curr) {
-            i = arg[1] - arg[0] + 1;
-            /* display n lines */
-            for (count = arg[0]; curr && (i || (arg[1] == -1)); i--) {
-                if (FLAGS(player) & INTERNAL)
-                    sprintf(buf, "%3d: %s", count, DoNull(curr->this_line));
-                else
-                    sprintf(buf, "%s", DoNull(curr->this_line));
-                notify_nolisten(player, buf, 1);
-                count++;
-                curr = curr->next;
-            }
-            if (count - arg[0] > 1) {
+        case 0:
+            arg[0] = DBFETCH(program)->sp.program.curr_line;
+        case 1:
+            arg[1] = arg[0];
+        case 2:
+            if ((arg[0] > arg[1]) && (arg[1] != -1)) {
                 if (commentit) {
-                    sprintf(buf, SYSBLUE "( %d lines displayed. )",
-                            count - arg[0]);
+                    anotify_nolisten(player,
+                                     CFAIL "( Arguments don't make sense. )",
+                                     1);
                 } else {
-                    sprintf(buf, SYSBLUE "%d lines displayed.", count - arg[0]);
+                    anotify_nolisten(player,
+                                     CFAIL "Arguments don't make sense.", 1);
                 }
-                anotify_nolisten(player, buf, 1);
+                return;
             }
-        } else {
-            if (commentit) {
-                anotify_nolisten(player, SYSBLUE
-                                 "( Line not available for display. )", 1);
+            i = arg[0] - 1;
+            for (curr = DBFETCH(program)->sp.program.first; i && curr; i--)
+                curr = curr->next;
+            if (curr) {
+                i = arg[1] - arg[0] + 1;
+                /* display n lines */
+                for (count = arg[0]; curr && (i || (arg[1] == -1)); i--) {
+                    if (FLAGS(player) & INTERNAL)
+                        sprintf(buf, "%3d: %s", count, DoNull(curr->this_line));
+                    else
+                        sprintf(buf, "%s", DoNull(curr->this_line));
+                    notify_nolisten(player, buf, 1);
+                    count++;
+                    curr = curr->next;
+                }
+                if (count - arg[0] > 1) {
+                    if (commentit) {
+                        sprintf(buf, SYSBLUE "( %d lines displayed. )",
+                                count - arg[0]);
+                    } else {
+                        sprintf(buf, SYSBLUE "%d lines displayed.",
+                                count - arg[0]);
+                    }
+                    anotify_nolisten(player, buf, 1);
+                }
             } else {
-                anotify_nolisten(player, SYSBLUE
-                                 "Line not available for display.", 1);
+                if (commentit) {
+                    anotify_nolisten(player, SYSBLUE
+                                     "( Line not available for display. )", 1);
+                } else {
+                    anotify_nolisten(player, SYSBLUE
+                                     "Line not available for display.", 1);
+                }
             }
-        }
-        break;
-    default:
-        if (commentit) {
-            anotify_nolisten(player, CINFO "( Too many arguments. )", 1);
-        } else {
-            anotify_nolisten(player, CINFO "Too many arguments.", 1);
-        }
-        break;
+            break;
+        default:
+            if (commentit) {
+                anotify_nolisten(player, CINFO "( Too many arguments. )", 1);
+            } else {
+                anotify_nolisten(player, CINFO "Too many arguments.", 1);
+            }
+            break;
     }
 }
 void
@@ -769,15 +772,15 @@ toggle_numbers(dbref player, int arg[], int argc)
 {
     if (argc) {
         switch (arg[0]) {
-        case 0:
-            FLAGS(player) &= ~INTERNAL;
-            anotify_nolisten(player, CINFO "Line numbers off.", 1);
-            break;
+            case 0:
+                FLAGS(player) &= ~INTERNAL;
+                anotify_nolisten(player, CINFO "Line numbers off.", 1);
+                break;
 
-        default:
-            FLAGS(player) |= INTERNAL;
-            anotify_nolisten(player, CINFO "Line numbers on.", 1);
-            break;
+            default:
+                FLAGS(player) |= INTERNAL;
+                anotify_nolisten(player, CINFO "Line numbers on.", 1);
+                break;
         }
     } else if (FLAGS(player) & INTERNAL) {
         FLAGS(player) &= ~INTERNAL;

@@ -54,46 +54,47 @@ do_whisper(int descr, dbref player, const char *arg1, const char *arg2)
         match_player(&md);
     }
     switch (who = match_result(&md)) {
-    case NOTHING:
-        anotify_nolisten2(player, CINFO "Who?");
-        break;
-    case AMBIGUOUS:
-        anotify_nolisten2(player, CINFO "I don't know who you mean!");
-        break;
-    default:
-        if (Meeper(OWNER(player))) {
-            do_parse_mesg(descr, player, player, arg2, "(whisper)", buf,
-                          MPI_ISPRIVATE);
-            tct(buf, buf2);
-        } else {
-            tct(arg2, buf2);
-        }
+        case NOTHING:
+            anotify_nolisten2(player, CINFO "Who?");
+            break;
+        case AMBIGUOUS:
+            anotify_nolisten2(player, CINFO "I don't know who you mean!");
+            break;
+        default:
+            if (Meeper(OWNER(player))) {
+                do_parse_mesg(descr, player, player, arg2, "(whisper)", buf,
+                              MPI_ISPRIVATE);
+                tct(buf, buf2);
+            } else {
+                tct(arg2, buf2);
+            }
 
-        if (buf2[0] == ':' || buf2[0] == ';') {
-            sprintf(buf, SYSBLUE "%s whispers, \"" SYSPURPLE "%s %s"
-                    SYSBLUE "\"", PNAME(player), PNAME(player), buf2 + 1);
-            if (!anotify_from(player, who, buf)) {
-                sprintf(buf, SYSBLUE "%s is not connected.", PNAME(who));
-                anotify_nolisten2(player, buf);
+            if (buf2[0] == ':' || buf2[0] == ';') {
+                sprintf(buf, SYSBLUE "%s whispers, \"" SYSPURPLE "%s %s"
+                        SYSBLUE "\"", PNAME(player), PNAME(player), buf2 + 1);
+                if (!anotify_from(player, who, buf)) {
+                    sprintf(buf, SYSBLUE "%s is not connected.", PNAME(who));
+                    anotify_nolisten2(player, buf);
+                    break;
+                }
+                sprintf(buf, SYSBLUE "You whisper, \"" SYSPURPLE "%s %s"
+                        SYSBLUE "\" to %s.", PNAME(player), buf2 + 1,
+                        PNAME(who));
+                anotify(player, buf);
+                break;
+            } else {
+                sprintf(buf, SYSBLUE "%s whispers, \"" SYSPURPLE "%s" SYSBLUE
+                        "\"", PNAME(player), buf2);
+                if (!anotify_from(player, who, buf)) {
+                    sprintf(buf, SYSBLUE "%s is not connected.", PNAME(who));
+                    anotify_nolisten2(player, buf);
+                    break;
+                }
+                sprintf(buf, SYSBLUE "You whisper, \"" SYSPURPLE "%s" SYSBLUE
+                        "\" to %s.", buf2, PNAME(who));
+                anotify(player, buf);
                 break;
             }
-            sprintf(buf, SYSBLUE "You whisper, \"" SYSPURPLE "%s %s"
-                    SYSBLUE "\" to %s.", PNAME(player), buf2 + 1, PNAME(who));
-            anotify(player, buf);
-            break;
-        } else {
-            sprintf(buf, SYSBLUE "%s whispers, \"" SYSPURPLE "%s" SYSBLUE
-                    "\"", PNAME(player), buf2);
-            if (!anotify_from(player, who, buf)) {
-                sprintf(buf, SYSBLUE "%s is not connected.", PNAME(who));
-                anotify_nolisten2(player, buf);
-                break;
-            }
-            sprintf(buf, SYSBLUE "You whisper, \"" SYSPURPLE "%s" SYSBLUE
-                    "\" to %s.", buf2, PNAME(who));
-            anotify(player, buf);
-            break;
-        }
     }
 }
 
@@ -123,18 +124,18 @@ do_wall(dbref player, const char *message)
             return;
         }
         switch (message[0]) {
-        case ':':
-        case ';':
-            sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s %s", NAME(player),
-                    message + 1);
-            break;
-        case '#':
-        case '|':
-            sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s", message + 1);
-            break;
-        default:
-            sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s shouts, \"%s\"",
-                    NAME(player), message);
+            case ':':
+            case ';':
+                sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s %s", NAME(player),
+                        message + 1);
+                break;
+            case '#':
+            case '|':
+                sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s", message + 1);
+                break;
+            default:
+                sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s shouts, \"%s\"",
+                        NAME(player), message);
         }
         wall_all(buf);
         /* log_status("WALL: %s(%d): %s\n", NAME(player), player, buf); */

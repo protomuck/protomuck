@@ -93,70 +93,70 @@ set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
         return;
     }
     switch (PropType(p)) {
-    case PROP_STRTYP:
-        if (!value || !*((char *) value)) {
-            SetPType(p, PROP_DIRTYP);
-            SetPDataVal(p, 0);
-            if (!PropDir(p))
-                remove_property_nofetch(player, type);
-        } else {
-            /*  char *cptr = (char *) value;
-               while (cptr) { 
-               if (*cptr == '\n')
-               *cptr = '\r';
-               ++cptr;
-               } */
-            SetPDataStr(p, alloc_compressed((char *) value));
+        case PROP_STRTYP:
+            if (!value || !*((char *) value)) {
+                SetPType(p, PROP_DIRTYP);
+                SetPDataVal(p, 0);
+                if (!PropDir(p))
+                    remove_property_nofetch(player, type);
+            } else {
+                /*  char *cptr = (char *) value;
+                   while (cptr) { 
+                   if (*cptr == '\n')
+                   *cptr = '\r';
+                   ++cptr;
+                   } */
+                SetPDataStr(p, alloc_compressed((char *) value));
 #ifdef COMPRESS
-            SetPFlagsRaw(p, (flags | PROP_COMPRESSED));
+                SetPFlagsRaw(p, (flags | PROP_COMPRESSED));
 #endif
-        }
-        break;
-    case PROP_INTTYP:
-        SetPDataVal(p, (int) value);
-        if (!value) {
-            SetPType(p, PROP_DIRTYP);
-            if (!PropDir(p))
-                remove_property_nofetch(player, type);
-        }
-        break;
-    case PROP_FLTTYP:
-        SetPDataFVal(p, strtod(value, NULL));
-        if (strtod(value, NULL) == 0) {
-            SetPType(p, PROP_DIRTYP);
-            if (!PropDir(p)) {
-                remove_property_nofetch(player, type);
             }
-        }
-        break;
-    case PROP_REFTYP:
-        if (((dbref) value) == NOTHING) {
-            SetPType(p, PROP_DIRTYP);
+            break;
+        case PROP_INTTYP:
+            SetPDataVal(p, (int) value);
+            if (!value) {
+                SetPType(p, PROP_DIRTYP);
+                if (!PropDir(p))
+                    remove_property_nofetch(player, type);
+            }
+            break;
+        case PROP_FLTTYP:
+            SetPDataFVal(p, strtod(value, NULL));
+            if (strtod(value, NULL) == 0) {
+                SetPType(p, PROP_DIRTYP);
+                if (!PropDir(p)) {
+                    remove_property_nofetch(player, type);
+                }
+            }
+            break;
+        case PROP_REFTYP:
+            if (((dbref) value) == NOTHING) {
+                SetPType(p, PROP_DIRTYP);
+                SetPDataVal(p, 0);
+                if (!PropDir(p))
+                    remove_property_nofetch(player, type);
+            } else {
+                SetPDataRef(p, (dbref) value);
+            }
+            break;
+        case PROP_LOKTYP:
+            SetPDataLok(p, (struct boolexp *) value);
+            /*
+             * if ((struct boolexp *)value == TRUE_BOOLEXP) {
+             *     SetPType(p, PROP_DIRTYP);
+             *     SetPDataVal(p, 0);
+             *     if (!PropDir(p))
+             *         remove_property_nofetch(player, type);
+             * } else {
+             *     SetPDataLok(p, (struct boolexp *)value);
+             * }
+             */
+            break;
+        case PROP_DIRTYP:
             SetPDataVal(p, 0);
             if (!PropDir(p))
                 remove_property_nofetch(player, type);
-        } else {
-            SetPDataRef(p, (dbref) value);
-        }
-        break;
-    case PROP_LOKTYP:
-        SetPDataLok(p, (struct boolexp *) value);
-        /*
-         * if ((struct boolexp *)value == TRUE_BOOLEXP) {
-         *     SetPType(p, PROP_DIRTYP);
-         *     SetPDataVal(p, 0);
-         *     if (!PropDir(p))
-         *         remove_property_nofetch(player, type);
-         * } else {
-         *     SetPDataLok(p, (struct boolexp *)value);
-         * }
-         */
-        break;
-    case PROP_DIRTYP:
-        SetPDataVal(p, 0);
-        if (!PropDir(p))
-            remove_property_nofetch(player, type);
-        break;
+            break;
     }
 }
 
@@ -851,35 +851,35 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
             (pdflag) ? PROPDIR_DELIMITER : '\0');
     tct(tbuf, mybuf);
     switch (PropType(p)) {
-    case PROP_STRTYP:
-        sprintf(buf, SYSAQUA "str " SYSGREEN "%s" SYSRED ":" SYSCYAN
-                "%.*s", mybuf, (BUFFER_LEN / 2), tct(PropDataStr(p), tbuf));
-        break;
-    case PROP_REFTYP:
-        sprintf(buf, SYSBROWN "ref " SYSGREEN "%s" SYSRED ":%s", mybuf,
-                ansi_unparse_object(player, PropDataRef(p)));
-        break;
-    case PROP_INTTYP:
-        sprintf(buf, SYSFOREST "int " SYSGREEN "%s" SYSRED ":" SYSYELLOW
-                "%d", mybuf, PropDataVal(p));
-        break;
-    case PROP_FLTTYP:
-        sprintf(buf, SYSNAVY "flt " SYSGREEN "%s" SYSRED ":" SYSBROWN
-                "%.16lg", mybuf, PropDataFVal(p));
-        break;
-    case PROP_LOKTYP:
-        if (PropFlags(p) & PROP_ISUNLOADED) {
-            sprintf(buf, SYSCRIMSON "lok " SYSGREEN "%s" SYSRED ":"
-                    SYSPURPLE "*UNLOCKED*", mybuf);
-        } else {
-            sprintf(buf, SYSCRIMSON "lok " SYSGREEN "%s" SYSRED ":"
-                    SYSPURPLE "%.*s", mybuf, (BUFFER_LEN / 2),
-                    tct(unparse_boolexp(player, PropDataLok(p), 1), tbuf));
-        }
-        break;
-    case PROP_DIRTYP:
-        sprintf(buf, SYSWHITE "dir " SYSGREEN "%s" SYSRED ":", mybuf);
-        break;
+        case PROP_STRTYP:
+            sprintf(buf, SYSAQUA "str " SYSGREEN "%s" SYSRED ":" SYSCYAN
+                    "%.*s", mybuf, (BUFFER_LEN / 2), tct(PropDataStr(p), tbuf));
+            break;
+        case PROP_REFTYP:
+            sprintf(buf, SYSBROWN "ref " SYSGREEN "%s" SYSRED ":%s", mybuf,
+                    ansi_unparse_object(player, PropDataRef(p)));
+            break;
+        case PROP_INTTYP:
+            sprintf(buf, SYSFOREST "int " SYSGREEN "%s" SYSRED ":" SYSYELLOW
+                    "%d", mybuf, PropDataVal(p));
+            break;
+        case PROP_FLTTYP:
+            sprintf(buf, SYSNAVY "flt " SYSGREEN "%s" SYSRED ":" SYSBROWN
+                    "%.16lg", mybuf, PropDataFVal(p));
+            break;
+        case PROP_LOKTYP:
+            if (PropFlags(p) & PROP_ISUNLOADED) {
+                sprintf(buf, SYSCRIMSON "lok " SYSGREEN "%s" SYSRED ":"
+                        SYSPURPLE "*UNLOCKED*", mybuf);
+            } else {
+                sprintf(buf, SYSCRIMSON "lok " SYSGREEN "%s" SYSRED ":"
+                        SYSPURPLE "%.*s", mybuf, (BUFFER_LEN / 2),
+                        tct(unparse_boolexp(player, PropDataLok(p), 1), tbuf));
+            }
+            break;
+        case PROP_DIRTYP:
+            sprintf(buf, SYSWHITE "dir " SYSGREEN "%s" SYSRED ":", mybuf);
+            break;
     }
     return buf;
 }
@@ -955,80 +955,82 @@ db_get_single_prop(FILE * f, dbref obj, int pos)
     flg = atoi(flags);
 
     switch (flg & PROP_TYPMASK) {
-    case PROP_STRTYP:
-        if (!do_diskbase_propvals || pos) {
-            flg &= ~PROP_ISUNLOADED;
+        case PROP_STRTYP:
+            if (!do_diskbase_propvals || pos) {
+                flg &= ~PROP_ISUNLOADED;
 #ifdef COMPRESS
-            if (!(flg & PROP_COMPRESSED)) {
-                value = (char *) old_uncompress(value);
-            }
+                if (!(flg & PROP_COMPRESSED)) {
+                    value = (char *) old_uncompress(value);
+                }
 #endif
-            set_property_nofetch(obj, name, flg, (PTYPE) value);
-        } else {
-            flg |= PROP_ISUNLOADED;
-            set_property_nofetch(obj, name, flg, (PTYPE) tpos);
-        }
-        break;
-    case PROP_LOKTYP:
-        if (!do_diskbase_propvals || pos) {
-            lok = parse_boolexp(-1, (dbref) 1, value, 32767);
-            flg &= ~PROP_ISUNLOADED;
-            set_property_nofetch(obj, name, flg, (PTYPE) lok);
-        } else {
-            flg |= PROP_ISUNLOADED;
-            set_property_nofetch(obj, name, flg, (PTYPE) tpos);
-        }
-        break;
-    case PROP_INTTYP:
-        if (!number(value)) {
-            fprintf(stderr, "PANIC: INT prop had non-int value in db.\n");
-            abort();
-        }
-        set_property_nofetch(obj, name, flg, (PTYPE) atoi(value));
-        break;
-    case PROP_FLTTYP:
-        if (!number(value) && !ifloat(value)) {
-            char *tpnt = value;
-            int dtemp = 0;
-
-            if ((*tpnt == '+') || (*tpnt == '-')) {
-                if (*tpnt == '+') {
-                    dtemp = 0;
-                } else {
-                    dtemp = 1;
-                }
-                tpnt++;
-            }
-            tpnt[0] = toupper(tpnt[0]);
-            tpnt[1] = toupper(tpnt[1]);
-            tpnt[2] = toupper(tpnt[2]);
-            if (!strncmp(tpnt, "INF", 3)) {
-                if (!dtemp) {
-                    fval = 9.99E999;
-                } else {
-                    fval = -9.99E999;
-                }
+                set_property_nofetch(obj, name, flg, (PTYPE) value);
             } else {
-                if (!strncmp(tpnt, "NAN", 3)) {
-                    fval = INF;
-                }
-                fprintf(stderr, "PANIC:Float prop contained invalid value.\n");
+                flg |= PROP_ISUNLOADED;
+                set_property_nofetch(obj, name, flg, (PTYPE) tpos);
+            }
+            break;
+        case PROP_LOKTYP:
+            if (!do_diskbase_propvals || pos) {
+                lok = parse_boolexp(-1, (dbref) 1, value, 32767);
+                flg &= ~PROP_ISUNLOADED;
+                set_property_nofetch(obj, name, flg, (PTYPE) lok);
+            } else {
+                flg |= PROP_ISUNLOADED;
+                set_property_nofetch(obj, name, flg, (PTYPE) tpos);
+            }
+            break;
+        case PROP_INTTYP:
+            if (!number(value)) {
+                fprintf(stderr, "PANIC: INT prop had non-int value in db.\n");
                 abort();
             }
-        } else {
-            sscanf(value, "%lg", (PTYPE) & fval);
-        }
-        set_property_nofetch(obj, name, flg, (PTYPE) fltostr(fbuf, fval));
-        break;
-    case PROP_REFTYP:
-        if (!number(value)) {
-            fprintf(stderr, "PANIC:Ref prop contained non-numeric value.\n");
-            abort();
-        }
-        set_property_nofetch(obj, name, flg, (PTYPE) atoi(value));
-        break;
-    case PROP_DIRTYP:
-        break;
+            set_property_nofetch(obj, name, flg, (PTYPE) atoi(value));
+            break;
+        case PROP_FLTTYP:
+            if (!number(value) && !ifloat(value)) {
+                char *tpnt = value;
+                int dtemp = 0;
+
+                if ((*tpnt == '+') || (*tpnt == '-')) {
+                    if (*tpnt == '+') {
+                        dtemp = 0;
+                    } else {
+                        dtemp = 1;
+                    }
+                    tpnt++;
+                }
+                tpnt[0] = toupper(tpnt[0]);
+                tpnt[1] = toupper(tpnt[1]);
+                tpnt[2] = toupper(tpnt[2]);
+                if (!strncmp(tpnt, "INF", 3)) {
+                    if (!dtemp) {
+                        fval = 9.99E999;
+                    } else {
+                        fval = -9.99E999;
+                    }
+                } else {
+                    if (!strncmp(tpnt, "NAN", 3)) {
+                        fval = INF;
+                    }
+                    fprintf(stderr,
+                            "PANIC:Float prop contained invalid value.\n");
+                    abort();
+                }
+            } else {
+                sscanf(value, "%lg", (PTYPE) & fval);
+            }
+            set_property_nofetch(obj, name, flg, (PTYPE) fltostr(fbuf, fval));
+            break;
+        case PROP_REFTYP:
+            if (!number(value)) {
+                fprintf(stderr,
+                        "PANIC:Ref prop contained non-numeric value.\n");
+                abort();
+            }
+            set_property_nofetch(obj, name, flg, (PTYPE) atoi(value));
+            break;
+        case PROP_DIRTYP:
+            break;
     }
     return 1;
 }
@@ -1067,41 +1069,41 @@ db_putprop(FILE * f, const char *dir, PropPtr p)
 
     ptr2 = "";
     switch (PropType(p)) {
-    case PROP_INTTYP:
-        if (!PropDataVal(p))
-            return;
-        ptr2 = intostr(num, PropDataVal(p));
-        break;
-    case PROP_FLTTYP:
-        if (!PropDataFVal(p))
-            return;
-        ptr2 = fltostr(fbuf, PropDataFVal(p));
-        break;
-    case PROP_REFTYP:
-        if (PropDataRef(p) == NOTHING)
-            return;
-        ptr2 = intostr(num, (int) PropDataRef(p));
-        break;
-    case PROP_STRTYP:
-        if (!*PropDataStr(p))
-            return;
-        if (db_decompression_flag) {
+        case PROP_INTTYP:
+            if (!PropDataVal(p))
+                return;
+            ptr2 = intostr(num, PropDataVal(p));
+            break;
+        case PROP_FLTTYP:
+            if (!PropDataFVal(p))
+                return;
+            ptr2 = fltostr(fbuf, PropDataFVal(p));
+            break;
+        case PROP_REFTYP:
+            if (PropDataRef(p) == NOTHING)
+                return;
+            ptr2 = intostr(num, (int) PropDataRef(p));
+            break;
+        case PROP_STRTYP:
+            if (!*PropDataStr(p))
+                return;
+            if (db_decompression_flag) {
 #ifdef COMPRESS
-            ptr2 = uncompress(PropDataStr(p));
+                ptr2 = uncompress(PropDataStr(p));
 #else
-            ptr2 = PropDataStr(p);
+                ptr2 = PropDataStr(p);
 #endif
-        } else {
-            ptr2 = PropDataStr(p);
-        }
-        break;
-    case PROP_LOKTYP:
-        if (PropFlags(p) & PROP_ISUNLOADED)
-            return;
-        if (PropDataLok(p) == TRUE_BOOLEXP)
-            return;
-        ptr2 = unparse_boolexp((dbref) 1, PropDataLok(p), 0);
-        break;
+            } else {
+                ptr2 = PropDataStr(p);
+            }
+            break;
+        case PROP_LOKTYP:
+            if (PropFlags(p) & PROP_ISUNLOADED)
+                return;
+            if (PropDataLok(p) == TRUE_BOOLEXP)
+                return;
+            ptr2 = unparse_boolexp((dbref) 1, PropDataLok(p), 0);
+            break;
     }
     while (*ptr2)
         *ptr++ = *ptr2++;
@@ -1223,55 +1225,55 @@ reflist_add(dbref obj, const char *propname, dbref toadd)
         propfetch(obj, ptr);
 #endif
         switch (PropType(ptr)) {
-        case PROP_STRTYP:
-            *outbuf = '\0';
-            list = temp = uncompress(PropDataStr(ptr));
-            sprintf(buf, "%d", toadd);
-            while (*temp) {
-                if (*temp == '#') {
-                    pat = buf;
-                    count++;
-                    charcount = temp - list;
-                } else if (pat) {
-                    if (!*pat) {
-                        if (!*temp || *temp == ' ') {
-                            break;
+            case PROP_STRTYP:
+                *outbuf = '\0';
+                list = temp = uncompress(PropDataStr(ptr));
+                sprintf(buf, "%d", toadd);
+                while (*temp) {
+                    if (*temp == '#') {
+                        pat = buf;
+                        count++;
+                        charcount = temp - list;
+                    } else if (pat) {
+                        if (!*pat) {
+                            if (!*temp || *temp == ' ') {
+                                break;
+                            }
+                            pat = NULL;
+                        } else if (*pat != *temp) {
+                            pat = NULL;
+                        } else {
+                            pat++;
                         }
-                        pat = NULL;
-                    } else if (*pat != *temp) {
-                        pat = NULL;
-                    } else {
-                        pat++;
                     }
+                    temp++;
                 }
-                temp++;
-            }
-            if (pat && !*pat) {
-                if (charcount > 0) {
-                    strncpy(outbuf, list, charcount - 1);
-                    outbuf[charcount - 1] = '\0';
+                if (pat && !*pat) {
+                    if (charcount > 0) {
+                        strncpy(outbuf, list, charcount - 1);
+                        outbuf[charcount - 1] = '\0';
+                    }
+                    strcat(outbuf, temp);
+                } else {
+                    strcpy(outbuf, list);
                 }
-                strcat(outbuf, temp);
-            } else {
-                strcpy(outbuf, list);
-            }
-            sprintf(buf, " #%d", toadd);
-            if (strlen(outbuf) + strlen(buf) < BUFFER_LEN) {
-                strcat(outbuf, buf);
-                for (temp = outbuf; isspace(*temp); temp++) ;
-                add_property(obj, propname, temp, 0);
-            }
-            break;
-        case PROP_REFTYP:
-            if (PropDataRef(ptr) != toadd) {
-                sprintf(outbuf, "#%d #%d", PropDataRef(ptr), toadd);
+                sprintf(buf, " #%d", toadd);
+                if (strlen(outbuf) + strlen(buf) < BUFFER_LEN) {
+                    strcat(outbuf, buf);
+                    for (temp = outbuf; isspace(*temp); temp++) ;
+                    add_property(obj, propname, temp, 0);
+                }
+                break;
+            case PROP_REFTYP:
+                if (PropDataRef(ptr) != toadd) {
+                    sprintf(outbuf, "#%d #%d", PropDataRef(ptr), toadd);
+                    add_property(obj, propname, outbuf, 0);
+                }
+                break;
+            default:
+                sprintf(outbuf, "#%d", toadd);
                 add_property(obj, propname, outbuf, 0);
-            }
-            break;
-        default:
-            sprintf(outbuf, "#%d", toadd);
-            add_property(obj, propname, outbuf, 0);
-            break;
+                break;
         }
     } else {
         sprintf(outbuf, "#%d", toadd);
@@ -1299,46 +1301,46 @@ reflist_del(dbref obj, const char *propname, dbref todel)
         propfetch(obj, ptr);
 #endif
         switch (PropType(ptr)) {
-        case PROP_STRTYP:
-            *outbuf = '\0';
-            list = temp = uncompress(PropDataStr(ptr));
-            sprintf(buf, "%d", todel);
-            while (*temp) {
-                if (*temp == '#') {
-                    pat = buf;
-                    count++;
-                    charcount = temp - list;
-                } else if (pat) {
-                    if (!*pat) {
-                        if (!*temp || *temp == ' ') {
-                            break;
+            case PROP_STRTYP:
+                *outbuf = '\0';
+                list = temp = uncompress(PropDataStr(ptr));
+                sprintf(buf, "%d", todel);
+                while (*temp) {
+                    if (*temp == '#') {
+                        pat = buf;
+                        count++;
+                        charcount = temp - list;
+                    } else if (pat) {
+                        if (!*pat) {
+                            if (!*temp || *temp == ' ') {
+                                break;
+                            }
+                            pat = NULL;
+                        } else if (*pat != *temp) {
+                            pat = NULL;
+                        } else {
+                            pat++;
                         }
-                        pat = NULL;
-                    } else if (*pat != *temp) {
-                        pat = NULL;
-                    } else {
-                        pat++;
                     }
+                    temp++;
                 }
-                temp++;
-            }
-            if (pat && !*pat) {
-                if (charcount > 0) {
-                    strncpy(outbuf, list, charcount - 1);
-                    outbuf[charcount - 1] = '\0';
+                if (pat && !*pat) {
+                    if (charcount > 0) {
+                        strncpy(outbuf, list, charcount - 1);
+                        outbuf[charcount - 1] = '\0';
+                    }
+                    strcat(outbuf, temp);
+                    for (temp = outbuf; isspace(*temp); temp++) ;
+                    add_property(obj, propname, temp, 0);
                 }
-                strcat(outbuf, temp);
-                for (temp = outbuf; isspace(*temp); temp++) ;
-                add_property(obj, propname, temp, 0);
-            }
-            break;
-        case PROP_REFTYP:
-            if (PropDataRef(ptr) == todel) {
-                add_property(obj, propname, "", 0);
-            }
-            break;
-        default:
-            break;
+                break;
+            case PROP_REFTYP:
+                if (PropDataRef(ptr) == todel) {
+                    add_property(obj, propname, "", 0);
+                }
+                break;
+            default:
+                break;
         }
     }
 }
@@ -1361,37 +1363,37 @@ reflist_find(dbref obj, const char *propname, dbref tofind)
         propfetch(obj, ptr);
 #endif
         switch (PropType(ptr)) {
-        case PROP_STRTYP:
-            temp = uncompress(PropDataStr(ptr));
-            sprintf(buf, "%d", tofind);
-            while (*temp) {
-                if (*temp == '#') {
-                    pat = buf;
-                    count++;
-                } else if (pat) {
-                    if (!*pat) {
-                        if (!*temp || *temp == ' ') {
-                            break;
+            case PROP_STRTYP:
+                temp = uncompress(PropDataStr(ptr));
+                sprintf(buf, "%d", tofind);
+                while (*temp) {
+                    if (*temp == '#') {
+                        pat = buf;
+                        count++;
+                    } else if (pat) {
+                        if (!*pat) {
+                            if (!*temp || *temp == ' ') {
+                                break;
+                            }
+                            pat = NULL;
+                        } else if (*pat != *temp) {
+                            pat = NULL;
+                        } else {
+                            pat++;
                         }
-                        pat = NULL;
-                    } else if (*pat != *temp) {
-                        pat = NULL;
-                    } else {
-                        pat++;
                     }
+                    temp++;
                 }
-                temp++;
-            }
-            if (pat && !*pat) {
-                pos = count;
-            }
-            break;
-        case PROP_REFTYP:
-            if (PropDataRef(ptr) == tofind)
-                pos = 1;
-            break;
-        default:
-            break;
+                if (pat && !*pat) {
+                    pos = count;
+                }
+                break;
+            case PROP_REFTYP:
+                if (PropDataRef(ptr) == tofind)
+                    pos = 1;
+                break;
+            default:
+                break;
         }
     }
     return pos;

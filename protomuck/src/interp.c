@@ -320,88 +320,88 @@ RCLEAR(struct inst *oper, char *file, int line)
         return;
 
     switch (oper->type) {
-    case PROG_CLEARED:{
-        time_t lt;
-        char buf[40];
+        case PROG_CLEARED:{
+            time_t lt;
+            char buf[40];
 
-        lt = time(NULL);
-        format_time(buf, 32, "%c", localtime(&lt));
-        fprintf(stderr, "%.32s:", buf);
-        fprintf(stderr, "Attempt to re-CLEAR() instruction from %s:%hd "
-                "previously CLEAR()ed at %s:%d\n", file, line,
-                (char *) oper->data.addr, oper->line);
-        return;
-    }
-    case PROG_ADD:
-        DBFETCH(oper->data.addr->progref)->sp.program.instances--;
-        oper->data.addr->links--;
-        break;
-    case PROG_STRING:
-        if (oper->data.string && --oper->data.string->links == 0)
-            free((void *) oper->data.string);
-        break;
-    case PROG_FUNCTION:
-        if (oper->data.mufproc) {
-            free((void *) oper->data.mufproc->procname);
-            varcnt = oper->data.mufproc->vars;
-
-            if (oper->data.mufproc->varnames) {
-                for (j = 0; j < varcnt; ++j) {
-                    free((void *) oper->data.mufproc->varnames[j]);
-                }
-                free((void *) oper->data.mufproc->varnames);
-            }
-            free((void *) oper->data.mufproc);
+            lt = time(NULL);
+            format_time(buf, 32, "%c", localtime(&lt));
+            fprintf(stderr, "%.32s:", buf);
+            fprintf(stderr, "Attempt to re-CLEAR() instruction from %s:%hd "
+                    "previously CLEAR()ed at %s:%d\n", file, line,
+                    (char *) oper->data.addr, oper->line);
+            return;
         }
-        break;
-    case PROG_ARRAY:
-        array_free(oper->data.array);
-        break;
-    case PROG_LOCK:
-        if (oper->data.lock != TRUE_BOOLEXP)
-            free_boolexp(oper->data.lock);
-        break;
+        case PROG_ADD:
+            DBFETCH(oper->data.addr->progref)->sp.program.instances--;
+            oper->data.addr->links--;
+            break;
+        case PROG_STRING:
+            if (oper->data.string && --oper->data.string->links == 0)
+                free((void *) oper->data.string);
+            break;
+        case PROG_FUNCTION:
+            if (oper->data.mufproc) {
+                free((void *) oper->data.mufproc->procname);
+                varcnt = oper->data.mufproc->vars;
+
+                if (oper->data.mufproc->varnames) {
+                    for (j = 0; j < varcnt; ++j) {
+                        free((void *) oper->data.mufproc->varnames[j]);
+                    }
+                    free((void *) oper->data.mufproc->varnames);
+                }
+                free((void *) oper->data.mufproc);
+            }
+            break;
+        case PROG_ARRAY:
+            array_free(oper->data.array);
+            break;
+        case PROG_LOCK:
+            if (oper->data.lock != TRUE_BOOLEXP)
+                free_boolexp(oper->data.lock);
+            break;
 #ifdef MUF_SOCKETS
-    case PROG_SOCKET:
-        oper->data.sock->links -= 1;
-        if (oper->data.sock && oper->data.sock->links == 0) {
-            /* is_player ==  1 - MUF socket was connected to a player 
-             * is_player ==  0 - MUF socket normal
-             * is_player == -1 - MUF socket made into a descriptor */
-            if (oper->data.sock->host && oper->data.sock->is_player < 1) {
-                if (oper->data.sock->is_player == 0) {
-                    shutdown(oper->data.sock->socknum, 2);
-                    close(oper->data.sock->socknum);
-                } else if (oper->data.sock->is_player == -1) {
-                    struct descriptor_data *d;
+        case PROG_SOCKET:
+            oper->data.sock->links -= 1;
+            if (oper->data.sock && oper->data.sock->links == 0) {
+                /* is_player ==  1 - MUF socket was connected to a player 
+                 * is_player ==  0 - MUF socket normal
+                 * is_player == -1 - MUF socket made into a descriptor */
+                if (oper->data.sock->host && oper->data.sock->is_player < 1) {
+                    if (oper->data.sock->is_player == 0) {
+                        shutdown(oper->data.sock->socknum, 2);
+                        close(oper->data.sock->socknum);
+                    } else if (oper->data.sock->is_player == -1) {
+                        struct descriptor_data *d;
 
-                    d = get_descr(oper->data.sock->socknum, NOTHING);
-                    if (d)
-                        shutdownsock(d);
+                        d = get_descr(oper->data.sock->socknum, NOTHING);
+                        if (d)
+                            shutdownsock(d);
+                    }
                 }
+                if (tp_socket_events)
+                    remove_socket_from_queue(oper->data.sock);
+                if (oper->data.sock->raw_input)
+                    free((void *) oper->data.sock->raw_input);
+                if (oper->data.sock->hostname)
+                    free((void *) oper->data.sock->hostname);
+                if (oper->data.sock->username)
+                    free((void *) oper->data.sock->username);
+                free((void *) oper->data.sock);
             }
-            if (tp_socket_events)
-                remove_socket_from_queue(oper->data.sock);
-            if (oper->data.sock->raw_input)
-                free((void *) oper->data.sock->raw_input);
-            if (oper->data.sock->hostname)
-                free((void *) oper->data.sock->hostname);
-            if (oper->data.sock->username)
-                free((void *) oper->data.sock->username);
-            free((void *) oper->data.sock);
-        }
-        break;
+            break;
 #endif /* MUF_SOCKETS */
 #ifdef SQL_SUPPORT
-    case PROG_MYSQL:
-        oper->data.mysql->links = oper->data.mysql->links - 1;
-        if (oper->data.mysql && oper->data.mysql->links == 0) {
-            if (oper->data.mysql->connected) /* close if still open */
-                mysql_close(oper->data.mysql->mysql_conn);
-            free((void *) oper->data.mysql->mysql_conn);
-            free((void *) oper->data.mysql);
-        }
-        break;
+        case PROG_MYSQL:
+            oper->data.mysql->links = oper->data.mysql->links - 1;
+            if (oper->data.mysql && oper->data.mysql->links == 0) {
+                if (oper->data.mysql->connected) /* close if still open */
+                    mysql_close(oper->data.mysql->mysql_conn);
+                free((void *) oper->data.mysql->mysql_conn);
+                free((void *) oper->data.mysql);
+            }
+            break;
 #endif /* SQL_SUPPORT */
     }
     oper->line = line;
@@ -963,54 +963,55 @@ copyinst(struct inst *from, struct inst *to)
 
     *to = *from;
     switch (from->type) {
-    case PROG_FUNCTION:
-        if (from->data.mufproc) {
-            to->data.mufproc =
-                (struct muf_proc_data *) malloc(sizeof(struct muf_proc_data));
-            to->data.mufproc->procname =
-                string_dup(from->data.mufproc->procname);
-            to->data.mufproc->vars = varcnt = from->data.mufproc->vars;
+        case PROG_FUNCTION:
+            if (from->data.mufproc) {
+                to->data.mufproc =
+                    (struct muf_proc_data *)
+                    malloc(sizeof(struct muf_proc_data));
+                to->data.mufproc->procname =
+                    string_dup(from->data.mufproc->procname);
+                to->data.mufproc->vars = varcnt = from->data.mufproc->vars;
 
-            to->data.mufproc->args = from->data.mufproc->args;
-            to->data.mufproc->varnames =
-                (const char **) calloc(varcnt, sizeof(const char *));
-            for (j = 0; j < varcnt; ++j)
-                to->data.mufproc->varnames[j] =
-                    string_dup(from->data.mufproc->varnames[j]);
-        }
-        break;
-    case PROG_STRING:
-        if (from->data.string) {
-            from->data.string->links++;
-        }
-        break;
-    case PROG_ARRAY:
-        if (from->data.array) {
-            from->data.array->links++;
-        }
-        break;
-    case PROG_ADD:
-        from->data.addr->links++;
-        DBFETCH(from->data.addr->progref)->sp.program.instances++;
-        break;
-    case PROG_LOCK:
-        if (from->data.lock != TRUE_BOOLEXP) {
-            to->data.lock = copy_bool(from->data.lock);
-        }
-        break;
+                to->data.mufproc->args = from->data.mufproc->args;
+                to->data.mufproc->varnames =
+                    (const char **) calloc(varcnt, sizeof(const char *));
+                for (j = 0; j < varcnt; ++j)
+                    to->data.mufproc->varnames[j] =
+                        string_dup(from->data.mufproc->varnames[j]);
+            }
+            break;
+        case PROG_STRING:
+            if (from->data.string) {
+                from->data.string->links++;
+            }
+            break;
+        case PROG_ARRAY:
+            if (from->data.array) {
+                from->data.array->links++;
+            }
+            break;
+        case PROG_ADD:
+            from->data.addr->links++;
+            DBFETCH(from->data.addr->progref)->sp.program.instances++;
+            break;
+        case PROG_LOCK:
+            if (from->data.lock != TRUE_BOOLEXP) {
+                to->data.lock = copy_bool(from->data.lock);
+            }
+            break;
 #ifdef MUF_SOCKETS
-    case PROG_SOCKET:
-        if (from->data.sock) {
-            from->data.sock->links++;
-        }
-        break;
+        case PROG_SOCKET:
+            if (from->data.sock) {
+                from->data.sock->links++;
+            }
+            break;
 #endif
 #ifdef SQL_SUPPORT
-    case PROG_MYSQL:
-        if (from->data.mysql) {
-            from->data.mysql->links++;
-        }
-        break;
+        case PROG_MYSQL:
+            if (from->data.mysql) {
+                from->data.mysql->links++;
+            }
+            break;
 #endif
     }
 }
@@ -1340,574 +1341,601 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                            NULL);
         }
         switch (pc->type) {
-        case PROG_INTEGER:
-        case PROG_FLOAT:
-        case PROG_ADD:
-        case PROG_OBJECT:
-        case PROG_VAR:
-        case PROG_SVAR:
-        case PROG_LVAR:
-        case PROG_STRING:
-        case PROG_LOCK:
-        case PROG_MARK:
-        case PROG_ARRAY:
-            if (atop >= STACK_SIZE)
-                abort_loop("Stack overflow.", NULL, NULL);
-            copyinst(pc, arg + atop);
-            pc++;
-            atop++;
-            break;
-        case PROG_LVAR_AT:
-        case PROG_LVAR_AT_CLEAR:{
-            struct inst *tmp;
-            struct localvars *lv;
+            case PROG_INTEGER:
+            case PROG_FLOAT:
+            case PROG_ADD:
+            case PROG_OBJECT:
+            case PROG_VAR:
+            case PROG_SVAR:
+            case PROG_LVAR:
+            case PROG_STRING:
+            case PROG_LOCK:
+            case PROG_MARK:
+            case PROG_ARRAY:
+                if (atop >= STACK_SIZE)
+                    abort_loop("Stack overflow.", NULL, NULL);
+                copyinst(pc, arg + atop);
+                pc++;
+                atop++;
+                break;
+            case PROG_LVAR_AT:
+            case PROG_LVAR_AT_CLEAR:{
+                struct inst *tmp;
+                struct localvars *lv;
 
-            if (atop >= STACK_SIZE)
-                abort_loop("Stack overflow.", NULL, NULL);
-            if (pc->data.number >= MAX_VAR || pc->data.number < 0)
-                abort_loop("Local variable number out of range.", NULL, NULL);
-            lv = localvars_get(fr, program);
-            tmp = &(lv->lvars[pc->data.number]);
-            copyinst(tmp, arg + atop);
-            if (pc->type == PROG_LVAR_AT_CLEAR) {
-                CLEAR(tmp);
-                tmp->type = PROG_INTEGER;
-                tmp->data.number = 0;
+                if (atop >= STACK_SIZE)
+                    abort_loop("Stack overflow.", NULL, NULL);
+                if (pc->data.number >= MAX_VAR || pc->data.number < 0)
+                    abort_loop("Local variable number out of range.", NULL,
+                               NULL);
+                lv = localvars_get(fr, program);
+                tmp = &(lv->lvars[pc->data.number]);
+                copyinst(tmp, arg + atop);
+                if (pc->type == PROG_LVAR_AT_CLEAR) {
+                    CLEAR(tmp);
+                    tmp->type = PROG_INTEGER;
+                    tmp->data.number = 0;
+                }
+                ++pc;
+                ++atop;
             }
-            ++pc;
-            ++atop;
-        }
-            break;
-        case PROG_LVAR_BANG:{
-            struct inst *the_var;
-            struct localvars *lv;
+                break;
+            case PROG_LVAR_BANG:{
+                struct inst *the_var;
+                struct localvars *lv;
 
-            if (atop < 1)
-                abort_loop("Stack Underflow.", NULL, NULL);
-            if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                abort_loop("Stack protection fault.", NULL, NULL);
-            if (pc->data.number >= MAX_VAR || pc->data.number < 0)
-                abort_loop("Local variable out of range.", NULL, NULL);
+                if (atop < 1)
+                    abort_loop("Stack Underflow.", NULL, NULL);
+                if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                    abort_loop("Stack protection fault.", NULL, NULL);
+                if (pc->data.number >= MAX_VAR || pc->data.number < 0)
+                    abort_loop("Local variable out of range.", NULL, NULL);
 
-            lv = localvars_get(fr, program);
-            the_var = &(lv->lvars[pc->data.number]);
+                lv = localvars_get(fr, program);
+                the_var = &(lv->lvars[pc->data.number]);
 
-            CLEAR(the_var);
-            temp1 = arg + --atop;
-            *the_var = *temp1;
-            ++pc;
-        }
-            break;
-        case PROG_SVAR_AT:
-        case PROG_SVAR_AT_CLEAR:
-        {
-            struct inst *tmp;
-
-            if (atop >= STACK_SIZE)
-                abort_loop("Stack overflow.", NULL, NULL);
-
-            tmp = scopedvar_get(fr, 0, pc->data.number);
-            if (!tmp)
-                abort_loop("Scoped variable number out of range.", NULL, NULL);
-
-            copyinst(tmp, arg + atop);
-            if (pc->type == PROG_SVAR_AT_CLEAR) {
-                CLEAR(tmp);
-                tmp->type = PROG_INTEGER;
-                tmp->data.number = 0;
+                CLEAR(the_var);
+                temp1 = arg + --atop;
+                *the_var = *temp1;
+                ++pc;
             }
-
-            pc++;
-            atop++;
-        }
-            break;
-
-        case PROG_SVAR_BANG:
-        {
-            struct inst *the_var;
-
-            if (atop < 1)
-                abort_loop("Stack Underflow.", NULL, NULL);
-            if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                abort_loop("Stack protection fault.", NULL, NULL);
-
-            the_var = scopedvar_get(fr, 0, pc->data.number);
-            if (!the_var)
-                abort_loop("Scoped variable number out of range.", NULL, NULL);
-
-            CLEAR(the_var);
-            temp1 = arg + --atop;
-            *the_var = *temp1;
-            pc++;
-        }
-            break;
-
-        case PROG_FUNCTION:
-        {
-            int i = pc->data.mufproc->args;
-
-            if (atop < i)
-                abort_loop("Stack Underflow.", NULL, NULL);
-            if (fr->trys.top && atop - fr->trys.st->depth < i)
-                abort_loop("Stack protection fault.", NULL, NULL);
-            if (fr->skip_declare)
-                fr->skip_declare = 0;
-            else
-                scopedvar_addlevel(fr, pc, pc->data.mufproc->vars);
-
-            while (i-- > 0) {
+                break;
+            case PROG_SVAR_AT:
+            case PROG_SVAR_AT_CLEAR:
+            {
                 struct inst *tmp;
 
-                temp1 = arg + --atop;
-                tmp = scopedvar_get(fr, 0, i);
+                if (atop >= STACK_SIZE)
+                    abort_loop("Stack overflow.", NULL, NULL);
+
+                tmp = scopedvar_get(fr, 0, pc->data.number);
                 if (!tmp)
-                    abort_loop_hard
-                        ("Internal error: Scoped variable number out of range in FUNCTION init.",
-                         temp1, NULL);
-                CLEAR(tmp);
-                copyinst(temp1, tmp);
-                CLEAR(temp1);
-            }
-            pc++;
-        }
-            break;
+                    abort_loop("Scoped variable number out of range.", NULL,
+                               NULL);
 
-        case PROG_IF:
-            if (atop < 1)
-                abort_loop("Stack Underflow.", NULL, NULL);
-            if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                abort_loop("Stack protection fault.", NULL, NULL);
-            temp1 = arg + --atop;
-            if (logical_false(temp1))
-                pc = pc->data.call;
-            else
+                copyinst(tmp, arg + atop);
+                if (pc->type == PROG_SVAR_AT_CLEAR) {
+                    CLEAR(tmp);
+                    tmp->type = PROG_INTEGER;
+                    tmp->data.number = 0;
+                }
+
                 pc++;
-            CLEAR(temp1);
-            break;
-
-        case PROG_EXEC:
-            if (stop >= STACK_SIZE)
-                abort_loop("System Stack Overflow", NULL, NULL);
-            sys[stop].progref = program;
-            sys[stop++].offset = pc + 1;
-            pc = pc->data.call;
-            fr->skip_declare = 0; /* Make sure we DON'T skip var decls */
-            break;
-
-        case PROG_JMP:
-            /* Don't need to worry about skipping scoped var decls here. */
-            /* JMP to a function header can only happen in IN_JMP */
-            pc = pc->data.call;
-            break;
-
-        case PROG_TRY:
-            if (atop < 1)
-                abort_loop("Stack Underflow.", NULL, NULL);
-            if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                abort_loop("Stack protection fault.", NULL, NULL);
-            temp1 = arg + --atop;
-            if (temp1->type != PROG_INTEGER)
-                abort_loop("Argument is not an integer.", temp1, NULL);
-            if (temp1->data.number > atop)
-                abort_loop("Attempted to lock more stack items than exist.",
-                           temp1, NULL);
-
-            fr->trys.top++;
-            fr->trys.st = push_try(fr->trys.st);
-            fr->trys.st->depth = atop - temp1->data.number;
-            fr->trys.st->call_level = stop;
-            fr->trys.st->for_count = 0;
-            fr->trys.st->addr = pc->data.call;
-
-            pc++;
-            CLEAR(temp1);
-            break;
-
-        case PROG_PRIMITIVE:
-            /*
-             * All pc modifiers and stuff like that should stay here,
-             * everything else call with an independent dispatcher.
-             */
-            switch (pc->data.number) {
-            case IN_JMP:
-                if (atop < 1)
-                    abort_loop("Stack underflow.  Missing address.", NULL,
-                               NULL);
-                if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                    abort_loop("Stack protection fault.", NULL, NULL);
-                temp1 = arg + --atop;
-                if (temp1->type != PROG_ADD)
-                    abort_loop("Argument is not an address.", temp1, NULL);
-                if (temp1->data.addr->progref > db_top ||
-                    temp1->data.addr->progref < 0 ||
-                    (Typeof(temp1->data.addr->progref) != TYPE_PROGRAM))
-                    abort_loop_hard("Internal error.  Invalid address.", temp1,
-                                    NULL);
-                if (program != temp1->data.addr->progref) {
-                    abort_loop("Destination outside current program.", temp1,
-                               NULL);
-                }
-                if (temp1->data.addr->data->type == PROG_FUNCTION) {
-                    fr->skip_declare = 1;
-                }
-                pc = temp1->data.addr->data;
-                CLEAR(temp1);
+                atop++;
+            }
                 break;
 
-            case IN_EXECUTE:
-                if (atop < 1)
-                    abort_loop("Stack Underflow. Missing address.", NULL, NULL);
-                if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                    abort_loop("Stack protection fault.", NULL, NULL);
-                temp1 = arg + --atop;
-                if (temp1->type != PROG_ADD)
-                    abort_loop("Argument is not an address.", temp1, NULL);
-                if (temp1->data.addr->progref > db_top ||
-                    temp1->data.addr->progref < 0 ||
-                    (Typeof(temp1->data.addr->progref) != TYPE_PROGRAM))
-                    abort_loop_hard("Internal error.  Invalid address.", temp1,
-                                    NULL);
-                if (stop >= STACK_SIZE)
-                    abort_loop("System Stack Overflow", temp1, NULL);
-                sys[stop].progref = program;
-                sys[stop++].offset = pc + 1;
-                if (program != temp1->data.addr->progref) {
-                    program = temp1->data.addr->progref;
-                    fr->caller.st[++fr->caller.top] = program;
-                    mlev = ProgMLevel(program);
-                    DBFETCH(program)->sp.program.instances++;
-                }
-                pc = temp1->data.addr->data;
-                CLEAR(temp1);
-                break;
-
-            case IN_CALL:
-                if (atop < 1)
-                    abort_loop("Stack Underflow. Missing dbref argument.", NULL,
-                               NULL);
-                if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                    abort_loop("Stack protection fault.", NULL, NULL);
-                temp1 = arg + --atop;
-                temp2 = 0;
-                if (temp1->type != PROG_OBJECT) {
-                    temp2 = temp1;
-                    if (atop < 1)
-                        abort_loop("Stack Underflow. Missing dbref of func.",
-                                   temp1, NULL);
-                    if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                        abort_loop("Stack protection fault.", NULL, NULL);
-                    temp1 = arg + --atop;
-                    if (temp2->type != PROG_STRING)
-                        abort_loop("Public Func. name string required. (2)",
-                                   temp1, temp2);
-                    if (!temp2->data.string)
-                        abort_loop("Null string not allowed. (2)", temp1,
-                                   temp2);
-                }
-                if (temp1->type != PROG_OBJECT)
-                    abort_loop("Dbref required. (1)", temp1, temp2);
-                if (!valid_object(temp1)
-                    || Typeof(temp1->data.objref) != TYPE_PROGRAM)
-                    abort_loop("invalid object.", temp1, temp2);
-                if (!(DBFETCH(temp1->data.objref)->sp.program.code)) {
-                    struct line *tmpline;
-
-                    tmpline = DBFETCH(temp1->data.objref)->sp.program.first;
-                    DBFETCH(temp1->data.objref)->sp.program.first =
-                        read_program(temp1->data.objref);
-                    do_compile(-1, OWNER(temp1->data.objref),
-                               temp1->data.objref, 0);
-                    free_prog_text(DBFETCH(temp1->data.objref)->sp.program.
-                                   first);
-                    DBSTORE(temp1->data.objref, sp.program.first, tmpline);
-                    if (!(DBFETCH(temp1->data.objref)->sp.program.code))
-                        abort_loop("Program not compilable.", temp1, temp2);
-                }
-                if (ProgMLevel(temp1->data.objref) == 0)
-                    abort_loop(tp_noperm_mesg, temp1, temp2);
-                if (mlev < LMAGE && OWNER(temp1->data.objref) != ProgUID
-                    && !Linkable(temp1->data.objref))
-                    abort_loop(tp_noperm_mesg, temp1, temp2);
-                if (stop >= STACK_SIZE)
-                    abort_loop("System Stack Overflow", temp1, temp2);
-                sys[stop].progref = program;
-                sys[stop++].offset = pc + 1;
-                if (!temp2) {
-                    pc = DBFETCH(temp1->data.objref)->sp.program.start;
-                } else {
-                    struct publics *pbs;
-                    int tmpint;
-
-                    pbs = DBFETCH(temp1->data.objref)->sp.program.pubs;
-                    while (pbs) {
-                        tmpint =
-                            string_compare(temp2->data.string->data,
-                                           pbs->subname);
-                        if (!tmpint)
-                            break;
-                        pbs = pbs->next;
-                    }
-                    if (!pbs)
-                        abort_loop
-                            ("PUBLIC or WIZCALL-type Function not found. (2)",
-                             temp2, temp2);
-                    if (mlev < pbs->mlev)
-                        abort_loop
-                            ("Insufficient permissions to call WIZCALL-type function. (2)",
-                             temp2, temp2);
-                    pc = pbs->addr.ptr;
-                }
-                if (temp1->data.objref != program) {
-                    calc_profile_timing(program, fr);
-                    gettimeofday(&fr->proftime, NULL);
-                    program = temp1->data.objref;
-                    fr->caller.st[++fr->caller.top] = program;
-                    DBFETCH(program)->sp.program.instances++;
-                    mlev = ProgMLevel(program);
-                }
-                DBFETCH(program)->sp.program.profuses++;
-                ts_useobject(program);
-                CLEAR(temp1);
-                if (temp2)
-                    CLEAR(temp2);
-                break;
-
-            case IN_RET:
-                if (stop > 1 && program != sys[stop - 1].progref) {
-                    if (sys[stop - 1].progref > db_top ||
-                        sys[stop - 1].progref < 0 ||
-                        (Typeof(sys[stop - 1].progref) != TYPE_PROGRAM))
-                        abort_loop_hard("Internal error.  Invalid address.",
-                                        NULL, NULL);
-                    calc_profile_timing(program, fr);
-                    gettimeofday(&fr->proftime, NULL);
-                    DBFETCH(program)->sp.program.instances--;
-                    program = sys[stop - 1].progref;
-                    mlev = ProgMLevel(program);
-                    fr->caller.top--;
-                }
-                scopedvar_poplevel(fr);
-                pc = sys[--stop].offset;
-                break;
-
-            case IN_CATCH:
+            case PROG_SVAR_BANG:
             {
-                int depth;
+                struct inst *the_var;
 
-                if (!(fr->trys.top))
-                    abort_loop_hard("Internal error.  TRY stack underflow.",
-                                    NULL, NULL);
+                if (atop < 1)
+                    abort_loop("Stack Underflow.", NULL, NULL);
+                if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                    abort_loop("Stack protection fault.", NULL, NULL);
 
-                depth = fr->trys.st->depth;
-                while (atop > depth) {
+                the_var = scopedvar_get(fr, 0, pc->data.number);
+                if (!the_var)
+                    abort_loop("Scoped variable number out of range.", NULL,
+                               NULL);
+
+                CLEAR(the_var);
+                temp1 = arg + --atop;
+                *the_var = *temp1;
+                pc++;
+            }
+                break;
+
+            case PROG_FUNCTION:
+            {
+                int i = pc->data.mufproc->args;
+
+                if (atop < i)
+                    abort_loop("Stack Underflow.", NULL, NULL);
+                if (fr->trys.top && atop - fr->trys.st->depth < i)
+                    abort_loop("Stack protection fault.", NULL, NULL);
+                if (fr->skip_declare)
+                    fr->skip_declare = 0;
+                else
+                    scopedvar_addlevel(fr, pc, pc->data.mufproc->vars);
+
+                while (i-- > 0) {
+                    struct inst *tmp;
+
                     temp1 = arg + --atop;
+                    tmp = scopedvar_get(fr, 0, i);
+                    if (!tmp)
+                        abort_loop_hard
+                            ("Internal error: Scoped variable number out of range in FUNCTION init.",
+                             temp1, NULL);
+                    CLEAR(tmp);
+                    copyinst(temp1, tmp);
                     CLEAR(temp1);
                 }
-
-                while (fr->trys.st->for_count-- > 0) {
-                    CLEAR(&fr->fors.st->cur);
-                    CLEAR(&fr->fors.st->end);
-                    fr->fors.top--;
-                    fr->fors.st = pop_for(fr->fors.st);
-                }
-
-                fr->trys.top--;
-                fr->trys.st = pop_try(fr->trys.st);
-
-                if (fr->errorstr) {
-                    arg[atop].type = PROG_STRING;
-                    arg[atop++].data.string = alloc_prog_string(fr->errorstr);
-                    free(fr->errorstr);
-                    fr->errorstr = NULL;
-                } else {
-                    arg[atop].type = PROG_STRING;
-                    arg[atop++].data.string = NULL;
-                }
-                reload(fr, atop, stop);
-            }
                 pc++;
+            }
                 break;
 
-            case IN_EVENT_WAITFOR:
+            case PROG_IF:
                 if (atop < 1)
-                    abort_loop
-                        ("Stack Underflow. Missing eventID list array argument.",
-                         NULL, NULL);
+                    abort_loop("Stack Underflow.", NULL, NULL);
                 if (fr->trys.top && atop - fr->trys.st->depth < 1)
                     abort_loop("Stack protection fault.", NULL, NULL);
                 temp1 = arg + --atop;
-                if (temp1->type != PROG_ARRAY)
-                    abort_loop("EventID string list array expected.", temp1,
-                               NULL);
-                if (temp1->data.array
-                    && temp1->data.array->type != ARRAY_PACKED)
-                    abort_loop
-                        ("Argument must be a list array of eventid strings.",
-                         temp1, NULL);
-                if (!array_is_homogenous(temp1->data.array, PROG_STRING))
-                    abort_loop
-                        ("Argument must be a list array of eventid strings.",
-                         temp1, NULL);
-                fr->pc = pc + 1;
-                reload(fr, atop, stop);
+                if (logical_false(temp1))
+                    pc = pc->data.call;
+                else
+                    pc++;
+                CLEAR(temp1);
+                break;
 
-                {
-                    int i, outcount;
-                    int count = array_count(temp1->data.array);
-                    char **events = (char **) malloc(count * sizeof(char **));
+            case PROG_EXEC:
+                if (stop >= STACK_SIZE)
+                    abort_loop("System Stack Overflow", NULL, NULL);
+                sys[stop].progref = program;
+                sys[stop++].offset = pc + 1;
+                pc = pc->data.call;
+                fr->skip_declare = 0; /* Make sure we DON'T skip var decls */
+                break;
 
-                    for (outcount = i = 0; i < count; i++) {
-                        char *val =
-                            array_get_intkey_strval(temp1->data.array, i);
-                        if (val != NULL) {
-                            int found = 0;
-                            int j;
+            case PROG_JMP:
+                /* Don't need to worry about skipping scoped var decls here. */
+                /* JMP to a function header can only happen in IN_JMP */
+                pc = pc->data.call;
+                break;
 
-                            for (j = 0; j < outcount; j++) {
-                                if (!strcmp(events[j], val)) {
-                                    found = 1;
+            case PROG_TRY:
+                if (atop < 1)
+                    abort_loop("Stack Underflow.", NULL, NULL);
+                if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                    abort_loop("Stack protection fault.", NULL, NULL);
+                temp1 = arg + --atop;
+                if (temp1->type != PROG_INTEGER)
+                    abort_loop("Argument is not an integer.", temp1, NULL);
+                if (temp1->data.number > atop)
+                    abort_loop("Attempted to lock more stack items than exist.",
+                               temp1, NULL);
+
+                fr->trys.top++;
+                fr->trys.st = push_try(fr->trys.st);
+                fr->trys.st->depth = atop - temp1->data.number;
+                fr->trys.st->call_level = stop;
+                fr->trys.st->for_count = 0;
+                fr->trys.st->addr = pc->data.call;
+
+                pc++;
+                CLEAR(temp1);
+                break;
+
+            case PROG_PRIMITIVE:
+                /*
+                 * All pc modifiers and stuff like that should stay here,
+                 * everything else call with an independent dispatcher.
+                 */
+                switch (pc->data.number) {
+                    case IN_JMP:
+                        if (atop < 1)
+                            abort_loop("Stack underflow.  Missing address.",
+                                       NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                            abort_loop("Stack protection fault.", NULL, NULL);
+                        temp1 = arg + --atop;
+                        if (temp1->type != PROG_ADD)
+                            abort_loop("Argument is not an address.", temp1,
+                                       NULL);
+                        if (temp1->data.addr->progref > db_top
+                            || temp1->data.addr->progref < 0
+                            || (Typeof(temp1->data.addr->progref) !=
+                                TYPE_PROGRAM))
+                            abort_loop_hard("Internal error.  Invalid address.",
+                                            temp1, NULL);
+                        if (program != temp1->data.addr->progref) {
+                            abort_loop("Destination outside current program.",
+                                       temp1, NULL);
+                        }
+                        if (temp1->data.addr->data->type == PROG_FUNCTION) {
+                            fr->skip_declare = 1;
+                        }
+                        pc = temp1->data.addr->data;
+                        CLEAR(temp1);
+                        break;
+
+                    case IN_EXECUTE:
+                        if (atop < 1)
+                            abort_loop("Stack Underflow. Missing address.",
+                                       NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                            abort_loop("Stack protection fault.", NULL, NULL);
+                        temp1 = arg + --atop;
+                        if (temp1->type != PROG_ADD)
+                            abort_loop("Argument is not an address.", temp1,
+                                       NULL);
+                        if (temp1->data.addr->progref > db_top
+                            || temp1->data.addr->progref < 0
+                            || (Typeof(temp1->data.addr->progref) !=
+                                TYPE_PROGRAM))
+                            abort_loop_hard("Internal error.  Invalid address.",
+                                            temp1, NULL);
+                        if (stop >= STACK_SIZE)
+                            abort_loop("System Stack Overflow", temp1, NULL);
+                        sys[stop].progref = program;
+                        sys[stop++].offset = pc + 1;
+                        if (program != temp1->data.addr->progref) {
+                            program = temp1->data.addr->progref;
+                            fr->caller.st[++fr->caller.top] = program;
+                            mlev = ProgMLevel(program);
+                            DBFETCH(program)->sp.program.instances++;
+                        }
+                        pc = temp1->data.addr->data;
+                        CLEAR(temp1);
+                        break;
+
+                    case IN_CALL:
+                        if (atop < 1)
+                            abort_loop
+                                ("Stack Underflow. Missing dbref argument.",
+                                 NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                            abort_loop("Stack protection fault.", NULL, NULL);
+                        temp1 = arg + --atop;
+                        temp2 = 0;
+                        if (temp1->type != PROG_OBJECT) {
+                            temp2 = temp1;
+                            if (atop < 1)
+                                abort_loop
+                                    ("Stack Underflow. Missing dbref of func.",
+                                     temp1, NULL);
+                            if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                                abort_loop("Stack protection fault.", NULL,
+                                           NULL);
+                            temp1 = arg + --atop;
+                            if (temp2->type != PROG_STRING)
+                                abort_loop
+                                    ("Public Func. name string required. (2)",
+                                     temp1, temp2);
+                            if (!temp2->data.string)
+                                abort_loop("Null string not allowed. (2)",
+                                           temp1, temp2);
+                        }
+                        if (temp1->type != PROG_OBJECT)
+                            abort_loop("Dbref required. (1)", temp1, temp2);
+                        if (!valid_object(temp1)
+                            || Typeof(temp1->data.objref) != TYPE_PROGRAM)
+                            abort_loop("invalid object.", temp1, temp2);
+                        if (!(DBFETCH(temp1->data.objref)->sp.program.code)) {
+                            struct line *tmpline;
+
+                            tmpline =
+                                DBFETCH(temp1->data.objref)->sp.program.first;
+                            DBFETCH(temp1->data.objref)->sp.program.first =
+                                read_program(temp1->data.objref);
+                            do_compile(-1, OWNER(temp1->data.objref),
+                                       temp1->data.objref, 0);
+                            free_prog_text(DBFETCH(temp1->data.objref)->sp.
+                                           program.first);
+                            DBSTORE(temp1->data.objref, sp.program.first,
+                                    tmpline);
+                            if (!(DBFETCH(temp1->data.objref)->sp.program.code))
+                                abort_loop("Program not compilable.", temp1,
+                                           temp2);
+                        }
+                        if (ProgMLevel(temp1->data.objref) == 0)
+                            abort_loop(tp_noperm_mesg, temp1, temp2);
+                        if (mlev < LMAGE && OWNER(temp1->data.objref) != ProgUID
+                            && !Linkable(temp1->data.objref))
+                            abort_loop(tp_noperm_mesg, temp1, temp2);
+                        if (stop >= STACK_SIZE)
+                            abort_loop("System Stack Overflow", temp1, temp2);
+                        sys[stop].progref = program;
+                        sys[stop++].offset = pc + 1;
+                        if (!temp2) {
+                            pc = DBFETCH(temp1->data.objref)->sp.program.start;
+                        } else {
+                            struct publics *pbs;
+                            int tmpint;
+
+                            pbs = DBFETCH(temp1->data.objref)->sp.program.pubs;
+                            while (pbs) {
+                                tmpint =
+                                    string_compare(temp2->data.string->data,
+                                                   pbs->subname);
+                                if (!tmpint)
                                     break;
+                                pbs = pbs->next;
+                            }
+                            if (!pbs)
+                                abort_loop
+                                    ("PUBLIC or WIZCALL-type Function not found. (2)",
+                                     temp2, temp2);
+                            if (mlev < pbs->mlev)
+                                abort_loop
+                                    ("Insufficient permissions to call WIZCALL-type function. (2)",
+                                     temp2, temp2);
+                            pc = pbs->addr.ptr;
+                        }
+                        if (temp1->data.objref != program) {
+                            calc_profile_timing(program, fr);
+                            gettimeofday(&fr->proftime, NULL);
+                            program = temp1->data.objref;
+                            fr->caller.st[++fr->caller.top] = program;
+                            DBFETCH(program)->sp.program.instances++;
+                            mlev = ProgMLevel(program);
+                        }
+                        DBFETCH(program)->sp.program.profuses++;
+                        ts_useobject(program);
+                        CLEAR(temp1);
+                        if (temp2)
+                            CLEAR(temp2);
+                        break;
+
+                    case IN_RET:
+                        if (stop > 1 && program != sys[stop - 1].progref) {
+                            if (sys[stop - 1].progref > db_top ||
+                                sys[stop - 1].progref < 0 ||
+                                (Typeof(sys[stop - 1].progref) != TYPE_PROGRAM))
+                                abort_loop_hard
+                                    ("Internal error.  Invalid address.", NULL,
+                                     NULL);
+                            calc_profile_timing(program, fr);
+                            gettimeofday(&fr->proftime, NULL);
+                            DBFETCH(program)->sp.program.instances--;
+                            program = sys[stop - 1].progref;
+                            mlev = ProgMLevel(program);
+                            fr->caller.top--;
+                        }
+                        scopedvar_poplevel(fr);
+                        pc = sys[--stop].offset;
+                        break;
+
+                    case IN_CATCH:
+                    {
+                        int depth;
+
+                        if (!(fr->trys.top))
+                            abort_loop_hard
+                                ("Internal error.  TRY stack underflow.", NULL,
+                                 NULL);
+
+                        depth = fr->trys.st->depth;
+                        while (atop > depth) {
+                            temp1 = arg + --atop;
+                            CLEAR(temp1);
+                        }
+
+                        while (fr->trys.st->for_count-- > 0) {
+                            CLEAR(&fr->fors.st->cur);
+                            CLEAR(&fr->fors.st->end);
+                            fr->fors.top--;
+                            fr->fors.st = pop_for(fr->fors.st);
+                        }
+
+                        fr->trys.top--;
+                        fr->trys.st = pop_try(fr->trys.st);
+
+                        if (fr->errorstr) {
+                            arg[atop].type = PROG_STRING;
+                            arg[atop++].data.string =
+                                alloc_prog_string(fr->errorstr);
+                            free(fr->errorstr);
+                            fr->errorstr = NULL;
+                        } else {
+                            arg[atop].type = PROG_STRING;
+                            arg[atop++].data.string = NULL;
+                        }
+                        reload(fr, atop, stop);
+                    }
+                        pc++;
+                        break;
+
+                    case IN_EVENT_WAITFOR:
+                        if (atop < 1)
+                            abort_loop
+                                ("Stack Underflow. Missing eventID list array argument.",
+                                 NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                            abort_loop("Stack protection fault.", NULL, NULL);
+                        temp1 = arg + --atop;
+                        if (temp1->type != PROG_ARRAY)
+                            abort_loop("EventID string list array expected.",
+                                       temp1, NULL);
+                        if (temp1->data.array
+                            && temp1->data.array->type != ARRAY_PACKED)
+                            abort_loop
+                                ("Argument must be a list array of eventid strings.",
+                                 temp1, NULL);
+                        if (!array_is_homogenous
+                            (temp1->data.array, PROG_STRING))
+                            abort_loop
+                                ("Argument must be a list array of eventid strings.",
+                                 temp1, NULL);
+                        fr->pc = pc + 1;
+                        reload(fr, atop, stop);
+
+                        {
+                            int i, outcount;
+                            int count = array_count(temp1->data.array);
+                            char **events =
+                                (char **) malloc(count * sizeof(char **));
+
+                            for (outcount = i = 0; i < count; i++) {
+                                char *val =
+                                    array_get_intkey_strval(temp1->data.array,
+                                                            i);
+                                if (val != NULL) {
+                                    int found = 0;
+                                    int j;
+
+                                    for (j = 0; j < outcount; j++) {
+                                        if (!strcmp(events[j], val)) {
+                                            found = 1;
+                                            break;
+                                        }
+                                    }
+                                    if (!found) {
+                                        events[outcount++] = val;
+                                    }
                                 }
                             }
-                            if (!found) {
-                                events[outcount++] = val;
+                            muf_event_register_specific(player, program, fr,
+                                                        outcount, events);
+                            free(events);
+                        }
+
+                        DBSTORE(player, sp.player.block,
+                                (!fr->been_background));
+                        if (player == NOTHING) {
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr) {
+                                curdescr->block = 1;
+                                DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
                             }
                         }
-                    }
-                    muf_event_register_specific(player, program, fr, outcount,
-                                                events);
-                    free(events);
-                }
+                        CLEAR(temp1);
+                        fr->level--;
+                        calc_profile_timing(program, fr);
+                        return NULL;
+                        /* NOTREACHED */
+                        break;
 
-                DBSTORE(player, sp.player.block, (!fr->been_background));
-                if (player == NOTHING) {
-                    curdescr = get_descr(fr->descr, NOTHING);
-                    if (curdescr) {
-                        curdescr->block = 1;
-                        DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
-                    }
-                }
-                CLEAR(temp1);
-                fr->level--;
-                calc_profile_timing(program, fr);
-                return NULL;
-                /* NOTREACHED */
-                break;
+                    case IN_READ:
+                        if (writeonly)
+                            abort_loop("Program is write-only.", NULL, NULL);
+                        if (fr->multitask == BACKGROUND)
+                            abort_loop("BACKGROUND programs are write only.",
+                                       NULL, NULL);
+                        reload(fr, atop, stop);
+                        fr->brkpt.isread = 1;
+                        fr->pc = pc + 1;
+                        if (fr->player != NOTHING) {
+                            DBSTORE(player, sp.player.curr_prog, program);
+                            DBSTORE(player, sp.player.block, 0);
+                        } else {
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr) {
+                                DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
+                                curdescr->interactive = 2;
+                                curdescr->block = 0;
+                            }
+                        }
+                        add_muf_read_event(fr->descr, player, program, fr);
+                        fr->level--;
+                        calc_profile_timing(program, fr);
+                        return NULL;
+                        /* NOTREACHED */
+                        break;
 
-            case IN_READ:
-                if (writeonly)
-                    abort_loop("Program is write-only.", NULL, NULL);
-                if (fr->multitask == BACKGROUND)
-                    abort_loop("BACKGROUND programs are write only.", NULL,
-                               NULL);
-                reload(fr, atop, stop);
-                fr->brkpt.isread = 1;
-                fr->pc = pc + 1;
-                if (fr->player != NOTHING) {
-                    DBSTORE(player, sp.player.curr_prog, program);
-                    DBSTORE(player, sp.player.block, 0);
-                } else {
-                    curdescr = get_descr(fr->descr, NOTHING);
-                    if (curdescr) {
-                        DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
-                        curdescr->interactive = 2;
-                        curdescr->block = 0;
-                    }
-                }
-                add_muf_read_event(fr->descr, player, program, fr);
-                fr->level--;
-                calc_profile_timing(program, fr);
-                return NULL;
-                /* NOTREACHED */
-                break;
+                    case IN_TREAD:
+                        if (atop < 1)
+                            abort_loop("Stack Underflow.", NULL, NULL);
+                        temp1 = arg + --atop;
+                        if (temp1->type != PROG_INTEGER)
+                            abort_loop("Invalid argument type.", temp1, NULL);
+                        fr->pc = pc + 1;
+                        reload(fr, atop, stop);
+                        if (temp1->data.number < 0)
+                            abort_loop("Timetravel beyond scope of muf.", temp1,
+                                       NULL);
+                        if (writeonly)
+                            abort_loop("Program is write-only.", temp1, NULL);
+                        if (fr->multitask == BACKGROUND)
+                            abort_loop("BACKGROUND programs are write only.",
+                                       temp1, NULL);
+                        reload(fr, atop, stop);
+                        fr->brkpt.isread = 1;
+                        fr->pc = pc + 1;
+                        if (fr->player != NOTHING) {
+                            DBSTORE(player, sp.player.curr_prog, program);
+                            DBSTORE(player, sp.player.block, 0);
+                        } else {
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr) {
+                                curdescr->block = 0;
+                                curdescr->interactive = 2;
+                                DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
+                            }
+                        }
+                        add_muf_tread_event(fr->descr, player, program, fr,
+                                            temp1->data.number);
+                        fr->level--;
+                        calc_profile_timing(program, fr);
+                        return NULL;
+                        /* NOTREACHED */
+                        break;
 
-            case IN_TREAD:
-                if (atop < 1)
-                    abort_loop("Stack Underflow.", NULL, NULL);
-                temp1 = arg + --atop;
-                if (temp1->type != PROG_INTEGER)
-                    abort_loop("Invalid argument type.", temp1, NULL);
-                fr->pc = pc + 1;
-                reload(fr, atop, stop);
-                if (temp1->data.number < 0)
-                    abort_loop("Timetravel beyond scope of muf.", temp1, NULL);
-                if (writeonly)
-                    abort_loop("Program is write-only.", temp1, NULL);
-                if (fr->multitask == BACKGROUND)
-                    abort_loop("BACKGROUND programs are write only.", temp1,
-                               NULL);
-                reload(fr, atop, stop);
-                fr->brkpt.isread = 1;
-                fr->pc = pc + 1;
-                if (fr->player != NOTHING) {
-                    DBSTORE(player, sp.player.curr_prog, program);
-                    DBSTORE(player, sp.player.block, 0);
-                } else {
-                    curdescr = get_descr(fr->descr, NOTHING);
-                    if (curdescr) {
-                        curdescr->block = 0;
-                        curdescr->interactive = 2;
-                        DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
-                    }
-                }
-                add_muf_tread_event(fr->descr, player, program, fr,
-                                    temp1->data.number);
-                fr->level--;
-                calc_profile_timing(program, fr);
-                return NULL;
-                /* NOTREACHED */
-                break;
+                    case IN_SLEEP:
+                        if (atop < 1)
+                            abort_loop("Stack Underflow.", NULL, NULL);
+                        if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                            abort_loop("Stack protection fault.", NULL, NULL);
+                        temp1 = arg + --atop;
+                        if (temp1->type != PROG_INTEGER)
+                            abort_loop("Invalid argument type.", temp1, NULL);
+                        fr->pc = pc + 1;
+                        reload(fr, atop, stop);
+                        if (temp1->data.number < 0)
+                            abort_loop("Timetravel beyond scope of muf.", temp1,
+                                       NULL);
+                        add_muf_delay_event(temp1->data.number, fr->descr,
+                                            player, NOTHING, NOTHING, program,
+                                            fr, "SLEEPING");
+                        DBSTORE(player, sp.player.block,
+                                (!fr->been_background));
+                        if (player == NOTHING) {
+                            curdescr = get_descr(fr->descr, NOTHING);
+                            if (curdescr)
+                                curdescr->block = !(fr->been_background);
+                        }
+                        fr->level--;
+                        calc_profile_timing(program, fr);
+                        return NULL;
+                        /* NOTREACHED */
+                        break;
 
-            case IN_SLEEP:
-                if (atop < 1)
-                    abort_loop("Stack Underflow.", NULL, NULL);
-                if (fr->trys.top && atop - fr->trys.st->depth < 1)
-                    abort_loop("Stack protection fault.", NULL, NULL);
-                temp1 = arg + --atop;
-                if (temp1->type != PROG_INTEGER)
-                    abort_loop("Invalid argument type.", temp1, NULL);
-                fr->pc = pc + 1;
-                reload(fr, atop, stop);
-                if (temp1->data.number < 0)
-                    abort_loop("Timetravel beyond scope of muf.", temp1, NULL);
-                add_muf_delay_event(temp1->data.number, fr->descr, player,
-                                    NOTHING, NOTHING, program, fr, "SLEEPING");
-                DBSTORE(player, sp.player.block, (!fr->been_background));
-                if (player == NOTHING) {
-                    curdescr = get_descr(fr->descr, NOTHING);
-                    if (curdescr)
-                        curdescr->block = !(fr->been_background);
-                }
-                fr->level--;
-                calc_profile_timing(program, fr);
-                return NULL;
-                /* NOTREACHED */
+                    default:
+                        nargs = 0;
+                        reload(fr, atop, stop);
+                        tmp = atop;
+                        prim_func[pc->data.number - 1] (player, program, mlev,
+                                                        pc, arg, &tmp, fr);
+                        atop = tmp;
+                        pc++;
+                        break;
+                }               /* switch */
                 break;
+            case PROG_CLEARED:
+                fprintf(stderr,
+                        "Attempt to execute instruction cleared by %s:%hd in program %d\n",
+                        (char *) pc->data.addr, pc->line, program);
+                pc = NULL;
+                abort_loop_hard
+                    ("Program internal error. Program erroneously freed from memory.",
+                     NULL, NULL);
 
             default:
-                nargs = 0;
-                reload(fr, atop, stop);
-                tmp = atop;
-                prim_func[pc->data.number - 1] (player, program, mlev, pc, arg,
-                                                &tmp, fr);
-                atop = tmp;
-                pc++;
-                break;
-            }                   /* switch */
-            break;
-        case PROG_CLEARED:
-            fprintf(stderr,
-                    "Attempt to execute instruction cleared by %s:%hd in program %d\n",
-                    (char *) pc->data.addr, pc->line, program);
-            pc = NULL;
-            abort_loop_hard
-                ("Program internal error. Program erroneously freed from memory.",
-                 NULL, NULL);
-
-        default:
-            pc = NULL;
-            abort_loop_hard("Program internal error. Unknown instruction type.",
-                            NULL, NULL);
+                pc = NULL;
+                abort_loop_hard
+                    ("Program internal error. Unknown instruction type.", NULL,
+                     NULL);
         }                       /* switch */
         if (err) {
             if (fr->trys.top) {
@@ -2101,14 +2129,14 @@ permissions(int mlev, dbref player, dbref thing)
         return 1;
 
     switch (Typeof(thing)) {
-    case TYPE_PLAYER:
-        return 0;
-    case TYPE_EXIT:
-        return (OWNER(thing) == OWNER(player) || OWNER(thing) == NOTHING);
-    case TYPE_ROOM:
-    case TYPE_THING:
-    case TYPE_PROGRAM:
-        return (OWNER(thing) == OWNER(player));
+        case TYPE_PLAYER:
+            return 0;
+        case TYPE_EXIT:
+            return (OWNER(thing) == OWNER(player) || OWNER(thing) == NOTHING);
+        case TYPE_ROOM:
+        case TYPE_THING:
+        case TYPE_PROGRAM:
+            return (OWNER(thing) == OWNER(player));
     }
 
     return 0;
@@ -2200,24 +2228,24 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
             muf_backtrace(OWNER(program), program, STACK_SIZE, fr);
     }
     switch (nargs) {
-    case 6:
-        if (oper6)
-            RCLEAR(oper6, file, line);
-    case 5:
-        if (oper5)
-            RCLEAR(oper5, file, line);
-    case 4:
-        if (oper4)
-            RCLEAR(oper4, file, line);
-    case 3:
-        if (oper3)
-            RCLEAR(oper3, file, line);
-    case 2:
-        if (oper2)
-            RCLEAR(oper2, file, line);
-    case 1:
-        if (oper1)
-            RCLEAR(oper1, file, line);
+        case 6:
+            if (oper6)
+                RCLEAR(oper6, file, line);
+        case 5:
+            if (oper5)
+                RCLEAR(oper5, file, line);
+        case 4:
+            if (oper4)
+                RCLEAR(oper4, file, line);
+        case 3:
+            if (oper3)
+                RCLEAR(oper3, file, line);
+        case 2:
+            if (oper2)
+                RCLEAR(oper2, file, line);
+        case 1:
+            if (oper1)
+                RCLEAR(oper1, file, line);
     }
     return;
 }

@@ -302,16 +302,16 @@ fix_addresses(COMPSTATE *cstat)
     /* repoint addresses to targets */
     for (ptr = cstat->first_word; ptr; ptr = ptr->next) {
         switch (ptr->in.type) {
-        case PROG_ADD:
-        case PROG_IF:
-        case PROG_TRY:
-        case PROG_JMP:
-        case PROG_EXEC:
-            ptr->in.data.number = cstat->addrlist[ptr->in.data.number]->no +
-                cstat->addroffsets[ptr->in.data.number];
-            break;
-        default:
-            break;
+            case PROG_ADD:
+            case PROG_IF:
+            case PROG_TRY:
+            case PROG_JMP:
+            case PROG_EXEC:
+                ptr->in.data.number = cstat->addrlist[ptr->in.data.number]->no +
+                    cstat->addroffsets[ptr->in.data.number];
+                break;
+            default:
+                break;
         }
     }
 }
@@ -740,99 +740,99 @@ MaybeOptimizeVarsAt(COMPSTATE *cstat, struct INTERMEDIATE *first, int AtNo,
 
     for (; curr; curr = curr->next) {
         switch (curr->in.type) {
-        case PROG_PRIMITIVE:
-            /* Don't trust physical @ or !'s in-code as they may be
-             * used for indirect referencing of scoped variables */
-            /* Don't trust any explict JMPs in the code */
-            if ((curr->in.data.number == AtNo) ||
-                (curr->in.data.number == BangNo) ||
-                (curr->in.data.number == IN_JMP)) {
-                return;
-            }
-            if (lvarflag) {
-                /* don't trust the following prims for lvars 
-                 * EXIT escape the code path without leaving lvar scope
-                 * EXECUTE escape path without leaving lvar scope
-                 * CALLS cause re-entrancy problems */
-                if (curr->in.data.number == IN_RET ||
-                    curr->in.data.number == IN_EXECUTE ||
-                    curr->in.data.number == IN_CALL) {
+            case PROG_PRIMITIVE:
+                /* Don't trust physical @ or !'s in-code as they may be
+                 * used for indirect referencing of scoped variables */
+                /* Don't trust any explict JMPs in the code */
+                if ((curr->in.data.number == AtNo) ||
+                    (curr->in.data.number == BangNo) ||
+                    (curr->in.data.number == IN_JMP)) {
                     return;
                 }
-            }
-            break;
-        case PROG_LVAR_AT:
-        case PROG_LVAR_AT_CLEAR:
-            if (lvarflag) {
-                if (curr->in.data.number == first->in.data.number) {
-                    /* references to variable found before a var! */
-                    return;
-                }
-            }
-            break;
-        case PROG_SVAR_AT:
-        case PROG_SVAR_AT_CLEAR:
-            if (!lvarflag) {
-                if (curr->in.data.number == first->in.data.number) {
-                    /* can't optimize if references to var found before var */
-                    return;
-                }
-            }
-            break;
-
-        case PROG_LVAR_BANG:
-            if (lvarflag) {
-                if (first->in.data.number == curr->in.data.number) {
-                    if (curr->no <= farthest) {
-                        /* within a branch so can't optimize */
-                        return;
-                    } else {
-                        /* Optimize it */
-                        first->in.type = PROG_LVAR_AT_CLEAR;
+                if (lvarflag) {
+                    /* don't trust the following prims for lvars 
+                     * EXIT escape the code path without leaving lvar scope
+                     * EXECUTE escape path without leaving lvar scope
+                     * CALLS cause re-entrancy problems */
+                    if (curr->in.data.number == IN_RET ||
+                        curr->in.data.number == IN_EXECUTE ||
+                        curr->in.data.number == IN_CALL) {
                         return;
                     }
                 }
-            }
-            break;
-
-        case PROG_SVAR_BANG:
-            if (!lvarflag) {
-                if (first->in.data.number == curr->in.data.number) {
-                    if (curr->no <= farthest) {
-                        /* cannot optimize within a branch */
-                        return;
-                    } else {    /* optimize it */
-                        first->in.type = PROG_SVAR_AT_CLEAR;
+                break;
+            case PROG_LVAR_AT:
+            case PROG_LVAR_AT_CLEAR:
+                if (lvarflag) {
+                    if (curr->in.data.number == first->in.data.number) {
+                        /* references to variable found before a var! */
                         return;
                     }
                 }
-            }
-            break;
+                break;
+            case PROG_SVAR_AT:
+            case PROG_SVAR_AT_CLEAR:
+                if (!lvarflag) {
+                    if (curr->in.data.number == first->in.data.number) {
+                        /* can't optimize if references to var found before var */
+                        return;
+                    }
+                }
+                break;
 
-        case PROG_EXEC:
-            if (lvarflag) {
-                /* don't optim lvars over execs */
-                return;
-            }
-            break;
+            case PROG_LVAR_BANG:
+                if (lvarflag) {
+                    if (first->in.data.number == curr->in.data.number) {
+                        if (curr->no <= farthest) {
+                            /* within a branch so can't optimize */
+                            return;
+                        } else {
+                            /* Optimize it */
+                            first->in.type = PROG_LVAR_AT_CLEAR;
+                            return;
+                        }
+                    }
+                }
+                break;
 
-        case PROG_IF:
-        case PROG_TRY:
-        case PROG_JMP:
-            ptr = cstat->addrlist[curr->in.data.number];
-            i = cstat->addroffsets[curr->in.data.number];
-            while (ptr->next && i-- > 0)
-                ptr = ptr->next;
-            if (ptr->no <= first->no) {
-                /* can't optimize as we've exited branch the @ is in */
+            case PROG_SVAR_BANG:
+                if (!lvarflag) {
+                    if (first->in.data.number == curr->in.data.number) {
+                        if (curr->no <= farthest) {
+                            /* cannot optimize within a branch */
+                            return;
+                        } else { /* optimize it */
+                            first->in.type = PROG_SVAR_AT_CLEAR;
+                            return;
+                        }
+                    }
+                }
+                break;
+
+            case PROG_EXEC:
+                if (lvarflag) {
+                    /* don't optim lvars over execs */
+                    return;
+                }
+                break;
+
+            case PROG_IF:
+            case PROG_TRY:
+            case PROG_JMP:
+                ptr = cstat->addrlist[curr->in.data.number];
+                i = cstat->addroffsets[curr->in.data.number];
+                while (ptr->next && i-- > 0)
+                    ptr = ptr->next;
+                if (ptr->no <= first->no) {
+                    /* can't optimize as we've exited branch the @ is in */
+                    return;
+                }
+                if (ptr->no > farthest)
+                    farthest = ptr->no;
+                break;
+            case PROG_FUNCTION:
+                /* Don't try to optimize over functions */
                 return;
-            }
-            if (ptr->no > farthest)
-                farthest = ptr->no;
-            break;
-        case PROG_FUNCTION:
-            /* Don't try to optimize over functions */
-            return;
         }
     }
 }
@@ -867,26 +867,26 @@ RemoveIntermediate(COMPSTATE *cstat, struct INTERMEDIATE *curr)
     curr->in.line = curr->next->in.line;
     curr->in.type = curr->next->in.type;
     switch (curr->in.type) {
-    case PROG_STRING:
-        curr->in.data.string = curr->next->in.data.string;
-        break;
-    case PROG_FLOAT:
-        curr->in.data.fnumber = curr->next->in.data.fnumber;
-        break;
-    case PROG_FUNCTION:
-        curr->in.data.mufproc = curr->next->in.data.mufproc;
-        break;
-    case PROG_ADD:
-        curr->in.data.addr = curr->next->in.data.addr;
-    case PROG_IF:
-    case PROG_TRY:
-    case PROG_JMP:
-    case PROG_EXEC:
-        curr->in.data.call = curr->next->in.data.call;
-        break;
-    default:
-        curr->in.data.number = curr->next->in.data.number;
-        break;
+        case PROG_STRING:
+            curr->in.data.string = curr->next->in.data.string;
+            break;
+        case PROG_FLOAT:
+            curr->in.data.fnumber = curr->next->in.data.fnumber;
+            break;
+        case PROG_FUNCTION:
+            curr->in.data.mufproc = curr->next->in.data.mufproc;
+            break;
+        case PROG_ADD:
+            curr->in.data.addr = curr->next->in.data.addr;
+        case PROG_IF:
+        case PROG_TRY:
+        case PROG_JMP:
+        case PROG_EXEC:
+            curr->in.data.call = curr->next->in.data.call;
+            break;
+        default:
+            curr->in.data.number = curr->next->in.data.number;
+            break;
     }
     curr->next->in.type = PROG_INTEGER;
     curr->next->in.data.number = 0;
@@ -989,207 +989,207 @@ OptimizeIntermediate(COMPSTATE *cstat)
 
     for (curr = cstat->first_word; curr; curr = curr->next) {
         switch (curr->in.type) {
-        case PROG_ADD:
-        case PROG_IF:
-        case PROG_TRY:
-        case PROG_JMP:
-        case PROG_EXEC:
-            i = cstat->addrlist[curr->in.data.number]->no +
-                cstat->addroffsets[curr->in.data.number];
-            Flags[i] |= IMMFLAG_REFERENCED;
-            break;
+            case PROG_ADD:
+            case PROG_IF:
+            case PROG_TRY:
+            case PROG_JMP:
+            case PROG_EXEC:
+                i = cstat->addrlist[curr->in.data.number]->no +
+                    cstat->addroffsets[curr->in.data.number];
+                Flags[i] |= IMMFLAG_REFERENCED;
+                break;
         }
     }
 
     for (curr = cstat->first_word; curr;) {
         advance = 1;
         switch (curr->in.type) {
-        case PROG_LVAR:
-            /* lvar ! into lvar! */
-            /* lvar @ into lvar@ */
-            if (curr->next && curr->next->in.type == PROG_PRIMITIVE) {
-                if (curr->next->in.data.number == AtNo) {
-                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
-                        curr->in.type = PROG_LVAR_AT;
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
+            case PROG_LVAR:
+                /* lvar ! into lvar! */
+                /* lvar @ into lvar@ */
+                if (curr->next && curr->next->in.type == PROG_PRIMITIVE) {
+                    if (curr->next->in.data.number == AtNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_LVAR_AT;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                    if (curr->next->in.data.number == BangNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_LVAR_BANG;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
                     }
                 }
-                if (curr->next->in.data.number == BangNo) {
-                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
-                        curr->in.type = PROG_LVAR_BANG;
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
+                break;
+            case PROG_SVAR:
+                /* svar ! into svar! */
+                /* svar @ into svar@ */
+                if (curr->next && curr->next->in.type == PROG_PRIMITIVE) {
+                    if (curr->next->in.data.number == AtNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_SVAR_AT;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                    if (curr->next->in.data.number == BangNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_SVAR_BANG;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
                     }
                 }
-            }
-            break;
-        case PROG_SVAR:
-            /* svar ! into svar! */
-            /* svar @ into svar@ */
-            if (curr->next && curr->next->in.type == PROG_PRIMITIVE) {
-                if (curr->next->in.data.number == AtNo) {
-                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
-                        curr->in.type = PROG_SVAR_AT;
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
+                break;
+            case PROG_STRING:
+                /* "" strcmp 0 = into not */
+                if (IntermediateIsString(curr, "")) {
+                    if (ContiguousIntermediates(Flags, curr->next, 3)) {
+                        if (IntermediateIsPrimitive(curr->next, StrcmpNo)) {
+                            if (IntermediateIsInteger(curr->next->next, 0)) {
+                                if (IntermediateIsPrimitive
+                                    (curr->next->next->next, EqualsNo)) {
+                                    if (curr->in.data.string)
+                                        free((void *) curr->in.data.string);
+                                    curr->in.type = PROG_PRIMITIVE;
+                                    curr->in.data.number = NotNo;
+                                    RemoveNextIntermediate(cstat, curr);
+                                    RemoveNextIntermediate(cstat, curr);
+                                    RemoveNextIntermediate(cstat, curr);
+                                    advance = 0;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
-                if (curr->next->in.data.number == BangNo) {
+                break;
+
+            case PROG_INTEGER:
+                /* consolidate constant integer calculations */
+                if (ContiguousIntermediates(Flags, curr->next, 2)) {
+                    if (curr->next->in.type == PROG_INTEGER) {
+                        /* int int + into Sum */
+                        if (IntermediateIsPrimitive(curr->next->next, PlusNo)) {
+                            curr->in.data.number += curr->next->in.data.number;
+                            RemoveNextIntermediate(cstat, curr);
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+
+                        /* int int - into Diff */
+                        if (IntermediateIsPrimitive(curr->next->next, MinusNo)) {
+                            curr->in.data.number -= curr->next->in.data.number;
+                            RemoveNextIntermediate(cstat, curr);
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+
+                        /* int int * into Prod */
+                        if (IntermediateIsPrimitive(curr->next->next, MultNo)) {
+                            curr->in.data.number *= curr->next->in.data.number;
+                            RemoveNextIntermediate(cstat, curr);
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+
+                        /* int int / into Div */
+                        if (IntermediateIsPrimitive(curr->next->next, DivNo)) {
+                            curr->in.data.number /= curr->next->in.data.number;
+                            RemoveNextIntermediate(cstat, curr);
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+
+                        /* int int % into Result */
+                        if (IntermediateIsPrimitive(curr->next->next, ModNo)) {
+                            curr->in.data.number %= curr->next->in.data.number;
+                            RemoveNextIntermediate(cstat, curr);
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }       //end of % case 
+                    }           //end of if PROG_INTEGER if
+                }               // end of 2 contiguous 
+
+                /* 0 = into not */
+                if (IntermediateIsInteger(curr, 0)) {
                     if (ContiguousIntermediates(Flags, curr->next, 1)) {
-                        curr->in.type = PROG_SVAR_BANG;
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
+                        if (IntermediateIsPrimitive(curr->next, EqualsNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = NotNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
                     }
                 }
-            }
-            break;
-        case PROG_STRING:
-            /* "" strcmp 0 = into not */
-            if (IntermediateIsString(curr, "")) {
-                if (ContiguousIntermediates(Flags, curr->next, 3)) {
-                    if (IntermediateIsPrimitive(curr->next, StrcmpNo)) {
-                        if (IntermediateIsInteger(curr->next->next, 0)) {
-                            if (IntermediateIsPrimitive
-                                (curr->next->next->next, EqualsNo)) {
-                                if (curr->in.data.string)
-                                    free((void *) curr->in.data.string);
-                                curr->in.type = PROG_PRIMITIVE;
-                                curr->in.data.number = NotNo;
-                                RemoveNextIntermediate(cstat, curr);
-                                RemoveNextIntermediate(cstat, curr);
-                                RemoveNextIntermediate(cstat, curr);
+
+                /* 1 + into ++ */
+                if (IntermediateIsInteger(curr, 1)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, PlusNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = IncrNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                }
+
+                /* 1 - into -- */
+                if (IntermediateIsInteger(curr, 1)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, MinusNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = DecrNo;
+                            RemoveNextIntermediate(cstat, curr);
+                        }
+                    }
+                }
+                break;
+
+            case PROG_PRIMITIVE:
+                /* rot rot swap into swap rot */
+                if (IntermediateIsPrimitive(curr, RotNo)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 2)) {
+                        if (IntermediateIsPrimitive(curr->next, RotNo)) {
+                            if (IntermediateIsPrimitive(curr->next, SwapNo)) {
+                                curr->in.data.number = SwapNo;
+                                curr->next->in.data.number = RotNo;
+                                RemoveNextIntermediate(cstat, curr->next);
                                 advance = 0;
                                 break;
                             }
                         }
                     }
                 }
-            }
-            break;
-
-        case PROG_INTEGER:
-            /* consolidate constant integer calculations */
-            if (ContiguousIntermediates(Flags, curr->next, 2)) {
-                if (curr->next->in.type == PROG_INTEGER) {
-                    /* int int + into Sum */
-                    if (IntermediateIsPrimitive(curr->next->next, PlusNo)) {
-                        curr->in.data.number += curr->next->in.data.number;
-                        RemoveNextIntermediate(cstat, curr);
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
-                    }
-
-                    /* int int - into Diff */
-                    if (IntermediateIsPrimitive(curr->next->next, MinusNo)) {
-                        curr->in.data.number -= curr->next->in.data.number;
-                        RemoveNextIntermediate(cstat, curr);
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
-                    }
-
-                    /* int int * into Prod */
-                    if (IntermediateIsPrimitive(curr->next->next, MultNo)) {
-                        curr->in.data.number *= curr->next->in.data.number;
-                        RemoveNextIntermediate(cstat, curr);
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
-                    }
-
-                    /* int int / into Div */
-                    if (IntermediateIsPrimitive(curr->next->next, DivNo)) {
-                        curr->in.data.number /= curr->next->in.data.number;
-                        RemoveNextIntermediate(cstat, curr);
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
-                    }
-
-                    /* int int % into Result */
-                    if (IntermediateIsPrimitive(curr->next->next, ModNo)) {
-                        curr->in.data.number %= curr->next->in.data.number;
-                        RemoveNextIntermediate(cstat, curr);
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
-                    }           //end of % case 
-                }               //end of if PROG_INTEGER if
-            }                   // end of 2 contiguous 
-
-            /* 0 = into not */
-            if (IntermediateIsInteger(curr, 0)) {
-                if (ContiguousIntermediates(Flags, curr->next, 1)) {
-                    if (IntermediateIsPrimitive(curr->next, EqualsNo)) {
-                        curr->in.type = PROG_PRIMITIVE;
-                        curr->in.data.number = NotNo;
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
-                    }
-                }
-            }
-
-            /* 1 + into ++ */
-            if (IntermediateIsInteger(curr, 1)) {
-                if (ContiguousIntermediates(Flags, curr->next, 1)) {
-                    if (IntermediateIsPrimitive(curr->next, PlusNo)) {
-                        curr->in.type = PROG_PRIMITIVE;
-                        curr->in.data.number = IncrNo;
-                        RemoveNextIntermediate(cstat, curr);
-                        advance = 0;
-                        break;
-                    }
-                }
-            }
-
-            /* 1 - into -- */
-            if (IntermediateIsInteger(curr, 1)) {
-                if (ContiguousIntermediates(Flags, curr->next, 1)) {
-                    if (IntermediateIsPrimitive(curr->next, MinusNo)) {
-                        curr->in.type = PROG_PRIMITIVE;
-                        curr->in.data.number = DecrNo;
-                        RemoveNextIntermediate(cstat, curr);
-                    }
-                }
-            }
-            break;
-
-        case PROG_PRIMITIVE:
-            /* rot rot swap into swap rot */
-            if (IntermediateIsPrimitive(curr, RotNo)) {
-                if (ContiguousIntermediates(Flags, curr->next, 2)) {
-                    if (IntermediateIsPrimitive(curr->next, RotNo)) {
-                        if (IntermediateIsPrimitive(curr->next, SwapNo)) {
-                            curr->in.data.number = SwapNo;
-                            curr->next->in.data.number = RotNo;
-                            RemoveNextIntermediate(cstat, curr->next);
-                            advance = 0;
-                            break;
+                /* not not if into if */
+                if (IntermediateIsPrimitive(curr, NotNo)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 2)) {
+                        if (IntermediateIsPrimitive(curr->next, NotNo)) {
+                            if (curr->next->next->in.type == PROG_IF) {
+                                RemoveIntermediate(cstat, curr);
+                                RemoveIntermediate(cstat, curr);
+                                advance = 0;
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            /* not not if into if */
-            if (IntermediateIsPrimitive(curr, NotNo)) {
-                if (ContiguousIntermediates(Flags, curr->next, 2)) {
-                    if (IntermediateIsPrimitive(curr->next, NotNo)) {
-                        if (curr->next->next->in.type == PROG_IF) {
-                            RemoveIntermediate(cstat, curr);
-                            RemoveIntermediate(cstat, curr);
-                            advance = 0;
-                            break;
-                        }
-                    }
-                }
-            }
-            break;
+                break;
         }
         if (advance) {
             curr = curr->next;
@@ -2372,8 +2372,7 @@ do_directive(COMPSTATE *cstat, char *direct)
                           "Unexpected end of file looking for $ifdef condition.");
         strcpy(temp2, tmpname);
         free(tmpname);
-        for (i = 1;
-             temp2[i] && (temp2[i] != '=') && (temp2[i] != '>')
+        for (i = 1; temp2[i] && (temp2[i] != '=') && (temp2[i] != '>')
              && (temp2[i] != '<'); i++) ;
         tmpname = &(temp2[i]);
         i = (temp2[i] ==
@@ -2608,21 +2607,22 @@ process_special(COMPSTATE *cstat, const char *token)
         int ctrltype = innermost_control_type(cstat);
 
         switch (ctrltype) {
-        case CTYPE_IF:
-            break;
-        case CTYPE_TRY:
-            abort_compile(cstat, "Unterminated TRY-CATCH block at ELSE.");
-            break;
-        case CTYPE_CATCH:
-            abort_compile(cstat, "Unterminated CATCH-ENDCATCH block at ELSE.");
-            break;
-        case CTYPE_FOR:
-        case CTYPE_BEGIN:
-            abort_compile(cstat, "Unterminated Loop at ELSE.");
-            break;
-        default:
-            abort_compile(cstat, "ELSE without IF.");
-            break;
+            case CTYPE_IF:
+                break;
+            case CTYPE_TRY:
+                abort_compile(cstat, "Unterminated TRY-CATCH block at ELSE.");
+                break;
+            case CTYPE_CATCH:
+                abort_compile(cstat,
+                              "Unterminated CATCH-ENDCATCH block at ELSE.");
+                break;
+            case CTYPE_FOR:
+            case CTYPE_BEGIN:
+                abort_compile(cstat, "Unterminated Loop at ELSE.");
+                break;
+            default:
+                abort_compile(cstat, "ELSE without IF.");
+                break;
         }
 
         nw = new_inst(cstat);
@@ -2641,22 +2641,23 @@ process_special(COMPSTATE *cstat, const char *token)
         int ctrltype = innermost_control_type(cstat);
 
         switch (ctrltype) {
-        case CTYPE_IF:
-        case CTYPE_ELSE:
-            break;
-        case CTYPE_TRY:
-            abort_compile(cstat, "Unterminated TRY-CATCH block at THEN.");
-            break;
-        case CTYPE_CATCH:
-            abort_compile(cstat, "Unterminated CATCH-ENDCATCH block at THEN.");
-            break;
-        case CTYPE_FOR:
-        case CTYPE_BEGIN:
-            abort_compile(cstat, "Unterminated Loop at THEN.");
-            break;
-        default:
-            abort_compile(cstat, "THEN without IF.");
-            break;
+            case CTYPE_IF:
+            case CTYPE_ELSE:
+                break;
+            case CTYPE_TRY:
+                abort_compile(cstat, "Unterminated TRY-CATCH block at THEN.");
+                break;
+            case CTYPE_CATCH:
+                abort_compile(cstat,
+                              "Unterminated CATCH-ENDCATCH block at THEN.");
+                break;
+            case CTYPE_FOR:
+            case CTYPE_BEGIN:
+                abort_compile(cstat, "Unterminated Loop at THEN.");
+                break;
+            default:
+                abort_compile(cstat, "THEN without IF.");
+                break;
         }
 
         prealloc_inst(cstat);
@@ -2718,23 +2719,24 @@ process_special(COMPSTATE *cstat, const char *token)
         int ctrltype = innermost_control_type(cstat);
 
         switch (ctrltype) {
-        case CTYPE_FOR:
-            cstat->nested_fors--;
-        case CTYPE_BEGIN:
-            break;
-        case CTYPE_TRY:
-            abort_compile(cstat, "Unterminated TRY-CATCH block at UNTIL.");
-            break;
-        case CTYPE_CATCH:
-            abort_compile(cstat, "Unterminated CATCH-ENDCATCH block at UNTIL.");
-            break;
-        case CTYPE_IF:
-        case CTYPE_ELSE:
-            abort_compile(cstat, "Unterminated IF-THEN at UNTIL.");
-            break;
-        default:
-            abort_compile(cstat, "Loop start not found for UNTIL.");
-            break;
+            case CTYPE_FOR:
+                cstat->nested_fors--;
+            case CTYPE_BEGIN:
+                break;
+            case CTYPE_TRY:
+                abort_compile(cstat, "Unterminated TRY-CATCH block at UNTIL.");
+                break;
+            case CTYPE_CATCH:
+                abort_compile(cstat,
+                              "Unterminated CATCH-ENDCATCH block at UNTIL.");
+                break;
+            case CTYPE_IF:
+            case CTYPE_ELSE:
+                abort_compile(cstat, "Unterminated IF-THEN at UNTIL.");
+                break;
+            default:
+                abort_compile(cstat, "Loop start not found for UNTIL.");
+                break;
         }
 
         prealloc_inst(cstat);
@@ -2861,24 +2863,24 @@ process_special(COMPSTATE *cstat, const char *token)
         int ctrltype = innermost_control_type(cstat);
 
         switch (ctrltype) {
-        case CTYPE_FOR:
-            cstat->nested_fors--;
-        case CTYPE_BEGIN:
-            break;
-        case CTYPE_TRY:
-            abort_compile(cstat, "Unterminated TRY-CATCH block at REPEAT.");
-            break;
-        case CTYPE_CATCH:
-            abort_compile(cstat,
-                          "Unterminated CATCH-ENDCATCH block at REPEAT.");
-            break;
-        case CTYPE_IF:
-        case CTYPE_ELSE:
-            abort_compile(cstat, "Unterminated IF-THEN at REPEAT.");
-            break;
-        default:
-            abort_compile(cstat, "Loop start not found for REPEAT.");
-            break;
+            case CTYPE_FOR:
+                cstat->nested_fors--;
+            case CTYPE_BEGIN:
+                break;
+            case CTYPE_TRY:
+                abort_compile(cstat, "Unterminated TRY-CATCH block at REPEAT.");
+                break;
+            case CTYPE_CATCH:
+                abort_compile(cstat,
+                              "Unterminated CATCH-ENDCATCH block at REPEAT.");
+                break;
+            case CTYPE_IF:
+            case CTYPE_ELSE:
+                abort_compile(cstat, "Unterminated IF-THEN at REPEAT.");
+                break;
+            default:
+                abort_compile(cstat, "Loop start not found for REPEAT.");
+                break;
         }
 
         prealloc_inst(cstat);
@@ -2919,20 +2921,20 @@ process_special(COMPSTATE *cstat, const char *token)
         int ctrltype = innermost_control_type(cstat);
 
         switch (ctrltype) {
-        case CTYPE_TRY:
-            break;
-        case CTYPE_FOR:
-        case CTYPE_BEGIN:
-            abort_compile(cstat, "Unterminated Loop at CATCH.");
-            break;
-        case CTYPE_IF:
-        case CTYPE_ELSE:
-            abort_compile(cstat, "Unterminated IF-THEN at CATCH.");
-            break;
-        case CTYPE_CATCH:
-        default:
-            abort_compile(cstat, "No TRY found for CATCH.");
-            break;
+            case CTYPE_TRY:
+                break;
+            case CTYPE_FOR:
+            case CTYPE_BEGIN:
+                abort_compile(cstat, "Unterminated Loop at CATCH.");
+                break;
+            case CTYPE_IF:
+            case CTYPE_ELSE:
+                abort_compile(cstat, "Unterminated IF-THEN at CATCH.");
+                break;
+            case CTYPE_CATCH:
+            default:
+                abort_compile(cstat, "No TRY found for CATCH.");
+                break;
         }
 
         nw = new_inst(cstat);
@@ -2965,20 +2967,20 @@ process_special(COMPSTATE *cstat, const char *token)
         int ctrltype = innermost_control_type(cstat);
 
         switch (ctrltype) {
-        case CTYPE_CATCH:
-            break;
-        case CTYPE_FOR:
-        case CTYPE_BEGIN:
-            abort_compile(cstat, "Unterminated Loop at ENDCATCH.");
-            break;
-        case CTYPE_IF:
-        case CTYPE_ELSE:
-            abort_compile(cstat, "Unterminated IF-THEN at ENDCATCH.");
-            break;
-        case CTYPE_TRY:
-        default:
-            abort_compile(cstat, "No CATCH found for ENDCATCH.");
-            break;
+            case CTYPE_CATCH:
+                break;
+            case CTYPE_FOR:
+            case CTYPE_BEGIN:
+                abort_compile(cstat, "Unterminated Loop at ENDCATCH.");
+                break;
+            case CTYPE_IF:
+            case CTYPE_ELSE:
+                abort_compile(cstat, "Unterminated IF-THEN at ENDCATCH.");
+                break;
+            case CTYPE_TRY:
+            default:
+                abort_compile(cstat, "No CATCH found for ENDCATCH.");
+                break;
         }
 
         prealloc_inst(cstat);
@@ -3848,63 +3850,67 @@ copy_program(COMPSTATE *cstat)
         code[i].type = curr->in.type;
         code[i].line = curr->in.line;
         switch (code[i].type) {
-        case PROG_PRIMITIVE:
-        case PROG_INTEGER:
-        case PROG_SVAR:
-        case PROG_SVAR_AT:
-        case PROG_SVAR_AT_CLEAR:
-        case PROG_SVAR_BANG:
-        case PROG_LVAR:
-        case PROG_LVAR_AT:
-        case PROG_LVAR_AT_CLEAR:
-        case PROG_LVAR_BANG:
-        case PROG_VAR:
-            code[i].data.number = curr->in.data.number;
-            break;
-        case PROG_FLOAT:
-            code[i].data.fnumber = curr->in.data.fnumber;
-            break;
-        case PROG_STRING:
-            code[i].data.string = curr->in.data.string ?
-                alloc_prog_string(curr->in.data.string->data) : 0;
-            break;
-        case PROG_FUNCTION:
-            code[i].data.mufproc =
-                (struct muf_proc_data *) malloc(sizeof(struct muf_proc_data));
-            code[i].data.mufproc->procname =
-                string_dup(curr->in.data.mufproc->procname);
-            code[i].data.mufproc->vars = varcnt = curr->in.data.mufproc->vars;
+            case PROG_PRIMITIVE:
+            case PROG_INTEGER:
+            case PROG_SVAR:
+            case PROG_SVAR_AT:
+            case PROG_SVAR_AT_CLEAR:
+            case PROG_SVAR_BANG:
+            case PROG_LVAR:
+            case PROG_LVAR_AT:
+            case PROG_LVAR_AT_CLEAR:
+            case PROG_LVAR_BANG:
+            case PROG_VAR:
+                code[i].data.number = curr->in.data.number;
+                break;
+            case PROG_FLOAT:
+                code[i].data.fnumber = curr->in.data.fnumber;
+                break;
+            case PROG_STRING:
+                code[i].data.string = curr->in.data.string ?
+                    alloc_prog_string(curr->in.data.string->data) : 0;
+                break;
+            case PROG_FUNCTION:
+                code[i].data.mufproc =
+                    (struct muf_proc_data *)
+                    malloc(sizeof(struct muf_proc_data));
+                code[i].data.mufproc->procname =
+                    string_dup(curr->in.data.mufproc->procname);
+                code[i].data.mufproc->vars = varcnt =
+                    curr->in.data.mufproc->vars;
 
-            code[i].data.mufproc->args = curr->in.data.mufproc->args;
-            if (varcnt) {
-                if (curr->in.data.mufproc->varnames) {
-                    code[i].data.mufproc->varnames =
-                        (const char **) calloc(varcnt, sizeof(char *));
-                    for (j = 0; j < varcnt; ++j)
-                        code[i].data.mufproc->varnames[j] =
-                            string_dup(curr->in.data.mufproc->varnames[j]);
+                code[i].data.mufproc->args = curr->in.data.mufproc->args;
+                if (varcnt) {
+                    if (curr->in.data.mufproc->varnames) {
+                        code[i].data.mufproc->varnames =
+                            (const char **) calloc(varcnt, sizeof(char *));
+                        for (j = 0; j < varcnt; ++j)
+                            code[i].data.mufproc->varnames[j] =
+                                string_dup(curr->in.data.mufproc->varnames[j]);
+                    } else {
+                        code[i].data.mufproc->varnames = NULL;
+                    }
                 } else {
                     code[i].data.mufproc->varnames = NULL;
                 }
-            } else {
-                code[i].data.mufproc->varnames = NULL;
-            }
-            break;
-        case PROG_OBJECT:
-            code[i].data.objref = curr->in.data.objref;
-            break;
-        case PROG_ADD:
-            code[i].data.addr = alloc_addr(cstat, curr->in.data.number, code);
-            break;
-        case PROG_IF:
-        case PROG_JMP:
-        case PROG_EXEC:
-        case PROG_TRY:
-            code[i].data.call = code + curr->in.data.number;
-            break;
-        default:
-            v_abort_compile(cstat, "Unknown type compile!  Internal error.");
-            break;
+                break;
+            case PROG_OBJECT:
+                code[i].data.objref = curr->in.data.objref;
+                break;
+            case PROG_ADD:
+                code[i].data.addr =
+                    alloc_addr(cstat, curr->in.data.number, code);
+                break;
+            case PROG_IF:
+            case PROG_JMP:
+            case PROG_EXEC:
+            case PROG_TRY:
+                code[i].data.call = code + curr->in.data.number;
+                break;
+            default:
+                v_abort_compile(cstat,
+                                "Unknown type compile!  Internal error.");
+                break;
         }
         i++;
     }

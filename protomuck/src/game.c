@@ -712,867 +712,871 @@ process_command(int descr, dbref player, char *command)
             return;
     }
     switch (command[0]) {
-    case '@':
-        switch (command[1]) {
-        case 'a':
-        case 'A':
-            /* @action, @attach */
-            switch (command[2]) {
-            case 'c':
-            case 'C':
-                Matched("@action");
-                do_action(descr, player, arg1, arg2);
-                break;
-            case 'r':
-            case 'R':
-                if (string_compare(command, "@armageddon"))
-                    goto bad;
-                do_armageddon(player, full_command);
-                break;
-            case 't':
-            case 'T':
-                Matched("@attach");
-                do_attach(descr, player, arg1, arg2);
-                break;
-            case 'n':
-            case 'N':
-                Matched("@ansidescribe");
-                do_ansidescribe(descr, player, arg1, arg2);
-                break;
-            case 'u':
-            case 'U':
-                if (string_compare(command, "@autoarchive"))
-                    goto bad;
-                if (!tp_auto_archive)
-                    goto bad;
-                do_autoarchive(descr, player);
-                break;
-            default:
-                goto bad;
-            }
-            break;
-        case 'b':
-        case 'B':
-            Matched("@boot");
-            do_boot(player, arg1);
-            break;
-        case 'c':
-        case 'C':
-            /* chown, contents, create */
-            switch (command[2]) {
-            case 'h':
-            case 'H':
-                switch (command[3]) {
+        case '@':
+            switch (command[1]) {
+                case 'a':
+                case 'A':
+                    /* @action, @attach */
+                    switch (command[2]) {
+                        case 'c':
+                        case 'C':
+                            Matched("@action");
+                            do_action(descr, player, arg1, arg2);
+                            break;
+                        case 'r':
+                        case 'R':
+                            if (string_compare(command, "@armageddon"))
+                                goto bad;
+                            do_armageddon(player, full_command);
+                            break;
+                        case 't':
+                        case 'T':
+                            Matched("@attach");
+                            do_attach(descr, player, arg1, arg2);
+                            break;
+                        case 'n':
+                        case 'N':
+                            Matched("@ansidescribe");
+                            do_ansidescribe(descr, player, arg1, arg2);
+                            break;
+                        case 'u':
+                        case 'U':
+                            if (string_compare(command, "@autoarchive"))
+                                goto bad;
+                            if (!tp_auto_archive)
+                                goto bad;
+                            do_autoarchive(descr, player);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'b':
+                case 'B':
+                    Matched("@boot");
+                    do_boot(player, arg1);
+                    break;
+                case 'c':
+                case 'C':
+                    /* chown, contents, create */
+                    switch (command[2]) {
+                        case 'h':
+                        case 'H':
+                            switch (command[3]) {
+                                case 'l':
+                                case 'L':
+                                    Matched("@chlock");
+                                    do_chlock(descr, player, arg1, arg2);
+                                    break;
+                                case 'o':
+                                case 'O':
+                                    if (strlen(command) < 7) {
+                                        Matched("@chown")
+                                            do_chown(descr, player, arg1, arg2);
+                                    } else {
+                                        Matched("@chown_lock");
+                                        do_chlock(descr, player, arg1, arg2);
+                                    }
+                                    break;
+                                default:
+                                    goto bad;
+                            }
+                            break;
+                        case 'o':
+                        case 'O':
+                            switch (command[4]) {
+                                case 'l':
+                                case 'L':
+                                    Matched("@conlock");
+                                    do_conlock(descr, player, arg1, arg2);
+                                    break;
+                                case 't':
+                                case 'T':
+                                    Matched("@contents");
+                                    do_contents(descr, player, arg1, arg2);
+                                    break;
+                                default:
+                                    goto bad;
+                            }
+                            break;
+                        case 'r':
+                        case 'R':
+                            if (string_compare(command, "@credits")) {
+                                Matched("@create");
+                                do_create(player, arg1, arg2);
+                            } else {
+                                do_credits(player);
+                            }
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'd':
+                case 'D':
+                    /* describe, dequeue, dig, or dump */
+                    switch (command[2]) {
+                        case 'b':
+                        case 'B':
+                            Matched("@dbginfo");
+                            do_serverdebug(descr, player, arg1, arg2);
+                            break;
+                        case 'e':
+                        case 'E':
+#ifdef DELTADUMPS
+                            if (command[3] == 'l' || command[3] == 'L') {
+                                Matched("@delta");
+                                do_delta(player);
+                            } else
+#endif
+                            {
+                                if ((command[3] == 's' || command[3] == 'S') &&
+                                    (command[4] == 't' || command[4] == 'T')) {
+                                    Matched("@destroy");
+                                    do_recycle(descr, player, arg1);
+                                } else {
+                                    Matched("@describe");
+                                    do_describe(descr, player, arg1, arg2);
+                                }
+                            }
+                            break;
+                        case 'i':
+                        case 'I':
+                            Matched("@dig");
+                            do_dig(descr, player, arg1, arg2);
+                            break;
+#ifdef DELTADUMPS
+                        case 'l':
+                        case 'L':
+                            Matched("@dlt");
+                            do_delta(player);
+                            break;
+#endif
+                        case 'o':
+                        case 'O':
+                            Matched("@doing");
+                            if (!tp_who_doing)
+                                goto bad;
+                            do_doing(descr, player, arg1, arg2);
+                            break;
+                        case 'r':
+                        case 'R':
+                            Matched("@drop");
+                            do_drop_message(descr, player, arg1, arg2);
+                            break;
+                        case 'u':
+                        case 'U':
+                            Matched("@dump");
+                            do_dump(player, full_command);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'e':
+                case 'E':
+                    switch (command[2]) {
+                        case 'd':
+                        case 'D':
+                            Matched("@edit");
+                            do_edit(descr, player, arg1);
+                            break;
+                        case 'n':
+                        case 'N':
+                            Matched("@entrances");
+                            do_entrances(descr, player, arg1, arg2);
+                            break;
+                        case 'x':
+                        case 'X':
+                            Matched("@examine");
+                            sane_dump_object(player, arg1);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'f':
+                case 'F':
+                    /* fail, find, force, or frob */
+                    switch (command[2]) {
+                        case 'a':
+                        case 'A':
+                            Matched("@fail");
+                            do_fail(descr, player, arg1, arg2);
+                            break;
+                        case 'i':
+                        case 'I':
+                            if (command[3] == 'x' || command[3] == 'X') {
+                                Matched("@fixwizbits");
+                                do_fixw(player, full_command);
+                            } else {
+                                Matched("@find");
+                                do_find(player, arg1, arg2);
+                            }
+                            break;
+                        case 'l':
+                        case 'L':
+                            Matched("@flock");
+                            do_flock(descr, player, arg1, arg2);
+                            break;
+                        case 'o':
+                        case 'O':
+                            if (strlen(command) < 7) {
+                                Matched("@force");
+                                do_force(descr, player, arg1, arg2);
+                            } else {
+                                Matched("@force_lock");
+                                do_flock(descr, player, arg1, arg2);
+                            }
+                            break;
+                        case 'r':
+                        case 'R':
+                            if (string_compare(command, "@frob"))
+                                goto bad;
+                            do_frob(descr, player, arg1, arg2);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'h':
+                case 'H':
+                    Matched("@htmldescribe");
+                    do_htmldescribe(descr, player, arg1, arg2);
+                    break;
+                case 'i':
+                case 'I':
+                    switch (command[2]) {
+                        case 'h':
+                        case 'H':
+                            Matched("@ihtmldescribe");
+                            do_ihtmldescribe(descr, player, arg1, arg2);
+                            break;
+                        case 'a':
+                        case 'A':
+                            Matched("@iansidescribe");
+                            do_iansidescribe(descr, player, arg1, arg2);
+                            break;
+                        default:
+                            Matched("@idescribe");
+                            do_idescribe(descr, player, arg1, arg2);
+                            break;
+                    }
+                    break;
+                case 'k':
+                case 'K':
+                    Matched("@kill");
+                    do_dequeue(descr, player, arg1);
+                    break;
                 case 'l':
                 case 'L':
-                    Matched("@chlock");
-                    do_chlock(descr, player, arg1, arg2);
+                    /* lock or link */
+                    switch (command[2]) {
+                        case 'i':
+                        case 'I':
+                            switch (command[3]) {
+                                case 'n':
+                                case 'N':
+                                    Matched("@link");
+                                    do_link(descr, player, arg1, arg2);
+                                    break;
+                                case 's':
+                                case 'S':
+                                    Matched("@list");
+                                    match_and_list(descr, player, arg1, arg2,
+                                                   1);
+                                    break;
+                                default:
+                                    goto bad;
+                            }
+                            break;
+                        case 'o':
+                        case 'O':
+                            Matched("@lock");
+                            do_lock(descr, player, arg1, arg2);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'm':
+                case 'M':
+                    switch (command[2]) {
+                        case 'c':
+                        case 'C':
+                            switch (command[4]) {
+                                case 'e':
+                                case 'E':
+                                    Matched("@mcpedit");
+                                    (void) do_mcpedit(descr, player, arg1);
+                                    break;
+                                case 'p':
+                                case 'P':
+                                    Matched("@mcpprogram");
+                                    (void) do_mcpprogram(descr, player, arg1);
+                                    break;
+                                default:
+                                    goto bad;
+                            }
+                        case 'e':
+                        case 'E':
+                            Matched("@memory");
+                            do_memory(player);
+                            break;
+                        case 'p':
+                        case 'P':
+                            Matched("@mpitops");
+                            do_mpi_topprofs(player, arg1);
+                            break;
+                        case 'u':
+                        case 'U':
+                            Matched("@muftops");
+                            do_muf_topprofs(player, arg1);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'n':
+                case 'N':
+                    /* @name or @newpassword */
+                    switch (command[2]) {
+                        case 'a':
+                        case 'A':
+                            Matched("@name");
+                            do_name(descr, player, arg1, arg2);
+                            break;
+                        case 'e':
+                        case 'E':
+                            if (string_compare(command, "@newpassword"))
+                                goto bad;
+                            do_newpassword(player, arg1, arg2);
+                            break;
+                        default:
+                            goto bad;
+                    }
                     break;
                 case 'o':
                 case 'O':
-                    if (strlen(command) < 7) {
-                        Matched("@chown")
-                            do_chown(descr, player, arg1, arg2);
-                    } else {
-                        Matched("@chown_lock");
-                        do_chlock(descr, player, arg1, arg2);
+                    switch (command[2]) {
+                        case 'd':
+                        case 'D':
+                            Matched("@odrop");
+                            do_odrop(descr, player, arg1, arg2);
+                            break;
+                        case 'e':
+                        case 'E':
+                            Matched("@oecho");
+                            do_oecho(descr, player, arg1, arg2);
+                            break;
+                        case 'f':
+                        case 'F':
+                            Matched("@ofail");
+                            do_ofail(descr, player, arg1, arg2);
+                            break;
+                        case 'p':
+                        case 'P':
+                            Matched("@open");
+                            do_open(descr, player, arg1, arg2);
+                            break;
+                        case 's':
+                        case 'S':
+                            Matched("@osuccess");
+                            do_osuccess(descr, player, arg1, arg2);
+                            break;
+                        case 'w':
+                        case 'W':
+                            Matched("@owned");
+                            do_owned(player, arg1, arg2);
+                            break;
+                        default:
+                            goto bad;
                     }
                     break;
-                default:
-                    goto bad;
-                }
-                break;
-            case 'o':
-            case 'O':
-                switch (command[4]) {
-                case 'l':
-                case 'L':
-                    Matched("@conlock");
-                    do_conlock(descr, player, arg1, arg2);
+                case 'p':
+                case 'P':
+                    switch (command[2]) {
+                        case 'a':
+                        case 'A':
+                            Matched("@password");
+                            do_password(player, arg1, arg2);
+                            break;
+                        case 'c':
+                        case 'C':
+                            Matched("@pcreate");
+                            do_pcreate(player, arg1, arg2);
+                            break;
+                        case 'e':
+                        case 'E':
+                            Matched("@pecho");
+                            do_pecho(descr, player, arg1, arg2);
+                            break;
+                        case 'o':
+                        case 'O':
+                            Matched("@powers");
+                            do_powers(descr, player, arg1, arg2);
+                            break;
+                        case 'r':
+                        case 'R':
+                            if (string_prefix("@program", command)) {
+                                do_prog(descr, player, arg1);
+                                break;
+                            } else if (string_prefix("@proginfo", command)) {
+                                do_proginfo(player, arg1);
+                                break;
+                            } else {
+                                Matched("@propset");
+                                do_propset(descr, player, arg1, arg2);
+                                break;
+                            }
+                        case 's':
+                        case 'S':
+                            Matched("@ps");
+                            list_events(player);
+                            break;
+                        case 'u':
+                        case 'U':
+                            Matched("@purge");
+                            do_purge(descr, player, arg1, arg2);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'r':
+                case 'R':
+                    switch (command[3]) {
+                        case 'c':
+                        case 'C':
+                            Matched("@recycle");
+                            do_recycle(descr, player, arg1);
+                            break;
+                        case 'l':
+                        case 'L':
+                            Matched("@relink");
+                            do_relink(descr, player, arg1, arg2);
+                            break;
+                        case 's':
+                        case 'S':
+                            if (!string_compare(command, "@restart")) {
+                                do_restart(player, arg1, arg2);
+                            } else if (!string_compare(command, "@restrict")) {
+                                do_restrict(player, arg1);
+                            } else {
+                                goto bad;
+                            }
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 's':
+                case 'S':
+                    /* set, shutdown, success */
+                    switch (command[2]) {
+                        case 'a':
+                        case 'A':
+                            if (!string_compare(command, "@sanity")) {
+                                sanity(player);
+                            } else if (!string_compare(command, "@sanchange")) {
+                                sanechange(player, full_command);
+                            } else if (!string_compare(command, "@sanfix")) {
+                                sanfix(player);
+                            } else {
+                                goto bad;
+                            }
+                            break;
+                        case 'e':
+                        case 'E':
+                            Matched("@set");
+                            do_set(descr, player, arg1, arg2);
+                            break;
+                        case 'h':
+                        case 'H':
+                            if (!string_compare(command, "@shout")) {
+                                do_wall(player, full_command);
+                                break;
+                            }
+                            if (string_compare(command, "@shutdown"))
+                                goto bad;
+                            do_shutdown(player, arg1, arg2);
+                            break;
+                        case 'q':
+                        case 'Q':
+                            goto bad;
+                            break;
+                        case 't':
+                        case 'T':
+                            Matched("@stats");
+                            do_stats(player, arg1);
+                            break;
+                        case 'u':
+                        case 'U':
+                            Matched("@success");
+                            do_success(descr, player, arg1, arg2);
+                            break;
+                        case 'w':
+                        case 'W':
+                            Matched("@sweep");
+                            do_sweep(descr, player, arg1);
+                            break;
+                        default:
+                            goto bad;
+                    }
                     break;
                 case 't':
                 case 'T':
-                    Matched("@contents");
-                    do_contents(descr, player, arg1, arg2);
+                    switch (command[2]) {
+                        case 'e':
+                        case 'E':
+                            Matched("@teleport");
+                            do_teleport(descr, player, arg1, arg2);
+                            break;
+                        case 'o':
+                        case 'O':
+                            if (!string_compare(command, "@toad"))
+                                do_frob(descr, player, arg1, arg2);
+                            else if (!string_compare(command, "@tops"))
+                                do_all_topprofs(player, arg1);
+                            else
+                                goto bad;
+                            break;
+                        case 'r':
+                        case 'R':
+                            Matched("@trace");
+                            do_trace(descr, player, arg1, atoi(arg2));
+                            break;
+                        case 'u':
+                        case 'U':
+                            Matched("@tune");
+                            do_tune(player, arg1, arg2);
+                            break;
+                        default:
+                            goto bad;
+                    }
+                    break;
+                case 'u':
+                case 'U':
+                    switch (command[2]) {
+                        case 'N':
+                        case 'n':
+                            if (string_prefix(command, "@unlink")) {
+                                do_unlink(descr, player, arg1);
+                            } else if (string_prefix(command, "@unlock")) {
+                                do_unlock(descr, player, arg1);
+                            } else if (string_prefix(command, "@uncompile")) {
+                                do_uncompile(player);
+                            } else {
+                                goto bad;
+                            }
+                            break;
+
+#ifndef NO_USAGE_COMMAND
+                        case 'S':
+                        case 's':
+                            Matched("@usage");
+                            do_usage(player);
+                            break;
+#endif
+
+                        default:
+                            goto bad;
+                            break;
+                    }
+                    break;
+                case 'v':
+                case 'V':
+                    Matched("@version");
+#if defined(WIN32) || defined(WIN_VC)
+                    anotify_nolisten2(player, SYSCRIMSON "WinProto "
+                                      PROTOBASE
+                                      SYSPURPLE " (" SYSRED VERSION SYSWHITE
+                                      " -- " SYSAQUA NEONVER SYSPURPLE ")");
+#else
+# ifdef CYGWIN
+                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK-Cygwin "
+                                      PROTOBASE SYSPURPLE " (" SYSRED
+                                      VERSION
+                                      SYSWHITE " -- " SYSAQUA NEONVER SYSPURPLE
+                                      ")");
+# else
+#  ifdef APPLE
+                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK OS-X "
+                                      PROTOBASE SYSPURPLE " (" SYSRED
+                                      VERSION SYSWHITE
+                                      " -- " SYSAQUA NEONVER SYSPURPLE ")");
+#  else
+                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK "
+                                      PROTOBASE
+                                      SYSPURPLE " (" SYSRED VERSION
+                                      SYSWHITE " -- " SYSAQUA NEONVER SYSPURPLE
+                                      ")");
+#  endif
+# endif
+#endif
+                    break;
+                case 'w':
+                case 'W':
+                    if (string_compare(command, "@wall"))
+                        goto bad;
+                    do_wall(player, full_command);
                     break;
                 default:
                     goto bad;
-                }
-                break;
-            case 'r':
-            case 'R':
-                if (string_compare(command, "@credits")) {
-                    Matched("@create");
-                    do_create(player, arg1, arg2);
-                } else {
-                    do_credits(player);
-                }
-                break;
-            default:
-                goto bad;
             }
+            break;
+        case '&':
+            do_mush_set(descr, player, arg1, arg2, command);
             break;
         case 'd':
         case 'D':
-            /* describe, dequeue, dig, or dump */
-            switch (command[2]) {
-            case 'b':
-            case 'B':
-                Matched("@dbginfo");
-                do_serverdebug(descr, player, arg1, arg2);
-                break;
-            case 'e':
-            case 'E':
-#ifdef DELTADUMPS
-                if (command[3] == 'l' || command[3] == 'L') {
-                    Matched("@delta");
-                    do_delta(player);
-                } else
-#endif
-                {
-                    if ((command[3] == 's' || command[3] == 'S') &&
-                        (command[4] == 't' || command[4] == 'T')) {
-                        Matched("@destroy");
-                        do_recycle(descr, player, arg1);
-                    } else {
-                        Matched("@describe");
-                        do_describe(descr, player, arg1, arg2);
-                    }
-                }
-                break;
-            case 'i':
-            case 'I':
-                Matched("@dig");
-                do_dig(descr, player, arg1, arg2);
-                break;
-#ifdef DELTADUMPS
-            case 'l':
-            case 'L':
-                Matched("@dlt");
-                do_delta(player);
-                break;
-#endif
-            case 'o':
-            case 'O':
-                Matched("@doing");
-                if (!tp_who_doing)
+            switch (command[1]) {
+                case 'b':
+                case 'B':
+                    Matched("dboot");
+                    do_dboot(player, arg1);
+                    break;
+                case 'i':
+                case 'I':
+                    Matched("dinfo");
+                    do_dinfo(player, arg1);
+                    break;
+                case 'r':
+                case 'R':
+                    Matched("drop");
+                    do_drop(descr, player, arg1, arg2);
+                    break;
+                case 'w':
+                case 'W':
+                    Matched("dwall");
+                    do_dwall(player, arg1, arg2);
+                    break;
+                default:
                     goto bad;
-                do_doing(descr, player, arg1, arg2);
-                break;
-            case 'r':
-            case 'R':
-                Matched("@drop");
-                do_drop_message(descr, player, arg1, arg2);
-                break;
-            case 'u':
-            case 'U':
-                Matched("@dump");
-                do_dump(player, full_command);
-                break;
-            default:
-                goto bad;
             }
             break;
         case 'e':
         case 'E':
-            switch (command[2]) {
-            case 'd':
-            case 'D':
-                Matched("@edit");
-                do_edit(descr, player, arg1);
-                break;
-            case 'n':
-            case 'N':
-                Matched("@entrances");
-                do_entrances(descr, player, arg1, arg2);
-                break;
-            case 'x':
-            case 'X':
-                Matched("@examine");
-                sane_dump_object(player, arg1);
-                break;
-            default:
-                goto bad;
+            switch (command[1]) {
+                case 'm':
+                case 'M':
+                    Matched("emote");
+                    do_pose(descr, player, full_command);
+                    break;
+                case 'x':
+                case 'X':
+                case '\0':
+                    Matched("examine");
+                    do_examine(descr, player, arg1, arg2);
+                    break;
+                default:
+                    goto bad;
             }
             break;
-        case 'f':
-        case 'F':
-            /* fail, find, force, or frob */
-            switch (command[2]) {
-            case 'a':
-            case 'A':
-                Matched("@fail");
-                do_fail(descr, player, arg1, arg2);
-                break;
-            case 'i':
-            case 'I':
-                if (command[3] == 'x' || command[3] == 'X') {
-                    Matched("@fixwizbits");
-                    do_fixw(player, full_command);
-                } else {
-                    Matched("@find");
-                    do_find(player, arg1, arg2);
-                }
-                break;
-            case 'l':
-            case 'L':
-                Matched("@flock");
-                do_flock(descr, player, arg1, arg2);
-                break;
-            case 'o':
-            case 'O':
-                if (strlen(command) < 7) {
-                    Matched("@force");
-                    do_force(descr, player, arg1, arg2);
-                } else {
-                    Matched("@force_lock");
-                    do_flock(descr, player, arg1, arg2);
-                }
-                break;
-            case 'r':
-            case 'R':
-                if (string_compare(command, "@frob"))
+        case 'g':
+        case 'G':
+            /* get, give, go, or gripe */
+            switch (command[1]) {
+                case 'e':
+                case 'E':
+                    Matched("get");
+                    do_get(descr, player, arg1, arg2);
+                    break;
+                case 'i':
+                case 'I':
+                    Matched("give");
+                    do_give(descr, player, arg1, atoi(arg2));
+                    break;
+                case 'o':
+                case 'O':
+                    Matched("goto");
+                    do_move(descr, player, arg1, 0);
+                    break;
+                case 'r':
+                case 'R':
+                    if (command[2] == 'i' || command[2] == 'I') {
+                        if (string_compare(command, "gripe"))
+                            goto bad;
+                        do_gripe(player, full_command);
+                        break;
+                    }
+                default:
                     goto bad;
-                do_frob(descr, player, arg1, arg2);
-                break;
-            default:
-                goto bad;
             }
             break;
         case 'h':
         case 'H':
-            Matched("@htmldescribe");
-            do_htmldescribe(descr, player, arg1, arg2);
+            switch (command[1]) {
+                case 'a':
+                case 'A':
+                    Matched("hand");
+                    do_drop(descr, player, arg1, arg2);
+                case 'e':
+                case 'E':
+                    Matched("help");
+                    do_help(player, arg1, arg2);
+                    break;
+                default:
+                    goto bad;
+            }
             break;
         case 'i':
         case 'I':
-            switch (command[2]) {
-            case 'h':
-            case 'H':
-                Matched("@ihtmldescribe");
-                do_ihtmldescribe(descr, player, arg1, arg2);
-                break;
-            case 'a':
-            case 'A':
-                Matched("@iansidescribe");
-                do_iansidescribe(descr, player, arg1, arg2);
-                break;
-            default:
-                Matched("@idescribe");
-                do_idescribe(descr, player, arg1, arg2);
-                break;
+            if (string_compare(command, "info")) {
+                Matched("inventory");
+                do_inventory(player);
+            } else {
+                do_info(player, arg1, arg2);
             }
-            break;
-        case 'k':
-        case 'K':
-            Matched("@kill");
-            do_dequeue(descr, player, arg1);
             break;
         case 'l':
         case 'L':
-            /* lock or link */
-            switch (command[2]) {
-            case 'i':
-            case 'I':
-                switch (command[3]) {
-                case 'n':
-                case 'N':
-                    Matched("@link");
-                    do_link(descr, player, arg1, arg2);
-                    break;
-                case 's':
-                case 'S':
-                    Matched("@list");
-                    match_and_list(descr, player, arg1, arg2, 1);
-                    break;
-                default:
-                    goto bad;
-                }
+            if (string_prefix("look", command)) {
+                do_look_at(descr, player, arg1, arg2);
                 break;
-            case 'o':
-            case 'O':
-                Matched("@lock");
-                do_lock(descr, player, arg1, arg2);
+            } else {
+                Matched("leave");
+                do_leave(descr, player);
                 break;
-            default:
-                goto bad;
             }
-            break;
         case 'm':
         case 'M':
-            switch (command[2]) {
-            case 'c':
-            case 'C':
-                switch (command[4]) {
-                case 'e':
-                case 'E':
-                    Matched("@mcpedit");
-                    (void) do_mcpedit(descr, player, arg1);
-                    break;
-                case 'p':
-                case 'P':
-                    Matched("@mcpprogram");
-                    (void) do_mcpprogram(descr, player, arg1);
-                    break;
-                default:
+            if (string_prefix(command, "move")) {
+                do_move(descr, player, arg1, 0);
+                break;
+            } else if (!string_compare(command, "motd")) {
+                do_motd(player, full_command);
+                break;
+            } else if (!string_compare(command, "mpi")) {
+                do_mpihelp(player, arg1, arg2);
+                break;
+            } else {
+                if (string_compare(command, "man"))
                     goto bad;
-                }
-            case 'e':
-            case 'E':
-                Matched("@memory");
-                do_memory(player);
-                break;
-            case 'p':
-            case 'P':
-                Matched("@mpitops");
-                do_mpi_topprofs(player, arg1);
-                break;
-            case 'u':
-            case 'U':
-                Matched("@muftops");
-                do_muf_topprofs(player, arg1);
-                break;
-            default:
-                goto bad;
+                do_man(player, arg1, arg2);
             }
             break;
         case 'n':
         case 'N':
-            /* @name or @newpassword */
-            switch (command[2]) {
-            case 'a':
-            case 'A':
-                Matched("@name");
-                do_name(descr, player, arg1, arg2);
-                break;
-            case 'e':
-            case 'E':
-                if (string_compare(command, "@newpassword"))
-                    goto bad;
-                do_newpassword(player, arg1, arg2);
-                break;
-            default:
-                goto bad;
-            }
-            break;
-        case 'o':
-        case 'O':
-            switch (command[2]) {
-            case 'd':
-            case 'D':
-                Matched("@odrop");
-                do_odrop(descr, player, arg1, arg2);
-                break;
-            case 'e':
-            case 'E':
-                Matched("@oecho");
-                do_oecho(descr, player, arg1, arg2);
-                break;
-            case 'f':
-            case 'F':
-                Matched("@ofail");
-                do_ofail(descr, player, arg1, arg2);
-                break;
-            case 'p':
-            case 'P':
-                Matched("@open");
-                do_open(descr, player, arg1, arg2);
-                break;
-            case 's':
-            case 'S':
-                Matched("@osuccess");
-                do_osuccess(descr, player, arg1, arg2);
-                break;
-            case 'w':
-            case 'W':
-                Matched("@owned");
-                do_owned(player, arg1, arg2);
-                break;
-            default:
-                goto bad;
-            }
+            /* news */
+            Matched("news");
+            do_news(player, arg1, arg2);
             break;
         case 'p':
         case 'P':
-            switch (command[2]) {
-            case 'a':
-            case 'A':
-                Matched("@password");
-                do_password(player, arg1, arg2);
-                break;
-            case 'c':
-            case 'C':
-                Matched("@pcreate");
-                do_pcreate(player, arg1, arg2);
-                break;
-            case 'e':
-            case 'E':
-                Matched("@pecho");
-                do_pecho(descr, player, arg1, arg2);
-                break;
-            case 'o':
-            case 'O':
-                Matched("@powers");
-                do_powers(descr, player, arg1, arg2);
-                break;
-            case 'r':
-            case 'R':
-                if (string_prefix("@program", command)) {
-                    do_prog(descr, player, arg1);
+            switch (command[1]) {
+                case 'a':
+                case 'A':
+                case '\0':
+                    Matched("page");
+                    do_page(descr, player, arg1, arg2);
                     break;
-                } else if (string_prefix("@proginfo", command)) {
-                    do_proginfo(player, arg1);
+                case 'o':
+                case 'O':
+                    Matched("pose");
+                    do_pose(descr, player, full_command);
                     break;
-                } else {
-                    Matched("@propset");
-                    do_propset(descr, player, arg1, arg2);
+                case 'u':
+                case 'U':
+                    Matched("put");
+                    do_drop(descr, player, arg1, arg2);
                     break;
-                }
-            case 's':
-            case 'S':
-                Matched("@ps");
-                list_events(player);
-                break;
-            case 'u':
-            case 'U':
-                Matched("@purge");
-                do_purge(descr, player, arg1, arg2);
-                break;
-            default:
-                goto bad;
+                default:
+                    goto bad;
             }
             break;
         case 'r':
         case 'R':
-            switch (command[3]) {
-            case 'c':
-            case 'C':
-                Matched("@recycle");
-                do_recycle(descr, player, arg1);
-                break;
-            case 'l':
-            case 'L':
-                Matched("@relink");
-                do_relink(descr, player, arg1, arg2);
-                break;
-            case 's':
-            case 'S':
-                if (!string_compare(command, "@restart")) {
-                    do_restart(player, arg1, arg2);
-                } else if (!string_compare(command, "@restrict")) {
-                    do_restrict(player, arg1);
-                } else {
+            switch (command[1]) {
+                case 'e':
+                case 'E':
+                    Matched("read"); /* undocumented alias for look */
+                    do_look_at(descr, player, arg1, arg2);
+                    break;
+                default:
                     goto bad;
-                }
-                break;
-            default:
-                goto bad;
             }
             break;
         case 's':
         case 'S':
-            /* set, shutdown, success */
-            switch (command[2]) {
-            case 'a':
-            case 'A':
-                if (!string_compare(command, "@sanity")) {
-                    sanity(player);
-                } else if (!string_compare(command, "@sanchange")) {
-                    sanechange(player, full_command);
-                } else if (!string_compare(command, "@sanfix")) {
-                    sanfix(player);
-                } else {
-                    goto bad;
-                }
-                break;
-            case 'e':
-            case 'E':
-                Matched("@set");
-                do_set(descr, player, arg1, arg2);
-                break;
-            case 'h':
-            case 'H':
-                if (!string_compare(command, "@shout")) {
-                    do_wall(player, full_command);
+            /* say, "score" */
+            switch (command[1]) {
+                case 'a':
+                case 'A':
+                    Matched("say");
+                    do_say(descr, player, full_command);
                     break;
-                }
-                if (string_compare(command, "@shutdown"))
+                case 'c':
+                case 'C':
+                case '\0':
+                    if (command[1] && (command[2] == 'a' || command[2] == 'A')) {
+                        Matched("scan");
+                        do_sweep(descr, player, arg1);
+                    } else {
+                        Matched("score");
+                        do_score(player, 1);
+                    }
+                    break;
+                default:
                     goto bad;
-                do_shutdown(player, arg1, arg2);
-                break;
-            case 'q':
-            case 'Q':
-                goto bad;
-                break;
-            case 't':
-            case 'T':
-                Matched("@stats");
-                do_stats(player, arg1);
-                break;
-            case 'u':
-            case 'U':
-                Matched("@success");
-                do_success(descr, player, arg1, arg2);
-                break;
-            case 'w':
-            case 'W':
-                Matched("@sweep");
-                do_sweep(descr, player, arg1);
-                break;
-            default:
-                goto bad;
             }
             break;
         case 't':
         case 'T':
-            switch (command[2]) {
-            case 'e':
-            case 'E':
-                Matched("@teleport");
-                do_teleport(descr, player, arg1, arg2);
-                break;
-            case 'o':
-            case 'O':
-                if (!string_compare(command, "@toad"))
-                    do_frob(descr, player, arg1, arg2);
-                else if (!string_compare(command, "@tops"))
-                    do_all_topprofs(player, arg1);
-                else
+            switch (command[1]) {
+                case 'a':
+                case 'A':
+                    Matched("take");
+                    do_get(descr, player, arg1, arg2);
+                    break;
+                case 'h':
+                case 'H':
+                    Matched("throw");
+                    do_drop(descr, player, arg1, arg2);
+                    break;
+                default:
                     goto bad;
-                break;
-            case 'r':
-            case 'R':
-                Matched("@trace");
-                do_trace(descr, player, arg1, atoi(arg2));
-                break;
-            case 'u':
-            case 'U':
-                Matched("@tune");
-                do_tune(player, arg1, arg2);
-                break;
-            default:
-                goto bad;
             }
-            break;
-        case 'u':
-        case 'U':
-            switch (command[2]) {
-            case 'N':
-            case 'n':
-                if (string_prefix(command, "@unlink")) {
-                    do_unlink(descr, player, arg1);
-                } else if (string_prefix(command, "@unlock")) {
-                    do_unlock(descr, player, arg1);
-                } else if (string_prefix(command, "@uncompile")) {
-                    do_uncompile(player);
-                } else {
-                    goto bad;
-                }
-                break;
-
-#ifndef NO_USAGE_COMMAND
-            case 'S':
-            case 's':
-                Matched("@usage");
-                do_usage(player);
-                break;
-#endif
-
-            default:
-                goto bad;
-                break;
-            }
-            break;
-        case 'v':
-        case 'V':
-            Matched("@version");
-#if defined(WIN32) || defined(WIN_VC)
-            anotify_nolisten2(player, SYSCRIMSON "WinProto "
-                              PROTOBASE
-                              SYSPURPLE " (" SYSRED VERSION SYSWHITE
-                              " -- " SYSAQUA NEONVER SYSPURPLE ")");
-#else
-# ifdef CYGWIN
-            anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK-Cygwin "
-                              PROTOBASE SYSPURPLE " (" SYSRED
-                              VERSION
-                              SYSWHITE " -- " SYSAQUA NEONVER SYSPURPLE ")");
-# else
-#  ifdef APPLE
-            anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK OS-X "
-                              PROTOBASE SYSPURPLE " (" SYSRED
-                              VERSION SYSWHITE
-                              " -- " SYSAQUA NEONVER SYSPURPLE ")");
-#  else
-            anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK "
-                              PROTOBASE
-                              SYSPURPLE " (" SYSRED VERSION
-                              SYSWHITE " -- " SYSAQUA NEONVER SYSPURPLE ")");
-#  endif
-# endif
-#endif
             break;
         case 'w':
         case 'W':
-            if (string_compare(command, "@wall"))
-                goto bad;
-            do_wall(player, full_command);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    case '&':
-        do_mush_set(descr, player, arg1, arg2, command);
-        break;
-    case 'd':
-    case 'D':
-        switch (command[1]) {
-        case 'b':
-        case 'B':
-            Matched("dboot");
-            do_dboot(player, arg1);
-            break;
-        case 'i':
-        case 'I':
-            Matched("dinfo");
-            do_dinfo(player, arg1);
-            break;
-        case 'r':
-        case 'R':
-            Matched("drop");
-            do_drop(descr, player, arg1, arg2);
-            break;
-        case 'w':
-        case 'W':
-            Matched("dwall");
-            do_dwall(player, arg1, arg2);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    case 'e':
-    case 'E':
-        switch (command[1]) {
-        case 'm':
-        case 'M':
-            Matched("emote");
-            do_pose(descr, player, full_command);
-            break;
-        case 'x':
-        case 'X':
-        case '\0':
-            Matched("examine");
-            do_examine(descr, player, arg1, arg2);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    case 'g':
-    case 'G':
-        /* get, give, go, or gripe */
-        switch (command[1]) {
-        case 'e':
-        case 'E':
-            Matched("get");
-            do_get(descr, player, arg1, arg2);
-            break;
-        case 'i':
-        case 'I':
-            Matched("give");
-            do_give(descr, player, arg1, atoi(arg2));
-            break;
-        case 'o':
-        case 'O':
-            Matched("goto");
-            do_move(descr, player, arg1, 0);
-            break;
-        case 'r':
-        case 'R':
-            if (command[2] == 'i' || command[2] == 'I') {
-                if (string_compare(command, "gripe"))
+            switch (command[1]) {
+                case 'c':
+                case 'C':
+                    Matched("wc");
+                    do_wizchat(player, full_command);
+                    break;
+                case 'i':
+                case 'I':
+                    Matched("wizchat");
+                    do_wizchat(player, arg1);
+                    break;
+                case 'h':
+                case 'H':
+                case '\0':
+                    Matched("whisper");
+                    do_whisper(descr, player, arg1, arg2);
+                    break;
+                default:
                     goto bad;
-                do_gripe(player, full_command);
-                break;
-            }
-        default:
-            goto bad;
-        }
-        break;
-    case 'h':
-    case 'H':
-        switch (command[1]) {
-        case 'a':
-        case 'A':
-            Matched("hand");
-            do_drop(descr, player, arg1, arg2);
-        case 'e':
-        case 'E':
-            Matched("help");
-            do_help(player, arg1, arg2);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    case 'i':
-    case 'I':
-        if (string_compare(command, "info")) {
-            Matched("inventory");
-            do_inventory(player);
-        } else {
-            do_info(player, arg1, arg2);
-        }
-        break;
-    case 'l':
-    case 'L':
-        if (string_prefix("look", command)) {
-            do_look_at(descr, player, arg1, arg2);
-            break;
-        } else {
-            Matched("leave");
-            do_leave(descr, player);
-            break;
-        }
-    case 'm':
-    case 'M':
-        if (string_prefix(command, "move")) {
-            do_move(descr, player, arg1, 0);
-            break;
-        } else if (!string_compare(command, "motd")) {
-            do_motd(player, full_command);
-            break;
-        } else if (!string_compare(command, "mpi")) {
-            do_mpihelp(player, arg1, arg2);
-            break;
-        } else {
-            if (string_compare(command, "man"))
-                goto bad;
-            do_man(player, arg1, arg2);
-        }
-        break;
-    case 'n':
-    case 'N':
-        /* news */
-        Matched("news");
-        do_news(player, arg1, arg2);
-        break;
-    case 'p':
-    case 'P':
-        switch (command[1]) {
-        case 'a':
-        case 'A':
-        case '\0':
-            Matched("page");
-            do_page(descr, player, arg1, arg2);
-            break;
-        case 'o':
-        case 'O':
-            Matched("pose");
-            do_pose(descr, player, full_command);
-            break;
-        case 'u':
-        case 'U':
-            Matched("put");
-            do_drop(descr, player, arg1, arg2);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    case 'r':
-    case 'R':
-        switch (command[1]) {
-        case 'e':
-        case 'E':
-            Matched("read");    /* undocumented alias for look */
-            do_look_at(descr, player, arg1, arg2);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    case 's':
-    case 'S':
-        /* say, "score" */
-        switch (command[1]) {
-        case 'a':
-        case 'A':
-            Matched("say");
-            do_say(descr, player, full_command);
-            break;
-        case 'c':
-        case 'C':
-        case '\0':
-            if (command[1] && (command[2] == 'a' || command[2] == 'A')) {
-                Matched("scan");
-                do_sweep(descr, player, arg1);
-            } else {
-                Matched("score");
-                do_score(player, 1);
             }
             break;
         default:
-            goto bad;
+          bad:
+          bad2:
+        {
+            anotify_fmt(player, CINFO "%s", tp_huh_mesg);
+            if (tp_log_failed_commands
+                && !controls(player, DBFETCH(player)->location)) {
+                log_status("HUH from %s(%d) in %s(%d)[%s]: %s %s\n",
+                           NAME(player), player,
+                           NAME(DBFETCH(player)->location),
+                           DBFETCH(player)->location,
+                           NAME(OWNER(DBFETCH(player)->location)), command,
+                           full_command);
+            }
         }
-        break;
-    case 't':
-    case 'T':
-        switch (command[1]) {
-        case 'a':
-        case 'A':
-            Matched("take");
-            do_get(descr, player, arg1, arg2);
             break;
-        case 'h':
-        case 'H':
-            Matched("throw");
-            do_drop(descr, player, arg1, arg2);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    case 'w':
-    case 'W':
-        switch (command[1]) {
-        case 'c':
-        case 'C':
-            Matched("wc");
-            do_wizchat(player, full_command);
-            break;
-        case 'i':
-        case 'I':
-            Matched("wizchat");
-            do_wizchat(player, arg1);
-            break;
-        case 'h':
-        case 'H':
-        case '\0':
-            Matched("whisper");
-            do_whisper(descr, player, arg1, arg2);
-            break;
-        default:
-            goto bad;
-        }
-        break;
-    default:
-      bad:
-      bad2:
-    {
-        anotify_fmt(player, CINFO "%s", tp_huh_mesg);
-        if (tp_log_failed_commands
-            && !controls(player, DBFETCH(player)->location)) {
-            log_status("HUH from %s(%d) in %s(%d)[%s]: %s %s\n", NAME(player),
-                       player, NAME(DBFETCH(player)->location),
-                       DBFETCH(player)->location,
-                       NAME(OWNER(DBFETCH(player)->location)), command,
-                       full_command);
-        }
-    }
-        break;
     }
 
 }
@@ -1607,15 +1611,15 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
     propfetch(where, ptr);
 #endif
     switch (PropType(ptr)) {
-    case PROP_STRTYP:
-        workBuf = get_uncompress(PropDataStr(ptr));
-        break;
-    case PROP_REFTYP:
-        progRef = PropDataRef(ptr);
-        break;
-    default:
-        return 0;
-        break;
+        case PROP_STRTYP:
+            workBuf = get_uncompress(PropDataStr(ptr));
+            break;
+        case PROP_REFTYP:
+            progRef = PropDataRef(ptr);
+            break;
+        default:
+            return 0;
+            break;
     }
     if (workBuf && *workBuf) {
         if (*workBuf == '&')
