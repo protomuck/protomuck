@@ -48,15 +48,10 @@
 #define CYGWIN_TZ -8 
 #define CYGWIN_TZX "PST" 
 
-/* Alynna - Define these for SSL support 
- If you're running OpenSSL, the defaults should be fine.  If not, try some
- of these others.
- */
-
-#define USE_SSL
-#define HAVE_OPENSSL_SSL_H
-#undef HAVE_SSL_SSL_H
-#undef HAVE_SSL_H
+/* Alynna - Define this for SSL support */
+/* Note: Use ./configure --with-ssl */
+/* Todo: Rename this to SSL_SUPPORT */
+#undef USE_SSL
 
 /* Alynna - Define this to have support for the @/ignore prop, a reflist
    on a player which will drop notifies from the players in the prop to
@@ -64,7 +59,7 @@
    Note: MUF_MAX_IGNORES and MAX_IGNORES should be the same, just the MUF
    version should be in text, for the MAX_IGNORES MUF define.
  */
-#define IGNORE_SUPPORT
+#undef IGNORE_SUPPORT
 #define MAX_IGNORES 16
 #define MUF_MAX_IGNORES "16"
 

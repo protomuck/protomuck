@@ -107,10 +107,17 @@
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
 
-
 /* if tm_gmtoff is defined in time.h, define this */
 #undef HAVE_TM_GMTOFF
 
 /* if tm_gmtoff is defined in sys/time.h, define this */
 #undef HAVE_SYS_TM_GMTOFF
 
+/* Define if you have the <ssl.h> header file.  */
+#undef HAVE_SSL_H
+
+/* Define if you have the <ssl/ssl.h> header file.  */
+#undef HAVE_SSL_SSL_H
+
+/* Define if you have the <openssl/ssl.h> header file.  */
+#undef HAVE_OPENSSL_SSL_H
