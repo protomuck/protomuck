@@ -366,6 +366,7 @@ do_look_at(int descr, dbref player, register const char *name,
         } else if (thing == NOTHING || (*detail && thing != AMBIGUOUS)) {
             char propname[BUFFER_LEN];
             PropPtr propadr, pptr, lastmatch;
+            bool ambig;
 
             lastthing = NOTHING;
             if (thing == NOTHING) {
@@ -381,14 +382,16 @@ do_look_at(int descr, dbref player, register const char *name,
             fetchprops(thing);
 #endif
 
-            lastmatch = (PropPtr) NOTHING;
+            lastmatch = NULL;
+            ambig = 0;
 
           repeat_match:
             propadr = first_prop(thing, "_obj/", &pptr, propname);
             while (propadr) {
                 if (exit_prefix(propname, buf)) {
-                    if (lastmatch != (PropPtr) NOTHING) {
-                        lastmatch = (PropPtr) AMBIGUOUS;
+                    if (lastmatch != NULL) {
+                        lastmatch = NULL;
+                        ambig = 1;
                         break;
                     } else {
                         lastmatch = propadr;
@@ -400,8 +403,9 @@ do_look_at(int descr, dbref player, register const char *name,
             propadr = first_prop(thing, "_det/", &pptr, propname);
             while (propadr) {
                 if (exit_prefix(propname, buf)) {
-                    if (lastmatch != (PropPtr) NOTHING) {
-                        lastmatch = (PropPtr) AMBIGUOUS;
+                    if (lastmatch != NULL) {
+                        lastmatch = NULL;
+                        ambig = 1;
                         break;
                     } else {
                         lastmatch = propadr;
@@ -415,15 +419,14 @@ do_look_at(int descr, dbref player, register const char *name,
                     goto repeat_match;
 
             thing = lastthing;
-            if (((size_t)lastmatch > 0) && (PropType(lastmatch) == PROP_STRTYP)) {
+            if (lastmatch != NULL && PropType(lastmatch) == PROP_STRTYP) {
 #ifdef DISKBASE
                 propfetch(thing, lastmatch); /* DISKBASE PROPVALS */
 #endif
                 exec_or_notify(descr, player, thing, PropDataUNCStr(lastmatch),
                                "(@detail)");
-            } else if ((size_t)lastmatch == AMBIGUOUS) {
+            } else if (ambig) {
                 anotify_nolisten(player, CINFO AMBIGUOUS_MESSAGE, 1);
-
             } else if (*detail) {
                 notify(player, "You see nothing special.");
             } else {
