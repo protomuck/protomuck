@@ -16,7 +16,7 @@ Message shown to all players at the start of a full data base save.
 dumpdone_mesg
 Message shown to all players once dump or delta save is done.
 ~~~
-huh_message
+huh_mesg
 Message seen when a player enters a line the server doesn't understand.
 ~~~~
 leave_message
@@ -47,16 +47,20 @@ muckname
 Change this to the name of your MUCK.
 ~~~
 dummy_midi
-Set to some small MIDI on a server. Used when starting up web interface.
+Set to some small MIDI on a server. Used when starting up the web 
+login interface.
 ~~~
 mailserver
-Define this to set which server to use for e-mail registration.
+No longer has any in-server function since the removal of @hopper. 
+However, since many email related MUF programs depend on it being 
+here, it has been left in.
 ~~~
 servername
-Set this to the server name. E.g. user@server.com.
+Set this to the server name. Such as tnt.dynodns.net.
 ~~~
 reg_email
-This is the return email for e-mail registration.
+No longer has any in-server function since the removal of @hopper. Has 
+been left in to account for any MUF programs that depend on this field.
 ~~~
 dump_interval
 Time between dumps or delta-dumps.
@@ -68,18 +72,26 @@ monolithic_interval
 If deltas are defined, this sets the frequency of full dumps.
 ~~~
 clean_interval
-How often unused objects are purged from RAM and unused programs are
-uncompiled.
+This controls how often unused MUF programs are purged from RAM.
+I.e., if a MUF program hasn't been used for 15 minutes, it is cleaned out.
+If the MUCK is running in DISKBASED mode, this determines how long an
+object or property remains in RAM before it is cleaned out.
 ~~~
 aging_time
 Unused time before obj shows as old in in-server searches such as 
 @find.
-~~~
+~~~~~
+connidle
+This sets how idle a connection has to be on the login screen before it
+gets dropped.
+~~~~~
 maxidle
 How much time a player can idle before being booted if idleboot is on.
 ~~~
 idletime
-How much time until a player is considered to be idle.
+How much time until a player is considered to be idle by the MUCK.
+Once a player reaches this point, an IDLE flag gets put on the player,
+and the _idle/ propqueues get called. 
 ~~~
 cron_interval
 Frequency at which to run the MUF set in cron_prog.
@@ -109,14 +121,15 @@ room_cost
 The cost of creating rooms with the in-server @dig.
 ~~~
 lookup_cost
-The cost of looking up a player's name.
+The cost of looking up a player's name for prims like match
+or partial_match.
 ~~~
-max_penneies
+max_pennies
 The maximum number of pennies a player can find/be given.
 ~~~
 penny_rate
 1/chance of finding a penny in each room. I.e., bigger # indicates 
-smaller chance. = 1 indicates 100% chance.
+smaller chance. 1 indicates 100% chance. 0 shuts off penny finding.
 ~~~
 start_pennies
 How many pennies newly made characters begin with.
@@ -130,7 +143,7 @@ Commands per time slice after burst.
 command_time_msec
 Number of milliseconds in each time slice.
 ~~~
-max_delta_objects
+max_delta_objs
 The maximum percentage of the data base that can be changed before
 a full dump will be forced.
 ~~~
@@ -142,17 +155,19 @@ max_process_limit
 Max # of timequeue events allowed.
 ~~~
 max_plyr_processes
-Max # of timequeue events allowed for any one player.
+Max # of timequeue events allowed for any one non-wiz-bitted player.
 ~~~
 max_instr_count
-Max # of instrs in uninterruptable muf programs before timeout.
+Max # of instrs in uninterruptable muf programs before they are forced
+to abort. This limit only affects programs running under non-wiz 
+permissions.
 ~~~
 instr_slice
 The number of instructions to run before forcing a context switch to
 the next waiting muf program. This is for the multitasking interpreter. 
 ~~~
 mpi_max_commands
-Max # of instrs in uninterruptable MPI programs before timeout.
+Max # of instrs in uninterruptable MPI programs before the MPI will abort.
 ~~~
 pause_min
 The minimum time in milliseconds the server will pause in select() 
@@ -177,13 +192,16 @@ propqueue.
 playermax_limit
 Maximum allowed concurrent player connections.
 ~~
-huh_command
-Program to be run when a player enters an unrecognized command. 
-The trigger will be #-4.
+process_timer_limit
+Set this to the number of timers to be allowed per muf program.
 ~~
-login_huh_command
-Program to be run when a player enters an unrecognized command
-at the login screen. The trigger will be #-5.
+dump_copies
+This sets the number of past data base copies to keep in the backup/data
+directory on the server. Max is 25, setting it to 0 will disable past
+dump saving.
+~~
+quit_prog
+This sets the MUF program to call when a player types 'QUIT'. 
 ~~
 login_who_prog
 Program to be run when a player types WHO at the login screen.
@@ -192,13 +210,10 @@ player_start
 Where newly @pcreated players are placed. Also becomes the 
 default home when a player has no other home.
 ~~
-reg_wiz
-Wizard currently in charge of processing character requests with
-@hopper. Type '@hopper' for more details.
-~~
 player_prototype
 Dbref of player from which to copy all flags and props when 
-a new player is @pcreated.
+a new player is @pcreated. The props copying is optional, 
+according to the pcreate_copy_props @tune setting.
 ~~
 cron_prog
 Program to run at the frequency of the cron_interval. 
@@ -210,7 +225,10 @@ for the webserver support in ProtoMUCK.
 www_surfer
 This is the user that will have HTMuf cgi scripts executed as.  
 If it is set to #-1 or an invalid user, muf cgi scripts won't
-execute.
+execute. 'me @' in MUF programs called from the webserver will
+return this player's dbref. Setting this player = DARK and
+PARENT will enable LOGWALLED wizards to see a lot more status
+log for browser connections to the MUCK. 
 ~~
 use_hostnames
 Do reverse domain name lookup. Turn this parameter of if there is
@@ -231,8 +249,26 @@ Log all non-wizard owned program text at the time the program is
 saved.
 ~~
 log_guests
-Log all actions done by characters that have the G flag set.
+Log all actions done by characters that have the G flag set out to
+the command log file. 
 ~~
+log_files
+Log the use of the file prims. Keeps track of the names of the files
+affected by the file prims, but does not log the actual text written to
+or read from the file.
+~~
+log_sockets
+Log the use of the socket prims. Keeps track of the activity on each
+MUF socket descriptor, but does not log the actual data transmitted
+through the socket.
+~~
+log_failedhelp
+When set to 'yes', will log failed attempts to use the in-server 
+help commands to a file in the logs/ directory. If something a
+player searches for in the help does not have an entry, their
+query is logged, or if the help file itself is missing, that 
+is logged as well.
+~~~
 dbdump_warning
 Display the save messages for full data base saves.
 ~~
@@ -240,7 +276,9 @@ deltadump_warning
 Display the save messages for delta dump saves.
 ~~
 periodic_program_purge
-Set this to yes to purge unused programs from RAM.
+Set this to yes to purge unused programs from RAM. Programs that have
+not been used for the length indicated in clean_interval will be taken
+out of RAM.
 ~~
 secure_who
 Prevents using WHO from the login screen.
@@ -250,12 +288,13 @@ In-server WHO will display the @doing list from the _/do prop on
 players.
 ~~
 realms_control
-Makes all items under the environment of a room set Wizard, be
-controlled by the owner of that room, as well as by the object 
-owner, and Wizards.
+Makes it so that if a parent room is set WIZARD, the owner of that
+parent room becomes a like a 'wizard' for all objects within that
+parent room. 
 ~~~
 allow_listeners
-Allow listen properties to execute when players speak. 
+Allow listen properties to execute when something is notified to
+the object that the listen prop is on.
 ~~
 allow_listeners_obj
 Objects can have listen properties.
@@ -308,7 +347,7 @@ want to re-set the Levels of all the LOOK, DISCONNECT, and CONNECT
 actions.
 ~~
 do_mpi_parsing
-Turning this off prevents text from being setn through the MPI parser.
+Turning this off prevents text from being sent through the MPI parser.
 ~~
 look_propqueues
 Turning this on allows _look/ propqueue hooks.
@@ -329,7 +368,8 @@ Turning this on will enforce the max_players @tune by booting
 players who connect once the limit has been reached.
 ~~
 db_readonly
-Turning this on prevents most changes to be made to the data base.
+Turning this on prevents most changes to be made to the data base. 
+@newpasswording and @frobbing can still be done, however.
 ~~
 building
 Setting this to no will disable the in-server building commands, such
@@ -343,17 +383,16 @@ restricted_building
 Setting this to yes prevents players from making anything unless they
 have a BUILDER flag. Is overridden by the all_can_build_rooms option.
 ~~
-process_timer_limit
-Set this to the number of timers to be allowed per muf program.
-~~
 allow_home
 Setting this to no disables the in-server home command.
 ~~
 enable_idle_msgs
-If this is enabled, then the room will be notified with a message if a player goes idle, or becomes unidle.
+If this is enabled, then the room will be notified with a message if a player 
+goes idle, or becomes unidle.
 ~~
 user_idle_propqueue
-If enabled, this will allow _Idle/ and _Unidle to be used, so that not just administration can set this propdir.
+If enabled, this will allow _Idle/ and _Unidle to be used, so that not just 
+administration can set this propdir.
 ~~
 quiet_moves
 Setting this to yes turns off the '%N has arrived/left.' messages 
@@ -364,13 +403,19 @@ Setting this to yes causes the MUF debugger to display the contents
 of MUF arrays.  It also expands the strings.
 ~~
 proplist_int_counter
-Used to specify whether the system standard for proplist storage is to use integer or string props for the counter.
+Used to specify whether the system standard for proplist storage is
+to use integer or string props for the counter.
 ~~
 proplist_entry_fmt
-Used to specify the system standard format for proplists. Any instance of P in the string will be replaced by the proplist name. Any instance of N in the string will be replaced by the item's number. The default is "P#/N".
+Used to specify the system standard format for proplists. Any instance of P in
+the string will be replaced by the proplist name. Any instance of N in the 
+string will be replaced by the item's number. The default is "P#/N".
 ~~
 proplist_counter_fmt
-Used to display the system standard naming format for proplists. This string specifies the format of the namee of the property that the count of list items is stored in. Any instance of P will be replaced by the proplist name. The default is "P#".
+Used to display the system standard naming format for proplists. This string 
+specifies the format of the namee of the property that the count of list items 
+is stored in. Any instance of P will be replaced by the proplist name. The 
+default is "P#".
 ~~
 enable_mcp
 Setting this to no turns off the MCP version indicator upon connection.
@@ -383,12 +428,40 @@ the command prop support.
 old_parseprop
 When set to 'no', the parseprop prim gets its permissions from the
 object on which the prop to be parsed is located. When set to 'yes',
-the parseprim prop gets its permissions from the permission bit set
+the parseprop prim gets its permissions from the permission bit set
 on the MUF program itself.
-~~
-log_failedhelp
-When set to 'yes', will log failed attempts to use the in-server 
-help commands to a file in the logs/ directory. If something a
-player searches for in the help does not have an entry, their
-query is logged, or if the help file itself is missing, that 
-is logged as well.
+~~~
+pcreate_copy_props
+Setting this to yes will make it so that newly made players will have the
+props on the player_prototype copied to them at @pcreation time.
+~~~
+quiet_connects
+Setting this to yes will shut off the '%N has connected/disconnected.' 
+messages.
+~~~
+mpi_needflag
+Setting this to yes will make it so that players and objects must have the
+MEEPER bit in order to parse MPI. When a player has been given a MEEPER
+bit, they can then set the MEEPER bit on things they own, thus enabling
+those objects to active MPI parsing as well.
+~~~
+guest_needflag
+When set to yes, any player marked G will only be able to enter rooms
+that have been set with the GUEST flag. When set to no, then players 
+with the G flag will be unable to enter rooms set with the GUEST flag.
+~~~
+mortalwho
+When set to yes, wizards have to use WHO ! in order to see wiz-who.
+When set to no, wizards will see wiz-WHO by default.
+~~~
+fb_controls
+When set to yes, all wizards over W2 have control over just about
+everything on the MUCK. When set to no, the MUCK runs under Neon
+Wiz permissions, in which case, no wiz has control over objects
+owned by a higher wiz level. For example, W3's would not pass a
+'controls' check for an object owned by a W4.
+~~~
+allow_old_trigs
+Setting this to no disables all _ prefixed propqueues. For example, 
+_connect, _disconnect, etc., will not work if this is set to no.
+Setting it to yes leaves all of those propqueues enabled.
