@@ -1,5 +1,5 @@
 ==================================================================
-                     ProtoMUCK 1.80 MUF Manual
+                     ProtoMUCK 2.0 MUF Manual
 
 Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
@@ -146,8 +146,9 @@ Data Base Prims:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
-  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    STAFF?
-        
+  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
+  ANSI_NAME     ANSI_UNPARSEOBJ
+      
 System Prims:
   SYSPARM         SETSYSPARM     LOGSTATUS     VERSION     FORCE
   FORCE_LEVEL     MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
@@ -175,11 +176,11 @@ Array Prims:
   ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS 
   ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
   ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
-  ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
+  ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL   
   ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
   ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
-  EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
-  ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED 
+  EXITS_ARRAY          ENTRANCES_ARRAY      GETOBJINFO         GETDESCRINFO
+  FIND_ARRAY           ARRAY_CUT            ARRAY_COMPARE      ARRAY_SORT_INDEXED 
   ARRAY_INTERPRET      }CAT
 
 File Prims: 
@@ -342,7 +343,8 @@ The following prims are used to work with the MUCK database:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     EXITS_ARRAY    CONTENTS_ARRAY
-  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    STAFF?
+  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
+  ANSI_NAME     ANSI_UNPARSEOBJ
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -1228,6 +1230,26 @@ Note that when exits are moved, their permission level is reset to 0.
 MOVETO rules follow the permissions of the current effective userid.  
 MOVETO will run programs in the @desc and @succ/@fail of a room when 
 moving a player.
+~
+ANSI_NAME
+
+ansi_name ( d -- s )
+--------------------
+Level: M1 Apprentice
+d = Any valid dbref.
+s = string containing the colorized name.
+
+Given any valid dbref number, it will return a colorized version of
+that object's name as a string. Uses standard (FB6-style) ANSI.
+
+The colors are:
+  PLAYER  = GREEN
+  THING   = PURPLE
+  EXIT    = BLUE
+  PROGRAM = RED
+  ROOM    = CYAN
+
+See: NAME, STANDARD ANSI
 ~
 NAME
 
@@ -8349,6 +8371,17 @@ An example of it in use:
 ;
 
 See: TRY, CATCH, ENDCATCH
+~~~~
+ENTRANCES_ARRAY
+
+entrances_array ( d -- arr )
+----------------------------
+Level: M1 Apprentice
+d = Any valid dbref.
+arr = list array containing all objects linked to d.
+
+Given a valid dbref, returns all objects linked to that object in
+a list array.  Similar to the @ENTRANCES command.
 ~~~~
 CONTENTS_ARRAY
 
