@@ -137,7 +137,9 @@ extern void do_link(int descr, dbref player, const char *name, const char *room_
 extern void do_dig(int descr, dbref player, const char *name, const char *pname);
 extern void do_create(dbref player, char *name, char *cost);
 extern void do_prog(int descr, dbref player, const char *name);
+extern void do_mcpprogram(int descr, dbref player, const char *name);
 extern void do_mcpedit(int descr, dbref player, const char *name);
+extern void mcpedit_program(int descr, dbref player, dbref prog, const char *name);
 extern void do_edit(int descr, dbref player, const char *name);
 extern int unset_source(dbref player, dbref loc, dbref action);
 extern int link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_list);

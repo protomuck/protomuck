@@ -687,8 +687,9 @@ free_unused_programs()
 /* INTERMEDIATE instruction flags */
 #define IMMFLAG_REFERENCED 1 /* Referenced by a jump */
 
+/* checks code for valid fetch-and-clear optims and does them */
 void
-MaybeOptimizeSvarAt(COMPSTATE *cstat, struct INTERMEDIATE *first, int AtNo, 
+MaybeOptimizeVarsAt(COMPSTATE *cstat, struct INTERMEDIATE *first, int AtNo, 
     int BangNo)
 {
 /* AtNo is the primitive reference # for @
@@ -698,35 +699,86 @@ MaybeOptimizeSvarAt(COMPSTATE *cstat, struct INTERMEDIATE *first, int AtNo,
     struct INTERMEDIATE *ptr;
     int farthest = 0;
     int i = 0;
+    int lvarflag = 0; 
+
+    if (first->in.type == PROG_LVAR_AT || first->in.type == PROG_LVAR_AT_CLEAR)
+        lvarflag = 1;
 
     for (; curr; curr = curr->next) {
         switch(curr->in.type) {
             case PROG_PRIMITIVE:
                 /* Don't trust physical @ or !'s in-code as they may be
                  * used for indirect referencing of scoped variables */
+                /* Don't trust any explict JMPs in the code */
                 if ((curr->in.data.number == AtNo) ||
-                    (curr->in.data.number == BangNo)) {
+                    (curr->in.data.number == BangNo) ||
+                    (curr->in.data.number == IN_JMP)) {
                      return;
                 }
+                if (lvarflag) {
+                    /* don't trust the following prims for lvars 
+                     * EXIT escape the code path without leaving lvar scope
+                     * EXECUTE escape path without leaving lvar scope
+                     * CALLS cause re-entrancy problems */
+                    if (curr->in.data.number == IN_RET ||
+                        curr->in.data.number == IN_EXECUTE ||
+                        curr->in.data.number == IN_CALL) {
+                        return;
+                    }
+                } 
                 break;
-            
+            case PROG_LVAR_AT:
+            case PROG_LVAR_AT_CLEAR:
+                if (lvarflag) {
+                    if (curr->in.data.number == first->in.data.number) {
+                        /* references to variable found before a var! */
+                        return;
+                    }
+                }
+                break;
             case PROG_SVAR_AT:
             case PROG_SVAR_AT_CLEAR:
-                if (curr->in.data.number == first->in.data.number) {
+                if (!lvarflag) {
+                    if (curr->in.data.number == first->in.data.number) {
                     /* can't optimize if references to var found before var */
-                    return;
+                        return;
+                    }
+                }
+                break;
+
+            case PROG_LVAR_BANG:
+                if (lvarflag) {
+                    if (first->in.data.number == curr->in.data.number) {
+                        if (curr->no <= farthest) {
+                            /* within a branch so can't optimize */
+                            return ;
+                        } else {
+                            /* Optimize it */
+                            first->in.type = PROG_LVAR_AT_CLEAR;
+                            return;
+                        }
+                    }
                 }
                 break;
           
             case PROG_SVAR_BANG:
-                if (first->in.data.number == curr->in.data.number) {
-                    if (curr->no <= farthest) {
-                         /* cannot optimize within a branch */
-                         return;
-                    } else { /* optimize it */
-                        first->in.type = PROG_SVAR_AT_CLEAR;
-                        return;
+                if (!lvarflag) {
+                    if (first->in.data.number == curr->in.data.number) {
+                        if (curr->no <= farthest) {
+                             /* cannot optimize within a branch */
+                             return;
+                        } else { /* optimize it */
+                            first->in.type = PROG_SVAR_AT_CLEAR;
+                            return;
+                        }
                     }
+                }
+                break;
+           
+            case PROG_EXEC:
+                if(lvarflag) {
+                    /* don't optim lvars over execs */
+                    return;
                 }
                 break;
 
@@ -774,9 +826,6 @@ RemoveNextIntermediate(COMPSTATE *cstat, struct INTERMEDIATE *curr)
 void
 RemoveIntermediate(COMPSTATE *cstat, struct INTERMEDIATE *curr)
 {
-    struct INTERMEDIATE *tmp;
-    int i;
-
     if (!curr->next) 
         return;
 
@@ -919,9 +968,31 @@ OptimizeIntermediate(COMPSTATE *cstat)
     for (curr = cstat->first_word; curr; ) {
         advance = 1;
         switch(curr->in.type) {
+            case PROG_LVAR:
+                /* lvar ! into lvar! */
+                /* lvar @ into lvar@ */
+                if (curr->next && curr->next->in.type == PROG_PRIMITIVE) {
+                    if (curr->next->in.data.number == AtNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_LVAR_AT;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                    if (curr->next->in.data.number == BangNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_LVAR_BANG;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                }
+                break;
             case PROG_SVAR:
-                // var ! into var!
-                // var @ into var@
+                /* svar ! into svar! */
+                /* svar @ into svar@ */
                 if (curr->next && curr->next->in.type == PROG_PRIMITIVE) {
                     if (curr->next->in.data.number == AtNo) {
                         if (ContiguousIntermediates(Flags, curr->next, 1)) {
@@ -1091,8 +1162,8 @@ OptimizeIntermediate(COMPSTATE *cstat)
 
     /* turn all 'var@' which have following var! into var@-clear */
     for (curr = cstat->first_word; curr; curr = curr->next) 
-        if (curr->in.type == PROG_SVAR_AT)
-            MaybeOptimizeSvarAt(cstat, curr, AtNo, BangNo);
+        if (curr->in.type == PROG_SVAR_AT || curr->in.type == PROG_LVAR_AT)
+            MaybeOptimizeVarsAt(cstat, curr, AtNo, BangNo);
 
     free(Flags);
     return (old_instr_count - cstat->nowords);
@@ -2305,7 +2376,6 @@ process_special(COMPSTATE * cstat, const char *token)
 
 	if (!string_compare(token, ":")) {
 		const char *proc_name;
-/*FIXME		struct INTERMEDIATE *new2; */
 		int argsflag = 0;
 
 		if (cstat->curr_proc)
@@ -2876,7 +2946,6 @@ process_special(COMPSTATE * cstat, const char *token)
 	} else if (!string_compare(token, "VAR!")) {
 		if (cstat->curr_proc) {
 			struct INTERMEDIATE *nw;
-/*FIXME			struct INTERMEDIATE *curr; */
 
 			tok = next_token(cstat);
 			if (!tok)
@@ -3644,6 +3713,9 @@ copy_program(COMPSTATE * cstat)
                 case PROG_SVAR_AT_CLEAR:
 		case PROG_SVAR_BANG:
 		case PROG_LVAR:
+                case PROG_LVAR_AT:
+                case PROG_LVAR_AT_CLEAR:
+                case PROG_LVAR_BANG:
 		case PROG_VAR:
 			code[i].data.number = curr->in.data.number;
 			break;

@@ -1246,9 +1246,50 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		pc++;
 		atop++;
 		break;
+            case PROG_LVAR_AT:
+            case PROG_LVAR_AT_CLEAR: {
+                struct inst *tmp;
+                struct localvars *lv;
+                    
+                if (atop >= STACK_SIZE)
+                    abort_loop("Stack overflow.", NULL, NULL);
+                if (pc->data.number >= MAX_VAR || pc->data.number < 0)
+                    abort_loop("Local variable number out of range.",
+                                NULL, NULL);
+                lv = localvars_get(fr, program);
+                tmp = &(lv->lvars[pc->data.number]);
+                copyinst(tmp, arg + atop);
+                if (pc->type == PROG_LVAR_AT_CLEAR) {
+                    CLEAR(tmp);
+                    tmp->type = PROG_INTEGER;
+                    tmp->data.number = 0;
+                }
+                ++pc;
+                ++atop;
+            }
+                break;
+            case PROG_LVAR_BANG: {
+                struct inst *the_var;
+                struct localvars *lv;
+            
+                if (atop < 1)
+                    abort_loop("Stack Underflow.", NULL, NULL);
+                if (fr->trys.top && atop - fr->trys.st->depth < 1)
+                    abort_loop("Stack protection fault.", NULL, NULL);
+                if (pc->data.number >= MAX_VAR || pc->data.number < 0)
+                    abort_loop("Local variable out of range.", NULL, NULL);
 
-		case PROG_SVAR_AT:
-                case PROG_SVAR_AT_CLEAR:
+                lv = localvars_get(fr, program);
+                the_var = &(lv->lvars[pc->data.number]);
+
+                CLEAR(the_var);
+                temp1 = arg + --atop;
+                *the_var = *temp1;
+                ++pc;
+            }
+                break;
+            case PROG_SVAR_AT:
+            case PROG_SVAR_AT_CLEAR:
 			{
 				struct inst *tmp;
 				if (atop >= STACK_SIZE)

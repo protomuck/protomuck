@@ -692,80 +692,202 @@ do_edit(int descr, dbref player, const char *name)
 void
 do_mcpedit(int descr, dbref player, const char *name)
 {
-	dbref i;
-	struct match_data md;
-	char namestr[BUFFER_LEN];
-	char refstr[BUFFER_LEN];
-	struct line *curr;
-	McpMesg msg;
-	McpFrame *mfr;
-	McpVer supp;
+    dbref prog;
+    struct match_data md;
+    char namestr[BUFFER_LEN];
+    char refstr[BUFFER_LEN];
+    struct line *curr;
+    McpMesg msg;
+    McpFrame *mfr;
+    McpVer supp;
 
-	mfr = descr_mcpframe(descr);
-	if (!mfr) {
-		do_edit(descr, player, name);
-		return;
-	}
+    mfr = descr_mcpframe(descr);
+    if (!mfr) {
+        do_edit(descr, player, name);
+        return;
+    }
 
-	supp = mcp_frame_package_supported(mfr, "dns-org-mud-moo-simpleedit");
+    if (!*name) {
+        anotify_nolisten(player, CINFO "No program name given.", 1);
+        return;
+    }
+ 
+    if (tp_db_readonly) {
+        anotify_nolisten2(player, CFAIL NOBUILD_MESG);
+        return;
+    }
+    
+    init_match(descr, player, name, TYPE_PROGRAM, &md);
+    match_possession(&md);
+    match_neighbor(&md);
+    match_registered(&md);
+    match_absolute(&md);
 
-	if (supp.verminor == 0 && supp.vermajor == 0) {
-		do_edit(descr, player, name);
-		return;
-	}
+    prog = noisy_match_result(&md);
+    if (prog == NOTHING) {
+        anotify_nolisten(player, CFAIL "I don't see that here.", 1);
+        return;
+    }
+    if (prog == AMBIGUOUS) {
+        anotify_nolisten(player, CINFO "I don't know which one you mean.", 1);
+        return;
+    }
 
-	if (Typeof(player) != TYPE_PLAYER) {
-		show_mcp_error(mfr, "@mcpedit", "Only players can edit programs.");
-		return;
-	}
-	if (!Mucker(player)) {
-		show_mcp_error(mfr, "@mcpedit", NOMBIT_MESG);
-		return;
-	}
-      if (tp_db_readonly) {
-	      show_mcp_error(mfr, "@mcpedit", DBRO_MESG);
-	      return;
-      }
-	if (!*name) {
-		show_mcp_error(mfr, "@mcpedit", "No program name given.");
-		return;
-	}
-	init_match(descr, player, name, TYPE_PROGRAM, &md);
+    mcpedit_program(descr, player, prog, name);
+}
 
-	match_possession(&md);
-	match_neighbor(&md);
-	match_registered(&md);
-	match_absolute(&md);
+void
+do_mcpprogram(int descr, dbref player, const char *name)
+{
+    dbref prog;
+    char buf[BUFFER_LEN];
+    struct match_data md;
+    int jj;
 
-	if ((i = noisy_match_result(&md)) == NOTHING || i == AMBIGUOUS)
-		return;
+    if (Typeof(player) != TYPE_PLAYER) {
+        anotify(player, CFAIL "Only players can edit programs."); 
+        return;
+    }
+    
+    if (!Mucker(player)) {
+        anotify(player, CFAIL NOMBIT_MESG);
+        return;
+    }
+    
+    if (!*name) {
+        anotify(player, "No program name given.");
+        return;
+    } 
 
-	if ((Typeof(i) != TYPE_PROGRAM) || !controls(player, i)) {
-		show_mcp_error(mfr, "@mcpedit", "Permission denied!");
-		return;
-	}
-	if (FLAGS(i) & INTERNAL) {
-		show_mcp_error(mfr, "@mcpedit",
-					   "Sorry, this program is currently being edited.  Try again later.");
-		return;
-	}
-      DBFETCH(i)->sp.program.first = read_program(i);
-      DBFETCH(player)->sp.player.curr_prog = i;
+    if (tp_db_readonly) {
+        anotify_nolisten2(player, CFAIL DBRO_MESG);
+        return;
+    }
 
-	sprintf(refstr, "%d.prog.", i);
-	sprintf(namestr, "a program named %s(%d)", NAME(i), i);
-	mcp_mesg_init(&msg, "dns-org-mud-moo-simpleedit", "content");
-	mcp_mesg_arg_append(&msg, "reference", refstr);
-	mcp_mesg_arg_append(&msg, "type", "muf-code");
-	mcp_mesg_arg_append(&msg, "name", namestr);
-	for (curr = DBFETCH(i)->sp.program.first; curr; curr = curr->next) {
-		mcp_mesg_arg_append(&msg, "content", DoNull(curr->this_line));
-	}
-	mcp_frame_output_mesg(mfr, &msg);
-	mcp_mesg_clear(&msg);
+    if (!tp_building || tp_db_readonly) {
+        anotify_nolisten2(player, CFAIL NOBUILD_MESG);
+        return;
+    } 
 
-	free_prog_text(DBFETCH(i)->sp.program.first);
-      DBFETCH(i)->sp.program.first = 0;
+    init_match(descr, player, name, TYPE_PROGRAM, &md);
+    
+    match_possession(&md);
+    match_neighbor(&md);
+    match_registered(&md);
+    match_absolute(&md);
+
+    prog = match_result(&md);
+    
+    if (prog == NOTHING) { /* make new program object */
+        prog = new_object();
+
+        NAME(prog) = alloc_string(name);
+        snprintf(buf, sizeof(buf), "A scroll containing a spell called %s",
+                 name);
+        SETDESC(prog, buf);
+        DBFETCH(prog)->location = player;
+        FLAGS(prog) = TYPE_PROGRAM;
+        jj = MLevel(player);
+        if (jj < 1)
+            jj = 2;
+        if (jj > 3)
+            jj = 3;
+        SetMLevel(prog, jj);
+
+        OWNER(prog) = OWNER(player);
+        DBFETCH(prog)->sp.program.first = 0;
+        DBFETCH(prog)->sp.program.curr_line = 0;
+        DBFETCH(prog)->sp.program.siz = 0;
+        DBFETCH(prog)->sp.program.code = 0;
+        DBFETCH(prog)->sp.program.start = 0;
+        DBFETCH(prog)->sp.program.pubs = 0;
+        DBFETCH(prog)->sp.program.mcpbinds = 0;
+        DBFETCH(prog)->sp.program.proftime.tv_sec = 0;
+        DBFETCH(prog)->sp.program.proftime.tv_usec = 0;
+        DBFETCH(prog)->sp.program.profstart = 0;
+        DBFETCH(prog)->sp.program.profuses = 0;
+        DBFETCH(prog)->sp.program.instances = 0;
+        DBFETCH(player)->sp.player.curr_prog = prog;
+
+        PUSH(prog, DBFETCH(player)->contents);
+        DBDIRTY(prog);
+        DBDIRTY(player);
+        snprintf(buf, sizeof(buf), CSUCC "Program %s created with number %d.",
+                 name, prog);
+        anotify(player, buf);
+    } else if (prog == AMBIGUOUS) {
+        anotify(player, CNOTE "I don't know which one you mean.");
+        return;
+    }
+
+    mcpedit_program(descr, player, prog, name);
+}
+
+void
+mcpedit_program(int descr, dbref player, dbref prog, const char *name)
+{
+    char namestr[BUFFER_LEN];
+    char refstr[BUFFER_LEN];
+    struct line *curr;
+    McpMesg msg;
+    McpFrame *mfr;
+    McpVer supp;
+
+    mfr = descr_mcpframe(descr);
+    if (!mfr) {
+        do_edit(descr, player, name);
+        return;
+    }
+
+    supp = mcp_frame_package_supported(mfr, "dns-org-mud-moo-simpleedit");
+    if (supp.verminor == 0 && supp.vermajor == 0) {
+        do_edit(descr, player, name);
+        return;
+    }
+
+    if (Typeof(player) != TYPE_PLAYER) {
+        show_mcp_error(mfr, "@mcpedit", "Only players can edit programs.");
+        return;
+    }
+
+    if (!Mucker(player)) {
+        show_mcp_error(mfr, "@mcpedit", "You have no M-bit to program.");
+        return;
+    }
+    
+    if (!*name) {
+        show_mcp_error(mfr, "@amcpedit", "No program name given.");
+        return;
+    }
+
+    if ((Typeof(prog) != TYPE_PROGRAM) || !controls(player, prog)) {
+        show_mcp_error(mfr, "@mcpedit", "Permission denied.");
+        return;
+    }
+    
+    if (FLAGS(prog) & INTERNAL) {
+        show_mcp_error(mfr, "@mcpedit", 
+                   "Sorry, this program is already being edited.");
+        return;
+    }
+
+    DBFETCH(prog)->sp.program.first = read_program(prog);
+    DBFETCH(player)->sp.player.curr_prog = prog;
+    snprintf(refstr, sizeof(refstr), "%d.prog.", prog);
+    snprintf(namestr, sizeof(namestr), "a program named %s(%d)", NAME(prog),
+        prog);
+    mcp_mesg_init(&msg, "dns-org-mud-moo-simpleedit", "content");
+    mcp_mesg_arg_append(&msg, "reference", refstr);
+    mcp_mesg_arg_append(&msg, "type", "muf-code");
+    mcp_mesg_arg_append(&msg, "name", namestr); 
+    for (curr = DBFETCH(prog)->sp.program.first; curr; curr->next) {
+        mcp_mesg_arg_append(&msg, "content", DoNull(curr->this_line));
+    }
+    mcp_frame_output_mesg(mfr, &msg);
+    mcp_mesg_clear(&msg);
+    
+    free_prog_text(DBFETCH(prog)->sp.program.first);
+    DBFETCH(prog)->sp.program.first = NULL;
 }
 
 /*
