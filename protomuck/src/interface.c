@@ -49,6 +49,10 @@ static const char *flushed_message = "<Flushed>\r\n";
 
 int resolver_sock[2];
 
+long int bytesIn = 0; /* Total bytes sent TO the muck */
+long int bytesOut = 0; /* Total bytes sent FROM the muck */
+long int commandTotal = 0; /* Total commands entered by players */
+
 struct descriptor_data  *descriptor_list = 0;
 
 #define MAX_LISTEN_SOCKS 16
@@ -2062,7 +2066,10 @@ shutdownsock(struct descriptor_data * d)
                 host_as_hex(d->hostaddr), d->commands, d->cport);
       }
     }
-
+    bytesIn += d->input_len;
+    bytesOut += d->output_len;
+    commandTotal += d->commands;
+    
     if(d->connected && OkObj(d->player) && (Typeof(d->player) == TYPE_PLAYER)) {
 	forget_player_descr(d->player, d->descriptor);
 	d->connected = 0;

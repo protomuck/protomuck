@@ -105,7 +105,9 @@ struct descriptor_data {
 
 extern char restart_message[BUFFER_LEN];
 extern char shutdown_message[BUFFER_LEN];
-
+extern long int bytesIn;
+extern long int bytesOut;
+extern long int commandTotal;
 #ifdef HTTPD
 extern void httpd(struct descriptor_data *d, const char *name, const char *http);
 extern void httpd_unknown(struct descriptor_data *d, const char *name);

@@ -589,7 +589,7 @@ db_write(FILE * f)
     putref(f, DB_PARMSINFO
 #ifdef COMPRESS
         + (db_decompression_flag? 0 : DB_COMPRESSED)
-#endif + DB_POWERS
+#endif 
     );
     putref(f, tune_count_parms());
     tune_save_parms_to_file(f);

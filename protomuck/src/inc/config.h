@@ -284,7 +284,7 @@
 /* This gives some debug malloc profiling, but also eats some overhead,
    so only define if your using it. */
 #undef MALLOC_PROFILING
-#undef CRT_DEBUG_ALSO TRUE
+/* #undef CRT_DEBUG_ALSO TRUE */
 
 /************************************************************************/
 /************************************************************************/
