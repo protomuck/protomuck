@@ -2273,7 +2273,7 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
         interp_err(player, program, pc, arg, atop, fr->caller.st[1],
                    insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program),
                    msg, fr->pid);
-        if (controls(player, program) && player != -1)
+        if (OkObj(player) && controls(player, program))
             muf_backtrace(player, program, STACK_SIZE, fr);
         /*    else */
         if (FLAG2(program) & F2PARENT && player != OWNER(program))
