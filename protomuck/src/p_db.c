@@ -333,6 +333,10 @@ check_power(char *power)
          tmp = POW_TELEPORT;
       } else if (string_prefix("shutdown", power)) {
          tmp = POW_SHUTDOWN;
+#ifdef STAFF_POWER         
+      } else if (string_prefix("staff", power)) {
+         tmp = POW_STAFF;
+#endif   
       }
 
       return tmp;

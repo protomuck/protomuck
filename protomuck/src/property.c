@@ -25,12 +25,14 @@ extern const char *old_uncompress(const char *);
 
 /* Completely rewritten by darkfox and Foxen, for propdirs and other things */
 
-char * fltostr(float fl)
+char * fltostr(char * buf, float f)
 {
-  char *temp = NULL;
-  sprintf(temp, "%hg", fl);
-  return temp;
+    sprintf(buf, "%hg", f);
+    return buf;
 }
+
+
+
 
 void
 set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
@@ -860,6 +862,7 @@ int
 db_get_single_prop(FILE *f, dbref obj, int pos)
 {
     char getprop_buf[BUFFER_LEN*3];
+    char fbuf[BUFFER_LEN];
     char *name, *flags, *value, *p;
     int flg;
     int tpos = 0;
@@ -946,19 +949,12 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
             tpnt[1] = toupper(tpnt[1]);
             tpnt[2] = toupper(tpnt[2]);
             if (!strncmp(tpnt, "INF", 3)) {
-#ifndef WIN_VC
                if (!dtemp) {
                   fval = 9.99E999;
                } else {
                   fval = -9.99E999;
                }
-#else
-               if (!dtemp) {
-                  fval = 9.99E99;
-               } else {
-                  fval = -9.99E99;
-               }
-#endif
+            } else {
                if (!strncmp(tpnt, "NAN", 3)) {
                   fval = 0.0;
                }
@@ -967,7 +963,7 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
          } else {
             sscanf(value, "%hg", (PTYPE) &fval);
          }
-         set_property_nofetch(obj, name, flg, (PTYPE) fltostr(fval));
+         set_property_nofetch(obj, name, flg, (PTYPE) fltostr(fbuf, fval));
          break;
 	case PROP_REFTYP:
 	    if (!number(value)) abort();
@@ -991,6 +987,7 @@ void
 db_putprop(FILE *f, const char *dir, PropPtr p)
 {
     char buf[BUFFER_LEN*2];
+    char fbuf[BUFFER_LEN];
     char num[16];
     char *ptr;
     const char *ptr2;
@@ -1017,7 +1014,7 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
           if (!PropDataFVal(p)) return;
 //          sprintf(tbuf, "%hg", PropDataFVal(p));
 //          ptr2 = tbuf;
-          ptr2 = fltostr(PropDataFVal(p));
+          ptr2 = fltostr(fbuf, PropDataFVal(p));
           break;
         case PROP_REFTYP:
 	    if (PropDataRef(p) == NOTHING) return;

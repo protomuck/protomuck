@@ -1,4 +1,7 @@
 /*
+ * Revision 1.4  2001/02/17 12:22:25  alynna 
+ * Make this thing compile flawlessly under CYGWIN  
+ *
  * Revision 1.3  2000/06/27 22:32:17  moose
  * Edited for ProtoMUCK
  *
@@ -23,11 +26,59 @@
  are compiled in.
  ************************************************************************/
 
+/* Alynna - Lets make something so that later on it will see the CYGWIN 
+ * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN
+ * will be detected.  If not, define me.
+ */
+#undef CYGWIN 
+  
+/* Alynna - If you defined CYGWIN, set these to your timezone offset in 
+ * hours.  -8 = PST, -5 = EST, 0 = GMT 
+ */
+#define CYGWIN_TZ -8 
+#define CYGWIN_TZX "PST" 
+    
+/* Alynna - STAFF bit support
+ * Defines a 'w' power that does nothing of note, but you can set it 
+ * using @power, and test for it using:
+ *   me @ "STAFF" power?  
+ * in MUF.   Theres a define for it here, by default on, if you have 
+ * any problems with it, undefine this, recompile, and tell me what 
+ * happened.  This bit can be used to give staff people extra powers 
+ * in your MUF programs without giving out a full W.  The support for 
+ * this was very simple, and I forsee no problems. 
+ */
+#define STAFF_POWER 
+
+/* Alynna - Dump Propqueues [EXPERIMENTAL]
+ * This is an experimental feature I'm working on, but I have not found
+ * any problems with it yet so I am enabling it by default.  If your
+ * DB seems to crash just before a dump warning, or just before saving
+ * Disable this and send me a bug report.
+ * This establishes the propqueues _dump and _dumpwarn, that will run
+ * programs just before a dump or dump warning occurs.  They are set
+ * only on #0 (Sorry no per-user dumpqueues yet) and return descriptor
+ * 0, and #0 as the trigger.
+ */
+#define DUMP_PROPQUEUES
+	    
 /* Detaches the process as a daemon so that it don't cause problems
  * keeping a terminal line open and such. Logs normal output to a file
  * and writes out a protomuck.pid file 
  */
-#undef DETACH
+#define DETACH
+
+// If you have problems compiling with DETACH defined, uncomment one
+// of these:
+
+// For Linux and most POSIX
+// #define USE_SID
+
+// For SysV stuff
+// #define USE_SYSVPGRP
+
+// For BSDs
+// #define USE_BSDPGRP
 
 /* Use to compress string data (recomended)
  */
@@ -75,7 +126,7 @@
 #define SPAWN_HOST_RESOLVER
 
 /* Debugging info for database loading */
-#undef VERBOSELOAD
+#define VERBOSELOAD
 
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
@@ -321,6 +372,9 @@
 #define WIN_VC
 #endif
 
+
+/* Alynna: I am just going to assume this works.  
+ * Not touching VC++ with 10 foot pole.  :) */
 #ifdef WIN_VC
 # include "winconf.h"
 # include "process.h"
@@ -428,12 +482,18 @@
  * will see in a version or so.
  */
 
-#if defined(__CYGWIN__)
-# define WIN32
-#endif
+/* Alynna: Modified to define CYGWIN, just in case this really is CYGWIN
+ * And the user didnt define it, and DONT define WIN32 here, as CYGWIN
+ * fills in for WIN32.  The UNIX stuff will usually work.
+ */
 #if defined(linux) || defined(__linux__) || defined(LINUX)
 # define SYS_TYPE "Linux"
 # define LINUX
+#endif
+
+#if defined(__CYGWIN__)
+# define SYS_TYPE "Cygwin"
+# define CYGWIN
 #endif
 
 #ifdef sgi
@@ -451,7 +511,7 @@
 # define ULTRIX
 #endif
 
-#ifdef bds4_3
+#ifdef bsd4_3
 # ifndef SYS_TYPE
 #  define SYS_TYPE "BSD 4.3"
 # endif
@@ -472,11 +532,11 @@
 
 #if defined(SYSTYPE_SYSV) || defined(_SYSTYPE_SYSV)
 # ifndef SYS_TYPE
-#  define SYS_TYPE "SVSV"
+#  define SYS_TYPE "SYSV"
 # endif
 #endif
 
-#if defined(__WINDOWS__) || defined(WIN32)
+#if defined(__WINDOWS__) 
 # define SYS_TYPE "WINDOWS"
 # if !defined(WIN32) && !defined(__VISUAL_C__)
 #  define WIN32

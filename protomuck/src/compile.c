@@ -437,8 +437,8 @@ include_internal_defs(COMPSTATE * cstat)
 {
 	/* Create standard server defines */
 	insert_def(cstat, "__version", VERSION);
-      insert_def(cstat, "__neon", NEONVER);
-      insert_def(cstat, "__proto", PROTOVER);
+        insert_def(cstat, "__neon", NEONVER);
+        insert_def(cstat, "__proto", PROTOVER);
 	insert_def(cstat, "__muckname", tp_muckname);
 	insert_def(cstat, "strip", "striplead striptail");
 	insert_def(cstat, "instring", "tolower swap tolower swap instr");
@@ -558,6 +558,10 @@ include_internal_defs(COMPSTATE * cstat)
 	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_tabbed", "d_tabbed swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
 	insert_def(cstat, "gui_dlog_helper", "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
+	
+	/* One for the new staff prim */
+	insert_def(cstat, "staff?", "dup \"W\" flag? swap \"STAFF\" power? or");
+	
 }
 
 void

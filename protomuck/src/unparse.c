@@ -130,6 +130,10 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
             *p++ = 'r';
         if (POWERS(thing) & POW_ALL_MUF_PRIMS)
             *p++ = 'm';
+#ifdef STAFF_POWER          
+        if (POWERS(thing) & POW_STAFF)
+            *p++ = 'w';
+#endif      
     }
     *p = '\0';
     return buf;
@@ -261,6 +265,10 @@ power_2char(char *p)
        return 'd';
     } else if ( string_prefix("TELEPORT", p) ) {
        return 't';
+#ifdef STAFF_POWER
+    } else if ( string_prefix("STAFF", p) ) {
+       return 'w';
+#endif
     } else {
        return 0;
     }

@@ -351,6 +351,7 @@ intostr(char * buf, int i)
     return(buf);
 }
 
+
 /*
  * Encrypt one string with another one.
  */

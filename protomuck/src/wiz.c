@@ -901,6 +901,10 @@ power_description(dbref thing)
           strcat(buf, "SHUTDOWN ");
       if (POWERS(thing) & POW_TELEPORT)
           strcat(buf, "TELEPORT ");
+#ifdef STAFF_POWER
+      if (POWERS(thing) & POW_STAFF)
+          strcat(buf, "STAFF ");
+#endif
     return buf;
 }
 
@@ -947,6 +951,9 @@ do_powers(int descr, dbref player, const char *name, const char *power)
       anotify_nolisten2(player,       "PLAYER_CREATE   - [p] Can use @pcreate, @frob, and @toad");
       anotify_nolisten2(player,       "SEARCH          - [s] Can use @find, @entrances, @own, and @contents");
       anotify_nolisten2(player,       "SEE_ALL         - [e] Can examine any object, and @list any program");
+#ifdef STAFF_POWER
+      anotify_nolisten2(player,       "STAFF           - [w] Special staff bit for use in MUF");
+#endif
       anotify_nolisten2(player,       "SHUTDOWN        - [d] Can run @shutdown or @restart");
       anotify_nolisten2(player,       "TELEPORT        - [t] Unrestricted use of @teleport");
       anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -1007,6 +1014,10 @@ do_powers(int descr, dbref player, const char *name, const char *power)
        pow = POW_SHUTDOWN;
     } else if ( string_prefix("TELEPORT", p) ) {
        pow = POW_TELEPORT;
+#ifdef STAFF_POWER
+    } else if ( string_prefix("STAFF", p) ) {
+       pow = POW_STAFF;
+#endif
     } else {
        anotify_nolisten2(player, CINFO "I don't recognize that power.");
        return;
