@@ -2,7 +2,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#else
 #include <malloc.h>
+#endif
 #ifndef WIN_VC
 # include <sys/time.h>
 #else

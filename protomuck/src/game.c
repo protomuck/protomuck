@@ -1274,12 +1274,24 @@ process_command(int descr, dbref player, char *command)
 		    case 'V':
 			Matched("@version");
                         #if defined(WIN32) || defined(WIN_VC)
-			anotify_nolisten2(player, CRIMSON "WinProto " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+			anotify_nolisten2(player, CRIMSON "WinProto " PROTOBASE 
+                                          PURPLE " (" RED VERSION WHITE " -- " 
+                                          AQUA NEONVER PURPLE ")" );
 			#else
 			# ifdef CYGWIN
-			anotify_nolisten2(player, CRIMSON "ProtoMUCK-Cygwin " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+			anotify_nolisten2(player, CRIMSON "ProtoMUCK-Cygwin "
+                                          PROTOBASE PURPLE " (" RED VERSION 
+                                          WHITE " -- " AQUA NEONVER PURPLE ")" );
 			# else
-			anotify_nolisten2(player, CRIMSON "ProtoMUCK " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+                        #  ifdef APPLE
+                        anotify_nolisten2(player, CRIMSON "ProtoMUCK OS-X " 
+                                          PROTOBASE PURPLE " (" RED VERSION WHITE 
+                                          " -- " AQUA NEONVER PURPLE ")" );
+                        #  else
+			anotify_nolisten2(player, CRIMSON "ProtoMUCK " PROTOBASE 
+                                          PURPLE " (" RED VERSION WHITE " -- " 
+                                          AQUA NEONVER PURPLE ")" );
+                        #  endif
 			# endif
 			#endif			
 			break;

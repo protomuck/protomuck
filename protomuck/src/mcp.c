@@ -3,7 +3,11 @@
 
 #include <stdlib.h>
 #include <ctype.h>
+#include "config.h"
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#else
 #include <malloc.h>
+#endif
 #include <string.h>
 #include <sys/time.h>
 #include "db.h"
