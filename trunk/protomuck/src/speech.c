@@ -23,13 +23,13 @@ do_say(int descr, dbref player, const char *message)
 
     if ((loc = getloc(player)) == NOTHING)
 	return;
-
-    if(Meeper(OWNER(player))) {
-	do_parse_mesg(descr, player, player, message, "(say)", buf, MPI_ISPRIVATE);
-	tct(buf,buf2);
-    } else {
+//Removed the MPI parsing from say/pose. Yesh. -Akari
+//    if(Meeper(OWNER(player))) {
+//	do_parse_mesg(descr, player, player, message, "(say)", buf, MPI_ISPRIVATE);
+//	tct(buf,buf2);
+//    } else {
 	tct(message,buf2);
-    }
+//    }
 
     /* notify everybody */
     sprintf(buf, AQUA "You say, \"" YELLOW "%s" AQUA "\"", buf2);
