@@ -868,11 +868,13 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
 	return;
     }
     if (!controls(OWNER(player),thing) && (
-	!(FLAGS(thing) & CHOWN_OK) || (POWERS(player) & POW_CHOWN_ANYTHING) ||
+	!(FLAGS(thing) & CHOWN_OK)  ||
 	Typeof(thing) == TYPE_PROGRAM ||
 	!test_lock(descr, player, thing, "_/chlk") )) {
-	anotify_nolisten2(player, CFAIL "You can't take possession of that.");
-	return;
+        if (!POWERS(player) & POW_CHOWN_ANYTHING) {
+ 	    anotify_nolisten2(player, CFAIL "You can't take possession of that.");
+	    return;
+        }
     }
     if( (Protect(owner) && !(player == owner)) || (Protect(OWNER(thing)) && !(player == OWNER(thing))) ) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);

@@ -368,7 +368,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 	match_here(&md);
 	match_absolute(&md);
 	match_registered(&md);
-	if (Wiz(OWNER(player)) || (POWERS(player) & POW_TPORT_ANYTHING))
+	if (Wiz(OWNER(player)) || POWERS(OWNER(player)) & POW_TELEPORT)
 	    match_player(&md);
 
 	if ((victim = noisy_match_result(&md)) == NOTHING) {
@@ -386,7 +386,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
     match_home(&md);
     match_absolute(&md);
     match_registered(&md);
-    if (Wiz(OWNER(player)) || (POWERS(player) & POW_TPORT_ANYWHERE)) {
+    if (Wiz(OWNER(player)) || POWERS(OWNER(player)) & POW_TELEPORT) {
 	match_player(&md);
     }
     switch (destination = match_result(&md)) {
@@ -422,7 +422,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 	default:
 	    switch (Typeof(victim)) {
 		case TYPE_PLAYER:
-		    if (    !controls(player, victim) ||
+		    if (    !controls(player, victim) || 
 			    ( (!controls(player, destination)) &&
 			      (!(FLAGS(destination)&JUMP_OK)) &&
 			      (destination!=DBFETCH(victim)->sp.player.home)
@@ -433,10 +433,12 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			    ) ||
 			    ( (Typeof(destination) == TYPE_THING) &&
 			      !controls(player, getloc(destination))
-			    ) && !(POWERS(player) & POW_TPORT_ANYTHING)
+			    )
 		    ) {
-			anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-			break;
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+			    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+			    break;
+                        }
 		    }
 		    if ( Typeof(destination) != TYPE_ROOM &&
 			 Typeof(destination) != TYPE_PLAYER &&
@@ -444,11 +446,13 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			anotify_nolisten2(player, CFAIL "Bad destination.");
 			break;
 		    }
-                    if (!Wiz(victim) && !(POWERS(player) & POW_TPORT_ANYWHERE) &&
+                    if (!Wiz(victim) && 
                             (Typeof(destination) == TYPE_THING &&
                                 !(FLAGS(destination) & VEHICLE))) {
-                        anotify_nolisten2(player, CFAIL "Destination object is not a vehicle.");
-                        break;
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+                            anotify_nolisten2(player, CFAIL "Destination object is not a vehicle.");
+                            break;
+                        }
                     }
 		    if (parent_loop_check(victim, destination)) {
 			anotify_nolisten2(player, CFAIL "Objects can't contain themselves.");
@@ -482,12 +486,14 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			anotify_nolisten2(player, CFAIL "Bad destination.");
 			break;
 		    }
-		    if (!((controls(player, destination) || (POWERS(player) & POW_TPORT_ANYWHERE) ||
+		    if (!((controls(player, destination) ||
 			    can_link_to(player, NOTYPE, destination)) &&
 			    (controls(player, victim) ||
 			    controls(player, DBFETCH(victim)->location)))) {
-			anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-			break;
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+			    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+			    break;
+                        }
 		    }
 		    /* check for non-sticky dropto */
 		    if (Typeof(destination) == TYPE_ROOM
@@ -502,11 +508,13 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			anotify_nolisten2(player, CFAIL "Bad destination.");
 			break;
 		    }
-		    if (!(controls(player, victim) || (POWERS(player) & POW_TPORT_ANYTHING))
+		    if (!controls(player, victim)
 			    || !can_link_to(player, NOTYPE, destination)
 			    || victim == GLOBAL_ENVIRONMENT) {
-			anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-			break;
+                        if (!(POWERS(OWNER(player)) & POW_TELEPORT)) {
+		    	    anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+			    break;
+                        }
 		    }
 		    if (parent_loop_check(victim, destination)) {
 			anotify_nolisten2(player, CFAIL "Parent would create a loop.");
@@ -526,6 +534,8 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
     }
     return;
 }
+
+
 
 void 
 do_force(int descr, dbref player, const char *what, char *command)
@@ -787,7 +797,7 @@ do_boot(dbref player, const char *name)
 
     if ( Typeof(player) != TYPE_PLAYER ) return;
 
-    if (!Mage(player) || (POWERS(player) & POW_BOOT)) {
+    if (!Mage(player) && !(POWERS(player) & POW_BOOT)) {
 	anotify_nolisten2(player, CFAIL "Only wizards can boot someone off.");
 	return;
     }
@@ -1074,10 +1084,8 @@ power_description(dbref thing)
           strcat(buf, "SEARCH ");
       if (POWERS(thing) & POW_SEE_ALL)
           strcat(buf, "SEE_ALL ");
-      if (POWERS(thing) & POW_TPORT_ANYTHING)
-          strcat(buf, "TPORT_ANYTHING ");
-      if (POWERS(thing) & POW_TPORT_ANYWHERE)
-          strcat(buf, "TPORT_ANYWHERE ");
+      if (POWERS(thing) & POW_TELEPORT)
+          strcat(buf, "TELEPORT");
     return buf;
 }
 
@@ -1121,8 +1129,7 @@ do_powers(int descr, dbref player, const char *name, const char *power)
       anotify_nolisten2(player,       "PLAYER_CREATE   - Can use @pcreate, @frob, and @toad");
       anotify_nolisten2(player,       "SEARCH          - Can use @find, @entrances, and @contents");
       anotify_nolisten2(player,       "SEE_ALL         - Can examine any object, and @list any program");
-      anotify_nolisten2(player,       "TPORT_ANYTHING  - Can teleport any object");
-      anotify_nolisten2(player,       "TPORT_ANYWHERE  - Can teleport to any location");
+      anotify_nolisten2(player,       "TELEPORT        - Unrestricted use of @teleport");
       anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
       anotify_nolisten2(player,       "Syntax: @power <player>=[!]<power>");
       anotify_nolisten2(player, CINFO "Done.");
@@ -1171,10 +1178,8 @@ do_powers(int descr, dbref player, const char *name, const char *power)
        pow = POW_SEARCH;
     } else if ( string_prefix("SEE_ALL", p) ) {
        pow = POW_SEE_ALL;
-    } else if ( string_prefix("TPORT_ANYTHING", p) ) {
-       pow = POW_TPORT_ANYTHING;
-    } else if ( string_prefix("TPORT_ANYWHERE", p) ) {
-       pow = POW_TPORT_ANYWHERE;
+    } else if ( string_prefix("TELEPORT", p) ) {
+       pow = POW_TELEPORT;
     } else {
        anotify_nolisten2(player, CINFO "I don't recognize that power.");
        return;

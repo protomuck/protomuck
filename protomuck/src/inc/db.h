@@ -202,8 +202,7 @@ typedef int dbref;		/* offset into db */
 #define POW_PLAYER_CREATE   0x400   /* Can use @pcreate, @frob, and @toad */
 #define POW_SEARCH          0x800   /* Can use @find, @entrances, and @contents */
 #define POW_SEE_ALL        0x1000   /* Can examine any object, and @list any program */
-#define POW_TPORT_ANYTHING 0x2000   /* Can teleport any object */
-#define POW_TPORT_ANYWHERE 0x4000   /* Can teleport to any location */
+#define POW_TELEPORT       0x2000   /* Fee use of @teleport */
 
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)

@@ -183,6 +183,7 @@ ansi_unparse_object(dbref player, dbref loc)
 #ifndef SANITY
 	    if (!(FLAGS(player) & STICKY) &&
 		    (TMage(player) || POWERS(player) & POW_SEE_ALL ||
+                     POWERS(player) & POW_SEARCH ||
 		     can_link_to(player, NOTYPE, loc) ||
 		     controls_link(player, loc) ||
 		     ((Typeof(loc) != TYPE_PLAYER) &&
