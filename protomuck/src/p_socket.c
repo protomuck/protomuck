@@ -246,10 +246,11 @@ prim_socksend(PRIM_PROTOTYPE)
                      unparse_object(player, player), 
                      oper1->data.sock->socknum);
 
+    if (myresult < 1 ) {
+        myresult = 0;
+    }
     CLEAR(oper1);
     CLEAR(oper2);
-    if (myresult < 1 )
-        myresult = 0;
     PushInt(myresult);
 }
 
@@ -447,7 +448,7 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
 void
 prim_sockclose(PRIM_PROTOTYPE)
 {
-    int myresult;
+    int myresult = 0;
 
     CHECKOP(1);
     /* socket */
@@ -456,6 +457,11 @@ prim_sockclose(PRIM_PROTOTYPE)
         abort_interp("Socket calls are ArchWiz-only primitives.");
     if (oper1->type != PROG_SOCKET) 
         abort_interp("Socket argument expected!");
+    if (oper1->data.sock->is_player == -1) { /* don't close descrs */
+        CLEAR(oper1);
+        PushInt(myresult);
+        return;
+    }
 
     if (shutdown(oper1->data.sock->socknum,2) == -1)
     #if defined(BRAINDEAD_OS)
