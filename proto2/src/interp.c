@@ -556,8 +556,9 @@ interp(int descr, dbref player, dbref location, dbref program,
 
     fr->argument.top = 0;
     fr->pc = DBFETCH(program)->sp.program.start; //TYPEROOM taken out for command props.
-    fr->writeonly = ((OkObj(source) && (Typeof(source) == TYPE_PLAYER) && (!online(source))) ||
-                     (OkObj(player) && (FLAGS(player) & READMODE)));
+    fr->writeonly =
+        ((OkObj(source) && (Typeof(source) == TYPE_PLAYER) && (!online(source)))
+         || (OkObj(player) && (FLAGS(player) & READMODE)));
     fr->level = 0;
     fr->error.is_flags = 0;
 
@@ -839,9 +840,10 @@ prog_clean(struct frame *fr)
 
     now = current_systime;
 
-    if (OkObj(fr->player) && (FLAG2(fr->player) & F2MUFCOUNT) && (controls(fr->player, fr->prog)
-                                             || (Mage(fr->player)
-                                                 && (OWNER(fr->prog) != MAN)))
+    if (OkObj(fr->player) && (FLAG2(fr->player) & F2MUFCOUNT)
+        && (controls(fr->player, fr->prog)
+            || (Mage(fr->player)
+                && (OWNER(fr->prog) != MAN)))
         ) {
         notify_fmt(fr->player, "MUF> %d %s %ds", fr->instcnt,
                    unparse_object(fr->player, fr->prog), (now - fr->started)
@@ -1238,14 +1240,16 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 return NULL;
             }
         }
-        if (((FLAGS(program) & ZOMBIE) || fr->brkpt.force_debugging) &&
-            !fr->been_background && controls(player, program)) {
+        if (OkObj(player)
+            && ((FLAGS(program) & ZOMBIE) || fr->brkpt.force_debugging)
+            && !fr->been_background && controls(player, program)) {
             fr->brkpt.debugging = 1;
         } else {
             fr->brkpt.debugging = 0;
         }
-        if (((FLAGS(program) & DARK) ||
-             (fr->brkpt.debugging && fr->brkpt.showstack && !fr->brkpt.bypass))
+        if (OkObj(player) && ((FLAGS(program) & DARK) ||
+                              (fr->brkpt.debugging && fr->brkpt.showstack
+                               && !fr->brkpt.bypass))
             && (controls(OWNER(player), program)
                 || (FLAG2(OWNER(player)) & F2PARENT))
             ) {
@@ -1810,7 +1814,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         }
 
                         if (OkObj(player)) {
-                            DBSTORE(player, sp.player.block, (!fr->been_background));
+                            DBSTORE(player, sp.player.block,
+                                    (!fr->been_background));
                         } else {
                             if ((curdescr = get_descr(fr->descr, NOTHING))) {
                                 curdescr->block = 1;
@@ -1904,7 +1909,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                             player, NOTHING, NOTHING, program,
                                             fr, "SLEEPING");
                         if (OkObj(player)) {
-                            DBSTORE(player, sp.player.block, (!fr->been_background));
+                            DBSTORE(player, sp.player.block,
+                                    (!fr->been_background));
                         } else {
                             if ((curdescr = get_descr(fr->descr, NOTHING)))
                                 curdescr->block = !(fr->been_background);
@@ -2236,10 +2242,13 @@ find_uid(dbref player, struct frame *fr, int st, dbref program)
     if (ProgMLevel(program) < 2)
         return (OWNER(program));
     if ((FLAGS(program) & HAVEN) || (fr->perms == STD_HARDUID)) {
-        if (fr->trig == NOTHING)
+        if (OkObj(fr->trig))
+            return (OWNER(fr->trig));
+        else
             return (OWNER(program));
-        return (OWNER(fr->trig));
+
     }
+
     return (OWNER(player));
 }
 
