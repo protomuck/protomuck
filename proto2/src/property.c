@@ -92,7 +92,7 @@ set_property_nofetch(dbref object, register const char *pname, PData * dat,
 
     switch (PropType(p)) {
         case PROP_STRTYP:
-            if (!dat->data.str || !*(dat->data.str)) {
+            if (!dat->data.str || !*dat->data.str) {
                 SetPType(p, PROP_DIRTYP);
                 SetPDataStr(p, NULL);
                 if (!PropDir(p)) {
