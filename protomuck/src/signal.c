@@ -212,7 +212,7 @@ sig_reap_resolver(int i)
     extern void spawn_resolver(void);
     extern void log_status(char *format, ...);
     extern int resolverpid;
-    if (resolverpid == pid) {
+    if (resolverpid && status != 256 && resolverpid == pid) {
        spawn_resolver();
        log_status("RES: Resolver restarted.");
     }
