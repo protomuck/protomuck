@@ -27,7 +27,7 @@ struct line *read_program(dbref i);
 static dbref
 parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
 {
-    register dbref dobj;               /* destination room/player/thing/link */
+    register dbref dobj;        /* destination room/player/thing/link */
     char buf[BUFFER_LEN];
     struct match_data md;
 
@@ -219,7 +219,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 int
 _link_exit(int descr, dbref player, dbref exit, char *dest_name,
            register dbref *dest_list, register bool dryrun)
-{   
+{
     char buf[BUFFER_LEN], qbuf[BUFFER_LEN];
     register bool error = 0;
     register char *p, *q;
@@ -323,7 +323,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
     struct match_data md;
     char buf[BUFFER_LEN];
     dbref thing, dest;
-    
+
     if (tp_db_readonly) {
         anotify_nolisten2(player, CFAIL DBRO_MESG);
         return;
@@ -392,8 +392,11 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 
             /* link has been validated and paid for; do it */
             OWNER(thing) = OWNER(player);
-            
-            if (!(ndest = link_exit(descr, player, thing, (char *) dest_name, good_dest))) {
+
+            if (!
+                (ndest =
+                 link_exit(descr, player, thing, (char *) dest_name,
+                           good_dest))) {
                 anotify_nolisten2(player, CFAIL "No destinations linked.");
                 DBFETCH(player)->sp.player.pennies += tp_link_cost; /* Refund! */
                 DBDIRTY(player);
@@ -404,7 +407,8 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             if (DBFETCH(thing)->sp.exit.dest)
                 free(DBFETCH(thing)->sp.exit.dest);
 
-            DBFETCH(thing)->sp.exit.dest = (dbref *) malloc(sizeof(dbref) * ndest);
+            DBFETCH(thing)->sp.exit.dest =
+                (dbref *) malloc(sizeof(dbref) * ndest);
             for (i = 0; i < ndest; i++)
                 (DBFETCH(thing)->sp.exit.dest)[i] = good_dest[i];
             break;
@@ -482,7 +486,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
  */
 void
 do_dig(int descr, dbref player, const char *name, const char *pname)
-{  
+{
     register char *rname, *qname;
     register dbref newparent;
     char rbuf[BUFFER_LEN];
@@ -625,7 +629,8 @@ do_prog(int descr, dbref player, const char *name)
         FLAGS(i) |= INTERNAL;
         DBFETCH(player)->sp.player.curr_prog = i;
 
-        anotify_fmt(player, CSUCC "Program %s created with number %d.", name, i);
+        anotify_fmt(player, CSUCC "Program %s created with number %d.", name,
+                    i);
         anotify_nolisten2(player, CINFO "Entering editor.");
     } else if (i == AMBIGUOUS) {
         anotify_nolisten2(player, CINFO "I don't know which one you mean!");
@@ -642,7 +647,8 @@ do_prog(int descr, dbref player, const char *name)
         DBFETCH(i)->sp.program.first = read_program(i);
         FLAGS(i) |= INTERNAL;
         DBFETCH(player)->sp.player.curr_prog = i;
-        anotify_fmt(player, CINFO "Entering editor for %s.", unparse_object(player, i));
+        anotify_fmt(player, CINFO "Entering editor for %s.",
+                    unparse_object(player, i));
         /* list current line */
         do_list(player, i, 0, 0, 0);
         DBDIRTY(i);
@@ -692,7 +698,8 @@ do_edit(int descr, dbref player, const char *name)
     FLAGS(i) |= INTERNAL;
     DBFETCH(i)->sp.program.first = read_program(i);
     DBFETCH(player)->sp.player.curr_prog = i;
-    anotify_fmt(player, CINFO "Entering editor for %s.", unparse_object(player, i));
+    anotify_fmt(player, CINFO "Entering editor for %s.",
+                unparse_object(player, i));
     /* list current line */
     do_list(player, i, 0, 0, 0);
     FLAGS(player) |= INTERACTIVE;
@@ -703,7 +710,8 @@ do_edit(int descr, dbref player, const char *name)
 #ifdef MCP_SUPPORT
 
 void
-mcpedit_program(int descr, dbref player, dbref prog, const char *name, McpFrame *mfr)
+mcpedit_program(int descr, dbref player, dbref prog, const char *name,
+                McpFrame *mfr)
 {
     char namestr[BUFFER_LEN];
     char refstr[BUFFER_LEN];
@@ -806,7 +814,8 @@ do_mcpprogram(int descr, dbref player, const char *name)
         i = new_program(OWNER(player), name);
         DBFETCH(player)->sp.player.curr_prog = i;
 
-        anotify_fmt(player, CSUCC "Program %s created with number %d.", name, i);
+        anotify_fmt(player, CSUCC "Program %s created with number %d.", name,
+                    i);
     } else if (i == AMBIGUOUS) {
         anotify_nolisten2(player, CINFO "I don't know which one you mean!");
         return;
@@ -821,7 +830,8 @@ do_mcpprogram(int descr, dbref player, const char *name)
 
         DBFETCH(i)->sp.program.first = read_program(i);
         DBFETCH(player)->sp.player.curr_prog = i;
-        anotify_fmt(player, CINFO "Entering editor for %s.", unparse_object(player, i));
+        anotify_fmt(player, CINFO "Entering editor for %s.",
+                    unparse_object(player, i));
         DBDIRTY(i);
     }
 
