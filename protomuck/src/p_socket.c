@@ -142,7 +142,8 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                break;
            gotmessage = 1;
 	   ++charCount;
-           *bufpoint++=*mystring;
+	   if (isprint(*mystring))
+               *bufpoint++=*mystring;
            readme = recv(oper1->data.sock->socknum,mystring,1,0);
        }
        oper1->data.sock->lastchar = *mystring;
