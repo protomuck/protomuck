@@ -213,7 +213,7 @@ host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
     if (!tp_hostnames)
         return;
 
-    //log_status("Hostname request: %X", h->a); 
+    log_status("Hostname request: %X\n", h->a); 
 
 #ifdef SPAWN_HOST_RESOLVER
     if (!host_get_oldres(h, lport, prt))
@@ -224,9 +224,9 @@ host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
 struct huinfo *
 host_getinfo(int a, unsigned short lport, unsigned short prt)
 {
-    struct hostinfo *h;
-    struct husrinfo *u;
-    struct huinfo *hu = (struct huinfo *) malloc(sizeof(struct huinfo));
+    register struct hostinfo *h;
+    register struct husrinfo *u;
+    register struct huinfo *hu = (struct huinfo *) malloc(sizeof(struct huinfo));
 
     prt = ntohs(prt);
     a = ntohl(a);
@@ -249,19 +249,19 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         if (h->a == a) {
             h->links++;
             h->uses++;
+            log_status("Hostname in cache: %X, %s\n", h->a, h->name);
             if (current_systime - h->wupd > 80)
                 host_request(h, lport, prt);
             hu->h = h;
-            //log_status("Hostname in cache: %X, %s\n", h->a, h->name);
             return hu;
         }
     }
 
-    //log_status("New hostname (not in cache): %X\n", a);
+    log_status("New hostname (not in cache): %X\n", a);
 
     h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
-    h->links++;
-    h->uses++;
+    h->links = 1;
+    h->uses = 1;
     h->a = a;
     h->wupd = 0;
     strcpy(h->name, host_as_hex(a));
@@ -283,16 +283,8 @@ host_delete(struct huinfo *hu)
     if (--hu->h->links > 0)
         return;
 
-    if (!hu->h->wupd || (hostdb_count > 200 && current_systime - hu->h->wupd > 7200)) { /* || tp_host_cache_cleantime < 0 */
-        if (hu->h->next)
-            hu->h->next->prev = hu->h->prev;
-        if (hu->h->prev)
-            hu->h->prev->next = hu->h->next;
-        if (hu->h == hostdb)
-            hostdb = hu->h->next;
-        hostdb_count--;
-        free((void *) hu->h);
-    }
+    if (hostdb_count > 200 && current_systime - hu->h->wupd > 7200) /* || tp_host_cache_cleantime < 0 */
+        host_free(hu->h);
 
     if (hu->u) {
         if (hu->u->next)
@@ -308,27 +300,60 @@ host_delete(struct huinfo *hu)
 }
 
 void
-host_cache_clean(void)
+host_free(struct hostinfo *h)
 {
-
+    if (h->next)
+        h->next->prev = h->prev;
+    if (h->prev)
+        h->prev->next = h->next;
+    if (h == hostdb)
+        hostdb = h->next;
+    hostdb_count--;
+    free((void *) h);
 }
 
-/* void
+void
+host_flush(bool all)
+{
+    struct hostinfo *h = hostdb;
+    struct hostinfo *h2;
+
+    while (h) {
+        h2 = h->next;
+        if (all || !h->links)
+            host_free(h);
+        h = h2;
+    }
+}
+
+void
 host_load(void)
 {
     FILE *f;
     int ip;
-    char name[80];
+    char name[129];
     char *p = name;
+    struct hostinfo *h;
 
     if (!(f = fopen("nethost.cache", "r")))
         return;
 
-    if (hostcache_list)
-        host_free();
+    host_flush(0);
 
-    while (fscanf(f, "%x %s\n", &ip, p) == 2)
-        host_add(ip, name);
+    while (fscanf(f, "%x %s\n", &ip, p) == 2) {
+        h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
+        h->links = 0;
+        h->uses = 0;
+        h->wupd = 0;
+        h->a = ip;
+        strcpy(h->name, name);
+        h->prev = NULL;
+        h->next = hostdb;
+        if (hostdb)
+            hostdb->prev = h;
+        hostdb = h;
+        hostdb_count++;
+    }
 
     fclose(f);
 }
@@ -337,27 +362,83 @@ void
 host_save(void)
 {
     FILE *f;
-    struct hostcache *ptr;
+    struct hostinfo *h;
 
     if (!(f = fopen("nethost.cache", "w")))
         return;
 
-    for (ptr = hostcache_list; ptr; ptr = ptr->next)
-        fprintf(f, "%X %s\n", ptr->ipnum, ptr->name);
+    for (h = hostdb; h; h = h->next)
+        fprintf(f, "%X %s\n", h->a, h->name);
 
     fclose(f);
-} */
+}
+
+void
+host_check_cache(void)
+{
+    struct hostinfo *h;
+    
+    for (h = hostdb; h; h = h->next) {
+        if (!h->wupd && h->links)
+            host_request(h, 0, 0);
+    }
+}
 
 void
 host_init(void)
 {
-    //userdb = NULL;
-    //hostdb = NULL;
+    host_load();
 }
 
 void
 host_shutdown(void)
 {
-    //host_save();
-    //host_free();
+    host_save();
+    host_flush(1);
 }
+
+char *
+time_format_3(time_t dt)
+{
+    register struct tm *delta;
+    static char buf[64];
+
+    if (!dt)
+        return strcpy(buf, "---");
+
+    dt = current_systime - dt;
+
+    delta = gmtime(&dt);
+
+    if (delta->tm_yday > 0)
+        sprintf(buf, "%dd %02d:%02d ago",
+                delta->tm_yday, delta->tm_hour, delta->tm_min);
+    else
+        sprintf(buf, "%02d:%02d:%02ds ago", delta->tm_hour, delta->tm_min, delta->tm_sec);
+    return buf;
+}
+
+void
+do_hostcache(dbref player, const char *args)
+{
+    struct hostinfo *h;
+
+    if (!strcasecmp(args, "#show")) {
+        anotify_fmt(player, CINFO "IP Number         Use  Last Updated   Hostname");
+        for (h = hostdb; h; h = h->next)
+            anotify_fmt(player, " %-15s  %0.3d  %-14s %s", host_as_hex(h->a), h->uses, time_format_3(h->wupd), h->name);
+        anotify_fmt(player, CINFO "%d host%s.", hostdb_count, hostdb_count == 1 ? "" : "s");
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+

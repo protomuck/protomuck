@@ -14,7 +14,7 @@ struct hostinfo { /* linked-list struct for the new host cacher */
 struct husrinfo { /* linked-list struct for usernames (userports) */
     int              a;         /* ip address */
     unsigned short   uport;     /* the userport number */
-    char             user[129]; /* username */
+    char             user[32];  /* username */
     struct husrinfo *next;
     struct husrinfo *prev;
 };
@@ -34,10 +34,14 @@ extern void resolve_hostnames(void);
 extern int resolverpid;
 extern int resolver_sock[2];
 #endif
+
 extern struct huinfo *host_getinfo(int a, unsigned short lport, unsigned short prt);
 extern void host_delete(struct huinfo *hu);
 extern void host_init(void);
-//extern void host_load(void);
-//extern void host_save(void);
+extern void host_load(void);
+extern void host_save(void);
 extern void host_shutdown(void);
+extern void host_free(struct hostinfo *h);
+extern void host_check_cache(void);
+extern void do_hostcache(dbref player, const char *args);
 #endif /* __NEWRESOLV_H */
