@@ -68,6 +68,8 @@ prim_getpropfval(PRIM_PROTOTYPE)
 		abort_interp("Non-string argument (2)");
 	if (!oper1->data.string)
 		abort_interp("Empty string argument (2)");
+        if (oper2->type != PROG_OBJECT)
+                abort_interp("Arguement (2) is not a dbref.");
 	if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
 		abort_interp("Non-object argument (1)");
 	CHECKREMOTE(oper2->data.objref);
@@ -112,6 +114,8 @@ prim_getpropval(PRIM_PROTOTYPE)
 	abort_interp("Non-string argument (2)");
     if (!oper1->data.string)
 	abort_interp("Empty string argument (2)");
+    if (oper2->type != PROG_OBJECT)
+        abort_interp("Arguement (2) is not a dbref.");
     if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
     CHECKREMOTE(oper2->data.objref);
@@ -242,6 +246,8 @@ prim_getpropstr(PRIM_PROTOTYPE)
 	abort_interp("Non-string argument (2)");
     if (!oper1->data.string)
 	abort_interp("Empty string argument (2)");
+    if (oper2->type != PROG_OBJECT)
+        abort_interp("Arguement (2) is not a dbref.");
     if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
     CHECKREMOTE(oper2->data.objref);
@@ -366,6 +372,8 @@ prim_envprop(PRIM_PROTOTYPE)
 	abort_interp("Non-string argument (2)");
     if (!oper1->data.string)
 	abort_interp("Empty string argument (2)");
+    if (oper2->type != PROG_OBJECT)
+        abort_interp("Arguement (2) is not a dbref.");
     if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
     CHECKREMOTE(oper2->data.objref);
@@ -439,6 +447,8 @@ prim_envpropstr(PRIM_PROTOTYPE)
 	abort_interp("Non-string argument (2)");
     if (!oper1->data.string)
 	abort_interp("Empty string argument (2)");
+    if (oper2->type != PROG_OBJECT)
+        abort_interp("Arguement (2) is not a dbref.");
     if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
     CHECKREMOTE(oper2->data.objref);
