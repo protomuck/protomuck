@@ -341,9 +341,9 @@ PNAME-OK?     NAME-OK?     ANSI_MIDSTR  PARSE_NEON
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
 NOTIFY will work with standard ANSI format, such as FB6 uses. To
-use MUSH style ANSI, run the string with MUSH ANSI tags through
-PARSE_ANSI and it will convert the tags to standard ANSI which
-are then compatible with NOTIFY. 
+use MUSH or TIDLE style ANSI, run the string with MUSH or TILDE ANSI
+tags through PARSE_ANSI and it will convert the tags to standard 
+ANSI which are then compatible with NOTIFY. 
 See STANDARD ANSI, MUSH ANSI, NEON ANSI.
 ~~~~
 PROGRAM PRIMS|PROGRAMPRIMS
@@ -513,7 +513,31 @@ Example: %cg turns the text green.
         c - cyan foreground             C - cyan background
         w - white foreground            W - white background
 
-See: NEON ANSI, STANDARD ANSI
+See: NEON ANSI, STANDARD ANSI, TILDE ANSI
+~~~
+TILDE ANSI|TILDEANSI|TILDE COLORS
+
+TILDE ANSI started out as a MUF library on FB MUCKs, and was 
+eventually worked into the internal notification routines of
+GlowMUCK. It is basically a short cut format for STANDARD ANSI
+formats. 
+Example: ~&110 turns the text red.
+If you want to leave one of the attributes as it was, use a '-'.
+Example: ~&1-- changes the text to bold without changing the color.
+Syntax: ~&<Attribute><Foreground Color><Background Color>
+
+Attributes: 
+        0 = Normal        5 = Blinking
+        1 = Bold          7 = Hidden
+        2 = Invert        8 = Invert
+
+Colors for Foreground and Background:
+        0 - Black         4 - Blue
+        1 - Red           5 - Magenta/Purple
+        2 - Green         6 - Cyan
+        3 - Yellow        7 - Grey/White
+
+See: STANDARD ANSI, NEON ANSI, MUSH ANSI
 ~~~
 STANDARDANSI|STANDARD ANSI|STANDARD COLORS
 
@@ -543,7 +567,7 @@ the color they are defining. The choices are as follows:
 More than one instruction can follow the initial \[[, for example:
 \[[1;37;4;41m = Bold, underline, white text over red background.
 
-See: NEON ANSI, MUSH ANSI
+See: NEON ANSI, MUSH ANSI, TILDE ANSI
 ~~~~
 NEON ANSI|NEONANSI|NEON COLORS|ANSI
 
@@ -574,7 +598,7 @@ as well as in the muck. These can all be customized in-muck with:
     _/colors/fail          _/colors/succ          _/colors/info
     _/colors/note          _/colors/move
 
-See: MUSH ANSI, STANDARD ANSI, and NEON ANSI2
+See: MUSH ANSI, STANDARD ANSI, TILDE ANSI, and NEON ANSI2
 ~~~
 MATH OPERATORS|+|-|*|/|%|MODULO|ADD|SUBTRACT|MULTIPLY|DIVIDE
 
@@ -877,40 +901,37 @@ flags.
 See: FLAGLIST for a list of the flags that can be checked for.
 ~
 FLAGLIST
-
 Names and aliases of flags:
 
-ABODE, ABATE, AUTOSTART
-BUILDER
-CHOWN_OK, COLOR_ON, ANSI
-COMMAND        (*Not supported yet*)
-DARK
-GUEST
-HAVEN, HARDUID
-HIDDEN
-HTML
-INTERACTVE     (*If a player is in the MUF editor or using a program*)
-JUMP_OK
-LINK_OK, LIGHT
-LOGWALL
-MOBILE, OFFER  (*No coded effect*)
-MUFCOUNT
-PARENT
-PUEBLO
-PROTECT
-QUELL
-STICKY, SILENT
-VEHICLE, VIEWABLE
-XFORCIBLE
-ZOMBIE, PUPPET
-MEEPER, MPI
-M1, MUCKER1, MUCKER
-M2, MUCKER2, NUCKER
-M3, MUCKER3, SUCKER
-(*The following return 0 if the player is set QUELL*)
-MAGE, WIZARD, ARCHWIZARD, BOY, MAN 
-(*The following return 1, even if the player is set QUELL*)
-TRUEMAGE, TRUEWIZARD, TRUEARCHWIZARD, TRUEBOY, TRUEMAN
+ABODE/AUTOSTART/ABATE   (A)     BUILDER/BOUND           (B)
+CHOWN_OK/COLOR_ON/ANSI  (C)     DARK/DEBUG              (D)
+GUEST                   (G)     HAVEN/HARDUID/HIDE      (H)
+IDLE                    (I)     JUMP_OK                 (J)     
+ANTIPROTECT             (K)     LINK_OK                 (L)     
+NO_COMMAND              (N)     LIGHT                   (O)     
+QUELL                   (Q)     SILENT/SETUID/STICKY    (S)     
+VEHICLE/VIEWABLE        (V)     XFORCIBLE               (X)     
+EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)     
+LOGWALL                 (!)     MUFCOUNT                (+)     
+PROTECT                 (*)     PARENT/PROG_DEBUG       (%)     
+HIDDEN                  (#)MOBILE
+
+Non-Settable Flags:
+EXIT                    (E)     FORTH PROGRAM           (F)
+TRUIDLE                         PLAYER                  (P)
+ROOM                    (R)     THING                   (T)
+UNLINKED                (U)     LISTENER                (N/A)
+COMMAND                 (N/A)   PUEBLO                  ($)
+HTML                    (&)     UNUSED/OLD              (@)
+
+Permissions Bits:
+MEEPER                  (M)     MUCKER1                 (M1)
+MUCKER2                 (M2)    MUCKER3                 (M3)
+WIZARD1/MAGE            (W1)    WIZARD2/WIZARD          (W2)
+WIZARD3/ARCHWIZARD      (W3)    WIZARD4/BOY             (W4)
+WIZARD5/MAN             (W5)
+Type 'help <flag>' to get more help on a flag.
+
 ~
 GETLINK
 
@@ -3628,7 +3649,9 @@ something that its owner does.
 All propqueues can take the form of _, ~, or @ props.
 
 Propqueue props can be of type dbref or string. If of type string, they
-need to be a number that looks like an int or a dbref.
+need to be a number that looks like an int or a dbref, or be MPI code. If 
+they are to be MPI that is to be parsed, they must start with a & mark at
+the beginning.
 
 Programs called from propqueues run in BACKGROUND mode by default, and
 therefore cannot use the READ prim.
@@ -3643,6 +3666,11 @@ on the MUCK.
 Propqueues are ran in the order they appear in the directory
 (alphabetical). The actual name of the prop is not important, other than
 in determining the order. 
+
+For every propqueue there is also a o-propqueue. For example: 
+  _disconnect/ and _odisconnect/            _idle/ and _oidle/
+This only matters if the prop contains MPI to be parsed. The o-propqueues
+make the MPI public as opposed to private to just the player.
 
 See: PROPQUEUES2 for types of queues.
 ~
@@ -3690,7 +3718,7 @@ _depart/ = Runs programs whenever something departs from a room. The
 
 See: PROPQUEUES4 for additional propqueues.
 ~~~~~
-PROPQUEUES4|PROPQUEUE4|IDLE|UNIDLE
+PROPQUEUES4|PROPQUEUE4|IDLE|UNIDLE|LOOK
 
 _idle/  = This propqueue is called when a player reaches a certain
         amount of time idle. The idle time is determined by the
@@ -3708,6 +3736,18 @@ _look/  = This propqueue tends to be handled by MUF look front ends, and
         has no automatic in-server function. However, since it is @tuneable,
         and most look programs support the _look/ propqueue, it is mentioned
         here.
+
+See: PROPQUEUES5 for additional propqueues.
+~~~~
+PROPQUEUES5|PROPQUEUE5|LOGIN
+
+_login/ = Called when a connection is made to the login screen. The initial
+        argument is 'Login', command @ is 'Queued event.', trig is #0, 
+        me @ is #0, loc @ is #0. This propqueue can only be set on #0.
+
+_disclogin = Called when a connection is dropped from the login screen.
+        The initial conditions are the same as _login/, except that the initial
+        arguement is 'Disclogin'.
 
 ~~~~~
 PUT
@@ -4875,7 +4915,7 @@ FRM
 frm ( s -- i )
 --------------
 Level: W4 Boy
-s = string representing fiile name to remove.
+s = string representing file name to remove.
 i = integer representing success or failure. 0 indicates success.
 
 Given a filename on the server, removes that file. If the file was
@@ -6635,6 +6675,9 @@ display the message with ANSI color.
 Type 0 = FB6 style ANSI tags:  \[[0;31
 Type 1 = Neon style ANSI tags: ^RED^
 Type 2 = Mush style ANSI tags: %cg%ch
+Type 3 = Tilde style ANSI tags: ~&110
+
+See: ANSI
 ~~~~
 ANSI_STRLEN
 
@@ -6695,6 +6738,7 @@ tags are to be escaped. The choices are:
 Type 0 = FB6 style ANSI tags:  \[[0;31
 Type 1 = Neon style ANSI tags: ^RED^
 Type 2 = Mush style ANSI tags: %cg%ch
+Type 3 = Tilde style ANSI tags: ~&110
 ~~~
 UNPARSE_ANSI
 
@@ -6713,6 +6757,7 @@ The choices for types are:
 Type 0 = FB6 style ANSI tags:  \[[0;31
 Type 1 = Neon style ANSI tags: ^RED^
 Type 2 = Mush style ANSI tags: %cg%ch
+Type 3 = Tilde style ANSI tags: ~&110
 ~~~
 COMPILED?
 
@@ -7531,13 +7576,13 @@ See: MCP PRIMS
 ~~~~~
 PARSE_NEON
 
-parse_neon ( d s1 s2 -- s4 )
+parse_neon ( d s1 s2 -- s3 )
 ----------------------------
 Level: M1 Apprentice
 d  = Any valid dbref.
-s2 = String of text that may contain the ANSI tags.
-s3 = The default color to insert into the tags where there is no preference.
-s4 = The string returned with the Neon ansi tags replaced with standard ANSI.
+s1 = String of text that may contain the ANSI tags.
+s2 = The default color to insert into the tags where there is no preference.
+s3 = The string returned with the Neon ansi tags replaced with standard ANSI.
 
 This prim is designed to go along with the new color customization support
 in ProtoMUCK. It takes a string with Neon style ANSI tags (See 'man neon ansi')
