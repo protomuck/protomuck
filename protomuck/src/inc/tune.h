@@ -118,6 +118,7 @@ extern int tp_log_guests;
 extern int tp_log_files;
 extern int tp_log_sockets;
 extern int tp_log_failedhelp;
+extern int tp_logwall_www;
 extern int tp_dbdump_warning;
 extern int tp_deltadump_warning;
 extern int tp_periodic_program_purge;
@@ -173,6 +174,7 @@ extern int tp_multi_wizlevels;
 extern int tp_auto_archive;
 extern int tp_optimize_muf;
 extern int tp_socket_events;
+extern int tp_compatible_muf_perms;
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);

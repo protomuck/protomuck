@@ -603,7 +603,11 @@ do_prog(int descr, dbref player, const char *name)
       DBFETCH(newprog)->sp.program.profuses = 0;
       DBFETCH(newprog)->sp.program.instances = 0;
 	DBFETCH(player)->sp.player.curr_prog = newprog;
-
+        if (tp_compatible_muf_perms){ /* prog perms limited to prog bit */
+            FLAGS(newprog) |= QUELL|HAVEN;
+            if (jj >= LM3)
+                SetMLevel(newprog, LM3);
+        }
 	PUSH(newprog, DBFETCH(player)->contents);
 	DBDIRTY(newprog);
 	DBDIRTY(player);

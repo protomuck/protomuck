@@ -263,6 +263,7 @@ int tp_log_guests                  = LOG_GUESTS;
 int tp_log_files                   = LOG_FILES;
 int tp_log_sockets                 = LOG_SOCKETS;
 int tp_log_failedhelp              = LOG_FAILEDHELP;
+int tp_logwall_www                 = 1;
 int tp_dbdump_warning              = DBDUMP_WARNING;
 int tp_deltadump_warning           = DELTADUMP_WARNING;
 int tp_periodic_program_purge      = PERIODIC_PROGRAM_PURGE;
@@ -318,6 +319,7 @@ int tp_multi_wizlevels             = 1;
 int tp_auto_archive                = 0;
 int tp_optimize_muf                = OPTIMIZE_MUF;
 int tp_socket_events               = 1;
+int tp_compatible_muf_perms        = 0;
 
 struct tune_bool_entry {
     const char *group;
@@ -339,6 +341,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"Logs",     "log_files",           &tp_log_files,           WBOY , LWIZ },
     {"Logs",     "log_sockets",         &tp_log_sockets,         WBOY , LWIZ },
     {"Logs",     "log_failedhelp",      &tp_log_failedhelp,      WBOY , LWIZ },
+    {"Logs",     "logwall_www",         &tp_logwall_www,         LARCH, LWIZ },
     {"Database", "dbdump_warning",      &tp_dbdump_warning,      LARCH, LMUF },
     {"Database", "deltadump_warning",   &tp_deltadump_warning,   LARCH, LMUF },
     {"System","periodic_program_purge",&tp_periodic_program_purge,LARCH, LMUF },
@@ -394,6 +397,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"Database", "auto_archive",        &tp_auto_archive,        LBOY,  LMAGE},
     {"MUF",      "optimize_muf",        &tp_optimize_muf,        LBOY,  LMAGE},
     {"MUF",      "socket_events",       &tp_socket_events,       LARCH, LMUF },
+    {"MUF",      "compatible_muf_perms",&tp_compatible_muf_perms,LBOY,  LMAGE},
     {NULL, NULL, NULL, 0, 0}
 };
 
