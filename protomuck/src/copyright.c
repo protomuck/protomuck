@@ -1,6 +1,6 @@
 /**************************************************************************
  *  ProtoMuck
- *  Copyright (c) 2000 by Chris Brine, and Richard Taylor
+ *  Copyright (c) 2000, 2001 by Chris Brine, and Richard Taylor
  *  All rights reserved
  *
  *  Contact addresses
@@ -20,8 +20,10 @@
  *  This code supports the Pueblo multimedia protocol
  *  Copyright (c) 1995, 1996 by Chaco Communications
  *
- *  This code contains the MCP programming language
- *  Copyright (c) 1996 by Joseph L. Traub and Jeremy Blackman
+ *  This code supports the MUD Client Protocol (MCP) 2.1
+ *
+ *  This code contains and supports MCP GUI package
+ *  Copyright (c) 2000, 2001 by Revar and Triggur
  *
  *  This code contains a dictionary-based compression scheme
  *  Copyright (c) 1995 Dragon's Eye Productions and Dr. Cat
