@@ -121,6 +121,10 @@ check_flag2(char *flag, int *nbol)
         return F2ANTIPROTECT;
     if (string_prefix("parent", flag) || string_prefix("prog_debug", flag))
         return F2PARENT;
+#ifdef CONTROLS_SUPPORT
+    if (string_prefix("controls", flag))
+        return F2CONTROLS;
+#endif
     if (string_prefix("hidden", flag))
         return F2HIDDEN;
     if (string_prefix("command", flag))
@@ -233,7 +237,7 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
 }
 
 int
-flag_set_perms2(dbref ref, int flag, int mlev)
+flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
 {
     if (flag == F2HIDDEN && mlev < LARCH)
         return 0;
@@ -247,6 +251,10 @@ flag_set_perms2(dbref ref, int flag, int mlev)
         return 0;
     if (flag == F2PROTECT && mlev < LBOY)
         return 0;
+#ifdef CONTROLS_SUPPORT
+    if (flag == F2CONTROLS && ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_PROGRAM)) && mlev < LBOY)
+        return 0;
+#endif
     if ((flag == F2IDLE) && (Typeof(ref) != TYPE_PLAYER))
         return 0;
     if (flag == F2TRUEIDLE)
@@ -932,8 +940,13 @@ prim_set(PRIM_PROTOTYPE)
 
     if (!*flag)
         abort_interp("Empty flag");
-    if (!permissions(mlev, ProgUID, ref))
-        abort_interp(tp_noperm_mesg);
+    if ((check_flag1(flag) == CHOWN_OK) || (check_flag2(flag, &tWiz) == F2CONTROLS)) {
+     if (!newpermissions(mlev, ProgUID, ref, 1))
+         abort_interp(tp_noperm_mesg);
+    } else {
+     if (!newpermissions(mlev, ProgUID, ref, 0))
+         abort_interp(tp_noperm_mesg);
+    }
     if (result && Typeof(ref) == TYPE_THING) {
         dbref obj = DBFETCH(ref)->contents;
 
@@ -947,6 +960,7 @@ prim_set(PRIM_PROTOTYPE)
     if (!tmp) {
         tmp = check_mlev(flag, &tWiz);
         if (tmp > LMPI || (tmp == LMPI && mlev < LWIZ)) {
+
             abort_interp(tp_noperm_mesg);
         } else if (tmp != LMPI) {
             tmp = 0;
@@ -980,7 +994,7 @@ prim_set(PRIM_PROTOTYPE)
             DBDIRTY(ref);
         }
     } else {
-        if (!flag_set_perms2(ref, tmp2, mlev))
+        if (!flag_set_perms2(ref, tmp2, mlev, ProgUID))
             abort_interp(tp_noperm_mesg);
         if (!result) {
             ts_modifyobject(ref);
@@ -1220,6 +1234,22 @@ prim_controls(PRIM_PROTOTYPE)
         abort_interp("Invalid object (1)");
     CHECKREMOTE(oper1->data.objref);
     result = controls(oper2->data.objref, oper1->data.objref);
+    CLEAR(oper1);
+    PushInt(result);
+}
+
+void
+prim_truecontrols(PRIM_PROTOTYPE)
+{
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (!valid_object(oper1))
+        abort_interp("Invalid object (2)");
+    if (!valid_object(oper2))
+        abort_interp("Invalid object (1)");
+    CHECKREMOTE(oper1->data.objref);
+    result = truecontrols(oper2->data.objref, oper1->data.objref);
     CLEAR(oper1);
     PushInt(result);
 }

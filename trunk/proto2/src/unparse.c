@@ -75,6 +75,10 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
             *p++ = '&';
         if (FLAG2(thing) & F2MOBILE)
             *p++ = '?';
+#ifdef CONTROLS_SUPPORT
+        if (FLAG2(thing) & F2CONTROLS)
+            *p++ = '~';
+#endif
     }
     if (thing == 1) {
         *p++ = 'W';
@@ -210,6 +214,10 @@ flag_2char(char *flag)
         return 'G';
     if (string_prefix("idle", flag))
         return 'I';
+#ifdef CONTROLS_SUPPORT
+    if (string_prefix("controls", flag))
+        return '~';
+#endif
     if (string_prefix("mufcount", flag))
         return '+';
     if (string_prefix("light", flag) || string_prefix("oldcomment", flag))

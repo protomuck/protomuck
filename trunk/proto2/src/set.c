@@ -690,7 +690,8 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
             anotify_nolisten2(player, CINFO "I don't know which one you mean!");
             return;
         default:
-            if (!controls(player, thing)) {
+            if (!truecontrols(player, thing) && 
+                !((FLAGS(thing) & CHOWN_OK) && controls(player, thing))) {
                 anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
                 return;
             }
@@ -1075,11 +1076,11 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
         owner = OWNER(player);
     }
 
-    if (!controls(OWNER(player), owner)) {
+    if (!truecontrols(OWNER(player), owner)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
-    if (!controls(OWNER(player), thing) && (!(FLAGS(thing) & CHOWN_OK) ||
+    if (!truecontrols(OWNER(player), thing) && (!(FLAGS(thing) & CHOWN_OK) ||
                                             Typeof(thing) == TYPE_PROGRAM ||
                                             !test_lock(descr, player, thing,
                                                        "_/chlk"))) {

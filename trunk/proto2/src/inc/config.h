@@ -102,7 +102,7 @@
  * compromises.  You might want to do this if you decided that
  * ProtoMUCK is a better webserver than Apache. 
  */
-#undef PROTO_AS_ROOT
+#define PROTO_AS_ROOT
 
 /* Define MUF_SOCKETS to include the MUF socket prims.
  * MUF socket support is necessary for any MUF programs

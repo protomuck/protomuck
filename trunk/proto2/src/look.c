@@ -604,6 +604,10 @@ flag_description(dbref thing)
         if (FLAGS(thing) & CHOWN_OK)
             strcat(buf,
                    (Typeof(thing) == TYPE_PLAYER) ? " COLOR_ON" : " CHOWN_OK");
+#ifdef CONTROLS_SUPPORT
+        if (FLAG2(thing) & F2CONTROLS)
+            strcat(buf, " CONTROLS");
+#endif
         if (FLAGS(thing) & JUMP_OK)
             strcat(buf, " JUMP_OK");
         if (FLAGS(thing) & VEHICLE)
@@ -645,8 +649,7 @@ flag_description(dbref thing)
         if (FLAG2(thing) & F2HIDDEN)
             strcat(buf, " HIDDEN");
         if (FLAG2(thing) & F2NO_COMMAND)
-            strcat(buf, (Typeof(thing) == TYPE_PROGRAM) ? " NO_OPTIMIZE" :
-                   " NO_COMMAND");
+            strcat(buf, (Typeof(thing) == TYPE_PROGRAM) ? " NO_OPTIMIZE" : " NO_COMMAND");
         if (FLAG2(thing) & F2EXAMINE_OK)
             strcat(buf, " EXAMINE_OK");
         if (FLAG2(thing) & F2MOBILE)
