@@ -978,6 +978,7 @@ prim_array_sort(PRIM_PROTOTYPE)
                      break;
              case SORTTYPE_SHUFFLE:
                      comparator = sortcomp_shuffle;
+                     break;
              default:
                      abort_interp("Sort type argument contained an unexpected value. (2)");
      }
