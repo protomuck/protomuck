@@ -118,7 +118,7 @@ int check_flag2(char *flag, int *nbol)
 }
 
 int check_mlev(char *flag, int *truewiz)
-{
+{  
    *truewiz = 0;
 
    if (string_prefix(flag, "true")) {
@@ -783,7 +783,6 @@ prim_copyobj(PRIM_PROTOTYPE)
 	PushObject(newobj);
     }
 }
-
 void
 prim_isflagp(PRIM_PROTOTYPE)
 {
@@ -801,6 +800,7 @@ prim_set(PRIM_PROTOTYPE)
 {
     int tmp2 = 0;
     char *flag;
+    int tWiz = 0;
 
     CHECKOP(2);
     oper1 = POP();
@@ -835,12 +835,12 @@ prim_set(PRIM_PROTOTYPE)
     }
     tmp = check_flag1(flag);
     if (tmp) {
-       tmp = check_mlev(flag, NULL);
+       tmp = check_mlev(flag, &tWiz);
        if (tmp) {
           abort_interp(tp_noperm_mesg);
        } else {
           tmp = 0;
-          tmp2 = check_flag2(flag, NULL);
+          tmp2 = check_flag2(flag, &tWiz);
           if (!tmp2)
              abort_interp("Unrecognized flag");
        }

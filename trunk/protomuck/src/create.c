@@ -261,7 +261,8 @@ link_exit(int descr, dbref player, dbref exit, char *dest_name, dbref * dest_lis
 	if (dest == HOME) {
 	    anotify_nolisten2(player, CSUCC "Linked to HOME.");
 	} else {
-	    sprintf(buf, CSUCC "Linked to %s.", unparse_object(player, dest));
+	    sprintf(buf, CSUCC "%s linked to %s.", 
+                  NAME(exit), unparse_object(player, dest));
 	    anotify_nolisten2(player, buf);
 	}
 	if (ndest >= MAX_LINKS) {
@@ -288,7 +289,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
     dbref   dest;
     dbref   good_dest[MAX_LINKS];
     struct match_data md;
-
+    char    buf[BUFFER_LEN];
     int     ndest, i;
 
     if (tp_db_readonly) {
@@ -393,7 +394,9 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 		DBFETCH(thing)->sp.thing.home = dest;
 	    } else
 		DBFETCH(thing)->sp.player.home = dest;
-	    anotify_nolisten2(player, CSUCC "Home set.");
+             sprintf(buf, CSUCC "%s's home set to %s.",
+                  NAME(thing), unparse_object(player, dest));           
+	    anotify_nolisten2(player, buf);
 	    break;
 	case TYPE_ROOM:	/* room dropto's */
 	    init_match(descr, player, dest_name, TYPE_ROOM, &md);
@@ -409,7 +412,9 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 		anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	    } else {
 		DBFETCH(thing)->sp.room.dropto = dest;	/* dropto */
-		anotify_nolisten2(player, CSUCC "Dropto set.");
+                sprintf(buf, CSUCC "%s's dropto set to %s.",
+                        NAME(thing), unparse_object(player, dest));
+		anotify_nolisten2(player, buf);
 	    }
 	    break;
 	case TYPE_PROGRAM:
