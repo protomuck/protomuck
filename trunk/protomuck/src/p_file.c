@@ -635,37 +635,44 @@ void prim_bappend(PRIM_PROTOTYPE)
   
 void prim_fsize(PRIM_PROTOTYPE)
 {
-  FILE *fh;
-  char *filename;
-  long offset;
-  CHECKOP(1);
-  oper1 = POP();
-  if (getuid() == 0 ) 
-    abort_interp("Muck is running under root privs, file prims disabled.");
-  if (mlev < LBOY) abort_interp("BOY primitive only.");  
-  if (oper1->type != PROG_STRING) abort_interp("Arguement 1 is not a string.");
-  if (!oper1->data.string) abort_interp("Arguement 1 is a null string.");
-  filename = oper1->data.string->data;
+    FILE *fh;
+    char *filename;
+    long offset;
+    CHECKOP(1);
+    oper1 = POP();
+    if (getuid() == 0 ) 
+        abort_interp("Muck is running under root privs, file prims disabled.");
+    if (mlev < LBOY) 
+	abort_interp("BOY primitive only.");  
+    if (oper1->type != PROG_STRING)
+        abort_interp("Arguement 1 is not a string.");
+    if (!oper1->data.string) 
+	abort_interp("Arguement 1 is a null string.");
+    filename = oper1->data.string->data;
 #ifdef SECURE_FILE_PRIMS
-  if (!(valid_name(filename)))
-      abort_interp( "Invalid file name.");
-  if ( strchr( filename, '$' ) == NULL )
-    filename = set_directory(filename);
-  else
-    filename = parse_token( filename );
-  if ( filename == NULL )
-    abort_interp( "Invalid shortcut used." );
+    if (!(valid_name(filename)))
+        abort_interp( "Invalid file name.");
+    if ( strchr( filename, '$' ) == NULL )
+        filename = set_directory(filename);
+    else
+        filename = parse_token( filename );
+    if ( filename == NULL )
+        abort_interp( "Invalid shortcut used." );
 #endif
-  fh = fopen(filename, "r");
-  if (fh == NULL) { offset = -1; } else {
-    fseek(fh, (int) 0, SEEK_END);
-    offset = ftell(fh);
-    if(tp_log_files)
-      log2filetime("logs/files", "#%d by %s FSIZE: %s \n", program, unparse_object(player, player), oper1->data.string->data); 
-    fclose(fh);
-  }
-  CLEAR(oper1);
-  PushInt(offset);
+    fh = fopen(filename, "r");
+    if (!fh) { 
+        offset = -1; 
+    } else {
+        fseek(fh, (int) 0, SEEK_END);
+        offset = ftell(fh);
+        if(tp_log_files)
+            log2filetime("logs/files", "#%d by %s FSIZE: %s \n", program, 
+		        unparse_object(player, player), 
+			oper1->data.string->data); 
+        fclose(fh);
+    }
+    CLEAR(oper1);
+    PushInt(offset);
 }
   
 void prim_fstats(PRIM_PROTOTYPE)
