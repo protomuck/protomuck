@@ -148,7 +148,7 @@ extern int descr_running_queue(int descr);
 extern int dequeue_prog(dbref program, int sleeponly);
 extern int dequeue_process(int procnum);
 extern int dequeue_timers(int pid, char *id);
-extern void read_event_notify(int descr, dbref player);
+extern int read_event_notify(int descr, dbref player, const char *cmd);
 extern int control_process(dbref player, int pid);
 extern void do_dequeue(int descr, dbref player, const char *arg1);
 extern void propqueue(int descr, dbref player, dbref where, dbref trigger,

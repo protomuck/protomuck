@@ -136,7 +136,7 @@ muf_event_register(dbref player, dbref prog, struct frame *fr)
  * 0 otherwise.
  */
 int
-muf_event_read_notify(int descr, dbref player)
+muf_event_read_notify(int descr, dbref player, const char *cmd)
 {
     struct mufevent_process *ptr;
 
@@ -144,12 +144,18 @@ muf_event_read_notify(int descr, dbref player)
     while (ptr) {
         if (ptr->player == player) {
             if (ptr->fr && ptr->fr->multitask != BACKGROUND) {
-                struct inst temp;
+                /* Added the following condition. It will be used
+                 * to keep the program from getting events from
+                 * use of in-server globals like WHO or QUIT -Akari
+                 */
+                if ( *cmd || ptr->fr->wantsblanks ) {
+                    struct inst temp;
 
-                temp.type = PROG_INTEGER;
-                temp.data.number = descr;
-                muf_event_add(ptr->fr, "READ", &temp, 1);
-                return 1;
+                    temp.type = PROG_INTEGER;
+                    temp.data.number = descr;
+                    muf_event_add(ptr->fr, "READ", &temp, 1);
+                    return 1;
+                }
             }
         }
         ptr = ptr->next;
@@ -195,8 +201,9 @@ muf_event_dequeue_pid(int pid)
         tmp = proc;
         proc = proc->next;
         if (tmp->fr->pid == pid) {
-            if (OkObj(tmp->player) && !tmp->fr->been_background)
+            if (OkObj(tmp->player) && !tmp->fr->been_background) {
                 DBFETCH(tmp->player)->sp.player.block = 0;
+}
             muf_event_purge(tmp->fr);
             muf_event_process_free(tmp);
             ++count;
@@ -233,11 +240,17 @@ event_has_refs(dbref program, struct frame *fr)
 }
 
 
-/* int muf_event_dequeue(dbref prog)
+/* int muf_event_dequeue(dbref prog, int sleeponly)
  * Deregisters a program from any instances of it in the EVENT_WAIT queue.
+ * Sleeponly values:
+ * 0 - All matching processes
+ * 1 - Only matching sleeping processes
+ * 2 - Only matching foreground processes
+ * Note that the 'prog' parameter is named misleadingly. It may be a 
+ * program dbref or a player dbref that actually gets passed in. -Akari
  */
 int
-muf_event_dequeue(dbref prog)
+muf_event_dequeue(dbref prog, int sleeponly )
 {
     struct mufevent_process *proc, *tmp;
     int count = 0;
@@ -246,28 +259,40 @@ muf_event_dequeue(dbref prog)
     while (proc) {
         tmp = proc;
         proc = proc->next;
-        if (prog == NOTHING || tmp->player == prog || tmp->prog == prog ||
+        if (prog == NOTHING || 
+            tmp->player == prog || 
+            tmp->prog == prog ||
             event_has_refs(prog, tmp->fr)) {
-            if (OkObj(tmp->player) && !tmp->fr->been_background)
-                DBFETCH(tmp->player)->sp.player.block = 0;
-            muf_event_purge(tmp->fr);
-            muf_event_process_free(tmp);
-            ++count;
+            /* Added respect for the sleeponly parameter that is used
+             * in other process dequeueing code. - Akari
+             */
+            if ( sleeponly == 0 ||
+                 ( sleeponly == 2 && tmp->fr->multitask != BACKGROUND)) {
+                if (OkObj(tmp->player) && !tmp->fr->been_background) {
+                    DBFETCH(tmp->player)->sp.player.block = 0;
+}
+                muf_event_purge(tmp->fr);
+                muf_event_process_free(tmp);
+                ++count;
+            }
         }
     }
     return count;
 }
 
-/* int muf_event_dequeue(int descr)
+
+/* int muf_event_dequeue(int descr, int sleeponly)
  * Just like muf_event_dequeue except that it only checks for
  * matching descriptors instead of the other criteria that the 
  * other function checks for. Since descr's could be the same 
  * value as a program or player dbref, this needed to be handled
  * seperately. In order to get this to work, a descr field was added
  * to struct mufevent_process.
+ * Added the sleeponly parameter so that we can stop treating MUF
+ * events as only background processes. -Akari
  */
 int
-muf_event_dequeue_descr(int descr)
+muf_event_dequeue_descr(int descr, int sleeponly)
 {
     struct mufevent_process *proc, *tmp;
     int count = 0;
@@ -277,9 +302,12 @@ muf_event_dequeue_descr(int descr)
         tmp = proc;
         proc = proc->next;
         if (tmp->descr == descr) {
-            muf_event_purge(tmp->fr);
-            muf_event_process_free(tmp);
-            ++count;
+            if (sleeponly == 0 || 
+                (sleeponly == 2 && tmp->fr->multitask != BACKGROUND )) {
+                muf_event_purge(tmp->fr);
+                muf_event_process_free(tmp);
+                ++count;
+            }
         }
     }
     return count;

@@ -129,6 +129,7 @@ char *time_format_1(time_t);
 struct descriptor_data *new_connection(int port, int sock);
 int queue_ansi(struct descriptor_data *d, const char *msg);
 int do_command(struct descriptor_data *d, char *command);
+int is_interface_command(const char *cmd);
 int remember_descriptor(struct descriptor_data *);
 int process_output(struct descriptor_data *d);
 int process_input(struct descriptor_data *d);
@@ -2876,6 +2877,8 @@ freeqs(struct descriptor_data *d)
 int
 save_command(struct descriptor_data *d, const char *command)
 {
+
+/*
     if (d->connected &&
         !string_compare((char *) command, BREAK_COMMAND) &&
         ((MLevel(d->player) >= tp_min_progbreak_lev) || (Wiz(d->player)))) {
@@ -2897,6 +2900,7 @@ save_command(struct descriptor_data *d, const char *command)
         }
     }
 #endif
+*/
     if (tp_allow_unidle) {      /* check for unidle word */
         if (!string_compare((char *) command, tp_unidle_command))
             return -1;
@@ -3131,7 +3135,10 @@ process_commands(void)
                 }
             }
             if (d->quota > 0 && (t = d->input.head)) {
-                if ((d->connected && DBFETCH(d->player)->sp.player.block)
+                /* Added in the is_interface_command to seperate out checking
+                 * for things like @q, WHO, QUIT, etc. -Akari */
+                if ((d->connected && DBFETCH(d->player)->sp.player.block &&
+                    !is_interface_command(t->start) )
                     || (!d->connected && d->block)) {
 #ifdef MCP_SUPPORT
                     char *tmp = t->start;
@@ -3141,21 +3148,30 @@ process_commands(void)
                         tmp += 3;
                     }
 #endif
-                    if (strncmp(t->start, WHO_COMMAND, sizeof(WHO_COMMAND) - 1)
-                        && strcmp(t->start, QUIT_COMMAND)
-                        && strcmp(t->start, QUIT_COMMAND)
-                        && strncmp(t->start, PREFIX_COMMAND,
-                                   sizeof(PREFIX_COMMAND) - 1)
-                        && strncmp(t->start, SUFFIX_COMMAND,
-                                   sizeof(SUFFIX_COMMAND) - 1)
-#ifdef MCP_SUPPORT
-                        && strncmp(t->start, "#$#", 3) /* MCP mesg. */
-#endif
-                        ) {
-                        read_event_notify(d->descriptor, d->player);
+                  
+                    /* If read_event_notify returns 0, it didn't handle
+                     * the input. If tmp is an empty string, then we'll
+                     * remove the empty line here. -Akari
+                     */
+                    if( !read_event_notify(d->descriptor, d->player, tmp) &&
+                        !*tmp) {
+                        ++nprocessed;
+                        d->input.head = t->nxt;
+                        d->input.lines--;
+                        if ( !d->input.head ) {
+                            d->input.tail = &d->input.head;
+                            d->input.lines = 0;
+                        }
+                        free_text_block(t);
                     }
                 } else {
+#ifdef MCP_SUPPORT
+                    if ( strncmp(t->start, "#$#", 3)) {
+                        d->quota--;/* Only count non-MCP messages for quota */
+                    }
+#else
                     d->quota--;
+#endif
                     nprocessed++;
                     if (!do_command(d, t->start)) {
                         if (valid_obj(tp_quit_prog)
@@ -3185,7 +3201,7 @@ process_commands(void)
                             d->booted = 2;
                         }
                     }
-                    /* start former else block */
+
                     d->input.head = t->nxt;
                     d->input.lines--;
                     if (!d->input.head) {
@@ -3193,11 +3209,42 @@ process_commands(void)
                         d->input.lines = 0;
                     }
                     free_text_block(t);
-                    /* end former else block */
                 }
             }
         }
     } while (nprocessed > 0);
+}
+
+/* This returns 1 if the command is one of the inherent
+ * interface commands, like QUIT, PREFIX_COMMAND, @Q, etc.
+ * -Akari
+ */
+int
+is_interface_command( const char *cmd)
+{
+    const char *tmp = cmd;
+
+#ifdef MCP_SUPPORT
+    if (!strncmp(tmp, "#$\"", 3)) {
+        /* Dequote MCP quoting */
+        tmp += 3;
+    }
+    if ( !strncmp(cmd, "#$#", 3)) { /* MCP Message */
+        return 1;
+    }
+#endif
+
+    if ( !string_compare(tmp, BREAK_COMMAND))
+        return 1;
+    if ( !string_compare(tmp, QUIT_COMMAND))
+        return 1;
+    if ( !strncmp(tmp, WHO_COMMAND, strlen(WHO_COMMAND)))
+        return 1;
+    if ( !strncmp(tmp, PREFIX_COMMAND, strlen(PREFIX_COMMAND)))
+        return 1;
+    if ( !strncmp(tmp, SUFFIX_COMMAND, strlen(SUFFIX_COMMAND)))
+        return 1;
+    return 0;
 }
 
 int
@@ -3211,9 +3258,6 @@ do_command(struct descriptor_data *d, char *command)
         return 1;               /* hinoserm */
 #endif /* NEWHTTPD */
 
-    if (d->connected)
-        ts_lastuseobject(d->player);
-
 #ifdef MCP_SUPPORT
     if (!mcp_frame_process_input(&d->mcpframe, command, cmdbuf, sizeof(cmdbuf))) {
         d->quota++;
@@ -3223,7 +3267,28 @@ do_command(struct descriptor_data *d, char *command)
     strcpy(cmdbuf, command);
 #endif
     command = cmdbuf;
-    if (!strcmp(command, QUIT_COMMAND)) {
+    if ( d->connected )
+        ts_lastuseobject(d->player);
+
+    if ( !string_compare(command, BREAK_COMMAND)) {
+        if ( dequeue_prog(d->player, 2)) {
+            if (d->output_prefix) {
+                queue_ansi(d, d->output_prefix);
+                queue_write(d, "\r\n", 2);
+            }
+        }
+        queue_ansi( d, CINFO "Foreground program aborted.\r\n");
+        if((FLAGS(d->player) & INTERACTIVE))
+            if ((FLAGS(d->player) & READMODE))
+                process_command(d->descriptor, d->player, command);
+        if ( d->output_suffix) {
+            queue_ansi(d, d->output_suffix);
+            queue_write(d, "\r\n", 2);
+        }
+        if (valid_obj(d->player)) {
+            DBFETCH(d->player)->sp.player.block = 0;
+}
+    } else if (!strcmp(command, QUIT_COMMAND)) {
         return 0;
     } else if (!strncmp(command, PUEBLO_COMMAND, sizeof(PUEBLO_COMMAND) - 1)) {
         queue_ansi(d, "</xch_mudtext><img xch_mode=html>");

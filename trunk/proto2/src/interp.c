@@ -2119,12 +2119,17 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         }
     }                           /* while */
 
+/* TODO: We need to make it so that the checks below only
+ *       happen if there are no other FOREGROUND programs
+ *       that might be waiting for input from this user.
+ */
     if (OkObj(player)) {
         DBSTORE(player, sp.player.block, 0);
     } else {
         if ((curdescr = get_descr(fr->descr, NOTHING)))
             curdescr->block = 0;
     }
+/* End of TODO */ 
     if (atop) {
         struct inst *rv;
 
