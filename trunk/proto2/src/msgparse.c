@@ -14,78 +14,73 @@
 #include "msgparse.h"
 #include "mfun.h"
 
+#define smnotify(X, Y, Z) { if (OkObj(Y))                       \
+                                notify_nolisten(Y, Z, 1);       \
+                            else if (X > -1)                    \
+                                notify_descriptor(X, Z);        \
+                          }
+
 time_t mpi_prof_start_time;
 
-
-int
-Archperms(dbref what)
+bool
+Archperms(register dbref what)
 {
-    if (Arch(what) && TArch(OWNER(what)))
-        return 1;
-    return 0;
+    return (Arch(what) && TArch(OWNER(what)));
 }
 
 
-int
-Wizperms(dbref what)
+bool
+Wizperms(register dbref what)
 {
-    if (Wiz(what) && TWiz(OWNER(what)))
-        return 1;
-    return 0;
+    return (Wiz(what) && TWiz(OWNER(what)));
 }
 
 
-int
-Mageperms(dbref what)
+bool
+Mageperms(register dbref what)
 {
-    if (Mage(what) && TMage(OWNER(what)))
-        return 1;
-    return 0;
+    return (Mage(what) && TMage(OWNER(what)));
 }
 
-
-int
-safeputprop(dbref obj, dbref perms, char *buf, char *val)
+bool
+safeputprop(dbref obj, dbref perms, register const char *buf, const char *val)
 {
-    char *ptr;
+    register const char *ptr;
 
-    if (!buf)
+    if (!buf || !*buf)
         return 0;
+
     while (*buf == PROPDIR_DELIMITER)
         buf++;
-    if (!*buf)
-        return 0;
-    if (tp_db_readonly)
+
+    if (!*buf || tp_db_readonly)
         return 0;
 
     /* disallow CR's and :'s in prop names. */
     for (ptr = buf; *ptr; ptr++)
-        if (*ptr == '\r' || *ptr == PROP_DELIMITER)
+        if (*ptr == '\r' || *ptr == PROP_DELIMITER || !isascii(*ptr)) /* hinoserm */
             return 0;
 
-    if (!Archperms(perms)) {
-        if (Prop_Hidden(buf))
+    if (!Archperms(perms) && Prop_Hidden(buf))
+        return 0;
+
+    if (!Wizperms(perms))
+        if (Prop_SeeOnly(buf) || string_prefix(buf, "_msgmacs/"))
             return 0;
-    }
-    if (!Wizperms(perms)) {
-        if (Prop_SeeOnly(buf))
-            return 0;
-        if (string_prefix(buf, "_msgmacs/"))
-            return 0;
-    }
-    if (!val) {
+
+    if (!val)
         remove_property(obj, buf);
-    } else {
+    else
         add_property(obj, buf, val, 0);
-    }
+
     return 1;
 }
 
 const char *
-safegetprop_limited(dbref player, dbref what, dbref whom, dbref perms,
+safegetprop_limited(dbref player, register dbref what, dbref whom, dbref perms,
                     const char *inbuf)
 {
-    const char *ptr;
+    register const char *ptr;
 
     while (what != NOTHING) {
         if (OWNER(what) == whom || Wizard(what) ||
@@ -97,47 +92,44 @@ safegetprop_limited(dbref player, dbref what, dbref whom, dbref perms,
         }
         what = getparent(what);
     }
+
     return "";
 }
 
 const char *
 safegetprop_strict(dbref player, dbref what, dbref perms, const char *inbuf)
 {
-    const char *ptr;
-    char bbuf[BUFFER_LEN];
-    static char vl[32];
+    register const char *ptr;
+    static char vl[16];
 
     if (!inbuf) {
         notify_nolisten(player, "PropFetch: Propname required.", 1);
         return NULL;
     }
+
     while (*inbuf == PROPDIR_DELIMITER)
         inbuf++;
+
     if (!*inbuf) {
         notify_nolisten(player, "PropFetch: Propname required.", 1);
         return NULL;
     }
-    strcpy(bbuf, inbuf);
+
     if (!Archperms(perms)) {
-        if (Prop_Hidden(bbuf)) {
-            notify_nolisten(player, "PropFetch: Permission denied.", 1);
-            return NULL;
-        }
-        if (Prop_Private(bbuf) && OWNER(perms) != OWNER(what)) {
+        if (Prop_Hidden(inbuf)
+            || (Prop_Private(inbuf) && OWNER(perms) != OWNER(what))) {
             notify_nolisten(player, "PropFetch: Permission denied.", 1);
             return NULL;
         }
     }
-    ptr = get_property_class(what, bbuf);
-    if (!ptr) {
-        int i;
 
-        i = get_property_value(what, bbuf);
-        if (!i) {
+    if (!(ptr = get_property_class(what, inbuf))) {
+        register int i;
+
+        if (!(i = get_property_value(what, inbuf))) {
             dbref dd;
 
-            dd = get_property_dbref(what, bbuf);
-            if (dd == NOTHING) {
+            if ((dd = get_property_dbref(what, inbuf)) == NOTHING) {
                 *vl = '\0';
                 ptr = vl;
                 return ptr;
@@ -150,75 +142,79 @@ safegetprop_strict(dbref player, dbref what, dbref perms, const char *inbuf)
             ptr = vl;
         }
     }
-#ifdef COMPRESS
-    ptr = uncompress(ptr);
-#endif
-    return ptr;
+
+    return get_uncompress(ptr);
 }
 
 
 const char *
-safegetprop(dbref player, dbref what, dbref perms, const char *inbuf)
+safegetprop(dbref player, register dbref what, dbref perms, const char *inbuf)
 {
-    const char *ptr;
+    register const char *ptr;
 
     while (what != NOTHING) {
         ptr = safegetprop_strict(player, what, perms, inbuf);
         if (!ptr || *ptr)
             return ptr;
+
         what = getparent(what);
     }
+
     return "";
 }
 
 
-char *
-stripspaces(char *buf, char *in)
+const char *
+stripspaces(register char *buf, register char *in)
 {
-    char *ptr;
+    register char *ptr;
 
-    for (ptr = in; *ptr == ' '; ptr++) ;
+    for (ptr = in; isspace(*ptr); ptr++) ;
+
     strcpy(buf, ptr);
     ptr = strlen(buf) + buf - 1;
+
     while (*ptr == ' ' && ptr > buf)
         *(ptr--) = '\0';
+
     return buf;
 }
 
-
-char *
+const char *
 string_substitute(const char *str, const char *oldstr, const char *newstr,
                   char *buf, int maxlen)
 {
-    const char *ptr = str;
-    char *ptr2 = buf;
-    const char *ptr3;
-    int len = strlen(oldstr);
+    register const char *ptr = str;
+    register char *ptr2 = buf;
+    register const char *ptr3;
+    register int len = strlen(oldstr);
 
-    if (len == 0) {
+    if (!len) {
         strcpy(buf, str);
         return buf;
     }
+
     while (*ptr) {
         if (!strncmp(ptr, oldstr, len)) {
             for (ptr3 = newstr; ((ptr2 - buf) < (maxlen - 2)) && *ptr3;)
                 *(ptr2++) = *(ptr3++);
+
             ptr += len;
-        } else {
+        } else
             *(ptr2++) = *(ptr++);
-        }
     }
+
     *ptr2 = '\0';
+
     return buf;
 }
-
 
 const char *
 get_list_item(dbref player, dbref what, dbref perms, const char *listname,
               int itemnum)
 {
     char buf[BUFFER_LEN];
-    const char *ptr;
+    register const char *ptr;
 
     sprintf(buf, "%.512s#/%d", listname, itemnum);
     ptr = safegetprop(player, what, perms, buf);
@@ -234,13 +230,12 @@ get_list_item(dbref player, dbref what, dbref perms, const char *listname,
     return (safegetprop(player, what, perms, buf));
 }
 
-
 int
 get_list_count(dbref player, dbref obj, dbref perms, const char *listname)
 {
     char buf[BUFFER_LEN];
-    const char *ptr;
-    int i;
+    register const char *ptr;
+    register int i;
 
     sprintf(buf, "%.512s#", listname);
     ptr = safegetprop(player, obj, perms, buf);
@@ -253,39 +248,39 @@ get_list_count(dbref player, dbref obj, dbref perms, const char *listname)
         return (atoi(ptr));
 
     for (i = 1; i < MAX_MFUN_LIST_LEN; i++) {
-        ptr = get_list_item(player, obj, perms, listname, i);
-        if (!ptr)
+        if (!(ptr = get_list_item(player, obj, perms, listname, i)))
             return 0;
+
         if (!*ptr)
             break;
     }
+
     if (i-- < MAX_MFUN_LIST_LEN)
         return i;
+
     return MAX_MFUN_LIST_LEN;
 }
 
-
-
-char *
+const char *
 get_concat_list(dbref player, dbref what, dbref perms, dbref obj,
                 const char *listname, char *buf, int maxchars, int mode)
 {
-    int line_limit = MAX_MFUN_LIST_LEN;
-    int i;
+    register int line_limit = MAX_MFUN_LIST_LEN;
+    register int i;
     const char *ptr;
     char *pos = buf;
     int cnt = get_list_count(what, obj, perms, listname);
 
-    if (cnt == 0) {
+    if (!cnt)
         return NULL;
-    }
+
     maxchars -= 2;
     *buf = '\0';
     for (i = 1; ((pos - buf) < (maxchars - 1)) && i <= cnt && line_limit--; i++) {
-        ptr = get_list_item(what, obj, perms, listname, i);
-        if (ptr) {
+        if ((ptr = get_list_item(what, obj, perms, listname, i))) {
             while (mode && isspace(*ptr))
                 ptr++;
+
             if (pos > buf) {
                 if (!mode) {
                     *(pos++) = '\r';
@@ -295,78 +290,70 @@ get_concat_list(dbref player, dbref what, dbref perms, dbref obj,
 
                     if ((pos - buf) >= (maxchars - 2))
                         break;
+
                     if (ch == '.' || ch == '?' || ch == '!')
                         *(pos++) = ' ';
+
                     *(pos++) = ' ';
                     *pos = '\0';
                 } else {
                     *pos = '\0';
                 }
             }
+
             while (((pos - buf) < (maxchars - 1)) && *ptr)
                 *(pos++) = *(ptr++);
-            if (mode) {
+
+            if (mode)
                 while (pos > buf && *(pos - 1) == ' ')
                     pos--;
-            }
+
             *pos = '\0';
             if ((pos - buf) >= (maxchars - 1))
                 break;
         }
     }
+
     return (buf);
 }
 
 
-int
-mesg_read_perms(dbref player, dbref perms, dbref obj)
+bool
+mesg_read_perms(register dbref player, register dbref perms, register dbref obj)
 {
-    if ((obj == 0) || (obj == player) || (obj == perms))
-        return 1;
-    if (OWNER(perms) == OWNER(obj))
-        return 1;
-    if (controls(OWNER(perms),obj))
-        return 1;
-    if (Wizperms(perms))
-        return 1;
-    return 0;
+    return (!obj || obj == player || obj == perms || OWNER(perms) == OWNER(obj)
+            || controls(OWNER(perms), obj) || Wizperms(perms));
 }
 
-
-int
-isneighbor(dbref d1, dbref d2)
+bool
+isneighbor(register dbref d1, register dbref d2)
 {
     if (d1 == d2)
         return 1;
+
     if (Typeof(d1) != TYPE_ROOM)
         if (getloc(d1) == d2)
             return 1;
+
     if (Typeof(d2) != TYPE_ROOM)
         if (getloc(d2) == d1)
             return 1;
+
     if (Typeof(d1) != TYPE_ROOM && Typeof(d2) != TYPE_ROOM)
         if (getloc(d1) == getloc(d2))
             return 1;
+
     return 0;
 }
 
-
-int
-mesg_local_perms(dbref player, dbref perms, dbref obj)
+bool
+mesg_local_perms(register dbref player, register dbref perms,
+                 register dbref obj)
 {
-    if ((getloc(obj) != NOTHING) && (OWNER(perms) == OWNER(getloc(obj))))
-        return 1;
-    if (isneighbor(perms, obj))
-        return 1;
-    if (isneighbor(player, obj))
-        return 1;
-    if (Mageperms(perms))
-        return 1;
-    if (mesg_read_perms(player, perms, obj))
-        return 1;
-    return 0;
+    return ((getloc(obj) != NOTHING && OWNER(perms) == OWNER(getloc(obj)))
+            || isneighbor(perms, obj) || isneighbor(player, obj)
+            || Mageperms(perms) || mesg_read_perms(player, perms, obj));
 }
-
 
 dbref
 mesg_dbref_raw(int descr, dbref player, dbref what, dbref perms,
@@ -406,94 +393,90 @@ mesg_dbref_raw(int descr, dbref player, dbref what, dbref perms,
 
     if (obj < 0 || obj >= db_top || Typeof(obj) == TYPE_GARBAGE)
         obj = UNKNOWN;
+
     return obj;
 }
-
 
 dbref
 mesg_dbref(int descr, dbref player, dbref what, dbref perms, char *buf)
 {
-    dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
+    register dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
 
     if (obj == UNKNOWN)
         return obj;
-    if (!mesg_read_perms(player, perms, obj)) {
+
+    if (!mesg_read_perms(player, perms, obj))
         obj = PERMDENIED;
-    }
+
     return obj;
 }
-
 
 dbref
 mesg_dbref_mage(int descr, dbref player, dbref what, dbref perms, char *buf)
 {
-    dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
+    register dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
 
-    if (obj == UNKNOWN)
+    if (obj == UNKNOWN || controls(OWNER(perms), obj))
         return obj;
-    if (controls(OWNER(perms), obj)) 
-        return obj;
+
     if (!Mageperms(perms) && OWNER(perms) != OWNER(obj))
         obj = PERMDENIED;
+
     return obj;
 }
-
 
 dbref
 mesg_dbref_strict(int descr, dbref player, dbref what, dbref perms, char *buf)
 {
-    dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
+    register dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
 
     if (obj == UNKNOWN)
         return obj;
-    if (!Wizperms(perms) && OWNER(perms) != OWNER(obj)) {
+
+    if (!Wizperms(perms) && OWNER(perms) != OWNER(obj))
         obj = PERMDENIED;
-    }
+
     return obj;
 }
-
 
 dbref
 mesg_dbref_local(int descr, dbref player, dbref what, dbref perms, char *buf)
 {
-    dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
+    register dbref obj = mesg_dbref_raw(descr, player, what, perms, buf);
 
     if (obj == UNKNOWN)
         return obj;
-    if (!mesg_local_perms(player, perms, obj)) {
+
+    if (!mesg_local_perms(player, perms, obj))
         obj = PERMDENIED;
-    }
+
     return obj;
 }
 
-
-char *
-ref2str(dbref obj, char *buf)
+const char *
+ref2str(register dbref obj, register char *buf)
 {
     if (obj < -3 || obj >= db_top) {
         sprintf(buf, "Bad");
         return buf;
     }
 
-    if (obj >= 0 && Typeof(obj) == TYPE_PLAYER) {
-        sprintf(buf, "*%s", RNAME(obj));
-    } else {
+    if (obj >= 0 && Typeof(obj) == TYPE_PLAYER)
+        sprintf(buf, "*%s", NAME(obj));
+    else
         sprintf(buf, "#%d", obj);
-    }
+
     return buf;
 }
 
-
-int
-truestr(char *buf)
+bool
+truestr(register const char *buf)
 {
     while (isspace(*buf))
         buf++;
-    if (!*buf || (number(buf) && !atoi(buf)))
-        return 0;
-    return 1;
-}
 
+    return !(!*buf || (number(buf) && !atoi(buf)));
+}
 
 /******** MPI Variable handling ********/
 
@@ -505,47 +488,51 @@ struct mpivar {
 static struct mpivar varv[MPI_MAX_VARIABLES];
 int varc = 0;
 
-int
-check_mvar_overflow(int count)
+bool
+check_mvar_overflow(register int count)
 {
     return (varc + count) > MPI_MAX_VARIABLES;
 }
 
-int
-new_mvar(const char *varname, char *buf)
+bool
+new_mvar(register const char *varname, register char *buf)
 {
     if (strlen(varname) > MAX_MFUN_NAME_LEN)
         return 1;
+
     if (varc >= MPI_MAX_VARIABLES)
         return 2;
+
     strcpy(varv[varc].name, varname);
     varv[varc++].buf = buf;
+
     return 0;
 }
 
 char *
-get_mvar(const char *varname)
+get_mvar(register const char *varname)
 {
-    int i = 0;
+    register int i = 0;
 
     for (i = varc - 1; i >= 0 && string_compare(varname, varv[i].name); i--) ;
+
     if (i < 0)
         return NULL;
+
     return varv[i].buf;
 }
 
-int
+bool
 free_top_mvar(void)
 {
     if (varc < 1)
         return 1;
+
     varc--;
     return 0;
 }
 
-
 /***** MPI function handling *****/
-
 
 struct mpifunc {
     char name[MAX_MFUN_NAME_LEN + 1];
@@ -555,91 +542,99 @@ struct mpifunc {
 static struct mpifunc funcv[MPI_MAX_FUNCTIONS];
 int funcc = 0;
 
-int
-new_mfunc(const char *funcname, const char *buf)
+bool
+new_mfunc(register const char *funcname, register const char *buf)
 {
     if (strlen(funcname) > MAX_MFUN_NAME_LEN)
         return 1;
+
     if (funcc > MPI_MAX_FUNCTIONS)
         return 2;
+
     strcpy(funcv[funcc].name, funcname);
     funcv[funcc++].buf = (char *) string_dup(buf);
     return 0;
 }
 
 const char *
-get_mfunc(const char *funcname)
+get_mfunc(register const char *funcname)
 {
-    int i = 0;
+    register int i = 0;
 
     for (i = funcc - 1; i >= 0 && string_compare(funcname, funcv[i].name);
          i--) ;
+
     if (i < 0)
         return NULL;
+
     return funcv[i].buf;
 }
 
-int
-free_mfuncs(int downto)
+bool
+free_mfuncs(register int downto)
 {
-    if (funcc < 1)
+    if (funcc < 1 || downto < 0)
         return 1;
-    if (downto < 0)
-        return 1;
+
     while (funcc > downto)
         free(funcv[--funcc].buf);
+
     return 0;
 }
 
-
-
 /*** End of MFUNs. ***/
 
-int
+bool
 msg_is_macro(dbref player, dbref what, dbref perms, const char *name)
 {
-    const char *ptr;
+    register const char *ptr;
+    register dbref obj;
     char buf2[BUFFER_LEN];
-    dbref obj;
 
     if (!*name)
         return 0;
+
     sprintf(buf2, "_msgmacs/%s", name);
     obj = what;
     ptr = get_mfunc(name);
+
     if (!ptr || !*ptr)
         ptr = safegetprop_strict(player, OWNER(obj), perms, buf2);
+
     if (!ptr || !*ptr)
         ptr = safegetprop_limited(player, obj, OWNER(obj), perms, buf2);
+
     if (!ptr || !*ptr)
         ptr = safegetprop_strict(player, 0, perms, buf2);
-    if (!ptr || !*ptr)
-        return 0;
-    return 1;
-}
 
+    return (ptr || *ptr);
+}
 
 void
 msg_unparse_macro(dbref player, dbref what, dbref perms, char *name, int argc,
                   argv_typ argv, char *rest, int maxchars)
 {
-    const char *ptr;
-    char *ptr2;
+    register const char *ptr;
+    register char *ptr2;
+    register int i, p = 0;
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
     dbref obj;
-    int i, p = 0;
 
     strcpy(buf, rest);
     sprintf(buf2, "_msgmacs/%s", name);
     obj = what;
     ptr = get_mfunc(name);
+
     if (!ptr || !*ptr)
         ptr = safegetprop_strict(player, OWNER(obj), perms, buf2);
+
     if (!ptr || !*ptr)
         ptr = safegetprop_limited(player, obj, OWNER(obj), perms, buf2);
+
     if (!ptr || !*ptr)
         ptr = safegetprop_strict(player, 0, perms, buf2);
+
     while (ptr && *ptr && p < (maxchars - 1)) {
         if (*ptr == '\\') {
             if (*(ptr + 1) == 'r') {
@@ -676,9 +671,9 @@ msg_unparse_macro(dbref player, dbref what, dbref perms, char *name, int argc,
     while (ptr2 && *ptr2 && p < (maxchars - 1)) {
         rest[p++] = *(ptr2++);
     }
+
     rest[p] = '\0';
 }
-
 
 #ifndef MSGHASHSIZE
 #define MSGHASHSIZE 256
@@ -687,26 +682,25 @@ msg_unparse_macro(dbref player, dbref what, dbref perms, char *name, int argc,
 static hash_tab msghash[MSGHASHSIZE];
 
 int
-find_mfn(const char *name)
+find_mfn(register const char *name)
 {
     hash_data *exp = find_hash(name, msghash, MSGHASHSIZE);
 
     if (exp)
         return (exp->ival);
+
     return (0);
 }
 
-
 void
-insert_mfn(const char *name, int i)
+insert_mfn(register const char *name, register int i)
 {
     hash_data hd;
 
-    (void) free_hash(name, msghash, MSGHASHSIZE);
+    free_hash(name, msghash, MSGHASHSIZE);
     hd.ival = i;
-    (void) add_hash(name, hd, msghash, MSGHASHSIZE);
+    add_hash(name, hd, msghash, MSGHASHSIZE);
 }
-
 
 void
 purge_mfns(void)
@@ -714,33 +708,29 @@ purge_mfns(void)
     kill_hash(msghash, MSGHASHSIZE, 0);
 }
 
-
-
 #include "mfunlist.h"
-
 
 /******** HOOK ********/
 void
 mesg_init(void)
 {
-    int i;
+    register int i;
 
     for (i = 0; mfun_list[i].name; i++)
         insert_mfn(mfun_list[i].name, i + 1);
+
     mpi_prof_start_time = time(NULL);
 }
-
-
 
 /******** HOOK ********/
 int
 mesg_args(char *wbuf, argv_typ argv, char ulv, char sep, char dlv, char quot,
           int maxargs)
 {
-    int r, lev, argc = 0;
+    register int r, lev, argc = 0;
+    register bool litflag = 0;
+    register char *ptr;
     char buf[BUFFER_LEN];
-    char *ptr;
-    int litflag = 0;
 
     /* for (ptr = wbuf; ptr && isspace(*ptr); ptr++); */
     strcpy(buf, wbuf);
@@ -778,12 +768,11 @@ mesg_args(char *wbuf, argv_typ argv, char ulv, char sep, char dlv, char quot,
     return argc;
 }
 
-
-char *
-cr2slash(char *buf, const char *in)
+const char *
+cr2slash(register char *buf, register const char *in)
 {
-    char *ptr = buf;
-    const char *ptr2 = in;
+    register char *ptr = buf;
+    register const char *ptr2 = in;
 
     do {
         if (*ptr2 == '\r') {
@@ -799,13 +788,12 @@ cr2slash(char *buf, const char *in)
         }
     } while (*(ptr - 1) && (ptr - buf < BUFFER_LEN - 3));
     buf[BUFFER_LEN - 1] = '\0';
+
     return buf;
 }
 
-
 static int mesg_rec_cnt = 0;
 static int mesg_instr_cnt = 0;
-
 
 /******** HOOK ********/
 char *
@@ -816,63 +804,46 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
     char dbuf[BUFFER_LEN];
-    char ebuf[BUFFER_LEN];
+
+    //char ebuf[BUFFER_LEN];
     char cmdbuf[MAX_MFUN_NAME_LEN + 1];
-    const char *ptr;
-    char *dptr;
-    int p, q, s;
-    int i;
     char argv[9][BUFFER_LEN];
+    register const char *ptr;
+    register const char *dptr;
+    register int p, q, s, i;
+    bool showtextflag = 0;
+    bool literalflag = 0;
     int argc;
-    int showtextflag = 0;
-    int literalflag = 0;
 
     mesg_rec_cnt++;
-        if (mesg_rec_cnt > 26) {
-                char *zptr = get_mvar("how");
-                snprintf(dbuf, sizeof(dbuf), "%s Recursion limit exceeded.", zptr);
-    		if (player < 1)
-        	    notify_descriptor(descr, dbuf);
-    		else
-        	    notify_nolisten(player, dbuf, 1);
-                mesg_rec_cnt--;
-                outbuf[0] = '\0';
-                return NULL;
-        }
-        if (Typeof(player) == TYPE_GARBAGE) {
-                mesg_rec_cnt--;
-                outbuf[0] = '\0';
-                return NULL;
-        }
-        if (Typeof(what) == TYPE_GARBAGE) {
-    		if (player < 1)
-        	    notify_descriptor(descr, "MPI Error: Garbage trigger.");
-    		else
-        	    notify_nolisten(player, "MPI Error: Garbage trigger.", 1);
-                mesg_rec_cnt--;
-                outbuf[0] = '\0';
-                return NULL;
-        }
-/*    
     if (mesg_rec_cnt > 26) {
+        char *zptr = get_mvar("how");
+
+        snprintf(dbuf, sizeof(dbuf), "%s Recursion limit exceeded.", zptr);
+        smnotify(descr, player, dbuf);
+
         mesg_rec_cnt--;
-        strncpy(outbuf, inbuf, maxchars);
-        outbuf[maxchars - 1] = '\0';
-        return outbuf;
+        outbuf[0] = '\0';
+
+        return NULL;
     }
+
     if (Typeof(player) == TYPE_GARBAGE) {
+        mesg_rec_cnt--;
+        outbuf[0] = '\0';
         return NULL;
     }
+
     if (Typeof(what) == TYPE_GARBAGE) {
-        if (player < 1)
-            notify_descriptor(descr, "MPI Error: Garbage trigger.");
-        else
-            notify_nolisten(player, "MPI Error: Garbage trigger.", 1);
+        smnotify(descr, player, "MPI Error: Garbage trigger.");
+        mesg_rec_cnt--;
+        outbuf[0] = '\0';
+
         return NULL;
     }
-*/
+
     strcpy(wbuf, inbuf);
-    memset(outbuf,sizeof(outbuf),0);
+    memset(outbuf, sizeof(outbuf), 0);
     for (p = q = 0; wbuf[p] && (p < maxchars - 1) && q < (maxchars - 1); p++) {
         if (wbuf[p] == '\\') {
             p++;
@@ -926,11 +897,7 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                     zptr, MFUN_LEADCHAR,
                                     (varflag ? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGEND);
-                            if (player < 1) {
-                                notify_descriptor(descr, dbuf);
-                            } else {
-                                notify_nolisten(player, dbuf, 1);
-                            }
+                            smnotify(descr, player, dbuf);
                             return NULL;
                         }
                         if (wbuf[p] == MFUN_ARGEND) {
@@ -952,15 +919,12 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                             }
                             if (argc == -1) {
                                 char *zptr = get_mvar("how");
+                                char ebuf[BUFFER_LEN];
 
                                 sprintf(ebuf, "%s %c%s%c: End brace not found.",
                                         zptr, MFUN_LEADCHAR, cmdbuf,
                                         MFUN_ARGEND);
-                                if (player < 1) {
-                                    notify_descriptor(descr, ebuf);
-                                } else {
-                                    notify_nolisten(player, ebuf, 1);
-                                }
+                                smnotify(descr, player, ebuf);
                                 return NULL;
                             }
                         }
@@ -970,16 +934,15 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                             argc++;
                             zptr = get_mvar(cmdbuf + 1);
                             if (!zptr) {
+                                char ebuf[BUFFER_LEN];
+
                                 zptr = get_mvar("how");
                                 sprintf(ebuf,
                                         "%s %c%s%c: Unrecognized variable.",
                                         zptr, MFUN_LEADCHAR, cmdbuf,
                                         MFUN_ARGEND);
-                                if (player < 1) {
-                                    notify_descriptor(descr, ebuf);
-                                } else {
-                                    notify_nolisten(player, ebuf, 1);
-                                }
+                                smnotify(descr, player, ebuf);
+
                                 return NULL;
                             }
                             strcpy(argv[0], zptr);
@@ -992,30 +955,26 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                     (varflag ? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGSTART);
                             for (i = (varflag ? 1 : 0); i < argc; i++) {
-                                if (i) {
+                                char ebuf[BUFFER_LEN];
+
+                                if (i)
                                     sprintf(dbuf, "%.512s%c ", dbuf,
                                             MFUN_ARGSEP);
-                                }
+
                                 cr2slash(ebuf, argv[i]);
-                                if (strlen(ebuf) > 512) {
-                                    sprintf(dbuf, "%.512s\"%.512s...\"",
-                                            dbuf, ebuf);
-                                } else {
+                                if (strlen(ebuf) > 512)
+                                    sprintf(dbuf, "%.512s\"%.512s...\"", dbuf,
+                                            ebuf);
+                                else
                                     sprintf(dbuf, "%.512s\"%s\"", dbuf, ebuf);
-                                }
                             }
                             sprintf(dbuf, "%.512s%c", dbuf, MFUN_ARGEND);
-                            if (player < 1) {
-                                notify_descriptor(descr, dbuf);
-                            } else {
-                                notify_nolisten(player, dbuf, 1);
-                            }
+                            smnotify(descr, player, dbuf);
                         }
-                        if (mfun_list[s].stripp) {
-                            for (i = (varflag ? 1 : 0); i < argc; i++) {
+                        if (mfun_list[s].stripp)
+                            for (i = (varflag ? 1 : 0); i < argc; i++)
                                 strcpy(argv[i], stripspaces(buf, argv[i]));
-                            }
-                        }
+
                         if (mfun_list[s].parsep) {
                             for (i = (varflag ? 1 : 0); i < argc; i++) {
                                 ptr = MesgParse(argv[i], argv[i]);
@@ -1042,47 +1001,45 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                     (mesg_rec_cnt * 2 - 4), "", MFUN_LEADCHAR,
                                     (varflag ? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGSTART);
+
                             for (i = (varflag ? 1 : 0); i < argc; i++) {
-                                if (i) {
+                                char ebuf[BUFFER_LEN];
+
+                                if (i)
                                     sprintf(dbuf, "%.512s%c ", dbuf,
                                             MFUN_ARGSEP);
-                                }
+
                                 cr2slash(ebuf, argv[i]);
-                                if (strlen(ebuf) > 128) {
-                                    sprintf(dbuf, "%.512s\"%.128s...\"",
-                                            dbuf, ebuf);
-                                } else {
+                                if (strlen(ebuf) > 128)
+                                    sprintf(dbuf, "%.512s\"%.128s...\"", dbuf,
+                                            ebuf);
+                                else
                                     sprintf(dbuf, "%.512s\"%s\"", dbuf, ebuf);
-                                }
                             }
                             sprintf(dbuf, "%s%c", dbuf, MFUN_ARGEND);
                         }
                         if (argc < mfun_list[s].minargs) {
                             char *zptr = get_mvar("how");
+                            char ebuf[BUFFER_LEN];
 
                             sprintf(ebuf, "%s %c%s%c: Too few arguments",
                                     zptr, MFUN_LEADCHAR,
                                     (varflag ? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGEND);
-                            if (player < 1) {
-                                notify_descriptor(descr, ebuf);
-                            } else {
-                                notify_nolisten(player, ebuf, 1);
-                            }
+                            smnotify(descr, player, ebuf);
+
                             return NULL;
                         } else if (mfun_list[s].maxargs > 0 &&
                                    argc > mfun_list[s].maxargs) {
                             char *zptr = get_mvar("how");
+                            char ebuf[BUFFER_LEN];
 
                             sprintf(ebuf, "%s %c%s%c: Too many arguments",
                                     zptr, MFUN_LEADCHAR,
                                     (varflag ? cmdbuf : mfun_list[s].name),
                                     MFUN_ARGEND);
-                            if (player < 1) {
-                                notify_descriptor(descr, ebuf);
-                            } else {
-                                notify_nolisten(player, ebuf, 1);
-                            }
+                            smnotify(descr, player, ebuf);
+
                             return NULL;
                         } else {
                             ptr =
@@ -1092,33 +1049,30 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                 outbuf[q] = '\0';
                                 return NULL;
                             }
+
                             if (mfun_list[s].postp) {
                                 dptr = MesgParse(ptr, buf);
                                 if (!dptr) {
                                     char *zptr = get_mvar("how");
+                                    char ebuf[BUFFER_LEN];
 
                                     sprintf(ebuf, "%s %c%s%c (returned string)",
                                             zptr, MFUN_LEADCHAR,
                                             (varflag ? cmdbuf : mfun_list[s].
                                              name), MFUN_ARGEND);
-                                    if (player < 1) {
-                                        notify_descriptor(descr, ebuf);
-                                    } else {
-                                        notify_nolisten(player, ebuf, 1);
-                                    }
+                                    smnotify(descr, player, ebuf);
+
                                     return NULL;
                                 }
                                 ptr = dptr;
                             }
                         }
                         if (mesgtyp & MPI_ISDEBUG) {
+                            char ebuf[BUFFER_LEN];
+
                             sprintf(dbuf, "%.512s = \"%.512s\"", dbuf,
                                     cr2slash(ebuf, ptr));
-                            if (player < 1) {
-                                notify_descriptor(descr, dbuf);
-                            } else {
-                                notify_nolisten(player, dbuf, 1);
-                            }
+                            smnotify(descr, player, dbuf);
                         }
                     } else if (msg_is_macro(player, what, perms, cmdbuf)) {
                         if (wbuf[p] == MFUN_ARGEND) {
@@ -1131,15 +1085,13 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                              MFUN_LITCHAR, 9);
                             if (argc == -1) {
                                 char *zptr = get_mvar("how");
+                                char ebuf[BUFFER_LEN];
 
                                 sprintf(ebuf, "%s %c%s%c: End brace not found.",
                                         zptr, MFUN_LEADCHAR, cmdbuf,
                                         MFUN_ARGEND);
-                                if (player < 1) {
-                                    notify_descriptor(descr, ebuf);
-                                } else {
-                                    notify_nolisten(player, ebuf, 1);
-                                }
+                                smnotify(descr, player, ebuf);
+
                                 return NULL;
                             }
                         }
@@ -1150,32 +1102,30 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                     } else {
                         /* unknown function */
                         char *zptr = get_mvar("how");
+                        char ebuf[BUFFER_LEN];
 
                         sprintf(ebuf, "%s %c%s%c: Unrecognized function.",
                                 zptr, MFUN_LEADCHAR, cmdbuf, MFUN_ARGEND);
-                        if (player < 1) {
-                            notify_descriptor(descr, ebuf);
-                        } else {
-                            notify_nolisten(player, ebuf, 1);
-                        }
+                        smnotify(descr, player, ebuf);
+
                         return NULL;
                     }
                 } else {
-                  showtextflag = 1;
-                  ptr--;
-                  i = s + 1;
-                  while (ptr && *ptr && i-- && q < (maxchars - 1)) {
-                         outbuf[q++] = *(ptr++);
-                  }
-                  outbuf[q] = '\0';
-                  p = (int) (ptr - wbuf) - 1;
-                  ptr = "";       /* unknown substitution type */
+                    showtextflag = 1;
+                    ptr--;
+                    i = s + 1;
+                    while (ptr && *ptr && i-- && q < (maxchars - 1))
+                        outbuf[q++] = *(ptr++);
 
-                /*  showtextflag = 1;
-                    p = (int) (ptr - wbuf);
-                    if (q < (maxchars - 1))
-                        outbuf[q++] = MFUN_LEADCHAR;
-                    ptr = "";  unknown substitution type */
+                    outbuf[q] = '\0';
+                    p = (int) (ptr - wbuf) - 1;
+                    ptr = "";   /* unknown substitution type */
+
+                    /*  showtextflag = 1;
+                       p = (int) (ptr - wbuf);
+                       if (q < (maxchars - 1))
+                       outbuf[q++] = MFUN_LEADCHAR;
+                       ptr = "";  unknown substitution type */
                 }
                 while (ptr && *ptr && q < (maxchars - 1))
                     outbuf[q++] = *(ptr++);
@@ -1191,11 +1141,7 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
 
         sprintf(dbuf, "%s %*s\"%s\"", zptr, (mesg_rec_cnt * 2 - 4), "",
                 cr2slash(buf2, outbuf));
-        if (player < 1) {
-            notify_descriptor(descr, dbuf);
-        } else {
-            notify_nolisten(player, dbuf, 1);
-        }
+        smnotify(descr, player, dbuf);
     }
     mesg_rec_cnt--;
     return (outbuf);
@@ -1211,14 +1157,14 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
     char argvar[BUFFER_LEN];
     char tmparg[BUFFER_LEN];
     char tmpcmd[BUFFER_LEN];
-    char *dptr;
-    int mvarcnt = varc;
-    int mfunccnt = funcc;
-    int tmprec_cnt = mesg_rec_cnt;
-    int tmpinst_cnt = mesg_instr_cnt;
+    register const char *dptr;
+    register int mvarcnt = varc;
+    register int mfunccnt = funcc;
+    register int tmprec_cnt = mesg_rec_cnt;
+    register int tmpinst_cnt = mesg_instr_cnt;
 
     if (tp_do_mpi_parsing) {
-        /* *outbuf = '\0'; */ memset(outbuf,sizeof(outbuf),0);
+        /* *outbuf = '\0'; */ memset(outbuf, sizeof(outbuf), 0);
         if ((mesgtyp & MPI_NOHOW) == 0) {
             if (new_mvar("how", howvar))
                 return outbuf;
@@ -1227,11 +1173,13 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
 
         if (new_mvar("cmd", cmdvar))
             return outbuf;
+
         strcpy(cmdvar, match_cmdname);
         strcpy(tmpcmd, match_cmdname);
 
         if (new_mvar("arg", argvar))
             return outbuf;
+
         strcpy(argvar, match_args);
         strcpy(tmparg, match_args);
 
@@ -1247,10 +1195,8 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
 
         strcpy(match_cmdname, tmpcmd);
         strcpy(match_args, tmparg);
-    } else {
+    } else
         strcpy(outbuf, inbuf);
-    }
-
 
     return outbuf;
 }
@@ -1261,7 +1207,7 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf,
               const char *abuf, char *outbuf, int mesgtyp)
 {
     if (tp_do_mpi_parsing && (tp_mpi_needflag ? Meeper(what) : 1)) {
-        char *tmp = NULL;
+        register char *tmp = NULL;
         struct timeval st, et;
 
         gettimeofday(&st, NULL);
@@ -1269,6 +1215,7 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf,
             do_parse_mesg_2(descr, player, what, what, inbuf, abuf, outbuf,
                             mesgtyp);
         gettimeofday(&et, NULL);
+
         if (strcmp(tmp, inbuf)) {
             if (st.tv_usec > et.tv_usec) {
                 et.tv_usec += 1000000;
@@ -1284,8 +1231,10 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf,
             }
             DBFETCH(what)->mpi_prof_use++;
         }
+
         return (tmp);
     } else
         strcpy(outbuf, inbuf);
+
     return outbuf;
 }
