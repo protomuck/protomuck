@@ -410,8 +410,11 @@ main(int argc, char **argv)
 	 tp_textport = resolver_myport;
     if ((tp_textport > 1) && (tp_textport < 65536))
        listener_port[numsocks++] = tp_textport;
+//Only open a web port if support was #defined in config.h
+#ifdef HTTPD
     if ((tp_wwwport > 1) && (tp_wwwport < 65536))
        listener_port[numsocks++] = tp_wwwport;
+#endif
     if ((tp_puebloport > 1) && (tp_puebloport < 65536))
        listener_port[numsocks++] = tp_puebloport;
 
