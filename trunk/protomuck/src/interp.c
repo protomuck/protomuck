@@ -358,6 +358,17 @@ RCLEAR(struct inst * oper, char *file, int line)
                 free((void *) oper->data.sock);
             }
             break;
+#ifdef SQL_SUPPORT
+        case PROG_MYSQL:
+            oper->data.mysql->links = oper->data.mysql->links - 1;
+            if (oper->data.mysql && oper->data.mysql->links == 0) {
+                if (oper->data.mysql->connected) /* close if still open */
+                    mysql_close(oper->data.mysql->mysql_conn);
+                free((void *) oper->data.mysql->mysql_conn);
+                free((void *) oper->data.mysql);
+            }
+            break; 
+#endif
     } 
     oper->line = line;
     oper->data.addr = (struct prog_addr *) file;
@@ -904,13 +915,18 @@ copyinst(struct inst * from, struct inst * to)
 	switch(from->type) {
 	case PROG_FUNCTION:
 	    if (from->data.mufproc) {
-			to->data.mufproc = (struct muf_proc_data*)malloc(sizeof(struct muf_proc_data));
-			to->data.mufproc->procname = string_dup(from->data.mufproc->procname);
-			to->data.mufproc->vars = varcnt = from->data.mufproc->vars;
+			to->data.mufproc = (struct muf_proc_data*)malloc(
+			            sizeof(struct muf_proc_data));
+			to->data.mufproc->procname = string_dup(
+                              from->data.mufproc->procname);
+			to->data.mufproc->vars = varcnt 
+                                               = from->data.mufproc->vars;
 			to->data.mufproc->args = from->data.mufproc->args;
-                        to->data.mufproc->varnames = (const char**)calloc(varcnt, sizeof(const char*));
+                        to->data.mufproc->varnames = (const char**)calloc(
+                            varcnt, sizeof(const char*));
                         for (j = 0; j < varcnt; ++j )
-                            to->data.mufproc->varnames[j] = string_dup(from->data.mufproc->varnames[j]);
+                            to->data.mufproc->varnames[j] = 
+                                string_dup(from->data.mufproc->varnames[j]);
 		}
 		break;
 	case PROG_STRING:
@@ -936,7 +952,12 @@ copyinst(struct inst * from, struct inst * to)
 	    if (from->data.sock) {
 			from->data.sock->links++;
 	    }
-          break;
+            break;
+      case PROG_MYSQL:
+            if (from->data.mysql) {
+                from->data.mysql->links++;
+            }
+            break;
       }
 }
 

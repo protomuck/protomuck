@@ -22,18 +22,112 @@
 #include "strings.h"
 #include "interp.h"
 #include "p_mysql.h"
-
+/*
 MYSQL *mysql_conn   = NULL;
 MYSQL_RES *res      = NULL;
 MYSQL_ROW row       = NULL;
 MYSQL_FIELD *fields = NULL;
+*/
 
 extern struct inst *oper1, *oper2, *oper3, *oper4;
 
+/* Prim for connecting to a SQL database */
+void prim_sqlconnect(PRIM_PROTOTYPE)
+{
+    char password[BUFFER_LEN];
+    char hostname[BUFFER_LEN];
+    char username[BUFFER_LEN];
+    char database[BUFFER_LEN];
+    struct inst *oper5;
+    struct inst *newsql;
+    unsigned int timeout, notConnected, *timeoutPtr;
+    MYSQL *result, *tempsql;
+
+    CHECKOP(5);
+    oper5 = POP(); /* timeout INT */
+    oper4 = POP(); /* database STR */
+    oper3 = POP(); /* password STR */
+    oper2 = POP(); /* username STR */
+    oper1 = POP(); /* hostname STR */
+
+    if (mlev < LARCH)
+        abort_interp("MYSQL connections are ArchWiz level prims.");
+    if (oper5->type != PROG_INTEGER)
+        abort_interp("Timeout must be an integer.");
+    if (oper5->data.number < 1)
+        oper5->data.number = 1; /* avoiding 0 or negative timeouts */
+    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING ||
+        oper3->type != PROG_STRING || oper4->type != PROG_STRING)
+        abort_interp("Login arguments must be strings.");
+    if (!oper2->data.string)
+        abort_interp("Username cannot be an empty string.");
+    /* copy data over */
+    if (oper1->data.string) /* null host is assumed to be localhost */
+        strcpy(hostname, oper1->data.string->data); 
+    else 
+        strcpy(hostname, "");
+    strcpy(username, oper2->data.string->data);
+    if (oper3->data.string) /* null passwords are possible. */
+        strcpy(password, oper3->data.string->data);
+    else
+        strcpy(password, "");
+    if (oper4->data.string) /* null databases are possible. */
+        strcpy(database, oper4->data.string->data);
+    else
+        strcpy(database, "");
+    timeout = oper5->data.number;
+    timeoutPtr = &timeout; /* mysql_options wants a pointer to an int */
+    
+    CLEAR(oper1);
+    CLEAR(oper2);
+    CLEAR(oper3);
+    CLEAR(oper4);
+    CLEAR(oper5); 
+
+    tempsql = malloc(sizeof(MYSQL));
+    /* Making this error abort because it's a rare critical error 
+     * that the user can't do anything about most of the time. */
+    if (mysql_init(tempsql) == NULL) {
+        free(tempsql);
+        abort_interp("Unable to initialize MySQL connection.");
+    }
+    /* set the timeout and try to connect */
+    mysql_options(tempsql, MYSQL_OPT_CONNECT_TIMEOUT, (char *) timeoutPtr);
+    result = mysql_real_connect(
+        tempsql, hostname, username, password, database, 0, NULL, 0);
+
+    if (result) { /* connection successful */
+        notConnected = 0;
+        newsql = (struct inst *) malloc(sizeof(struct inst));
+        newsql->type = PROG_MYSQL;
+        newsql->data.mysql = (struct muf_sql *) malloc(sizeof(struct muf_sql));
+        newsql->data.mysql->mysql_conn = tempsql;
+        newsql->data.mysql->connected = 1;
+        newsql->data.mysql->timeout = oper5->data.number;    
+	newsql->data.mysql->links = 1; /* 1 instance so far */
+        copyinst(newsql, &arg[(*top)++]);
+        CLEAR(newsql);
+        PushInt(notConnected); /* Pushing a 0 for success, unlike normal */
+    } else { /* connection failed. Push error int and mesg */
+        int errNum;
+        char errbuf[BUFFER_LEN];
+        strcpy(errbuf, mysql_error(tempsql));
+        errNum = mysql_errno(tempsql);
+        PushString(errbuf);
+        PushInt(errNum);
+        free(tempsql);
+    }
+}
+
+/* Prim for sending queries to a SQL connection */
 void prim_sqlquery(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN];
     struct inst temp1, temp2;
+    MYSQL *tempsql      = NULL;
+    MYSQL_RES *res      = NULL;
+    MYSQL_ROW row       = NULL;
+    MYSQL_FIELD *fields = NULL;
     int num_rows, num_fields, counter, all_rows;
     char query[BUFFER_LEN];
     unsigned long *lengths = NULL;
@@ -43,24 +137,35 @@ void prim_sqlquery(PRIM_PROTOTYPE)
     int fieldListMade = 0;
     char errbuf[BUFFER_LEN];
     nargs = 1;
-    CHECKOP(1);
-    oper1 = POP();
 
+    CHECKOP(2); /* SQL string */
+    oper1 = POP(); /* the query */
+    oper2 = POP(); /* the SQL connectin */
+
+    if (mlev < LARCH) 
+        abort_interp("SQL prims are ArchWiz level.");
     if (oper1->type != PROG_STRING)
-        abort_interp("Non-string argument. (1)");
+        abort_interp("String argument expected for query. (2)");
     if (!oper1->data.string)
-        abort_interp("Empty strings not accepted. (1)");
-    if (!mysql_conn)
-       abort_interp("MySQL connection is closed.");
-
+        abort_interp("The query cannot be an empty string. (2)");
+    if (oper2->type != PROG_MYSQL)
+        abort_interp("MySQL connection expected. (1)");
+    if (!oper2->data.mysql->connected)
+        abort_interp("This MySQL connection is closed.");
+    
     strcpy(query, oper1->data.string->data);
-    if (mysql_query(mysql_conn, query)) {
-       strcpy(errbuf, mysql_error(mysql_conn));
-       abort_interp(errbuf);
-       // abort_interp("MySQL: Query failed.");
-    }
     CLEAR(oper1);
-    res = mysql_store_result(mysql_conn);
+    tempsql = oper2->data.mysql->mysql_conn;
+    if (mysql_query(tempsql, query)) { /* Query failed */
+        int errno = -1;
+        strcpy(errbuf, mysql_error(tempsql));
+        CLEAR(oper2);
+        PushString(errbuf);
+        PushInt(errno);
+        return;  /* Push error string, and -1, and return */
+    }
+    res = mysql_store_result(tempsql);
+    CLEAR(oper2);
     num_rows = 0;
     if (res) { /* there IS a result */
         all_rows = mysql_num_rows(res);
@@ -89,7 +194,8 @@ void prim_sqlquery(PRIM_PROTOTYPE)
                 }
                 fieldListMade = 1;
                 PushArrayRaw(nw);
-            }
+            } else 
+                break;/* The limit has been reached, exit the while loop */
         }
         mysql_free_result(res);
     }
@@ -98,145 +204,46 @@ void prim_sqlquery(PRIM_PROTOTYPE)
     return;
 }
 
-/* All of the command line functions for SQL support.
- * TODO: If SQL becomes it's own MUF data type, this function
- * should be removed, along with the @tune SQL login info.
+/* Simply  close the connection. This is also done automatically 
+ * if the MYSQL gets cleared without already having been closed.
  */
-void do_sql(int descr, dbref player, const char *arg)
+void 
+prim_sqlclose(PRIM_PROTOTYPE)
 {
-    if (!Arch(player)) {
-        anotify_nolisten2(player, CFAIL "Permission denied.");
-        return;
-    }
+    CHECKOP(1);
+    /* MYSQL */
+    oper1 = POP();
+
+    if (mlev < LARCH)
+        abort_interp("MySQL prims are ArchWiz." );
+    if (oper1->type != PROG_MYSQL)
+        abort_interp("MySQL connection expected.");
+ 
+    mysql_close(oper1->data.mysql->mysql_conn);
+    CLEAR(oper1);
+}    
+
+void
+prim_sqlping(PRIM_PROTOTYPE)
+{
+    int result;
+    CHECKOP(1);
+    /* MYSQL */
+    oper1 = POP();
     
-    if (*arg == '\0') {
-        if (mysql_conn) 
-            anotify_nolisten2(player, CSUCC "MySQL: Connecton is open.");
-        else
-            anotify_nolisten2(player, CINFO "MySQL: Connection is closed.");
-        return;
-    }
+    if (mlev < LARCH)
+        abort_interp("MySQL prims are ArchWiz level.");
+    if (oper1->type != PROG_MYSQL)
+        abort_interp("MySQL connection expected.");
 
-    if (!string_compare(arg, "on")) {
-        if (mysql_conn) {
-            anotify_nolisten2(player, CINFO "MySQL: Resetting connection.");
-            sql_off();
-        }
-        if (!sql_on()) 
-            anotify_nolisten2(player, CSUCC "MySQL: Connection opened.");
-        else
-            anotify_nolisten2(player, CFAIL "MySQL: Connection failure."); 
-        return;
-    }
-
-    if (!string_compare(arg, "off")) {
-        if (!mysql_conn) 
-            anotify_nolisten2(player, 
-                                CINFO "MySQL: Connection already closed.");
-        else {
-            sql_off();
-            anotify_nolisten2(player, CSUCC "MySQL: Connection closed.");
-        }
-        return;
-    }
-    anotify(player, CINFO "Arguments are 'on', 'off', or nothing.");
-} 
-
-void do_sqlquery(int descr, dbref player, const char *arg) {
-    // Absolutely NO problems with this code. Stress tested with 80+
-    // queries in one shot.
-    unsigned int num_rows, num_fields, counter;
-
-    if (!Arch(player)) {
-        anotify_nolisten2(player, CFAIL "Permission denied.");
-        return;
-    }
-    if (!mysql_conn) {
-        anotify_nolisten2( player, CFAIL "MySql: Connection is closed." );
-        return;
-    }
-    if(mysql_query(mysql_conn,arg)) {
-        anotify_nolisten2( player, CFAIL "MySql: Query Failed.");
-
-        //Don't know if theres any clean up required so I'm closing
-        // the connection on a failed query. --SOMETHING TO LOOK AT--.
-        anotify_nolisten2( player, CFAIL "MySql: Closing Connection.");
-        sql_off();
-        return;
-    } else { // query worked
-        res=mysql_store_result(mysql_conn);
-        if (!res) {
-            anotify_nolisten2( player, CSUCC "MySql: No results returned.");
-            return;
-        } else {
-            anotify_nolisten2( player, CSUCC "MySql: Results returned.");
-            num_rows = mysql_num_rows(res);
-            num_fields = mysql_num_fields(res);
-            anotify_fmt(player, CSUCC "MySql: records: %ld  fields: %ld\n", num_rows, num_fields);
-            fields = mysql_fetch_fields(res);
-            if (num_rows > tp_mysql_result_limit) {
-                anotify_fmt(player,    CFAIL "MySql: return exceeded tunable paramater MYSQL_RESULT_LIMIT, showing %ld records\n",    tp_mysql_result_limit);
-            };
-
-            counter = 0;
-            while (row = mysql_fetch_row(res)) {
-                if (counter++ < tp_mysql_result_limit) {
-                    unsigned char *tmpstr;
-                    unsigned long *lengths;
-                    unsigned long i = 0;
-                    strcpy (tmpstr, "");
-                    for (i = 0; i < num_fields; i++) {
-                        strcat (tmpstr, row[i] ? row[i] : "NULL");
-                        strcat (tmpstr, " ");
-                    }
-                    anotify_fmt(player, CSUCC "%s", tmpstr);
-                }
-            }
-        }
-        mysql_free_result(res);
-    }
-    return;
-}
-
-/* Attempts to establish the connection. 
- * Uses the @tune parameters for the connection data.
- * Returns 0 if was successful and points mysql_conn to the
- * connection data. Otherwise returns 1 if there is an error.
- */
-int sql_on()
-{
-    MYSQL *mysql, *result;
-    char passbuf[BUFFER_LEN];
-    mysql = malloc(sizeof(MYSQL));
-    if (!strcmp(tp_mysql_password, "NULL"))
-        strcpy(passbuf, "");
+    result = mysql_ping(oper1->data.mysql->mysql_conn);
+    if (!result)
+        result = 1;
     else
-        strcpy(passbuf, tp_mysql_password);
-    if (mysql_init(mysql) == NULL)
-        return 1;
-    result = mysql_real_connect (
-        mysql, tp_mysql_hostname, tp_mysql_username, passbuf, 
-        tp_mysql_database, 0, NULL, 0 );
-    
-    if (!result) {
-notify(3166, mysql_error(mysql));
-        free(mysql);
-        return 1;
-    }
-    mysql_conn = mysql;
-    
-    return 0;
-}
+        result = 0;
+    CLEAR(oper1);
+    PushInt(result);
 
-/* Shuts down the SQL connection and NULLs the pointer. Always returns 0 */
-int sql_off() 
-{
-    if (mysql_conn) {
-        mysql_close(mysql_conn);
-        free(mysql_conn);
-        mysql_conn = NULL;
-    }
-    return 0;
 }
 
 #endif

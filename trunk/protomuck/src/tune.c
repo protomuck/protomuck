@@ -43,12 +43,6 @@ const char *tp_rwho_server          = RWHO_SERVER;
 const char *tp_reg_email            = "admin@your.host.here";
 const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt   = "P#/N";
-#ifdef SQL_SUPPORT
-const char *tp_mysql_username       = "ProtoMuck";
-const char *tp_mysql_password       = "password";
-const char *tp_mysql_hostname       = "localhost";
-const char *tp_mysql_database       = "ProtoMuck";
-#endif
 
 struct tune_str_entry {
     const char *name;
@@ -85,12 +79,6 @@ struct tune_str_entry tune_str_list[] =
     {"reg_email",            &tp_reg_email,           WBOY , LARCH, 1},
     {"proplist_counter_fmt", &tp_proplist_counter_fmt,LARCH, LMUF , 1},
     {"proplist_entry_fmt",   &tp_proplist_entry_fmt,  LARCH, LMUF , 1},
-#ifdef SQL_SUPPORT
-    {"mysql_hostname",       &tp_mysql_hostname,      WBOY, LARCH,  1},
-    {"mysql_database",       &tp_mysql_database,      WBOY, LARCH,  1},
-    {"mysql_username",       &tp_mysql_username,      WBOY, LARCH,  1},
-    {"mysql_password",       &tp_mysql_password,      WBOY, LARCH,  1},
-#endif
     {NULL, NULL, 0, 0, 0}
 };
 
@@ -217,9 +205,7 @@ struct tune_val_entry tune_val_list[] =
     {"dump_copies",           &tp_dump_copies,         WBOY,  LMUF },
     {"min_progbreak_lev",     &tp_min_progbreak_lev,   LARCH, LMAGE},
     {"mcp_muf_mlev",          &tp_mcp_muf_mlev,        LARCH, LMAGE},
-#ifdef SQL_SUPPORT
-    {"mysql_result_limit",    &tp_mysql_result_limit,  WBOY , LARCH},
-#endif
+    {"mysql_result_limit",    &tp_mysql_result_limit,  LBOY , LARCH},
     {NULL, NULL, 0, 0}
 };
 

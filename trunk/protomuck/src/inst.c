@@ -214,6 +214,9 @@ insttotext(struct frame *fr, int lev, struct inst * theinst, char *buffer, int b
 			    theinst->data.sock->listening ? "L" : "",
 			    theinst->data.sock->socknum);
             break;
+        case PROG_MYSQL:
+            sprintf(buffer, "(MYSQL)");
+            break;
 	case PROG_FUNCTION:
 		sprintf(buffer, "INIT FUNC: %s (%d arg%s)",
 				theinst->data.mufproc->procname,

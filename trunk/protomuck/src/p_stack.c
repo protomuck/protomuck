@@ -573,6 +573,15 @@ prim_socketp(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
+void prim_mysqlp(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    result = (oper1->type == PROG_MYSQL);
+    CLEAR(oper1);
+    PushInt(result);
+} 
+
 void
 prim_markp(PRIM_PROTOTYPE)
 {
