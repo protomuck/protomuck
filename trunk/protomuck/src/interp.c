@@ -1248,6 +1248,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		break;
 
 		case PROG_SVAR_AT:
+                case PROG_SVAR_AT_CLEAR:
 			{
 				struct inst *tmp;
 				if (atop >= STACK_SIZE)
@@ -1258,6 +1259,12 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 					abort_loop("Scoped variable number out of range.", NULL, NULL);
 
 				copyinst(tmp, arg + atop);
+                                if (pc->type == PROG_SVAR_AT_CLEAR) {
+                                    CLEAR(tmp);
+                                    tmp->type = PROG_INTEGER;
+                                    tmp->data.number = 0;
+                                }
+
 				pc++;
 				atop++;
 			}

@@ -180,6 +180,7 @@ int localvar(COMPSTATE *, const char *);
 int scopedvar(COMPSTATE *, const char *);
 void copy_program(COMPSTATE *);
 void set_start(COMPSTATE *);
+void free_intermediate_node(struct INTERMEDIATE *wd);
 
 /* Character defines */
 #define BEGINCOMMENT '('
@@ -683,6 +684,420 @@ free_unused_programs()
 	}
 }
 
+/* INTERMEDIATE instruction flags */
+#define IMMFLAG_REFERENCED 1 /* Referenced by a jump */
+
+void
+MaybeOptimizeSvarAt(COMPSTATE *cstat, struct INTERMEDIATE *first, int AtNo, 
+    int BangNo)
+{
+/* AtNo is the primitive reference # for @
+ * BangNo is the primitive reference # for !
+ */
+    struct INTERMEDIATE *curr = first->next;
+    struct INTERMEDIATE *ptr;
+    int farthest = 0;
+    int i = 0;
+
+    for (; curr; curr = curr->next) {
+        switch(curr->in.type) {
+            case PROG_PRIMITIVE:
+                /* Don't trust physical @ or !'s in-code as they may be
+                 * used for indirect referencing of scoped variables */
+                if ((curr->in.data.number == AtNo) ||
+                    (curr->in.data.number == BangNo)) {
+                     return;
+                }
+                break;
+            
+            case PROG_SVAR_AT:
+            case PROG_SVAR_AT_CLEAR:
+                if (curr->in.data.number == first->in.data.number) {
+                    /* can't optimize if references to var found before var */
+                    return;
+                }
+                break;
+          
+            case PROG_SVAR_BANG:
+                if (first->in.data.number == curr->in.data.number) {
+                    if (curr->no <= farthest) {
+                         /* cannot optimize within a branch */
+                         return;
+                    } else { /* optimize it */
+                        first->in.type = PROG_SVAR_AT_CLEAR;
+                        return;
+                    }
+                }
+                break;
+
+            case PROG_IF:
+            case PROG_TRY:
+            case PROG_JMP:
+                ptr = cstat->addrlist[curr->in.data.number];
+                i = cstat->addroffsets[curr->in.data.number];
+                while (ptr->next && i-- > 0)
+                    ptr = ptr->next;
+                if (ptr->no <= first->no) {
+                    /* can't optimize as we've exited branch the @ is in */
+                    return;
+                }
+                if (ptr->no > farthest )
+                    farthest = ptr->no;
+                break;
+            case PROG_FUNCTION:
+                /* Don't try to optimize over functions */
+                return;
+        }
+    }
+}
+
+void 
+RemoveNextIntermediate(COMPSTATE *cstat, struct INTERMEDIATE *curr)
+{
+    struct INTERMEDIATE *tmp;
+    int i;
+
+    if (!curr->next) 
+        return;
+
+    tmp = curr->next;
+    for (i = 0; i < cstat->addrcount; ++i) {
+        if (cstat->addrlist[i] == tmp) {
+            cstat->addrlist[i] = curr;
+        }
+    }
+    curr->next = curr->next->next;
+    free_intermediate_node(tmp);
+    cstat->nowords--;
+}
+
+void
+RemoveIntermediate(COMPSTATE *cstat, struct INTERMEDIATE *curr)
+{
+    struct INTERMEDIATE *tmp;
+    int i;
+
+    if (!curr->next) 
+        return;
+
+    curr->no       = curr->next->no;
+    curr->in.line  = curr->next->in.line;
+    curr->in.type  = curr->next->in.type;
+    switch(curr->in.type) {
+        case PROG_STRING:
+            curr->in.data.string = curr->next->in.data.string;
+            break;
+        case PROG_FLOAT:
+            curr->in.data.fnumber = curr->next->in.data.fnumber;
+            break;
+        case PROG_FUNCTION:
+            curr->in.data.mufproc = curr->next->in.data.mufproc;
+            break;
+        case PROG_ADD:
+            curr->in.data.addr = curr->next->in.data.addr;
+        case PROG_IF:
+        case PROG_TRY:
+        case PROG_JMP:
+        case PROG_EXEC:
+            curr->in.data.call = curr->next->in.data.call;
+            break;
+        default:
+            curr->in.data.number = curr->next->in.data.number;
+            break;
+    }
+    curr->next->in.type = PROG_INTEGER;
+    curr->next->in.data.number = 0;
+    RemoveNextIntermediate(cstat, curr);
+}
+
+/* Checks to make sure there are as many intermediates in a row
+ * as indicated by the 'count' parameter, starting with but not
+ * counting *ptr
+ */
+int
+ContiguousIntermediates(int *Flags, struct INTERMEDIATE *ptr, int count)
+{
+    while (count-- > 0) {
+        if (!ptr) {
+            return 0;
+        }
+        if ((Flags[ptr->no] & IMMFLAG_REFERENCED)) {
+            return 0;
+        }
+        ptr = ptr->next;
+    }
+    return 1;
+}
+
+/* Identifies if the Intermediate is an integer that matches primnum */
+int IntermediateIsPrimitive(struct INTERMEDIATE *ptr, int primnum)
+{
+    if (ptr && ptr->in.type == PROG_PRIMITIVE) 
+        if (ptr->in.data.number == primnum) 
+            return 1;
+
+    return 0;
+}
+
+/* Identifies if the Intermediate is an integer that matches val */
+int
+IntermediateIsInteger(struct INTERMEDIATE *ptr, int val)
+{
+    if (ptr && ptr->in.type == PROG_INTEGER) 
+        if (ptr->in.data.number == val ) 
+            return 1;
+        
+    return 0;
+}
+
+/* Identifies if the Intermediate is a string that matches val */
+int
+IntermediateIsString(struct INTERMEDIATE *ptr, const char *val)
+{
+    const char *myval;
+    if (ptr && ptr->in.type == PROG_STRING) {
+        myval = ptr->in.data.string ? ptr->in.data.string->data : "";
+        if (!strcmp(myval, val)) 
+            return 1;
+    }
+    return 0;
+}
+
+int
+OptimizeIntermediate(COMPSTATE *cstat)
+{
+    struct INTERMEDIATE *curr;
+    int *Flags;
+    int i;
+    int count = 0;
+    int advance = 1;
+    int old_instr_count = cstat->nowords;
+    int AtNo             = get_primitive("@");
+    int BangNo           = get_primitive("!");
+    int SwapNo           = get_primitive("swap");
+    int RotNo            = get_primitive("rot");
+    int NotNo            = get_primitive("not");
+    int StrcmpNo         = get_primitive("strcmp");
+    int EqualsNo         = get_primitive("=");
+    int PlusNo           = get_primitive("+");
+    int MinusNo          = get_primitive("-");
+    int MultNo           = get_primitive("*");
+    int DivNo            = get_primitive("/");
+    int ModNo            = get_primitive("%");
+    int DecrNo           = get_primitive("--");
+    int IncrNo           = get_primitive("++");
+
+    /* code assumes everything setup nicely */
+    if (!cstat->first_word)
+        return 0;
+
+    /* renumber instruction chain */
+    for (curr = cstat->first_word; curr; curr = curr->next) 
+        curr->no = count++;
+
+    if ((Flags = (int*)malloc(sizeof(int) * count)) == 0) 
+        return 0;
+
+    memset(Flags, 0, sizeof(int) * count);
+ 
+    /* mark instructions which jumps reference */
+
+    for (curr = cstat->first_word; curr; curr = curr->next) {
+        switch(curr->in.type) {
+            case PROG_ADD:
+            case PROG_IF:
+            case PROG_TRY:
+            case PROG_JMP:
+            case PROG_EXEC:
+                i = cstat->addrlist[curr->in.data.number]->no +
+                    cstat->addroffsets[curr->in.data.number];
+                Flags[i] |= IMMFLAG_REFERENCED;
+                break;
+        }
+    }
+    
+    for (curr = cstat->first_word; curr; ) {
+        advance = 1;
+        switch(curr->in.type) {
+            case PROG_SVAR:
+                // var ! into var!
+                // var @ into var@
+                if (curr->next && curr->next->in.type == PROG_PRIMITIVE) {
+                    if (curr->next->in.data.number == AtNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_SVAR_AT;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    } 
+                    if (curr->next->in.data.number == BangNo) {
+                        if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                            curr->in.type = PROG_SVAR_BANG;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                }
+                break;
+            case PROG_STRING:
+                /* "" strcmp 0 = into not */
+                if (IntermediateIsString(curr, "")) {
+                    if (ContiguousIntermediates(Flags, curr->next, 3)) {
+                        if (IntermediateIsPrimitive(curr->next, StrcmpNo)) {
+                            if (IntermediateIsInteger(curr->next->next, 0)){
+                                if (IntermediateIsPrimitive(
+                                          curr->next->next->next, EqualsNo)) {
+                                    if (curr->in.data.string)
+                                        free((void*) curr->in.data.string);
+                                    curr->in.type = PROG_PRIMITIVE;
+                                    curr->in.data.number = NotNo;
+                                    RemoveNextIntermediate(cstat, curr);
+                                    RemoveNextIntermediate(cstat, curr);
+                                    RemoveNextIntermediate(cstat, curr);
+                                    advance = 0;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+
+            case PROG_INTEGER:
+                /* consolidate constant integer calculations */
+                if (ContiguousIntermediates(Flags, curr->next, 2)) {
+                    if (curr->next->in.type == PROG_INTEGER) { 
+                    /* int int + into Sum */
+                    if (IntermediateIsPrimitive(curr->next->next, PlusNo)) {
+                        curr->in.data.number += curr->next->in.data.number;
+                        RemoveNextIntermediate(cstat, curr);
+                        RemoveNextIntermediate(cstat, curr);
+                        advance = 0;
+                        break;
+                    }
+
+                    /* int int - into Diff */
+                    if (IntermediateIsPrimitive(curr->next->next, MinusNo)) {
+                        curr->in.data.number -= curr->next->in.data.number;
+                        RemoveNextIntermediate(cstat, curr);
+                        RemoveNextIntermediate(cstat, curr);
+                        advance = 0;
+                        break;
+                    }
+                
+                    /* int int * into Prod */
+                    if (IntermediateIsPrimitive(curr->next->next, MultNo)) {
+                        curr->in.data.number *= curr->next->in.data.number;
+                        RemoveNextIntermediate(cstat, curr);
+                        RemoveNextIntermediate(cstat, curr);
+                        advance = 0;
+                        break;
+                    }
+
+                    /* int int / into Div */
+                    if (IntermediateIsPrimitive(curr->next->next, DivNo)) {
+                        curr->in.data.number /= curr->next->in.data.number;
+                        RemoveNextIntermediate(cstat, curr);
+                        RemoveNextIntermediate(cstat, curr);
+                        advance = 0;
+                        break;
+                    }
+
+                    /* int int % into Result */
+                    if (IntermediateIsPrimitive(curr->next->next, ModNo)) {
+                        curr->in.data.number %= curr->next->in.data.number;
+                        RemoveNextIntermediate(cstat, curr);
+                        RemoveNextIntermediate(cstat, curr);
+                        advance = 0;
+                        break;
+                    } //end of % case 
+                } //end of if PROG_INTEGER if
+                } // end of 2 contiguous 
+                
+                /* 0 = into not */
+                if (IntermediateIsInteger(curr, 0)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, EqualsNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = NotNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                }
+
+                /* 1 + into ++ */
+                if (IntermediateIsInteger(curr, 1)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, PlusNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = IncrNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+                    }
+                }
+
+                /* 1 - into -- */
+                if (IntermediateIsInteger(curr, 1)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, MinusNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = DecrNo;
+                            RemoveNextIntermediate(cstat, curr);
+                        }
+                    }
+                }
+                break; 
+
+            case PROG_PRIMITIVE:
+                /* rot rot swap into swap rot */
+                if (IntermediateIsPrimitive(curr, RotNo)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 2)) {
+                        if (IntermediateIsPrimitive(curr->next, RotNo)) {
+                            if (IntermediateIsPrimitive(curr->next, SwapNo)) {
+                                curr->in.data.number = SwapNo;
+                                curr->next->in.data.number = RotNo;
+				RemoveNextIntermediate(cstat, curr->next);
+                                advance = 0;
+                                break;
+                            } 
+                        }
+                    }
+                }
+                /* not not if into if */
+                if (IntermediateIsPrimitive(curr, NotNo)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 2)) {
+                        if (IntermediateIsPrimitive(curr->next, NotNo)) {
+                            if (curr->next->next->in.type == PROG_IF) {
+                                RemoveIntermediate(cstat, curr);
+                                RemoveIntermediate(cstat, curr);
+                                advance = 0;
+                                break;
+                            }
+                        }
+                    }
+                }
+                break;
+        }
+        if (advance) {
+            curr = curr->next;
+        }
+    }
+
+    /* turn all 'var@' which have following var! into var@-clear */
+    for (curr = cstat->first_word; curr; curr = curr->next) 
+        if (curr->in.type == PROG_SVAR_AT)
+            MaybeOptimizeSvarAt(cstat, curr, AtNo, BangNo);
+
+    free(Flags);
+    return (old_instr_count - cstat->nowords);
+}
+
 
 /* overall control code.  Does piece-meal tokenization parsing and
    backward checking.                                            */
@@ -705,6 +1120,8 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	cstat.currpubs = NULL;
 	cstat.nested_fors = 0;
 	cstat.nested_trys = 0;
+        cstat.addrcount = 0;
+        cstat.addrmax = 0;
 	for (i = 0; i < MAX_VAR; i++) {
 		cstat.variables[i] = NULL;
 		cstat.variabletypes[i] = 0;
@@ -797,6 +1214,34 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	if (!cstat.procs)
 		v_abort_compile(&cstat, "Missing procedure definition.");
 
+        if (tp_optimize_muf) {
+            int maxpasses = 5;
+            int passcount = 0;
+            int optimcount = 0;
+            int optcnt = 0;
+            do {
+                optcnt = OptimizeIntermediate(&cstat);
+                optimcount += optcnt;
+                passcount++;
+            } while (optcnt > 0 && --maxpasses > 0);
+ 
+
+
+            if (force_err_display && optimcount > 0) {
+                char buf[BUFFER_LEN];
+		char buf2[BUFFER_LEN];
+                sprintf(buf2, "Program optimized by %d instructions "
+                              "in %d %s.", optimcount, passcount,
+                              passcount == 1 ? "pass" : "passes");
+                strcpy(buf, CGREEN);
+		strcat(buf, buf2);
+                anotify_nolisten(cstat.player, buf, 1);
+            } else if (force_err_display) {
+                anotify_nolisten(cstat.player, CYELLOW
+                        "No optimization possible.", 1);
+            }
+        }
+
 	/* do copying over */
 	fix_addresses(&cstat);
 	copy_program(&cstat);
@@ -825,8 +1270,6 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 		add_muf_queue_event(-1, OWNER(cstat.program), NOTHING, NOTHING,
 							cstat.program, "Startup", "Queued Event.", 0);
 
-	if (force_err_display)
-		anotify_nolisten(cstat.player, CSUCC "Program compiled successfully.", 1);
 }
 
 struct INTERMEDIATE *
@@ -3092,30 +3535,40 @@ append_intermediate_chain(struct INTERMEDIATE *chain, struct INTERMEDIATE *add)
 }
 
 
+/* free resources used by INTERMEDIATE struct */
+void
+free_intermediate_node(struct INTERMEDIATE *wd)
+{
+    int varcnt, j;
+
+    if (wd->in.type == PROG_STRING) {
+        if (wd->in.data.string)
+            free((void *) wd->in.data.string);
+    }
+
+    if (wd->in.type == PROG_FUNCTION) {
+        free((void*)wd->in.data.mufproc->procname);
+        varcnt = wd->in.data.mufproc->vars;
+        if (wd->in.data.mufproc->varnames) { 
+            for (j = 0; j < varcnt; ++j)
+                free((void*)wd->in.data.mufproc->varnames[j]);
+            free((void*)wd->in.data.mufproc->varnames);
+        }
+        free((void*)wd->in.data.mufproc);
+    }
+    free((void *) wd);
+}
+
+/* free chain of intermediate nodes during compiling */
 void
 free_intermediate_chain(struct INTERMEDIATE *wd)
 {
-        int varcnt, j;
-	struct INTERMEDIATE* tempword;
-	while (wd) {
-		tempword = wd->next;
-		if (wd->in.type == PROG_STRING) {
-			if (wd->in.data.string)
-				free((void *) wd->in.data.string);
-		}
-		if (wd->in.type == PROG_FUNCTION) {
-			free((void*)wd->in.data.mufproc->procname);
-			varcnt = wd->in.data.mufproc->vars;
-                        if (wd->in.data.mufproc->varnames) { 
-			    for (j = 0; j < varcnt; ++j)
-			        free((void*)wd->in.data.mufproc->varnames[j]);
-			    free((void*)wd->in.data.mufproc->varnames);
-                        }
-			free((void*)wd->in.data.mufproc);
-		}
-		free((void *) wd);
-		wd = tempword;
-	}
+    struct INTERMEDIATE *tempword;
+    while (wd) {
+        tempword = wd->next;
+        free_intermediate_node(wd);
+        wd = tempword;
+    }
 }
 
 void
@@ -3188,6 +3641,7 @@ copy_program(COMPSTATE * cstat)
 		case PROG_INTEGER:
 		case PROG_SVAR:
 		case PROG_SVAR_AT:
+                case PROG_SVAR_AT_CLEAR:
 		case PROG_SVAR_BANG:
 		case PROG_LVAR:
 		case PROG_VAR:

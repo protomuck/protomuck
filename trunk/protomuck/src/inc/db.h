@@ -374,29 +374,30 @@ struct line {
 #define PROG_VOID        254    /* MUV void return type */
 #define PROG_UNTYPED     253    /* MUV unknown var type */
 
-#define PROG_CLEARED     0
-#define PROG_PRIMITIVE   1	/* forth prims and hard-coded C routines */
-#define PROG_INTEGER     2	/* integer types */
-#define PROG_FLOAT       3    /* Floating point numbers */
-#define PROG_OBJECT      4	/* database objects */
-#define PROG_VAR         5	/* variables */
-#define PROG_LVAR        6	/* variables */
-#define PROG_SVAR        7    /* variables */
+#define PROG_CLEARED       0
+#define PROG_PRIMITIVE     1	/* forth prims and hard-coded C routines */
+#define PROG_INTEGER       2	/* integer types */
+#define PROG_FLOAT         3    /* Floating point numbers */
+#define PROG_OBJECT        4	/* database objects */
+#define PROG_VAR           5	/* variables */
+#define PROG_LVAR          6	/* variables */
+#define PROG_SVAR          7    /* variables */
 /* Pointer types go here, numbered *AFTER* PROG_STRING */
-#define PROG_STRING      9	/* string types */
-#define PROG_FUNCTION    10   /* function names for debugging. */
-#define PROG_LOCK        11	/* boolean expression */
-#define PROG_ADD         12	/* program address - used in calls&jmps */
-#define PROG_IF          13	/* A low level IF statement */
-#define PROG_EXEC        14	/* EXECUTE shortcut */
-#define PROG_JMP         15	/* JMP shortcut */
-#define PROG_ARRAY       16   /* Array @ = (r1)..(ri) (i) */
-#define PROG_DICTIONARY  17   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
-#define PROG_SOCKET      18   /* NeonMuck socket type */
-#define PROG_MARK        19   /* Stack markers -- not in yet */
-#define PROG_SVAR_AT     20   /* @ shortcut for scoped vars */
-#define PROG_SVAR_BANG   21   /* ! shortcut for scoped vars */
-#define PROG_TRY         22   /* TRY shortcut */
+#define PROG_STRING        9	/* string types */
+#define PROG_FUNCTION      10   /* function names for debugging. */
+#define PROG_LOCK          11	/* boolean expression */
+#define PROG_ADD           12	/* program address - used in calls&jmps */
+#define PROG_IF            13	/* A low level IF statement */
+#define PROG_EXEC          14	/* EXECUTE shortcut */
+#define PROG_JMP           15	/* JMP shortcut */
+#define PROG_ARRAY         16   /* Array @ = (r1)..(ri) (i) */
+#define PROG_DICTIONARY    17   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
+#define PROG_SOCKET        18   /* NeonMuck socket type */
+#define PROG_MARK          19   /* Stack markers -- not in yet */
+#define PROG_SVAR_AT       20   /* @ shortcut for scoped vars */
+#define PROG_SVAR_AT_CLEAR 21   /* @ for scoped vars with optimization on */
+#define PROG_SVAR_BANG     22   /* ! shortcut for scoped vars */
+#define PROG_TRY           23   /* TRY shortcut */
 
 #define MAX_VAR        104	/* maximum number of variables including the
 				 * basic ME and LOC                */

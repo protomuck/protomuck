@@ -176,6 +176,7 @@ insttotext(struct frame *fr, int lev, struct inst * theinst, char *buffer, int b
             }
             break;
 	case PROG_SVAR_AT:
+        case PROG_SVAR_AT_CLEAR:
             if (fr) {
                 length = snprintf(buffer, buflen, "SV%d:%s @", 
                             theinst->data.number, scopedvar_getname(fr, lev,

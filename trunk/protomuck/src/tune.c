@@ -308,6 +308,7 @@ int tp_fb_controls		     = 1;
 int tp_allow_old_trigs		     = 1;
 int tp_multi_wizlevels             = 1;
 int tp_auto_archive                = 0;
+int tp_optimize_muf                = OPTIMIZE_MUF;
 
 struct tune_bool_entry {
     const char *name;
@@ -380,6 +381,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"allow_old_trigs",        &tp_allow_old_trigs,          LARCH, LMUF },
     {"multi_wizlevels",        &tp_multi_wizlevels,          LBOY,  LMUF },
     {"auto_archive",           &tp_auto_archive,             LBOY,  LMAGE},
+    {"optimize_muf",           &tp_optimize_muf,             LBOY,  LMAGE},
     {NULL, NULL, 0, 0}
 };
 
