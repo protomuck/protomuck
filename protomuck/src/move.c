@@ -547,6 +547,14 @@ do_get(int descr, dbref player, const char *what, const char *obj)
 		return;
 	    }
 	}
+        if (Typeof(player) != TYPE_PLAYER) {
+            if (Typeof(DBFETCH(thing)->location) != TYPE_ROOM) {
+                if (OWNER(player) != OWNER(thing)) {
+                    anotify(player, CFAIL "Puppets aren't allowed to be thieves!");
+                    return;
+                }
+            }
+        }
 	if (DBFETCH(thing)->location == player) {
 	    anotify_nolisten2(player, CINFO "You already have that.");
 	    return;
