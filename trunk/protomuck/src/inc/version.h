@@ -1,4 +1,4 @@
-#define PROTOBASE "1.70b3"
+#define PROTOBASE "1.70b4"
 #ifdef WIN32
   #define PROTOVER "Proto" PROTOBASE "-win32"
 #else

@@ -655,8 +655,8 @@ void prim_fsize(PRIM_PROTOTYPE)
     offset = ftell(fh);
     if(tp_log_files)
       log2filetime("logs/files", "#%d by %s FSIZE: %s \n", program, unparse_object(player, player), oper1->data.string->data); 
+    fclose(fh);
   }
-  fclose(fh);
   CLEAR(oper1);
   PushInt(offset);
 }

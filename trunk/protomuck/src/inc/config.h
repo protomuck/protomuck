@@ -33,7 +33,7 @@
 /* To use a simple disk basing scheme where properties aren't loaded
  * from the input file until they are needed, define this. 
  */
-#undef DISKBASE
+#define DISKBASE
 
 /* To make the server save using fast delta dumps that only write out the
  * changed objects, except when @dump or @shutdown are used, or when too
