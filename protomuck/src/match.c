@@ -242,6 +242,8 @@ match_list(dbref first, struct match_data * md)
 void 
 match_possession(struct match_data * md)
 {
+    if (md->match_from == NOTHING) 
+        return;//Don't match for invalid objects!
     match_list(DBFETCH(md->match_from)->contents, md);
 }
 
@@ -385,7 +387,8 @@ void
 match_invobj_actions(struct match_data * md)
 {
     dbref   thing;
-
+    if (md->match_from == NOTHING) // Don't match #-1's contents.
+        return;
     if (DBFETCH(md->match_from)->contents == NOTHING)
 	return;
     DOLIST(thing, DBFETCH(md->match_from)->contents) {
