@@ -804,13 +804,27 @@ strip_bad_ansi(char *buf, const char *input)
 				*os++ = *is++;
 			}
 		} else {
-			*os++ = *is++;
+			if ((*is == '\r') || (*is == '\n')) {
+				while ((*is == '\r') || (*is == '\n'))
+					*is++;
+				if (!(*is) && (aflag)) {
+					*os++ = '\033';
+					*os++ = '[';
+					*os++ = '0';
+					*os++ = 'm';
+					aflag = 0;
+				}
+				*os++ = '\r';
+				*os++ = '\n';
+			} else {
+				*os++ = *is++;
+			}
 		}
 	}
 	if (aflag) {
 		*os++ = '\033';
 		*os++ = '[';
-            *os++ = '0';
+		*os++ = '0';
 		*os++ = 'm';
 	}
 	*os = '\0';
@@ -1158,3 +1172,8 @@ tilde_tct( const char *in, char out[BUFFER_LEN])
     *p = '\0';
     return out;
 }
+
+
+
+
+
