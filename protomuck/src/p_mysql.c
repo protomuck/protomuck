@@ -190,6 +190,9 @@ void prim_sqlquery(PRIM_PROTOTYPE)
                 break;/* The limit has been reached, exit the while loop */
         }
         mysql_free_result(res);
+    } else { /* no result */
+        num_rows = 0;
+        fieldsList = new_array_packed(0);
     }
     PushInt(num_rows);
     PushArrayRaw(fieldsList);
