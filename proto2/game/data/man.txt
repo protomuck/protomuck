@@ -158,7 +158,8 @@ System Prims:
 Socket Prims:
   SOCKOPEN        SOCKCLOSE      SOCKSEND      SOCKRECV       NBSOCKOPEN
   SOCKCHECK       LSOCKOPEN      SOCKACCEPT    GET_SOCKINFO   SOCKET_SETUSER
-  SET_SOCKOPT     SOCKTODESCR    SOCKSHUTDOWN
+  SET_SOCKOPT     SOCKTODESCR    SOCKSHUTDOWN  SOCKSECURE     SOCKUNSECURE
+  SSL_SOCKACCEPT  
 
 See: PRIMS6
 ~~~~~
@@ -4701,6 +4702,14 @@ returns a non-blocking socket as well.
 See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
      SOCKET?, SOCKDESCR, NBSOCKRECV, LSOCKOPEN, SOCKACCEPT, GET_SOCKINFO,
      SOCKET_SETUSER, SET_SOCKOPT, SOCKTODESCR, SOCKSHUTDOWN
+
+As of Proto 2.0 if both SSL is compiled in and socket support, SSL 
+sockets are available, providing the primitives:
+
+     SOCKSECURE, SOCKUNSECURE, SSL_SOCKACCEPT
+
+If this support is available, you can check for it by seeing if
+SSL_SOCKETS is defined with $ifdef or an MUF check.
 ~
 SOCKOPEN
 
