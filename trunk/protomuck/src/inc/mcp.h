@@ -317,6 +317,7 @@ void mcp_frame_clear(McpFrame * mfr);
 
 int mcp_frame_package_add(McpFrame * mfr, const char *package, McpVer minver, McpVer maxver);
 void mcp_frame_package_remove(McpFrame * mfr, const char *package);
+void mcp_frame_package_renegotiate(const char *package);
 McpVer mcp_frame_package_supported(McpFrame * mfr, const char *package);
 int mcp_frame_package_docallback(McpFrame * mfr, McpMesg * msg);
 
