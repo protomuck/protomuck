@@ -7807,7 +7807,7 @@ the following inserver muf macro $defines:
     SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
     SORTTYPE_SHUFFLE         Randomize the order of the array elements.
 
-See: ARRAY PRIMS, SORT
+See: ARRAY PRIMS, SORT, ARRAY_SORT_INDEXED
 ~~~~~
 EVENT_WAITFOR
 
@@ -8822,6 +8822,8 @@ according to the contents of one of their index values as specified by the
 Once the sorting is done, the contents of a2 will be a sequence of arrays
 sorted according to the element value corresponding to the index indicated
 by the ? argument.
+
+See: ARRAY_SORT, SORT
 ~~~
 ABS
 
