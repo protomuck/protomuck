@@ -796,12 +796,10 @@ prim_descr_logout(PRIM_PROTOTYPE)
     CLEAR(oper1);
 }
 
-
 void
 prim_descrdbref(PRIM_PROTOTYPE)
 {
     struct descriptor_data *dr;
-    dbref dplayer;
 
     CHECKOP(1);
     oper1 = POP();
@@ -809,13 +807,15 @@ prim_descrdbref(PRIM_PROTOTYPE)
         abort_interp("M3 prim");
     if (oper1->type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper1->data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper1->data.number);
+    if (pdescrp(oper1->data.number)) {
+        dr = descrdata_by_descr(oper1->data.number);
+        ref = dr->player;
+    } else
+        ref = NOTHING;
+
     CHECKOFLOW(1);
     CLEAR(oper1);
-    dplayer = dr->player;
-    PushObject(dplayer);
+    PushObject(ref);
 }
 
 void
