@@ -27,7 +27,7 @@
 
 struct hostinfo *hostdb = NULL; /* the main host cache */
 struct husrinfo *userdb = NULL; /* the username list */
-unsigned int hostdb_count = 0; /* number of entries in the host cache */
+unsigned long hostdb_count = 0; /* number of entries in the host cache */
 
 #ifdef SPAWN_HOST_RESOLVER
 
@@ -475,8 +475,8 @@ do_hostcache(dbref player, const char *args)
 
     if (string_prefix(arg1, "#sh")) {
         struct hostinfo **harr;
-        register int i = 0;
-        register int count = 0;
+        register long i = 0;
+        register long count = 0;
 
         if (strcasecmp(arg2, "all")) {
             count = atoi(arg2);
@@ -498,8 +498,8 @@ do_hostcache(dbref player, const char *args)
             anotify_fmt(player, " %-15s  %0.3d  %-14s %s", host_as_hex(harr[i]->a), harr[i]->uses, time_format_3(harr[i]->wupd), harr[i]->name);
         anotify_fmt(player, CINFO "Top %d host%s displayed (%d total).", count, count == 1 ? "" : "s", hostdb_count);
     } else {
-        anotify_fmt(player, "Bytes used by cache: %d", sizeof(struct hostinfo) * hostdb_count);
-        anotify_fmt(player, "Hostnames in cache:  %d", hostdb_count);
+        anotify_fmt(player, "Bytes used by cache: %ld", sizeof(struct hostinfo) * hostdb_count);
+        anotify_fmt(player, "Hostnames in cache:  %ld", hostdb_count);
         anotify_fmt(player, "Last cache flush:    %s", "...");
     }
 }
