@@ -531,11 +531,15 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
 
     /* Initialize everything */
     newparent = DBFETCH(DBFETCH(player)->location)->location;
-    while ((newparent != NOTHING) && !(FLAGS(newparent) & ABODE)
+    while ((OkObj(newparent)) && !(FLAGS(newparent) & ABODE)
            && !(FLAG2(newparent) & F2PARENT))
         newparent = DBFETCH(newparent)->location;
-    if (newparent == NOTHING)
-        newparent = tp_default_parent;
+    if (!OkObj(newparent)) {
+        if (OkObj(tp_default_parent))
+            newparent = tp_default_parent;
+        else
+            newparent = GLOBAL_ENVIRONMENT;
+    }
 
     NAME(room) = alloc_string(name);
     DBFETCH(room)->location = newparent;
