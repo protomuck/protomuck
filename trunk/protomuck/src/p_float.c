@@ -88,7 +88,7 @@ prim_sqrt(PRIM_PROTOTYPE)
             fresult = sqrt((double) oper1->data.fnumber);
         }
     } else {
-         if (isnan(oper1->data.fnumber)) {
+         if (ISNAN(oper1->data.fnumber)) {
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
@@ -145,7 +145,7 @@ prim_round(PRIM_PROTOTYPE)
         fstore = fstore / temp;
         fresult = fstore;
     } else {
-         if (isnan(oper2->data.fnumber)) {
+         if (ISNAN(oper2->data.fnumber)) {
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
@@ -221,7 +221,7 @@ prim_tan(PRIM_PROTOTYPE)
             fr->error.error_flags.f_bounds = 1;
         }
     } else {
-         if (isnan(oper1->data.fnumber)) {
+         if (ISNAN(oper1->data.fnumber)) {
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
@@ -483,7 +483,7 @@ prim_exp(PRIM_PROTOTYPE)
         abort_interp("Non-float argument. (1)");
     if (!no_good(oper1->data.fnumber)) {
         fresult = exp((double) oper1->data.fnumber);
-    } else if (isinf(oper1->data.fnumber)) {
+    } else if (ISINF(oper1->data.fnumber)) {
         fresult = oper1->data.fnumber;
         fr->error.error_flags.f_bounds = 1;
     } else {

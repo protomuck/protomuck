@@ -45,24 +45,14 @@ nogood(double test)
     return (((test == INF) || (test == NINF)) || (test == NAN));
 }
 
-/* Alynna: BSD defines these in math.h, but we REALLY want our own.. */
-#ifdef __FreeBSD__
-# ifdef isinf
-# undef isinf
-# endif
-# ifdef isnan
-# undef isnan
-# endif
-#endif
-
 int
-isinf(double test)
+ISINF(double test)
 {
     return (((test == INF) || (test == NINF)));
 }
 
 int
-isnan(double test)
+ISNAN(double test)
 {
     return (test == NAN);
 }
@@ -98,7 +88,7 @@ prim_add(PRIM_PROTOTYPE)
         if (!nogood(tf1) && !nogood(tf2)) {
             fresult = tf1 + tf2;
         } else {
-         if (isnan(tf1) || isnan(tf2)) {
+         if (ISNAN(tf1) || ISNAN(tf2)) {
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
@@ -141,7 +131,7 @@ prim_subtract(PRIM_PROTOTYPE)
         if (!nogood(tf1) && !nogood(tf2)) {
             fresult = tf1 - tf2;
         } else {
-         if (isnan(tf1) || isnan(tf2)) {
+         if (ISNAN(tf1) || ISNAN(tf2)) {
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
@@ -184,7 +174,7 @@ prim_multiply(PRIM_PROTOTYPE)
         if (!nogood(tf1) && !nogood(tf2)) {
             fresult = tf1 * tf2;
         } else {
-         if (isnan(tf1) || isnan(tf2)) {
+         if (ISNAN(tf1) || ISNAN(tf2)) {
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
@@ -234,7 +224,7 @@ prim_divide(PRIM_PROTOTYPE)
             if (!nogood(tf1) && !nogood(tf2)) {
                 fresult = tf1 / tf2;
             } else {
-         if (isnan(tf1) || isnan(tf2)) {
+         if (ISNAN(tf1) || ISNAN(tf2)) {
             fresult = tp_alt_infinity_handler ? NAN : 0.0;
             if (!tp_alt_infinity_handler) fr->error.error_flags.nan = 1;
          } else {
