@@ -14,7 +14,7 @@
 #define CCMOVE "CYAN"
 
 /* Change this to the name of your muck.  ie: FurryMUCK, or AnimeMUCK, etc */
-#define MUCKNAME "NeonMuck"
+#define MUCKNAME "ProtoMuck"
 #define WWWDIR "_/www"
 #define PROP_PRECIOUS "@/precious"
 #define PROP_ID  "@/id"
@@ -42,12 +42,6 @@
 
 /*  Boot idle players?  */
 #define IDLEBOOT 1
-
-/*  How long before items reset */
-#define ITEMWAIT TIME_MINUTE(7)
-
-/*  How long before mobs reset */
-#define MOBWAIT TIME_MINUTE(7)
 
 /* Limit max number of players to allow connected?  (wizards are immune) */
 #define PLAYERMAX 0
@@ -137,13 +131,7 @@
  */
 #define FREE_FRAMES_POOL 8
 
-
-
-
 #define PLAYER_START ((dbref) 0)  /* room number of player start location */
-
-
-
 
 /* Use gethostbyaddr() for hostnames in logs and the wizard WHO list. */
 #define HOSTNAMES 1
@@ -263,6 +251,4 @@
 
 /* Define to 0 to prevent diskbasing of property values, or to 1 to allow. */
 #define DISKBASE_PROPVALS 1
-
-
 
