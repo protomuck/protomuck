@@ -25,13 +25,27 @@
 #include <unistd.h>
 
 extern char **environ;
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#else
+#ifdef HAVE_SYS_ERRNO_H
+#include <sys/errno.h>
+#else
 extern int errno;
+#endif
+#endif
 char   *Name;			/* name of this program for error messages */
 char    msg[32768];
 
+notify(int player, const char *msg) 
+{ 
+        return printf("%s\n", msg); 
+} 
+    
+
+
 int
-main(argc, argv)
-    char   *argv[];
+main(int argc, char *argv[])
 {
     int     s, ns, foo;
     static struct sockaddr_in sin = {AF_INET};
@@ -49,7 +63,8 @@ main(argc, argv)
     strcpy(msg, "");
     strcpy(tmp, "");
     while (1) {
-	if ((gets(tmp)) == NULL)
+        if (fgets(tmp,32766,stdin) == NULL)
+	//if ((gets(tmp)) == NULL)
 	    break;
 	strcat(tmp, "\r\n");
 	strcat(msg, tmp);
@@ -70,7 +85,9 @@ main(argc, argv)
 		ntohs((u_short) sin.sin_port));
 	_exit(0);
     } else {
+#ifdef PRIO_PROCESS
 	setpriority(PRIO_PROCESS, getpid(), 10);
+#endif
     }
     if (listen(s, 1) < 0) {	/* start listening on port */
 	perror("announce: listen");

@@ -35,6 +35,12 @@
 #define IDENTD_TIMEOUT 60
 
 
+int 
+notify(int player, const char* msg) 
+{ 
+    return printf("%s\n", msg); 
+} 
+
 /* extern int errno; */
 
 const char *addrout(int, int, int);

@@ -77,6 +77,16 @@ save_compress_words_to_file(FILE *f)
     }
 }
 
+void //From FB6, added in 1.7b4
+free_compress_dictionary()
+{
+    int i;
+    for (i = 0; i < 4096; i++){
+        free(dict[i]);
+        free(dict2[i]);
+    }
+}
+
 void 
 init_compress_from_file(FILE *dicto)
 {

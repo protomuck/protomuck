@@ -15,6 +15,11 @@ extern const char * old_uncompress(const char *s);
 char *in_filename;
 FILE *infile;
 
+int notify(int player, const char *msg) 
+{
+    return printf("%s\n", msg);
+}
+
 char *
 string_dup(const char *s)
 {

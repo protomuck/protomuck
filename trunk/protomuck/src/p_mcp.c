@@ -295,8 +295,8 @@ prim_mcp_register(PRIM_PROTOTYPE)
 	/* oper1  oper2   oper3  */
 	/* pkgstr minver  maxver */
 
-	if (mlev < 3)
-		abort_interp("Requires Mucker Level 3.");
+	if (mlev < tp_mcp_muf_mlev)
+		abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("Package name string expected. (1)");
 	if (oper2->type != PROG_FLOAT)
@@ -340,8 +340,8 @@ prim_mcp_register_event(PRIM_PROTOTYPE)
 	/* oper1  oper2   oper3  */
 	/* pkgstr minver  maxver */
 
-	if (mlev < 3)
-		abort_interp("Requires Mucker Level 3.");
+	if (mlev < tp_mcp_muf_mlev)
+		abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("Package name string expected. (1)");
 	if (oper2->type != PROG_FLOAT)
@@ -425,8 +425,8 @@ prim_mcp_bind(PRIM_PROTOTYPE)
 	/* oper1  oper2  oper3 */
 	/* pkgstr msgstr address */
 
-	if (mlev < 3)
-		abort_interp("Requires at least Mucker Level 3.");
+	if (mlev < tp_mcp_muf_mlev)
+		abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("Package name string expected. (1)");
 	if (oper2->type != PROG_STRING)
@@ -492,6 +492,8 @@ prim_mcp_send(PRIM_PROTOTYPE)
 	/* oper4 oper1  oper2  oper3 */
 	/* descr pkgstr msgstr argsarray */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper4->type != PROG_INTEGER)
 		abort_interp("Integer descriptor number expected. (1)");
 	if (oper1->type != PROG_STRING)
@@ -545,14 +547,51 @@ prim_mcp_send(PRIM_PROTOTYPE)
 	CLEAR(oper2);
 }
 
-
-
 void
 fbgui_muf_event_cb(GUI_EVENT_CB_ARGS)
 {
 	char buf[BUFFER_LEN];
+	const char *name;
 	struct frame *fr = (struct frame *) context;
 	struct inst temp;
+	struct inst temp1;
+	struct inst temp2;
+	stk_array *nu;
+	int i;
+	int lines;
+
+	nu = new_array_dictionary();
+	name = GuiValueFirst(dlogid);
+	while (name) {
+		lines = gui_value_linecount(dlogid, name);
+
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string(name);
+
+		temp2.type = PROG_ARRAY;
+		temp2.data.array = new_array_packed(lines);
+
+		for (i = 0; i < lines; i++) {
+			struct inst temp3;
+			array_data temp4;
+
+			temp3.type = PROG_INTEGER;
+			temp3.data.number = i;
+
+			temp4.type = PROG_STRING;
+			temp4.data.string = alloc_prog_string(gui_value_get(dlogid, name, i));
+
+			array_setitem(&temp2.data.array, &temp3, &temp4);
+			CLEAR(&temp3);
+			CLEAR(&temp4);
+		}
+
+		array_setitem(&nu, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+
+		name = GuiValueNext(dlogid, name);
+	}
 
 	temp.type = PROG_ARRAY;
 	temp.data.array = new_array_dictionary();
@@ -563,15 +602,43 @@ fbgui_muf_event_cb(GUI_EVENT_CB_ARGS)
 	array_set_strkey_strval(&temp.data.array, "id", id);
 	array_set_strkey_strval(&temp.data.array, "event", event);
 
+	temp2.type = PROG_ARRAY;
+	temp2.data.array = nu;
+	array_set_strkey(&temp.data.array, "values", &temp2);
+        CLEAR(&temp2);
+
+	lines = mcp_mesg_arg_linecount(msg, "data");
+	if (lines > 0) {
+		temp2.type = PROG_ARRAY;
+		temp2.data.array = new_array_packed(lines);
+		for (i = 0; i < lines; i++) {
+			struct inst temp3;
+			array_data temp4;
+
+			temp3.type = PROG_INTEGER;
+			temp3.data.number = i;
+
+			temp4.type = PROG_STRING;
+			temp4.data.string = alloc_prog_string(mcp_mesg_arg_getline(msg, "data", i));
+
+			array_setitem(&temp2.data.array, &temp3, &temp4);
+			CLEAR(&temp4);
+		}
+		array_set_strkey(&temp.data.array, "data", &temp2);
+		CLEAR(&temp2);
+	}
+
+	/*
 	if (did_dismiss) {
 		muf_dlog_remove(fr, dlogid);
+		GuiFree(dlogid);
 	}
+	*/
 
 	sprintf(buf, "GUI.%s", dlogid);
 	muf_event_add(fr, buf, &temp, 0);
 	CLEAR(&temp);
 }
-
 
 
 void
@@ -639,6 +706,8 @@ prim_gui_dlog_create(PRIM_PROTOTYPE)
 	oper2 = POP();				/* str  type */
 	oper1 = POP();				/* int  descr */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_INTEGER)
 		abort_interp("Integer descriptor number expected. (1)");
 	if (!GuiSupported(oper1->data.number))
@@ -707,6 +776,8 @@ prim_gui_dlog_show(PRIM_PROTOTYPE)
 	CHECKOP(1);
 	oper1 = POP();				/* str  dlogid */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("String dialog ID expected.");
 	if (!oper1->data.string || !oper1->data.string->data[0])
@@ -728,6 +799,9 @@ prim_gui_dlog_close(PRIM_PROTOTYPE)
 	CHECKOP(1);
 	oper1 = POP();				/* str  dlogid */
 
+
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("String dialog ID expected.");
 	if (!oper1->data.string || !oper1->data.string->data[0])
@@ -768,6 +842,8 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
 	oper2 = POP();				/* str  type */
 	oper1 = POP();				/* str  dlogid */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("Dialog ID string expected. (1)");
 	if (!oper1->data.string || !oper1->data.string->data[0])
@@ -869,21 +945,25 @@ prim_gui_ctrl_command(PRIM_PROTOTYPE)
 	oper3 = POP();				/* str  ctrlid */
 	oper1 = POP();				/* str  dlogid */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("Dialog ID string expected. (1)");
 	if (!oper1->data.string || !*oper1->data.string->data)
 		abort_interp("Non-null dialog ID string expected. (1)");
-
 	if (oper2->type != PROG_STRING)
 		abort_interp("Control command string expected. (2)");
 	if (!oper2->data.string || !*oper2->data.string->data)
 		abort_interp("Non-null control command string expected. (2)");
-
 	if (oper3->type != PROG_STRING)
-		abort_interp("Control ID string expected. (3)");
+		abort_interp("Control ID string expected. (2)");
 	if (!oper3->data.string || !*oper3->data.string->data)
-		abort_interp("Non-null control ID string expected. (3)");
+		abort_interp("Non-null control ID string expected. (2)");
 
+        if (oper2->type != PROG_STRING)
+                abort_interp("Control command string expected. (3)");
+        if (!oper2->data.string || !*oper2->data.string->data)
+                abort_interp("Non-null control command string expected. (3)");
 	if (oper4->type != PROG_ARRAY)
 		abort_interp("Dictionary of arguments expected. (4)");
 
@@ -960,6 +1040,8 @@ prim_gui_value_set(PRIM_PROTOTYPE)
 	oper2 = POP();				/* str ctrlid */
 	oper1 = POP();				/* str dlogid */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper3->type != PROG_STRING && oper3->type != PROG_ARRAY)
 		abort_interp("String or string list control value expected. (3)");
 
@@ -1050,6 +1132,8 @@ prim_gui_values_get(PRIM_PROTOTYPE)
 	CHECKOP(1);
 	oper1 = POP();				/* str  dlogid */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("String dialog ID expected.");
 	if (!oper1->data.string || !oper1->data.string->data[0])
@@ -1109,6 +1193,8 @@ prim_gui_value_get(PRIM_PROTOTYPE)
 	oper2 = POP();				/* str  ctrlid */
 	oper1 = POP();				/* str  dlogid */
 
+        if (mlev < tp_mcp_muf_mlev)
+                abort_interp(tp_noperm_mesg);
 	if (oper1->type != PROG_STRING)
 		abort_interp("String dialog ID expected. (1)");
 	if (!oper1->data.string || !*oper1->data.string->data)
