@@ -25,7 +25,7 @@
 #define NEXTOBJ(x)  (DBFETCH((x))->next)
 
 #define unparse(x) ( (char*)unparse_object(MAN, (x)) )
-
+#undef valid_obj
 int sanity_violated = 0;
 
 void

@@ -61,7 +61,8 @@ create_player(const char *name, const char *password)
     NAME(player) = alloc_string(name);
     DBFETCH(player)->location = tp_player_start;	/* home */
     FLAGS(player) = TYPE_PLAYER;
-    if ((tp_player_prototype != NOTHING) && (Typeof(tp_player_prototype) == TYPE_PLAYER))
+    if (valid_obj(tp_player_prototype) 
+        && (Typeof(tp_player_prototype) == TYPE_PLAYER))
     {
        struct object *newp = DBFETCH(player);
        struct plist *daprops = DBFETCH(player)->properties;

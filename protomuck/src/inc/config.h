@@ -65,7 +65,7 @@
  * location, then it will find it fine. Otherwise, type:
  * ./configure --with-mysql=<path to the mysql headers>
  */
-#define SQL_SUPPORT
+#undef SQL_SUPPORT
 
 /* Define FILE_PRIMS to compile in a set of W4 level file-access
  * and control prims. The file prims are often a problem when
