@@ -837,6 +837,7 @@ do_abort_loop(dbref player, dbref program, const char *msg,
                 if ( curdescr ) { 
                     curdescr->block = 0;
                     curdescr->interactive = 0;
+                    DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
                 }
             } 
     }
@@ -996,8 +997,10 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			    DBSTORE(player, sp.player.block, 0);
                             if ( player == NOTHING ) {
                                 curdescr = get_descr(fr->descr, NOTHING);
-                                if (curdescr) 
+                                if (curdescr) { 
                                     curdescr->block = 0;
+                                    DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
+                                }
                             }
 			    fr->level--;
 			    if (!fr->brkpt.showstack) {
@@ -1385,8 +1388,10 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
                         DBSTORE(player, sp.player.block, (!fr->been_background));
                         if ( player == NOTHING ) {
                             curdescr = get_descr(fr->descr, NOTHING);
-                            if (curdescr) 
+                            if (curdescr) { 
                                 curdescr->block = 1;
+                                DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
+                            }
                         }
 				CLEAR(temp1);
 				fr->level--;
@@ -1409,6 +1414,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
                         } else { 
                             curdescr = get_descr(fr->descr, NOTHING);
                             if (curdescr) {
+                                DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
                                 curdescr->interactive = 2;
                                 curdescr->block = 0;
                             }
@@ -1437,12 +1443,16 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			reload(fr, atop, stop);
 			fr->brkpt.isread = 1;
 			fr->pc = pc + 1;
-			DBSTORE(player, sp.player.curr_prog, program);
-			DBSTORE(player, sp.player.block, 0);
-                        if (player == NOTHING) {
+                        if (fr->player != NOTHING) {
+			    DBSTORE(player, sp.player.curr_prog, program);
+		    	    DBSTORE(player, sp.player.block, 0);
+                        } else {
                             curdescr = get_descr(fr->descr, NOTHING);
-                            if (curdescr) 
+                            if (curdescr) { 
                                 curdescr->block = 0;
+                                curdescr->interactive = 2;
+                                DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
+                            }
                         } 
 			add_muf_tread_event(fr->descr, player, program, fr, temp1->data.number);
 			fr->level--;

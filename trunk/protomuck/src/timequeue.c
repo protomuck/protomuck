@@ -382,7 +382,10 @@ handle_read_event(int descr, dbref player, const char *command)
         FLAGS(player) &= ~(INTERACTIVE | READMODE);
     else {
         curdescr = get_descr(descr, NOTHING);
-        curdescr->interactive = 0;
+        if (curdescr) {
+            curdescr->interactive = 0;
+            DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
+        }
     }
     ptr = tqhead;
     lastevent = NULL;
@@ -1002,7 +1005,6 @@ dequeue_prog_descr(int descr, int sleeponly)
         process_count--;
         count++;
     }
-    
     if (tqhead) {
         tmp = tqhead;
         ptr = tqhead->next;
@@ -1015,9 +1017,10 @@ dequeue_prog_descr(int descr, int sleeponly)
                 process_count--;
                 count++;
                 ptr = ptr->next;
-            }
+            } else { 
             tmp = ptr;
             ptr = ptr->next;
+            }
         }
     }
     if ( sleeponly == 1 || sleeponly == 0 ) {

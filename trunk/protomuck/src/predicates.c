@@ -371,7 +371,10 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
     }
 }
 
-
+/* Given a dbref and a cost, subtracts the cost from the player's
+ * pennies and returns 1. Returns 0 if the player could not afford
+ * it.
+ */ 
 int 
 payfor(dbref who, int cost)
 {
@@ -451,7 +454,7 @@ ok_password(const char *password)
 	return 0;
 
     for (scan = password; *scan; scan++) {
-	if (!(isprint(*scan) && !isspace(*scan))) {
+	if (*scan == '=' || !(isprint(*scan) && !isspace(*scan))) {
 	    return 0;
 	}
     }

@@ -506,6 +506,10 @@ strdecrypt(const char *data, const char *key)
     return buf;
 }
 
+/* This function is where the custom color support in Proto comes from. 
+ * See documentation for details on how to use it. Players can set
+ * personal prefs, global defaults are set on #0.
+ */
 const char *
 color_lookup( dbref player, const char *color, const char *defcolor, int intrecurse )
 {
@@ -656,6 +660,9 @@ color_lookup( dbref player, const char *color, const char *defcolor, int intrecu
     }
 }
 
+/* parse_ansi: Converts Neon ANSI tags into standard ANSI for
+ * output. I.e, ^RED^ -> \[[1;30m
+ */
 char *
 parse_ansi( dbref player, char *buf, const char *from, const char *defcolor )
 {
@@ -684,6 +691,7 @@ parse_ansi( dbref player, char *buf, const char *from, const char *defcolor )
     return buf;
 }
 
+/* tct: This escapes Neon ANSI tags. I.e, ^RED^ -> ^^RED^^ */
 char *
 tct( const char *in, char out[BUFFER_LEN] )
 {
@@ -698,6 +706,9 @@ tct( const char *in, char out[BUFFER_LEN] )
     return out;
 }
 
+/* This function strips out Neon ANSI tags. I.e., ^RED^ 
+ * would be removed.
+ */
 char *
 unparse_ansi( char *buf, const char *from )
 {
@@ -719,7 +730,7 @@ unparse_ansi( char *buf, const char *from )
     return buf;
 }
 
-
+/* This strips standard ANSI tags. I.e., \[[1;30m would be removed. */
 char *
 strip_ansi(char *buf, const char *input)
 {
@@ -752,7 +763,9 @@ strip_ansi(char *buf, const char *input)
 	return buf;
 }
 
-
+/* strip_bad_ansi removes invalid ANSI tags from the string
+ * before trying to notify it out. 
+ */
 char *
 strip_bad_ansi(char *buf, const char *input)
 {
@@ -798,7 +811,7 @@ strip_bad_ansi(char *buf, const char *input)
 
 	return buf;
 }
-
+/* This escapes standard ANSI. I.e., \[[1;30m -> \\[[1;30m */
 char *
 escape_ansi(char *buf, const char *input)
 {
@@ -822,7 +835,9 @@ escape_ansi(char *buf, const char *input)
    return buf;
 }
 
-
+/* parse_mush_ansi converts MUSH ANSI tags into standard ANSI for
+ * output. I.e, %cr -> \[[1;30m
+ */
 char *
 parse_mush_ansi( char *buf, char *from )
 {
@@ -892,7 +907,9 @@ parse_mush_ansi( char *buf, char *from )
    return buf;
 }
 
-
+/* unparse_mush_ansi: strip MUSH ANSI tags from a string.
+ * I.e., %cr would be removed. 
+ */
 char *
 unparse_mush_ansi( char *buf, char *from )
 {
@@ -921,7 +938,7 @@ unparse_mush_ansi( char *buf, char *from )
 }
 
 
-
+/* mush_tct: Escapes MUSH ANSI tags. I.e., %cr -> %%cr */
 char *
 mush_tct( const char *in, char out[BUFFER_LEN] )
 {
@@ -939,6 +956,9 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     return out;
 }
 
+/* parse_tilde_ansi: Convert FB/Glow style tilde ANSI into
+ * standard ANSI for output. I.e., ~&110 -> \[[1;30m 
+ */
 char *
 parse_tilde_ansi( char *buf, char *from )
 {
@@ -1053,7 +1073,10 @@ parse_tilde_ansi( char *buf, char *from )
         strcat(to, ANSINORMAL);
     return buf;
 }
-       
+
+/* tilde_striplen: Used in order to determine the # of characters
+ * to remove when stripping tilde ANSI from a string.
+ */       
 int
 tilde_striplen( const char *word)
 {
@@ -1078,6 +1101,9 @@ tilde_striplen( const char *word)
     return from - word; /* Return the length of the ansi word. */
 }
 
+/* unparse_tilde_ansi: This removes tilde style ANSI tags from
+ * a string. I.e., ~&110 would be removed.
+ */
 char *
 unparse_tilde_ansi ( char *buf, char *from ) 
 {
@@ -1105,6 +1131,9 @@ unparse_tilde_ansi ( char *buf, char *from )
     return buf;
 }
         
+/* tilde_tct: escapes tilde style ANSI tags. 
+ * i.e., ~&110 -> ~~&110
+ */
 char *
 tilde_tct( const char *in, char out[BUFFER_LEN])
 {

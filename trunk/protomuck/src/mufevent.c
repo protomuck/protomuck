@@ -85,7 +85,10 @@ muf_event_register_specific(dbref player, dbref prog, struct frame *fr, int even
 	newproc->filtercount = eventcount;
         if (player == NOTHING ) {
             curdescr = get_descr(fr->descr, NOTHING);
-            curdescr->interactive = 2;
+            if (curdescr) {
+                curdescr->interactive = 2;
+                DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
+            }
         }
 	if (eventcount > 0) {
 		newproc->filters = (char**) malloc(eventcount * sizeof(char**));

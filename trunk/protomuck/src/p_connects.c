@@ -21,6 +21,91 @@ extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
 
+int 
+check_descr_flag(char *dflag)
+{
+/* New function in 1.7. Like the check_flag functions of 
+ * p_db.c, identifies flags for descriptor flag support.
+ */
+    if (string_prefix("df_html", dflag))
+        return DF_HTML;
+    if (string_prefix("df_pueblo", dflag))
+        return DF_PUEBLO;
+    if (string_prefix("df_muf", dflag))
+        return DF_MUF;
+    if (string_prefix("df_idle", dflag))
+        return DF_IDLE;
+    if (string_prefix("df_trueidle", dflag))
+        return DF_TRUEIDLE;
+    if (string_prefix("df_color", dflag))
+        return DF_COLOR;
+    if (string_prefix("df_interactive", dflag))
+        return DF_INTERACTIVE;
+    return 0;
+}
+
+int
+descr_flag_set_perms(int dflag, int mlev, dbref prog)
+{
+/* Checks to see if a flag is settable for descr_set.
+ */
+    if (mlev < LARCH)//For now all descr flag stuff is W1.
+        return 0;
+
+    //Standard non-settables
+    if (dflag == DF_HTML || dflag == DF_PUEBLO || dflag == DF_MUF
+        || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE)
+        return 0;
+    
+    //Default is settable
+    return 1;
+}
+
+int
+descr_flag_check_perms(int descr, int dFlag, int mLev)
+{
+  /* For descr flag support. In the future, will check
+   * for flag checking permissions, but for now, there
+   * aren't any descr flags that would require limited
+   * checking privs.
+   */
+    return 1;
+}
+
+int
+has_descr_flag(int descr, char *dFlag, int mLev)
+{
+/* For descriptor flag support in 1.7. Checks to see
+ * if the descriptor has the flag if mlev high enough.
+ */
+    int flagValue = 0, rslt = 0, result = 0; 
+    struct descriptor_data *d;
+
+    if (mLev < LMAGE)
+        return -2;
+    result = 0;
+    while (*dFlag == '!') {
+        dFlag++;
+        rslt = (!rslt);
+    }
+    if (!*dFlag)
+        return -1;
+    flagValue = check_descr_flag(dFlag);
+
+    if (!flagValue)
+        return -1;
+    if (!descr_flag_check_perms(descr, flagValue, mLev))
+        return -2;
+        
+    result = (DR_FLAGS(descr, flagValue));
+    
+    if (rslt)
+        return !result;
+    else
+        return result;
+} 
+
+
 
 void 
 prim_awakep(PRIM_PROTOTYPE)
@@ -1065,8 +1150,103 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
 	PushArrayRaw(nw);
 }
 
+void 
+prim_descr_set(PRIM_PROTOTYPE)
+{
+    /* Added to enhance our descriptor flag support. 
+     * Not as many permission checks possible, so the
+     * prim is W3 now for safety sake.
+     */
+    char *flag;
+    int flagValue = 0;
+    int descr;
+    struct descriptor_data *d;
+    int result = 0;
+  
+    CHECKOP(2);
+    /* descriptr flag -- int */
+    oper1 = POP(); /* flag name */
+    oper2 = POP(); /* descriptor */
+    if (mlev < LARCH)
+        abort_interp("descr_set is a W3 prim.");
+    if (oper1->type != PROG_STRING)
+        abort_interp("Expected a flag name.");
+    if (!(oper1->data.string))
+        abort_interp("Empty string arguement.");
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Expected a descriptor int. (2)");
+    if (!pdescrp(oper2->data.number))
+        abort_interp("That is not a valid descriptor.");    
+    
+    descr = oper2->data.number;
+    flag = oper1->data.string->data;
+    
+    while (*flag == '!') {
+       flag++;
+       result = (!result);
+    }
 
+    if (!*flag)
+        abort_interp("Empty flag.");
+    
+    flagValue = check_descr_flag(flag);
+    
+    if (!flagValue)
+        abort_interp("Unrecognized descriptor flag.");
+    if (!descr_flag_set_perms(flagValue, mlev, ProgUID))
+        abort_interp(tp_noperm_mesg);    
 
+    d = get_descr(descr, NOTHING);
+    if (!d)//Just to be safe. Shouldn't ever happen anyway.
+        abort_interp("Invalid descriptor.");
+
+    if (!result) 
+        DR_RAW_ADD_FLAGS(d, flagValue);
+    else
+        DR_RAW_REM_FLAGS(d, flagValue);
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+}
+
+void
+prim_descr_flagp(PRIM_PROTOTYPE)
+{
+    /* DESCR_FLAG? added for Proto's new descriptor flag support.
+     * Since checking flags is less dangerous, is W1 prim for now. 
+     */
+    char *flag = NULL;
+    int result = 0;
+
+    CHECKOP(2);
+    /* descr flag -- int */
+    oper1 = POP(); /* flag */
+    oper2 = POP(); /* descriptor */
+    
+    if (mlev < LMAGE)
+        abort_interp("descr_flag? is a W1 prim.");
+    if (oper1->type != PROG_STRING)
+        abort_interp("Expected a flag name.");
+    if (!(oper1->data.string))
+        abort_interp("Empty string arguement.");
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Expected a descriptor int. (2)");
+    if (!pdescrp(oper2->data.number))
+        abort_interp("That is not a valid descriptor.");
+    
+    flag = oper1->data.string->data;
+    
+    result = has_descr_flag(oper2->data.number, flag, mlev);
+    if (result == -1)
+        abort_interp("Uknown flag.");
+    if (result == -2)
+        abort_interp("Permission denied.");
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
+}
+    
 
 
 

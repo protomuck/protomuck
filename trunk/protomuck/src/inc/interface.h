@@ -72,7 +72,8 @@ struct descriptor_data {
 #define DF_MUF           0x4 /* Connected onto a MUF or MUF-Listening port. -- UNIMPLEMENTED */
 #define DF_IDLE          0x8 /* This is set if the descriptor is idle. */
 #define DF_TRUEIDLE     0x10 /* Set if the descriptor goes past the @tune idletime. Also triggers the propqueues if connected. */
-#define DF_INTERACTIVE  0x20 /* If the player is in the MUF editor or the READ prim is used, etc. -- UNIMPLEMENTED */
+#define DF_INTERACTIVE  0x20 /* If the player is in the MUF editor or the READ prim is used, etc. */
+#define DF_COLOR        0x40 /* Used in conjunction with ansi_notify_descriptor */
 
 /*
  TODO: Finish adding the rest of the flags and create the following primitives:
