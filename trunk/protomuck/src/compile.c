@@ -581,6 +581,11 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "reg_icase", MUF_RE_ICASE_STR);
     insert_def(cstat, "reg_all", MUF_RE_ALL_STR);
 
+    /* Some math stuff */
+    insert_def(cstat, "Deg2Rad", "pi 180 / *");
+    insert_def(cstat, "Rad2Deg", "180 pi / *");
+    
+
 /* $defs for specific MUF prim sets */
 #ifdef SQL_SUPPPORT
     insert_def(cstat, "HAVE_SQL", "1");

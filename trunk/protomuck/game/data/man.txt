@@ -719,7 +719,7 @@ i = integer 1 if true, 0 otherwise.
 Performs the boolean `and' operation on x and y, returning i as 1 if
 both i1 and i2 are TRUE, and returning i as 0 otherwise.
 ~
-ANSI_NOTIFY|
+ANSI_NOTIFY
 
 ansi_notify ( d s -- )
 ----------------------
@@ -2646,12 +2646,12 @@ string, the following special characters will do as follows:
 
    *  '{word1|word2|etc}' will match a single word, if it is one of those
         given, separated by | characters, between the {}s.  A word ends with
-	a space or at the end of the string.  The given example would match
-	either the words "word1", "word2", or "etc".
+        a space or at the end of the string.  The given example would match
+        either the words "word1", "word2", or "etc".
         {} word patterns will only match complete words: "{foo}*" and "{foo}p"
-	do not match "foop" and "*{foo}" and "p{foo}" do not match "pfoo".
+        do not match "foop" and "*{foo}" and "p{foo}" do not match "pfoo".
         {} word patterns can be easily meaningless; they will match nothing
-	if they:
+        if they:
            (a) contains spaces,
            (b) do not follow a wildcard, space or beginning of string,
            (c) are not followed by a wildcard, space or end of string.
@@ -2662,22 +2662,22 @@ SMATCH2
 
    *  If the first char of a {} word set is a '^', then it will match a single
         word if it is NOT one of those contained within the {}s.  Example:
-	'{^Foxen|Fiera}' will match any single word EXCEPT for Foxen or Fiera.
+        '{^Foxen|Fiera}' will match any single word EXCEPT for Foxen or Fiera.
 
    *  '[aeiou]' will match a single character as long as it is one of those
-	contained between the []s.  In this case, it matches any vowel.
+        contained between the []s.  In this case, it matches any vowel.
 
    *  If the first char of a [] char set is a '^', then it will match a single
         character if it is NOT one of those contained within the []s.  Example:
-	'[^aeiou]' will match any single character EXCEPT for a vowel.
+        '[^aeiou]' will match any single character EXCEPT for a vowel.
 
    *  If a [] char set contains two characters separated by a '-', then it will
-	match any single character that is between those two given characters.
-	Example:  '[a-z0-9_]' would match any single character between 'a' and
-	'z', inclusive, any character between '0' and '9', inclusive, or a '_'.
+        match any single character that is between those two given characters.
+        Example:  '[a-z0-9_]' would match any single character between 'a' and
+        'z', inclusive, any character between '0' and '9', inclusive, or a '_'.
 
    *  The '\' character will disable the special meaning of the character that
-	follows it, matching it literally.
+        follows it, matching it literally.
 
 Type 'man smatch3' for examples.
 ~
@@ -3413,7 +3413,7 @@ Note that for non-wizards, #0 _defs/ are always loaded no matter what.
 
 Type 'man dir4' for more directives and 'man dir list' for a listing.
 ~~~~
-DIR4|DIRECTIVES4|DIRECTIVE4|$BETA|$ALPHA|$VERSION|$LIB-VERSION|
+DIR4|DIRECTIVES4|DIRECTIVE4|$BETA|$ALPHA|$VERSION|$LIB-VERSION
 $beta <integer>
     Sets an integer prop on the program under a _Beta prop. Note that
     the _Beta prop is cleared at compile time, so if this directive is
@@ -5200,7 +5200,7 @@ finished successfully, 0 is returned to the stack, otherwise -1.
 
 See: FILE PRIMS, SHORTCUTS
 ~~~~
-FNAME-OK?|
+FNAME-OK?
 
 fname-ok? ( s -- i )
 --------------------
@@ -6561,7 +6561,7 @@ that are open to the login screen that have not logged in yet.
 
 See DESCRIPTORS, DESCRCON, CONDESCR, ARRAY PRIMS
 ~~~~
-ONLINE_ARRAY|
+ONLINE_ARRAY
 
 online_array ( -- a )
 ---------------------
@@ -7520,7 +7520,7 @@ GUI: GUI_AVAILABLE, GUI_DLOG_CREATE, GUI_DLOG_SHOW, GUI_DLOG_CLOSE
      GUI_VALUE_GET
 
 ~~~~~~~~~~~~~~
-MCP_REGISTER|
+MCP_REGISTER
 
 mcp_register ( s f1 f2 -- )
 ---------------------------
@@ -7538,7 +7538,7 @@ compares to check version numbers.
 
 See: MCP PRIMS
 ~~~~~~~
-MCP_REGISTER_EVENT|
+MCP_REGISTER_EVENT
 
 mcp_register_event ( s f1 f2 -- )
 ---------------------------------
@@ -7567,7 +7567,7 @@ the stack, is kept.
 
 See: MCP PRIMS
 ~~~~~~~~~~~~
-MCP_SUPPORTS|
+MCP_SUPPORTS
 
 mcp_supports ( i s -- f )
 -------------------------
@@ -7586,7 +7586,7 @@ check version numbers.
 
 See: MCP PRIMS
 ~~~~~~~~~~~
-MCP_BIND|
+MCP_BIND
 
 mcp_bind ( s1 s2 a -- )
 -----------------------
@@ -7599,7 +7599,7 @@ Binds a specific message, so if it is received, the given function is called. Th
 
 See: MCP PRIMS
 ~~~~~ 
-MCP_SEND|
+MCP_SEND
 
 mcp_send ( i s1 s2 dict -- )
 ----------------------------
@@ -7618,7 +7618,7 @@ sent.
 
 See: MCP PRIMS
 ~~~~~
-GUI_AVAILABLE|
+GUI_AVAILABLE
 
 gui_available ( i -- f )
 ------------------------
@@ -7634,7 +7634,7 @@ that descriptor, then 0.0 is returned.
 
 See: MCP PRIMS
 ~~~~~~~~
-GUI_DLOG_CREATE|
+GUI_DLOG_CREATE
 
 gui_dlog_create ( i s1 s2 dict -- s3 )
 --------------------------------------
@@ -7671,7 +7671,7 @@ Supported optional args are:
 
 See: MCP PRIMS
 ~~~~~~~~
-GUI_DLOG_SHOW|
+GUI_DLOG_SHOW
 
 gui_dlog_show ( s -- )
 ----------------------
@@ -7695,7 +7695,7 @@ is what was returned by the GUI_DLOG_CREATE (or similar) command.
 
 See: MCP PRIMS, GUI_DLOG_CREATE
 ~~~~~ 
-GUI_CTRL_CREATE|
+GUI_CTRL_CREATE
 
 gui_ctrl_create ( s1 s2 s3 dict -- )
 ------------------------------------
@@ -7722,7 +7722,7 @@ as keys, each with an argument value.
 
 See: MCP PRIMS
 ~~~~~ 
-GUI_VALUES_GET|
+GUI_VALUES_GET
 
 gui_values_get ( s -- dict )
 ----------------------------
@@ -7735,7 +7735,7 @@ dialog. The keys are the control ids.
 
 See: MCP PRIMS
 ~~~~~~~~~
-GUI_VALUE_SET|
+GUI_VALUE_SET
 
 gui_value_set ( s1 s2 s3 -- )
 -----------------------------
@@ -7748,7 +7748,7 @@ Sets the value of a given control in a given dialog.
 
 See: MCP PRIMS
 ~~~~~~~~~~~
-FORCE_LEVEL|
+FORCE_LEVEL
 
 force_level ( -- i )
 --------------------
@@ -8040,7 +8040,7 @@ Given a valid player dbref, returns that player's first descriptor
 number to the MUCK. If given #-1, returns the very first descriptor
 connected to the MUCK out of all the players.
 ~~~~
-ARRAY_JOIN|
+ARRAY_JOIN
 
 array_join ( a s1 -- s2 )
 -------------------------
@@ -8056,7 +8056,7 @@ s1. For example:
 would return:
 "one... 2... three... 3.14159"
 ~~~
-ARRAY_MATCHVAL|
+ARRAY_MATCHVAL
 
 array_matchval ( a1 s -- a2 )
 -----------------------------
@@ -8071,7 +8071,7 @@ the value was a string that matched the given smatch wild card pattern.
 
 See: SMATCH, ARRAY_MATCHKEY
 ~~~~
-ARRAY_MATCHKEY|
+ARRAY_MATCHKEY
 
 array_matchkey ( a1 s -- a2 )
 -----------------------------
@@ -8086,7 +8086,7 @@ the the key was a string that matches the smatch wild card pattern.
 
 See: SMATCH, ARRAY_MATCHKEY
 ~~~~
-ARRAY_EXTRACT|
+ARRAY_EXTRACT
 
 array_extrat ( a1 a2 -- a3 )
 ----------------------------
@@ -8275,7 +8275,7 @@ EVENT_WAITFOR. The event type will be "PROC.EXIT." with the PID of the
 process appended to it. The PID will also be returned as the data value
 from the event.
 ~~~~
-TRY|
+TRY
 
 try ( i -- )
 ------------
@@ -8292,7 +8292,7 @@ CATCH prim.
 
 See: CATCH, ENDCATCH, EXCEPTION HANDLING
 ~~~~
-CATCH|
+CATCH
 
 catch ( -- s )
 --------------
@@ -8307,7 +8307,7 @@ the code to skip to the CATCH-ENDCATCH block.
 
 See: TRY, ENDCATCH, EXCEPTION HANDLING
 ~~~~~
-ENDCATCH|
+ENDCATCH
 
 endcatch ( -- ) 
 ---------------
@@ -8431,7 +8431,7 @@ PORT          (i) - The IP port that player connects from.
 TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port.
 USERNAME      (s) - The user name for that descr's IP address.
 ~~~~
-FIND_ARRAY|
+FIND_ARRAY
 
 find_array ( d1 s1 s2 -- arr )
 ---------------------------------
@@ -8448,7 +8448,7 @@ in a single array.
   
 See: FINDNEXT, ARRAY PRIMS
 ~~~~
-DESCRBOOT|
+DESCRBOOT
 
 descrboot ( i -- )
 ------------------
@@ -8552,7 +8552,7 @@ it returns a negative value if the second array is greater than the first, and
 a possitive value if the first array is greater than the second. It is case
 sensitive.
 ~~~~
-REFLIST_FIND|
+REFLIST_FIND
 
 reflist_find ( d1 s1 d2 -- i )
 ------------------------------
@@ -8611,7 +8611,7 @@ fx' ... - The difference between each of the points.
 Performs the following math:
 fx1 - fx2, fy1 - fy2, and fz1 - fz2, then pushes the 3 answers onto the stack.
 ~~~~~
-FLAG_2CHAR|
+FLAG_2CHAR
 
 flag_2char ( s1 -- s2 )
 -----------------------
@@ -8751,7 +8751,7 @@ Level: W3 ArchWizard
 These primitives can be used to force the MUCK to dump a standard
  or delta database save.
 ~~~~
-STAFF?|
+STAFF?
 
 staff? ( d -- i )
 -----------------
@@ -8765,7 +8765,7 @@ has the STAFF @power set on them.
 Inserver define for:
 dup player? if dup "W" flag? swap "STAFF" power? or else pop 0 then
 ~~~~
-ARRAY_SORT_INDEXED|
+ARRAY_SORT_INDEXED
 
 array_sort_indexed ( a1 i ? -- a2 )
 -----------------------------------
@@ -8853,7 +8853,7 @@ EVENT_WAITFOR can also be affected.
 
 See: READ, TREAD, EVENT_WAITFOR
 ~~~~
-MUF EDIT PRIMS|MUF EDITING PRIMS|MUF EDIT|
+MUF EDIT PRIMS|MUF EDITING PRIMS|MUF EDIT
 These prims are used for editing MUF and macros. Tools needed for
 writing custom MUF editors. They are a compile time option and
 may not be present.
@@ -9084,7 +9084,7 @@ SQLQUERY and a new connection must be made.
 
 See: SQL PRIMS
 ~~~~ 
-SQL?|
+SQL?
 
 sql? ( x -- i )
 ---------------
@@ -9230,7 +9230,7 @@ EVENT_WAITFOR will return:
 
 See: SOCKET EVENTS 2
 ~~~
-SOCKET EVENTS 2|SOCKETEVENTS 2|SOCKET EVENTS2|
+SOCKET EVENTS 2|SOCKETEVENTS 2|SOCKET EVENTS2
 
 Socket Events - Continued
 -------------------------
@@ -9254,7 +9254,7 @@ via SOCKACCEPT.
 Correct use of Socket Events can greatly increase the efficiency
 of MUF socket programs, elimiating wasteful checking loops.
 ~~~~
-COPYPROPS|
+COPYPROPS
 
 copyprops ( d1 s1 d2 s2 i1 -- i2 )
 ----------------------------------
@@ -9282,7 +9282,7 @@ Example:
   /a/b/c:yes
   /a/f/g/l:no
 ~~~
-CHECKLOCK|
+CHECKLOCK
 
 checklock ( d1 d2 s -- i )
 --------------------------
@@ -9302,7 +9302,7 @@ returned to the stack.
 
 See: TESTLOCK, LOCKED?, CHECKLOCK
 ~~~
-SYSPARM_ARRAY|
+SYSPARM_ARRAY
 
 sysparm_array ( s -- dict )
 --------------------------
@@ -9316,7 +9316,7 @@ of the matching @tune options with the syntax of:
 
 If s is an empty string, it returns the entire @tune table.
 ~~~~
-XOR|
+XOR
 
 xor ( x x -- i )
 ----------------
@@ -9325,7 +9325,7 @@ i = Result of boolean XOR.
 
 Performs the XOR operation on the top two stack objects.
 ~~~~
-SOCKTODESCR|
+SOCKTODESCR
 
 socktodescr ( (SOCKET) -- i )
 -----------------------------
@@ -9394,7 +9394,7 @@ debug_off   - Removes the DEBUG flag from a program.
 debug_line  - Prints out a single line of debug tracing for whatever is
               on the stack that instant. 
 ~~~~
-MUF OPTIMIZING|MUFOPTIMIZING|
+MUF OPTIMIZING|MUFOPTIMIZING
 
 MUF Optimizing
 --------------
@@ -9430,7 +9430,7 @@ and
 There's a bunch of others too.
 floating point number optimizing. 
 ~~~
-ITOH|
+ITOH
  
 itoh ( i -- s )
 -----------------
@@ -9448,7 +9448,7 @@ Example:
  
 See: HTOI
 ~~~~
-HTOI|
+HTOI
  
 htoi ( s -- i )
 -----------------
@@ -9466,7 +9466,7 @@ Example:
  
 See: ITOH
 ~~~~
-UNESCAPE_URL|
+UNESCAPE_URL
  
 unescape_url ( s1 -- s2 )
 -----------------
@@ -9482,7 +9482,7 @@ programs.
      
 See: ESCAPE_URL
 ~~~~
-ESCAPE_URL|
+ESCAPE_URL
  
 escape_url ( s1 -- s2 )
 -----------------
@@ -9499,7 +9499,7 @@ programs.
  
 See: UNESCAPE_URL
 ~~~~
-SOCKSHUTDOWN|
+SOCKSHUTDOWN
 
 sockshutdown ( (SOCKET) i1 -- i2 )
 ----------------------------------
@@ -9522,7 +9522,7 @@ as '2 SOCKSHUTDOWN' come 1.9.
 
 See: SOCKCLOSE
 ~~~~
-MKDIR|
+MKDIR
 
 mkdir ( s -- i )
 ----------------
@@ -9537,7 +9537,7 @@ directory.
 
 See: FILE PRIMS, SHORTCUTS
 ~~~~
-DEBUGGER_BREAKPOINT|
+DEBUGGER_BREAKPOINT
 
 debugger_breakpoint ( -- )
 --------------------------
@@ -9546,7 +9546,7 @@ Level: M1 Apprentice
 When this prim is encountered, the MUF is forced straight into the 
 interactive debugger mode on whoever it was that was running the MUF.
 ~~~~~
-SYSTIME_PRECISE|
+SYSTIME_PRECISE
 
 systime_precise ( -- f )
 ------------------------
