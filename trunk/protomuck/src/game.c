@@ -557,7 +557,7 @@ process_command(int descr, dbref player, char *command)
 
     /* if player is a wizard, and uses overide token to start line...*/
     /* ... then do NOT run actions, but run the command they specify. */
-/*    if (!strcmp(command, WHO_COMMAND)) {
+    if (!strcmp(command, WHO_COMMAND)) {
        char xxbuf[BUFFER_LEN];
 
        strcpy(xxbuf, "@");
@@ -571,7 +571,6 @@ process_command(int descr, dbref player, char *command)
        }
        return;
     }
-*/   /*Taken out as a temp fix to prevent a crasher */
     if (!( *command == OVERIDE_TOKEN && TMage(player) )) {
 	if( can_move(descr, player, command, 0) ) {
 	    do_move(descr, player, command, 0); /* command is exact match for exit */

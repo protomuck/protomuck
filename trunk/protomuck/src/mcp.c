@@ -1567,7 +1567,7 @@ mcp_internal_parse(McpFrame * mfr, const char *in)
 
 
 /*
-* $Log: not supported by cvs2svn $
+* Log: mcp.c,v $
 * Revision 1.6  2000/07/18 18:12:40  winged
 * Various fixes to fix warnings under -Wall -Wstrict-prototypes -Wno-format -- not all problems are found or fixed yet
 *

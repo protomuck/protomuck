@@ -3506,7 +3506,8 @@ void
 pdump_who_users(int c, char *user)
 {
    struct descriptor_data *e;
-
+   if (c < 1)
+      return;
    e = descriptor_list;
    while(e && e->descriptor != c) {
       e = e->next;
@@ -3842,6 +3843,8 @@ get_player_descrs(dbref player, int* count)
 	}
 }
 
+
+
 void
 remember_player_descr(dbref player, int descr)
 {
@@ -4047,7 +4050,7 @@ puser(int count)
 int
 least_idle_player_descr(dbref who)
 {
-	struct descriptor_data *d;
+        struct descriptor_data *d;
 	struct descriptor_data *best_d = NULL;
 	int dcount, di;
 	int* darr;
@@ -4055,7 +4058,7 @@ least_idle_player_descr(dbref who)
 
 	darr = get_player_descrs(who, &dcount);
 	for (di = 0; di < dcount; di++) {
-		d = descrdata_by_descr(darr[di]);
+		d = descrdata_by_index(darr[di]);
 		if (d && (!best_time || d->last_time > best_time)) {
 			best_d = d;
 			best_time = d->last_time;
@@ -4065,6 +4068,7 @@ least_idle_player_descr(dbref who)
 		return best_d->con_number;
 	}
 	return 0;
+
 }
 
 
@@ -4106,15 +4110,12 @@ pport(int count)
 int
 pfirstconn(dbref who)
 {
-    struct descriptor_data *d;
-    int count = 1;
-    for (d = descriptor_list; d; d = d->next) {
-	if (d->connected) {
-	    if (d->player == who) return count;
-	    count++;
-	}
-    }
-    return 0;
+    int i;
+    i = dbref_first_descr(who);
+    if (i > 0)
+       return i;
+    else
+       return 0;
 }
 
 
@@ -4285,16 +4286,16 @@ pset_user2(int c, dbref who)
 int
 dbref_first_descr(dbref c)
 {
-	int dcount;
-	int* darr;
-	struct descriptor_data *d;
-
-	darr = get_player_descrs(c, &dcount);
-	if (dcount > 0) {
-		return darr[dcount - 1];
-	} else {
-		return NOTHING;
-	}
+ int dcount;
+ int* darr;
+ struct descriptor_data *d;
+ darr = get_player_descrs(c, &dcount);
+ if (dcount > 0) {
+  d = descrdata_by_index(darr[dcount - 1]);
+            return d->descriptor;
+ } else {
+  return NOTHING;
+ }
 }
 
 McpFrame *

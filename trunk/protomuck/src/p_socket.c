@@ -1,5 +1,5 @@
 /*
- * $Log: not supported by cvs2svn $
+ * Log: p_socket.c,v $
  * Revision 1.6  2000/5/26 Akari
  * Changed sockets to W3 level.
  * Added empty string type checking to prevent crashers.
