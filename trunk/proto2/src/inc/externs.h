@@ -569,16 +569,6 @@ extern void tune_save_parms_to_file(FILE * f);
 extern void tune_load_parmsfile(dbref player);
 extern void tune_save_parmsfile(void);
 
-/* From netresolve.c */
-
-extern void host_add(int, const char *);
-extern void host_del(int);
-extern char *host_fetch(int);
-extern void host_init(void);
-extern void host_load(void);
-extern void host_save(void);
-extern void host_shutdown(void);
-
 /* from random.c */
 extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);

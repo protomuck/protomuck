@@ -514,6 +514,7 @@ struct stack_addr {             /* for the system calstack */
 };
 
 struct stk_array_t;
+struct huinfo; /* from newresolv.h */
 
 struct muf_socket {             /* struct for MUF socket data */
    int socknum;                 /* The descriptor number for the socket */
@@ -528,6 +529,8 @@ struct muf_socket {             /* struct for MUF socket data */
    int last_time;               /* last time command recieved. */
    const char *hostname;        /* string host name for incoming cons */
    const char *username;        /* string user name for incoming cons */
+   unsigned short userport;     /* userport number */
+   struct huinfo *hu;           /* the new host/user resolver system */
    int commands;                /* number of commands entered. */
    int port;                    /* port number that LSOCKET is listening on */
    int usequeue;                /* toggles recieve buffer behavior */

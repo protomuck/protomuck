@@ -8,7 +8,7 @@
  * compatible systems by Peter A. Torkelson, aka WhiteFire.
  */
 
-                                                                                                                                                                                                          /* #define _POSIX_SOURCE *//* Solaris needs this */
+                                                                                                                                                                                                                                     /* #define _POSIX_SOURCE *//* Solaris needs this */
 #ifdef SOLARIS
 #  ifndef _POSIX_SOURCE
 #    define _POSIX_SOURCE       /* Solaris needs this */
@@ -19,6 +19,7 @@
 #include "interface.h"
 #include "externs.h"
 #include "tune.h"
+#include "netresolve.h"
 
 #include <signal.h>
 #include <sys/wait.h>

@@ -18,6 +18,7 @@
 #include "tune.h"
 #include "strings.h"
 #include "interp.h"
+#include "netresolve.h"
 
 extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern struct inst temp1, temp2, temp3;
@@ -133,7 +134,7 @@ prim_force(PRIM_PROTOTYPE)
     CLEAR(oper1);
     CLEAR(oper2);
     nargs -= 2;
-    
+
     force_level++;
     interp_set_depth(fr);
     process_command(dbref_first_descr(ref), ref, buf);
