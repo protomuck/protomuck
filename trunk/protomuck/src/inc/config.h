@@ -38,6 +38,13 @@
 #define CYGWIN_TZ -8 
 #define CYGWIN_TZX "PST" 
 
+/* Define this to disable the colors used in many of the in-server
+ * commands. Leave it undefined for traditional in-server ANSI 
+ * in the MUCK's commands.
+ */
+
+#undef NO_SYSCOLOR
+
 /* Define this to compile with MySQL support. MySQL must be installed
  * somewhere on your system. When compiling with this option, you
  * MUST run ./configure --with-mysql in the proto/src directory

@@ -72,13 +72,6 @@
  */
 #define ARCHIVE_DELAY TIME_MINUTE(30)
 
-/* Information needed for RWHO. */
-#ifdef RWHO
-#define RWHO_INTERVAL TIME_MINUTE(4)
-#define RWHO_PASSWD "potrzebie"
-#define RWHO_SERVER "riemann.math.okstate.edu"
-#endif
-
 /* amount of object endowment, based on cost */
 #define MAX_OBJECT_ENDOWMENT 0
 

@@ -22,11 +22,6 @@ extern const char *tp_cpennies;
 
 extern const char *tp_muckname;
 
-#ifdef RWHO
-extern const char *tp_rwho_passwd;
-extern const char *tp_rwho_server;
-#endif
-
 extern const char *tp_reg_email;
 
 extern const char *tp_proplist_counter_fmt;
@@ -37,9 +32,6 @@ extern const char *tp_mysql_username;
 extern const char *tp_mysql_password;
 
 /* times */
-#ifdef RWHO
-extern time_t tp_rwho_interval;
-#endif
 
 extern time_t tp_dump_interval;
 extern time_t tp_dump_warntime;
@@ -123,10 +115,6 @@ extern int tp_logwall_www;
 extern int tp_dbdump_warning;
 extern int tp_deltadump_warning;
 extern int tp_periodic_program_purge;
-
-#ifdef RWHO
-extern int tp_rwho;
-#endif
 
 extern int tp_secure_who;
 extern int tp_who_doing;
