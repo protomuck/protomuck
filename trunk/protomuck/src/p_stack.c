@@ -878,7 +878,7 @@ prim_setmode(PRIM_PROTOTYPE)
 void
 prim_interp(PRIM_PROTOTYPE)
 {
-    struct inst /* *oper1, *oper2, *oper3, */ *rv = NULL;
+    struct inst *oper1, *oper2, *oper3,  *rv = NULL;
     char buf[BUFFER_LEN];
     struct frame *tmpfr;
 
@@ -899,8 +899,6 @@ prim_interp(PRIM_PROTOTYPE)
 
     strcpy(buf, match_args);
     strcpy(match_args, oper3->data.string? oper3->data.string->data : "");
-/*    rv = interp(fr->descr, player, DBFETCH(player)->location, oper1->data.objref,
-			oper2->data.objref, PREEMPT, STD_HARDUID, 1); */
     interp_set_depth(fr);
     tmpfr = interp(fr->descr, player, DBFETCH(player)->location, oper1->data.objref,
 				   oper2->data.objref, PREEMPT, STD_HARDUID);

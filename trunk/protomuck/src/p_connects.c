@@ -841,7 +841,7 @@ prim_descrconport(PRIM_PROTOTYPE)
 void
 prim_descrleastidle(PRIM_PROTOTYPE)
 {
-	CHECKOP(1);
+      CHECKOP(1);
       oper2 = POP();
       if (oper2->type != PROG_OBJECT)
          abort_interp("Player dbref expected (2)");
@@ -849,7 +849,7 @@ prim_descrleastidle(PRIM_PROTOTYPE)
       if (!valid_player(oper2))
          abort_interp("Player dbref expected (2)");
       result = pdescr(least_idle_player_descr(ref));
-      CLEAR(oper1);
+      CLEAR(oper2);
       CHECKOFLOW(1);
       PushInt(result);
 }

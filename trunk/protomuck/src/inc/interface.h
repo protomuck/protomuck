@@ -67,6 +67,9 @@ struct descriptor_data {
 
 /* these symbols must be defined by the interface */
 
+extern char restart_message[BUFFER_LEN];
+extern char shutdown_message[BUFFER_LEN];
+
 #ifdef HTTPD
 extern void httpd(struct descriptor_data *d, const char *name, const char *http);
 extern void httpd_unknown(struct descriptor_data *d, const char *name);
@@ -281,6 +284,7 @@ extern void panic(const char *);
 #define ANSI_BG_BLUE	"\033[44m"
 #define ANSI_BG_MAGENTA	"\033[45m"
 #define ANSI_BG_WHITE	"\033[47m"
+
 
 
 

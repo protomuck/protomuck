@@ -157,7 +157,7 @@ void
 prim_queue(PRIM_PROTOTYPE)
 {
     dbref temproom;
-
+    struct inst *oper1, *oper2, *oper3, *oper4;
     /* int dbref string -- */
     CHECKOP(3);
     oper1 = POP();
@@ -218,6 +218,7 @@ prim_kill(PRIM_PROTOTYPE)
 void 
 prim_force(PRIM_PROTOTYPE)
 {
+    struct inst *oper1, *oper2;
     /* d s -- */
     CHECKOP(2);
     oper1 = POP();		/* string to @force */
@@ -241,6 +242,7 @@ prim_force(PRIM_PROTOTYPE)
 	abort_interp("Carriage returns not allowed in command string (2)");
     if (Man(oper2->data.objref) && !Man(OWNER(program)))
 	abort_interp("Cannot force the man (1)");
+
     force_level++;
     interp_set_depth(fr);
     process_command(dbref_first_descr(oper2->data.objref), oper2->data.objref, oper1->data.string->data);
@@ -553,6 +555,7 @@ prim_prettylock(PRIM_PROTOTYPE)
 void 
 prim_testlock(PRIM_PROTOTYPE)
 {
+    struct inst *oper1, *oper2;  
     /* d d - i */
     CHECKOP(2);
     oper1 = POP();		/* boolexp lock */

@@ -65,17 +65,22 @@ do_delta(dbref player)
 #endif
 
 void 
-do_shutdown(dbref player, const char *msg)
+do_shutdown(dbref player, const char *muckname, const char *msg)
 {
     if ( (Arch(player)) || (POWERS(player) & POW_SHUTDOWN) ) {
-      if( *msg == '\0' || strcmp(msg, tp_muckname))
+      if( *muckname == '\0' || strcmp(muckname, tp_muckname))
       {
-	notify(player, "Usage: @shutdown muckname" );
-	return;
+		notify(player, ANSICYAN "Usage: " ANSIAQUA "@shutdown muckname[=message]" );
+		return;
       }
 	log_status("SHUT: by %s\n", unparse_object(player, player));
 	shutdown_flag = 1;
 	restart_flag = 0;
+	if (*msg != '\0') {
+		strcat(shutdown_message, ANSIWHITE MARK ANSINORMAL);
+		strcat(shutdown_message, msg);
+		strcat(shutdown_message, "\r\n");
+	}
     } else {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	log_status("SHAM: Shutdown by %s\n", unparse_object(player, player));
@@ -83,17 +88,22 @@ do_shutdown(dbref player, const char *msg)
 }
 
 void 
-do_restart(dbref player, const char *msg)
+do_restart(dbref player, const char *muckname, const char *msg)
 {
     if ( (Arch(player)) || (POWERS(player) & POW_SHUTDOWN) ) {
-      if( *msg == '\0' || strcmp(msg, tp_muckname))
+      if( *muckname == '\0' || strcmp(muckname, tp_muckname))
       {
-	notify(player, "Usage: @restart muckname" );
-	return;
+		notify(player, ANSICYAN "Syntax: " ANSIAQUA "@restart muckname[=message]" );
+		return;
       }
 	log_status("REST: by %s\n", unparse_object(player, player));
 	shutdown_flag = 1;
 	restart_flag = 1;
+	if (*msg != '\0') {
+		strcat(restart_message, ANSIWHITE MARK ANSINORMAL);
+		strcat(restart_message, msg);
+		strcat(restart_message, "\r\n");
+	}
     } else {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	log_status("SHAM: Restart by %s\n", unparse_object(player, player));
@@ -1032,7 +1042,7 @@ process_command(int descr, dbref player, char *command)
 			    case 's':
 			    case 'S':
 				if (!string_compare(command, "@restart")) {
-				    do_restart(player, full_command);
+				    do_restart(player, arg1, arg2);
 				} else if (!string_compare(command, "@restrict")) {
 				    do_restrict(player, arg1);
 				} else {
@@ -1072,7 +1082,7 @@ process_command(int descr, dbref player, char *command)
 				}
 				if (string_compare(command, "@shutdown"))
 				    goto bad;
-				do_shutdown(player, arg1);
+				do_shutdown(player, arg1, arg2);
 				break;
 			    case 't':
 			    case 'T':
@@ -1537,6 +1547,7 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
 }
 
 #undef Matched
+
 
 
 
