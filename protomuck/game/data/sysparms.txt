@@ -504,3 +504,18 @@ by program basis by setting the program = N.
 ~~~
 dump_propqueues
 This enables a @dumpwarn and @dump propqueue to be used on #0.
+~~~
+enable_sockqueue
+Turns on a recieve buffer that gets used by NBSOCKRECV. 
+Prevents telnet connections to listening MUF sockets from
+sending every character to the stack as it is typed. The
+down side is that non-printable ASCII will not be sent
+to the stack. If not dealing with listening MUF sockets
+and Telnet clients connecting to them, just leave this 
+set to 'no.
+~~~
+mysql_result_limit
+Restricts the number of rows that can be returned from
+the SQLQUERY prim. Should never set this to over 2000.
+If not working with SQL and MUF, don't worry about
+this setting.
