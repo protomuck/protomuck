@@ -128,6 +128,8 @@ prim_awakep(PRIM_PROTOTYPE)
     if (Typeof(ref) != TYPE_PLAYER)
         abort_interp("invalid argument");
     result = online(ref);
+
+    CLEAR(oper1);
     PushInt(result);
 }
 
@@ -332,9 +334,11 @@ prim_conboot(PRIM_PROTOTYPE)
 {
     /* int --  */
     CHECKOP(1);
+    oper1 = POP();
+
     if (mlev < LWIZ)
         abort_interp("Wizard prim");
-    oper1 = POP();
+
     if (oper1->type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
     result = oper1->data.number;
@@ -984,6 +988,7 @@ prim_descrmostidle(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
     oper2 = POP();
+
     if (oper2->type != PROG_OBJECT)
         abort_interp("Player dbref expected (2)");
     ref = oper2->data.objref;
@@ -1000,12 +1005,14 @@ prim_descrboot(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
     oper1 = POP();
+
     if (mlev < LARCH)
         abort_interp("Arch prim");
     if (oper1->type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
+
     pdboot(oper1->data.number);
     CLEAR(oper1);
 }

@@ -1,157 +1,217 @@
-/* ../include/autoconf.h.in.  Generated automatically from configure.in by autoheader.  */
+/* inc/autoconf.h.in.  Generated from configure.in by autoheader.  */
 
-/* uname -a output for certain local programs. */
-#undef UNAME_VALUE
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_DIRENT_H
 
-/* Define to empty if the keyword does not work.  */
-#undef const
-
-/* Define if you have dirent.h.  */
-#undef DIRENT
-
-/* Define if you don't have vprintf but do have _doprnt.  */
+/* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
-/* Define if your struct tm has tm_zone.  */
-#undef HAVE_TM_ZONE
-
-/* if _timezone is defined in time.h, define this */
-#undef HAVE__TIMEZONE
-
-/* Define if you don't have tm_zone but do have the external array
-   tzname.  */
-#undef HAVE_TZNAME
-
-/* Define if you have the vprintf function.  */
-#undef HAVE_VPRINTF
-
-/* Define as __inline if that's what the C compiler calls it.  */
-#undef inline
-
-/* Define if on MINIX.  */
-#undef _MINIX
-
-/* Define if you don't have dirent.h, but have ndir.h.  */
-#undef NDIR
-
-/* Define to `int' if <sys/types.h> doesn't define.  */
-#undef pid_t
-
-/* Define if the system does not provide POSIX.1 features except
-   with this defined.  */
-#undef _POSIX_1_SOURCE
-
-/* Define if you need to in order for stat and other things to work.  */
-#undef _POSIX_SOURCE
-
-/* Define as the return type of signal handlers (int or void).  */
-#undef RETSIGTYPE
-
-/* Define to `unsigned' if <sys/types.h> doesn't define.  */
-#undef size_t
-
-/* Define to `int' if <sys/socket.h> doesn't define.  */
-#undef socklen_t
-
-/* Define if you have the ANSI C header files.  */
-#undef STDC_HEADERS
-
-/* Define if you don't have dirent.h, but have sys/dir.h.  */
-#undef SYSDIR
-
-/* Define if you don't have dirent.h, but have sys/ndir.h.  */
-#undef SYSNDIR
-
-/* Define if you can safely include both <sys/time.h> and <time.h>.  */
-#undef TIME_WITH_SYS_TIME
-
-/* Define if your <sys/time.h> declares struct tm.  */
-#undef TM_IN_SYS_TIME
-
-/* Define if you have the <sys/errno.h> header file.  */
-#undef HAVE_SYS_ERRNO_H
-
-/* Define if you have the <errno.h> header file.  */
+/* Define to 1 if you have the <errno.h> header file. */
 #undef HAVE_ERRNO_H
 
-/* Define if the closedir function returns void instead of int.  */
-#undef VOID_CLOSEDIR
-
-/* Define if you have getrlimit.  */
+/* Define to 1 if you have the `getrlimit' function. */
 #undef HAVE_GETRLIMIT
 
-/* Define if you have getrusage.  */
+/* Define to 1 if you have the `getrusage' function. */
 #undef HAVE_GETRUSAGE
 
-/* Define if you have mallinfo.  */
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `util' library (-lutil). */
+#undef HAVE_LIBUTIL
+
+/* Define to 1 if the system has the type `long long'. */
+#undef HAVE_LONG_LONG
+
+/* Define to 1 if you have the `mallinfo' function. */
 #undef HAVE_MALLINFO
 
-/* Define if you have random.  */
-#undef HAVE_RANDOM
-
-/* Define if you have the <malloc.h> header file.  */
+/* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
-/* Define if you have the <memory.h> header file.  */
+/* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define if you have the <string.h> header file.  */
-#undef HAVE_STRING_H
+/* Defined if mysql.h exists. */
+#undef HAVE_MYSQL_H
 
-/* Define if you have the <sys/resource.h> header file.  */
-#undef HAVE_SYS_RESOURCE_H
+/* Define to 1 if you have the <mysql/mysql.h> header file. */
+#undef HAVE_MYSQL_MYSQL_H
 
-/* Define if you have the <sys/signal.h> header file.  */
-#undef HAVE_SYS_SIGNAL_H
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
 
-/* Define if you have the <sys/time.h> header file.  */
-#undef HAVE_SYS_TIME_H
-
-/* Define if you have the <sys/malloc.h> header file.  */
-#undef HAVE_SYS_MALLOC_H
-
-/* Define if you have the <unistd.h> header file.  */
-#undef HAVE_UNISTD_H
-
-/* Define if you have the m library (-lm).  */
-#undef HAVE_LIBM
-
-/* Define if you have the nsl library (-lnsl).  */
-#undef HAVE_LIBNSL
-
-/* Define if you have the socket library (-lsocket).  */
-#undef HAVE_LIBSOCKET
-
-/* if tm_gmtoff is defined in time.h, define this */
-#undef HAVE_TM_GMTOFF
-
-/* if tm_gmtoff is defined in sys/time.h, define this */
-#undef HAVE_SYS_TM_GMTOFF
-
-/* Define if you have the <ssl.h> header file.  */
-#undef HAVE_SSL_H
-
-/* Define if you have the <ssl/ssl.h> header file.  */
-#undef HAVE_SSL_SSL_H
-
-/* Define if you have the <openssl/ssl.h> header file.  */
+/* Enabled if include/openssl/ssh.h exists. */
 #undef HAVE_OPENSSL_SSL_H
 
-/* Define this to enable SSL support. */
-#undef USE_SSL
+/* Define to 1 if you have the `random' function. */
+#undef HAVE_RANDOM
 
-/* Define this to enable MySQL support. */
-#undef SQL_SUPPORT
-
-/* Define this to disable DB compress support. */
-#undef NO_COMPRESS
-
-/* Define this to allow file primitive support as root. */
-#undef PROTO_AS_ROOT
-
-/* Define this to enable shared resolver support */
-#undef SUPPORT_RESLVD
-
+/* Define to 1 if you have the `setproctitle' function. */
 #undef HAVE_SETPROCTITLE
 
+/* Define to 1 if you have the `snprintf' function. */
+#undef HAVE_SNPRINTF
 
+/* Enabled if include/ssl.h exists. */
+#undef HAVE_SSL_H
+
+/* Enabled if include/ssl/ssl.h exists. */
+#undef HAVE_SSL_SSL_H
+
+/* Define to 1 if you have the <stdarg.h> header file. */
+#undef HAVE_STDARG_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if `tm_zone' is member of `struct tm'. */
+#undef HAVE_STRUCT_TM_TM_ZONE
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/errno.h> header file. */
+#undef HAVE_SYS_ERRNO_H
+
+/* Define to 1 if you have the <sys/malloc.h> header file. */
+#undef HAVE_SYS_MALLOC_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
+/* Define to 1 if you have the <sys/signal.h> header file. */
+#undef HAVE_SYS_SIGNAL_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <timebits.h> header file. */
+#undef HAVE_TIMEBITS_H
+
+/* Define to 1 if your `struct tm' has `tm_zone'. Deprecated, use
+   `HAVE_STRUCT_TM_TM_ZONE' instead. */
+#undef HAVE_TM_ZONE
+
+/* Define to 1 if you don't have `tm_zone' but do have the external array
+   `tzname'. */
+#undef HAVE_TZNAME
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <varargs.h> header file. */
+#undef HAVE_VARARGS_H
+
+/* Define to 1 if you have the `vprintf' function. */
+#undef HAVE_VPRINTF
+
+/* Define to 1 if you have the `vsnprintf' function. */
+#undef HAVE_VSNPRINTF
+
+/* Defined to DISABLE compression support. */
+#undef NO_COMPRESS
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* DANGEROUS: Defined to allow file prims and webserver to run as root */
+#undef PROTO_AS_ROOT
+
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
+/* The size of a `int', as computed by sizeof. */
+#undef SIZEOF_INT
+
+/* The size of a `long int', as computed by sizeof. */
+#undef SIZEOF_LONG_INT
+
+/* Defined to enable MySQL support */
+#undef SQL_SUPPORT
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Defined to enable reslvd support. */
+#undef SUPPORT_RESLVD
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* The value of the uname -a command. */
+#undef UNAME_VALUE
+
+/* Defined to enable SSL support. */
+#undef USE_SSL
+
+/* Define to 1 if on MINIX. */
+#undef _MINIX
+
+/* Define to 2 if the system does not provide POSIX.1 features except with
+   this defined. */
+#undef _POSIX_1_SOURCE
+
+/* Define to 1 if you need to in order for `stat' and other things to work. */
+#undef _POSIX_SOURCE
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef gid_t
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `int' if <sys/types.h> does not define. */
+#undef pid_t
+
+/* Define to `unsigned' if <sys/types.h> does not define. */
+#undef size_t
+
+/* The type that holds socket length values on this system. */
+#undef socklen_t
+
+/* Define to `int' if <sys/types.h> doesn't define. */
+#undef uid_t

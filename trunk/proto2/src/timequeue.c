@@ -354,7 +354,7 @@ read_event_notify(int descr, dbref player, const char *cmd)
 {
     timequeue ptr;
 
-    
+
     if (muf_event_read_notify(descr, player, cmd)) {
         return 1;
     }
@@ -367,7 +367,7 @@ read_event_notify(int descr, dbref player, const char *cmd)
                  * a command. this is to accomidate changes in
                  * interface.c to avoid problems with events and WHO -Akari
                  */
-                if ( *cmd || ptr->fr->wantsblanks ) {
+                if (*cmd || ptr->fr->wantsblanks) {
                     struct inst temp;
 
                     temp.type = PROG_INTEGER;
@@ -955,7 +955,7 @@ get_pidinfo(int pid)
         temp1.type = PROG_STRING;
         temp1.data.string = alloc_prog_string("INSTCNT");
         temp2.type = PROG_INTEGER;
-        temp2.data.number = ptr->fr->instcnt;
+        temp2.data.number = ptr->fr ? ptr->fr->instcnt : 0;
         array_setitem(&nw, &temp1, &temp2);
         CLEAR(&temp1);
         CLEAR(&temp2);
@@ -983,7 +983,7 @@ get_pidinfo(int pid)
         temp1.type = PROG_STRING;
         temp1.data.string = alloc_prog_string("STARTED");
         temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) ptr->fr->started;
+        temp2.data.number = (int) (ptr->fr ? ptr->fr->started : 0);
         array_setitem(&nw, &temp1, &temp2);
         CLEAR(&temp1);
         CLEAR(&temp2);
@@ -1128,7 +1128,7 @@ dequeue_prog_descr(int descr, int sleeponly)
      * the sleeponly parameter to the muf_event_dequeue functions
      */
     count += muf_event_dequeue_descr(descr, sleeponly);
-   
+
     for (ptr = tqhead; ptr; ptr = ptr->next) {
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                        ptr->subtyp == TQ_MUF_TREAD)) {

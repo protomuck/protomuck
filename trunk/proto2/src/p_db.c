@@ -2358,11 +2358,14 @@ prim_newpassword(PRIM_PROTOTYPE)
 #endif
     ptr2 = oper1->data.string ? oper1->data.string->data : pad_char;
     ref = oper3->data.objref;
-    if (ref != NOTHING && !valid_player(oper3))
+
+    if (!valid_player(oper3))
         abort_interp("Player dbref expected");
+
     CHECKREMOTE(ref);
     if (MLevel(ref) >= mlev || (MLevel(ref) >= LMAGE && mlev < LBOY))
         abort_interp(tp_noperm_mesg);
+
     set_password(ref, ptr2);
     CLEAR(oper1);
     CLEAR(oper3);

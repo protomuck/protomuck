@@ -1600,22 +1600,39 @@ do_memory(dbref who)
         struct mallinfo mi;
 
         mi = mallinfo();
-        notify_fmt(who, "Total memory arena size: %6dk", (mi.arena / 1024));
-        notify_fmt(who, "Small block mem alloced: %6dk", (mi.usmblks / 1024));
-        notify_fmt(who, "Small block memory free: %6dk", (mi.fsmblks / 1024));
-        notify_fmt(who, "Small block mem overhead:%6dk", (mi.hblkhd / 1024));
-
-        notify_fmt(who, "Memory allocated:        %6dk", (mi.uordblks / 1024));
-        notify_fmt(who, "Mem allocated overhead:  %6dk",
-                   ((mi.uordbytes - mi.uordblks) / 1024));
-        notify_fmt(who, "Memory free:             %6dk", (mi.fordblks / 1024));
+        notify_fmt(who, "Total allocated from system:   %6dk",
+                   (mi.arena / 1024));
+        notify_fmt(who, "Number of non-inuse chunks:    %6d", mi.ordblks);
+        notify_fmt(who, "Small block count:             %6d", mi.smblks);
+        notify_fmt(who, "Small block mem alloced:       %6dk",
+                   (mi.usmblks / 1024));
+        notify_fmt(who, "Small block memory free:       %6dk",
+                   (mi.fsmblks / 1024));
+#ifdef HAVE_STRUCT_MALLINFO_HBLKS
+        notify_fmt(who, "Number of mmapped regions:     %6d", mi.hblks);
+#endif
+        notify_fmt(who, "Total memory mmapped:          %6dk",
+                   (mi.hblkhd / 1024));
+        notify_fmt(who, "Total memory malloced:         %6dk",
+                   (mi.uordblks / 1024));
+        notify_fmt(who, "Mem allocated overhead:        %6dk",
+                   ((mi.arena - mi.uordblks) / 1024));
+        notify_fmt(who, "Memory free:                   %6dk",
+                   (mi.fordblks / 1024));
+#ifdef HAVE_STRUCT_MALLINFO_KEEPCOST
+        notify_fmt(who, "Top-most releasable chunk size:%6dk",
+                   (mi.keepcost / 1024));
+#endif
+#ifdef HAVE_STRUCT_MALLINFO_TREEOVERHEAD
         notify_fmt(who, "Memory free overhead:    %6dk",
                    (mi.treeoverhead / 1024));
-
+#endif
+#ifdef HAVE_STRUCT_MALLINFO_GRAIN
         notify_fmt(who, "Small block grain: %6d", mi.grain);
-        notify_fmt(who, "Small block count: %6d", mi.smblks);
-        notify_fmt(who, "Memory chunks:     %6d", mi.ordblks);
+#endif
+#ifdef HAVE_STRUCT_MALLINFO_ALLOCATED
         notify_fmt(who, "Mem chunks alloced:%6d", mi.allocated);
+#endif
     }
 # endif /* HAVE_MALLINFO */
 #endif /* NO_MEMORY_COMMAND */
