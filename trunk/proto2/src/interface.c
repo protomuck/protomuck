@@ -3142,9 +3142,9 @@ process_commands(void)
                 if ((d->connected && DBFETCH(d->player)->sp.player.block &&
                      !is_interface_command(t->start))
                     || (!d->connected && d->block)) {
-#ifdef MCP_SUPPORT
                     char *tmp = t->start;
 
+#ifdef MCP_SUPPORT
                     /* dequote MCP quoting. */
                     if (!strncmp(tmp, "#%\"", 3)) {
                         tmp += 3;
