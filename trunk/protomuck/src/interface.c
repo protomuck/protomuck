@@ -2626,6 +2626,9 @@ process_input(struct descriptor_data * d)
 #endif
                     d->inIAC = 0;
                     break;
+                default:
+                    d->inIAC = 0;
+                    break;
             }
         } else if (d->inIAC == 2) {
             /* send back DONT option in all cases */
