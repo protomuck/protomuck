@@ -2249,7 +2249,10 @@ find_uid(dbref player, struct frame *fr, int st, dbref program)
 
     }
 
-    return (OWNER(player));
+    if (OkObj(player))
+        return (OWNER(player));
+    else
+        return (OWNER(program));
 }
 
 
