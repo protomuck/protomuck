@@ -9,6 +9,7 @@
 #include <time.h>
 #include "db.h"
 #include "tune.h"
+#include "dbsearch.h"
 #include "props.h"
 #include "inst.h"
 #include "externs.h"
@@ -2610,9 +2611,77 @@ prim_nextthing_flag(PRIM_PROTOTYPE)
     PushObject(ref);
 }
 
+void
+prim_findnext(PRIM_PROTOTYPE)
+{
+        struct flgchkdat check;
+        dbref who, item, ref, i;
+        const char* name;
 
+        CHECKOP(4);
+        oper4 = POP(); /* str:flags */
+        oper3 = POP(); /* str:namepattern */
+        oper2 = POP(); /* ref:owner */
+        oper1 = POP(); /* ref:currobj */
 
+        if (oper4->type != PROG_STRING)
+                abort_interp("Expected string argument. (4)");
+        if (oper3->type != PROG_STRING)
+                abort_interp("Expected string argument. (3)");
+        if (oper2->type != PROG_OBJECT)
+                abort_interp("Expected dbref argument. (2)");
+        if (oper2->data.objref < NOTHING || oper2->data.objref >= db_top)
+                abort_interp("Bad object. (2)");
+        if (Typeof(oper2->data.objref) == TYPE_GARBAGE)
+                abort_interp("Garbage object. (2)");
+        if (oper1->type != PROG_OBJECT)
+                abort_interp("Expected dbref argument. (1)");
+        if (oper1->data.objref < NOTHING || oper1->data.objref >= db_top)
+                abort_interp("Bad object. (1)");
+        if (Typeof(oper1->data.objref) == TYPE_GARBAGE)
+                abort_interp("Garbage object. (1)");
 
+        item = oper1->data.objref;
+        who = oper2->data.objref;
+        name = DoNullInd(oper3->data.string);
+
+        if (mlev < 2)
+                abort_interp("Permission denied.  Requires at least Mucker Level 2.");
+
+        if (mlev < 3) {
+                if (who == NOTHING) {
+                        abort_interp("Permission denied.  Owner inspecific searches require Mucker Level 3.");
+                } else if (who != ProgUID) {
+                        abort_interp("Permission denied.  Searching for other people's stuff requires Mucker Level 3.");
+                }
+        }
+
+        if (item == NOTHING) {
+                item = 0;
+        } else {
+                item++;
+        }
+        strcpy(buf, name);
+
+        ref = NOTHING;
+        init_checkflags(player, DoNullInd(oper4->data.string), &check);
+        for (i = item; i < db_top; i++) {
+                if ((who == NOTHING || OWNER(i) == who) &&
+                        checkflags(i, check) && NAME(i) &&
+                        (!*name || equalstr(buf, (char *) NAME(i))))
+                {
+                        ref = i;
+                        break;
+                }
+        }
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+        CLEAR(oper3);
+        CLEAR(oper4);
+
+        PushObject(ref);
+}
 
 
 
