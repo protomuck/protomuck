@@ -166,6 +166,7 @@ static int ssl_listener_port;
 static int ssl_sock;
 static int ssl_numsocks;
 SSL_CTX *ssl_ctx;
+SSL_CTX *ssl_ctx_client;
 #endif
 
 short db_conversion_flag = 0;
@@ -1516,6 +1517,7 @@ shovechars(void)
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
     ssl_ctx = SSL_CTX_new(SSLv23_server_method());
+    ssl_ctx_client = SSL_CTX_new(SSLv23_client_method());
 
     if (!SSL_CTX_use_certificate_file(ssl_ctx, SSL_CERT_FILE, SSL_FILETYPE_PEM)) {
         log_status("SSLX: Could not load certificate file %s\n", SSL_CERT_FILE);
@@ -1608,13 +1610,13 @@ shovechars(void)
                             dequeue_process(d->http.pid); /* hinoserm */
                         dequeue_prog_descr(d->descriptor, 2); /* hinoserm */
                     }           /* hinoserm */
-                    if (!d->connected && d->type != CT_HTTP) /* quit from login screen (hinoserm changed) */
+                    if (!d->connected && (d->type != CT_HTTP)) /* quit from login screen (hinoserm changed) */
 #else /* !NEWHTTPD */
                     if (!d->connected)
 #endif /* NEWHTTPD */
                         announce_disclogin(d);
 #ifdef NEWHTTPD
-                    if (d->type == CT_HTTP && !(d->flags & DF_HALFCLOSE)) { /* hinoserm */
+                    if ((d->type == CT_HTTP) && !(d->flags & DF_HALFCLOSE)) { /* hinoserm */
                         d->flags |= DF_HALFCLOSE; /* hinoserm */
                         shutdown(d->descriptor, 1); /* hinoserm */
                     } else
@@ -2150,6 +2152,11 @@ get_ctype(int port)
             case 3:
                 ctype = CT_MUF;
                 break;
+#ifdef USE_SSL
+            case 4:
+                ctype = CT_SSL;
+                break;
+#endif
             default:
                 ctype = CT_MUCK;
                 break;
@@ -2495,7 +2502,6 @@ shutdownsock(struct descriptor_data *d)
 #ifdef USE_SSL
     if (d->ssl_session && SSL_shutdown(d->ssl_session) < 1)
         SSL_shutdown(d->ssl_session);
-    SSL_free(d->ssl_session);
 #endif /* USE_SSL */
     shutdown(d->descriptor, 2);
     closesocket(d->descriptor);
