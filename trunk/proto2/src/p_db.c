@@ -1909,6 +1909,9 @@ prim_newplayer(PRIM_PROTOTYPE)
     DBFETCH(newplayer)->sp.player.password = alloc_string("");
     DBFETCH(newplayer)->sp.player.curr_prog = NOTHING;
     DBFETCH(newplayer)->sp.player.insert_mode = 0;
+#ifdef IGNORE_SUPPORT
+    DBFETCH(newplayer)->sp.player.ignoretime = 0;
+#endif /* IGNORE_SUPPORT */
 
     /* Alynna's setpassword again */
     set_password(newplayer, password);

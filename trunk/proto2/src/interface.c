@@ -5470,7 +5470,7 @@ gettimeofday(struct timeval *tval, void *tzone)
 #ifdef IGNORE_SUPPORT
 /* Alynna: in-server ignore support */
 void
-init_ignore(register dbref tgt)
+init_ignore(dbref tgt)
 {
     register struct object *pobj = DBFETCH(tgt);
     register const char *rawstr;
@@ -5511,11 +5511,11 @@ init_ignore(register dbref tgt)
     return;
 }
 
-char
+char /* char, for when you only need a byte's worth. */
 ignorance(register dbref src, dbref tgt)
 {
     register struct object *tobj = DBFETCH(tgt);
-    register short i;           /* Never set MAX_IGNORES over 254. */
+    register short i;
 
     /* We leave ignorance negatively if the dbref is invalid or the source is a wizard or theirselves. 
        This catches 99.999% of the cases where the system calls something through a standard player

@@ -1,4 +1,5 @@
 
+
 #include "copyright.h"
 #include "config.h"
 
@@ -1503,6 +1504,9 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             o->sp.player.insert_mode = 0;
             o->sp.player.descrs = NULL;
             o->sp.player.descr_count = 0;
+#ifdef IGNORE_SUPPORT
+            o->sp.player.ignoretime = 0;
+#endif /* IGNORE_SUPPORT */
             break;
         case TYPE_PROGRAM:
             if (verboseload) fprintf(stderr, "[type: PROGRAM] ");

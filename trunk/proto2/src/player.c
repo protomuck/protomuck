@@ -99,6 +99,9 @@ create_player(const char *name, const char *password)
     DBFETCH(player)->sp.player.password = alloc_string("");
     DBFETCH(player)->sp.player.curr_prog = NOTHING;
     DBFETCH(player)->sp.player.insert_mode = 0;
+#ifdef IGNORE_SUPPORT
+    DBFETCH(player)->sp.player.ignoretime = 0;
+#endif /* IGNORE_SUPPORT */
 
     /* new set password */
     set_password(player,password);
