@@ -1817,7 +1817,7 @@ shovechars(void)
                         d->booted = 1; /* connection lost */
                     }
                 }
-                if (d->connected) { /* begin the idle FLAG/boots management */
+                if (d->connected && OkObj(d->player)) { /* begin the idle FLAG/boots management */
                     int leastIdle = 0;
                     int dr_idletime = 0;
                     struct descriptor_data *tempd;
@@ -3607,12 +3607,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                             /****/
+        if (d->next)                                                                                                     /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                         /****/
+        if (d->hostname)                                                                                                 /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                         /****/
+        if (d->username)                                                                                                 /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
@@ -3894,24 +3894,17 @@ void
 dump_users(struct descriptor_data *d, char *user)
 {
     struct descriptor_data *dlist;
-    int wizwho = 0;
-    int players = 0;
-    int idleplyrs = 0;
-    int namelimit = PLAYER_NAME_LIMIT;
-    int ArchPerms = 0;
-    int now = current_systime;
-    static int player_max = 0;
-    char buf[BUFFER_LEN], dobuf[BUFFER_LEN], plyrbuf[BUFFER_LEN],
-        typbuf[BUFFER_LEN], tbuf[BUFFER_LEN], tbuf2[BUFFER_LEN];
-    const char *p;
+    register char wizwho = (!tp_mortalwho);
+    short players = 0;
+    short idleplyrs = 0;
+    static short player_max = 0;
+    register const char *p;
+    char buf[BUFFER_LEN], dobuf[BUFFER_LEN];
+    char plyrbuf[BUFFER_LEN], typbuf[BUFFER_LEN];
+    char tbuf[BUFFER_LEN], tbuf2[BUFFER_LEN];
 
-    if (!d) {
+    if (!d)
         return;
-    }
-
-    if (!tp_mortalwho) {
-        wizwho = 1;
-    }
 
     if (!(OkObj(d->player) && d->connected) && tp_secure_who) {
         queue_ansi(d, SYSRED "Login and find out!");
@@ -3920,32 +3913,29 @@ dump_users(struct descriptor_data *d, char *user)
 
     while (*user && isspace(*user))
         user++;
-    while (*user && *user == '!') {
-        (void) user++;
-        (void) wizwho++;
-        if (wizwho > 2) {
+
+    for (; *user && *user == '!'; user++) {
+        wizwho++;
+        if (wizwho > 2)
             wizwho = 0;
-        }
     }
+
     while (*user && isspace(*user))
         user++;
+
     //I must apologize for the absurd logical check below 
     //In fixing EXPANDED_WHO, I didn't feel like rewriting
     //the already badly done logic check
-    if (OkObj(d->player) ?
-        !Mage(d->player) && !(POWERS(d->player) & POW_EXPANDED_WHO) : 1) {
+    /* Rewrote the badly done logic check. -Hinoserm */
+    if (!d->connected || !OkObj(d->player)
+        || (!Mage(d->player) && !(POWERS(d->player) & POW_EXPANDED_WHO)))
         wizwho = 0;
-    }
-    if (!(d->connected))
-        wizwho = 0;
-    if (OkObj(d->player) ? Arch(d->player) : 0) {
-        ArchPerms = 1;
-    }
 
     if (!index(user, '*')) {
         strcpy(tbuf, user);
         user = strcat(tbuf, "*");
     }
+
     if (!wizwho && tp_who_doing) {
         if ((p = get_property_class((dbref) 0, "_poll"))) {
             p = get_uncompress(p);
@@ -3954,7 +3944,7 @@ dump_users(struct descriptor_data *d, char *user)
             sprintf(dobuf, "%-43s", "Doing...");
         }
     }
-    sprintf(plyrbuf, "%-*s", namelimit + 6, "Player Name");
+    sprintf(plyrbuf, "%-*s", PLAYER_NAME_LIMIT + 6, "Player Name");
     switch (wizwho) {
         case 0:{
             if (tp_who_doing) {
@@ -4050,7 +4040,7 @@ dump_users(struct descriptor_data *d, char *user)
                           player)) ? (tp_who_hides_dark ?
                                       !((FLAGS(dlist->player) & DARK)
                                         || (FLAG2(dlist->player) & F2HIDDEN))
-                                      || (Wiz(d->player))
+                                      || (OkObj(d->player) && Wiz(d->player))
                                       || (d->player == dlist->player)
                                       || (FLAG2(dlist->player) & F2LIGHT) : 1) :
                 0)) && equalstr(user, plyrbuf)) {
@@ -4068,17 +4058,20 @@ dump_users(struct descriptor_data *d, char *user)
                 }
             }
             strcpy(buf, "");
-            sprintf(plyrbuf, "%-*s", namelimit + (wizwho ? 5 : 1), plyrbuf);
+            sprintf(plyrbuf, "%-*s", PLAYER_NAME_LIMIT + (wizwho ? 5 : 1),
+                    plyrbuf);
             switch (wizwho) {
                 case 0:{
                     if (tp_who_doing) {
                         sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
                                 SYSGREEN, plyrbuf, SYSPURPLE,
-                                time_format_1(now - dlist->connected_at),
-                                (1 ?
-                                 ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ") :
-                                 " "), SYSYELLOW,
-                                time_format_2(now - dlist->last_time),
+                                time_format_1(current_systime -
+                                              dlist->connected_at),
+                                (1
+                                 ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ")
+                                 : " "), SYSYELLOW,
+                                time_format_2(current_systime -
+                                              dlist->last_time),
                                 ((dlist->connected
                                   && OkObj(dlist->
                                            player)) ? ((FLAGS(dlist->
@@ -4095,11 +4088,13 @@ dump_users(struct descriptor_data *d, char *user)
                     } else {
                         sprintf(buf, "%s%s %s%10s%s%s%4s%s\r\n",
                                 SYSGREEN, plyrbuf, SYSPURPLE,
-                                time_format_1(now - dlist->connected_at),
+                                time_format_1(current_systime -
+                                              dlist->connected_at),
                                 (1
                                  ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ")
                                  : " "), SYSYELLOW,
-                                time_format_2(now - dlist->last_time),
+                                time_format_2(current_systime -
+                                              dlist->last_time),
                                 ((dlist->connected
                                   && OkObj(dlist->
                                            player)) ? ((FLAGS(dlist->
@@ -4113,18 +4108,21 @@ dump_users(struct descriptor_data *d, char *user)
                     sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
                             SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
                             SYSCYAN, dlist->cport, SYSPURPLE,
-                            time_format_1(now - dlist->connected_at),
+                            time_format_1(current_systime -
+                                          dlist->connected_at),
                             (1
                              ? ((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ")
                              : " "), SYSYELLOW,
-                            time_format_2(now - dlist->last_time),
+                            time_format_2(current_systime - dlist->last_time),
                             ((dlist->connected
                               && OkObj(dlist->
                                        player)) ? ((FLAGS(dlist->
                                                           player) & INTERACTIVE)
                                                    ? "*" : " ") : " "), SYSBLUE,
-                            ArchPerms ? dlist->username : "",
-                            ArchPerms ? "@" : "", dlist->hostname);
+                            (d->connected && OkObj(d->player)
+                             && Arch(d->player)) ? dlist->username : "",
+                            (d->connected && OkObj(d->player)
+                             && Arch(d->player)) ? "@" : "", dlist->hostname);
                     break;
                 }
                 case 2:{
@@ -4142,6 +4140,7 @@ dump_users(struct descriptor_data *d, char *user)
     }
     if (players > player_max)
         player_max = players;
+
     sprintf(buf,
             "%s%d player%s connected.  %s(%d Active, %d Idle, Max was %d)\r\n",
             SYSBLUE, players, ((players == 1) ? " is" : "s are"), SYSYELLOW,
