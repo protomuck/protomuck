@@ -837,6 +837,7 @@ watchpid_process(struct frame *fr)
     }
 }
 
+extern void muf_socket_clean(struct frame *fr); /* in p_socket.c */
 
 /* clean up the stack. */
 void
@@ -864,6 +865,8 @@ prog_clean(struct frame *fr)
         add_property(fr->prog, "~muf/who", NULL, fr->player);
         add_property(fr->prog, "~muf/trig", NULL, fr->trig);
     }
+
+    muf_socket_clean(fr);
 
     for (ptr = free_frames_list; ptr; ptr = ptr->next) {
         if (ptr == fr) {
