@@ -528,6 +528,8 @@ char *
 http_parsempi(struct descriptor_data *d, dbref what, const char *yerf,
               char *buf)
 {
+	d->http.flags |= HS_MPI;
+
     if (yerf)
         return (do_parse_mesg
                 (d->descriptor, OWNER(what), what, yerf, "WWW", buf, 0));
