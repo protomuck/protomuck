@@ -1742,7 +1742,7 @@ prim_unparseobj(PRIM_PROTOTYPE)
                 sprintf(buf, "*HOME*");
                 break;
             default:
-                if (result < 0 || result > db_top)
+                if (result < 0 || result >= db_top)
                     sprintf(buf, "*INVALID*");
                 else
                     sprintf(buf, "%s(#%d%s)", RNAME(result), result,
@@ -3041,7 +3041,7 @@ prim_ansi_unparseobj(PRIM_PROTOTYPE)
             strcpy(buf, SYSWHITE "*HOME*");
             break;
         default:
-            if (result < 0 || result > db_top) {
+            if (result < 0 || result >= db_top) {
                 strcpy(buf, SYSRED "*INVALID*");
             } else {
                 sprintf(buf, "%s" SYSYELLOW "(#%d%s)", ansiname(result, tbuf),
