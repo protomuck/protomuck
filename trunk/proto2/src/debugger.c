@@ -263,7 +263,7 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
             for (k = 0; k < fntop->data.mufproc->args; ++k) {
                 const char *nam = scopedvar_getname(fr, lev, k);
                 char *val;
-                const char *fmt;
+                //const char *fmt;
 
                 if (!nam) {
                     break;
@@ -272,15 +272,9 @@ muf_backtrace(dbref player, dbref program, int count, struct frame *fr)
                 val = insttotext(fr, lev, varinst, buf3, sizeof(buf3), 30,
                                  program);
 
-                if (k) {
-                    fmt = "\033[1m, %s=\033[0m%s";
-                } else {
-                    fmt = "\033[1m%s=\033[0m%s";
-                }
-                bufend += snprintf(bufend, buf2 - bufend - 18, fmt, nam, val);
+                bufend += snprintf(bufend, buf2 - bufend - 18, k ? "\033[1m, %s=\033[0m%s" : "\033[1m%s=\033[0m%s", nam, val);
             }
-            bufend += snprintf(bufend, buf2 - bufend - 1, "\033[1m)\033[0m",
-                               ptr);
+            bufend += snprintf(bufend, buf2 - bufend - 1, "\033[1m)\033[0m");
             ptr = buf2;
         }
 

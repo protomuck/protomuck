@@ -25,7 +25,7 @@ extern char buf[BUFFER_LEN];
 struct tm *time_tm;
 
 /* Some externs to functions elsewhere in the code. */
-extern kill_macro(const char *, dbref, struct macrotable **);
+extern int kill_macro(const char *, dbref, struct macrotable **);
 
 void
 prim_kill_macro(PRIM_PROTOTYPE)
@@ -86,7 +86,7 @@ stk_array *
 make_macros_array(stk_array *dict, struct macrotable *node)
 {
     if (!node)
-        return;
+        return 0;
 
     make_macros_array(dict, node->left);
     array_set_strkey_strval(&dict, node->name, node->definition);

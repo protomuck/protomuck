@@ -45,6 +45,7 @@
 #include "strings.h"
 #include "interp.h"
 #include "cgi.h"
+#include "mufevent.h"
 
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(APPLE)
 typedef int socklen_t;
@@ -90,7 +91,7 @@ add_socket_to_queue(struct muf_socket *newSock, struct frame *fr)
 void
 remove_socket_from_queue(struct muf_socket *oldSock)
 {
-    struct muf_socket_queue *curr, *next, *temp;
+    struct muf_socket_queue *curr, *temp;
 
     curr = socket_list;
     if (!curr)
@@ -286,7 +287,9 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     fd_set reads;
     struct timeval t_val;
     int charCount = 0;
+#ifdef WIN_VC
     int turnon = 1;
+#endif
 
     CHECKOP(1);
     /* socket -- */
@@ -408,7 +411,7 @@ void
 prim_nbsockrecv_char(PRIM_PROTOTYPE)
 {
     char *mystring;
-    int loop, readme, gotmessage = 0;
+    int readme, gotmessage = 0;
     int sockval = 0;
     fd_set reads;
     struct timeval t_val;
@@ -545,13 +548,14 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 {
     int mysock = 0;
     struct inst *result;
-    struct muf_socket *mufsock;
     struct hostent *myhost;
     char myresult[255];
     struct sockaddr_in name;
     int addr_len = 0;
-    int turnon = 1;
     int validHost = 0;
+#ifdef WIN_VC
+    int turnon = 1;
+#endif
 
     CHECKOP(2);
     oper2 = POP();
@@ -731,10 +735,8 @@ prim_lsockopen(PRIM_PROTOTYPE)
 {
     int sockdescr = 0;
     struct inst *result;
-    struct muf_socket *mufsock;
     struct sockaddr_in my_addr;
     char myresult[255];
-    int addr_len;
     int errors = 0;
     int yes = 1;
 
@@ -845,13 +847,9 @@ prim_sockaccept(PRIM_PROTOTYPE)
     int newsock = 0;
     int sockdescr = 0;
     struct inst *result;
-    struct muf_socket *mufsock;
-    struct hostent *myhost;
     char hostname[128];
-    char *hptr = hostname;
     char username[10];
     char myresult[255];
-    struct sockaddr_in myaddr;
     struct sockaddr_in remoteaddr; // client's address
     int addr_len;
     fd_set reads;
@@ -986,7 +984,9 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     struct muf_socket *theSock;
     const char *password;
     struct descriptor_data *d;
+#ifdef WIN_VC
     int turnon = 1;
+#endif
 
     /* (SOCKET) ref pass -- bool */
     CHECKOP(3);
@@ -1059,7 +1059,9 @@ prim_socktodescr(PRIM_PROTOTYPE)
 {
     struct muf_socket *theSock;
     struct descriptor_data *d;
+#ifdef WIN_VC
     int turnon = 1;
+#endif
 
     /* (SOCKET) -- int:descr */
     CHECKOP(1);

@@ -1022,7 +1022,7 @@ mush_tct(const char *in, char out[BUFFER_LEN])
 char *
 parse_tilde_ansi(char *buf, char *from)
 {
-    char *to, color, *ansi;
+    char *to, *ansi;
     int isbold = 0;
 
     to = buf;

@@ -28,33 +28,16 @@ extern dbref ref;
 static double tl;
 static double fresult, tf1, tf2;
 
-#define MAXINT ~(1<<(sizeof(int)*8)-1)
-#define MININT (1<<(sizeof(int)*8)-1)
+#define MAXINT ~(1<<((sizeof(int)*8)-1))
+#define MININT (1<<((sizeof(int)*8)-1))
+#define no_good(x) ((x == INF) || (x == NINF) || (x == NAN)) 
+#define ISINF(x) ((x == INF) || (x == NINF))
+#define ISNAN(x) (x == NAN)
 
 int
 arith_good(double test)
 {
     return (((test) <= ((double) (MAXINT))) && ((test) >= ((double) (MININT))));
-}
-
-extern int no_good(double test);
-
-int
-nogood(double test)
-{
-    return (((test == INF) || (test == NINF)) || (test == NAN));
-}
-
-int
-ISINF(double test)
-{
-    return (((test == INF) || (test == NINF)));
-}
-
-int
-ISNAN(double test)
-{
-    return (test == NAN);
 }
 
 int
@@ -85,7 +68,7 @@ prim_add(PRIM_PROTOTYPE)
         tf2 =
             (oper2->type ==
              PROG_FLOAT) ? oper2->data.fnumber : oper2->data.number;
-        if (!nogood(tf1) && !nogood(tf2)) {
+        if (!no_good(tf1) && !no_good(tf2)) {
             fresult = tf1 + tf2;
         } else {
          if (ISNAN(tf1) || ISNAN(tf2)) {
@@ -128,7 +111,7 @@ prim_subtract(PRIM_PROTOTYPE)
         tf2 =
             (oper1->type ==
              PROG_FLOAT) ? oper1->data.fnumber : oper1->data.number;
-        if (!nogood(tf1) && !nogood(tf2)) {
+        if (!no_good(tf1) && !no_good(tf2)) {
             fresult = tf1 - tf2;
         } else {
          if (ISNAN(tf1) || ISNAN(tf2)) {
@@ -171,7 +154,7 @@ prim_multiply(PRIM_PROTOTYPE)
         tf2 =
             (oper2->type ==
              PROG_FLOAT) ? oper2->data.fnumber : oper2->data.number;
-        if (!nogood(tf1) && !nogood(tf2)) {
+        if (!no_good(tf1) && !no_good(tf2)) {
             fresult = tf1 * tf2;
         } else {
          if (ISNAN(tf1) || ISNAN(tf2)) {
@@ -221,7 +204,7 @@ prim_divide(PRIM_PROTOTYPE)
             tf2 =
                 (oper1->type ==
                  PROG_FLOAT) ? oper1->data.fnumber : oper1->data.number;
-            if (!nogood(tf1) && !nogood(tf2)) {
+            if (!no_good(tf1) && !no_good(tf2)) {
                 fresult = tf1 / tf2;
             } else {
          if (ISNAN(tf1) || ISNAN(tf2)) {

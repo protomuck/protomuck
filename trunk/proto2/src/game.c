@@ -153,9 +153,9 @@ static void
 dump_database_internal(void)
 {
     char tmpfile[2048];
-    char timestring[1024];
-    struct tm *timestamp;
-    time_t curtime;
+    //char timestring[1024];
+    //struct tm *timestamp;
+    //time_t curtime;
     FILE *f;
     int copies;
 
@@ -576,7 +576,7 @@ process_command(int descr, dbref player, char *command)
     char xbuf[BUFFER_LEN];
     char ybuf[BUFFER_LEN];
     int isOverride = 0;
-    struct frame *tmpfr;
+    //struct frame *tmpfr;
 
     if (command == 0) {
         fprintf(stderr, "PANIC: Null command passed to process_command.\n");
@@ -1563,7 +1563,7 @@ process_command(int descr, dbref player, char *command)
         break;
     default:
       bad:
-      bad2:
+      //bad2:
     {
         anotify_fmt(player, CINFO "%s", tp_huh_mesg);
         if (tp_log_failed_commands

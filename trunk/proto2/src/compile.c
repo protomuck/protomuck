@@ -2270,7 +2270,7 @@ do_directive(COMPSTATE *cstat, char *direct)
         }
 
     } else if (!string_compare(temp, "ansi")) {
-        char *holder = NULL;
+        /* char *holder = NULL; */
 
         while (*cstat->next_char && isspace(*cstat->next_char))
             cstat->next_char++; /* eating leading spaces */
@@ -2286,14 +2286,14 @@ do_directive(COMPSTATE *cstat, char *direct)
         tmpname = (char *) next_token_raw(cstat);
         holder = tmpname;
         if (!tmpname)
-            v_abort_compile(cstat,
+            abort_compile(cstat,
                             "Unexpected end of file looking for $lib/def name.");
 
         if (index(tmpname, '/') ||
             index(tmpname, ':') ||
             Prop_SeeOnly(tmpname) || Prop_Hidden(tmpname)) {
             free(tmpname);
-            v_abort_compile(cstat,
+            abort_compile(cstat,
                             "Invalid $libdef name. No /, :, @, nor ~ allowed.");
         } else {                /* okay string */
             char propname[BUFFER_LEN];

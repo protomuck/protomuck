@@ -752,7 +752,6 @@ html2text(char *msg)
     static char buf[BUFFER_LEN];
     char titlebuf[BUFFER_LEN];
     int nothtml = 0;
-    struct html_tags *tags, *newtag;
 
     while (*msg && isspace(*msg))
         (void) msg++;
@@ -943,7 +942,6 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
     char buf2[BUFFER_LEN + 2];
     int firstpass = 1;
     char *ptr1;
-    char *temp;
     const char *ptr2;
     dbref ref;
     char *lwp;
@@ -1374,7 +1372,6 @@ shovechars(void)
     struct timeval sel_in, sel_out;
     int openfiles_max;
     int i;
-    int haveSockEvent = 0;
 
 #ifdef MUF_SOCKETS
     extern struct muf_socket_queue *socket_list;
@@ -1839,7 +1836,7 @@ void
 wall_all(const char *msg)
 {
     struct descriptor_data *d;
-    char buf[BUFFER_LEN + 2], buf2[BUFFER_LEN + 500], *temp;
+    char buf[BUFFER_LEN + 2];
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
@@ -2856,10 +2853,10 @@ process_commands(void)
             if (d->quota > 0 && (t = d->input.head)) {
                 if ((d->connected && DBFETCH(d->player)->sp.player.block)
                     || (!d->connected && d->block)) {
+#ifdef MCP_SUPPORT
                     char *tmp = t->start;
 
                     /* dequote MCP quoting. */
-#ifdef MCP_SUPPORT
                     if (!strncmp(tmp, "#%\"", 3)) {
                         tmp += 3;
                     }
@@ -3049,12 +3046,11 @@ interact_warn(dbref player)
 void
 check_connect(struct descriptor_data *d, const char *msg)
 {
-    struct frame *tmpfr;
     char command[80];
     char user[BUFFER_LEN];
     char password[80];
     const char *why;
-    dbref player, mufprog;
+    dbref player;
     time_t now;
     int result, xref;
     char msgargs[BUFFER_LEN];
@@ -3644,7 +3640,7 @@ dump_users(struct descriptor_data *d, char *user)
         user = strcat(tbuf, "*");
     }
     if (!wizwho && tp_who_doing) {
-        if (p = get_property_class((dbref) 0, "_poll")) {
+        if ((p = get_property_class((dbref) 0, "_poll"))) {
             p = get_uncompress(p);
             sprintf(dobuf, "%-43s", p);
         } else {
