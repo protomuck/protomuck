@@ -520,6 +520,7 @@ include_internal_defs(COMPSTATE * cstat)
 /*      insert_def(cstat, "tread", "\"__tread\" timer_start { \"TIMER.__tread\" \"READ\" }list event_waitfor swap pop \"READ\" strcmp if \"\" 0 else read 1 \"__tread\" timer_stop then"); */
 
 	/* Array convenience defines */
+	insert_def(cstat, "}array", "} array_make");
 	insert_def(cstat, "}list", "} array_make");
 	insert_def(cstat, "}dict", "}  2 / array_make_dict");
         insert_def(cstat, "}join", "} array_make \"\" array_join");
