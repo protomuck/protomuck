@@ -2141,15 +2141,24 @@ newpermissions(int mlev, dbref player, dbref thing, int true_c)
     if (mlev < 0 || mlev > LMAN)
         return 0;
 
+    if (OkObj(player) && thing == -3)
+        thing = DBFETCH(player)->sp.player.home;
+
+    /* never do this check if one object or the other is invalid */
+    if (OkObj(thing)) { 
     if (((Protect(thing) && !(mlev >= LBOY) && (MLevel(OWNER(thing)) >= LBOY))
          || (Protect(thing) && !(mlev > MLevel(OWNER(thing))))
         ) && !((FLAG2(OWNER(thing)) & F2ANTIPROTECT)
                || (FLAG2(thing) & F2ANTIPROTECT))
         )
         return 0;
+    }
 
     if ((mlev >= LWIZ) && (mlev >= MLevel(OWNER(thing))))
         return 1;
+
+    if (!OkObj(player) || !OkObj(thing))
+        return 0;
 
     if (thing == player)
         return 1;
