@@ -1290,8 +1290,8 @@ do_attach(int descr, dbref player, const char *action_name,
         return;
     }
     set_source(player, action, source);
-    sprintf(buf, CSUCC "Action %s re-attached to %s from %s.",
-            unparse_object(player, action), NAME(source), NAME(loc));
+    sprintf(buf, CSUCC "Action %s re-attached to %s.",
+            unparse_object(player, action), NAME(source));
     anotify_nolisten2(player, buf);
     if (MLevel(action)) {
         SetMLevel(action, 0);
