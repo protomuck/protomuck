@@ -533,6 +533,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->trys.top = 0;
     fr->trys.st = NULL;
     fr->errorstr = NULL;
+    fr->aborted = 0;
 
     fr->waitees = NULL;
     fr->waiters = NULL;
@@ -761,53 +762,58 @@ pop_try(struct tryvars *trystack)
 void
 watchpid_process(struct frame *fr)
 {
-	struct frame *frame;
-	struct mufwatchpidlist *cur;
-	struct mufwatchpidlist **curptr;
-	struct inst temp1;
-	temp1.type = PROG_INTEGER;
-	temp1.data.number = fr->pid;
+    struct frame *frame;
+    struct mufwatchpidlist *cur;
+    struct mufwatchpidlist **curptr;
+    struct inst temp1;
+    temp1.type = PROG_INTEGER;
+    if (fr->aborted)
+        temp1.data.number = -1;
+    else
+        temp1.data.number = fr->pid;
 
-	while (fr->waitees) {
-		cur = fr->waitees;
-		fr->waitees = cur->next;
+    while (fr->waitees) {
+        cur = fr->waitees;
+        fr->waitees = cur->next;
 
-		frame = timequeue_pid_frame (cur->pid);
-		free (cur);
-		if (frame) {
-			for (curptr = &frame->waiters; *curptr; curptr = &(*curptr)->next) {
-				if ((*curptr)->pid == fr->pid) {
-					cur = *curptr;
-					*curptr = (*curptr)->next;
-					free (cur);
-					break;
-				}
-			}
-		}
-	}
+        frame = timequeue_pid_frame (cur->pid);
+        free (cur);
+        if (frame) {
+            for (curptr = &frame->waiters; *curptr; 
+                       curptr = &(*curptr)->next) {
+                if ((*curptr)->pid == fr->pid) {
+                    cur = *curptr;
+                    *curptr = (*curptr)->next;
+                    free (cur);
+                    break;
+                }
+            }
+        }
+    }
 
-	while (fr->waiters) {
-		char buf[64];
+    while (fr->waiters) {
+        char buf[64];
 
-		sprintf (buf, "PROC.EXIT.%d", fr->pid);
+        sprintf (buf, "PROC.EXIT.%d", fr->pid);
 
-		cur = fr->waiters;
-		fr->waiters = cur->next;
+        cur = fr->waiters;
+        fr->waiters = cur->next;
 
-		frame = timequeue_pid_frame (cur->pid);
-		free (cur);
-		if (frame) {
-			muf_event_add(frame, buf, &temp1, 0);
-			for (curptr = &frame->waitees; *curptr; curptr = &(*curptr)->next) {
-				if ((*curptr)->pid == fr->pid) {
-					cur = *curptr;
-					*curptr = (*curptr)->next;
-					free (cur);
-					break;
-				}
-			}
-		}
-	}
+        frame = timequeue_pid_frame (cur->pid);
+        free (cur);
+        if (frame) {
+            muf_event_add(frame, buf, &temp1, 0);
+            for (curptr = &frame->waitees; *curptr; 
+                     curptr = &(*curptr)->next) {
+                if ((*curptr)->pid == fr->pid) {
+                    cur = *curptr;
+                    *curptr = (*curptr)->next;
+                    free (cur);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 
@@ -1069,7 +1075,7 @@ do_abort_loop(dbref player, dbref program, const char *msg,
     if (!fr->trys.top) {
 	    if (pc) {
 		interp_err(OWNER(player), program, pc, fr->argument.st, fr->argument.top,
-			   fr->caller.st[1], insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program), msg);
+			   fr->caller.st[1], insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program), msg, fr->pid);
 		if (controls(OWNER(player), program) || (FLAG2(OWNER(player)) & F2PARENT))
 		    muf_backtrace(player, program, STACK_SIZE, fr);
 	      else
@@ -1079,6 +1085,7 @@ do_abort_loop(dbref player, dbref program, const char *msg,
 		notify_nolisten(player, msg, 1);
 	    }
 	    fr->level--;
+            fr->aborted = 1;
 	    prog_clean(fr);
 	    DBSTORE(player, sp.player.block, 0);
             if (player == NOTHING ) {
@@ -1894,7 +1901,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 
 void 
 interp_err(dbref player, dbref program, struct inst *pc,
-	   struct inst *arg, int atop, dbref origprog, const char *msg1, const char *msg2)
+	   struct inst *arg, int atop, dbref origprog, const char *msg1, 
+           const char *msg2, int pid)
 {
     char    buf[BUFFER_LEN];
     int     errcount;
@@ -1928,6 +1936,7 @@ interp_err(dbref player, dbref program, struct inst *pc,
     add_property(origprog, ".debug/lastcrash", NULL, (int)current_systime);
     add_property(origprog, ".debug/lastplayer", NULL, (int)player);
     add_property(origprog, ".debug/lastcrashtime", tbuf, 0);
+    add_property(origprog, ".debug/crashpid", NULL, (int) pid);
     if(*match_cmdname)	add_property(origprog, ".debug/lastcmd", match_cmdname, 0);
     if(*match_args)	add_property(origprog, ".debug/lastarg", match_args, 0);
 
@@ -2078,9 +2087,10 @@ do_abort_interp(dbref player, const char *msg, struct inst * pc,
 		err++;
 	} else {
 	    fr->pc = pc;
+            fr->aborted = 1;
 	    calc_profile_timing(program,fr);
 	    interp_err(player, program, pc, arg, atop, fr->caller.st[1],
-		       insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program), msg);
+		       insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program), msg, fr->pid);
 	    if (controls(player, program) && player != -1)
 		muf_backtrace(player, program, STACK_SIZE, fr);
 	/*    else */

@@ -2,7 +2,7 @@
 /* ../include/autoconf.h.in.  Generated automatically from configure.in by autoheader.  */
 
 /* uname -a output for certain local programs. */
-#define UNAME_VALUE "Linux tnt.dynodns.net 2.4.18-xfs-1.1 #1 Thu Sep 5 20:57:35 EDT 2002 i686 unknown"
+#define UNAME_VALUE "Linux frogpond.dynodns.net 2.4.18-6mdk #1 Fri Mar 15 02:59:08 CET 2002 i586 unknown"
 
 /* Define to empty if the keyword does not work.  */
 /* #undef const */

@@ -625,6 +625,7 @@ struct frame {
     int     timercount;             /* How many timers currently exist. */
     int     pid;                    /* what is the process id? */
     char   *errorstr;               /* The error string thrown */
+    int     aborted;                /* indicates program aborted */
     int     descr;                  /* Descriptor of running player */
     void *rndbuf;                   /* buffer for seedable random */
     struct scopedvar_t *svars;      /* Variables with function scoping. */
@@ -634,7 +635,7 @@ struct frame {
     struct timeval totaltime;       /* profiling timing code */
     struct dlogidlist *dlogids;     /* List of dlogids this frame uses. */
     struct mufwatchpidlist *waiters;
-    struct mufwatchpidlist *waitees;
+     struct mufwatchpidlist *waitees;
 	union {
 		struct {
 			unsigned int div_zero:1;	/* Divide by zero */

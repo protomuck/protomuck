@@ -536,8 +536,6 @@ prim_array_delitem(PRIM_PROTOTYPE)
                 abort_interp("Argument not an array. (1)");
 
         result = array_delitem(&oper2->data.array, oper1);
-        if (result < 0)
-                abort_interp("Bad array index specified.");
 
         nw = oper2->data.array;
         oper2->data.array = NULL;
