@@ -428,7 +428,8 @@ do_hostcache(dbref player, const char *args)
         for (h = hostdb; h; h = h->next)
             anotify_fmt(player, " %-15s  %0.3d  %-14s %s", host_as_hex(h->a), h->uses, time_format_3(h->wupd), h->name);
         anotify_fmt(player, CINFO "%d host%s.", hostdb_count, hostdb_count == 1 ? "" : "s");
-    }
+    } else 
+        anotify_fmt(player, "Bytes used by cache: %d", sizeof(struct hostinfo) * hostdb_count);
 
 }
 
