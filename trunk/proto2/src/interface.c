@@ -47,8 +47,6 @@ int  crt_last_len;
 int  crt_last_player; */
 int crt_connect_count = 0;
 
-
-//extern int errno;
 char restart_message[BUFFER_LEN];
 char shutdown_message[BUFFER_LEN];
 int shutdown_flag = 0;
@@ -335,8 +333,10 @@ extern void purge_all_free_frames(void);
 extern void purge_mfns(void);
 extern void cleanup_game(void);
 extern void tune_freeparms(void);
+#ifdef COMPRESS
 extern void free_compress_dictionary(void);
-#endif
+#endif /* COMPRESS */
+#endif /* MALLOC_PROFILING */
 
 int
 main(int argc, char **argv)
@@ -444,10 +444,8 @@ main(int argc, char **argv)
             }
         } else {
             if (!infile_name) {
-                //strcpy(infile_name, argv[i]);
                 infile_name = argv[i];
             } else if (!outfile_name) {
-                //strcpy(outfile_name, argv[i]);
                 outfile_name = argv[i];
             } else {
                 val = atoi(argv[i]);
@@ -522,7 +520,7 @@ main(int argc, char **argv)
 #endif
 
 #ifdef DETACH
-//    fprintf(stdout,"Console messages to '%s', Error messages to '%s'.", LOG_FILE, LOG_ERR_FILE);
+/*    fprintf(stdout,"Console messages to '%s', Error messages to '%s'.", LOG_FILE, LOG_ERR_FILE); */
         if (!sanity_interactive && !db_conversion_flag) {
             /* Detach from the TTY, log whatever output we have... */
             freopen(LOG_ERR_FILE, "a", stderr);
@@ -574,7 +572,7 @@ main(int argc, char **argv)
     if ((tp_textport > 1) && (tp_textport < 65536))
         listener_port[numsocks++] = tp_textport;
 
-//Only open a web port if support was #defined in config.h
+/* Only open a web port if support was #defined in config.h */
 #ifdef NEWHTTPD                 /* hinoserm */
     if ((tp_wwwport > 1) && (tp_wwwport < 65536)) /* hinoserm */
         listener_port[numsocks++] = tp_wwwport; /* hinoserm */
@@ -677,8 +675,10 @@ main(int argc, char **argv)
         purge_mfns();
         cleanup_game();
         tune_freeparms();
+#ifdef COMPRESS
         free_compress_dictionary();
-#endif
+#endif /* COMPRESS */
+#endif /* MALLOC_PROFILING */
 
 #ifdef DISKBASE
         fclose(input_file);
@@ -1685,7 +1685,7 @@ shovechars(void)
                         shutdown(d->descriptor, 1); /* hinoserm */
                     } else
 #endif /* NEWHTTP */
-                    if (d->type != CT_INBOUND) //Don't touch MUF sockets
+                    if (d->type != CT_INBOUND) /* Don't touch MUF sockets */
                         shutdownsock(d);
                 }               /* if d->booted != 3 */
             }                   /* if (d->booted) */
@@ -1782,8 +1782,8 @@ shovechars(void)
             now = current_systime;
             for (i = 0; i < numsocks; i++) { /* check for new connects */
                 if (FD_ISSET(sock[i], &input_set)) { /* new connect */
-                    if ((newd = new_connection(listener_port[i], sock[i])) <= 0) { /* connection error */
-                        if ((newd < 0) && errnosocket
+                    if (!(newd = new_connection(listener_port[i], sock[i]))) { /* connection error */
+                        if (errnosocket
 #if !defined(WIN32) && !defined(WIN_VC)
                             && errno != EINTR
                             && errno != EMFILE && errno != ENFILE
@@ -2512,9 +2512,9 @@ make_socket(int port)
     struct sockaddr_in server;
     int opt;
 
-    log_status("Opening port: %d\n", port); //changed from fprintf 
+    log_status("Opening port: %d\n", port); /* changed from fprintf */ 
     s = socket(AF_INET, SOCK_STREAM, 0);
-    log_status("        Sock: %d\n", s); //changed from fprintf
+    log_status("        Sock: %d\n", s);    /* changed from fprintf */
     if (s < 0) {
         perror("creating stream socket");
         exit(3);
@@ -2625,8 +2625,6 @@ process_output(struct descriptor_data *d)
 
     /* drastic, but this may give us crash test data */
     if (!d || !d->descriptor) {
-        //fprintf(stderr, "process_output: bad descriptor or connect struct!\n"); /* hinoserm */
-        //abort();                  /* hinoserm */
         log_status("process_output: bad descriptor or connect struct!\n"); /* hinoserm */
         return 0;               /* hinoserm */
     }
@@ -3575,7 +3573,7 @@ do_dinfo(dbref player, const char *arg)
                 "[Connecting]", d->descriptor, ctype);
 
     if (d->flags)
-        //need to print out the flags
+        /* need to print out the flags */
         anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
 
     if (Arch(player))
@@ -3772,9 +3770,10 @@ dump_users(struct descriptor_data *d, char *user)
     while (*user && isspace(*user))
         user++;
 
-    //I must apologize for the absurd logical check below 
-    //In fixing EXPANDED_WHO, I didn't feel like rewriting
-    //the already badly done logic check
+    /* I must apologize for the absurd logical check below 
+     * In fixing EXPANDED_WHO, I didn't feel like rewriting
+     * the already badly done logic check.
+     */
     /* Rewrote the badly done logic check. -Hinoserm */
     if (!d->connected || !OkObj(d->player)
         || (!Mage(d->player) && !(POWERS(d->player) & POW_EXPANDED_WHO)))

@@ -25,6 +25,7 @@ of any and all parts of this server.
 
 #include "config.h"
 
+#ifdef COMPRESS
 
 #define BUFFER_LEN 16384        /* nice big buffer */
 
@@ -40,7 +41,7 @@ static char *dict[4096], *dict2[4096], line[80], buffer[40], chksum_buf[80];
 static int seconds[43][43], special_case = 5;
 static int c_index, repeats;
 static int lastmatch, completematch, maxmatch;
-static char *to;
+static unsigned char *to = NULL;
 
 static const char copyright[] = "Copyright 1995 by Dragon's Eye Productions.";
 
@@ -79,7 +80,7 @@ save_compress_words_to_file(FILE * f)
     }
 }
 
-void                            //From FB6, added in 1.7b4
+void                            /* From FB6, added in 1.7b4 */
 free_compress_dictionary(void)
 {
     int i;
@@ -320,7 +321,7 @@ pawprint(void)
 const char *
 uncompress(const char *s)
 {
-    static char buf[BUFFER_LEN];
+    static unsigned char buf[BUFFER_LEN];
     unsigned int i, j, mode, c;
     int limit = 4095;
 
@@ -378,7 +379,7 @@ uncompress(const char *s)
     }
     *to++ = '\0';
     limit--;
-    return buf;
+    return (char *)buf;
 }
 
 extern short db_decompression_flag;
@@ -386,7 +387,7 @@ extern short db_decompression_flag;
 const char *
 compress(const char *s)
 {
-    static char buf[BUFFER_LEN];
+    static unsigned char buf[BUFFER_LEN];
     int a, b, c, d, e;
     char buffer2[40];
     int done = 0;
@@ -569,5 +570,7 @@ compress(const char *s)
     while ((*to++ = buffer[c_index++])) ;
     clear_buffer();
 
-    return buf;
+    return (char *)buf;
 }
+
+#endif /* COMPRESS */

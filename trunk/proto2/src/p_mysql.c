@@ -173,7 +173,7 @@ prim_sqlquery(PRIM_PROTOTYPE)
         fieldsList = new_array_packed(num_fields);
         for (i = 0; i < num_fields; ++i)
             array_set_intkey_strval(&fieldsList, i, fields[i].name);
-        while ((row = mysql_fetch_row(res))) { //fetch all rows, push limit
+        while ((row = mysql_fetch_row(res))) { /* fetch all rows, push limit */
             nw = new_array_dictionary();
             if (counter++ < num_rows) {
                 for (i = 0; i < num_fields; ++i) {

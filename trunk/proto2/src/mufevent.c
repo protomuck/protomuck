@@ -23,7 +23,7 @@ struct mufevent_process {
     struct mufevent_process *next, *prev;
     dbref player;
     dbref prog;
-    int descr;                  //Added in proto for login screen support
+    int descr;                  /* Added in proto for login screen support */
     int filtercount;
     char **filters;
     struct frame *fr;

@@ -363,7 +363,7 @@ prim_array_setitem(PRIM_PROTOTYPE)
 
         sprintf(tBuf, "Array_setitem ERROR code: %d", result);
         abort_interp(tBuf);
-        //abort_interp("Index out of array bounds. (3)");
+        /* abort_interp("Index out of array bounds. (3)"); */
     }
 
     nw = oper2->data.array;
@@ -1755,9 +1755,9 @@ prim_array_findval(PRIM_PROTOTYPE)
             if (!array_idxcmp(in, oper2)) {
                 array_appenditem(&nw, &temp1);
             }
-            //CLEAR(in);
+            /* CLEAR(in); */
         } while (!found && array_next(arr, &temp1));
-        //CLEAR(&temp1);
+        /* CLEAR(&temp1); */
     }
 
     CLEAR(oper2);

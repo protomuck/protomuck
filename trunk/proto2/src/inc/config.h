@@ -181,17 +181,18 @@
 
 #define CONTROLS_SUPPORT	/* Alynna 20030907 */
 
-// If you have problems compiling with DETACH defined, uncomment one
-// of these:
+/* If you have problems compiling with DETACH defined, uncomment one
+ * of these:
+ */
 
-// For Linux and most POSIX
-// #define USE_SID
+/* For Linux and most POSIX */
+/* #define USE_SID */
 
-// For SysV stuff
-// #define USE_SYSVPGRP
-
-// For BSDs
-// #define USE_BSDPGRP
+/* For SysV stuff */
+/* #define USE_SYSVPGRP */
+ 
+/* For BSDs */
+/* #define USE_BSDPGRP */
 
 /* Use to compress string data (recomended)
  */
@@ -432,7 +433,7 @@
 /* This gives some debug Bmalloc profiling, but also eats some overhead,
    so only define if your using it. */
 #undef MALLOC_PROFILING
-/* #define CRT_DEBUG_ALSO TRUE */
+#undef CRT_DEBUG_ALSO
 
 /************************************************************************/
 /************************************************************************/

@@ -385,7 +385,7 @@ do_look_at(int descr, dbref player, register const char *name,
 
           repeat_match:
             propadr = first_prop(thing, "_obj/", &pptr, propname);
-            while (propadr > 0) {
+            while (propadr) {
                 if (exit_prefix(propname, buf)) {
                     if (lastmatch != (PropPtr) NOTHING) {
                         lastmatch = (PropPtr) AMBIGUOUS;
@@ -398,7 +398,7 @@ do_look_at(int descr, dbref player, register const char *name,
                 propadr = next_prop(pptr, propadr, propname);
             }
             propadr = first_prop(thing, "_det/", &pptr, propname);
-            while (propadr > 0) {
+            while (propadr) {
                 if (exit_prefix(propname, buf)) {
                     if (lastmatch != (PropPtr) NOTHING) {
                         lastmatch = (PropPtr) AMBIGUOUS;
@@ -662,7 +662,7 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
         *ptr++ = '\0';
 
     propadr = first_prop(thing, (char *) dir, &pptr, propname);
-    while (propadr > 0) {
+    while (propadr) {
         if (equalstr(wldcrd, propname)) {
             sprintf(buf, "%s%c%s", dir, PROPDIR_DELIMITER, propname);
             if ((!Prop_Hidden(buf) && !(PropFlags(propadr) & PROP_SYSPERMS))

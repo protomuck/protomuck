@@ -139,12 +139,12 @@ int
 isvalid_cgichar(char c)
 {
     if (isalnum(c) || (c == UNDERSCORE) || (c == HYPHEN) || (c == ':') ||
-//      (c == '\\') ||
+/*      (c == '\\') || */
         (c == '/') || (c == '.') ||
-//      (c == PLUS) ||
-//      (c == TAB) || 
-//      (c == ATSIGN) ||
-        (c == PERCENT))
+/*      (c == PLUS) ||
+ *      (c == TAB) || 
+ *      (c == ATSIGN) ||
+ */     (c == PERCENT))
         return (1);
 
     else

@@ -155,10 +155,6 @@ static void
 dump_database_internal(void)
 {
     char tmpfile[2048];
-
-    //char timestring[1024];
-    //struct tm *timestamp;
-    //time_t curtime;
     FILE *f;
     int copies;
 
@@ -593,8 +589,6 @@ process_command(int descr, dbref player, char *command)
     char ybuf[BUFFER_LEN];
     char zbuf[BUFFER_LEN];
     int isOverride = 0;
-
-    //struct frame *tmpfr;
 
     if (command == 0) {
         fprintf(stderr, "PANIC: Null command passed to process_command.\n");
@@ -1589,7 +1583,6 @@ process_command(int descr, dbref player, char *command)
             break;
         default:
           bad:
-            //bad2:
         {
             /* Alynna's HUH propqueue support! 
                This crazy crap written 20031115 */
@@ -1636,7 +1629,7 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
     char propName[BUFFER_LEN];
     const char *workBuf = NULL;
 
-    if (player == NOTHING)      // For handling logincommand props.
+    if (player == NOTHING)      /* For handling logincommand props. */
         where = (dbref) 0;
 
     sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);

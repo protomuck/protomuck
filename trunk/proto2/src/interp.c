@@ -508,9 +508,9 @@ interp(int descr, dbref player, dbref location, dbref program,
     int i;
     PropPtr tptr;
 
-//    if (program == -1)
-//        return NULL;
-
+/*    if (program == -1)
+ *        return NULL;
+ */
     if (!MLevel(program) || !MLevel(OWNER(program)) ||
         ((OkObj(source)
           && Typeof(source) != TYPE_GARBAGE) ? (!TMage(OWNER(source))
@@ -566,7 +566,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->dlogids = NULL;
 
     fr->argument.top = 0;
-    fr->pc = DBFETCH(program)->sp.program.start; //TYPEROOM taken out for command props.
+    fr->pc = DBFETCH(program)->sp.program.start; /* TYPEROOM taken out for command props. */
     fr->writeonly =
         ((OkObj(source) && (Typeof(source) == TYPE_PLAYER) && (!online(source)))
          || (OkObj(player) && (FLAGS(player) & READMODE)));

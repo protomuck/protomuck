@@ -20,7 +20,6 @@ extern int http_doproplist(struct descriptor_data *d, dbref what, const char *pr
 extern void http_sendfileblock(struct descriptor_data *d);
 extern int descr_sendfile(struct descriptor_data *d, int start, int stop, const char *filename);
 extern int http_sendfile(struct descriptor_data *d, const char *filename);
-//extern void http_listdir(struct descriptor_data *d, const char *dir, DIR * df);
 extern int http_dofile(struct descriptor_data *d);
 extern int http_dourl(struct descriptor_data *d);
 extern int http_processcontent(struct descriptor_data *d, const char in);
