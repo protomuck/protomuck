@@ -375,8 +375,8 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                             --p;
                         else
                             *p = '\0';
-                    else *p++ = *q; /* Changed this a bit to test -Hinoserm */
-
+                    else if (*q != 13)
+                        *p++ = *q; /* Changed this a bit to test -Hinoserm */
                 } else if (p < pend && theSock->usequeue) /* && isascii(*q) used to be in here -Hinoserm */
                     *p++ = *q;
             }                   /* for */
