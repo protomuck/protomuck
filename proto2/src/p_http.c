@@ -226,7 +226,8 @@ prim_base64encode(PRIM_PROTOTYPE)
     } else {
         if (((oper1->data.string->length + 2) / 3 * 4) > BUFFER_LEN)
             abort_interp("Operation would result in overflow.");
-        http_encode64(oper1->data.string->data, oper1->data.string->length, buf);
+        http_encode64(oper1->data.string->data, oper1->data.string->length,
+                      buf);
         CLEAR(oper1);
         PushString(buf);
     }
@@ -245,13 +246,38 @@ prim_base64decode(PRIM_PROTOTYPE)
         PushNullStr;
     } else {
         result =
-            http_decode64(oper1->data.string->data, oper1->data.string->length, buf);
+            http_decode64(oper1->data.string->data, oper1->data.string->length,
+                          buf);
         CLEAR(oper1);
         if (result < 0)
             PushNullStr;
         else
             PushString(buf);
     }
+}
+
+void
+prim_httpdata(PRIM_PROTOTYPE)
+{
+    struct descriptor_data *d;
+    stk_array *nw;
+
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Descriptor integer expected.");
+    if (mlev < LMAGE)
+        abort_interp("MAGE prim.");
+    if (!(d = descrdata_by_descr(oper1->data.number)))
+        abort_interp("Invalid descriptor.");
+    if (d->type != CT_HTTP)
+        abort_interp("Non-HTTP connection.");
+
+    nw = http_makearray(d);
+
+    CLEAR(oper1);
+    PushArrayRaw(nw);
 }
 
 #endif /* NEWHTTPD */
