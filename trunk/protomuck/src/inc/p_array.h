@@ -80,5 +80,5 @@ extern void prim_array_compare(PRIM_PROTOTYPE);
         "ARRAY_MATCHKEY", "ARRAY_MATCHVAL", "ARRAY_EXTRACT",      \
         "ARRAY_CUT", "ARRAY_COMPARE", "ARRAY_SORT_INDEXED"
 
-#define PRIMS_ARRAY_CNT 52
+#define PRIMS_ARRAY_CNT 44 
 

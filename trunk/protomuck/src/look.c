@@ -631,14 +631,18 @@ power_description(dbref thing)
     static char buf[BUFFER_LEN];
 
     strcpy(buf, GREEN "Powers: " YELLOW );
-	if (POWERS(thing) & POW_ANNOUNCE)
-	    strcat(buf, "ANNOUNCE ");
+      if (POWERS(thing) & POW_ALL_MUF_PRIMS)
+          strcat(buf, "ALL_MUF_PRIMS ");
+      if (POWERS(thing) & POW_ANNOUNCE)
+	  strcat(buf, "ANNOUNCE ");
       if (POWERS(thing) & POW_BOOT)
           strcat(buf, "BOOT ");
       if (POWERS(thing) & POW_CHOWN_ANYTHING)
           strcat(buf, "CHOWN_ANYTHING ");
+      if (POWERS(thing) & POW_CONTROL_ALL)
+          strcat(buf, "CONTROL_ALL");
       if (POWERS(thing) & POW_CONTROL_MUF)
-          strcat(buf, "CONTROL_MUF");
+          strcat(buf, "CONTROL_MUF ");
       if (POWERS(thing) & POW_EXPANDED_WHO)
           strcat(buf, "EXPANDED_WHO ");
       if (POWERS(thing) & POW_HIDE)

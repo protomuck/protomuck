@@ -300,13 +300,17 @@ check_power(char *power)
 	while (*power == '!') {
 	    power++;
 	}
-
+        
 	if (string_prefix("announce", power)) {
          tmp = POW_ANNOUNCE;
+      } else if (string_prefix("all_muf_prims", power)) {
+         tmp = POW_ALL_MUF_PRIMS;
       } else if (string_prefix("boot", power)) {
          tmp = POW_BOOT;
       } else if (string_prefix("chown_anything", power)) {
          tmp = POW_CHOWN_ANYTHING;
+      } else if (string_prefix("control_all", power)) {
+         tmp = POW_CONTROL_ALL;
       } else if (string_prefix("control_muf", power)) {
          tmp = POW_CONTROL_MUF;
       } else if (string_prefix("expanded_who", power)) {
@@ -1022,10 +1026,9 @@ prim_powerp(PRIM_PROTOTYPE)
     if (Typeof(oper2->data.objref) != TYPE_PLAYER)
       abort_interp("Not a valid player");
     pow = check_power(oper1->data.string->data);
-    if(!pow)
-      abort_interp("Not a valid power");
-    if(POWERS(oper2->data.objref) & pow)
-      result = 1;
+    if (pow)
+        if(POWERS(oper2->data.objref) & pow)
+           result = 1;
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(result);
