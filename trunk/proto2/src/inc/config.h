@@ -205,6 +205,11 @@
 /* Alynna - Obsoleted, use -verboseload command line option */
 /* #undef VERBOSELOAD */
 
+/* More intensive database debugging. At the moment, this enables */
+/*  a valid_object check on every access to database objects.     */
+/*   -Hinoserm                                                    */
+#define DBDEBUG
+
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
 /* a bad net connection for the server. */

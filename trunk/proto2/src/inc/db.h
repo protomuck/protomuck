@@ -103,7 +103,13 @@ typedef int dbref;		/* offset into db */
 #  define DBFETCH(x)  dbfetch(x)
 #  define DBDIRTY(x)  dbdirty(x)
 #else				/* !GDBM_DATABASE */
-#  define DBFETCH(x)  (db + (x))
+#  ifdef DBDEBUG
+/* dbcheck for database debugging, found in db.c. */
+extern short dbcheck(const char *file, int line, dbref item);
+#    define DBFETCH(x)  (db + (x) + dbcheck(__FILE__, __LINE__, x))
+#  else
+#    define DBFETCH(x)  (db + (x))
+#  endif
 #  ifdef DEBUGDBDIRTY
 #    define DBDIRTY(x)  {if (!(db[x].flags & OBJECT_CHANGED))  \
 			   log2file("dirty.out", "#%d: %s %d\n", (int)x, \
