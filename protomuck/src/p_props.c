@@ -1495,10 +1495,10 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
                     break; 
             }
             propcount++;
-        }
        
-        /* This has to go here, or it'll miss propdirs with values */
-        if (recurse) propcount += copy_props(source, destination, buf, buf2, recurse);
+            /* This has to go here, or it'll miss propdirs with values */
+            if (recurse) propcount += copy_props(source, destination, buf, buf2, recurse);
+        }
 
         /* find next property in current dir */ 
         propadr = next_prop(pptr, propadr, propname);
