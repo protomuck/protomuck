@@ -135,7 +135,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 	anotify_nolisten2(player, CINFO "That's a strange name for an exit!");
 	return;
     }
-    if (!controls(player, loc) || (POWERS(player) & POW_OPEN_ANYWHERE)) {
+    if (!controls(player, loc) && !(POWERS(player) & POW_OPEN_ANYWHERE)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     } else if (!payfor(player, tp_exit_cost)) {

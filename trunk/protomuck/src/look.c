@@ -641,10 +641,8 @@ power_description(dbref thing)
           strcat(buf, "SEARCH ");
       if (POWERS(thing) & POW_SEE_ALL)
           strcat(buf, "SEE_ALL ");
-      if (POWERS(thing) & POW_TPORT_ANYTHING)
-          strcat(buf, "TPORT_ANYTHING ");
-      if (POWERS(thing) & POW_TPORT_ANYWHERE)
-          strcat(buf, "TPORT_ANYWHERE ");
+      if (POWERS(thing) & POW_TELEPORT)
+          strcat(buf, "TELEPORT");
     return buf;
 }
 
@@ -744,7 +742,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 	match_registered(&md);
 
 	/* only Wizards can examine other players */
-	if (Mage(OWNER(player)))
+	if (Mage(OWNER(player)) || POWERS(OWNER(player)) & POW_LONG_FINGERS)
 	    match_player(&md);
 
 	match_here(&md);
@@ -1754,7 +1752,7 @@ do_entrances(int descr, dbref player, const char *name, const char *flags)
 	match_neighbor(&md);
 	match_possession(&md);
 	match_registered(&md);
-	if (Mage(OWNER(player))) {
+	if (Mage(OWNER(player)) || POWERS(player) & POW_SEARCH) {
 	    match_absolute(&md);
 	    match_player(&md);
 	}
@@ -1767,7 +1765,7 @@ do_entrances(int descr, dbref player, const char *name, const char *flags)
 	anotify_nolisten2(player, CINFO "I don't know what object you mean.");
 	return;
     }
-    if (!controls(OWNER(player), thing) || POWERS(player) & POW_SEARCH) {
+    if (!controls(OWNER(player), thing) && !(POWERS(player) & POW_SEARCH)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
@@ -1836,7 +1834,7 @@ do_contents(int descr, dbref player, const char *name, const char *flags)
 	match_neighbor(&md);
 	match_possession(&md);
 	match_registered(&md);
-	if (Mage(OWNER(player))) {
+	if (Mage(OWNER(player)) || POWERS(player) & POW_SEARCH) {
 	    match_absolute(&md);
 	    match_player(&md);
 	}
@@ -1844,7 +1842,7 @@ do_contents(int descr, dbref player, const char *name, const char *flags)
 	thing = noisy_match_result(&md);
     }
     if (thing == NOTHING) return;
-    if (!controls(OWNER(player), thing) || POWERS(player) & POW_SEARCH) {
+    if (!controls(OWNER(player), thing) && !(POWERS(player) & POW_SEARCH)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }

@@ -520,7 +520,8 @@ match_everything(struct match_data * md)
     match_me(md);
     match_here(md);
     match_registered(md);
-    if (Mage(OWNER(md->match_from)) || Mage(md->match_who)) {
+    if (Mage(OWNER(md->match_from)) || Mage(md->match_who) ||
+        POWERS(OWNER(md->match_who)) & POW_LONG_FINGERS) {
 	match_absolute(md);
 	match_player(md);
     }

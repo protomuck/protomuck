@@ -3072,12 +3072,13 @@ do_dwall(dbref player, const char *name, const char *msg)
     int who, descr;
     char buf[BUFFER_LEN];
 
-    if (!Wiz(player) || (POWERS(player) & POW_ANNOUNCE)) {
+    if (!Wiz(player) && !(POWERS(player) & POW_ANNOUNCE)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
     if(!*name || !*msg) {
 	anotify(player, CINFO "Usage: dwall descriptor=msg  or  dwall name=msg");
+        return;
     }
     if(strcmp(name, "me"))
 	who = lookup_player(name);
@@ -3126,12 +3127,13 @@ do_dboot(dbref player, const char *name)
     struct descriptor_data *d;
     int who, descr;
 
-    if (!Wiz(player) || (POWERS(player) & POW_BOOT)) {
+    if (!Wiz(player) && !(POWERS(player) & POW_BOOT)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
     if(!*name) {
 	anotify(player, CINFO "Usage: dboot descriptor  or  dboot name");
+        return;
     }
     if(strcmp(name, "me"))
 	who = lookup_player(name);

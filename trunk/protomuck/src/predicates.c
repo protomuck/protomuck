@@ -247,10 +247,10 @@ can_see(dbref player, dbref thing, int can_see_loc)
 		return ((FLAGS(thing) & LINK_OK) || controls(player, thing) || (POWERS(player) & POW_SEE_ALL));
             case TYPE_PLAYER:
 		if (tp_dark_sleepers) {
+notify(1, "seeing dark players.");
 		    return (!Dark(thing) || online(thing) || (POWERS(player) & POW_SEE_ALL));
 		}
 	    default:
-		return 1;
 		return (!Dark(thing) || (POWERS(player) & POW_SEE_ALL) ||
 		     (controls(player, thing) && !(FLAGS(player) & STICKY)));
 		

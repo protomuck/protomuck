@@ -221,10 +221,8 @@ check_power(char *power)
          tmp = POW_SEARCH;
       } else if (string_prefix("see_all", power)) {
          tmp = POW_SEE_ALL;
-      } else if (string_prefix("tport_anything", power)) {
-         tmp = POW_TPORT_ANYTHING;
-      } else if (string_prefix("tport_anywhere", power)) {
-         tmp = POW_TPORT_ANYWHERE;
+      } else if (string_prefix("teleport", power)) {
+         tmp = POW_TELEPORT;
       }
 
       return tmp;
