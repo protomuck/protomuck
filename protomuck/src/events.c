@@ -202,7 +202,7 @@ check_cron_time(void)
             && Typeof(tp_cron_prog) == TYPE_PROGRAM) {
             strcpy(match_args, "Cron");
             strcpy(match_cmdname, "Cron Event");
-            tempfr = interp(-1, (dbref) 1, (dbref) 0, tp_cron_prog,
+            tempfr = interp(-1, (dbref) -1, (dbref) -1, tp_cron_prog,
                             (dbref) -4, BACKGROUND, STD_REGUID, 0);
             if (tempfr) {
                 temp = interp_loop((dbref) -1, tp_cron_prog, tempfr, 0);
