@@ -827,6 +827,8 @@ ifloat (const char *s)
     if (*s != 'e' && *s != 'E')
         return 0; /* Invalid token following numbers */
     s++; /* skip 'e' or 'E' */
+    if (*s == '+' || *s == '-') 
+        s++; /* Alynna: skip + or - for this exponent */              
     hold = s;
     while ((*s) && (*s >= '0' && *s <= '9'))
         s++; /* eat final numbers */
