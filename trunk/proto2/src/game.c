@@ -1697,28 +1697,29 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
                           cbuf, ival);
 
         if (*cbuf) {
-            if (player < 1)
+            if (player < 1) {
                 notify_descriptor(descr, cbuf);
-        } else {
-            if (mt) {
-                notify_nolisten(player, cbuf, 1);
             } else {
-                char bbuf[BUFFER_LEN];
-                dbref plyr;
+                if (mt) {
+                    notify_nolisten(player, cbuf, 1);
+                } else {
+                    char bbuf[BUFFER_LEN];
+                    dbref plyr;
 
-                sprintf(bbuf, ">> %.4000s",
-                        pronoun_substitute(descr, player, cbuf));
-                plyr = DBFETCH(where)->contents;
-                while (plyr != NOTHING) {
-                    if (Typeof(plyr) == TYPE_PLAYER && plyr != player)
-                        notify_nolisten(plyr, bbuf, 0);
-                    plyr = DBFETCH(plyr)->next;
+                    sprintf(bbuf, ">> %.4000s",
+                            pronoun_substitute(descr, player, cbuf));
+                    plyr = DBFETCH(where)->contents;
+                    while (plyr != NOTHING) {
+                        if (Typeof(plyr) == TYPE_PLAYER && plyr != player)
+                            notify_nolisten(plyr, bbuf, 0);
+                        plyr = DBFETCH(plyr)->next;
+                    }
                 }
             }
         }
         return 1;
     } else {
-	if (progRef < 0 || progRef >= db_top) {
+        if (progRef < 0 || progRef >= db_top) {
             if (player < 1)
                 notify_descriptor(descr,
                                   "Invalid program call from a command prop.");
@@ -1732,11 +1733,12 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
             if (!OkObj(player) || !OkObj(progRef)) {
                 notify_descriptor(descr,
                                   "Invalid program call from a command prop.");
-		return 1;
+                return 1;
             } else {
-    	        if (Wizard(player) || Mage(where) || controls(player,progRef) || (FLAGS(progRef) && JUMP_OK))
-	    	    enter_room(descr, player, progRef, where);
-        	else
+                if (Wizard(player) || Mage(where) || controls(player, progRef)
+                    || (FLAGS(progRef) && JUMP_OK))
+                    enter_room(descr, player, progRef, where);
+                else
                     notify_descriptor(descr, RED "Permission denied.");
 
             }
@@ -1745,19 +1747,25 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
             if (!OkObj(player) || !OkObj(progRef)) {
                 notify_descriptor(descr,
                                   "Invalid program call from a command prop.");
-		return 1;
+                return 1;
             } else {
-            if (OkObj((DBFETCH(progRef)->sp.exit.dest)[0]) && Typeof((DBFETCH(progRef)->sp.exit.dest)[0]) == TYPE_ROOM) {
-    	        if (Wizard(player) || Mage(where) || controls(player,progRef) || (FLAGS(progRef) && JUMP_OK))
-		    enter_room(descr, player, (int) (DBFETCH(progRef)->sp.exit.dest)[0], progRef);
-        	else
-                    notify_descriptor(descr, RED "Permission denied.");
+                if (OkObj((DBFETCH(progRef)->sp.exit.dest)[0])
+                    && Typeof((DBFETCH(progRef)->sp.exit.dest)[0]) ==
+                    TYPE_ROOM) {
+                    if (Wizard(player) || Mage(where)
+                        || controls(player, progRef) || (FLAGS(progRef)
+                                                         && JUMP_OK))
+                        enter_room(descr, player,
+                                   (int) (DBFETCH(progRef)->sp.exit.dest)[0],
+                                   progRef);
+                    else
+                        notify_descriptor(descr, RED "Permission denied.");
                 } else {
-                notify_descriptor(descr,
-                                   "Exits in command props can only enter rooms.");
-		return 1;
-    	        }
-	    return 1;
+                    notify_descriptor(descr,
+                                      "Exits in command props can only enter rooms.");
+                    return 1;
+                }
+                return 1;
             }
 /* Alynna - Jump to player support -- not refined enough to enable 
         } else if (Typeof(progRef) == TYPE_PLAYER) {
@@ -1783,24 +1791,32 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
 */
         } else if (Typeof(progRef) == TYPE_THING) {
             if (!OkObj(player) || !OkObj(progRef)) {
-                notify_descriptor(descr, "Invalid program call from a command prop.");
-		return 1;
+                notify_descriptor(descr,
+                                  "Invalid program call from a command prop.");
+                return 1;
             } else {
-            if (OkObj(DBFETCH(progRef)->location) && 
-		((Typeof(DBFETCH(progRef)->location) == TYPE_ROOM) || Typeof(DBFETCH(progRef)->location) == TYPE_THING)) {
-    	        if ( Wizard(player) || 
-		     Mage(where) || 
-                     (controls(player,progRef) && controls(player,DBFETCH(progRef)->location)) ||
-                     ( ( (FLAGS(progRef) & JUMP_OK) || (FLAGS(progRef) & VEHICLE) ) && 
-                       ( (FLAGS(DBFETCH(progRef)->location) & JUMP_OK) && !(FLAGS(DBFETCH(progRef)->location) & VEHICLE) ) ) )
-		    enter_room(descr, player, (int) (DBFETCH(progRef)->location), progRef);
-        	else
-                    notify_descriptor(descr, RED "Permission denied.");
+                if (OkObj(DBFETCH(progRef)->location) &&
+                    ((Typeof(DBFETCH(progRef)->location) == TYPE_ROOM)
+                     || Typeof(DBFETCH(progRef)->location) == TYPE_THING)) {
+                    if (Wizard(player) || Mage(where)
+                        || (controls(player, progRef)
+                            && controls(player, DBFETCH(progRef)->location))
+                        ||
+                        (((FLAGS(progRef) & JUMP_OK)
+                          || (FLAGS(progRef) & VEHICLE))
+                         && ((FLAGS(DBFETCH(progRef)->location) & JUMP_OK)
+                             && !(FLAGS(DBFETCH(progRef)->location) &
+                                  VEHICLE))))
+                        enter_room(descr, player,
+                                   (int) (DBFETCH(progRef)->location), progRef);
+                    else
+                        notify_descriptor(descr, RED "Permission denied.");
                 } else {
-                notify_descriptor(descr, "Cowardly refusing to move you into that.");
-		return 1;
-    	        }
-	    return 1;
+                    notify_descriptor(descr,
+                                      "Cowardly refusing to move you into that.");
+                    return 1;
+                }
+                return 1;
             }
         } else if (Typeof(progRef) != TYPE_PROGRAM) {
             if (player < 1)
