@@ -464,7 +464,7 @@ int
 new_mvar(const char *varname, char *buf)
 {
     if (strlen(varname) > MAX_MFUN_NAME_LEN) return 1;
-    if (varc > MPI_MAX_VARIABLES) return 2;
+    if (varc >= MPI_MAX_VARIABLES) return 2;
     strcpy(varv[varc].name, varname);
     varv[varc++].buf = buf;
     return 0;

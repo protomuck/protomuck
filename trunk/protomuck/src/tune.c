@@ -4,6 +4,9 @@
 #include "interface.h"
 #include "tune.h"
 #include "externs.h"
+#include "array.h"
+#include "interp.h"
+
 #ifdef W4_TUNEABLES
 /* Certain @tuneables are readable and writtable by W4+ only */
   #define WBOY 8
@@ -45,6 +48,7 @@ const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt   = "P#/N";
 
 struct tune_str_entry {
+    const char *group;
     const char *name;
     const char **str;
     int writemlev;
@@ -54,34 +58,33 @@ struct tune_str_entry {
 
 struct tune_str_entry tune_str_list[] =
 {
-    {"dumpwarn_mesg",        &tp_dumpwarn_mesg,       LARCH, LMUF , 1},
-    {"deltawarn_mesg",       &tp_deltawarn_mesg,      LARCH, LMUF , 1},
-    {"dumpdeltas_mesg",      &tp_dumpdeltas_mesg,     LARCH, LMUF , 1},
-    {"dumping_mesg",         &tp_dumping_mesg,        LARCH, LMUF , 1},
-    {"dumpdone_mesg",        &tp_dumpdone_mesg,       LARCH, LMUF , 1},
-    {"huh_mesg",             &tp_huh_mesg,            LARCH, LMUF , 1},
-    {"leave_message",        &tp_leave_message,       LARCH, LMUF , 1},
-    {"idleboot_message",     &tp_idleboot_msg,        LARCH, LMUF , 1},
-    {"noperm_mesg",          &tp_noperm_mesg,         LARCH, LMUF , 1},
-    {"noguest_mesg",         &tp_noguest_mesg,        LARCH, LMUF , 1},
-    {"penny",                &tp_penny,               LARCH, LMUF , 1},
-    {"pennies",              &tp_pennies,             LARCH, LMUF , 1},
-    {"cpenny",               &tp_cpenny,              LARCH, LMUF , 1},
-    {"cpennies",             &tp_cpennies,            LARCH, LMUF , 1},
-    {"muckname",             &tp_muckname,            WBOY , LMUF , 1},
-    {"dummy_midi",           &tp_dummy_midi,          WBOY , LMUF , 1},
-    {"mailserver",           &tp_mailserver,          WBOY , LWIZ , 1},
-    {"servername",           &tp_servername,          WBOY, LMUF , 1},
+    {"Database", "dumpwarn_mesg",     &tp_dumpwarn_mesg,      LARCH, LMUF , 1},
+    {"Database", "deltawarn_mesg",    &tp_deltawarn_mesg,     LARCH, LMUF , 1},
+    {"Database", "dumpdeltas_mesg",   &tp_dumpdeltas_mesg,    LARCH, LMUF , 1},
+    {"Database", "dumping_mesg",      &tp_dumping_mesg,       LARCH, LMUF , 1},
+    {"Database", "dumpdone_mesg",     &tp_dumpdone_mesg,      LARCH, LMUF , 1},
+    {"Message",  "huh_mesg",          &tp_huh_mesg,           LARCH, LMUF , 1},
+    {"Message",  "leave_message",     &tp_leave_message,      LARCH, LMUF , 1},
+    {"Idletime", "idleboot_message",  &tp_idleboot_msg,       LARCH, LMUF , 1},
+    {"Message",  "noperm_mesg",       &tp_noperm_mesg,        LARCH, LMUF , 1},
+    {"Guest",    "noguest_mesg",      &tp_noguest_mesg,       LARCH, LMUF , 1},
+    {"Currency", "penny",             &tp_penny,              LARCH, LMUF , 1},
+    {"Currency", "pennies",           &tp_pennies,            LARCH, LMUF , 1},
+    {"Currency", "cpenny",            &tp_cpenny,             LARCH, LMUF , 1},
+    {"Currency", "cpennies",          &tp_cpennies,           LARCH, LMUF , 1},
+    {"Identity", "muckname",          &tp_muckname,           WBOY , LMUF , 1},
+    {"Legacy",   "dummy_midi",        &tp_dummy_midi,         WBOY , LMUF , 1},
+    {"Legacy",   "mailserver",        &tp_mailserver,         WBOY , LWIZ , 1},
+    {"Identity", "servername",        &tp_servername,         WBOY , LMUF , 1},
 #ifdef RWHO
-    {"rwho_passwd",          &tp_rwho_passwd,         WBOY , RBOY, 1},
-    {"rwho_server",          &tp_rwho_server,         WBOY , LMAGE, 1},
+    {"RWHO",     "rwho_passwd",       &tp_rwho_passwd,        WBOY , RBOY , 1},
+    {"RWHO",     "rwho_server",       &tp_rwho_server,        WBOY , LMAGE, 1},
 #endif
-    {"reg_email",            &tp_reg_email,           WBOY , LARCH, 1},
-    {"proplist_counter_fmt", &tp_proplist_counter_fmt,LARCH, LMUF , 1},
-    {"proplist_entry_fmt",   &tp_proplist_entry_fmt,  LARCH, LMUF , 1},
-    {NULL, NULL, 0, 0, 0}
+    {"Legacy",   "reg_email",         &tp_reg_email,          WBOY , LARCH, 1},
+    {"Props", "proplist_counter_fmt",&tp_proplist_counter_fmt,LARCH, LMUF , 1},
+    {"Props",   "proplist_entry_fmt",&tp_proplist_entry_fmt,  LARCH, LMUF , 1},
+    {NULL, NULL, NULL, 0, 0, 0}
 };
-
 
 
 /* times */
@@ -100,6 +103,7 @@ time_t tp_cron_interval           = CRON_INTERVAL;
 time_t tp_archive_interval        = ARCHIVE_INTERVAL;
 
 struct tune_time_entry {
+    const char *group;
     const char *name;
     time_t *tim;
     int writemlev;
@@ -109,22 +113,20 @@ struct tune_time_entry {
 struct tune_time_entry tune_time_list[] =
 {
 #ifdef RWHO
-    {"rwho_interval",       &tp_rwho_interval,        WBOY , LWIZ },
+    {"RWHO",     "rwho_interval",       &tp_rwho_interval,       WBOY , LWIZ },
 #endif
-    {"dump_interval",       &tp_dump_interval,        LARCH, LMUF },
-    {"dump_warntime",       &tp_dump_warntime,        LARCH, LMUF },
-    {"monolithic_interval", &tp_monolithic_interval,	LARCH, LMUF },
-    {"clean_interval",      &tp_clean_interval,       LARCH, LMUF },
-    {"aging_time",          &tp_aging_time,           LARCH, LMUF },
-    {"connidle",            &tp_connidle,             LARCH, LMUF },
-    {"maxidle",             &tp_maxidle,              LARCH, LMUF },
-    {"idletime",            &tp_idletime,             LARCH, LMUF },
-    {"cron_interval",       &tp_cron_interval,        LARCH, LMUF },
-    {"archive_interval",    &tp_archive_interval,     LARCH, LMUF },
-    {NULL, NULL, 0, 0}
+    {"Database", "dump_interval",       &tp_dump_interval,       LARCH, LMUF },
+    {"Database", "dump_warntime",       &tp_dump_warntime,       LARCH, LMUF },
+    {"Database", "monolithic_interval", &tp_monolithic_interval, LARCH, LMUF },
+    {"System",   "clean_interval",      &tp_clean_interval,      LARCH, LMUF },
+    {"System",   "aging_time",          &tp_aging_time,          LARCH, LMUF },
+    {"Idletime", "connidle",            &tp_connidle,            LARCH, LMUF },
+    {"Idletime", "maxidle",             &tp_maxidle,             LARCH, LMUF },
+    {"Idletime", "idletime",            &tp_idletime,            LARCH, LMUF },
+    {"MUF",      "cron_interval",       &tp_cron_interval,       LARCH, LMUF },
+    {"Database", "archive_interval",    &tp_archive_interval,    LARCH, LMUF },
+    {NULL, NULL, NULL, 0, 0}
 };
-
-
 
 /* integers */
 int tp_textport                 = TINYPORT;
@@ -163,6 +165,7 @@ int tp_mcp_muf_mlev             = MCP_MUF_MLEV;
 int tp_mysql_result_limit       = 40;
 #endif
 struct tune_val_entry {
+    const char *group;
     const char *name;
     int *val;
     int writemlev;
@@ -171,45 +174,43 @@ struct tune_val_entry {
 
 struct tune_val_entry tune_val_list[] =
 {
-    {"mainport",              &tp_textport,            WBOY , LMUF },
+    {"System",    "mainport",          &tp_textport,             WBOY , LMUF },
 #ifdef HTTPD
-    {"wwwport",               &tp_wwwport,             WBOY , LMUF },
+    {"System",    "wwwport",           &tp_wwwport,              WBOY , LMUF },
 #endif
-    {"puebloport",            &tp_puebloport,          WBOY , LMUF },
-    {"max_object_endowment",  &tp_max_object_endowment,LARCH, LMUF },
-    {"object_cost",           &tp_object_cost,         LARCH, LMUF },
-    {"exit_cost",             &tp_exit_cost,           LARCH, LMUF },
-    {"link_cost",             &tp_link_cost,           LARCH, LMUF },
-    {"room_cost",             &tp_room_cost,           LARCH, LMUF },
-    {"lookup_cost",           &tp_lookup_cost,         LARCH, LMUF },
-    {"max_pennies",           &tp_max_pennies,         LARCH, LMUF },
-    {"penny_rate",            &tp_penny_rate,          LARCH, LMUF },
-    {"start_pennies",         &tp_start_pennies,       LARCH, LMUF },
-    {"command_burst_size",    &tp_command_burst_size,  LARCH, LMUF },
-    {"commands_per_time",     &tp_commands_per_time,   LARCH, LMUF },
-    {"command_time_msec",     &tp_command_time_msec,   LARCH, LMUF },
-    {"max_delta_objs",        &tp_max_delta_objs,      LARCH, LMUF },
-    {"max_loaded_objs",       &tp_max_loaded_objs,     LARCH, LMUF },
-    {"max_process_limit",     &tp_max_process_limit,   LARCH, LMUF },
-    {"max_plyr_processes",    &tp_max_plyr_processes,  LARCH, LMUF },
-    {"max_instr_count",       &tp_max_instr_count,     LARCH, LMUF },
-    {"instr_slice",           &tp_instr_slice,         LARCH, LMUF },
-    {"mpi_max_commands",      &tp_mpi_max_commands,    LARCH, LMUF },
-    {"pause_min",             &tp_pause_min,           LARCH, LMUF },
-    {"free_frames_pool",      &tp_free_frames_pool,    LARCH, LMUF },
-    {"max_output",	      &tp_max_output,          LARCH, LMUF },
-    {"rand_screens",	      &tp_rand_screens,        LARCH, LMUF },
-    {"listen_mlev",           &tp_listen_mlev,         WBOY , LMUF },
-    {"playermax_limit",       &tp_playermax_limit,     WBOY , LMUF },
-    {"process_timer_limit",   &tp_process_timer_limit, LARCH, LMUF },
-    {"dump_copies",           &tp_dump_copies,         WBOY,  LMUF },
-    {"min_progbreak_lev",     &tp_min_progbreak_lev,   LARCH, LMAGE},
-    {"mcp_muf_mlev",          &tp_mcp_muf_mlev,        LARCH, LMAGE},
-    {"mysql_result_limit",    &tp_mysql_result_limit,  LBOY , LARCH},
-    {NULL, NULL, 0, 0}
+    {"System",    "puebloport",        &tp_puebloport,           WBOY , LMUF },
+    {"Currency","max_object_endowment",&tp_max_object_endowment,LARCH, LMUF },
+    {"Currency",  "object_cost",       &tp_object_cost,          LARCH, LMUF },
+    {"Currency",  "exit_cost",         &tp_exit_cost,            LARCH, LMUF },
+    {"Currency",  "link_cost",         &tp_link_cost,            LARCH, LMUF },
+    {"Currency",  "room_cost",         &tp_room_cost,            LARCH, LMUF },
+    {"Currency",  "lookup_cost",       &tp_lookup_cost,          LARCH, LMUF },
+    {"Currency",  "max_pennies",       &tp_max_pennies,          LARCH, LMUF },
+    {"Currency",  "penny_rate",        &tp_penny_rate,           LARCH, LMUF },
+    {"Currency",  "start_pennies",     &tp_start_pennies,        LARCH, LMUF },
+    {"System",    "command_burst_size",&tp_command_burst_size,   LARCH, LMUF },
+    {"System",    "commands_per_time", &tp_commands_per_time,    LARCH, LMUF },
+    {"System",    "command_time_msec", &tp_command_time_msec,    LARCH, LMUF },
+    {"Database",  "max_delta_objs",    &tp_max_delta_objs,       LARCH, LMUF },
+    {"Database",  "max_loaded_objs",   &tp_max_loaded_objs,      LARCH, LMUF },
+    {"MUF",       "max_process_limit", &tp_max_process_limit,    LARCH, LMUF },
+    {"MUF",       "max_plyr_processes",&tp_max_plyr_processes,   LARCH, LMUF },
+    {"MUF",       "max_instr_count",   &tp_max_instr_count,      LARCH, LMUF },
+    {"MUF",       "instr_slice",       &tp_instr_slice,          LARCH, LMUF },
+    {"MPI",       "mpi_max_commands",  &tp_mpi_max_commands,     LARCH, LMUF },
+    {"System",    "pause_min",         &tp_pause_min,            LARCH, LMUF },
+    {"MUF",       "free_frames_pool",  &tp_free_frames_pool,     LARCH, LMUF },
+    {"System",    "max_output",        &tp_max_output,           LARCH, LMUF },
+    {"System",    "rand_screens",      &tp_rand_screens,         LARCH, LMUF },
+    {"MUF",       "listen_mlev",       &tp_listen_mlev,          WBOY , LMUF },
+    {"Maxplayers","playermax_limit",   &tp_playermax_limit,      WBOY , LMUF },
+    {"MUF",       "process_timer_limit",&tp_process_timer_limit, LARCH, LMUF },
+    {"Database",  "dump_copies",       &tp_dump_copies,          WBOY,  LMUF },
+    {"MUF",       "min_progbreak_lev", &tp_min_progbreak_lev,    LARCH, LMAGE},
+    {"MUF",       "mcp_muf_mlev",      &tp_mcp_muf_mlev,         LARCH, LMAGE},
+    {"MUF",       "mysql_result_limit",&tp_mysql_result_limit,   LBOY , LARCH},
+    {NULL, NULL, NULL, 0, 0}
 };
-
-
 
 
 /* dbrefs */
@@ -226,6 +227,7 @@ dbref tp_www_surfer        = -1;
 
 
 struct tune_ref_entry {
+    const char *group;
     const char *name;
     int typ;
     dbref *ref;
@@ -235,19 +237,18 @@ struct tune_ref_entry {
 
 struct tune_ref_entry tune_ref_list[] =
 {
-    {"quit_prog",         TYPE_PROGRAM,   &tp_quit_prog,        WBOY , LMAGE},
-    {"login_who_prog",    TYPE_PROGRAM,   &tp_login_who_prog,   WBOY , LMAGE},
-    {"player_start",      TYPE_ROOM,      &tp_player_start,     LARCH, LMAGE},
-    {"player_prototype",  TYPE_PLAYER,    &tp_player_prototype, LARCH, LMAGE},
-    {"cron_prog",         TYPE_PROGRAM,   &tp_cron_prog,        LARCH, LMAGE},
-    {"default_parent",    TYPE_ROOM,      &tp_default_parent,   LARCH, LMAGE},
+{"System",  "quit_prog",        TYPE_PROGRAM,&tp_quit_prog,       WBOY , LMAGE},
+{"System",  "login_who_prog",   TYPE_PROGRAM,&tp_login_who_prog,  WBOY , LMAGE},
+{"Pcreate", "player_start",     TYPE_ROOM,   &tp_player_start,    LARCH, LMAGE},
+{"Pcreate", "player_prototype", TYPE_PLAYER, &tp_player_prototype,LARCH, LMAGE},
+{"MUF",     "cron_prog",        TYPE_PROGRAM,&tp_cron_prog,       LARCH, LMAGE},
+{"Building","default_parent",   TYPE_ROOM,   &tp_default_parent,  LARCH, LMAGE},
 #ifdef HTTPD
-    {"www_root",          TYPE_ROOM,      &tp_www_root,         LARCH, LMAGE},
-    {"www_surfer",        TYPE_PLAYER,    &tp_www_surfer,       LARCH, LMAGE},
+{"System",  "www_root",         TYPE_ROOM,   &tp_www_root,        LARCH, LMAGE},
+{"System",  "www_surfer",       TYPE_PLAYER, &tp_www_surfer,      LARCH, LMAGE},
 #endif
-    {NULL, 0, NULL, 0, 0}
+{NULL, NULL, 0, NULL, 0, 0}
 };
-
 
 /* booleans */
 int tp_hostnames                   = HOSTNAMES;
@@ -315,6 +316,7 @@ int tp_auto_archive                = 0;
 int tp_optimize_muf                = OPTIMIZE_MUF;
 
 struct tune_bool_entry {
+    const char *group;
     const char *name;
     int *boolv;
     int writemlev;
@@ -323,71 +325,214 @@ struct tune_bool_entry {
 
 struct tune_bool_entry tune_bool_list[] =
 {
-    {"use_hostnames",          &tp_hostnames,                WBOY , LMAGE},
-    {"log_commands",           &tp_log_commands,             WBOY , LWIZ },
-    {"log_interactive",        &tp_log_interactive,          WBOY , LWIZ },
-    {"log_connects",           &tp_log_connects,             WBOY , LWIZ },
-    {"log_failed_commands",    &tp_log_failed_commands,      WBOY , LWIZ },
-    {"log_programs",           &tp_log_programs,             WBOY , LWIZ },
-    {"log_guests",             &tp_log_guests,               WBOY , LWIZ },
-    {"log_files",              &tp_log_files,                WBOY , LWIZ },
-    {"log_sockets",            &tp_log_sockets,              WBOY , LWIZ },
-    {"log_failedhelp",         &tp_log_failedhelp,           WBOY , LWIZ },
-    {"dbdump_warning",         &tp_dbdump_warning,           LARCH, LMUF },
-    {"deltadump_warning",      &tp_deltadump_warning,        LARCH, LMUF },
-    {"periodic_program_purge", &tp_periodic_program_purge,   LARCH, LMUF },
+    {"Commands", "use_hostnames",       &tp_hostnames,           WBOY , LMAGE},
+    {"Logs",     "log_commands",        &tp_log_commands,        WBOY , LWIZ },
+    {"Logs",     "log_interactive",     &tp_log_interactive,     WBOY , LWIZ },
+    {"Logs",     "log_connects",        &tp_log_connects,        WBOY , LWIZ },
+    {"Logs",     "log_failed_commands", &tp_log_failed_commands, WBOY , LWIZ },
+    {"Logs",     "log_programs",        &tp_log_programs,        WBOY , LWIZ },
+    {"Logs",     "log_guests",          &tp_log_guests,          WBOY , LWIZ },
+    {"Logs",     "log_files",           &tp_log_files,           WBOY , LWIZ },
+    {"Logs",     "log_sockets",         &tp_log_sockets,         WBOY , LWIZ },
+    {"Logs",     "log_failedhelp",      &tp_log_failedhelp,      WBOY , LWIZ },
+    {"Database", "dbdump_warning",      &tp_dbdump_warning,      LARCH, LMUF },
+    {"Database", "deltadump_warning",   &tp_deltadump_warning,   LARCH, LMUF },
+    {"System","periodic_program_purge",&tp_periodic_program_purge,LARCH, LMUF },
 #ifdef RWHO
-    {"run_rwho",               &tp_rwho,                     WBOY , LMUF },
+    {"RWHO",     "run_rwho",            &tp_rwho,                WBOY , LMUF },
 #endif
-    {"secure_who",             &tp_secure_who,               LARCH, LMUF },
-    {"who_doing",              &tp_who_doing,                LARCH, LMUF },
-    {"realms_control",         &tp_realms_control,           WBOY , LMUF },
-    {"allow_listeners",        &tp_listeners,                LARCH, LMUF },
-    {"allow_listeners_obj",    &tp_listeners_obj,            LARCH, LMUF },
-    {"allow_listeners_env",    &tp_listeners_env,            LARCH, LMUF },
-    {"allow_zombies",          &tp_zombies,                  LARCH, LMUF },
-    {"wiz_vehicles",           &tp_wiz_vehicles,             LARCH, LMUF },
-    {"wiz_puppets",            &tp_wiz_puppets,              LARCH, LMUF },
-    {"wiz_name",               &tp_wiz_name,                 LARCH, LMUF },
-    {"recycle_frobs",          &tp_recycle_frobs,            WBOY , LMUF },
-    {"m1_name_notify",         &tp_m1_name_notify,           LARCH, LMUF },
-    {"teleport_to_player",     &tp_teleport_to_player,       LARCH, LMUF },
-    {"secure_teleport",        &tp_secure_teleport,          LARCH, LMUF },
-    {"exit_darking",           &tp_exit_darking,             LARCH, LMUF },
-    {"thing_darking",          &tp_thing_darking,            LARCH, LMUF },
-    {"dark_sleepers",          &tp_dark_sleepers,            LARCH, LMUF },
-    {"who_hides_dark",         &tp_who_hides_dark,           LARCH, LMAGE},
-    {"old_priorities",         &tp_compatible_priorities,    LARCH, LMUF },
-    {"do_mpi_parsing",         &tp_do_mpi_parsing,           LARCH, LMUF },
-    {"look_propqueues",        &tp_look_propqueues,          LARCH, LMUF },
-    {"lock_envcheck",          &tp_lock_envcheck,            LARCH, LMUF },
-    {"diskbase_propvals",      &tp_diskbase_propvals,        WBOY , LMAGE},
-    {"idleboot",               &tp_idleboot,                 LARCH, LMUF },
-    {"playermax",              &tp_playermax,                LARCH, LMUF },
-    {"db_readonly",            &tp_db_readonly,              WBOY , LMUF },
-    {"building",               &tp_building,                 LARCH, LMUF },
-    {"all_can_build_rooms",    &tp_all_can_build_rooms,      LARCH, LMUF },
-    {"restricted_building",    &tp_restricted_building,      LARCH, LMUF },
-    {"pcreate_copy_props",     &tp_pcreate_copy_props,       LARCH, LMUF },
-    {"allow_home",             &tp_enable_home,              LARCH, LMUF },
-    {"enable_idle_msgs",       &tp_enable_idle_msgs,         LARCH, LMUF },
-    {"user_idle_propqueue",    &tp_user_idle_propqueue,      LARCH, LMUF },
-    {"quiet_moves",            &tp_quiet_moves,              LARCH, LMUF },
-    {"quiet_connects",         &tp_quiet_connects,           LARCH, LMUF },
-    {"proplist_int_counter",   &tp_proplist_int_counter,     LARCH, LMUF },
-    {"enable_mcp",             &tp_enable_mcp,               WBOY,  LMUF },
-    {"enable_commandprops",    &tp_enable_commandprops,      WBOY,  LMUF },
-    {"old_parseprop",          &tp_old_parseprop,            WBOY,  LMUF },
-    {"mpi_needflag",           &tp_mpi_needflag,             WBOY,  LMUF },
-    {"guest_needflag",         &tp_guest_needflag,           WBOY,  LMUF },
-    {"mortalwho",              &tp_mortalwho,                LARCH, LMUF },
-    {"fb_controls",            &tp_fb_controls,              LBOY,  LMUF },
-    {"allow_old_trigs",        &tp_allow_old_trigs,          LARCH, LMUF },
-    {"multi_wizlevels",        &tp_multi_wizlevels,          LBOY,  LMUF },
-    {"auto_archive",           &tp_auto_archive,             LBOY,  LMAGE},
-    {"optimize_muf",           &tp_optimize_muf,             LBOY,  LMAGE},
-    {NULL, NULL, 0, 0}
+    {"Commands", "secure_who",          &tp_secure_who,          LARCH, LMUF },
+    {"Commands", "who_doing",           &tp_who_doing,           LARCH, LMUF },
+    {"Building", "realms_control",      &tp_realms_control,      WBOY , LMUF },
+    {"Building", "allow_listeners",     &tp_listeners,           LARCH, LMUF },
+    {"Building", "allow_listeners_obj", &tp_listeners_obj,       LARCH, LMUF },
+    {"Building", "allow_listeners_env", &tp_listeners_env,       LARCH, LMUF },
+    {"Building", "allow_zombies",       &tp_zombies,             LARCH, LMUF },
+    {"Building", "wiz_vehicles",        &tp_wiz_vehicles,        LARCH, LMUF },
+    {"Building", "wiz_puppets",         &tp_wiz_puppets,         LARCH, LMUF },
+    {"Pcreate",  "wiz_name",            &tp_wiz_name,            LARCH, LMUF },
+    {"Pcreate",  "recycle_frobs",       &tp_recycle_frobs,       WBOY , LMUF },
+    {"MUF",      "m1_name_notify",      &tp_m1_name_notify,      LARCH, LMUF },
+    {"Commands", "teleport_to_player",  &tp_teleport_to_player,  LARCH, LMUF },
+    {"Commands", "secure_teleport",     &tp_secure_teleport,  	 LARCH, LMUF },
+    {"Building", "exit_darking",        &tp_exit_darking,        LARCH, LMUF },
+    {"Building", "thing_darking",       &tp_thing_darking,       LARCH, LMUF },
+    {"Building", "dark_sleepers",       &tp_dark_sleepers,       LARCH, LMUF },
+    {"Commands", "who_hides_dark",      &tp_who_hides_dark,      LARCH, LMAGE},
+    {"System",   "old_priorities",     &tp_compatible_priorities,LARCH, LMUF },
+    {"MPI",      "do_mpi_parsing",      &tp_do_mpi_parsing,      LARCH, LMUF },
+    {"Props",    "look_propqueues",     &tp_look_propqueues,     LARCH, LMUF },
+    {"Props",    "lock_envcheck",       &tp_lock_envcheck,       LARCH, LMUF },
+    {"Database", "diskbase_propvals",   &tp_diskbase_propvals,   WBOY , LMAGE},
+    {"Idletime", "idleboot",            &tp_idleboot,            LARCH, LMUF },
+    {"Playermax","playermax",           &tp_playermax,           LARCH, LMUF },
+    {"Building", "db_readonly",         &tp_db_readonly,         WBOY , LMUF },
+    {"Building", "building",            &tp_building,            LARCH, LMUF },
+    {"Building", "all_can_build_rooms", &tp_all_can_build_rooms, LARCH, LMUF },
+    {"Building", "restricted_building", &tp_restricted_building, LARCH, LMUF },
+    {"Pcreate",  "pcreate_copy_props",  &tp_pcreate_copy_props,  LARCH, LMUF },
+    {"Commands", "allow_home",          &tp_enable_home,         LARCH, LMUF },
+    {"Idletime", "enable_idle_msgs",    &tp_enable_idle_msgs,    LARCH, LMUF },
+    {"Idletime", "user_idle_propqueue", &tp_user_idle_propqueue, LARCH, LMUF },
+    {"Commands", "quiet_moves",         &tp_quiet_moves,         LARCH, LMUF },
+    {"Commands", "quiet_connects",      &tp_quiet_connects,      LARCH, LMUF },
+    {"Props",    "proplist_int_counter",&tp_proplist_int_counter,LARCH, LMUF },
+    {"System",   "enable_mcp",          &tp_enable_mcp,          WBOY,  LMUF },
+    {"Props",    "enable_commandprops", &tp_enable_commandprops, WBOY,  LMUF },
+    {"MUF",      "old_parseprop",       &tp_old_parseprop,       WBOY,  LMUF },
+    {"MPI",      "mpi_needflag",        &tp_mpi_needflag,        WBOY,  LMUF },
+    {"Guests",   "guest_needflag",      &tp_guest_needflag,      WBOY,  LMUF },
+    {"Commands", "mortalwho",           &tp_mortalwho,           LARCH, LMUF },
+    {"System",   "fb_controls",         &tp_fb_controls,         LBOY,  LMUF },
+    {"Props",    "allow_old_trigs",     &tp_allow_old_trigs,     LARCH, LMUF },
+    {"System",   "multi_wizlevels",     &tp_multi_wizlevels,     LBOY,  LMUF },
+    {"Database", "auto_archive",        &tp_auto_archive,        LBOY,  LMAGE},
+    {"MUF",      "optimize_muf",        &tp_optimize_muf,        LBOY,  LMAGE},
+    {NULL, NULL, NULL, 0, 0}
 };
+
+stk_array*
+tune_parms_array(const char* pattern, int mlev)
+{
+    struct tune_str_entry *tstr = tune_str_list;
+    struct tune_time_entry *ttim = tune_time_list;
+    struct tune_val_entry *tval = tune_val_list;
+    struct tune_ref_entry *tref = tune_ref_list;
+    struct tune_bool_entry *tbool = tune_bool_list;
+    stk_array *nu = new_array_packed(0);
+    struct inst temp1;
+    char pat[BUFFER_LEN];
+    char buf[BUFFER_LEN];
+    int i = 0;
+
+    strcpy(pat, pattern);
+    while (tbool->name) {
+        if (tbool->readmlev <= mlev) {
+            strcpy(buf, tbool->name);
+            if (!*pattern || equalstr(pat, buf)) {
+                stk_array *item = new_array_dictionary();
+                array_set_strkey_strval(&item, "type", "boolean");
+                array_set_strkey_strval(&item, "group", tbool->group);
+                array_set_strkey_strval(&item, "name",  tbool->name);
+                array_set_strkey_intval(&item, "value", *tbool->boolv? 1 : 0);
+                array_set_strkey_intval(&item, "readmlev",  tbool->readmlev);
+                array_set_strkey_intval(&item, "writemlev", tbool->writemlev);
+                temp1.type = PROG_ARRAY;
+                temp1.data.array = item;
+                array_set_intkey(&nu, i++, &temp1);
+                CLEAR(&temp1);
+            }
+        }
+        tbool++;
+    }
+
+    while (ttim->name) {
+        if (ttim->readmlev <= mlev) {
+            strcpy(buf, ttim->name);
+            if (!*pattern || equalstr(pat, buf)) {
+                stk_array *item = new_array_dictionary();
+                array_set_strkey_strval(&item, "type", "timespan");
+                array_set_strkey_strval(&item, "group", ttim->group);
+                array_set_strkey_strval(&item, "name",  ttim->name);
+                array_set_strkey_intval(&item, "value", *ttim->tim);
+                array_set_strkey_intval(&item, "readmlev",  ttim->readmlev);
+                array_set_strkey_intval(&item, "writemlev", ttim->writemlev);
+                temp1.type = PROG_ARRAY;
+                temp1.data.array = item;
+                array_set_intkey(&nu, i++, &temp1);
+                CLEAR(&temp1);
+            }
+        }
+        ttim++;
+    }
+
+    while (tval->name) {
+        if (tval->readmlev <= mlev) {
+            strcpy(buf, tval->name);
+            if (!*pattern || equalstr(pat, buf)) {
+                stk_array *item = new_array_dictionary();
+                array_set_strkey_strval(&item, "type", "integer");
+                array_set_strkey_strval(&item, "group", tval->group);
+                array_set_strkey_strval(&item, "name",  tval->name);
+                array_set_strkey_intval(&item, "value", *tval->val);
+                array_set_strkey_intval(&item, "readmlev",  tval->readmlev);
+                array_set_strkey_intval(&item, "writemlev", tval->writemlev);
+                temp1.type = PROG_ARRAY;
+                temp1.data.array = item;
+                array_set_intkey(&nu, i++, &temp1);
+                CLEAR(&temp1);
+            }
+        }
+        tval++;
+    }
+
+    while (tref->name) {
+        if (tref->readmlev <= mlev) {
+            strcpy(buf, tref->name);
+            if (!*pattern || equalstr(pat, buf)) {
+                stk_array *item = new_array_dictionary();
+                array_set_strkey_strval(&item, "type", "dbref");
+                array_set_strkey_strval(&item, "group", tref->group);
+                array_set_strkey_strval(&item, "name",  tref->name);
+                array_set_strkey_refval(&item, "value", *tref->ref);
+                array_set_strkey_intval(&item, "readmlev",  tref->readmlev);
+                array_set_strkey_intval(&item, "writemlev", tref->writemlev);
+                switch (tref->typ) {
+                    case NOTYPE:
+                        array_set_strkey_strval(&item, "objtype",  "any");
+                        break;
+                    case TYPE_PLAYER:
+                        array_set_strkey_strval(&item, "objtype",  "player");
+                        break;
+                    case TYPE_THING:
+                        array_set_strkey_strval(&item, "objtype",  "thing");
+                        break;
+                    case TYPE_ROOM:
+                        array_set_strkey_strval(&item, "objtype",  "room");
+                        break;
+                    case TYPE_EXIT:
+                        array_set_strkey_strval(&item, "objtype",  "exit");
+                        break;
+                    case TYPE_PROGRAM:
+                        array_set_strkey_strval(&item, "objtype",  "program");
+                        break;
+                    case TYPE_GARBAGE:
+                        array_set_strkey_strval(&item, "objtype",  "garbage");
+                        break;
+                    default:
+                        array_set_strkey_strval(&item, "objtype",  "unknown");
+                        break;
+                }
+                temp1.type = PROG_ARRAY;
+                temp1.data.array = item;
+                array_set_intkey(&nu, i++, &temp1);
+                CLEAR(&temp1);
+            }
+        }
+        tref++;
+    }
+
+    while (tstr->name) {
+        if (tstr->readmlev <= mlev) {
+            strcpy(buf, tstr->name);
+            if (!*pattern || equalstr(pat, buf)) {
+                stk_array *item = new_array_dictionary();
+                array_set_strkey_strval(&item, "type", "string");
+                array_set_strkey_strval(&item, "group", tstr->group);
+                array_set_strkey_strval(&item, "name",  tstr->name);
+                array_set_strkey_strval(&item, "value", *tstr->str);
+                array_set_strkey_intval(&item, "readmlev",  tstr->readmlev);
+                array_set_strkey_intval(&item, "writemlev", tstr->writemlev);
+                temp1.type = PROG_ARRAY;
+                temp1.data.array = item;
+                array_set_intkey(&nu, i++, &temp1);
+                CLEAR(&temp1);
+            }
+        }
+        tstr++;
+    }
+    return nu;
+}
 
 
 static const char *

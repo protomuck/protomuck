@@ -1643,6 +1643,19 @@ array_get_intkey_strval(stk_array * arr, int key)
         } 
 } 
 
+int
+array_set_intkey(stk_array **harr, int key, struct inst *val)
+{
+    struct inst name;
+    int result;
+    
+    name.type = PROG_INTEGER;
+    name.data.number = key;
+    
+    result = array_setitem(harr, &name, val);
+ 
+    CLEAR(&name);
 
+    return result;
 
-
+}

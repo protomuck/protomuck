@@ -265,3 +265,21 @@ prim_armageddon(PRIM_PROTOTYPE)
 
     exit(1);
 }  
+
+void
+prim_sysparm_array(PRIM_PROTOTYPE)
+{
+    stk_array *nu;
+
+    /* string */    
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (oper1->type != PROG_STRING)
+        abort_interp("Expected a string smatch pattern. (1)");
+
+    nu = tune_parms_array(DoNullInd(oper1->data.string), mlev);
+ 
+    CLEAR(oper1);
+    PushArrayRaw(nu);
+} 

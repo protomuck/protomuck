@@ -175,16 +175,9 @@ extern int tp_optimize_muf;
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
 extern void tune_save_parms_to_file(FILE *f);
+extern stk_array *tune_parms_array(const char *pattern, int mlev);
 
 extern int tp_building;
 extern int tp_all_can_build_rooms;
 extern int tp_restricted_building;
-
-
-
-
-
-
-
-
 
