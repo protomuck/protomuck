@@ -5,6 +5,8 @@
 #include "db.h"
 #include "tune.h"
 
+#ifdef MPI
+
 #include "mpi.h"
 #include "externs.h"
 #include "props.h"
@@ -16,8 +18,6 @@
 
 time_t mpi_prof_start_time;
 
-
-#ifdef MPI
 
 int
 Archperms(dbref what)
@@ -1085,38 +1085,42 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms, const char *in
     int  tmprec_cnt = mesg_rec_cnt;
     int  tmpinst_cnt = mesg_instr_cnt;
 
+    if (tp_do_mpi_parsing) {
 #ifdef COMPRESS
-    abuf = uncompress(abuf);
+       abuf = uncompress(abuf);
 #endif                          /* COMPRESS */
 
-    *outbuf = '\0';
-    if (new_mvar("how", howvar)) return outbuf;
-    strcpy(howvar, abuf);
+       *outbuf = '\0';
+       if (new_mvar("how", howvar)) return outbuf;
+       strcpy(howvar, abuf);
 
-    if (new_mvar("cmd", cmdvar)) return outbuf;
-    strcpy(cmdvar, match_cmdname);
-    strcpy(tmpcmd, match_cmdname);
+       if (new_mvar("cmd", cmdvar)) return outbuf;
+       strcpy(cmdvar, match_cmdname);
+       strcpy(tmpcmd, match_cmdname);
 
-    if (new_mvar("arg", argvar)) return outbuf;
-    strcpy(argvar, match_args);
-    strcpy(tmparg, match_args);
+       if (new_mvar("arg", argvar)) return outbuf;
+       strcpy(argvar, match_args);
+       strcpy(tmparg, match_args);
 
 #ifdef COMPRESS
-    inbuf = uncompress(inbuf);
+       inbuf = uncompress(inbuf);
 #endif                          /* COMPRESS */
 
-    dptr = MesgParse(inbuf, outbuf);
-    if (!dptr) {
-        *outbuf = '\0';
+       dptr = MesgParse(inbuf, outbuf);
+       if (!dptr) {
+           *outbuf = '\0';
+       }
+
+       varc = mvarcnt;
+       free_mfuncs(mfunccnt);
+       mesg_rec_cnt = tmprec_cnt;
+       mesg_instr_cnt = tmpinst_cnt;
+
+       strcpy(match_cmdname, tmpcmd);
+       strcpy(match_args, tmparg);
+    } else {
+       strcpy(outbuf, inbuf);
     }
-
-    varc = mvarcnt;
-    free_mfuncs(mfunccnt);
-    mesg_rec_cnt = tmprec_cnt;
-    mesg_instr_cnt = tmpinst_cnt;
-
-    strcpy(match_cmdname, tmpcmd);
-    strcpy(match_args, tmparg);
 
 
     return outbuf;
@@ -1128,11 +1132,7 @@ char *
 do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf, const char *abuf, char *outbuf, int mesgtyp)
 {
 #ifdef MPI
-#ifdef MPI_NEEDFLAG
-    if (tp_do_mpi_parsing && (Meeper(what))) {
-#else
-    if (tp_do_mpi_parsing) {
-#endif
+    if (tp_do_mpi_parsing && (tp_mpi_needflag ? Meeper(what) : 1)) {
       char *tmp = NULL;
 	struct timeval st, et;
 
@@ -1156,10 +1156,11 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf, const char
 	}
 	return(tmp);
     } else
-#endif
+#endif /* MPI */
 	strcpy(outbuf, inbuf);
     return outbuf;
 }
+
 
 
 

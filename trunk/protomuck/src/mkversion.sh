@@ -40,40 +40,35 @@ const char *version = PATCHLEVEL;
 
 const char *infotext[] =
 {
-
-    "ProtoMUCK " PROTOBASE " (" VERSION " -- " NEONVER ")",
     " ",
-    "Based on the original code written by these programmers:",
-    "  David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",
+    RED "ProtoMUCK " PROTOBASE " " WHITE "-- " CRIMSON VERSION,
     " ",
-    "Others who have done major coding work along the way:",
-    "  Lachesis, ChupChups, FireFoot, Russ 'Random' Smith, Dr. Cat,",
-    "  Revar, Points, Loki, PakRat, Nodaitsu",
+    CYAN "Based on the original code written by these programmers:",
+    "  " AQUA "David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",
     " ",
-    "ProtoMuck is derived from TinyMUCK, which was itself an extension",
-    "of TinyMUD.  Proto is an updated version of the NeonMUCK code base,",
-    "which originaly came from the FuzzBall distribution, by Foxen/Revar,",
-    "of TinyMUCK.",
+    CYAN "Others who have done major coding work along the way:",
+    "  " AQUA "Lachesis, ChupChups, FireFoot, Russ 'Random' Smith, Dr. Cat,",
+    "  " AQUA "Revar, Points, Loki, PakRat, Nodaitsu",
     " ",
-    "And, here is the list of the programmers for ProtoMUCK:",
-    "  Moose/Van  : contikimoose@hotmail.com  Akari : Nakoruru08@hotmail.com",
+    BROWN "ProtoMuck is derived from TinyMUCK, which was itself an extension",
+    BROWN "of TinyMUD.  Proto is an updated version of the NeonMUCK code base,",
+    BROWN "which originaly came from the FuzzBall distribution, by Foxen/Revar,",
+    BROWN "of TinyMUCK.",
     " ",
-    "Thanks are also due towards the multiple people who had also",
-    "contributed ideas for the MUCK as we worked on it, and even tried to",
-    "help us out along the way.",
-    "Feel free to check ProtoMUCK's webpage at the following address:",
-    "http://protomuck.sourceforge.net/",
+    GREEN "And, here is the list of the programmers for ProtoMUCK:",
+    FOREST "  Moose and Akari: protomuck@bigfoot.com",
     " ",
-#ifdef WINNT
-    "The Cygwin-32 freeware porting tools used to create the WinNT/95",
-    "distribution of ProtoMuck are created and maintained by Cygnus.",
-    "http://www.cygnus.com/gnu-win32 for more information.",
+    BROWN "Thanks are also due towards the multiple people who had also",
+    BROWN "contributed ideas for the MUCK as we worked on it, and even tried to",
+    BROWN "help us out along the way.",
+    CYAN "Feel free to check ProtoMUCK's webpage at the following address:",
+    AQUA "http://protomuck.sourceforge.net/",
     " ",
-#endif
-    "The Pueblo multimedia protocol is (C)Chaco Communications.",
-    "http://www.chaco.com/pueblo for more information.",
-    "The recommended client by us for any mu* server is BeipMU*.",
-    "http://beipmu.twu.net/ for more information.",
+    BLUE "The Pueblo multimedia protocol is (C)Chaco Communications.",
+    BLUE "http://www.chaco.com/pueblo for more information.",
+    BLUE "The recommended client by us for any mu* server is BeipMU*.",
+    BLUE "http://beipmu.twu.net/ for more information.",
+    CINFO "Done.",
     0,
 };
 
@@ -90,5 +85,6 @@ do_credits(dbref player)
 EOF
 
 exit 0
+
 
 

@@ -114,39 +114,42 @@ dump_database_internal(void)
     struct tm *timestamp;
     time_t curtime;
     FILE   *f;
+    int copies;
    
-    curtime = time((time_t *)NULL);
-    timestamp = localtime(&curtime); 
-
     tune_save_parmsfile();
-
-    format_time(timestring, 1024, "%Y.%m.%d", timestamp);
 
     if (tp_dbdump_warning)
 	wall_and_flush(tp_dumping_mesg);
 
-#ifndef KEEPDUMPS
-    sprintf(tmpfile, "%s.#%d#", dumpfile, epoch - 1);
-    (void) unlink(tmpfile);     /* nuke our predecessor */
-#else
-/*
-    sprintf(tmpfile, "backup/%s.%s.#%d#", dumpfile, timestring, epoch - 1);
- */
-    sprintf(tmpfile, "backup/%s.#%d#", dumpfile, epoch - 1);
-    (void) rename(dumpfile, tmpfile);
-    sprintf(tmpfile, "backup/%s.#%d#", dumpfile, epoch - 10);
-    (void) unlink(tmpfile);
-#endif
-
     sprintf(tmpfile, "%s.#%d#", dumpfile, epoch);
 
     if ((f = fopen(tmpfile, "w")) != NULL) {
+	char fromfile[512], destfile[512];
+
 	db_write(f);
 	fclose(f);
+	if (tp_dump_copies > 0) {
+		copies = (tp_dump_copies < 25) ? tp_dump_copies : 25;
+		for (; copies > 1; copies--) {
+			sprintf(fromfile, "backup/%s.#%d#", dumpfile, copies - 1);
+			sprintf(destfile, "backup/%s.#%d#", dumpfile, copies);
+#ifdef WIN32
+			unlink(destfile);
+#endif
+			rename(fromfile, destfile);
+		}
+		sprintf(destfile, "backup/%s.#1#", dumpfile);
+#ifdef WIN32
+		unlink(destfile); /* proto.new.#1# */
+#endif
+		rename(dumpfile, destfile); /* proto.new -> proto.new.1 */
+
+	} else {
 #ifdef WIN32
 	if (unlink(dumpfile))
 		perror(dumpfile);
 #endif
+	}
 	if (rename(tmpfile, dumpfile) < 0)
 	    perror(tmpfile);
 
@@ -410,7 +413,7 @@ init_game(const char *infile, const char *outfile)
     init_primitives();                 /* init muf compiler */
 #ifdef MPI
     mesg_init();                       /* init mpi interpreter */
-#endif
+#endif /* MPI */
     SRANDOM(getpid());                 /* init random number generator */
     tune_load_parmsfile(NOTHING);      /* load @tune parms from file */
 
@@ -440,13 +443,13 @@ init_game(const char *infile, const char *outfile)
 	add_property((dbref)0, "~sys/maxpennies", NULL, tp_max_pennies);
 	add_property((dbref)0, "~sys/dumpinterval", NULL, tp_dump_interval);
 	add_property((dbref)0, "~sys/max_connects", NULL, 0);
-#ifdef ALLOW_OLD_TRIGGERS
-	add_property((dbref)0, "_sys/startuptime", NULL,
-		     (int)time((time_t *) NULL));
-	add_property((dbref)0, "_sys/maxpennies", NULL, tp_max_pennies);
-	add_property((dbref)0, "_sys/dumpinterval", NULL, tp_dump_interval);
-	add_property((dbref)0, "_sys/max_connects", NULL, 0);
-#endif
+	if (tp_allow_old_trigs) {
+		add_property((dbref)0, "_sys/startuptime", NULL,
+			     (int)time((time_t *) NULL));
+		add_property((dbref)0, "_sys/maxpennies", NULL, tp_max_pennies);
+		add_property((dbref)0, "_sys/dumpinterval", NULL, tp_dump_interval);
+		add_property((dbref)0, "_sys/max_connects", NULL, 0);
+	}
     }
 
     return 0;
@@ -1404,14 +1407,9 @@ process_command(int descr, dbref player, char *command)
 		break;
 	    default:
         bad:
- 		if ( Typeof(tp_huh_command) == TYPE_PROGRAM && !(player == -1)) {
-			tmpfr = interp(descr, player, DBFETCH(player)->location, tp_huh_command, (dbref)-4, FOREGROUND, STD_REGUID);
-			if (!tmpfr)
-				goto bad2;
-			(void) interp_loop(player, tp_huh_command, tmpfr, 0);
-            } else {
-   		   bad2:
-                  anotify_fmt(player, CINFO "%s",tp_huh_mesg);
+        bad2:
+		{
+             anotify_fmt(player, CINFO "%s",tp_huh_mesg);
 			if (tp_log_failed_commands && !controls(player, DBFETCH(player)->location)) {
 		    		log_status("HUH from %s(%d) in %s(%d)[%s]: %s %s\n", NAME(player), player,
                         NAME(DBFETCH(player)->location),
@@ -1438,7 +1436,7 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
    ptr = envprop_cmds(&where, propName, Prop_Hidden(propName));
    if (!ptr) return 0;
 #ifdef DISKBASE
-   propfetch(what, ptr);
+   propfetch(where, ptr);
 #endif
    switch(PropType(ptr)){
       case PROP_STRTYP:
@@ -1539,6 +1537,7 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
 }
 
 #undef Matched
+
 
 
 

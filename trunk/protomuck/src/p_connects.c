@@ -884,6 +884,185 @@ prim_descrboot(PRIM_PROTOTYPE)
     CLEAR(oper1);
 }
 
+void
+prim_getdescrinfo(PRIM_PROTOTYPE)
+{
+	struct inst temp1, temp2;
+	stk_array *nw;
+	struct descriptor_data *d;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (mlev < LARCH)
+		abort_interp("Arch prim");
+	if (oper1->type != PROG_INTEGER)
+		abort_interp("Argument not an integer (1)");
+	if (!pdescrp(oper1->data.number))
+		abort_interp("That is not a valid descriptor.");
+
+	d = descrdata_by_descr(oper1->data.number);
+
+        CHECKOP(1);
+	nw = new_array_dictionary();
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("DESCRIPTOR");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->descriptor;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("CONNECTED");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->connected;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("CON_NUMBER");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->con_number;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("DESCRIPTOR");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->descriptor;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("BOOTED");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->booted;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("FAILS");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->fails;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("PLAYER");
+	temp2.type = PROG_OBJECT;
+	temp2.data.objref = d->player;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("OUTPUT_PREFIX");
+	temp2.type = PROG_STRING;
+	temp2.data.string = alloc_prog_string(d->output_prefix);
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("OUTPUT_SUFFIX");
+	temp2.type = PROG_STRING;
+	temp2.data.string = alloc_prog_string(d->output_suffix);
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("OUTPUT_LEN");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->output_len;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("INPUT_LEN");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->input_len;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("LAST_TIME");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = (int) d->last_time;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("CONNECTED_AT");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = (int) d->connected_at;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("HOSTADDR");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->hostaddr;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("PORT");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->port;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("HOSTNAME");
+	temp2.type = PROG_STRING;
+	temp2.data.string = alloc_prog_string(d->hostname);
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("USERNAME");
+	temp2.type = PROG_STRING;
+	temp2.data.string = alloc_prog_string(d->username);
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("COMMANDS");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->commands;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("TYPE");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->type;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("CONPORT");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->cport;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("HTTP_LOGIN");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = d->http_login;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("HTTPDATA");
+        temp2.type = PROG_STRING;
+        temp2.data.string = alloc_prog_string(d->httpdata);
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+
+	PushArrayRaw(nw);
+}
+
+
 
 
 

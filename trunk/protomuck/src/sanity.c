@@ -1314,7 +1314,7 @@ extract_object(FILE *f, dbref d)
 	break;
     }
 
-#ifdef DISKBASED
+#ifdef DISKBASE
     fetchprops(d);
 #endif
     if (DBFETCH(d)->properties) {
@@ -1492,6 +1492,7 @@ san_main(void)
     
     printf("Exiting sanity editor...\n\n");
 }
+
 
 
 

@@ -26,10 +26,6 @@
  */
 #undef DETACH
 
-/* Makes God (#1) immune to @force, @newpassword, and being set !Wizard.  
- */
-#define GOD_PRIV
-
 /* Use to compress string data (recomended)
  */
 #define COMPRESS
@@ -89,19 +85,11 @@
 
 #undef W4_TUNEABLES
 
-/* Define MORTWHO to make it so wizards need to type WHO! to see hosts */
-/* When undefined, WHO! will show the mortal WHO+@doing (without going Q) */
-#define MORTWHO
-
 /* Define to compile in RWHO support */
 #undef RWHO
 
 /* Define to compile in MPI support */
 #define MPI
-
-/* Define to require that a room a Guest can go in have the Guest flag */
-/* If undefined, Guests will be banned from rooms with a Guest flag */
-#undef G_NEEDFLAG
 
 /* Define to compile in HTTPD server WWW page support */
 #define HTTPD
@@ -110,27 +98,10 @@
 /* The _/www:http://... links won't work on some clients without it. */
 #define HTTPDELAY
 
-/* Define this for old, FB-style control checks (e.g. W2 and higher
- * control everything, instead of you-control-everything-with-a
- * Lower-level-than-you.
- */
-#define FB_CONTROLS
-
-/* Define this to compile in support for the older, less secure _connect
- * _disconnect, _arrive, _depart, and such triggers as well as Proto's
- * ~arrive, ~depart, etc.
- */
-#define ALLOW_OLD_TRIGGERS
-
 /* Define this to turn off the 'exiting insert mode' message in the
  * MUF editor for the picky programmer in you.
  */
 #undef NO_EXITMSG
-
-/* Define this to keep backups of past dumps instead of deleting them.
- *
- */
-#define KEEPDUMPS
 
 /* Define this to set which server to use for e-mail registration.
  */
@@ -141,19 +112,6 @@
  * your local server.
  */
 #define DUMMYMIDI "http://www.somewhere.com/~user/asong.mid"
-
-/* This is a shortcut.  Define this to add ALL compatiblity options.
- * To ensure TinyMUCKfb compatiblity.
- */
-#undef TINYMUCKFB_COMPAT
-
-
-/* All compiler directives to mod for FB support go in here. */
-#ifdef TINYMUCKFB_COMPAT
-   #define OLDPARSE
-   #define ALLOW_OLD_TRIGGERS
-   #define FB_CONTROLS
-#endif
 
 /************************************************************************
    Game Options
@@ -323,6 +281,11 @@
 #define FALSE 0
 
 /*
+ * Default #defs
+ */
+#define GOD_PRIV
+
+/*
  * Memory/malloc stuff.
  */
 #undef LOG_PROPS
@@ -488,6 +451,7 @@
 /* Final line of defense for self configuration, systems we know  */
 /* need special treatment.                                        */ 
 /******************************************************************/
+
 
 
 

@@ -41,6 +41,7 @@ MFNDAT mfun_list[] =
     {"DEFAULT",   mfn_default,   0, 0, 0,  2, 2},
     {"DELAY",     mfn_delay,     1, 0, 1,  2, 2},
     {"DELPROP",   mfn_delprop,   1, 0, 1,  1, 2},
+    {"DESCR",     mfn_descr,     1, 0, 1,  0, 0},
     {"DICE",      mfn_dice,      1, 0, 1,  1, 3},
     {"DIRPROPS",  mfn_dirprops,  1, 0, 1,  1, 2},
     {"DIST",      mfn_dist,      1, 0, 1,  2, 6},
@@ -141,6 +142,7 @@ MFNDAT mfun_list[] =
     {"SUBLIST",   mfn_sublist,   1, 0, 0,  1, 4},
     {"SUBST",     mfn_subst,     1, 0, 0,  3, 3},
     {"SUBT",      mfn_subt,      1, 0, 1,  2, 9},
+    {"SYSPARM",   mfn_sysparm,   1, 0, 1,  1, 1},
     {"TESTLOCK",  mfn_testlock,  1, 0, 1,  2, 4},
     {"HTML",      mfn_html,      1, 0, 0,  1, 2},
     {"ANSI",      mfn_ansi,      1, 0, 0,  1, 2},
@@ -165,6 +167,7 @@ MFNDAT mfun_list[] =
 };
 
 #endif /* MPI */
+
 
 
 

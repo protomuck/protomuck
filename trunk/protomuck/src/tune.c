@@ -71,7 +71,7 @@ struct tune_str_entry tune_str_list[] =
     {"muckname",             &tp_muckname,            WBOY , LMUF , 1},
     {"dummy_midi",           &tp_dummy_midi,          WBOY , LMUF , 1},
     {"mailserver",           &tp_mailserver,          WBOY , LWIZ , 1},
-    {"servername",           &tp_servername,          LARCH, LMUF , 1},
+    {"servername",           &tp_servername,          WBOY, LMUF , 1},
 #ifdef RWHO
     {"rwho_passwd",          &tp_rwho_passwd,         WBOY , RBOY, 1},
     {"rwho_server",          &tp_rwho_server,         WBOY , LMAGE, 1},
@@ -154,6 +154,7 @@ int tp_rand_screens             = 0;
 int tp_listen_mlev              = LISTEN_MLEV;
 int tp_playermax_limit          = PLAYERMAX_LIMIT;
 int tp_process_timer_limit      = 4;
+int tp_dump_copies		  = 10;
 
 struct tune_val_entry {
     const char *name;
@@ -193,8 +194,9 @@ struct tune_val_entry tune_val_list[] =
     {"max_output",	      &tp_max_output,          LARCH, LMUF },
     {"rand_screens",	      &tp_rand_screens,        LARCH, LMUF },
     {"listen_mlev",           &tp_listen_mlev,         WBOY , LMUF },
-    {"playermax_limit",       &tp_playermax_limit,     LARCH, LMUF },
+    {"playermax_limit",       &tp_playermax_limit,     WBOY , LMUF },
     {"process_timer_limit",   &tp_process_timer_limit, LARCH, LMUF },
+    {"dump_copies",           &tp_dump_copies,         WBOY,  LMUF },
     {NULL, NULL, 0, 0}
 };
 
@@ -203,8 +205,6 @@ struct tune_val_entry tune_val_list[] =
 
 /* dbrefs */
 dbref tp_quit_prog         = -1;
-dbref tp_huh_command       = -1;
-dbref tp_login_huh_command = -1;
 dbref tp_login_who_prog    = -1;
 dbref tp_player_start      = PLAYER_START;
 dbref tp_reg_wiz           = -1;
@@ -227,8 +227,6 @@ struct tune_ref_entry {
 struct tune_ref_entry tune_ref_list[] =
 {
     {"quit_prog",         TYPE_PROGRAM,   &tp_quit_prog,        WBOY , LMAGE},
-    {"huh_command",       TYPE_PROGRAM,   &tp_huh_command,      WBOY , LMAGE},
-    {"login_huh_command", TYPE_PROGRAM,   &tp_login_huh_command,WBOY , LMAGE},
     {"login_who_prog",    TYPE_PROGRAM,   &tp_login_who_prog,   WBOY , LMAGE},
     {"player_start",      TYPE_ROOM,      &tp_player_start,     LARCH, LMAGE},
     {"reg_wiz",           TYPE_PLAYER,    &tp_reg_wiz,          WBOY , LMAGE},
@@ -298,6 +296,11 @@ int tp_proplist_int_counter        = 0;
 int tp_enable_mcp                  = 1;
 int tp_enable_commandprops         = 1;
 int tp_old_parseprop               = 0;
+int tp_mpi_needflag		     = 0;
+int tp_guest_needflag		     = 0;
+int tp_mortalwho			     = 1;
+int tp_fb_controls		     = 1;
+int tp_allow_old_trigs		     = 1;
 
 struct tune_bool_entry {
     const char *name;
@@ -363,6 +366,11 @@ struct tune_bool_entry tune_bool_list[] =
     {"enable_mcp",             &tp_enable_mcp,               WBOY,  LMUF },
     {"enable_commandprops",    &tp_enable_commandprops,      WBOY,  LMUF },
     {"old_parseprop",          &tp_old_parseprop,            WBOY,  LMUF },
+    {"mpi_needflag",           &tp_mpi_needflag,             WBOY,  LMUF },
+    {"guest_needflag",         &tp_guest_needflag,           WBOY,  LMUF },
+    {"mortalwho",              &tp_mortalwho,                LARCH, LMUF },
+    {"fb_controls",            &tp_fb_controls,              LBOY,  LMUF },
+    {"allow_old_trigs",        &tp_allow_old_trigs,          LARCH, LMUF },
     {NULL, NULL, 0, 0}
 };
 
@@ -994,6 +1002,7 @@ do_tune(dbref player, char *parmname, char *parmval)
 	return;
     }
 }
+
 
 
 

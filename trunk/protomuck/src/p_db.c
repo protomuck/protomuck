@@ -23,6 +23,9 @@ extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
 
+#ifdef COMPRESS
+extern const char *uncompress(const char *);
+#endif				/* COMPRESS */
 
 void 
 copyobj(dbref player, dbref old, dbref nw)
@@ -495,7 +498,7 @@ prim_pennies(PRIM_PROTOTYPE)
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
-	abort_interp("Invalid argument");
+	abort_interp("Invalid dbref argument");
     CHECKREMOTE(oper1->data.objref);
     switch (Typeof(oper1->data.objref)) {
 	case TYPE_PLAYER:
@@ -505,7 +508,7 @@ prim_pennies(PRIM_PROTOTYPE)
 	    result = DBFETCH(oper1->data.objref)->sp.thing.value;
 	    break;
 	default:
-	    abort_interp("Invalid argument");
+	    abort_interp("Invalid object type argument");
     }
     CLEAR(oper1);
     PushInt(result);
@@ -603,18 +606,43 @@ prim_next(PRIM_PROTOTYPE)
 void 
 prim_truename(PRIM_PROTOTYPE)
 {
+    const char *msg;
+    char *msg2, *tempstr;
+    char buf2[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
-    if (!valid_object(oper1))
+    if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
 	abort_interp("Invalid argument type");
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
 	ts_lastuseobject(ref);
+    if ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_THING)) {
+	if (GETMESG(ref, "%n")) {
+		msg = GETMESG(ref, "%n");
+#ifdef COMPRESS
+		strcpy(buf, uncompress(msg));
+#else
+		strcpy(buf, msg);
+#endif
+		CLEAR(oper1);
+		PushString(buf);
+		return;
+	}
+    }
     if (NAME(ref)) {
 	strcpy(buf, NAME(ref));
     } else {
 	buf[0] = '\0';
+    }
+    if (Typeof(ref) == TYPE_EXIT) {
+	msg2 = strcpy(buf2, buf);
+	tempstr = buf;
+	while (*msg2 && (*msg2 != ';')) {
+		*(tempstr++) = *(msg2++);
+	}
+	*tempstr = '\0';
     }
     CLEAR(oper1);
     PushString(buf);
@@ -625,7 +653,7 @@ prim_name(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
     oper1 = POP();
-    if (!valid_object(oper1))
+    if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
 	abort_interp("Invalid argument type");
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
@@ -927,7 +955,7 @@ prim_flagp(PRIM_PROTOTYPE)
 	abort_interp("Invalid argument type (2)");
     if (!(oper1->data.string))
 	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper2))
+    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
 	abort_interp("Invalid object");
     ref = oper2->data.objref;
     CHECKREMOTE(ref);
@@ -1599,8 +1627,8 @@ prim_getlockstr(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
     oper1 = POP();
-    if (!valid_object(oper1))
-	abort_interp("Invalid argument type");
+    if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
+	abort_interp("Invalid dbref argument.");
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
     if (mlev < LM2)
@@ -2781,6 +2809,349 @@ prim_uncompile(PRIM_PROTOTYPE)
 		abort_interp("No program dbref given.");
 	uncompile_program(ref);
 }
+
+void
+prim_contents_array(PRIM_PROTOTYPE)
+{
+	struct inst temp1, temp2;
+	stk_array *nw;
+	int count = 0;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (!valid_object(oper1))
+		abort_interp("Invalid dbref (1)");
+	ref = oper1->data.objref;
+	CLEAR(oper1);
+	if ((Typeof(ref) == TYPE_PROGRAM) || (Typeof(ref) == TYPE_EXIT))
+		abort_interp("Dbref cannot be a program nor exit (1)");
+	nw = new_array_packed(0);
+	ref = DBFETCH(ref)->contents;
+	while ((ref > 0) && (ref < db_top)) {
+		temp1.type = PROG_INTEGER;
+		temp1.data.number = count++;
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = ref;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		ref = DBFETCH(ref)->next;
+	}
+	PushArrayRaw(nw);
+}
+
+void
+prim_exits_array(PRIM_PROTOTYPE)
+{
+	struct inst temp1, temp2;
+	stk_array *nw;
+	int count = 0;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (!valid_object(oper1))
+		abort_interp("Invalid dbref (1)");
+	ref = oper1->data.objref;
+	CLEAR(oper1);
+	if ((Typeof(ref) == TYPE_PROGRAM) || (Typeof(ref) == TYPE_EXIT))
+		abort_interp("Dbref cannot be a program nor exit (1)");
+	nw = new_array_packed(0);
+	ref = DBFETCH(ref)->exits;
+	while ((ref > 0) && (ref < db_top)) {
+		temp1.type = PROG_INTEGER;
+		temp1.data.number = count++;
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = ref;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		ref = DBFETCH(ref)->next;
+	}
+	PushArrayRaw(nw);
+}
+
+stk_array *
+array_getlinks(dbref obj)
+{
+	struct inst temp1, temp2;
+	stk_array *nw;
+	int count = 0;
+
+	nw = new_array_packed(0);
+	if ((obj >= NOTHING) && (obj < db_top)) {
+		switch (Typeof(obj)) {
+			case TYPE_ROOM: {
+				temp1.type = PROG_INTEGER;
+				temp1.data.number = count++;
+				temp2.type = PROG_OBJECT;
+				temp2.data.objref = DBFETCH(obj)->sp.room.dropto;
+				array_setitem(&nw, &temp1, &temp2);
+				CLEAR(&temp1);
+				CLEAR(&temp2);
+				break;
+			}
+			case TYPE_THING: {
+				temp1.type = PROG_INTEGER;
+				temp1.data.number = count++;
+				temp2.type = PROG_OBJECT;
+				temp2.data.objref = DBFETCH(obj)->sp.thing.home;
+				array_setitem(&nw, &temp1, &temp2);
+				CLEAR(&temp1);
+				CLEAR(&temp2);
+				break;
+			}
+			case TYPE_PLAYER: {
+				temp1.type = PROG_INTEGER;
+				temp1.data.number = count++;
+				temp2.type = PROG_OBJECT;
+				temp2.data.objref = DBFETCH(obj)->sp.player.home;
+				array_setitem(&nw, &temp1, &temp2);
+				CLEAR(&temp1);
+				CLEAR(&temp2);
+				break;
+			}
+			case TYPE_EXIT: {
+				for (count = 0; count < (DBFETCH(obj)->sp.exit.ndest); count++) {
+					temp1.type = PROG_INTEGER;
+					temp1.data.number = count;
+					temp2.type = PROG_OBJECT;
+					temp2.data.objref = (DBFETCH(obj)->sp.exit.dest)[count];
+					array_setitem(&nw, &temp1, &temp2);
+				}
+				CLEAR(&temp1);
+				CLEAR(&temp2);
+				break;
+			}
+		}
+	}
+	return nw;
+}
+
+void
+prim_getlinks_array(PRIM_PROTOTYPE)
+{
+	CHECKOP(1);
+	oper1 = POP();
+
+	if (!valid_object(oper1))
+		abort_interp("Invalid object dbref (1)");
+	ref = oper1->data.objref;
+
+	CLEAR(oper1);
+	PushArrayRaw(array_getlinks(ref));
+}
+
+void
+prim_getobjinfo(PRIM_PROTOTYPE)
+{
+	char buf[BUFFER_LEN];
+	float fresult;
+	struct inst temp1, temp2;
+	stk_array *nw;
+	int count = 0;
+
+	if (mlev < LM3)
+		abort_interp(tp_noperm_mesg);
+	CHECKOP(1);
+	oper1 = POP();
+	if (oper1->type != PROG_OBJECT)
+		abort_interp("Invalid object dbref (1)");
+	if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
+		abort_interp("Invalid object dbref (1)");
+	ref = oper1->data.objref;
+
+	nw = new_array_dictionary();
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("DBREF");
+	temp2.type = PROG_OBJECT;
+	temp2.data.objref = ref;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("NEXT");
+	temp2.type = PROG_OBJECT;
+	temp2.data.objref = DBFETCH(ref)->next;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("EXITS");
+	temp2.type = PROG_OBJECT;
+	temp2.data.objref = DBFETCH(ref)->exits;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("CONTENTS");
+	temp2.type = PROG_OBJECT;
+	temp2.data.objref = DBFETCH(ref)->contents;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("LOCATION");
+	temp2.type = PROG_OBJECT;
+	temp2.data.objref = DBFETCH(ref)->location;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("NAME");
+	temp2.type = PROG_STRING;
+	temp2.data.string = alloc_prog_string(NAME(ref));
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("CREATED");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = (int) DBFETCH(ref)->ts.created;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("MODIFIED");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = (int) DBFETCH(ref)->ts.modified;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("LASTUSED");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = (int) DBFETCH(ref)->ts.lastused;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+	temp1.data.string = alloc_prog_string("USECOUNT");
+	temp2.type = PROG_INTEGER;
+	temp2.data.number = DBFETCH(ref)->ts.usecount;
+	array_setitem(&nw, &temp1, &temp2);
+	CLEAR(&temp1);
+	CLEAR(&temp2);
+	switch (Typeof(ref)) {
+		case TYPE_ROOM: {
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("DROPTO");
+			temp2.type = PROG_OBJECT;
+			temp2.data.objref = DBFETCH(ref)->sp.room.dropto;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			break;
+		}
+		case TYPE_THING: {
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("HOME");
+			temp2.type = PROG_OBJECT;
+			temp2.data.objref = DBFETCH(ref)->sp.thing.home;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("VALUE");
+			temp2.type = PROG_INTEGER;
+			temp2.data.objref = DBFETCH(ref)->sp.thing.value;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			break;
+		}
+		case TYPE_EXIT: {
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("DEST");
+			temp2.type = PROG_ARRAY;
+			temp2.data.array = array_getlinks(ref);
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			break;
+		}
+		case TYPE_PLAYER: {
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("HOME");
+			temp2.type = PROG_OBJECT;
+			temp2.data.objref = DBFETCH(ref)->sp.player.home;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("PENNIES");
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = DBFETCH(ref)->sp.player.pennies;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("CURR_PROG");
+			temp2.type = PROG_OBJECT;
+			temp2.data.objref = DBFETCH(ref)->sp.player.curr_prog;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("INSERT_MODE");
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = (int) (DBFETCH(ref)->sp.player.insert_mode);
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("BLOCK");
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = (int) (DBFETCH(ref)->sp.player.block);
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			break;
+		}
+		case TYPE_PROGRAM: {
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("INSTANCES");
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = (int) (DBFETCH(ref)->sp.program.instances);
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("SIZ");
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = (int) (DBFETCH(ref)->sp.program.siz);
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("PROFSTART");
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = (int) (DBFETCH(ref)->sp.program.profstart);
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("PROFUSES");
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = (int) (DBFETCH(ref)->sp.program.profuses);
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			temp1.type = PROG_STRING;
+			temp1.data.string = alloc_prog_string("PROFTIME");
+			temp2.type = PROG_FLOAT;
+			sprintf(buf, "%ld.%06ld", DBFETCH(ref)->sp.program.proftime.tv_sec, DBFETCH(ref)->sp.program.proftime.tv_usec);
+			fresult = (float) atof(buf);
+			temp2.data.fnumber = fresult;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+			break;
+		}
+	}
+	CLEAR(oper1);
+	PushArrayRaw(nw);
+}
+
 
 
 

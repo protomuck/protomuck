@@ -2051,7 +2051,38 @@ mfn_center(MFUNARGS)
     return buf;
 }
 
+
+const char *
+mfn_sysparm(MFUNARGS)
+{
+	/* {sysparm:name} */
+	/* Get a @tune parameter if permission is given */
+	const char *ptr;
+	const char *name = argv[0];
+	const char *tune_get_parmstring(const char *name, int mlev);
+
+	if (argv[0]) {
+		ptr = tune_get_parmstring(name, MLevel(perms));
+		strcpy(buf, ptr);
+	} else {
+		strcpy(buf, "");
+	}
+	return (buf);
+}
+
+
+const char *
+mfn_descr(MFUNARGS)
+{
+	/* {descr} */
+	/* Return the integer of the running descriptor */
+	strcpy(buf, intostr(descr));
+	return buf;
+}
+
+
 #endif /* MPI */
+
 
 
 

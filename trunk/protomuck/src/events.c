@@ -62,9 +62,9 @@ check_dump_time (void)
         last_dump_time = currtime;                
 
         add_property((dbref)0, "~sys/lastdumptime", NULL, (int)currtime);
-#ifdef ALLOW_OLD_TRIGGERS
-        add_property((dbref)0, "_sys/lastdumptime", NULL, (int)currtime);
-#endif
+        if (tp_allow_old_trigs) {
+           add_property((dbref)0, "_sys/lastdumptime", NULL, (int)currtime);
+        }
 
         if (tp_periodic_program_purge)
             free_unused_programs();
@@ -85,9 +85,9 @@ dump_db_now(void)
 {
     time_t currtime = time((time_t *) NULL);
     add_property((dbref)0, "~sys/lastdumptime", NULL, (int)currtime);
-#ifdef ALLOW_OLD_TRIGGERS
+    if (tp_allow_old_trigs) {
         add_property((dbref)0, "_sys/lastdumptime", NULL, (int)currtime);
-#endif
+    }
     fork_and_dump();
     last_dump_time = currtime;
     dump_warned = 0;
@@ -99,9 +99,9 @@ delta_dump_now(void)
 {
     time_t currtime = time((time_t *) NULL);
     add_property((dbref)0, "~sys/lastdumptime", NULL, (int)currtime);
-#ifdef ALLOW_OLD_TRIGGERS
+    if (tp_allow_old_trigs) {
         add_property((dbref)0, "_sys/lastdumptime", NULL, (int)currtime);
-#endif
+    }
     dump_deltas();
     last_dump_time = currtime;    
     dump_warned = 0;
@@ -142,9 +142,9 @@ check_clean_time (void)
     if ((last_clean_time + tp_clean_interval) < currtime) {
         last_clean_time = currtime;
         add_property((dbref)0, "~sys/lastcleantime", NULL, (int)currtime);
-#ifdef ALLOW_OLD_TRIGGERS
-        add_property((dbref)0, "_sys/lastcleantime", NULL, (int)currtime);
-#endif
+        if (tp_allow_old_trigs) {
+           add_property((dbref)0, "_sys/lastcleantime", NULL, (int)currtime);
+        }
         if (tp_periodic_program_purge)
             free_unused_programs();
 #ifdef DISKBASE                          
@@ -187,9 +187,9 @@ check_cron_time (void)
     if ((last_cron_time + tp_cron_interval) < currtime) {
         last_cron_time = currtime;
         add_property((dbref)0, "~sys/lastcrontime", NULL, (int)currtime);
-#ifdef ALLOW_OLD_TRIGGERS
-        add_property((dbref)0, "_sys/lastcrontime", NULL, (int)currtime);
-#endif
+        if (tp_allow_old_trigs) {
+           add_property((dbref)0, "_sys/lastcrontime", NULL, (int)currtime);
+        }
        if( Typeof(tp_cron_prog) == TYPE_PROGRAM )
       {   
          tempfr = interp( -1, (dbref)-1, (dbref)-1, tp_cron_prog, (dbref) -4, 
@@ -302,6 +302,7 @@ next_muckevent (void)
     check_rwho_time();
 #endif
 }         
+
 
 
 

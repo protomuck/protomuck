@@ -474,7 +474,11 @@ void
 prim_trig(PRIM_PROTOTYPE)
 {
     CHECKOP(0);
-    ref = (dbref) fr->trig;
+    if ((fr->caller.top > 1) && (fr->prog != program)) {
+       ref = (dbref) fr->caller.st[fr->caller.top - 1];
+    } else {
+       ref = (dbref) fr->trig;
+    }
     CHECKOFLOW(1);
     PushObject(ref);
 }
@@ -874,7 +878,7 @@ prim_setmode(PRIM_PROTOTYPE)
 void
 prim_interp(PRIM_PROTOTYPE)
 {
-    struct inst *oper1, *oper2, *oper3, *rv = NULL;
+    struct inst /* *oper1, *oper2, *oper3, */ *rv = NULL;
     char buf[BUFFER_LEN];
     struct frame *tmpfr;
 
@@ -1162,6 +1166,7 @@ prim_forpop(PRIM_PROTOTYPE)
 	fr->fors.top--;
 	fr->fors.st = pop_for(fr->fors.st);
 }
+
 
 
 

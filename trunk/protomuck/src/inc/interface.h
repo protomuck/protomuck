@@ -28,6 +28,8 @@ struct descriptor_data {
     dbref   player;
     char   *output_prefix;
     char   *output_suffix;
+    int	input_len;
+    int     output_len;
     int     output_size;
     struct text_queue output;
     struct text_queue input;
@@ -59,6 +61,9 @@ struct descriptor_data {
 #define CT_HTML		1
 #define CT_PUEBLO	      2
 #define CT_MUF          3
+#define CT_OUTBOUND     4
+#define CT_LISTEN       5
+#define CT_INBOUND      6
 
 /* these symbols must be defined by the interface */
 
@@ -276,6 +281,7 @@ extern void panic(const char *);
 #define ANSI_BG_BLUE	"\033[44m"
 #define ANSI_BG_MAGENTA	"\033[45m"
 #define ANSI_BG_WHITE	"\033[47m"
+
 
 
 

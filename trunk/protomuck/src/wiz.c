@@ -236,11 +236,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                         destination = DBFETCH(destination)->location;
                     }
 		    if((Typeof(destination)==TYPE_ROOM) && Guest(player) &&
-#ifdef G_NEEDFLAG
-					!(FLAG2(destination)&F2GUEST)) {
-#else
-					(FLAG2(destination)&F2GUEST)) {
-#endif
+					(tp_guest_needflag ? !(FLAG2(destination)&F2GUEST) : (FLAG2(destination)&F2GUEST)) ) {
 			anotify_nolisten2(player, CFAIL "Guests aren't allowed there.");
 			break;
 		    }
@@ -426,7 +422,7 @@ do_stats(dbref player, const char *name)
     int     total = 0;
     int     altered = 0;
     int     oldobjs = 0;
-#ifdef DISKBASED
+#ifdef DISKBASE
     int     loaded = 0;
     int     changed = 0;
 #endif
@@ -844,12 +840,16 @@ power_description(dbref thing)
     static char buf[BUFFER_LEN];
 
     strcpy(buf, GREEN "Powers: " YELLOW );
+	if (POWERS(thing) & POW_ALL_MUF_PRIMS)
+	    strcat(buf, "ALL_MUF_PRIMS ");
       if (POWERS(thing) & POW_ANNOUNCE)
 	    strcat(buf, "ANNOUNCE ");
       if (POWERS(thing) & POW_BOOT)
           strcat(buf, "BOOT ");
       if (POWERS(thing) & POW_CHOWN_ANYTHING)
           strcat(buf, "CHOWN_ANYTHING ");
+	if (POWERS(thing) & POW_CONTROL_ALL)
+	    strcat(buf, "CONTROL_ALL ");
       if (POWERS(thing) & POW_CONTROL_MUF)
           strcat(buf, "CONTROL_MUF ");
       if (POWERS(thing) & POW_EXPANDED_WHO)
@@ -906,9 +906,11 @@ do_powers(int descr, dbref player, const char *name, const char *power)
     if (!name || !*name) {
       anotify_nolisten2(player, CNOTE "Powers List");
       anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+      anotify_nolisten2(player,       "ALL_MUF_PRIMS   - Gives full access to MUF primitives");
       anotify_nolisten2(player,       "ANNOUNCE        - Can use @wall and dwall commands");
       anotify_nolisten2(player,       "BOOT            - Can use @boot and dboot commands");
       anotify_nolisten2(player,       "CHOWN_ANYTHING  - Can @chown anything, unless it is PROTECTed");
+      anotify_nolisten2(player,       "CONTROL_ALL     - Has control over any object.");
       anotify_nolisten2(player,       "CONTROL_MUF     - Has control over any MUF object.");
       anotify_nolisten2(player,       "EXPANDED_WHO    - Gets the wizard version of WHO");
       anotify_nolisten2(player,       "HIDE            - Can set themselves DARK or login HIDDEN");
@@ -944,12 +946,16 @@ do_powers(int descr, dbref player, const char *name, const char *power)
         anotify_nolisten2(player, power_description(thing));
         anotify_nolisten2(player, CINFO "Done.");
 	return;
+    } else if ( string_prefix("ALL_MUF_PRIMS", p) ) {
+       pow = POW_ALL_MUF_PRIMS;
     } else if ( string_prefix("ANNOUNCE", p) ) {
        pow = POW_ANNOUNCE;
     } else if ( string_prefix("BOOT", p) ) {
        pow = POW_BOOT;
     } else if ( string_prefix("CHOWN_ANYTHING", p) ) {
        pow = POW_CHOWN_ANYTHING;
+    } else if ( string_prefix("CONTROL_ALL", p) ) {
+       pow = POW_CONTROL_ALL;
     } else if ( string_prefix("CONTROL_MUF", p) ) {
        pow = POW_CONTROL_MUF;
     } else if ( string_prefix("EXPANDED_WHO", p) ) {
@@ -994,33 +1000,6 @@ do_powers(int descr, dbref player, const char *name, const char *power)
     }
 }
 
-void
-do_ports(int descr, dbref player, const char *arg1, const char *arg2)
-{
-    if (!Boy(OWNER(player))) {
-	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-	return;
-    }
-
-    if(!arg1 || !*arg1 || !string_compare(arg1, "#help") ) {
-       anotify_nolisten2(player, CNOTE "@Ports Help");
-       anotify_nolisten2(player, CMOVE "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-       anotify_nolisten2(player,       " @Ports #help           - This screen");
-       anotify_nolisten2(player,       " @Ports #list           - List the ports");
-       anotify_nolisten2(player,       " @ports <Port>          - Add a new port");
-       anotify_nolisten2(player,       " @Ports !<Port>         - Remove the port");
-       anotify_nolisten2(player,       " @Ports <Port>=<1..4>   - Change the port-type");
-       anotify_nolisten2(player,       " @Ports <Port>=#<dbref> - Change the MUF program for MUF-type ports");
-       anotify_nolisten2(player,       " @Ports <Port>=&<Port>  - Change the port number");
-       anotify_nolisten2(player,       " @Ports <Port>=t<Time>  - Set the idle timeout in seconds");
-       anotify_nolisten2(player,       "Port types:");
-       anotify_nolisten2(player,       "  1 = Normal Port  2 = Pueblo Port  3 = Webserver Port  4 = MUF Port");
-       anotify_nolisten2(player,       "Note: You can not remove the top normal port shown in @Ports #list, but");
-       anotify_nolisten2(player,       "      you can change the port number and idle timeout.");
-       anotify_nolisten2(player, CINFO "Done.");
-       return;
-    }
-}
 
 #ifdef DISKBASE
 extern int propcache_hits;
@@ -1571,6 +1550,7 @@ do_fixw(dbref player, const char *msg)
     }
     anotify_nolisten2(player, CINFO "Done.");
 }
+
 
 
 

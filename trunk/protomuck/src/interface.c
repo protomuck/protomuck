@@ -196,6 +196,7 @@ main(int argc, char **argv)
     int sanity_autofix;
     int val;
     int initsock = 0;
+    int resolver_myport = 0;
 
 #ifdef DETACH
     int   fd;
@@ -242,8 +243,7 @@ main(int argc, char **argv)
             if (i + 1 >= argc) {
                show_program_usage(*argv);
             }
-            if (numsocks < MAX_LISTEN_SOCKS)
-               listener_port[numsocks++] = atoi(argv[++i]);
+		resolver_myport = atoi(argv[++i]);
           } else if (!strcmp(argv[i], "-gamedir")) {
             if (i + 1 >= argc) {
                show_program_usage(*argv);
@@ -264,13 +264,13 @@ main(int argc, char **argv)
              outfile_name = argv[i];
           } else {
              val = atoi(argv[i]);
-             if ((val < 1) || (val > 65535)) {
-                if (numsocks >= 3) {
+             if (!((val <= 1) || (val >= 65535))) {
+/*                if (numsocks >= 3) {
                    show_program_usage(*argv);
                 } else {
                    (void) numsocks++;
                 }
-             } else {
+             } else { */
                 if (initsock) {
                    if (numsocks < MAX_LISTEN_SOCKS) {
                       listener_port[numsocks++] = val;
@@ -365,11 +365,13 @@ main(int argc, char **argv)
 	exit(2);
     }
 
-    if ((tp_textport > 0) && (tp_textport < 65536))
+    if ((resolver_myport > 1) && (resolver_myport < 65536))
+	 tp_textport = resolver_myport;
+    if ((tp_textport > 1) && (tp_textport < 65536))
        listener_port[numsocks++] = tp_textport;
-    if ((tp_wwwport > 0) && (tp_wwwport < 65536))
+    if ((tp_wwwport > 1) && (tp_wwwport < 65536))
        listener_port[numsocks++] = tp_wwwport;
-    if ((tp_puebloport > 0) && (tp_puebloport < 65536))
+    if ((tp_puebloport > 1) && (tp_puebloport < 65536))
        listener_port[numsocks++] = tp_puebloport;
 
     if (!numsocks)
@@ -455,7 +457,7 @@ main(int argc, char **argv)
           char portlist[BUFFER_LEN];
 	    char numbuf[16];
 
-          portlist[0] = '\0';
+	    portlist[0] = '\0';
           for (i = 0; i < numsocks; i++) {
              if ((listener_port[i] != tp_textport) && (listener_port[i] != tp_wwwport) && (listener_port[i] != tp_puebloport)) {
                 sprintf(numbuf, "%d", listener_port[i]);
@@ -471,42 +473,6 @@ main(int argc, char **argv)
 
     exit(0);
 
-#ifdef OLD
-    dump_database();
-    tune_save_parmsfile();
-
-#ifdef SPAWN_HOST_RESOLVER
-    kill_resolver();
-#endif
-
-#ifdef MALLOC_PROFILING
-    db_free();
-    free_old_macros();
-    purge_all_free_frames();
-    purge_mfns();
-#endif
-
-#ifdef DISKBASE
-    fclose(input_file);
-#endif DISKBASE
-#ifdef DELTADUMPS
-    fclose(delta_infile);
-    fclose(delta_outfile);
-    (void) unlink(DELTAFILE_NAME);
-#endif
-
-#ifdef MALLOC_PROFILING
-    CrT_summarize_to_file("malloc_log", "Shutdown");
-#endif
-
-    if (restart_flag) {
-	char numbuf[16];
-	sprintf(numbuf, "%d", whatport);
-	execl("restart", "restart", numbuf, (char *)0);
-    }
-
-    exit(0);
-#endif /* OLD */
     return(0);
 }
 
@@ -543,64 +509,245 @@ notify_descriptor(int descr, const char *msg)
 }
 
 char *
-html_escape (const char *str)
+html_escape(const char *msg)
 {
-     static char buf[BUFFER_LEN * 2];
-     char  orig[BUFFER_LEN];
-     char  *result;
+	char *tempstr;
+	static char buf[BUFFER_LEN * 5];
 
-     strcpy(orig, str);
+	tempstr = buf;
+	while (*msg) {
+		switch (*msg) {
+			case '&': {
+				*tempstr++ = '&';
+				*tempstr++ = 'a';
+				*tempstr++ = 'm';
+				*tempstr++ = 'p';
+				*tempstr++ = ';';
+				break;
+			}
+			case '\"': {
+				*tempstr++ = '&';
+				*tempstr++ = 'q';
+				*tempstr++ = 'u';
+				*tempstr++ = 'o';
+				*tempstr++ = 't';
+				*tempstr++ = ';';
+				break;
+			}
+			case '<': {
+				*tempstr++ = '&';
+				*tempstr++ = 'l';
+				*tempstr++ = 't';
+				*tempstr++ = ';';
+				break;
+			}
+			case '>': {
+				*tempstr++ = '&';
+				*tempstr++ = 'g';
+				*tempstr++ = 't';
+				*tempstr++ = ';';
+				break;
+			}
+			case ' ': {
+				*tempstr++ = '&';
+				*tempstr++ = '#';
+				*tempstr++ = '3';
+				*tempstr++ = '2';
+				*tempstr++ = ';';
+				break;
+			}
+			case '\r': {
+				*tempstr++ = '<';
+				*tempstr++ = 'B';
+				*tempstr++ = 'R';
+				*tempstr++ = '>';
+				break;
+			}
+			case '\n':
+				break;
+			default:
+				*tempstr++ = *msg;
+		}
+		(void) msg++;
+	}
+	*tempstr = '\0';
+	return buf;
+}
 
-     str = orig;
+char *
+html_escape2(char *msg, int addbr)
+{
+	char buf2[BUFFER_LEN];
+	static char buff[BUFFER_LEN];
 
-     result = buf;
+	strcpy(buf2, msg);
+	if (strlen(buf2) >= (BUFFER_LEN-18))
+		buf2[BUFFER_LEN-18] = '\0';
+	strcpy(buff, "<code>");
+	strcat(buff, buf2);
+	strcat(buff, "</code>");
+	if (addbr) {
+		strcat(buff, "<BR>");
+	}
+	return buff;
+}
 
-     while(*str)
-     {
-	 if(*str == '<')
-	 {
-	     *result++ = '&';
-	     *result++ = 'l';
-	     *result++ = 't';
-	     *result++ = ';';
-	     str++;
-	 } else 
-	 if(*str == '>')
-	 {
-	     *result++ = '&';
-	     *result++ = 'g';
-	     *result++ = 't';
-	     *result++ = ';';
-	     str++;
-	 } else
-	 if(*str == '&')
-	 {
-	     *result++ = '&';
-	     *result++ = 'a';
-	     *result++ = 'm';
-	     *result++ = 'p';
-	     *result++ = ';';
-	     str++;
-	 } else
-	 if(*str == '\"')
-	 {
-	     *result++ = '&';
-	     *result++ = 'q';
-	     *result++ = 'u';
-	     *result++ = 'o';
-	     *result++ = 't';
-	     *result++ = ';';
-	     str++;
-	 } else *result++ = *str++;
-     }
-     *result = '\0';
-     return buf;
+char *
+grab_html(int nothtml, char *title)
+{
+	char *tempstr;
+	static char buf[BUFFER_LEN];
+
+	buf[0] = '\0';
+	tempstr = buf;
+	if (!title || !*title) {
+		return NULL;
+	}
+	if (!string_compare(title, "BR")) {
+		strcpy(buf, "\r\n");
+	}
+	if (!string_compare(title, "P")) {
+		if (nothtml) {
+			strcpy(buf, "\r\n");
+		} else {
+			strcpy(buf, "\r\n      ");
+		}
+	}
+	if (!string_compare(title, "LI")) {
+		strcpy(buf, "\r\n* ");
+	}
+	return buf;
+}
+
+char *
+html2text(char *msg)
+{
+	char *htmltitle, *tempstr;
+	static char buf[BUFFER_LEN];
+      char titlebuf[BUFFER_LEN];
+	int nothtml = 0;
+	struct html_tags *tags, *newtag;
+
+	while (*msg && isspace(*msg))
+		(void) msg++;
+	if (*msg == '/') {
+		nothtml = 1;
+		(void) msg++;
+	}
+	titlebuf[0] = '\0';
+	htmltitle = titlebuf;
+	while (*msg && !isspace(*msg))
+		*htmltitle++ = *msg++;
+	*htmltitle = '\0';
+
+	tempstr = grab_html(nothtml, titlebuf);
+	buf[0] = '\0';
+	strcpy(buf, tempstr);
+	return buf;
+}
+
+char 
+grab_html_char(char *htmlstr)
+{
+	static char c;
+	int num = 0;
+
+	if (*htmlstr == '#') {
+		htmlstr++;
+		if (number(htmlstr)) {
+			num = atoi(htmlstr);
+			if (!isprint((char) num) || ((char) num == '\n')) {
+				notify(1, "&#unprintable;");
+				c = 0;
+			} else {
+				notify(1, "&#??;");
+				c = (char) num;
+			}
+		} else {
+			notify(1, "&#unk;");
+			c = 0;
+		}
+	} else {
+		if (!string_compare(htmlstr, "lt")) {
+			notify(1, "&lt;");
+			c = '<';
+		} else if (!string_compare(htmlstr, "gt")) {
+			notify(1, "&gt;");
+			c = '>';
+		} else if (!string_compare(htmlstr, "quot")) {
+			notify(1, "&quot;");
+			c = '\"';
+		} else if (!string_compare(htmlstr, "amp")) {
+			notify(1, "&amp;");
+			c = '&';
+		} else {
+			notify(1, "&unknown;");
+			c = 0;
+		}
+	}
+	return c;
+}
+
+char *
+parse_html(char *msg)
+{
+	char c;
+	char *tempstr, *tempstr2, *htmlstr;
+	static char buf[BUFFER_LEN];
+      char htmlbuf[BUFFER_LEN], buff[BUFFER_LEN];
+
+	tempstr = buf;
+	buf[0] = '\0';
+	while (*msg) {
+		if (strlen(tempstr) >= BUFFER_LEN-10) {
+			break;
+		}
+		if (*msg == '<') {
+			(void) msg++;
+			htmlbuf[0] = '\0';
+			htmlstr = htmlbuf;
+			while(*msg && (*msg != '>'))
+				*htmlstr++ = *msg++;
+			*htmlstr = '\0';
+			if (*msg)
+				(void) msg++;
+			tempstr2 = strcpy(buff, html2text(htmlbuf));
+			notify(1, "AFTER HTML2TEXT():");
+			notify(1, htmlbuf);
+			notify(1, buff);
+			notify(1, tempstr2);
+			while(*tempstr2)
+				*tempstr++ = *tempstr2++;
+		} else {
+			if (*msg == '&') {
+				(void) msg++;
+				htmlbuf[0] = '\0';
+				htmlstr = htmlbuf;
+				while (*msg && (*msg != ';'))
+					*htmlstr++ = *msg++;
+				*htmlstr = '\0';
+				if (*msg)
+					(void) msg++;
+				c = grab_html_char(htmlstr);
+				notify(1, "AFTER GRAB_HTML_CHAR:");
+				notify(1, htmlstr);
+				notify(1, &c);
+				if (c) {
+					*tempstr++ = c;
+				}
+			} else {
+				*tempstr++ = *msg++;
+			}
+		}
+	}
+	*tempstr = '\0';
+	return buf;
 }
 
 int
 queue_ansi(struct descriptor_data *d, const char *msg)
 {
-	char buf[BUFFER_LEN + 8];
+	char buf[BUFFER_LEN+5];
 
       if (!msg || !*msg)
          return 0;
@@ -615,6 +762,35 @@ queue_ansi(struct descriptor_data *d, const char *msg)
 	}
       mcp_frame_output_inband(&d->mcpframe, buf);
 	return strlen(buf);
+}
+
+int
+queue_html(struct descriptor_data *d, char *msg)
+{
+      char buf[BUFFER_LEN];
+	if ((d->connected && OkObj(d->player)) ? (FLAG2(d->player) & F2PUEBLO) : ((d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
+		strcpy(buf, msg);
+		return queue_ansi(d, buf);
+	} else {
+/*		strcpy(buf, parse_html(msg)); */
+		return 0;
+	}
+}
+
+int
+queue_unhtml(struct descriptor_data *d, char *msg)
+{
+	char buf[BUFFER_LEN];
+	if ((d->connected && OkObj(d->player)) ? (FLAG2(d->player) & F2PUEBLO) : ((d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
+		if(strlen(msg) >= (BUFFER_LEN/5)) {
+			strcpy(buf, html_escape2(msg, (d->type == CT_HTML)));
+		} else {
+			strcpy(buf, html_escape(msg));
+		}
+	} else {
+		strcpy(buf, msg);
+	}
+	return queue_ansi(d, buf);
 }
 
 int 
@@ -656,23 +832,14 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
         for (di = 0; di < dcount; di++) {
 	    d = descrdata_by_index(darr[di]);
 	    if (d->connected && d->player == player) {
-		if (Html(player))
-		{
-		    temp = html_escape(buf);
-		    strcpy(buf, "<code>");
-		    strcat(buf, temp);
-		    strcat(buf, "</code>");
-		    if(!Pueblo(player)) strcat(buf, "<BR>");
-		}
-
 		if((d->linelen > 0) && !(FLAGS(player)&CHOWN_OK)) {
 		    lwp = buf;
 		    len = strlen(buf);
                 if(d)
- 		       queue_ansi(d, buf);
+ 		       queue_unhtml(d, buf);
 		} else
                 if(d)
-  		       queue_ansi(d, buf);
+  		       queue_unhtml(d, buf);
 
 		if (firstpass) retval++;
 	    }
@@ -715,7 +882,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 				    if (Html(OWNER(player)) && d)
                                        queue_ansi(d, html_escape(buf2)); else
                             if (d)
-                               queue_ansi(d, buf2);
+                               queue_unhtml(d, buf2);
                             if (firstpass) retval++;
                         }
 		    }
@@ -768,19 +935,16 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 
         for (di = 0; di < dcount; di++) {
 	    d = descrdata_by_index(darr[di]);
-		if((d->linelen > 0) && (d->player == player)
-		      && !(FLAGS(d->player)&CHOWN_OK) && 
-			  (Html(d->player))) 
-		{
+		if((d->linelen > 0) && !(FLAGS(player)&CHOWN_OK)) {
 		    lwp = buf;
 		    len = strlen(buf);
                 if(d)
-		       queue_ansi(d, buf);
-		} else if ((Html(d->player)) && (d->player == player))
-		{
+ 		       queue_html(d, buf);
+		} else {
                 if(d)
-		       queue_ansi(d, buf);
-		    if (NHtml(d->player) && d) queue_ansi(d, "<BR>");
+  		       queue_html(d, buf);
+			if (NHtml(d->player) && d)
+				queue_html(d, "<BR>");
 		}
 		if (firstpass) retval++;
 	}
@@ -822,7 +986,7 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
                         for (di = 0; di < dcount; di++) {
 				    d = descrdata_by_index(darr[di]);
                             if (d)
-                               queue_ansi(d, buf2);
+                               queue_html(d, buf2);
                             if (firstpass) retval++;
                         }
 		    }
@@ -1237,9 +1401,9 @@ shovechars(void)
 	    }
 	    if (cnt > con_players_max) {
 		add_property((dbref)0, "~sys/max_connects", NULL, cnt);
-#ifdef ALLOW_OLD_TRIGGERS
-		add_property((dbref)0, "_sys/max_connects", NULL, cnt);
-#endif
+		if (tp_allow_old_trigs) {
+			add_property((dbref)0, "_sys/max_connects", NULL, cnt);
+		}
 		con_players_max = cnt;
 	    }
 	    con_players_curr = cnt;
@@ -1249,10 +1413,10 @@ shovechars(void)
 
     add_property((dbref)0, "~sys/lastdumptime", NULL, (int)now);
     add_property((dbref)0, "~sys/shutdowntime", NULL, (int)now);
-#ifdef ALLOW_OLD_TRIGGERS
-    add_property((dbref)0, "_sys/lastdumptime", NULL, (int)now);
-    add_property((dbref)0, "_sys/shutdowntime", NULL, (int)now);
-#endif
+    if (tp_allow_old_trigs) {
+	    add_property((dbref)0, "_sys/lastdumptime", NULL, (int)now);
+	    add_property((dbref)0, "_sys/shutdowntime", NULL, (int)now);
+    }
 }
 
 
@@ -1441,17 +1605,18 @@ wall_all(const char *msg)
 
     strcpy(buf, msg);
     strcat(buf, "\r\n");
-    temp = html_escape(buf);
+/*    temp = html_escape(buf);
     strcpy(buf2, "<code>");
     strcat(buf2, temp);
-    strcat(buf2, "</code>");
+    strcat(buf2, "</code>"); */
 
     for (d = descriptor_list; d; d = d->next) {
-      if((d->type == CT_HTML) || (d->type == CT_PUEBLO)) {
+/*      if((d->type == CT_HTML) || (d->type == CT_PUEBLO)) {
            queue_ansi(d, buf2);
       } else {
            queue_ansi(d, buf);
-      }
+      } */
+	queue_unhtml(d, buf);
 	if (!process_output(d))
 	    d->booted = 1;
     }
@@ -1848,6 +2013,8 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, i
     d->con_number = 0;
     d->connected_at = current_systime;
     make_nonblocking(s);
+    d->output_len = 0;
+    d->input_len = 0;
     d->output_prefix = 0;
     d->output_suffix = 0;
     d->output_size = 0;
@@ -2020,6 +2187,7 @@ process_output(struct descriptor_data * d)
     
     for ( qp = &d->output.head; (cur = *qp); ) {
 	cnt = writesocket(d->descriptor, cur->start, cur->nchars);
+	d->output_len += cur->nchars;
 	if (cnt < 0) {
 #ifdef DEBUGPROCESS
 	fprintf(stderr, "process_output: write failed errno %d %s\n", errno,
@@ -2130,6 +2298,7 @@ process_input(struct descriptor_data * d)
     char   *p, *pend, *q, *qend;
 
     got = readsocket(d->descriptor, buf, sizeof buf);
+    d->input_len += strlen(buf);
     if (got <= 0) {
 #ifdef DEBUGPROCESS
 	fprintf(stderr, "process_input: read failed errno %d %s\n", errno,
@@ -2162,12 +2331,12 @@ process_input(struct descriptor_data * d)
 		}
 	    }
 	    p = d->raw_input;
-	} else if (p < pend && isascii(*q)) {
-	    if (isprint(*q)) {
+	} else if (p < pend && (isascii(*q) || !((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML)))) {
+	    if (isprint(*q) || !((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
 		*p++ = *q;
-	    } else if (*q == '\t') {
+	    } else if ((*q == '\t') && ((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
 		*p++ = ' ';
-	    } else if (*q == 8 || *q == 127) {
+	    } else if ((*q == 8 || *q == 127) && ((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
 		/* if BS or DEL, delete last character */
 		if (p > d->raw_input) p--;
 	    }
@@ -2964,25 +3133,10 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    host_as_hex(d->hostaddr), d->commands, d->cport);
 	help_user(d);
     } else {
-      if (Typeof(tp_login_huh_command) == TYPE_PROGRAM) {
-         char   *full_command, xbuf[BUFFER_LEN];
-
-         full_command = strcpy(xbuf, msg);
-         for (; *full_command && !isspace(*full_command); full_command++);
-         if (*full_command)
-            full_command++;
-         strcpy(match_cmdname, command);
-         strcpy(match_args, full_command);
-         tmpfr = interp(d->descriptor, -1, -1, tp_login_huh_command, (dbref) -5, FOREGROUND, STD_REGUID);
-	   if (tmpfr) {
-		interp_loop(-1, tp_login_huh_command, tmpfr, 0);
-	   }
-      } else {
            log_status("TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
              d->descriptor, d->hostname, d->username,
              host_as_hex(d->hostaddr), command, d->commands, d->cport);
            welcome_user(d);
-      }
     }
 }
 void 
@@ -3310,188 +3464,217 @@ emergency_shutdown(void)
 
 
 void 
-dump_users(struct descriptor_data * e, char *user)
+dump_users(struct descriptor_data *d, char *user)
 {
-    struct descriptor_data *d;
-    int     wizard, arch, players, ansi;
-    time_t  now;
-    char    buf[2048], tbuf[BUFFER_LEN];
-    char    pbuf[64];
-    const char    *p;
-    static  int players_max = 0;
-#ifdef COMPRESS
-    extern const char *uncompress(const char *);
-#endif
+	struct descriptor_data	*dlist;
+	int				 wizwho    = 0;
+	int				 players   = 0;
+	int				 idleplyrs = 0;
+	int				 namelimit = PLAYER_NAME_LIMIT;
+	int				 ArchPerms = 0;
+	int				 now       = current_systime;
+	static int			 player_max = 0;
+	char 				 buf[BUFFER_LEN], dobuf[BUFFER_LEN], plyrbuf[BUFFER_LEN], typbuf[BUFFER_LEN], tbuf[BUFFER_LEN], tbuf2[BUFFER_LEN];
+	const char			*p;
 
-    wizard = e->connected && (Mage(e->player) || (POWERS(e->player) & POW_EXPANDED_WHO));
-
-    if( e->connected ) {
-	ansi = ( FLAGS(e->player) & CHOWN_OK ) ? 1 : 0 ;
-    } else ansi = 0;
-
-    if ((e->type == CT_PUEBLO)) queue_string(e, "<code>");
-    if ((e->type == CT_HTML)) queue_string(e, "<pre>");
-
-    while (*user && isspace(*user)) user++;
-
-#ifdef MORTWHO
-    if( *user == '!' ) { user++; } else { wizard = 0; }
-#else
-    if( *user == '!' ) { user++; wizard = 0; }
-#endif
-
-    arch = wizard && e->connected && Arch(e->player);
-
-    while (*user && isspace(*user)) user++;
-
-    if (!*user) user = NULL;
-
-    (void) time(&now);
-    if (wizard) {
-      if(ansi)
-	queue_string(e,
-		ANSIRED    "DS "
-		ANSIGREEN "Player Name            "
-		ANSICYAN "Room    " 
-		ANSIPURPLE "On For " 
-		ANSIYELLOW "Idle "
-		ANSIBLUE "Host"
-		ANSINORMAL "\r\n");
-      else
-	queue_string(e, "DS Player Name            Room    On For Idle Host\r\n");
-    } else {
-	if (tp_who_doing) {
-	    if( (p = get_property_class((dbref)0, "_poll")) )
-	    {
-#ifdef COMPRESS
-		p = uncompress(p);
-#endif
-		if(ansi)
-		  sprintf( buf,
-		    ANSIGREEN "Player Name           "
-		    ANSIPURPLE "On For "
-		    ANSIYELLOW "Idle  "
-		    ANSICYAN "%-.43s"
-		    ANSINORMAL "\r\n",p);
-		else
-		  sprintf( buf,
-		    "Player Name           On For Idle  %-.43s\r\n",p);
-		queue_string(e, buf);
-	    } else
-		if(ansi)
-		  queue_string(e,
-		    ANSIGREEN "Player Name           "
-		    ANSIPURPLE "On For "
-		    ANSIYELLOW "Idle  "
-		    ANSICYAN "Doing..."
-		    ANSINORMAL "\r\n");
-		else
-		  queue_string(e,
-		    "Player Name           On For Idle  Doing...\r\n" );
-	} else
-	    if(ansi)
-		queue_string(e,
-		  ANSIGREEN "Player Name           "
-		  ANSIPURPLE "On For "
-		  ANSIYELLOW "Idle"
-		  ANSINORMAL "\r\n");
-	    else
-		queue_string(e, "Player Name           On For Idle\r\n");
-    }
-    if (e->type == CT_PUEBLO) queue_string(e, "<code>");
-
-    d = descriptor_list;
-    players = 0;
-    while (d) {
-	if ((!user || (d->connected && string_prefix(NAME(d->player), user)))
-        && (!tp_who_hides_dark || wizard || (!(FLAGS(d->player) & DARK) && !(FLAG2(d->player) & F2HIDDEN)))) {
-	    if (d->connected && (d->player < 0 || d->player >= db_top)) {
-		players++;
-		sprintf( buf, "<???> desc %d #%d", d->descriptor, d->player );
-	    } else if (wizard) {
-		players++;
-		if(d->connected)
-		    sprintf(pbuf, "%s(%s)", NAME(d->player), unparse_flags(d->player, tbuf));
-		else
-		  if ((d->type == CT_HTML) && (d->http_login == 0))
-		    sprintf(pbuf, "[WWW]"); else
-		    sprintf(pbuf, "[Connecting]");
-
-		sprintf(pbuf, "%.*s", PLAYER_NAME_LIMIT + 5, pbuf);
-
-		sprintf(buf, "%s%-3d%s%-*s %s%5d %s%9s%s%s%4s %s%s%s%s%s\r\n",
-			ansi ? ANSIRED : "",
-			d->descriptor,  
-			ansi ? ANSIGREEN : "",
-			PLAYER_NAME_LIMIT + 5, pbuf,
-			ansi ? ANSICYAN : "",
-			d->connected ? DBFETCH(d->player)->location : -1,
-			ansi ? ANSIPURPLE : "",
-			time_format_1(now - d->connected_at),
-			d->connected ? ((FLAGS(d->player) & INTERACTIVE) ? "*" : " ")
-				: " ",
-			ansi ? ANSIYELLOW : "",
-			time_format_2(now - d->last_time),
-			ansi ? ANSIBLUE : "",
-			arch ? d->username : "",
-			arch ? "@" : "",
-			d->hostname,
-			ansi ? ANSINORMAL : "" );
-	    } else if (d->connected) {
-		players++;
-
-		if (tp_who_doing) {
-		    sprintf(buf, "%s%-*s %s%10s %s%4s%s %s%-.45s%s\r\n",
-			ansi ? ANSIGREEN : "",
-			PLAYER_NAME_LIMIT + 1,
-			NAME(d->player),
-			ansi ? ANSIPURPLE : "",
-			time_format_1(now - d->connected_at),
-			ansi ? ANSIYELLOW : "",
-			time_format_2(now - d->last_time),
-			((FLAGS(d->player) & INTERACTIVE) ? "*" : " "),
-			ansi ? ANSICYAN : "",
-			GETDOING(d->player) ?
-#ifdef COMPRESS
-			    uncompress(GETDOING(d->player))
-#else
-			    GETDOING(d->player)
-#endif
-			    : "",
-			ansi ? ANSINORMAL : "" );
-		} else {
-		    sprintf(buf, "%s%-*s %s%10s %s%4s%s%s\r\n",
-			ansi ? ANSIGREEN : "",
-			PLAYER_NAME_LIMIT + 1,
-			NAME(d->player),
-			ansi ? ANSIPURPLE : "",
-			time_format_1(now - d->connected_at),
-			ansi ? ANSIYELLOW : "",
-			time_format_2(now - d->last_time),
-			((FLAGS(d->player) & INTERACTIVE) ? "*" : " "),
-			ansi ? ANSINORMAL : "" );
-		}
-	    }
-	    if( e->type == CT_PUEBLO) strcat(buf, "<code>");
-	    if( d->connected || wizard )
-		queue_string(e, buf);
+	if (!d) {
+		return;
 	}
-	d = d->next;
-    }
-    if (players > players_max)  players_max = players;
-    sprintf(buf, "%s%d player%s %s connected.  %s(Max was %d)%s\r\n",
-	ansi ? ANSIBLUE : "",
-	players,
-	(players == 1) ? "" : "s",
-	(players == 1) ? "is" : "are",
-	ansi ? ANSIYELLOW : "",
-	players_max,
-	ansi ? ANSINORMAL : ""
-    );
-    queue_string(e, buf);
-     if ((e->type == CT_PUEBLO)) queue_string(e, 
-       "</code>"); 
-     if ((e->type == CT_HTML)) queue_string(e, "</pre>");
+
+	if (!tp_mortalwho) {
+		wizwho = 1;
+	}
+
+	if (!(OkObj(d->player) && d->connected) && tp_secure_who) {
+		queue_ansi(d, ANSIRED "Login and find out!");
+		return;
+	}
+
+	while (*user && isspace(*user)) user++;
+	while (*user && *user == '!') {
+		(void) user++;
+		(void) wizwho++;
+		if (wizwho > 2) {
+			wizwho = 0;
+		}
+	}
+	while (*user && isspace(*user)) user++;
+
+	if (OkObj(d->player) ? !Mage(d->player) : 1 ) {
+		wizwho = 0;
+	}
+	if (OkObj(d->player) ? Arch(d->player) : 0 ) {
+		ArchPerms = 1;
+	}
+
+	if (!index(user, '*')) {
+		strcpy(tbuf, user);
+		user = strcat(tbuf, "*");
+	}
+	if (!wizwho && tp_who_doing) {
+		if (p = get_property_class((dbref)0, "_poll")) {
+#ifdef COMPRESS
+			p = uncompress(p);
+#endif
+			sprintf(dobuf, "%-43s", p);
+		} else {
+			sprintf(dobuf, "%-43s", "Doing...");
+		}
+      }
+	sprintf(plyrbuf, "%-*s", namelimit + 6, "Player Name");
+      switch (wizwho) {
+		case 0: {
+			if (tp_who_doing) {
+				sprintf(buf, "%s%s%sOn For %sIdle  %s%-.43s\r\n",
+					ANSIFOREST, plyrbuf, ANSIVIOLET, ANSIBROWN, ANSIAQUA, dobuf);
+			} else {
+				sprintf(buf, "%s%s%sOn For %sIdle\r\n",
+					ANSIFOREST, plyrbuf, ANSIVIOLET, ANSIBROWN);
+			}
+			break;
+		}
+		case 1: {
+			sprintf(buf, "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
+						ANSICRIMSON, ANSIFOREST, plyrbuf, ANSIAQUA, ANSIVIOLET, ANSIBROWN, ANSINAVY);
+			break;
+		}
+		case 2: {
+			sprintf(buf, "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
+						ANSICRIMSON, ANSIFOREST, plyrbuf, ANSIGRAY, ANSIBROWN, ANSIAQUA, ANSINAVY);
+			break;
+		}
+	}
+	queue_unhtml(d, buf);
+	for (dlist = descriptor_list; dlist; dlist = dlist->next) {
+		strcpy(plyrbuf, "");
+		strcpy(typbuf, "");
+		switch (dlist->type) {
+			case CT_MUCK: {
+				if (dlist->connected && OkObj(dlist->player)) {
+					strcpy(plyrbuf, NAME(dlist->player));
+				} else {
+					strcpy(plyrbuf, "[Connecting]");
+				}
+				strcpy(typbuf, "Text Port");
+				break;
+			}
+			case CT_PUEBLO: {
+				if (dlist->connected && OkObj(dlist->player)) {
+					strcpy(plyrbuf, NAME(dlist->player));
+				} else {
+					strcpy(plyrbuf, "[Connecting]");
+				}
+				strcpy(typbuf, "Pueblo Port");
+				break;
+			}
+			case CT_HTML: {
+				strcpy(plyrbuf, "[WWW}");
+				strcpy(typbuf, "Webport");
+				break;
+			}
+			case CT_MUF: {
+				strcpy(plyrbuf, "[MUF]");
+				strcpy(typbuf, "MUF Port");
+				break;
+			}
+			case CT_INBOUND: {
+				strcpy(plyrbuf, "[Inbound]");
+				strcpy(typbuf, "MUF Inbound");
+				break;
+			}
+			case CT_OUTBOUND: {
+				strcpy(plyrbuf, "[Outbound]");
+				strcpy(typbuf, "MUF Outbound");
+				break;
+			}
+			default: {
+				strcpy(plyrbuf, "[Unknown]");
+				strcpy(typbuf, "Unknown Port Type");
+			}
+		}
+		if ((!wizwho) && !((dlist->connected && OkObj(dlist->player)) ? 
+												!((FLAGS(dlist->player) & DARK) ||
+												(FLAG2(dlist->player) &  F2HIDDEN)) ||
+												(FLAG2(dlist->player) & F2LIGHT) : 0)) {
+			sprintf(buf, "[%s]", plyrbuf);
+			strcpy(plyrbuf, buf);
+		}
+		if ((wizwho ? 1 : ((dlist->connected && OkObj(dlist->player)) ? (tp_who_hides_dark ?
+												!((FLAGS(dlist->player) & DARK) ||
+												(FLAG2(dlist->player) &  F2HIDDEN)) ||
+												(Wiz(d->player)) || (d->player == dlist->player) ||
+												(FLAG2(dlist->player) & F2LIGHT) : 1) : 0)) &&
+												equalstr(user, plyrbuf)) {
+			if ((OkObj(dlist->player) && dlist->connected) ? (FLAG2(dlist->player) & F2IDLE) : 0) {
+				idleplyrs++;
+			}
+			if (wizwho) {
+				if (dlist->connected && OkObj(dlist->player) && wizwho) {
+					strcpy(buf, "");
+					strcpy(tbuf2, "");
+					strcpy(buf, unparse_flags(dlist->player, buf));
+					sprintf(tbuf2, "(%s)", buf);
+					strcat(plyrbuf, tbuf2);
+				}
+			}
+			strcpy(buf, "");
+			sprintf(plyrbuf, "%-*s", namelimit + (wizwho ? 5 : 1), plyrbuf);
+			switch (wizwho) {
+				case 0: {
+					if (tp_who_doing) {
+						sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
+							ANSIGREEN, plyrbuf, ANSIPURPLE, time_format_1(now - dlist->connected_at),
+							((dlist->connected && OkObj(dlist->player)) ?
+								((FLAG2(d->player) & F2IDLE) ? "I" : " ") : " "),
+							ANSIYELLOW, time_format_2(now - dlist->last_time),
+							((dlist->connected && OkObj(dlist->player)) ?
+								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), ANSICYAN,
+							GETDOING(dlist->player) ?
+#ifdef COMPRESS
+							uncompress(GETDOING(dlist->player))
+#else
+							GETDOING(dlist->player)
+#endif
+							: "");
+					} else {
+						sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
+							ANSIGREEN, plyrbuf, ANSIPURPLE, time_format_1(now - dlist->connected_at),
+							((dlist->connected && OkObj(dlist->player)) ?
+								((FLAG2(dlist->player) & F2IDLE) ? "I" : " ") : " "),
+							ANSIYELLOW, time_format_2(now - dlist->last_time),
+							((dlist->connected && OkObj(dlist->player)) ?
+								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "));
+					}
+					break;
+				}
+				case 1: {
+					sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
+						ANSIRED, dlist->descriptor, ANSIGREEN, plyrbuf, ANSICYAN, dlist->cport, ANSIPURPLE,
+						time_format_1(now - dlist->connected_at),
+						((dlist->connected && OkObj(dlist->player)) ?
+							((FLAG2(dlist->player) & F2IDLE) ? "I" : " ") : " "), ANSIYELLOW,
+						time_format_2(now - dlist->last_time),
+						((dlist->connected && OkObj(dlist->player)) ?
+							((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), ANSIBLUE,
+						ArchPerms ? dlist->username : "", ArchPerms ? "@" : "", dlist->hostname);
+					break;
+				}
+				case 2: {
+					sprintf(buf, "%s%-3d %s%s %s[%7d] %s[%7d] %s[%7d] %s%s\r\n",
+						ANSIRED, dlist->descriptor, ANSIGREEN, plyrbuf, ANSIWHITE, dlist->output_len / 1024,
+						ANSIYELLOW, dlist->input_len / 1024, ANSICYAN, dlist->commands, ANSIBLUE, typbuf);
+					break;
+				}
+			}
+			players++;
+			queue_unhtml(d, buf);
+		}
+	}
+	if (players > player_max) player_max = players;
+	sprintf(buf, "%s%d player%s connected.  %s(%d Active, %d Idle, Max was %d)\r\n", ANSIBLUE, players,
+			((players == 1) ? " is" : "s are"), ANSIYELLOW, (players - idleplyrs), idleplyrs, player_max);
+	queue_unhtml(d, buf);
+	return;
 }
 
 void 
@@ -3506,6 +3689,7 @@ pdump_who_users(int c, char *user)
    }
    if(e->descriptor == c)
       dump_users(e, user);
+   return;
 }
 
 char   *
@@ -3608,12 +3792,12 @@ announce_connect(int descr, dbref player)
 		 "~connect", "Connect", 1, 1);
     envpropqueue(descr, player, getloc(player), NOTHING, player, NOTHING,
 		 "~oconnect", "Oconnect", 1, 0);
-#ifdef ALLOW_OLD_TRIGGERS
-    envpropqueue(descr, player, getloc(player), NOTHING, player, NOTHING,
-		 "_connect", "Connect", 1, 1);
-    envpropqueue(descr, player, getloc(player), NOTHING, player, NOTHING,
-		 "_oconnect", "Oconnect", 1, 0);
-#endif
+    if (tp_allow_old_trigs) {
+	    envpropqueue(descr, player, getloc(player), NOTHING, player, NOTHING,
+			 "_connect", "Connect", 1, 1);
+	    envpropqueue(descr, player, getloc(player), NOTHING, player, NOTHING,
+			 "_oconnect", "Oconnect", 1, 0);
+    }
 
     exit = NOTHING;
     if (online(player) == 1) {
@@ -3706,12 +3890,12 @@ announce_disconnect(struct descriptor_data *d)
 		"~disconnect", "Disconnect", 1, 1);
 	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
 		"~odisconnect", "Odisconnect", 1, 0);
-#ifdef ALLOW_OLD_TRIGGERS
-	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-		"_disconnect", "Disconnect", 1, 1);
-	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-		"_odisconnect", "Odisconnect", 1, 0);
-#endif
+	if (tp_allow_old_trigs) {
+		envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+			"_disconnect", "Disconnect", 1, 1);
+		envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
+			"_odisconnect", "Odisconnect", 1, 0);
+	}
 	if (can_move(d->descriptor, player, "disconnect", 1)) {
 	    do_move(d->descriptor, player, "disconnect", 1);
 	}
@@ -4717,14 +4901,6 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
-
-
-
-
-
-
-
-
 
 
 

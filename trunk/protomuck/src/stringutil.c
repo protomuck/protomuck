@@ -19,7 +19,8 @@ extern const char *uppercase, *lowercase;
 
 #ifdef COMPRESS
 extern const char *uncompress(const char *);
-
+#else
+#define uncompress(x) x
 #endif				/* COMPRESS */
 
 /*
@@ -938,6 +939,7 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     *p = '\0';
     return out;
 }
+
 
 
 
