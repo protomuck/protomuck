@@ -2184,7 +2184,6 @@ process_output(struct descriptor_data * d)
     
     for ( qp = &d->output.head; (cur = *qp); ) {
 	cnt = writesocket(d->descriptor, cur->start, cur->nchars);
-	d->output_len += cur->nchars;
 	if (cnt < 0) {
 #ifdef DEBUGPROCESS
 	fprintf(stderr, "process_output: write failed errno %d %s\n", errno,
@@ -2194,6 +2193,7 @@ process_output(struct descriptor_data * d)
 		return 1;
 	    return 0;
 	}
+	d->output_len += cnt;
 	d->output_size -= cnt;
 	if (cnt == cur->nchars) {
 	    d->output.lines--;
@@ -2295,7 +2295,6 @@ process_input(struct descriptor_data * d)
     char   *p, *pend, *q, *qend;
 
     got = readsocket(d->descriptor, buf, sizeof buf);
-    d->input_len += strlen(buf);
     if (got <= 0) {
 #ifdef DEBUGPROCESS
 	fprintf(stderr, "process_input: read failed errno %d %s\n", errno,
@@ -2303,6 +2302,7 @@ process_input(struct descriptor_data * d)
 #endif
 	return 0;
     }
+    d->input_len += got;
     if (!d->raw_input) {
 	MALLOC(d->raw_input, char, MAX_COMMAND_LEN);
 	d->raw_input_at = d->raw_input;
@@ -2974,13 +2974,18 @@ check_connect(struct descriptor_data * d, const char *msg)
 
 #ifdef HTTPD
     if (d->type == CT_HTML && (d->http_login == 0)) {
+	if (OkObj(tp_www_surfer)) {
+		if ((FLAG2(tp_www_surfer) & F2PARENT) && (FLAGS(tp_www_surfer) & DARK)) {
+			show_status("WWW: '%s %s %s'", command, user, password);
+		}
+	}
 	if (!strcmp(command, "get")) {
             if (!string_prefix(user, "/webinput")) 
 	    if( tp_log_connects )
 		log2filetime(CONNECT_LOG, "GET: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<hidden>", d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
-	    show_status(" GET: '%s' '%s' %s(%s) %s P#%d\n",
+	    show_status("GET: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<hidden>", d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
 	    name = user;
@@ -4627,7 +4632,7 @@ pset_user(struct descriptor_data *d, dbref who)
 	if (who != NOTHING) {
 	    d->player = who;
 	    d->connected = 1;
-          d->connected_at = current_systime;
+/*          d->connected_at = current_systime; */
 	    update_desc_count_table();
             remember_player_descr(who, d->descriptor);
             announce_connect(d->descriptor, who);
@@ -4659,7 +4664,7 @@ plogin_user(struct descriptor_data *d, dbref who)
 	if (who != NOTHING) {
 	    d->player = who;
 	    d->connected = 1;
-          d->connected_at = current_systime;
+/*          d->connected_at = current_systime; */
 	   spit_file(d->player, MOTD_FILE);
 	    interact_warn(d->player);
 	    if (sanity_violated && TMage(d->player)) {
