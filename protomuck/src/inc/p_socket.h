@@ -16,4 +16,8 @@ extern void prim_nbsockrecv_char(PRIM_PROTOTYPE);
     "NBSOCKOPEN", "SOCKCHECK", "SOCKDESCR", "LSOCKOPEN", "SOCKACCEPT", \
     "NBSOCKRECV_CHAR"
 
+#ifdef MUF_SOCKETS
 #define PRIMS_SOCKET_CNT 9
+#else
+#define PRIMS_SOCKET_CNT 0
+#endif

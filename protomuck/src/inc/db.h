@@ -219,9 +219,8 @@ typedef int dbref;		/* offset into db */
 #define POW_CONTROL_MUF    0x8000   /* [f] Ability to control all MUFs */
 #define POW_CONTROL_ALL   0x10000   /* [r] Ability to control all objects */
 #define POW_ALL_MUF_PRIMS 0x20000   /* [m] Gives full access to MUF prims */
-#ifdef STAFF_POWER 
 #define POW_STAFF         0x40000   /* [w] Special support for 'staff' bits in MUF */
-#endif 
+
 /* FREE POWER LETTERS: jkquvyz */
 
 /* what flags to NOT dump to disk. */

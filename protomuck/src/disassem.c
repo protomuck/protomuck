@@ -85,9 +85,11 @@ disassemble(dbref player, dbref program)
 		sprintf(buf, "%d: (line %d) LOCALVAR: %d", i,
 			curr->line, curr->data.number);
             break;
+#ifdef MUF_SOCKETS
           case PROG_SOCKET:
             sprintf(buf, "%d: (line %d) SOCKET",i, curr->line);
             break;
+#endif
 #ifdef SQL_SUPPORT
           case PROG_MYSQL:
             sprintf(buf, "%d: (line %d) MYSQL", i, curr->line);
