@@ -3309,7 +3309,7 @@ _command/     ~command/        @command/
 _ocommand/    ~ocommand/       @ocommand/
 
 A command prop is set by setting a prop as follows:
-@set <object>=@command/<action name>:<string or dbref of a program>
+@set <object>=@command/<action name>:<string or dbref>
 
 For example, the following command props are all valid:
 @set me=_command/mesg:A Message.   -- When that player types 'mesg', they
@@ -3335,7 +3335,36 @@ sets a COMMAND flag on that object automatically. This COMMAND flag
 tells the server to check that object for the presense of command props
 when processing player input. By setting a NO_COMMAND flag on an object,
 that object will only be checked for the @command/ propdir, but not
-the other two. 
+the other two.
+
+Proto 2.0 Command Prop extensions:
+1) ROOMs can be specified in command props.
+   When a ROOM is specified in a command prop, it will move anyone using the
+   command to the specified room IF any of the following permissions checks pass:
+   a) The trigger player is WIZARD or higher
+   b) The object the command prop is on is MAGE or higher
+   c) The trigger player controls the destination
+   d) The destination is JUMP_OK.
+   In this case, the trigger exit is actually the object the command prop resides on.
+2) EXITs can be specified in command props.
+   When an EXIT is specified in a command prop, it will move anyone using the
+   command to the *target* of the exit IF any of the following permissions 
+   checks pass:
+   a) The trigger player is WIZARD or higher
+   b) The object the command prop is on is MAGE or higher
+   c) The trigger player controls the exit itself
+   d) The exit is JUMP_OK.
+   In this case, the trigger exit is the exit in question and it will appear for
+   all intents and purposes that you have passed through the exit.
+3) THINGs can be specified in command props.
+   When an THING is specified in a command prop, it will move anyone using the
+   command to the *target* of the exit IF any of the following permissions 
+   checks pass:
+   a) The trigger player is WIZARD or higher
+   b) The object the command prop is on is MAGE or higher
+   c) The trigger player controls both the object and where it resides
+   d) The object is either JUMP_OK or VEHICLE, and the location it resides in
+      is both JUMP_OK and NOT VEHICLE. 
 ~~~~
 LOGINCOMMAND|LOGINCOMMANDPROPS|LOGINCOMMANDPROP|LOGIN COMMAND|LOGIN COMMAND PROP
 
