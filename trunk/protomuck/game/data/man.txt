@@ -146,6 +146,7 @@ Data Base Prims:
 System Prims:
   SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
   FORCE_LEVEL   MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
+  DUMP          DELTA          SHUTDOWN      RESTART     ARMAGEDDON
 
 Socket Prims:
   SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
@@ -8625,3 +8626,39 @@ with the connection via SOCKSEND and NBSOCKRECIEVE like
 normal.
 
 See: LSOCKOPEN, SOCKET PRIMS
+~~~~~~~~~~~
+ARMAGEDDON
+
+armageddon ( s -- )
+--------------------
+Level: W4 Boy
+s = Message to send to all users before shutdown.
+
+This primitive can be used to terminate the MUCK without an
+ automatic database save. Please note, that all data created
+ after the last database save, will be lost.
+
+See the help file on @armageddon for more information.
+~~~~~~~~~~~
+SHUTDOWN|RESTART
+
+shutdown ( s -- )
+restart  ( s -- )
+--------------------
+Level: W4 Boy
+s = Message to send to all users before shutdown.
+
+These primitives can be used to shutdown or restart the MUCK.
+
+See the help files on @shutdown and @restart for more info.
+~~~~~~~~~~~
+DUMP|DELTA
+
+dump  ( -- )
+delta ( -- )
+--------------------
+Level: W3 ArchWizard
+
+These primitives can be used to force the MUCK to dump a standard
+ or delta database save.
+~~~~
