@@ -158,6 +158,7 @@ extern FILE *delta_outfile;
 short db_conversion_flag = 0;
 short db_decompression_flag = 0;
 short wizonly_mode = 0;
+short verboseload = 0;
 
 time_t sel_prof_start_time;
 long sel_prof_idle_sec;
@@ -177,7 +178,8 @@ show_program_usage(char *prog)
             "       outfile           output db to save to. optional with -dbout.\n");
     fprintf(stderr,
             "       portnum           port num to listen for conns on. (16 ports max)\n");
-    fprintf(stderr, "   Options:\n");
+    fprintf(stderr, 
+            "   Options:\n");
     fprintf(stderr,
             "       -dbin INFILE      uses INFILE as the database to load at startup.\n");
     fprintf(stderr,
@@ -196,10 +198,14 @@ show_program_usage(char *prog)
             "       -insanity         load db, then enter interactive sanity editor.\n");
     fprintf(stderr,
             "       -sanfix           attempt to auto-fix a corrupt db after loading.\n");
-    fprintf(stderr, "       -wizonly          only allow wizards to login.\n");
+    fprintf(stderr, 
+            "       -wizonly          only allow wizards to login.\n");
     fprintf(stderr,
             "       -version          display this server's version.\n");
-    fprintf(stderr, "       -help             display this message.\n");
+    fprintf(stderr, 
+            "       -verboseload      show messages while loading.\n");
+    fprintf(stderr, 
+            "       -help             display this message.\n");
     exit(1);
 }
 
@@ -252,6 +258,8 @@ main(int argc, char **argv)
                 db_decompression_flag = 1;
             } else if (!strcmp(argv[i], "-nosanity")) {
                 sanity_skip = 1;
+            } else if (!strcmp(argv[i], "-verboseload")) {
+                verboseload = 1;
             } else if (!strcmp(argv[i], "-insanity")) {
                 sanity_interactive = 1;
             } else if (!strcmp(argv[i], "-wizonly")) {

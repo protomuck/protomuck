@@ -42,6 +42,9 @@
 extern char match_args[];
 extern char match_cmdname[];
 
+/* From interface.c */
+extern short verboseload;
+
 /* From debugger.c */
 extern int muf_debugger(int descr, dbref player, dbref program,
                         const char *text, struct frame *fr);

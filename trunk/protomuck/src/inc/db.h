@@ -73,7 +73,6 @@ using namespace std;
 
 
 
-
 extern time_t current_systime;
 extern char match_args[BUFFER_LEN];
 extern char match_cmdname[BUFFER_LEN];

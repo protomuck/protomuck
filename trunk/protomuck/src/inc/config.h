@@ -167,7 +167,8 @@
 #define RESTART_RESOLVER 
 
 /* Debugging info for database loading */
-#undef VERBOSELOAD
+/* Alynna - Obsoleted, use -verboseload command line option */
+/* #undef VERBOSELOAD */
 
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
