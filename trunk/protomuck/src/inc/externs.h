@@ -59,6 +59,9 @@ extern void delta_dump_now(void);
 #endif
 extern time_t next_cron_time(void);
 extern void check_cron_time(void);
+extern time_t next_archive_time(void);
+extern void check_archive_time();
+extern int auto_archive_now(void);	
 
 /* from timequeue.c */
 extern stk_array *get_pids(dbref ref);
@@ -139,10 +142,12 @@ extern void match_and_list(int descr, dbref player, const char *name, char *line
 extern void do_list(dbref player, dbref program, int arg[], int argc, int commentit);
 
 /* From game.c */
+extern void do_auto_archive(int descr, dbref player);
 extern void do_dump(dbref player, const char *newfile);
 extern void do_shutdown(dbref player, const char *muckname, const char *msg);
 extern void do_restart(dbref player, const char *muckname, const char *msg);
 extern void fork_and_dump(void);
+extern void archive_site();
 extern void dump_database(void);
 extern int prop_command(int descr, dbref player, char *command, char *arg, char *type, int mt);
 extern void dump_warning(void);
@@ -435,7 +440,6 @@ extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
 extern void tune_save_parms_to_file(FILE *f);
 extern void tune_load_parmsfile(dbref player);
 extern void tune_save_parmsfile(void);
-
 
 /* From netresolve.c */
 

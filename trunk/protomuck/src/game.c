@@ -30,6 +30,35 @@ FILE   *delta_infile;
 FILE   *delta_outfile;
 char   *in_filename = NULL;
 
+
+/* This is the command, @autoarchive. */
+void
+do_autoarchive(int descr, dbref player)
+{
+    char timebuf[BUFFER_LEN];
+    if (!(Boy(player))) {
+        log_status("SHAM: by %s\n", unparse_object(player, player));
+        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        return;
+    }
+    if (auto_archive_now()){
+        sprintf(timebuf, "%d minutes", ARCHIVE_DELAY / 60);
+        anotify_fmt(player, CINFO "Need to wait at least %s between @autoarchives.",
+                    timebuf);
+        return;
+    }
+    log_status("ARCHIVE: by %s\n", unparse_object(player, player));
+    anotify(player, CSUCC "The site archiving script has been called.");
+}
+
+/* This does the actual script call. Changes to how site archiving 
+ * works and operates shoudl probably be made here.
+ */
+void
+archive_site()
+{   system("./archive &");
+}
+
 void 
 do_dump(dbref player, const char *newfile)
 {
@@ -663,13 +692,21 @@ process_command(int descr, dbref player, char *command)
 				Matched("@attach");
 				do_attach(descr, player, arg1, arg2);
 				break;
-                      case 'n':
-                      case 'N':
-                        Matched("@ansidescribe");
-                        do_ansidescribe(descr, player, arg1, arg2);
-                        break;
+                            case 'n':
+                            case 'N':
+                                Matched("@ansidescribe");
+                                do_ansidescribe(descr, player, arg1, arg2);
+                                break;
+                            case 'u':
+                            case 'U':
+                                if (string_compare(command, "@autoarchive"))
+                                    goto bad;
+                                if (!tp_auto_archive)
+                                    goto bad;
+                                do_autoarchive(descr, player);
+                                break;
 			    default:
-				goto bad;
+		            goto bad;
 			}
 			break;
 		    case 'b':

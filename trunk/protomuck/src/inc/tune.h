@@ -47,7 +47,7 @@ extern time_t tp_idletime;
 extern time_t tp_connidle;
 extern time_t tp_maxidle;
 extern time_t tp_cron_interval;
-
+extern time_t tp_archive_interval;
 
 /* integers */
 
@@ -163,7 +163,7 @@ extern int tp_guest_needflag;
 extern int tp_fb_controls;
 extern int tp_allow_old_trigs;
 extern int tp_multi_wizlevels;
-
+extern int tp_auto_archive;
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);

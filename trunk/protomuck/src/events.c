@@ -202,6 +202,74 @@ check_cron_time (void)
    }
 }
 
+/**********************************************
+ * Archive Interval for auto-archiving support. 
+ **********************************************/
+
+static time_t last_archive_time = 0L;//Always stores the last archive time
+static int archive_done = 0;//Indicates if an archive has been done
+                            //since startup. (to prevent repetition)
+/* This returns the next time that a full site archive is to be done. */
+time_t
+next_archive_time()
+{
+    time_t currtime = time((time_t *) NULL);
+    if (!last_archive_time)
+        last_archive_time = time((time_t *) NULL);
+
+    if ((last_archive_time + tp_archive_interval) < currtime)
+        return (0L);
+    
+    return (last_archive_time + tp_archive_interval - currtime);
+}
+
+/* This checks to see if it is time to archive, and if so, makes the call
+ * and updates the props needed.
+ */
+void
+check_archive_time (void)
+{
+    time_t currtime = time((time_t *) NULL);
+    if (!tp_auto_archive)
+        return;
+    if (!last_archive_time)
+        last_archive_time = time((time_t *)NULL);
+    if ( ((currtime - last_archive_time) < ARCHIVE_DELAY) && archive_done)
+        return;
+    if ((last_archive_time + tp_archive_interval) < currtime) {
+        add_property((dbref)0, "~sys/lastarchive", NULL, 
+                     (int)last_archive_time);
+        if (tp_allow_old_trigs)
+            add_property((dbref)0, "_sys/lastarchive", NULL, 
+                         (int)last_archive_time);
+        last_archive_time = currtime;
+        log_status("ARCHIVE: Scheduled by @tune\n");
+        archive_done++;
+        archive_site();
+    }
+} 
+
+/* This is called by the do_autoarchive() function that is called
+ * by the @autoarchive command in-muck
+ */
+int
+auto_archive_now(void)
+{
+    time_t currtime = time((time_t *) NULL);
+    if ( (currtime - last_archive_time) < ARCHIVE_DELAY && archive_done)
+        return -1;
+    add_property((dbref)0, "~sys/lastarchive", NULL, (int)currtime);
+    if (tp_allow_old_trigs) {
+        add_property((dbref)0, "_sys/lastarchive", NULL, (int)currtime);
+    }
+    last_archive_time = currtime;
+    archive_done++;
+    archive_site();
+    return 0;
+}
+
+
+
 
 
 /****************
@@ -284,6 +352,7 @@ next_muckevent_time(void)
     nexttime = mintime(next_dump_time(), nexttime);
     nexttime = mintime(next_clean_time(), nexttime);
     nexttime = mintime(next_cron_time(), nexttime);
+    nexttime = mintime(next_archive_time(), nexttime);
 #ifdef RWHO      
     nexttime = mintime(next_rwho_time(), nexttime);
 #endif
@@ -298,6 +367,7 @@ next_muckevent (void)
     check_dump_time();
     check_clean_time();
     check_cron_time();
+    check_archive_time();
 #ifdef RWHO
     check_rwho_time();
 #endif

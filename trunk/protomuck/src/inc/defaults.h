@@ -66,7 +66,11 @@
 #define CLEAN_INTERVAL TIME_MINUTE(15) /* time between unused obj purges */
 #define CRON_INTERVAL TIME_MINUTE(15) /* frequency of cron-daemon runs */
 #define IDLETIME TIME_MINUTE(30) /* Time until player is idle */
-
+#define ARCHIVE_INTERVAL TIME_DAY(7) /* Frequency of site archiving */
+/* The minimum amount of time that must pass between site archives.
+ * Note that this setting does not have a related @tune in-muck
+ */
+#define ARCHIVE_DELAY TIME_MINUTE(30)
 
 /* Information needed for RWHO. */
 #ifdef RWHO
