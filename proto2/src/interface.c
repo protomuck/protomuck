@@ -188,10 +188,9 @@ check_password(dbref player, const char *check_pw)
 {
 /* Alynna's new toy to load DBs with FB6 passwords in them!
  */
-    char md5buf[64];
-
     if (player != NOTHING) {
         const char *password = DBFETCH(player)->sp.player.password;
+        char md5buf[64];
 
         /*
            Note. We wanted to detect here whether we were running
@@ -202,10 +201,12 @@ check_password(dbref player, const char *check_pw)
            check if the password is an MD5 hash. 
          */
 
-        if (password == NULL)
+        if (!password || !*password)
             return 1;
+
         if (!strcmp(check_pw, password))
             return 1;
+
         MD5base64(md5buf, check_pw, strlen(check_pw));
         if (!strcmp(md5buf, password))
             return 1;
@@ -219,14 +220,15 @@ set_password(dbref player, const char *set_pw)
 /* Proto now sets passwords encrypted.
  */
 /* Does not! -Hinoserm */
-//    char md5buf[64];
+//    char md5buf[64]; /* Must... stop... C++... comments... -Hinoserm */
 
     if (player != NOTHING) {
-        if (set_pw == NULL) {
+        if (!set_pw || !*set_pw) {
             free((void *) DBFETCH(player)->sp.player.password);
             DBSTORE(player, sp.player.password, alloc_string(""));
             return 1;
         }
+
         if (!ok_password(set_pw))
             return 0;
 
@@ -235,6 +237,7 @@ set_password(dbref player, const char *set_pw)
         DBSTORE(player, sp.player.password, alloc_string(set_pw));
         return 1;
     }
+
     return 0;
 }
 
@@ -3607,12 +3610,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                             /****/
+        if (d->next)                                                                                                                 /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                                         /****/
+        if (d->hostname)                                                                                                             /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                                         /****/
+        if (d->username)                                                                                                             /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
