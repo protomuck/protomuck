@@ -2,13 +2,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-
+#include "config.h"
 #include "cgidefs.h"
 
+#ifdef BUFFER_LEN
+#undef BUFFER_LEN
+#endif
 #define BUFFER_LEN 4096
 
-#ifdef WIN32
-# define  strcasecmp(x,y) _strcmpi(x,y)
+#ifdef WIN_VC
+# define vcSTRCASECMP(x,y) stricmp((x),(y))
+#else
+# define vcSTRCASECMP(x,y) strcasecmp((x),(y))
 #endif
 
 /** Convert a two-char hex string into the char it represents **/
@@ -75,7 +80,7 @@ getcgivar(char *cgistring, char *param) {
     nvpair= strtok(cgiinput, "&") ;
     while (nvpair) {
        char *test = getparam(nvpair);
-       if(!strcasecmp(test,param))
+       if(!vcSTRCASECMP(test,param))
 	 {
 	    result = getvalue(nvpair); free((void *)test); break;
 	 }

@@ -715,7 +715,7 @@ prim_array_notify(PRIM_PROTOTYPE)
 {
         stk_array *strarr;
         stk_array *refarr;
-        struct inst *oper1, *oper2, *oper3 = NULL, *oper4 = NULL;
+        struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
         struct inst temp1, temp2;
         char buf2[BUFFER_LEN * 2];
 
@@ -771,7 +771,7 @@ prim_array_ansi_notify(PRIM_PROTOTYPE)
 {
         stk_array *strarr;
         stk_array *refarr;
-        struct inst *oper1, *oper2, *oper3 = NULL, *oper4 = NULL;
+        struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
         struct inst temp1, temp2;
         char buf2[BUFFER_LEN * 2];
 
@@ -827,7 +827,7 @@ prim_array_notify_html(PRIM_PROTOTYPE)
 {
         stk_array *strarr;
         stk_array *refarr;
-        struct inst *oper1, *oper2, *oper3 = NULL, *oper4 = NULL;
+        struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
         struct inst temp1, temp2;
         char buf2[BUFFER_LEN * 2];
 

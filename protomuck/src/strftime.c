@@ -1,5 +1,7 @@
 #include "config.h"
 
+#include <time.h>
+
 void 
 int2str(char *buf, int val, int len, char pref)
 {
@@ -21,7 +23,7 @@ int
 format_time(char *buf, int max_len, const char *fmt, struct tm * tmval)
 {
 
-#if defined(USE_STRFTIME) && !defined(WIN32)
+#if defined(USE_STRFTIME) /* && !defined(WIN32) */
     return (strftime(buf, max_len, fmt, tmval));
 #else
     int     pos, ret;
@@ -267,11 +269,15 @@ format_time(char *buf, int max_len, const char *fmt, struct tm * tmval)
 			int2str(tmp, tmval->tm_year + 1900, 4, '0');
 			break;
 		    case 'Z':
-#ifdef HAVE_TM_ZONE
+#if defined(HAVE_TM_ZONE) && !defined(WIN32) && !defined(BRAINDEAD_OS)
 			strcpy(tmp, tmval->tm_zone);
 #else /* !HAVE_TM_ZONE */
 # ifdef HAVE_TZNAME
+#  ifdef WIN_VC
+			strcpy(tmp, _tzname[tmval->tm_isdst]);
+#  else
 			strcpy(tmp, tzname[tmval->tm_isdst]);
+#  endif
 # endif
 #endif /* !HAVE_TM_ZONE */
 			break;
@@ -305,22 +311,28 @@ get_tz_offset(void)
  * a structure. This makes it very hard (at best) to check for,
  * therefor I'm checking for tm_gmtoff. --WF
  */
-  #if WINNT
+  #if defined(BRAINDEAD_OS)
     return 0;
   #else
     #if defined(HAVE_TM_GMTOFF) || defined(HAVE_SYS_TM_GMTOFF)
       time_t now;
 
       time(&now);
-      return (localtime(&now)->tm_gmtoff);
+      return (int) (localtime(&now)->tm_gmtoff);
     #else
       /* extern int timezone; */
   
-      return timezone;
+#ifdef WIN_VC
+	return (int) _timezone;
+#else
+	return (int) timezone;
+#endif
     #endif
- #endif
+  #endif
 }
     
+
+
 
 
 

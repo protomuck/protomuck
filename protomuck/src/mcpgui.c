@@ -1,8 +1,13 @@
+#include "config.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <malloc.h>
-#include <sys/time.h>
+#ifndef WIN_VC
+# include <sys/time.h>
+#else
+# include <time.h>
+#endif
 #include "interface.h"
 #include "mcp.h"
 #include "mcpgui.h"
@@ -245,7 +250,7 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 			value[i] = mcp_mesg_arg_getline(msg, "value", i);
 		}
 		gui_value_set_local(dlogid, id, valcount, value);
-		free(value);
+		free((void *) value);
 
 	} else if (!string_compare(msg->mesgname, "ctrl-event")) {
 		const char *evt = mcp_mesg_arg_getline(msg, "event", 0);

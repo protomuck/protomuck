@@ -283,46 +283,46 @@ extern int top_pid;
 struct forvars *copy_fors(struct forvars *); 
 struct tryvars *copy_trys(struct tryvars *); 
 
-
-void 
+void
 prim_fork(PRIM_PROTOTYPE)
 {
-    int     i;
-    struct frame *tmpfr;
+	int i;
+	struct frame *tmpfr;
 
-    CHECKOP(0);
-    CHECKOFLOW(1);
+	CHECKOP(0);
+	CHECKOFLOW(1);
 
-    if (mlev < LMAGE)
-	abort_interp("Mage prim");
+	if (mlev < LMAGE)
+		abort_interp("Mage prim.");
 
-    fr->pc = pc;
+	fr->pc = pc;
 
-    tmpfr = (struct frame *) calloc(1, sizeof(struct frame));
+	tmpfr = (struct frame *) calloc(1, sizeof(struct frame));
+	tmpfr->next = NULL;
 
-    tmpfr->system.top = fr->system.top;
-    for (i = 0; i < fr->system.top; i++)
-	tmpfr->system.st[i] = fr->system.st[i];
+	tmpfr->system.top = fr->system.top;
+	for (i = 0; i < fr->system.top; i++)
+		tmpfr->system.st[i] = fr->system.st[i];
 
-    tmpfr->argument.top = fr->argument.top;
-    for (i = 0; i < fr->argument.top; i++)
-	copyinst(&fr->argument.st[i], &tmpfr->argument.st[i]);
+	tmpfr->argument.top = fr->argument.top;
+	for (i = 0; i < fr->argument.top; i++)
+		copyinst(&fr->argument.st[i], &tmpfr->argument.st[i]);
 
-    tmpfr->caller.top = fr->caller.top;
-    for (i = 0; i <= fr->caller.top; i++) {
-	tmpfr->caller.st[i] = fr->caller.st[i];
-	if (i > 0)
-            DBFETCH(fr->caller.st[i])->sp.program.instances++;
-    }
-    tmpfr->trys.top = fr->trys.top; 
-    tmpfr->trys.st = copy_trys(fr->trys.st); 
-    
-    tmpfr->fors.top = fr->fors.top; 
-    tmpfr->fors.st = copy_fors(fr->fors.st); 
+	tmpfr->caller.top = fr->caller.top;
+	for (i = 0; i <= fr->caller.top; i++) {
+		tmpfr->caller.st[i] = fr->caller.st[i];
+		if (i > 0)
+                    DBFETCH(fr->caller.st[i])->sp.program.instances++;
+	}
 
+	tmpfr->trys.top = fr->trys.top;
+	tmpfr->trys.st = copy_trys(fr->trys.st);
 
-    for (i = 0; i < MAX_VAR; i++)
-	copyinst(&fr->variables[i], &tmpfr->variables[i]);
+	tmpfr->fors.top = fr->fors.top;
+	tmpfr->fors.st = copy_fors(fr->fors.st);
+
+	for (i = 0; i < MAX_VAR; i++)
+		copyinst(&fr->variables[i], &tmpfr->variables[i]);
 
 	localvar_dupall(tmpfr, fr);
 	scopedvar_dupall(tmpfr, fr);
@@ -337,40 +337,69 @@ prim_fork(PRIM_PROTOTYPE)
 	} else {
 		tmpfr->rndbuf = NULL;
 	}
+	tmpfr->pc = pc;
+	tmpfr->pc++;
+	tmpfr->level = fr->level;
+	tmpfr->already_created = fr->already_created;
+	tmpfr->trig = fr->trig;
 
-    tmpfr->pc = pc;
-    tmpfr->pc++;
-    tmpfr->level = fr->level;
-    tmpfr->already_created = fr->already_created;
-    tmpfr->trig = fr->trig;
+	tmpfr->brkpt.debugging = 0;
+	tmpfr->brkpt.bypass = 0;
+	tmpfr->brkpt.isread = 0;
+	tmpfr->brkpt.showstack = 0;
+	tmpfr->brkpt.lastline = 0;
+	tmpfr->brkpt.lastpc = 0;
+	tmpfr->brkpt.lastlisted = 0;
+	tmpfr->brkpt.lastcmd = NULL;
+	tmpfr->brkpt.breaknum = -1;
 
-    tmpfr->brkpt.debugging = 0;
-    tmpfr->brkpt.count = 0;
-    tmpfr->brkpt.showstack = 0;
-    tmpfr->brkpt.isread = 0;
-    tmpfr->brkpt.bypass = 0;
-    tmpfr->brkpt.lastcmd = NULL;
+	tmpfr->brkpt.lastproglisted = NOTHING;
+	tmpfr->brkpt.proglines = NULL;
 
-    tmpfr->pid = top_pid++;
-    tmpfr->multitask = BACKGROUND;
-    tmpfr->writeonly = 1;
-    tmpfr->started = time(NULL);
-    tmpfr->instcnt = 0;
+	tmpfr->brkpt.count = 1;
+	tmpfr->brkpt.temp[0] = 1;
+	tmpfr->brkpt.level[0] = -1;
+	tmpfr->brkpt.line[0] = -1;
+	tmpfr->brkpt.linecount[0] = -2;
+	tmpfr->brkpt.pc[0] = NULL;
+	tmpfr->brkpt.pccount[0] = -2;
+	tmpfr->brkpt.prog[0] = program;
 
-    /* child process gets a 0 returned on the stack */
-    result = 0;
-    push(tmpfr->argument.st, &(tmpfr->argument.top),
-	 PROG_INTEGER, MIPSCAST & result);
+	tmpfr->proftime.tv_sec = 0;
+        tmpfr->proftime.tv_usec = 0;
+        tmpfr->totaltime.tv_sec = 0;
+        tmpfr->totaltime.tv_usec = 0;
 
-    result = add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING, program,
-				tmpfr, "BACKGROUND");
 
-    /* parent process gets the child's pid returned on the stack */
-    if (!result)
-	result = -1;
-    PushInt(result);
+	tmpfr->pid = top_pid++;
+	tmpfr->multitask = BACKGROUND;
+	tmpfr->been_background = 1;
+	tmpfr->writeonly = 1;
+	tmpfr->started = time(NULL);
+	tmpfr->instcnt = 0;
+	tmpfr->skip_declare = fr->skip_declare;
+	tmpfr->wantsblanks = fr->wantsblanks;
+	tmpfr->perms = fr->perms;
+	tmpfr->descr = fr->descr;
+	tmpfr->events = NULL;
+	tmpfr->waiters = NULL;
+	tmpfr->waitees = NULL;
+	tmpfr->dlogids = NULL;
+	tmpfr->timercount = 0;
+
+	/* child process gets a 0 returned on the stack */
+	result = 0;
+	push(tmpfr->argument.st, &(tmpfr->argument.top), PROG_INTEGER, 
+                                   MIPSCAST & result);
+
+	result = add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING, 
+                                     program, tmpfr, "BACKGROUND");
+
+	/* parent process gets the child's pid returned on the stack */
+	if (!result)
+		result = -1;
+	PushInt(result);
 }
-
 
 void 
 prim_pid(PRIM_PROTOTYPE)
@@ -826,8 +855,8 @@ prim_pnameokp(PRIM_PROTOTYPE)
    if (!oper1->data.string)
       abort_interp("Cannot be an empty string.");
    result = ok_player_name(oper1->data.string->data);
-   PushInt(result);
    CLEAR(oper1);
+   PushInt(result);
 }
 
 
@@ -841,8 +870,8 @@ prim_nameokp(PRIM_PROTOTYPE)
    if (!oper1->data.string)
       abort_interp("Cannot be an empty string.");
    result = ok_name(oper1->data.string->data);
-   PushInt(result);
    CLEAR(oper1);
+   PushInt(result);
 }
 
 

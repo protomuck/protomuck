@@ -6,10 +6,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
-#ifndef WIN32
+#ifndef WIN_VC
 # include <sys/socket.h>
-#else
-# include <winsock2.h>
 #endif
 #include "db.h"
 #include "inst.h"
