@@ -3,6 +3,8 @@
 #include "copyright.h"
 #include "config.h"
 
+/* testing */
+
 #include <sys/types.h>
 #ifdef WIN_VC
 # include <string.h>
