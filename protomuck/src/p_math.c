@@ -476,7 +476,7 @@ prim_srand(PRIM_PROTOTYPE)
 	if (!(fr->rndbuf)) {
 		fr->rndbuf = init_seed(NULL);
 	}
-	result = (int) rnd(fr->rndbuf);
+	result = (int) rndn(fr->rndbuf);
 	PushInt(result);
 }
 

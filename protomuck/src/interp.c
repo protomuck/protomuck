@@ -66,6 +66,9 @@ void    (*prim_func[]) (PRIM_PROTOTYPE) =
     PRIMS_MCP_FUNCS,
     PRIMS_SOCKET_FUNCS,
     PRIMS_SYSTEM_FUNCS, 
+#ifdef SQL_SUPPORT
+    PRIMS_MYSQL_FUNCS,
+#endif
     PRIMS_INTERNAL_FUNCS,
     NULL
 };

@@ -30,6 +30,9 @@ const char *base_inst[] = {
     PRIMS_MCP_NAMES,
     PRIMS_SOCKET_NAMES,
     PRIMS_SYSTEM_NAMES,
+#ifdef SQL_SUPPORT
+    PRIMS_MYSQL_NAMES,
+#endif
     PRIMS_INTERNAL_NAMES
 };
 

@@ -31,7 +31,10 @@ extern const char *tp_reg_email;
 
 extern const char *tp_proplist_counter_fmt;
 extern const char *tp_proplist_entry_fmt;
-
+extern const char *tp_mysql_hostname;
+extern const char *tp_mysql_database;
+extern const char *tp_mysql_username;
+extern const char *tp_mysql_password;
 
 /* times */
 #ifdef RWHO
@@ -87,6 +90,8 @@ extern int tp_playermax_limit;
 extern int tp_dump_copies;
 extern int tp_min_progbreak_lev;
 extern int tp_mcp_muf_mlev;
+extern int tp_mysql_result_limit;
+
 /* dbrefs */
 extern dbref tp_quit_prog;
 extern dbref tp_login_who_prog;

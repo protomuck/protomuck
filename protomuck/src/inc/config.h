@@ -37,7 +37,12 @@
  */
 #define CYGWIN_TZ -8 
 #define CYGWIN_TZX "PST" 
-    
+
+/* In order to include support for MySQL, #define SQL_SUPPORT */
+#define SQL_SUPPORT
+
+
+
 /* Alynna - STAFF bit support
  * Defines a 'w' power that does nothing of note, but you can set it 
  * using @power, and test for it using:

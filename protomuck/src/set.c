@@ -1260,7 +1260,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	f2 = F2ANTIPROTECT;
     } else if (string_prefix("EXAMINE_OK", p) || !string_compare("Y", p)) {
 	f2 = F2EXAMINE_OK;
-    } else if (string_prefix("NO_COMMAND", p)) {
+    } else if (string_prefix("NO_COMMAND", p) || 
+               !string_compare("NO_OPTIMIZE", p)) {
 	f2 = F2NO_COMMAND;
     } else if (string_prefix("HIDDEN", p) || !string_compare("#", p)) {
 	f2 = F2HIDDEN;

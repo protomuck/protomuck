@@ -26,7 +26,7 @@ OPTIM= -O
 ROOT= ..
 
 # Where the include files are
-INCLUDE= ./inc
+INCLUDE= ./inc @INCL@ 
 
 # Destination for binaries
 DEST=${ROOT}/game
@@ -80,12 +80,13 @@ CSRC= array.c boolexp.c case.c cgi.c compile.c compress.c create.c db.c  \
 	p_mcp.c p_misc.c p_props.c p_socket.c p_stack.c p_strings.c p_system.c \
       property.c propdirs.c props.c random.c rob.c rwho.c set.c          \
       signal.c smatch.c speech.c strftime.c stringutil.c timequeue.c     \
-      timestamp.c	tune.c unparse.c utils.c wiz.c reg.c netresolve.c sanity.c
+      timestamp.c tune.c unparse.c utils.c wiz.c reg.c netresolve.c      \
+      sanity.c p_mysql.c
 
 MSRC= olddecomp.c reconst.c interface.c
 SRC= ${MISCSRC} ${CSRC} ${MSRC}
 
-COBJ= array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
+COBJ=  array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
 	debugger.o disassem.o diskprop.o edit.o events.o game.o hashtab.o  \
 	help.o inst.o interp.o log.o look.o match.o mcp.o mcppkgs.o        \
 	mcpgui.o mfuns.o mfuns2.o mfuns3.o msgparse.o move.o mufevent.o    \
@@ -94,7 +95,8 @@ COBJ= array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
 	p_mcp.o p_misc.o p_props.o p_socket.o p_stack.o p_strings.o p_system.o \
       property.o propdirs.o props.o random.o rob.o rwho.o signal.o set.o \
       smatch.o speech.o strftime.o stringutil.o timequeue.o              \
-      timestamp.o tune.o unparse.o utils.o wiz.o reg.o netresolve.o sanity.o
+      timestamp.o tune.o unparse.o utils.o wiz.o reg.o netresolve.o sanity.o \
+      p_mysql.o
 
 LOBJ= copyright.o
 MOBJ= olddecomp.o reconst.o interface.o resolver.o topwords.o

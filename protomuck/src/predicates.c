@@ -288,86 +288,98 @@ controls(dbref who, dbref what)
     return (who == OWNER(what));
 }
 
+/* Indicates if a flag can or cannot be set.
+ * Returns 1 if the flag can't be set, 0 if it can.
+ * Note that this function only handles flagset 1. restricted2 for flagset2
+ */ 
 int 
 restricted(dbref player, dbref thing, object_flag_type flag)
 {
     switch (flag) {
-	case ABODE:
-	    return (!Mage(OWNER(player)) &&
-		    (Typeof(thing) == TYPE_PROGRAM));
-	    break;
-	case ZOMBIE:
+        case ABODE:
+            return (!Mage(OWNER(player)) &&
+                   (Typeof(thing) == TYPE_PROGRAM));
+            break;
+        case ZOMBIE:
             if (tp_wiz_puppets) 
                 if (Typeof(thing) == TYPE_THING)
                     return (!Mage(OWNER(player)));
-	    if (Typeof(thing) == TYPE_PLAYER)
-		return(!Mage(OWNER(player)));
-	    if ((Typeof(thing) == TYPE_THING) &&
-		    (FLAGS(OWNER(player)) & ZOMBIE))
-		return(!Mage(OWNER(player)));
-	    return(0);
-	case VEHICLE:
-	    if (Typeof(thing) == TYPE_PLAYER)
-		return(!Mage(OWNER(player)));
-	    if (tp_wiz_vehicles) {
-		if (Typeof(thing) == TYPE_THING)
-		    return(!Mage(OWNER(player)));
-	    } else {
-		if ((Typeof(thing) == TYPE_THING) && (FLAGS(player) & VEHICLE))
-		    return(!Mage(OWNER(player)));
-	    }
-	    return(0);
-	case DARK:
-            if (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE)) {
-		if (Typeof(thing) == TYPE_PLAYER)
-		    return(1);
-		if (!tp_exit_darking && Typeof(thing) == TYPE_EXIT)
-		    return(1);
-		if (!tp_thing_darking && Typeof(thing) == TYPE_THING)
-		    return(1);
-	    }
+            if (Typeof(thing) == TYPE_PLAYER)
+                return(!Mage(OWNER(player)));
+            if ((Typeof(thing) == TYPE_THING) &&
+                  (FLAGS(OWNER(player)) & ZOMBIE))
+                return(!Mage(OWNER(player)));
             return(0);
-	    break;
-	case QUELL:
-	    return (TMage(thing) && (thing != player) &&
-		    (Typeof(thing) == TYPE_PLAYER));
-	    break;
-	case BUILDER:
-	    return (!Mage(OWNER(player)));
-	    break;
-	case W1:	/* We use @set to make our own rules for these */
-	case W2:
-	case W3:
-      case W4:
-	    return 1;
-	    break;
-	default:
-	    return 0;
-	    break;
+        case VEHICLE:
+            if (Typeof(thing) == TYPE_PLAYER)
+                return(!Mage(OWNER(player)));
+            if (tp_wiz_vehicles) {
+                if (Typeof(thing) == TYPE_THING)
+                    return(!Mage(OWNER(player)));
+            } else {
+                if ((Typeof(thing) == TYPE_THING) && (FLAGS(player) & VEHICLE))
+                    return(!Mage(OWNER(player)));
+            }
+            return(0);
+        case DARK:
+            if (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE)) {
+                if (Typeof(thing) == TYPE_PLAYER)
+                    return(1);
+                if (!tp_exit_darking && Typeof(thing) == TYPE_EXIT)
+                    return(1);
+                if (!tp_thing_darking && Typeof(thing) == TYPE_THING)
+                    return(1);
+            }
+            return(0);
+            break;
+        case QUELL:
+            return (TMage(thing) && (thing != player) &&
+                   (Typeof(thing) == TYPE_PLAYER));
+            break;
+        case BUILDER:
+            return (!Mage(OWNER(player)));
+            break;
+        case W1:	/* We use @set to make our own rules for these */
+        case W2:
+        case W3:
+        case W4:
+            return 1;
+            break;
+        default:
+            return 0;
+            break;
     }
 }
 
-
+/* determines if a player can set a flag based on permission level 
+ * 0 indicates they can, 1 indicates they cannot. Only checks flagset2.
+ */ 
 int 
 restricted2(dbref player, dbref thing, object_flag_type flag)
 {
     switch (flag) {
-	case F2GUEST:
-	    return (!Mage(OWNER(player)));
-	    break;
-      case F2LIGHT:
-          if (Typeof(thing) == TYPE_PLAYER) { return (!Wiz(OWNER(player))); }
-	case F2LOGWALL:
-	    return (!Arch(OWNER(player)));
-	case F2HIDDEN:
-	    if (Typeof(thing) == TYPE_PLAYER) { return (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE)); } else { return 1; }
-      case F2ANTIPROTECT:
-          if (Typeof(thing) == TYPE_PLAYER) { return (!Boy(OWNER(player))); } else { return 1; }
-
-	case F2MUFCOUNT:
-	default:
-	    return 0;
-	    break;
+        case F2GUEST:
+            return (!Mage(OWNER(player)));
+            break;
+        case F2LIGHT:
+            if (Typeof(thing) == TYPE_PLAYER) 
+                return (!Wiz(OWNER(player))); 
+        case F2LOGWALL:
+            return (!Arch(OWNER(player)));
+        case F2HIDDEN: /* can only be set on players currently */
+            if (Typeof(thing) == TYPE_PLAYER) 
+                return (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE));
+            else  
+                return 1; 
+        case F2ANTIPROTECT:
+            if (Typeof(thing) == TYPE_PLAYER) 
+                return (!Boy(OWNER(player))); 
+            else return 1; 
+        case F2MUFCOUNT:
+            return 0;
+        default:
+            return 0;
+            break;
     }
 }
 

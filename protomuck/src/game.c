@@ -1174,6 +1174,20 @@ process_command(int descr, dbref player, char *command)
 				    goto bad;
 				do_shutdown(player, arg1, arg2);
 				break;
+                            case 'q':
+                            case 'Q': /* @sql, @sqlquery */
+#ifdef SQL_SUPPORT
+                                if (!string_compare(command, "@sql")) {
+                                    do_sql(descr, player, arg1);
+                                    break;
+                                }
+                                if (!string_compare(command, "@sqlquery")) {
+                                    do_sqlquery(descr, player, full_command);
+                                    break;
+                                }
+#endif
+                                goto bad;
+                                break;
 			    case 't':
 			    case 'T':
 				Matched("@stats");

@@ -298,7 +298,7 @@ delete_seed(void *buffer)
 }
 
 unsigned long
-rnd(void *buffer)
+rndn(void *buffer)
 {
 	unsigned long *digest = (unsigned long *) buffer;
 
@@ -307,24 +307,5 @@ rnd(void *buffer)
       MD5(digest, digest, sizeof(digest));
 	return (digest[0]);
 }
-
-/* Test code, ignore
-int main(int argc, char **argv) {
-  void *seed = NULL;
-  int loop;
-  char buff[2048];
-
-  gets(buff);
-  if (buff[0]=='\0'||buff[0]=='\n') {
-    seed = init_seed(NULL);
-  } else {
-    seed = init_seed(buff);
-  }
-  for (loop = 0; loop < 16; loop++)
-    printf("%2d:  %12lu\n",loop,rnd(seed));
-  delete_seed(seed);
-  exit(1);
-}
-*/
 
 

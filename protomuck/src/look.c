@@ -608,11 +608,13 @@ flag_description(dbref thing)
       if (FLAG2(thing) & F2ANTIPROTECT)
           strcat(buf, " ANTIPROTECT");
       if (FLAG2(thing) & F2PARENT)
-          strcat(buf, (Typeof(thing) == TYPE_PLAYER || Typeof(thing) == TYPE_PROGRAM) ? " PROG_DEBUG" : " PARENT");
+          strcat(buf, (Typeof(thing) == TYPE_PLAYER || 
+                   Typeof(thing) == TYPE_PROGRAM) ? " PROG_DEBUG" : " PARENT");
       if (FLAG2(thing) & F2HIDDEN)
           strcat(buf, " HIDDEN");
       if (FLAG2(thing) & F2NO_COMMAND)
-          strcat(buf, " NO_COMMAND");
+          strcat(buf, (Typeof(thing) == TYPE_PROGRAM) ? " NO_OPTIMIZE" :
+                                                        " NO_COMMAND");
       if (FLAG2(thing) & F2EXAMINE_OK)
           strcat(buf, " EXAMINE_OK");
 	if (FLAG2(thing) & F2MOBILE)

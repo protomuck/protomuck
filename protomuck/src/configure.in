@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl TinyMUCK fb5.x auto-config script writen by: Peter "WhiteFire" Torkelson
 dnl
-AC_REVISION($Revision: 1.15 $)dnl
+AC_REVISION($Revision: 1.16 $)dnl
 AC_INIT(game.c)
 AC_CONFIG_HEADER(inc/autoconf.h)
 echo " "
@@ -28,6 +28,40 @@ AC_MINIX
 
 AC_PROG_LEX
 AC_PROG_YACC
+
+AC_ARG_WITH(mysql,
+[  --mysql[=mysqltop_path]   use MySQL database support],
+[
+if test "$withval" = yes; then
+    MYSQLTOP=
+else
+    MYSQLTOP=$withval
+fi
+
+found_mysql="0"
+if test "$MYSQLTOP" = ""; then
+    AC_CHECK_HEADERS(mysql.h,
+	 found_mysql="1")
+
+    AC_CHECK_HEADERS(mysql/mysql.h,
+        AC_DEFINE(HAVE_MYSQL_H)
+        INCL="-Imysql $INCL" 
+        found_mysql="1"
+    )
+else
+    AC_CHECK_HEADERS($MYSQLTOP/mysql.h,  
+        AC_DEFINE(HAVE_MYSQL_H)
+        INCL="-I$MYSQLTOP $INCL"
+        found_mysql="1"
+    )
+fi
+
+if test "$found_mysqlh" = "0"; then
+    AC_MSG_ERROR([cannot locate mysql.h header file.])
+fi
+AC_SUBST(INCL)
+LIBS="-lmysqlclient $LIBS"
+])
 
 dnl
 dnl Header files
