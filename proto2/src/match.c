@@ -92,7 +92,7 @@ match_player(struct match_data *md)
     const char *p;
 
     if (*(md->match_name) == LOOKUP_TOKEN
-        && (OkObj(md->match_from) ? payfor(OWNER(md->match_from), tp_lookup_cost) : 0)) {
+        && (payfor(OWNER(md->match_from), tp_lookup_cost))) {
         for (p = (md->match_name) + 1; isspace(*p); p++) ;
         if ((match = lookup_player(p)) != NOTHING) {
             md->exact_match = match;

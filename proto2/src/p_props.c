@@ -852,7 +852,7 @@ prim_parseprop(PRIM_PROTOTYPE)
 			     oper1->data.string->data, mlev))
 	    abort_interp(tp_noperm_mesg);
 
-	if (mlev < 3 && !permissions(mlev, player, oper3->data.objref) &&
+	if (mlev < 3 && !permissions(mlev, PSafe, oper3->data.objref) &&
 		prop_write_perms(ProgUID, oper3->data.objref,
 				 oper1->data.string->data, mlev))
 	    abort_interp(tp_noperm_mesg);
@@ -960,8 +960,9 @@ prim_envpropqueue(PRIM_PROTOTYPE)
    if (!valid_object(oper4))
       abort_interp("Invalid object. (1)");
    
-   envpropqueue(fr->descr, player, getloc(player), oper4->data.objref, oper2->data.objref, NOTHING,
-             oper3->data.string->data, oper1->data.string->data, 1, 1);
+   envpropqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, oper4->data.objref, 
+             oper2->data.objref, NOTHING, oper3->data.string->data,
+             oper1->data.string->data, 1, 1);
 
    CLEAR(oper1);
    CLEAR(oper2);
@@ -990,7 +991,7 @@ prim_testlock(PRIM_PROTOTYPE)
         abort_interp("Invalid argument (2)");
     interp_set_depth(fr);
     result = eval_boolexp(fr->descr, oper2->data.objref, oper1->data.lock, 
-                          player);
+                          PSafe);
     fr->level--;
     interp_set_depth(fr);
 

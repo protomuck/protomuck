@@ -265,7 +265,7 @@ prim_socksend(PRIM_PROTOTYPE)
                     (int) strlen(outputbuf), (unsigned int) 0);
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKSEND:  %d\n", program,
-                     unparse_object(player, player), oper1->data.sock->socknum);
+                     unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
 
     if (myresult < 1) {
         myresult = 0;
@@ -399,7 +399,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     if (tp_log_sockets)
         if (gotmessage)
             log2filetime("logs/sockets", "#%d by %s SOCKRECV:  %d\n", program,
-                         unparse_object(player, player), sockval);
+                         unparse_object(PSafe, PSafe), sockval);
 
     CHECKOFLOW(2);
     PushInt(conRead);
@@ -458,7 +458,7 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
     if (tp_log_sockets)
         if (gotmessage)
             log2filetime("logs/sockets", "#%d by %s SOCKRECV:  %d\n", program,
-                         unparse_object(player, player), sockval);
+                         unparse_object(PSafe, PSafe), sockval);
     if (readme < 1)
         readme = 0;
     CHECKOFLOW(2);
@@ -493,7 +493,7 @@ prim_sockclose(PRIM_PROTOTYPE)
         myresult = 0;
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program,
-                     unparse_object(player, player), oper1->data.sock->socknum);
+                     unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
     oper1->data.sock->connected = 0;
     CLEAR(oper1);
     PushInt(myresult);
@@ -534,7 +534,7 @@ prim_sockshutdown(PRIM_PROTOTYPE)
         myresult = 0;
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n", program,
-                     unparse_object(player, player), oper1->data.sock->socknum);
+                     unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
     if (how == 2)
         oper1->data.sock->connected = 0; /* only say not-connected if 
                                           * complete shutdown. */
@@ -626,7 +626,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     result->data.sock->port = oper2->data.number; /* remote port # */
     result->data.sock->hostname = alloc_string(oper1->data.string->data);
     result->data.sock->host = ntohl(name.sin_addr.s_addr);
-    result->data.sock->username = alloc_string(unparse_object(player, player));
+    result->data.sock->username = alloc_string(unparse_object(PSafe, PSafe));
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
     result->data.sock->usequeue = 0;
@@ -637,7 +637,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n",
-                     program, unparse_object(player, player),
+                     program, unparse_object(PSafe, PSafe),
                      oper1->data.string->data, oper2->data.number,
                      result->data.sock->socknum);
     CLEAR(oper1);
@@ -829,7 +829,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
 
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s LSOCKOPEN: Port:%d -> %d\n",
-                     program, unparse_object(player, (dbref) 1),
+                     program, unparse_object(PSafe, PSafe),
                      oper1->data.number, result->data.sock->socknum);
     CLEAR(oper1);
     CLEAR(oper2);
@@ -924,7 +924,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
 
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKACCEPT: Port:%d -> %d\n",
-                     program, unparse_object(player, (dbref) 1),
+                     program, unparse_object(PSafe, PSafe),
                      oper1->data.number, result->data.sock->socknum);
     oper1->data.sock->readWaiting = 0;
 
@@ -1096,7 +1096,7 @@ prim_socktodescr(PRIM_PROTOTYPE)
     if (tp_log_sockets)
         log2filetime("logs/sockets",
                      "#%d by %s SOCKTODESCR: %d", program,
-                     unparse_object(player, (dbref) 1), theSock->socknum);
+                     unparse_object(PSafe, PSafe), theSock->socknum);
 
     theSock->is_player = -1;
     CLEAR(oper1);
