@@ -1,33 +1,37 @@
-#0
-Room Zero
-You are in Room Zero.  It's very dark here.
--1
-1
--1
--1
--1
-
-
-
-
-1
+***NeonMuck V2 DUMP Format***
+2
 0
-0
-
 #1
 One
-You see Number One.
-0
--1
 0
 -1
 -1
-
-
-
-
-1
+3 0 0 0 0 0
+1070951807
+1070951807
 0
-19
+1070951807
+*Props*
+_/de:10:You see Number One.
+*End*
+0
+-1
+0
 potrzebie
+#0
+Room Zero
+-1
+1
+-1
+0 0 0 0 0 0 0
+1070951807
+1070951807
+0
+1070951807
+*Props*
+_/de:10:You are in Room Zero.  It's very dark here.
+*End*
+-1
+-1
+1
 ***END OF DUMP***
