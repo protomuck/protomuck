@@ -434,7 +434,7 @@ prim_moveto(PRIM_PROTOTYPE)
         abort_interp("Interp call loops not allowed");
     if (!(valid_object(oper2)))
         abort_interp("Non-object argument (1)");
-    if (!(valid_object(oper1)) && !is_home(oper1) && (!oper1->data.objref == NIL))
+    if (!(valid_object(oper1)) && !is_home(oper1) && oper1->data.objref != NIL)
         abort_interp("Non-object argument (2)");
     {
         dbref victim, dest;
@@ -447,19 +447,25 @@ prim_moveto(PRIM_PROTOTYPE)
         nargs -= 2;
 
         if (dest == NIL) {
-	    switch(Typeof(victim)) {
-            case TYPE_PLAYER:    dest = tp_player_start; break;
-            case TYPE_THING:     dest = OWNER(victim); break;
-            case TYPE_ROOM:      dest = tp_default_parent; break;
-            case TYPE_EXIT:      abort_interp("Invalid destination for an exit (1)"); break;
-            case TYPE_PROGRAM:   dest = OWNER(victim); break;
+            switch (Typeof(victim)) {
+                case TYPE_PLAYER:
+                    dest = tp_player_start;
+                    break;
+                case TYPE_THING:
+                    dest = OWNER(victim);
+                    break;
+                case TYPE_ROOM:
+                    dest = tp_default_parent;
+                    break;
+                case TYPE_EXIT:
+                    abort_interp("Invalid destination for an exit (1)");
+                    break;
+                case TYPE_PROGRAM:
+                    dest = OWNER(victim);
+                    break;
             }
         }
 
-        if (!OkObj(victim))
-            abort_interp("Target argument is invalid");
-        if (!OkObj(dest))
-            abort_interp("Destination argument is invalid");
         if (Typeof(dest) == TYPE_EXIT)
             abort_interp("Destination argument is an exit");
         if (Typeof(victim) == TYPE_EXIT && (mlev < LM3))
@@ -467,11 +473,15 @@ prim_moveto(PRIM_PROTOTYPE)
         if (!(FLAGS(victim) & JUMP_OK)
             && !permissions(mlev, ProgUID, victim) && (mlev < LM3))
             abort_interp("Object can't be moved");
-        if (FLAG2(victim) & F2IMMOBILE) if (!(FLAG2(program) & F2IMMOBILE)) {
-	    envpropqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1,
-			 program, program, NOTHING, "@immobile", "Immobile", mlev, 1);
-            abort_interp("Object can't be moved, movement IMMOBILE restricted.");
-	    }
+        if (FLAG2(victim) & F2IMMOBILE)
+            if (!(FLAG2(program) & F2IMMOBILE)) {
+                envpropqueue(fr->descr, player,
+                             OkObj(player) ? getloc(player) : -1, program,
+                             program, NOTHING, "@immobile", "Immobile", mlev,
+                             1);
+                abort_interp
+                    ("Object can't be moved, movement IMMOBILE restricted.");
+            }
         interp_set_depth(fr);
         switch (Typeof(victim)) {
             case TYPE_PLAYER:
@@ -542,9 +552,9 @@ prim_moveto(PRIM_PROTOTYPE)
                     Typeof(dest) != TYPE_PLAYER)
                     abort_interp("Bad destination object");
                 if (OkObj(dest)) {
-            	    if (!unset_source(ProgUID, getloc(PSafe), victim))
-                	break;
-            	    set_source(ProgUID, victim, dest);
+                    if (!unset_source(ProgUID, getloc(PSafe), victim))
+                        break;
+                    set_source(ProgUID, victim, dest);
                 }
                 SetMLevel(victim, 0);
                 break;
@@ -1444,9 +1454,12 @@ prim_setlink(PRIM_PROTOTYPE)
                 abort_interp("Invalid object (1)");
         }
     } else {
-        if (!valid_object(oper1) && oper1->data.objref != HOME && oper1->data.objref != NIL)
+        if (!valid_object(oper1) && oper1->data.objref != HOME
+            && oper1->data.objref != NIL)
             abort_interp("Invalid object (2)");
-        if (!(Typeof(ref) == TYPE_THING || Typeof(ref) == TYPE_PLAYER || Typeof(ref) == TYPE_EXIT))
+        if (!
+            (Typeof(ref) == TYPE_THING || Typeof(ref) == TYPE_PLAYER
+             || Typeof(ref) == TYPE_EXIT))
             abort_interp("Programs and rooms cannot be linked to NIL (1)");
         if (Typeof(ref) == TYPE_PROGRAM)
             abort_interp("Program objects are not linkable (1)");
@@ -1673,9 +1686,9 @@ prim_newexit(PRIM_PROTOTYPE)
 
         /* If autolinking, link it to NIL */
         if (tp_autolinking) {
-	    DBFETCH(ref)->sp.exit.ndest = 1;
+            DBFETCH(ref)->sp.exit.ndest = 1;
             DBFETCH(ref)->sp.exit.dest = (dbref *) malloc(sizeof(dbref));
-    	    (DBFETCH(ref)->sp.exit.dest)[0] = NIL;
+            (DBFETCH(ref)->sp.exit.dest)[0] = NIL;
         }
 
 
@@ -2831,8 +2844,9 @@ prim_getobjinfo(PRIM_PROTOTYPE)
             temp1.type = PROG_STRING;
             temp1.data.string = alloc_prog_string("PROFTIME");
             temp2.type = PROG_FLOAT;
-            sprintf(buf, "%ld.%06ld", (long)DBFETCH(ref)->sp.program.proftime.tv_sec,
-                    (long)DBFETCH(ref)->sp.program.proftime.tv_usec);
+            sprintf(buf, "%ld.%06ld",
+                    (long) DBFETCH(ref)->sp.program.proftime.tv_sec,
+                    (long) DBFETCH(ref)->sp.program.proftime.tv_usec);
             fresult = atof(buf);
             temp2.data.fnumber = fresult;
             array_setitem(&nw, &temp1, &temp2);

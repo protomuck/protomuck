@@ -147,8 +147,7 @@ enter_room(int descr, dbref player, dbref loc, dbref exit)
         loc = DBFETCH(player)->sp.player.home; /* home */
     /* check for room == NIL */
     if (loc == NIL)
-        loc = Typeof(player) == TYPE_PLAYER ? 
-              tp_player_start : OWNER(player);
+        loc = Typeof(player) == TYPE_PLAYER ? tp_player_start : OWNER(player);
 
     /* get old location */
     old = DBFETCH(player)->location;
@@ -335,15 +334,16 @@ can_move2(int descr, dbref player, const char *direction, int lev)
 
     matched = last_match_result(&md);
 
-    if (OkObj(matched)) if
-        ( (FLAG2(player) & F2IMMOBILE) &&
-          !(FLAG2(matched) & F2IMMOBILE) &&
-          !( (Typeof(DBFETCH(matched)->sp.exit.dest[0]) == TYPE_PROGRAM) || matched == NIL ) ) 
-	    {
-	     envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
-                          player, player, NOTHING, "@immobile", "Immobile", 1, 1);
-             return 2;
-    	    }
+    if (OkObj(matched))
+        if ((FLAG2(player) & F2IMMOBILE) &&
+            !(FLAG2(matched) & F2IMMOBILE) &&
+            !((Typeof(DBFETCH(matched)->sp.exit.dest[0]) == TYPE_PROGRAM)
+              || matched == NIL)) {
+            envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
+                         player, player, NOTHING, "@immobile", "Immobile", 1,
+                         1);
+            return 2;
+        }
 
     return (matched != NOTHING);
 }
@@ -383,82 +383,54 @@ trigger(int descr, dbref player, dbref exit, int pflag)
     for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++) {
         dest = (DBFETCH(exit)->sp.exit.dest)[i];
         if (dest == HOME) {
-            dest = DBFETCH(player)->sp.player.home; }
-        if (dest == NIL) { /* null destination, do nothing but the succ statements. */
+            dest = DBFETCH(player)->sp.player.home;
+        }
+        if (dest == NIL) {      /* null destination, do nothing but the succ statements. */
             if (GETSUCC(exit)) {
                 exec_or_notify(descr, player, exit, GETSUCC(exit), "(@Succ)");
-                }
+            }
             if (GETOSUCC(exit) && !Dark(player)) {
-                parse_omessage(descr, player, loc, exit, GETOSUCC(exit), NAME(player), "(@Osucc)");
-                }
+                parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
+                               NAME(player), "(@Osucc)");
+            }
             succ = 1;
         } else {
-        switch (Typeof(dest)) {
-            case TYPE_ROOM:
-                if (pflag) {
-                    if (parent_loop_check(player, dest)) {
-                        anotify_nolisten2(player,
-                                          CINFO "That would cause a paradox.");
-                        break;
-                    }
-                    if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
-                        && ((FLAGS(dest) | FLAGS(exit)) & ZOMBIE)) {
-                        anotify_nolisten2(player,
-                                          CFAIL "Puppets can't go that way.");
-                        break;
-                    }
-                    if ((FLAGS(player) & VEHICLE)
-                        && Typeof(player) == TYPE_THING
-                        && ((FLAGS(dest) | FLAGS(exit)) & VEHICLE)) {
-                        anotify_nolisten2(player,
-                                          CFAIL "Vehicles can't go that way.");
-                        break;
-                    }
-                    if (Guest(player) && (tp_guest_needflag ?
-                                          !(FLAG2(dest) & F2GUEST)
-                                          : (FLAG2(dest) & F2GUEST))) {
-                        anotify_nolisten2(player,
-                                          CFAIL "Guests can't go in there.");
-                        break;
-                    }
-                    if (Guest(player) && (0 ? !(FLAG2(exit) & F2GUEST)
-                                          : (FLAG2(exit) & F2GUEST))) {
-                        anotify_nolisten2(player,
-                                          CFAIL "Guests can't do that.");
-                        break;
-                    }
-                    if (GETSUCC(exit)) {
-                        exec_or_notify(descr, player, exit, GETSUCC(exit),
-                                       "(@Succ)");
-                    }
-                    if (GETOSUCC(exit) && !Dark(player)) {
-                        parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
-                                       NAME(player), "(@Osucc)");
-                    }
-                    if (GETDROP(exit))
-                        exec_or_notify(descr, player, exit, GETDROP(exit),
-                                       "(@Drop)");
-                    if (GETODROP(exit) && !Dark(player)) {
-                        parse_omessage(descr, player, dest, exit,
-                                       GETODROP(exit), PNAME(player),
-                                       "(@Odrop)");
-                    }
-#ifdef DYNAMIC_LINKS
-                    dest = (DBFETCH(exit)->sp.exit.dest)[i];
-                    if (Typeof(dest) != TYPE_ROOM)
-                        break;
-#endif
-                    enter_room(descr, player, dest, exit);
-                    succ = 1;
-                }
-                break;
-            case TYPE_THING:
-                if (dest == getloc(exit) && (FLAGS(dest) & VEHICLE)) {
+            switch (Typeof(dest)) {
+                case TYPE_ROOM:
                     if (pflag) {
                         if (parent_loop_check(player, dest)) {
                             anotify_nolisten2(player,
                                               CINFO
                                               "That would cause a paradox.");
+                            break;
+                        }
+                        if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
+                            && ((FLAGS(dest) | FLAGS(exit)) & ZOMBIE)) {
+                            anotify_nolisten2(player,
+                                              CFAIL
+                                              "Puppets can't go that way.");
+                            break;
+                        }
+                        if ((FLAGS(player) & VEHICLE)
+                            && Typeof(player) == TYPE_THING
+                            && ((FLAGS(dest) | FLAGS(exit)) & VEHICLE)) {
+                            anotify_nolisten2(player,
+                                              CFAIL
+                                              "Vehicles can't go that way.");
+                            break;
+                        }
+                        if (Guest(player) && (tp_guest_needflag ?
+                                              !(FLAG2(dest) & F2GUEST)
+                                              : (FLAG2(dest) & F2GUEST))) {
+                            anotify_nolisten2(player,
+                                              CFAIL
+                                              "Guests can't go in there.");
+                            break;
+                        }
+                        if (Guest(player) && (0 ? !(FLAG2(exit) & F2GUEST)
+                                              : (FLAG2(exit) & F2GUEST))) {
+                            anotify_nolisten2(player,
+                                              CFAIL "Guests can't do that.");
                             break;
                         }
                         if (GETSUCC(exit)) {
@@ -480,113 +452,149 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                         }
 #ifdef DYNAMIC_LINKS
                         dest = (DBFETCH(exit)->sp.exit.dest)[i];
-                        if (Typeof(dest) != TYPE_THING)
+                        if (Typeof(dest) != TYPE_ROOM)
                             break;
 #endif
                         enter_room(descr, player, dest, exit);
                         succ = 1;
                     }
-                } else {
-                    if (Typeof(DBFETCH(exit)->location) == TYPE_THING) {
-                        if (parent_loop_check(dest, getloc(getloc(exit)))) {
-                            anotify_nolisten2(player,
-                                              CINFO
-                                              "That would cause a paradox.");
-                            break;
-                        }
-                        moveto(dest,
-                               DBFETCH(DBFETCH(exit)->location)->location);
-                        if (!(FLAGS(exit) & STICKY)) {
-                            /* send home source object */
-                            sobjact = 1;
+                    break;
+                case TYPE_THING:
+                    if (dest == getloc(exit) && (FLAGS(dest) & VEHICLE)) {
+                        if (pflag) {
+                            if (parent_loop_check(player, dest)) {
+                                anotify_nolisten2(player,
+                                                  CINFO
+                                                  "That would cause a paradox.");
+                                break;
+                            }
+                            if (GETSUCC(exit)) {
+                                exec_or_notify(descr, player, exit,
+                                               GETSUCC(exit), "(@Succ)");
+                            }
+                            if (GETOSUCC(exit) && !Dark(player)) {
+                                parse_omessage(descr, player, loc, exit,
+                                               GETOSUCC(exit), NAME(player),
+                                               "(@Osucc)");
+                            }
+                            if (GETDROP(exit))
+                                exec_or_notify(descr, player, exit,
+                                               GETDROP(exit), "(@Drop)");
+                            if (GETODROP(exit) && !Dark(player)) {
+                                parse_omessage(descr, player, dest, exit,
+                                               GETODROP(exit), PNAME(player),
+                                               "(@Odrop)");
+                            }
+#ifdef DYNAMIC_LINKS
+                            dest = (DBFETCH(exit)->sp.exit.dest)[i];
+                            if (Typeof(dest) != TYPE_THING)
+                                break;
+#endif
+                            enter_room(descr, player, dest, exit);
+                            succ = 1;
                         }
                     } else {
-                        if (parent_loop_check(dest, getloc(exit))) {
-                            anotify_nolisten2(player,
-                                              CINFO
-                                              "That would cause a paradox.");
-                            break;
+                        if (Typeof(DBFETCH(exit)->location) == TYPE_THING) {
+                            if (parent_loop_check(dest, getloc(getloc(exit)))) {
+                                anotify_nolisten2(player,
+                                                  CINFO
+                                                  "That would cause a paradox.");
+                                break;
+                            }
+                            moveto(dest,
+                                   DBFETCH(DBFETCH(exit)->location)->location);
+                            if (!(FLAGS(exit) & STICKY)) {
+                                /* send home source object */
+                                sobjact = 1;
+                            }
+                        } else {
+                            if (parent_loop_check(dest, getloc(exit))) {
+                                anotify_nolisten2(player,
+                                                  CINFO
+                                                  "That would cause a paradox.");
+                                break;
+                            }
+                            moveto(dest, DBFETCH(exit)->location);
                         }
-                        moveto(dest, DBFETCH(exit)->location);
+                        if (GETSUCC(exit))
+                            succ = 1;
                     }
+                    break;
+                case TYPE_EXIT: /* It's a meta-link(tm)! */
+                    ts_useobject(dest);
+                    trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0);
                     if (GETSUCC(exit))
                         succ = 1;
-                }
-                break;
-            case TYPE_EXIT:    /* It's a meta-link(tm)! */
-                ts_useobject(dest);
-                trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0);
-                if (GETSUCC(exit))
-                    succ = 1;
-                break;
-            case TYPE_PLAYER:
-                if (pflag && DBFETCH(dest)->location != NOTHING) {
-                    if (parent_loop_check(player, dest)) {
-                        anotify_nolisten2(player,
-                                          CINFO "That would cause a paradox.");
-                        break;
-                    }
-                    succ = 1;
-                    if (FLAGS(dest) & JUMP_OK) {
-                        if (GETDROP(exit)) {
-                            exec_or_notify(descr, player, exit,
-                                           GETDROP(exit), "(@Drop)");
-                        }
-                        if (GETODROP(exit) && !Dark(player)) {
-                            parse_omessage(descr, player, getloc(dest), exit,
-                                           GETODROP(exit), PNAME(player),
-                                           "(@Odrop)");
-                        }
-#ifdef DYNAMIC_LINKS
-                        dest = (DBFETCH(exit)->sp.exit.dest)[i];
-                        if (Typeof(dest) != TYPE_PLAYER)
+                    break;
+                case TYPE_PLAYER:
+                    if (pflag && DBFETCH(dest)->location != NOTHING) {
+                        if (parent_loop_check(player, dest)) {
+                            anotify_nolisten2(player,
+                                              CINFO
+                                              "That would cause a paradox.");
                             break;
+                        }
+                        succ = 1;
+                        if (FLAGS(dest) & JUMP_OK) {
+                            if (GETDROP(exit)) {
+                                exec_or_notify(descr, player, exit,
+                                               GETDROP(exit), "(@Drop)");
+                            }
+                            if (GETODROP(exit) && !Dark(player)) {
+                                parse_omessage(descr, player, getloc(dest),
+                                               exit, GETODROP(exit),
+                                               PNAME(player), "(@Odrop)");
+                            }
+#ifdef DYNAMIC_LINKS
+                            dest = (DBFETCH(exit)->sp.exit.dest)[i];
+                            if (Typeof(dest) != TYPE_PLAYER)
+                                break;
 #endif
-                        enter_room(descr, player, DBFETCH(dest)->location,
-                                   exit);
-                    } else {
-                        anotify_nolisten2(player,
-                                          CINFO
-                                          "That player does not wish to be disturbed.");
+                            enter_room(descr, player, DBFETCH(dest)->location,
+                                       exit);
+                        } else {
+                            anotify_nolisten2(player,
+                                              CINFO
+                                              "That player does not wish to be disturbed.");
+                        }
                     }
-                }
-                break;
-            case TYPE_PROGRAM:
-                if (Guest(player) && (0 ?
-                                      !(FLAG2(dest) & F2GUEST) : (FLAG2(dest) &
-                                                                  F2GUEST))) {
-                    anotify_nolisten2(player,
-                                      CFAIL "Guests can't use that program.");
                     break;
-                }
-                if (Guest(player) && (0 ?
-                                      !(FLAG2(exit) & F2GUEST) : (FLAG2(exit) &
-                                                                  F2GUEST))) {
-                    anotify_nolisten2(player, CFAIL "Guests can't do that.")
+                case TYPE_PROGRAM:
+                    if (Guest(player) && (0 ? !(FLAG2(dest) & F2GUEST)
+                                          : (FLAG2(dest) & F2GUEST))) {
+                        anotify_nolisten2(player,
+                                          CFAIL
+                                          "Guests can't use that program.");
                         break;
-                }
-                if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
-                    && (FLAGS(exit) & ZOMBIE)) {
-                    anotify_nolisten2(player,
-                                      CFAIL "Puppets can't go that way.");
-                    break;
-                }
-                if (GETSUCC(exit)) {
-                    exec_or_notify(descr, player, exit, GETSUCC(exit),
-                                   "(@Succ)");
-                }
-                if (GETOSUCC(exit) && !Dark(player)) {
-                    parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
-                                   NAME(player), "(@Osucc)");
-                }
-                tmpfr = interp(descr, player, DBFETCH(player)->location, dest,
+                    }
+                    if (Guest(player) && (0 ? !(FLAG2(exit) & F2GUEST)
+                                          : (FLAG2(exit) & F2GUEST))) {
+                        anotify_nolisten2(player, CFAIL "Guests can't do that.")
+                            break;
+                    }
+                    if (!Mage(OWNER(player)) && Typeof(player) == TYPE_THING
+                        && (FLAGS(exit) & ZOMBIE)) {
+                        anotify_nolisten2(player,
+                                          CFAIL "Puppets can't go that way.");
+                        break;
+                    }
+                    if (GETSUCC(exit)) {
+                        exec_or_notify(descr, player, exit, GETSUCC(exit),
+                                       "(@Succ)");
+                    }
+                    if (GETOSUCC(exit) && !Dark(player)) {
+                        parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
+                                       NAME(player), "(@Osucc)");
+                    }
+                    tmpfr =
+                        interp(descr, player, DBFETCH(player)->location, dest,
                                exit, FOREGROUND, STD_REGUID, 0);
-                if (tmpfr) {
-                    interp_loop(player, dest, tmpfr, 0);
-                }
-                return;
+                    if (tmpfr) {
+                        interp_loop(player, dest, tmpfr, 0);
+                    }
+                    return;
+            }
         }
-       }
     }
     if (sobjact)
         send_home(descr, DBFETCH(exit)->location, 0);
@@ -602,18 +610,23 @@ do_move(int descr, dbref player, const char *direction, int lev)
     char buf[BUFFER_LEN];
     struct match_data md;
 
-    if (!(FLAGS(player) & F2IMMOBILE) && !string_compare(direction, "home") && tp_enable_home) {
-        /* send him home */
-        if ((loc = DBFETCH(player)->location) != NOTHING) {
-            /* tell everybody else */
-            sprintf(buf, CMOVE "%s goes home.", PNAME(player));
-            anotify_except(DBFETCH(loc)->contents, player, buf, player);
+    if (!string_compare(direction, "home") && tp_enable_home) {
+        if (FLAG2(player) & F2IMMOBILE) {
+            anotify_nolisten2(player,
+                              CFAIL "Movement restricted, cannot return home.");
+        } else {
+            /* send him home */
+            if ((loc = DBFETCH(player)->location) != NOTHING) {
+                /* tell everybody else */
+                sprintf(buf, CMOVE "%s goes home.", PNAME(player));
+                anotify_except(DBFETCH(loc)->contents, player, buf, player);
+            }
+            /* give the player the messages */
+            anotify_nolisten2(player, SYSRED "There's no place like home...");
+            anotify_nolisten2(player, SYSWHITE "There's no place like home...");
+            anotify_nolisten2(player, SYSBLUE "There's no place like home...");
+            send_home(descr, player, 1);
         }
-        /* give the player the messages */
-        anotify_nolisten2(player, SYSRED "There's no place like home...");
-        anotify_nolisten2(player, SYSWHITE "There's no place like home...");
-        anotify_nolisten2(player, SYSBLUE "There's no place like home...");
-        send_home(descr, player, 1);
     } else {
         /* find the exit */
         init_match_check_keys(descr, player, direction, TYPE_EXIT, &md);

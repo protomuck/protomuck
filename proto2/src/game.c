@@ -664,15 +664,15 @@ process_command(int descr, dbref player, char *command)
     }
     if (!(*command == OVERIDE_TOKEN && TMage(player))) {
         switch (can_move2(descr, player, command, 0)) {
-        case 1:
-            do_move(descr, player, command, 0); /* command is exact match for exit */
-            *match_args = 0;
-            *match_cmdname = 0;
-            return;
-        case 2:
-            *match_args = 0;
-            *match_cmdname = 0;
-            return;
+            case 1:
+                do_move(descr, player, command, 0); /* command is exact match for exit */
+                *match_args = 0;
+                *match_cmdname = 0;
+                return;
+            case 2:
+                *match_args = 0;
+                *match_cmdname = 0;
+                return;
         }
     }
 
@@ -1753,8 +1753,7 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
                 return 1;
             } else {
                 if (OkObj((DBFETCH(progRef)->sp.exit.dest)[0])
-                    && Typeof((DBFETCH(progRef)->sp.exit.dest)[0]) ==
-                    TYPE_ROOM) {
+                    && Typeof((DBFETCH(progRef)->sp.exit.dest)[0]) == TYPE_ROOM) {
                     if (Wizard(player) || Mage(where)
                         || controls(player, progRef) || (FLAGS(progRef)
                                                          && JUMP_OK))
@@ -1804,12 +1803,11 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
                     if (Wizard(player) || Mage(where)
                         || (controls(player, progRef)
                             && controls(player, DBFETCH(progRef)->location))
-                        ||
-                        (((FLAGS(progRef) & JUMP_OK)
-                          || (FLAGS(progRef) & VEHICLE))
-                         && ((FLAGS(DBFETCH(progRef)->location) & JUMP_OK)
-                             && !(FLAGS(DBFETCH(progRef)->location) &
-                                  VEHICLE))))
+                        || (((FLAGS(progRef) & JUMP_OK)
+                             || (FLAGS(progRef) & VEHICLE))
+                            && ((FLAGS(DBFETCH(progRef)->location) & JUMP_OK)
+                                && !(FLAGS(DBFETCH(progRef)->location) &
+                                     VEHICLE))))
                         enter_room(descr, player,
                                    (int) (DBFETCH(progRef)->location), progRef);
                     else

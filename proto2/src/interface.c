@@ -3138,7 +3138,7 @@ process_commands(void)
                 /* Added in the is_interface_command to seperate out checking
                  * for things like @q, WHO, QUIT, etc. -Akari */
                 if ((d->connected && DBFETCH(d->player)->sp.player.block &&
-                    !is_interface_command(t->start) )
+                     !is_interface_command(t->start))
                     || (!d->connected && d->block)) {
 #ifdef MCP_SUPPORT
                     char *tmp = t->start;
@@ -3148,17 +3148,17 @@ process_commands(void)
                         tmp += 3;
                     }
 #endif
-                  
+
                     /* If read_event_notify returns 0, it didn't handle
                      * the input. If tmp is an empty string, then we'll
                      * remove the empty line here. -Akari
                      */
-                    if( !read_event_notify(d->descriptor, d->player, tmp) &&
+                    if (!read_event_notify(d->descriptor, d->player, tmp) &&
                         !*tmp) {
                         ++nprocessed;
                         d->input.head = t->nxt;
                         d->input.lines--;
-                        if ( !d->input.head ) {
+                        if (!d->input.head) {
                             d->input.tail = &d->input.head;
                             d->input.lines = 0;
                         }
@@ -3166,8 +3166,8 @@ process_commands(void)
                     }
                 } else {
 #ifdef MCP_SUPPORT
-                    if ( strncmp(t->start, "#$#", 3)) {
-                        d->quota--;/* Only count non-MCP messages for quota */
+                    if (strncmp(t->start, "#$#", 3)) {
+                        d->quota--; /* Only count non-MCP messages for quota */
                     }
 #else
                     d->quota--;
@@ -3220,7 +3220,7 @@ process_commands(void)
  * -Akari
  */
 int
-is_interface_command( const char *cmd)
+is_interface_command(const char *cmd)
 {
     const char *tmp = cmd;
 
@@ -3229,20 +3229,20 @@ is_interface_command( const char *cmd)
         /* Dequote MCP quoting */
         tmp += 3;
     }
-    if ( !strncmp(cmd, "#$#", 3)) { /* MCP Message */
+    if (!strncmp(cmd, "#$#", 3)) { /* MCP Message */
         return 1;
     }
 #endif
 
-    if ( !string_compare(tmp, BREAK_COMMAND))
+    if (!string_compare(tmp, BREAK_COMMAND))
         return 1;
-    if ( !string_compare(tmp, QUIT_COMMAND))
+    if (!string_compare(tmp, QUIT_COMMAND))
         return 1;
-    if ( !strncmp(tmp, WHO_COMMAND, strlen(WHO_COMMAND)))
+    if (!strncmp(tmp, WHO_COMMAND, strlen(WHO_COMMAND)))
         return 1;
-    if ( !strncmp(tmp, PREFIX_COMMAND, strlen(PREFIX_COMMAND)))
+    if (!strncmp(tmp, PREFIX_COMMAND, strlen(PREFIX_COMMAND)))
         return 1;
-    if ( !strncmp(tmp, SUFFIX_COMMAND, strlen(SUFFIX_COMMAND)))
+    if (!strncmp(tmp, SUFFIX_COMMAND, strlen(SUFFIX_COMMAND)))
         return 1;
     return 0;
 }
@@ -3268,28 +3268,29 @@ do_command(struct descriptor_data *d, char *command)
     strcpy(cmdbuf, command);
 #endif
     command = cmdbuf;
-    if ( d->connected )
+    if (d->connected)
         ts_lastuseobject(d->player);
 
-    if ( !string_compare(command, BREAK_COMMAND)) {
-        if ( dequeue_prog(d->player, 2)) {
+    if (!string_compare(command, BREAK_COMMAND)) {
+        if (dequeue_prog(d->player, 2)) {
             if (d->output_prefix) {
                 queue_ansi(d, d->output_prefix);
                 queue_write(d, "\r\n", 2);
             }
         }
-        parse_ansi(d->player, tmpbuf, CINFO "Foreground program aborted.\r\n", ANSINORMAL);
+        parse_ansi(d->player, tmpbuf, CINFO "Foreground program aborted.\r\n",
+                   ANSINORMAL);
         queue_ansi(d, tmpbuf);
-        if((FLAGS(d->player) & INTERACTIVE))
+        if ((FLAGS(d->player) & INTERACTIVE))
             if ((FLAGS(d->player) & READMODE))
                 process_command(d->descriptor, d->player, command);
-        if ( d->output_suffix) {
+        if (d->output_suffix) {
             queue_ansi(d, d->output_suffix);
             queue_write(d, "\r\n", 2);
         }
         if (valid_obj(d->player)) {
             DBFETCH(d->player)->sp.player.block = 0;
-}
+        }
     } else if (!strcmp(command, QUIT_COMMAND)) {
         return 0;
     } else if (!strncmp(command, PUEBLO_COMMAND, sizeof(PUEBLO_COMMAND) - 1)) {
@@ -3668,7 +3669,7 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                                                     /****/
+        if (d->next)                                                                                                                                                             /****/
             d->next->prev = d->prev;     /****/
                                    /****/
 #ifdef NEWHTTPD

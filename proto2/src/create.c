@@ -367,9 +367,9 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             if (DBFETCH(thing)->sp.exit.ndest != 0) {
                 if (controls(player, thing)) {
                     if ((DBFETCH(thing)->sp.exit.dest)[0] != -4) {
-                    anotify_nolisten2(player,
-                                      CINFO "That exit is already linked.");
-                    return;
+                        anotify_nolisten2(player,
+                                          CINFO "That exit is already linked.");
+                        return;
                     }
                 } else {
                     anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -424,7 +424,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
                 free(DBFETCH(thing)->sp.exit.dest);
 
             DBFETCH(thing)->sp.exit.dest =
-                  (dbref *) malloc(sizeof(dbref) * ndest);
+                (dbref *) malloc(sizeof(dbref) * ndest);
             for (i = 0; i < ndest; i++)
                 (DBFETCH(thing)->sp.exit.dest)[i] = good_dest[i];
             break;

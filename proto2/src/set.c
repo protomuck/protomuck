@@ -1056,9 +1056,9 @@ do_relink(int descr, dbref player, const char *thing_name,
 
             if ((dest = noisy_match_result(&md)) == NOTHING) {
                 anotify(player, CFAIL "Unknown object type.");
-	        log_status("PANIC: weird object: Typeof(%d) = %d\n", thing,
-    	                   Typeof(thing));
-	    return;
+                log_status("PANIC: weird object: Typeof(%d) = %d\n", thing,
+                           Typeof(thing));
+                return;
             }
     }
 

@@ -89,9 +89,9 @@ could_doit(int descr, register dbref player, register dbref thing)
         owner = OWNER(thing);
         source = DBFETCH(player)->location;
         dest = *(DBFETCH(thing)->sp.exit.dest);
- 
-        if (dest == NIL) /* unless its locked, anyone can use #-4 */
-           return (eval_boolexp(descr, player, GETLOCK(thing), thing));
+
+        if (dest == NIL)        /* unless its locked, anyone can use #-4 */
+            return (eval_boolexp(descr, player, GETLOCK(thing), thing));
 
         if (Typeof(dest) == TYPE_PLAYER) {
             dbref destplayer = dest;
@@ -162,8 +162,8 @@ could_doit2(int descr, register dbref player, register dbref thing, char *prop,
         source = DBFETCH(player)->location;
         dest = *(DBFETCH(thing)->sp.exit.dest);
 
-        if (dest == NIL) /* unless its locked, anyone can use #-4 */
-           return (eval_boolexp(descr, player, GETLOCK(thing), thing));
+        if (dest == NIL)        /* unless its locked, anyone can use #-4 */
+            return (eval_boolexp(descr, player, GETLOCK(thing), thing));
 
         if (Typeof(dest) == TYPE_PLAYER) {
             dbref destplayer = dest;
@@ -252,14 +252,15 @@ can_doit(int descr, register dbref player, register dbref thing,
     if ((loc = getloc(player)) == NOTHING)
         return 0;
 
-    if (OkObj(thing)) if
-       ( ((FLAG2(player) & F2IMMOBILE) && !(FLAG2(thing) & F2IMMOBILE)) && 
-         (!(Typeof(DBFETCH(thing)->sp.exit.dest[0]) == TYPE_PROGRAM) && !(DBFETCH(thing)->sp.exit.dest[0] == NIL))
-       ) {
-          envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
-	              thing, thing, NOTHING, "@immobile", "Immobile", 1, 1);
-    	  return 0;
-         }
+    if (OkObj(thing))
+        if (((FLAG2(player) & F2IMMOBILE) && !(FLAG2(thing) & F2IMMOBILE)) &&
+            (!(Typeof(DBFETCH(thing)->sp.exit.dest[0]) == TYPE_PROGRAM)
+             && !(DBFETCH(thing)->sp.exit.dest[0] == NIL))
+            ) {
+            envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
+                         thing, thing, NOTHING, "@immobile", "Immobile", 1, 1);
+            return 0;
+        }
 
     if (!TMage(OWNER(player)) && Typeof(player) == TYPE_THING &&
         (FLAGS(thing) & ZOMBIE)) {
@@ -336,12 +337,12 @@ newcontrols(register dbref who, register dbref what, register bool true_c)
 
     /* No one controls invalid objects */
     /* if (what < 0 || what >= db_top)  -- not good enough */
-       if (!OkObj(what) || !OkObj(who))
+    if (!OkObj(what) || !OkObj(who))
         return 0;
 
     /* Garbage controls nothing. */
     if (Typeof(who) == TYPE_GARBAGE)
-	return 0;
+        return 0;
 
     /* No one controls garbage */
     if (Typeof(what) == TYPE_GARBAGE)
