@@ -1020,6 +1020,44 @@ do_comment(COMPSTATE * cstat) /* ProtoMUCK Comment parser */
 }
 #endif
 
+/* This tells us if the token is a compile time conditional directive. */
+int
+is_preprocessor_conditional(const char* tmpptr)
+{
+    if (!string_compare(tmpptr, "$ifdef"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifndef"))
+        return 1;
+    if (!string_compare(tmpptr, "$iflib"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifver"))
+        return 1;
+    if (!string_compare(tmpptr, "$iflibver"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifnver"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifnlibver"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifcancall"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifncanncall"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifauthor"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifbeta"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifalpha"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifnauthor"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifnbeta"))
+        return 1;
+    if (!string_compare(tmpptr, "$ifnalpha"))
+        return 1;
+
+    return 0;
+}
+
 /* handle compiler directives */
 int
 do_directive(COMPSTATE * cstat, char *direct)
@@ -1277,36 +1315,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
 						  && (string_compare(tmpptr, "$endif"))))) {
-				if (!string_compare(tmpptr, "$ifdef"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifndef"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifver"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifbeta"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifalpha"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifcancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifncancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnnote"))
-					i++;
+                                if (is_preprocessor_conditional(tmpptr))
+                                        i++;
 				else if (!string_compare(tmpptr, "$endif"))
 					i--;
 				free(tmpptr);
@@ -1371,36 +1381,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
 						  && (string_compare(tmpptr, "$endif"))))) {
-				if (!string_compare(tmpptr, "$ifdef"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifndef"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifver"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifbeta"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifalpha"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifcancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifncancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnnote"))
-					i++;
+                                if (is_preprocessor_conditional(tmpptr))
+                                        i++;
 				else if (!string_compare(tmpptr, "$endif"))
 					i--;
 				free(tmpptr);
@@ -1487,36 +1469,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
 						  && (string_compare(tmpptr, "$endif"))))) {
-				if (!string_compare(tmpptr, "$ifdef"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifndef"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifver"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifbeta"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifalpha"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifcancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifncancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnnote"))
-					i++;
+                                if (is_preprocessor_conditional(tmpptr))
+                                        i++;
 				else if (!string_compare(tmpptr, "$endif"))
 					i--;
 				free(tmpptr);
@@ -1588,36 +1542,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
 						  && (string_compare(tmpptr, "$endif"))))) {
-				if (!string_compare(tmpptr, "$ifdef"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifndef"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifver"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifbeta"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifalpha"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifcancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifncancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnnote"))
-					i++;
+                                if (is_preprocessor_conditional(tmpptr))
+                                        i++;
 				else if (!string_compare(tmpptr, "$endif"))
 					i--;
 				free(tmpptr);
@@ -1713,37 +1639,9 @@ do_directive(COMPSTATE * cstat, char *direct)
 			i = 0;
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
-						  && (string_compare(tmpptr, "$endif"))))) {
-				if (!string_compare(tmpptr, "$ifdef"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifndef"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifver"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifbeta"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifalpha"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifcancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifncancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnnote"))
-					i++;
+					  && (string_compare(tmpptr, "$endif"))))) {
+                                if (is_preprocessor_conditional(tmpptr))
+                                        i++;
 				else if (!string_compare(tmpptr, "$endif"))
 					i--;
 				free(tmpptr);
@@ -1857,36 +1755,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
 						  && (string_compare(tmpptr, "$endif"))))) {
-				if (!string_compare(tmpptr, "$ifdef"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifndef"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlib"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifver"))
-					i++;
-				else if (!string_compare(tmpptr, "$iflibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnlibver"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifbeta"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifalpha"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifcancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifncancall"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnauthor"))
-					i++;
-				else if (!string_compare(tmpptr, "$ifnnote"))
-					i++;
+                                if (is_preprocessor_conditional(tmpptr))
+                                        i++;
 				else if (!string_compare(tmpptr, "$endif"))
 					i--;
 				free(tmpptr);
@@ -1901,36 +1771,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 		i = 0;
 		while ((tmpptr = (char *) next_token_raw(cstat)) &&
 			   (i || (string_compare(tmpptr, "$endif")))) {
-			if (!string_compare(tmpptr, "$ifdef"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifndef"))
-				i++;
-			else if (!string_compare(tmpptr, "$iflib"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifnlib"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifver"))
-				i++;
-			else if (!string_compare(tmpptr, "$iflibver"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifnver"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifnlibver"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifbeta"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifalpha"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifcancall"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifncancall"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifauthor"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifnauthor"))
-				i++;
-			else if (!string_compare(tmpptr, "$ifnnote"))
-				i++;
+                        if (is_preprocessor_conditional(tmpptr))
+                                i++;
 			else if (!string_compare(tmpptr, "$endif"))
 				i--;
 			free(tmpptr);
