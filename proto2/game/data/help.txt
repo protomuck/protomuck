@@ -1,4 +1,4 @@
-Welcome to the ProtoMuck 1.8 User's Guide!
+Welcome to the ProtoMUCK 2.0 User's Guide!
 
 You can get more help on the following topics:
 -----------------------------------------------------
