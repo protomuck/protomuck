@@ -293,7 +293,8 @@ newcontrols(register dbref who, register dbref what, register bool true_c)
     register dbref index;
 
     /* No one controls invalid objects */
-    if (what < 0 || what >= db_top)
+    /* if (what < 0 || what >= db_top)  -- not good enough */
+       if (!OkObj(what) || !OkObj(who))
         return 0;
 
     /* Garbage controls nothing. */

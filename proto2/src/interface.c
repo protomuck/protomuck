@@ -3252,6 +3252,7 @@ do_command(struct descriptor_data *d, char *command)
 {
     struct frame *tmpfr;
     char cmdbuf[BUFFER_LEN];
+    char tmpbuf[BUFFER_LEN];
 
 #ifdef NEWHTTPD
     if (d->type == CT_HTTP)     /* hinoserm */
@@ -3277,7 +3278,8 @@ do_command(struct descriptor_data *d, char *command)
                 queue_write(d, "\r\n", 2);
             }
         }
-        queue_ansi( d, CINFO "Foreground program aborted.\r\n");
+        parse_ansi(d->player, tmpbuf, CINFO "Foreground program aborted.\r\n", ANSINORMAL);
+        queue_ansi(d, tmpbuf);
         if((FLAGS(d->player) & INTERACTIVE))
             if ((FLAGS(d->player) & READMODE))
                 process_command(d->descriptor, d->player, command);
