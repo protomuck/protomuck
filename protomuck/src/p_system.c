@@ -125,7 +125,7 @@ prim_force(PRIM_PROTOTYPE)
         abort_interp("Null string argument (2)");
     if (index(oper1->data.string->data, '\r'))
         abort_interp("Carriage returns not allowed in command string (2)");
-    if (Man(oper2->data.objref) && !Man(OWNER(program)))
+    if (Man(oper2->data.objref) && !(Man(OWNER(program)) && Boy(program)))
         abort_interp("Cannot force the man (1)");
 
     force_level++;
