@@ -886,6 +886,8 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
 	abort_interp("Non-string argument (2)");
     if (oper2->type != PROG_INTEGER)
 	abort_interp("Invalid object argument (1)");
+    if (!pdescrp(oper2->data.number))
+       abort_interp("That is not a valid descriptor.");
     if (oper1->data.string)
 	strcpy(buf, oper1->data.string->data);
         notify_descriptor(oper2->data.number, buf);

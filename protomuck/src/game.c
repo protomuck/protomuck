@@ -9,9 +9,11 @@
 #endif
 
 #include "db.h"
+#include "mpi.h"
 #include "props.h"
 #include "params.h"
 #include "tune.h"
+#include "interp.h"
 #include "interface.h"
 #include "match.h"
 #include "msgparse.h"
@@ -1418,14 +1420,20 @@ process_command(int descr, dbref player, char *command)
 		}
 		break;
 	    default:
-	bad:
+        bad:
+                
+                if ( prop_command(descr, player, command, (char *)PROP_HIDDEN))
+                  return;
+                else 
+                  goto bad2;
+	bad2:
  		if ( Typeof(tp_huh_command) == TYPE_PROGRAM && !(player == -1)) {
 			tmpfr = interp(descr, player, DBFETCH(player)->location, tp_huh_command, (dbref)-4, FOREGROUND, STD_REGUID);
 			if (!tmpfr)
 				goto bad2;
 			(void) interp_loop(player, tp_huh_command, tmpfr, 0);
             } else {
-   		   bad2:
+   		   bad3:
                   anotify_fmt(player, CINFO "%s",tp_huh_mesg);
 			if (tp_log_failed_commands && !controls(player, DBFETCH(player)->location)) {
 		    		log_status("HUH from %s(%d) in %s(%d)[%s]: %s %s\n", NAME(player), player,
@@ -1440,12 +1448,82 @@ process_command(int descr, dbref player, char *command)
 
 }
 
+int prop_command(int descr, dbref player, char *command, char *type)
+{
+   PropPtr ptr;
+   dbref progRef = AMBIGUOUS;
+   dbref where = player;
+   char propName[BUFFER_LEN];
+   char *workBuf;
+   sprintf(propName, "%ccommand%c%s", type, PROPDIR_DELIMITER, command);        
+            
+   ptr = envprop(&where, propName, 0);
+   if (!ptr) return 0;
+#ifdef DISKBASE
+   propfetch(what, ptr);
+#endif
+   switch(PropType(ptr)){
+      case PROP_STRTYP:
+           strcpy(workBuf, get_uncompress(PropDataStr(ptr)));
+           break;
+      case PROP_REFTYP:
+           progRef = PropDataRef(ptr);
+           break;
+      default:
+           return 0;
+           break;
+   }
+   if (workBuf && *workBuf){
+      if (*workBuf == '&')
+         progRef = AMBIGUOUS;
+      else if (*workBuf == '#' && number(workBuf + 1))
+         progRef = (dbref) atoi(++workBuf);
+      else if (*workBuf == '$')
+         progRef = find_registered_obj(where, workBuf);
+      else {
+         notify(player, workBuf);
+         return 1;
+      }
+   }
+   else 
+      if ( progRef == AMBIGUOUS || progRef == NOTHING ) {
+         anotify_nolisten2(player, CINFO 
+                           "Invalid program call from a command prop.");
+         return 1;
+      }      
+   if ( progRef == AMBIGUOUS ) {
+      char cbuf[BUFFER_LEN];
+      int ival;
+      
+      ival = MPI_ISPRIVATE;
+      do_parse_mesg(descr, player, where, workBuf + 1, match_cmdname,
+                    cbuf, ival);
+      if(*cbuf)
+        notify_nolisten(player, cbuf, 1);
+      return 1;
+   }
+   else {
+      if ( progRef < 0 || progRef >= db_top ) {
+         anotify_nolisten2(player, 
+                           CINFO "Invalid program call from a command prop.");
+         return 1; 
+      }
+      else if ( Typeof(progRef) != TYPE_PROGRAM) {
+         anotify_nolisten2(player, 
+                           CINFO "Invalid program call from a command prop.");     
+         return 1;
+      }
+      else {
+         struct frame *tmpfr;
+         tmpfr = interp(descr, player, where, progRef, where, FOREGROUND, 
+                        STD_HARDUID);
+         if (tmpfr) {
+            interp_loop(player, progRef, tmpfr, 0);
+         }
+         return 1;
+      }
+   }
+}
+
 #undef Matched
-
-
-
-
-
-
-
 

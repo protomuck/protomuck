@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.9 2000-10-23 04:54:09 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.10 2000-11-07 00:06:50 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands
@@ -111,7 +111,7 @@ extern void do_shutdown(dbref player, const char *msg);
 extern void do_restart(dbref player, const char *msg);
 extern void fork_and_dump(void);
 extern void dump_database(void);
-
+extern int prop_command(int, dbref, char *, char *);
 extern void dump_warning(void);
 #ifdef DELTADUMPS
 extern void dump_deltas(void);
