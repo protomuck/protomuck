@@ -126,15 +126,15 @@ do_wall(dbref player, const char *message)
         switch (message[0]) {
             case ':':
             case ';':
-                sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s %s", NAME(player),
+                sprintf(buf, SYSWHITE MARK SYSNORMAL "%s %s", NAME(player),
                         message + 1);
                 break;
             case '#':
             case '|':
-                sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s", message + 1);
+                sprintf(buf, SYSWHITE MARK SYSNORMAL "%s", message + 1);
                 break;
             default:
-                sprintf(buf, ANSIWHITE MARK ANSINORMAL "%s shouts, \"%s\"",
+                sprintf(buf, SYSWHITE MARK SYSNORMAL "%s shouts, \"%s\"",
                         NAME(player), message);
         }
         wall_all(buf);
