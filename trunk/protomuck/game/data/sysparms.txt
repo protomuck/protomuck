@@ -385,3 +385,10 @@ When set to 'no', the parseprop prim gets its permissions from the
 object on which the prop to be parsed is located. When set to 'yes',
 the parseprim prop gets its permissions from the permission bit set
 on the MUF program itself.
+~~
+log_failedhelp
+When set to 'yes', will log failed attempts to use the in-server 
+help commands to a file in the logs/ directory. If something a
+player searches for in the help does not have an entry, their
+query is logged, or if the help file itself is missing, that 
+is logged as well.
