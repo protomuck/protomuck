@@ -163,6 +163,64 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 }
 
 void
+prim_nbsockrecv_char(PRIM_PROTOTYPE)
+{
+    char *mystring;
+    int loop, readme, gotmessage = 0;
+    int sockval = 0;
+    fd_set reads;
+    struct timeval t_val;
+    unsigned int theChar = 0;
+    unsigned char aChar = '\0';
+
+    CHECKOP(1);
+    /* socket -- i i */
+    oper1 = POP(); /* socket */
+
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("Socket argument expected!");
+    if (oper1->data.sock->listening)
+        abort_interp("NBSOCKRECV_CHAR does not work with Listening SOCKETS.");
+ 
+    CHECKOFLOW(2);
+
+    mystring = (char *) malloc(3);
+
+    t_val.tv_sec = 0;
+    t_val.tv_usec = 0;
+
+    sockval = oper1->data.sock->socknum;
+    *mystring = '\0';
+    FD_ZERO(&reads);
+    FD_SET(oper1->data.sock->socknum, &reads);
+
+    select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
+
+    if (FD_ISSET(oper1->data.sock->socknum, &reads))
+    {
+       readme = recv(oper1->data.sock->socknum,mystring,1,0);
+       if (readme > 0)
+       {
+           gotmessage = 1;
+           aChar = mystring[0];
+           theChar = (int) aChar;
+       }
+       oper1->data.sock->lastchar = *mystring;
+    }
+    CLEAR(oper1);
+    if(tp_log_sockets)
+        if(gotmessage)
+            log2filetime( "logs/sockets", "#%d by %s SOCKRECV:  %d\n", program,
+                           unparse_object(player, player), sockval);
+    if (readme < 1)
+        readme = 0;
+    PushInt(readme);
+    PushInt(theChar);
+}
+
+void
 prim_sockclose(PRIM_PROTOTYPE)
 {
     int myresult;
