@@ -2,11 +2,36 @@
                  by Foxen/Revar (foxen@belfry.com)
                  --  NeonMUCK MPI additions by  --
                   Loki/Jaybe (loki@dragoncat.net)
+              -- ProtoMUCK v1.60 MPI additions by  --
+                   Moose/Van (ashitaka@home.com)
 
 You may get a listing of topics that you can get help on, either sorted
 Alphabetically or sorted by Category.  To get these indexes, type:
         mpi alpha         or
-        mpi category
+        mpi category      or
+        mpi new
+~
+~----------------------------------------------------------------------------
+~
+NEW|WHATSNEW|WHAT'SNEW|WHAT'S NEW|WHATS NEW|WHAT IS NEW|WHATISNEW
+What's new in MPI?
+ 
+New additions to ProtoMUCK v1.60:
+  {descr}   {sysparm}
+ 
+New additions to ProtoMUCK v1.50:
+  {timing}  {telldescr}
+  Seperated 'mpi category' into different sections. Now it isn't so spammy.
+ 
+New additions to ProtoMUCK 1.03:
+  {idle} and {ontime} now use least idle connection.
+ 
+New additions to ProtoMUCK v1.00:
+  {oansi}   {pmatch}     {match}
+  {lmatch}
+  {max} and {min} now accept any number of arguments.
+  All {tell}-like functions now notify listeners.
+  {list} and {lexec} no longer abort on non-existant lists.
 ~
 ~----------------------------------------------------------------------------
 ~
@@ -15,93 +40,214 @@ CATEGORY|TOPICS|SECTIONS
 
 You can get more help on the following topics:
 
+  Definitions and Details                  (DefDets)
+  Time Functions                           (TimeFuncs)
+  Logical Functions                        (LogicFuncs)
+  Property Handling                        (PropFuncs)
+  String Functions                         (StringFuncs)
+  Math Functions                           (MathFuncs)
+  Looping Functions                        (Looping)
+  Database Related Functions               (DBFuncs)
+  Connection Related Functions             (ConnFuncs)
+  Variable Handling Functions              (VarFuncs)
+  List Handling Functions                  (ListFuncs)
+  Miscellaneous Functions                  (MiscFuncs)
+  Macros and Functions                     (Functions)
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Definitions and Details|DefDets
-comments     definitions  
-
+Definitions and Details
+ 
+  comments     definitions  
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Time Functions|TimeFuncs
-convsecs     convtime     date         delay        ftime        kill
-ltimestr     secs         stimestr     time         timestr      tzoffset
-
+Time Functions
+ 
+  convsecs     convtime     date         delay        ftime        kill
+  ltimestr     secs         stimestr     time         timestr      timing
+  tzoffset
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Logical Functions|LogicFuncs
-and          eq           ge           gt           if           le
-lt           ne           not          or           xor          
-
+Logical Functions
+ 
+  and          eq           ge           gt           if           le
+  lt           ne           not          or           xor          
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Property Handling|PropFuncs
-concat       delprop      exec         exec!        index        index!
-lexec        list         listprops    prop         prop!        propdir
-rand         select       store        timesub      
-
+Property Handling
+ 
+  concat       delprop      exec         exec!        index        index!
+  lexec        list         listprops    prop         prop!        propdir
+  rand         select       store        timesub      
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 String Functions|Strings|StringFuncs
-ansi         center       eval         html         instr        left         
-lit          midstr       nl           null         ohtml        otell        
-pronouns     right        smatch       strip        strlen       subst        
-tell         tolower      toupper
-
+String Functions
+ 
+  ansi         attr         center       default      escape       eval  
+  html         instr        left         lit          midstr       nl    
+  null         oansi        ohtml        otell        pronouns     right 
+  smatch       strip        strlen       subst        tell         tolower
+  toupper      telldescr
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Math Functions|Math|MathFuncs
-abs          add          dec          dice         dist         div
-inc          max          min          mod          mult         sign
-subt         
-
+Math Functions
+ 
+  abs          add          dec          dice         dist         div
+  inc          max          min          mod          mult         sign
+  subt         
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Looping Functions|Loops|Looping
-filter       fold         for          foreach      parse        while
-
+Looping Functions
+ 
+  filter       fold         for          foreach      parse        while
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Database Related Functions|Database|DBFuncs
-contains     contents     controls     created      dbeq         exits
-flags        force        fullname     holds        istype       lastused
-links        loc          locked       modified     money        name
-nearby       owner        ref          testlock     type         usecount
-
+Database Related Functions
+ 
+  contains     contents     controls     created      dbeq         exits    
+  flags        force        fullname     holds        istype       lastused 
+  links        loc          locked       match        modified     money    
+  name         nearby       owner        pmatch       ref          testlock 
+  type         usecount
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Connection Related Functions|Connection|ConnFuncs
-awake        idle         online       ontime       
-
+Connection Related Functions
+ 
+  awake        idle         online       ontime       descr
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Variable Handling Functions|Variable|Variables|Vars|Var|VarFuncs
-&arg         &cmd         &how         set          v            with
-
+Variable Handling Functions
+ 
+  &arg         &cmd         &how         set          v            with
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 List Handling Functions|List Handling|ListFuncs
-commas       count        lcommon      lmember      lrand        lremove
-lsort        lunion       lunique      mklist       sublist      
-
+List Handling Functions|List Handling
+ 
+  commas       count        lcommon      lmatch       lmember      lrand   
+  lremove      lsort        lunion       lunique      mklist       sublist  
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Miscellaneous Functions|Miscellaneous|Misc|MiscFuncs
-debug        debugif      isdbref      isnum        muckname     muf
-version      
-
+Miscellaneous Functions
+ 
+  debug        debugif      isdbref      isnum        muckname     muf
+  version      sysparm
+ 
+Use 'mpi <topicname>' to get more information on a topic.
+~
+~
+~----------------------------------------------------------------------------
+~
+~
 Macros and Functions|Functions
-func         macros       
-
-
+Macros and Functions
+ 
+  func         macros       
+ 
 Use 'mpi <topicname>' to get more information on a topic.
 ~
 ~----------------------------------------------------------------------------
 ~
 ALPHA|ALPHABETICAL|COMMANDS
                  Alphabetical Index of Topics:
-
+ 
 You can get more help on the following topics:
-
+ 
 &arg         &cmd         &how         abs          add          and
-ansi         awake        center       commas       comments     concat       
-contains     contents     controls     convsecs     convtime     count        
-created      date         dbeq         debug        debugif      dec          
-definitions  delay        delprop      dice         dist         div          
-eq           eval         exec         exec!        exits        filter       
-flags        fold         for          force        foreach      ftime        
-fullname     func         ge           gt           html         holds        
-idle         if           inc          index        index!       instr        
-isdbref      isnum        istype       kill         lastused     lcommon      
-le           left         lexec        links        list         listprops    
-lit          lmember      loc          locked       lrand        lremove      
-lsort        lt           ltimestr     lunion       lunique      macros       
-max          midstr       min          mklist       mod          modified     
-money        muckname     muf          mult         name         ne           
-nearby       nl           not          null         online       ontime       
-or           ohtml        otell        owner        parse        pronouns     
+ansi         attr         awake        center       commas       comments
+concat       contains     contents     controls     convsecs     convtime
+count        created      date         dbeq         debug        debugif
+dec          default      definitions  delay        delprop      dice         
+dist         div          eq           escape       eval         exec         
+exec!        exits        filter       flags        fold         for          
+force        foreach      ftime        fullname     func         ge           
+gt           html         holds        idle         if           inc          
+index        index!       instr        isdbref      isnum        istype       
+kill         lastused     lcommon      le           left         lexec        
+links        list         listprops    lit          lmember      loc          
+locked       lrand        lremove      lsort        lt           ltimestr     
+lunion       lunique      macros       match        max          midstr       
+min          mklist       mod          modified     money        muckname     
+muf          mult         name         ne           nearby       nl           
+not          null         online       ontime       or           oansi        
+ohtml        otell        owner        parse        pmatch       pronouns     
 prop         prop!        propdir      rand         ref          right        
 secs         select       set          sign         smatch       stimestr     
 store        strip        strlen       sublist      subst        subt         
 tell         testlock     time         timestr      timesub      tolower      
 toupper      type         tzoffset     usecount     v            version      
 while        with         xor
-
+ 
 Use 'mpi <topicname>' to get more information on a topic.
 ~
 ~
@@ -151,6 +297,12 @@ both considered false.  Any other value is considered true.
 TZOFFSET
 {tzoffset}
     Returns local time zone offset from GMT in seconds.
+~
+~
+TIMING
+{timing:mpi}
+    Notifies the player running the mpi code how long it takes to run the
+code from start to finish.
 ~
 ~
 TIME
@@ -738,6 +890,15 @@ owner of the trigger, or to the user, then the user's name will not be
 prepended.
 ~
 ~
+OANSI
+{oansi:string}
+{oansi:string,room}
+{oansi:string,room,player}
+
+Works just like {ansi} except it notifies the room, and the syntax is
+the same as {otell} and {ohtml}.
+~
+~
 HTML
 {html:string}
 {html:string,player}
@@ -753,6 +914,13 @@ OHTML
 
 Works just like {otell} but only is displayed to those with a Pueblo flag.
 HTML codes are parsed and executed by the Pueblo client.
+~
+~
+TELLDESCR
+{telldescr:string}
+{telldescr:string,descr}
+    Works exactly like {tell}, except it will notify the descriptor given.
+If no descriptor is provided, then it will notify the current descriptor.
 ~
 ~
 TELL
@@ -780,6 +948,33 @@ If you pass it a player of #-1, it will send the message to all the players
 in the room.  This returns the message that was sent.  If the trigger isn't
 a room, or an exit on a room, and if the message doesn't already begin with
 the user's name, then the user's name will be prepended to the message.
+~
+~
+ATTR
+{attr:attribute,...,text}
+The syntax for the {attr} function is: {attr:ATTRIBUTE,...,TEXT} where you
+may specify up to eight attributes to give to the specified TEXT.
+Ie:: {attr:bold,red,WARNING!} would print WARNING! in bold red text, then
+reset back to the default text style for anything after the {attr:}
+command.   {ATTR} commands do not nest well, yet, so don't put {ATTR}s
+inside other {ATTR}s. 
+ 
+The attributes must be one of the following: reset, bold, dim, underline,
+reverse, black, red, yellow, green, cyan, blue, magenta, white, bg_black,
+bg_red, bg_yellow, bg_green, bg_cyan, bg_blue, bg_magenta, or bg_white
+~
+~
+ESCAPE
+{escape:text}
+Lets you keep {eval:{escape:{&arg}}} from evaluating any MPI code that the
+user may have entered.  Basically quotes and escapes text so that when
+evaluated, the original text is returned. 
+~
+~
+DEFAULT
+{default:expr1,expr2}
+If expr1 is an empty string then it will return expr2; however, if expr1 is
+not an empty string then it will return it.
 ~
 ~
 ~
@@ -860,12 +1055,16 @@ to this sum as a modifier. (YdX+Z)
 ~
 MIN|MINIMUM
 {min:expr1,expr2}
-    Returns the lesser of the values of expr1 and expr2.
+{min:expr1,expr2,expr3...}
+    Returns the lesser of the values of expr1 and expr2.  If more than
+two arguments are given, then it returns the minimum in the group.
 ~
 ~
 MAX|MAXIMUM
 {max:expr1,expr2}
-    Returns the greater of the values of expr1 and expr2.
+{max:expr1,expr2,expr3...}
+    Returns the greater of the values of expr1, and expr2.  If more than
+two arguments are given, then it returns the maximum in the group.
 ~
 ~
 ABS|ABSOLUTE
@@ -1172,10 +1371,30 @@ is obj1 is held by the player, or by anything they hold, etc.  Basically,
 this just sees if obj1 is within the locational environment of obj2.
 ~
 ~
+MATCH
+{match:what}
+    It will check for a given nearby object, or down the enviroment.  It then
+returns the dbref of the matched object. Or, #-1 if nothing was found, or #-2
+if the match is ambiguous.
+~
+~
+PMATCH
+{pmatch:who}
+    It will find the given player in the database and return his or her dbref,
+or #-1 if no match was found.  It will also check for partial matches to the
+players that are online.  So if Arthur is online and {pmatch:arth} was ran it
+will match to Arthur.
+~
+~
 ~
 ~----------------------------------------------------------------------------
 ~             Connection Related Functions|Connection|ConnFuncs
 ~----------------------------------------------------------------------------
+~
+~
+DESCR
+{descr}
+    Returns the descriptor running the MPI code.
 ~
 ~
 ONLINE
@@ -1372,6 +1591,20 @@ Example:
 would return 4.
 ~
 ~
+LMATCH
+{lmatch:list,item}
+{lmatch:list,item,delimiter}
+    Returns 0 if the given item is NOT in the given list, otherwise, it
+returns the item's position in the list.  The first list item in the list
+would return 1, and the third would return 3, for example.  If the delimiter
+argument is given, then it treats the list as if it were delimited by that
+string, instead of by carriage returns. (\r's)  This works like {lmember}
+except it allows partial matching.
+Example:
+    {lmatch:{mklist:arthur,bob,craig,dan,evans,fred},d}
+would return 4.
+~
+~
 LSORT
 {lsort:list}
 {lsort:list,var1,var2,expr}
@@ -1460,6 +1693,12 @@ to only debug the running of the command {dostuff} when the argument will
 be the player who is running the MPI.
 ~
 ~
+SYSPARM
+{sysparm:<system option>}
+    Allows normal players to get a system parameter if they have permission
+to access it.
+~
+~
 ~
 ~----------------------------------------------------------------------------
 ~                       Macros and Functions|Functions
@@ -1518,4 +1757,8 @@ arguments:
 	}
     }
     {names:{contents:here},1,1}
+
+
+
+
 
