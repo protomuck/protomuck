@@ -34,6 +34,13 @@ unescape_url(char *url)
 {
     register int i, j;
 
+    /* Convert + to space */
+    for (i = 0; url[i]; i++) {
+        if (url[i] == '+')
+            url[i] = ' ';
+    }
+
+    /* Convert %xx codes into their character values */
     for (i = 0, j = 0; url[j]; ++i, ++j) {
         if ((url[i] = url[j]) == '%') {
             url[i] = x2c(&url[j + 1]);
@@ -120,7 +127,7 @@ escape_url(char *out, char *in)
         else if (isvalid_cgichar(*in))
             *tmp = *in;
         else {
-            sprintf(tmp, "%%%2X", *in);
+            sprintf(tmp, "%%%0.2X", *in);
             cnt += 2;
             tmp += 2;
         }
@@ -133,13 +140,14 @@ escape_url(char *out, char *in)
 int
 isvalid_cgichar(char c)
 {
-    if (isalnum(c) ||
+/*  if (isalnum(c) ||
         (c == UNDERSCORE) ||
         (c == HYPHEN) ||
         (c == PLUS) ||
         (c == TAB) || (c == SLASH) || (c == ATSIGN) || (c == PERCENT))
         return (1);
-
     else
         return (0);
+*/
+    return (isalnum(c) || (c == UNDERSCORE) || (c == HYPHEN) || (c == ATSIGN));
 }

@@ -158,3 +158,82 @@ prim_commandtext(PRIM_PROTOTYPE)
     CLEAR(oper3);
     PushString(buf);
 }
+
+void
+prim_htoi(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    result = 0;
+
+    if (oper1->data.string) {
+        for (tmp = 0; oper1->data.string->data[tmp]; ++tmp) {
+            result +=
+                (oper1->data.string->data[tmp] >=
+                 'A' ? ((oper1->data.string->data[tmp] & 0xdf) - 'A') +
+                 10 : (oper1->data.string->data[tmp] - '0'));
+
+            if (oper1->data.string->data[tmp + 1] != '\0')
+                result *= 16;
+        }
+    }
+
+    CLEAR(oper1);
+    PushInt(result);
+}
+
+void
+prim_itoh(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument. (1)");
+
+    sprintf(buf, "%0.2X", oper1->data.number);
+
+    CLEAR(oper1);
+    PushString(buf);
+}
+
+void
+prim_unescape_url(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    if (oper1->data.string) {
+        strcpy(buf, oper1->data.string->data);
+        unescape_url(buf);      /* Found in cgi.c */
+
+        CLEAR(oper1);
+        PushString(buf);
+    } else {
+        CLEAR(oper1);
+        PushNullStr;
+    }
+}
+
+void
+prim_escape_url(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    if (oper1->data.string) {
+        escape_url(buf, oper1->data.string->data); /* Found in cgi.c */
+
+        CLEAR(oper1);
+        PushString(buf);
+    } else {
+        CLEAR(oper1);
+        PushNullStr;
+    }
+}

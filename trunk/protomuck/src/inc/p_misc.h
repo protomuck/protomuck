@@ -37,6 +37,10 @@ extern void prim_systime_precise(PRIM_PROTOTYPE);
 extern void prim_commandtext(PRIM_PROTOTYPE);
 extern void prim_stopmidi(PRIM_PROTOTYPE);
 extern void prim_playmidi(PRIM_PROTOTYPE);
+extern void prim_htoi(PRIM_PROTOTYPE);
+extern void prim_itoh(PRIM_PROTOTYPE);
+extern void prim_unescape_url(PRIM_PROTOTYPE);
+extern void prim_escape_url(PRIM_PROTOTYPE);
 
 #define PRIMS_MISC_FUNCS prim_time, prim_date, prim_gmtoffset,           \
     prim_systime, prim_timesplit, prim_timefmt, prim_queue, prim_kill,   \
@@ -49,7 +53,7 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     prim_pnameokp, prim_nameokp, prim_event_exists,    \
     prim_watchpid, prim_getpids, prim_getpidinfo, prim_read_wants_blanks, \
     prim_debugger_break, prim_debug_on, prim_debug_off, prim_debug_line, \
-    prim_systime_precise
+    prim_systime_precise, prim_htoi, prim_itoh, prim_unescape_url, prim_escape_url
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET",    \
     "SYSTIME", "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL",  \
@@ -63,7 +67,7 @@ extern void prim_playmidi(PRIM_PROTOTYPE);
     "EVENT_EXISTS", "WATCHPID",           \
     "GETPIDS", "GETPIDINFO", "READ_WANTS_BLANKS",   \
     "DEBUGGER_BREAK", "DEBUG_ON", "DEBUG_OFF", "DEBUG_LINE", \
-    "SYSTIME_PRECISE"
+    "SYSTIME_PRECISE", "HTOI", "ITOH", "UNESCAPE_URL", "ESCAPE_URL"
 
-#define PRIMS_MISC_CNT 37
+#define PRIMS_MISC_CNT 41
 
