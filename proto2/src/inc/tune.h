@@ -33,7 +33,11 @@ extern const char *tp_mysql_password;
 
 #ifdef USE_SSL
 extern const char *tp_ssl_keyfile_passwd;
-#endif
+#endif /* USE_SSL */
+
+#ifdef USE_RESLVD
+extern const char *tp_reslvd_address;
+#endif /* USE_RESLVD */
 
 /* times */
 

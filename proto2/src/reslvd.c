@@ -198,6 +198,7 @@ void
 disconnect_descr(t_descr * d)
 {
     verb("DISC: %0.2d %s(%d)", d->descriptor, host_as_hex(d->ip), d->port);
+    shutdown(d->descriptor, 2);
     closesocket(d->descriptor);
 
     if (d->next)
@@ -207,6 +208,8 @@ disconnect_descr(t_descr * d)
     if (d == descr_list)
         descr_list = d->next;
 
+    if (d->buffer.in)
+        free((void *) d->buffer.in);
     free((void *) d);
 }
 
@@ -465,7 +468,6 @@ bind_to(const char *addr)
 
     if (*buf && (he = gethostbyname(buf)))
         bcopy((char *) he->h_addr, (char *) &name.sin_addr, he->h_length);
-
     else
         name.sin_addr.s_addr = INADDR_ANY;
 

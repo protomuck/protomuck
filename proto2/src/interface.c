@@ -88,7 +88,8 @@ static int listener_port[MAX_LISTEN_SOCKS];
 static int sock[MAX_LISTEN_SOCKS];
 static int ndescriptors = 0;
 static int numsocks = 0;
-static int maxd = 0;            /* Moved from shovechars since needed in p_socket.c */
+
+int maxd = 0;            /* Moved from shovechars since needed in p_socket.c */
 
 void parse_connect(const char *msg, char *command, char *user, char *pass);
 void check_connect(struct descriptor_data *d, const char *msg);
@@ -607,16 +608,19 @@ main(int argc, char **argv)
     }
 #endif /* USE_PS */
 
-#ifdef SPAWN_HOST_RESOLVER
-    if (!db_conversion_flag) {
-        fprintf(stderr, "INIT: external host resolver started\n");
-        spawn_resolver();
-    }
-#endif
 
     if (!sanity_interactive && !db_conversion_flag) {
 #if !defined(WIN_VC) || !defined(DEBUG)
         set_signals();
+#endif
+
+#if defined(USE_RESLVD) && defined(SPAWN_HOST_RESOLVER)
+    if (reslvd_open() != 1)
+        spawn_resolver();
+#elif defined(USE_RESLVD)
+    reslvd_open();
+#elif defined(SPAWN_HOST_RESOLVER)
+    spawn_resolver();
 #endif
 
 #ifdef MUD_ID
@@ -657,6 +661,9 @@ main(int argc, char **argv)
 
 #ifdef SPAWN_HOST_RESOLVER
         kill_resolver();
+#endif
+#ifdef USE_RESLVD
+    reslvd_disc();
 #endif
 
 #ifdef WIN_VC
@@ -1737,8 +1744,14 @@ shovechars(void)
 
 
 #ifdef SPAWN_HOST_RESOLVER
-        FD_SET(resolver_sock[1], &input_set);
+        if (resolverpid)
+            FD_SET(resolver_sock[1], &input_set);
 #endif
+#ifdef USE_RESLVD
+        if (reslvd_connected)
+            FD_SET(reslvd_sock, &input_set);
+#endif
+
 #ifdef MUF_SOCKETS
         for (curr = socket_list; curr; curr = curr->next) {
             if (!curr->theSock->readWaiting && curr->theSock->connected == 1) {
@@ -1807,9 +1820,12 @@ shovechars(void)
                 }               /* if FD_ISET... */
             }                   /* for i < numsocks... */
 #ifdef SPAWN_HOST_RESOLVER
-            if (FD_ISSET(resolver_sock[1], &input_set)) {
+            if (resolverpid && FD_ISSET(resolver_sock[1], &input_set))
                 resolve_hostnames();
-            }
+#endif
+#ifdef USE_RESLVD
+            if (reslvd_connected && FD_ISSET(reslvd_sock, &input_set))
+                reslvd_input();
 #endif
 
 #ifdef USE_SSL
@@ -3720,6 +3736,9 @@ do_armageddon(dbref player, const char *msg)
 #ifdef SPAWN_HOST_RESOLVER
     kill_resolver();
 #endif
+#ifdef USE_RESLVD
+    reslvd_disc();
+#endif
 
     exit(1);
 }
@@ -3732,6 +3751,9 @@ emergency_shutdown(void)
 
 #ifdef SPAWN_HOST_RESOLVER
     kill_resolver();
+#endif
+#ifdef USE_RESLVD
+    reslvd_disc();
 #endif
 
 }

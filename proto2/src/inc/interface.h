@@ -179,6 +179,7 @@ struct descriptor_data {
 
 /* these symbols must be defined by the interface */
 
+extern int maxd;
 extern char restart_message[BUFFER_LEN];
 extern char shutdown_message[BUFFER_LEN];
 extern bool db_conversion_flag;

@@ -271,6 +271,9 @@ prim_armageddon(PRIM_PROTOTYPE)
 #ifdef SPAWN_HOST_RESOLVER
     kill_resolver();
 #endif
+#ifdef USE_RESLVD
+    reslvd_disc();
+#endif
 
     exit(1);
 }
