@@ -601,7 +601,7 @@ do_prog(int descr, dbref player, const char *name)
       DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
       DBFETCH(newprog)->sp.program.profstart = 0;
       DBFETCH(newprog)->sp.program.profuses = 0;
-
+      DBFETCH(newprog)->sp.program.instances = 0;
 	DBFETCH(player)->sp.player.curr_prog = newprog;
 
 	PUSH(newprog, DBFETCH(player)->contents);
