@@ -1159,50 +1159,53 @@ int is_valid_pose_separator(char ch)
     return (ch == '\'') || (ch == ' ') || (ch == ',' ) || (ch == '-');
 }
 
-void
-prefix_message(char *Dest, const char *Src, const char *Prefix, 
-int BufferLength, int SuppressIfPresent)
-{
 
+void prefix_message(char* Dest, const char* Src, const char* Prefix, int BufferLength, int SuppressIfPresent)
+{
     int PrefixLength = strlen(Prefix);
-    int CheckForHangingEnter = 0;
-  
+    int CheckForHangingEnter	= 0;
+
     while((BufferLength > PrefixLength) && (*Src != '\0')) {
         if (*Src == '\r') {
             Src++;
             continue;
         }
-        if (!SuppressIfPresent || strncmp(Src, Prefix, PrefixLength) ||
-             (!is_valid_pose_separator(Src[PrefixLength]) &&
-             (Src[PrefixLength] != '\r') && 
-             (Src[PrefixLength] != '\0') )) {
+
+        if (!SuppressIfPresent || strncmp(Src, Prefix, PrefixLength) || (
+             !is_valid_pose_separator(Src[PrefixLength]) &&	
+             (Src[PrefixLength] != '\r') &&
+             (Src[PrefixLength] != '\0'))) {
+
             strcpy(Dest, Prefix);
-            
+
             Dest += PrefixLength;
             BufferLength -= PrefixLength;
 
             if (BufferLength > 1) {
                 if (!is_valid_pose_separator(*Src)) {
                     *Dest++ = ' ';
-                     BufferLength--;
+                    BufferLength--;
                 }
             }
         }
-        while ((BufferLength > 1) && (*Src != '\0')) {
+
+        while((BufferLength > 1) && (*Src != '\0')) {
             *Dest++ = *Src;
             BufferLength--;
-        
+
             if (*Src++ == '\r') {
                 CheckForHangingEnter = 1;
                 break;
             }
         }
     }
+
     if (CheckForHangingEnter && (Dest[-1] == '\r'))
         Dest--;
-        
-    *Dest = '0';
+
+    *Dest = '\0';
 }
+
 
 int
 is_prop_prefix(const char *Property, const char *Prefix)
