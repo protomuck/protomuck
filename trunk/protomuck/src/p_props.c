@@ -1055,7 +1055,7 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
 				ptr = get_property_class(ref, prop);
 				if (ptr) {
 					strcpy(buf, ptr);
-					if (equalstr(buf, pat)) {
+					if (equalstr(pat, buf)) {
 						array_appenditem(&nu, in);
 					}
 				}
