@@ -159,7 +159,7 @@ match_registered(struct match_data *md)
     dbref match;
 
     match = find_registered_obj(md->match_from, md->match_name);
-    if (match != NOTHING)
+    if (match != NOTHING && match != NIL)
         md->exact_match = match;
 }
 
