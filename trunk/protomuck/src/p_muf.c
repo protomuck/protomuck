@@ -25,7 +25,7 @@ extern char buf[BUFFER_LEN];
 struct tm *time_tm;
 
 /* Some externs to functions elsewhere in the code. */
-extern kill_macro(const char *, dbref, struct macrotable **);
+extern int kill_macro(const char *, dbref, struct macrotable **);
 
 void
 prim_kill_macro(PRIM_PROTOTYPE)
@@ -86,7 +86,7 @@ stk_array *
 make_macros_array(stk_array *dict, struct macrotable *node)
 {
     if (!node)
-        return;
+        return 0;
 
     make_macros_array(dict, node->left);
     array_set_strkey_strval(&dict, node->name, node->definition);
@@ -218,7 +218,7 @@ prim_program_getlines(PRIM_PROTOTYPE)
                                  * of the program, so back up one in the count. */
         --count;
     ary = new_array_packed(count);
-    for (curr = segment, i = 0; --count; ++i, curr = curr->next)
+    for (curr = segment, i = 0; count--; ++i, curr = curr->next)
         array_set_intkey_strval(&ary, i, curr->this_line);
 
     free_prog_text(first);
@@ -305,7 +305,7 @@ prim_program_insertlines(PRIM_PROTOTYPE)
     dbref theprog;
     int i = 0;
     struct line *curr;
-    struct line *prev;
+    struct line *prev = NULL;
     struct line *new_line;
     int start = 0;
     stk_array *lines;
