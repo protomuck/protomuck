@@ -356,6 +356,11 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			parse_omessage(descr, player, dest, exit, GETODROP(exit),
 					PNAME(player), "(@Odrop)");
 		    }
+#ifdef DYNAMIC_LINKS
+                    dest = (DBFETCH(exit)->sp.exit.dest)[i];
+                    if (Typeof(dest) != TYPE_ROOM)
+                        break;
+#endif
 		    enter_room(descr, player, dest, exit);
 		    succ = 1;
 		}
@@ -382,6 +387,11 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			    parse_omessage(descr, player, dest, exit, GETODROP(exit),
 				    PNAME(player), "(@Odrop)");
 			}
+#ifdef DYNAMIC_LINKS
+                    dest = (DBFETCH(exit)->sp.exit.dest)[i];
+                    if (Typeof(dest) != TYPE_THING)
+                        break;
+#endif
 			enter_room(descr, player, dest, exit);
 			succ = 1;
 		    }
@@ -429,6 +439,11 @@ trigger(int descr, dbref player, dbref exit, int pflag)
 			    parse_omessage(descr, player, getloc(dest), exit,
 				    GETODROP(exit), PNAME(player), "(@Odrop)");
 			}
+#ifdef DYNAMIC_LINKS
+                        dest = (DBFETCH(exit)->sp.exit.dest)[i];
+                        if (Typeof(dest) != TYPE_PLAYER)
+                            break;
+#endif
 			enter_room(descr, player, DBFETCH(dest)->location, exit);
 		    } else {
 			anotify_nolisten2(player, CINFO "That player does not wish to be disturbed.");

@@ -913,9 +913,20 @@ process_command(int descr, dbref player, char *command)
 			switch (command[2]) {
 			    case 'c':
 			    case 'C':
-				Matched("@mcpedit");
-				(void) do_mcpedit(descr, player, arg1);
-				break;
+                                switch (command[4]) {
+                                    case 'e':
+                                    case 'E':
+				        Matched("@mcpedit");
+				        (void) do_mcpedit(descr, player, arg1);
+				        break;
+                                    case 'p':
+                                    case 'P':
+                                        Matched("@mcpprogram");
+                                        //(void) do_mcpprog(descr, player, arg1);
+                                        break;
+                                    default:
+                                        goto bad;
+                                }
 			    case 'e':
 			    case 'E':
 				Matched("@memory");

@@ -1424,8 +1424,12 @@ shovechars(void)
 		    }
 		}
 		if (d->connected) {
-                int dr_idletime = (now - d->last_time);
-
+                    int leastIdle = 0;
+                    int dr_idletime = 0;
+                    struct descriptor_data * tempd;
+                    leastIdle = least_idle_player_descr(d->player);
+                    tempd = get_descr(pdescr(leastIdle), NOTHING);
+                    dr_idletime = now - tempd->last_time;
 		    cnt++;
 		    if (tp_idleboot && (dr_idletime > tp_maxidle) &&
 			    !TMage(d->player) && !(POWERS(d->player) & POW_IDLE)
