@@ -1285,21 +1285,23 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
 
     sprintf(propname, "%s#", dir);
     if (!(lines = get_property_value(ref, propname))) {
-        if ((m = get_property_class(ref, propname))) {
-            m = get_uncompress(m);
-            if (number(m))
-                lines = atoi(m);
+        if ((m = get_property_class(ref, propname)))
+            lines = atoi(get_uncompress(m));
+
+        if (!lines) {
+            sprintf(propname, "%s", dir);
+            if (!(lines = get_property_value(ref, propname)))
+                if (m = get_property_class(ref, propname))
+                    lines = atoi(get_uncompress(m));
+   
         }
         if (!lines) {
             sprintf(propname, "%s%c#", dir, PROPDIR_DELIMITER);
-            if (!(lines = get_property_value(ref, propname))) {
-                if (m = get_property_class(ref, propname)) {
-                    m = get_uncompress(m);
-                    if (number(m))
-                        lines = atoi(m);
-                }
-            }
+            if (!(lines = get_property_value(ref, propname)))
+                if (m = get_property_class(ref, propname))
+                        lines = atoi(get_uncompress(m));
         }
+
     }
 
     nw = new_array_packed(0);
