@@ -1,4 +1,7 @@
 /*
+ * Revision 1.5  2003/09/09 12:18:27  alynna
+ * Add dual compiling beta support
+ *
  * Revision 1.4  2001/02/17 12:22:25  alynna 
  * Make this thing compile flawlessly under CYGWIN  
  *
@@ -26,6 +29,11 @@
  are compiled in.
  ************************************************************************/
 
+/* Alynna - Define this to build a possibly less than stable 2.0 beta.
+ * Undefine this to build a theoretically stable 1.85 build.
+ */
+#undef BETA
+
 /* Alynna - Lets make something so that later on it will see the CYGWIN 
  * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN
  * will be detected.  If not, define me.
@@ -47,22 +55,6 @@
  */
 #define CYGWIN_TZ -8 
 #define CYGWIN_TZX "PST" 
-
-/* Alynna - Define this for SSL support */
-/* Note: Use ./configure --with-ssl */
-/* Todo: Rename this to SSL_SUPPORT */
-#undef USE_SSL
-
-/* Alynna - Define this to have support for the @/ignore prop, a reflist
-   on a player which will drop notifies from the players in the prop to
-   the player specified.
-   Note: MUF_MAX_IGNORES and MAX_IGNORES should be the same, just the MUF
-   version should be in text, for the MAX_IGNORES MUF define.
- */
-/* Be aware, this is slightly resource intensive. -Hinoserm */
-#define IGNORE_SUPPORT
-#define MAX_IGNORES 16
-#define MUF_MAX_IGNORES "16"
 
 /* Define this to disable the colors used in many of the in-server
  * commands. Leave it undefined for traditional in-server ANSI 
@@ -95,17 +87,6 @@
 
 #define FILE_PRIMS
 
-/* Alynna -- ACHTUNG!  PELIGRO!  DANGER!
- * DO NOT DEFINE UNDER PENALTY OF LAW.  This define is DANGEROUS.
- * Define this if you want to run Proto as root, and still have 
- * access to things like file primitives and other potential
- * compromises.  You might want to do this if you decided that
- * ProtoMUCK is a better webserver than Apache. 
- *
- * See http://www.protomuck.org/ for an example of this. :)
- */
-#undef PROTO_AS_ROOT
-
 /* Define MUF_SOCKETS to include the MUF socket prims.
  * MUF socket support is necessary for any MUF programs
  * that involve opening connections to other servers,
@@ -135,11 +116,6 @@
  */
 
 #define DETACH
-
-/* This is the section to turn on and off cutting edge features.
- */
-
-#define CONTROLS_SUPPORT	/* Alynna 20030907 */
 
 // If you have problems compiling with DETACH defined, uncomment one
 // of these:
@@ -215,10 +191,6 @@
 /* all @tune options as before. */
 #define W4_TUNEABLES
 
-/* Define this to compile in the new EXPERIMENTAL webserver. It will share all */
-/* it's other settings with the old webserver. They may both be compiled in.   */
-#define NEWHTTPD
-
 /* Define this to turn off the 'exiting insert mode' message in the
  * MUF editor for the picky programmer in you.
  */
@@ -238,6 +210,53 @@
 /* Define this to set which server to use for e-mail registration.
  */
 #define MAILSERVER "mail.somewhere.com"
+
+#ifdef BETA
+/************************************************************************
+ *                       BEGIN Proto 2.0x BETA section                  *
+ ************************************************************************/
+/* Alynna - Define this for SSL support 
+   Note: Use ./configure --with-ssl
+   Todo: Rename this to SSL_SUPPORT 
+ */
+#undef USE_SSL
+
+/* Alynna - Define this to have support for the @/ignore prop, a reflist
+   on a player which will drop notifies from the players in the prop to
+   the player specified.
+   Note: MUF_MAX_IGNORES and MAX_IGNORES should be the same, just the MUF
+   version should be in text, for the MAX_IGNORES MUF define.
+   
+   Be aware, this is slightly resource intensive. -Hinoserm */
+#define IGNORE_SUPPORT
+#define MAX_IGNORES 16
+#define MUF_MAX_IGNORES "16"
+
+/* Define this to compile in the new EXPERIMENTAL webserver. It will share all */
+/* it's other settings with the old webserver. They may both be compiled in.   */
+#define NEWHTTPD
+
+/* Alynna -- ACHTUNG!  PELIGRO!  DANGER!
+ * DO NOT DEFINE UNDER PENALTY OF LAW.  This define is DANGEROUS.
+ * Define this if you want to run Proto as root, and still have 
+ * access to things like file primitives and other potential
+ * compromises.  You might want to do this if you decided that
+ * ProtoMUCK is a better webserver than Apache. 
+ *
+ * See http://www.protomuck.org/ for an example of this. :)
+ */
+#undef PROTO_AS_ROOT
+
+/* This is the section to turn on and off cutting edge features.
+ * and ALSO to define any new code that should NOT be part of Proto 1.85
+ */
+
+#define CONTROLS_SUPPORT	/* Alynna 20030907 */
+
+/************************************************************************
+ *                        END Proto 2.0x BETA section                   *
+ ************************************************************************/
+#endif
 
 /************************************************************************
    Game Options
