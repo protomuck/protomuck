@@ -28,7 +28,7 @@ extern const char *old_uncompress(const char *);
 char *
 fltostr(char *buf, double f)
 {
-    sprintf(buf, "%.16lg", f);
+    sprintf(buf, "%.15lg", f);
     return buf;
 }
 
@@ -884,7 +884,7 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
             break;
         case PROP_FLTTYP:
             sprintf(buf, SYSNAVY "flt " SYSGREEN "%s" SYSRED ":" SYSBROWN
-                    "%.16lg", mybuf, PropDataFVal(p));
+                    "%.15lg", mybuf, PropDataFVal(p));
             break;
         case PROP_LOKTYP:
             if (PropFlags(p) & PROP_ISUNLOADED) {

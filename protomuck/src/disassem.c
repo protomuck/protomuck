@@ -64,7 +64,7 @@ disassemble(dbref player, dbref program)
                         curr->data.number);
                 break;
             case PROG_FLOAT:
-                sprintf(buf, " %d: (line %d) FLOAT: %.16lg", i, curr->line,
+                sprintf(buf, " %d: (line %d) FLOAT: %.15lg", i, curr->line,
                         curr->data.fnumber);
                 break;
             case PROG_ADD:
