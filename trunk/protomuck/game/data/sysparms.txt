@@ -371,3 +371,17 @@ Used to specify the system standard format for proplists. Any instance of P in t
 ~~
 proplist_counter_fmt
 Used to display the system standard naming format for proplists. This string specifies the format of the namee of the property that the count of list items is stored in. Any instance of P will be replaced by the proplist name. The default is "P#".
+~~
+enable_mcp
+Setting this to no turns off the MCP version indicator upon connection.
+However, it also disables the use of MCP all together. 
+~~
+enable_commandprops
+Setting this to yes turns on command prop support. Setting it to no shuts off 
+the command prop support.
+~~
+old_parseprop
+When set to 'no', the parseprop prim gets its permissions from the
+object on which the prop to be parsed is located. When set to 'yes',
+the parseprim prop gets its permissions from the permission bit set
+on the MUF program itself.
