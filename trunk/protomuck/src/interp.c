@@ -66,6 +66,83 @@ void    (*prim_func[])() =
     PRIMS_ARRAY_FUNCS,
     PRIMS_INTERNAL_FUNCS, (void *) NULL};
 
+struct localvars*
+localvars_get(struct frame *fr, dbref prog)
+{
+	struct localvars *tmp = fr->lvars;
+
+	while (tmp && tmp->prog != prog) tmp = tmp->next;
+	if (tmp) {
+		/* Pull this out of the middle of the stack. */
+		*tmp->prev = tmp->next;
+		if (tmp->next)
+			tmp->next->prev = tmp->prev;
+
+	} else {
+		/* Create a new var frame. */
+		int count = MAX_VAR;
+		tmp = (struct localvars *) malloc(sizeof(struct localvars));
+		tmp->prog = prog;
+		while (count-- > 0) {
+			tmp->lvars[count].type = PROG_INTEGER;
+			tmp->lvars[count].data.number = 0;
+		}
+	}
+
+	/* Add this to the head of the stack. */
+	tmp->next = fr->lvars;
+	tmp->prev = &fr->lvars;
+	fr->lvars = tmp;
+	if (tmp->next)
+		tmp->next->prev = &tmp->next;
+
+	return tmp;
+}
+
+void
+localvar_dupall(struct frame *fr, struct frame *oldfr)
+{
+	struct localvars *orig;
+	struct localvars **targ;
+
+	orig = oldfr->lvars;
+	targ = &fr->lvars;
+
+	while (orig) {
+		int count = MAX_VAR;
+		*targ = (struct localvars*)malloc(sizeof(struct localvars));
+		while (count-- > 0)
+			copyinst(&orig->lvars[count], &(*targ)->lvars[count]);
+		(*targ)->prog = orig->prog;
+		(*targ)->next = NULL;
+		(*targ)->prev = targ;
+		targ = &((*targ)->next);
+		orig = orig->next;
+	}
+}
+
+void
+localvar_freeall(struct frame *fr)
+{
+	struct localvars *ptr;
+	struct localvars *nxt;
+
+	ptr = fr->lvars;
+
+	while (ptr) {
+		int count = MAX_VAR;
+		nxt = ptr->next;
+		while (count-- > 0)
+			CLEAR(&ptr->lvars[count]);
+		ptr->next = NULL;
+		ptr->prev = NULL;
+		ptr->prog = NOTHING;
+		free((void*)ptr);
+		ptr = nxt;
+	}
+	fr->lvars = NULL;
+}
+
 void
 scopedvar_addlevel(struct frame *fr, int count)
 {
@@ -146,36 +223,46 @@ scopedvar_get(struct frame *fr, int varnum)
 void 
 RCLEAR(struct inst * oper, char *file, int line)
 {
-    if (oper->type == PROG_CLEARED) {
-	fprintf(stderr, "Attempt to re-CLEAR() instruction from %s:%hd "
-"previously CLEAR()ed in %s:%d\n", file, line, (char *)oper->data.addr, oper->line);
-	return;
-    }
-    if (oper->type == PROG_ADD) {
-	DBFETCH(oper->data.addr->progref)->sp.program.instances--;
-	oper->data.addr->links--;
-    }
-	if (oper->type == PROG_ARRAY) {
+	switch (oper->type) {
+	case PROG_CLEARED:
+		fprintf(stderr, "Attempt to re-CLEAR() instruction from %s:%hd "
+				"previously CLEAR()ed at %s:%d\n", file, line, (char *) oper->data.addr,
+				oper->line);
+		return;
+	case PROG_ADD:
+		DBFETCH(oper->data.addr->progref)->sp.program.instances--;
+		oper->data.addr->links--;
+		break;
+	case PROG_STRING:
+		if (oper->data.string && --oper->data.string->links == 0)
+			free((void *) oper->data.string);
+		break;
+	case PROG_FUNCTION:
+		if (oper->data.mufproc) {
+			free((void*) oper->data.mufproc->procname);
+			free((void*) oper->data.mufproc);
+		}
+		break;
+	case PROG_ARRAY:
 		array_free(oper->data.array);
+		break;
+	case PROG_LOCK:
+		if (oper->data.lock != TRUE_BOOLEXP)
+			free_boolexp(oper->data.lock);
+		break;
+      case PROG_SOCKET:
+            if (oper->data.sock->links == 0) {
+			if (oper->data.sock->connected) {
+				shutdown(oper->data.sock->socknum,2);
+				closesocket(oper->data.sock->socknum);
+			}
+			free((void *) oper->data.sock);
+		}
+            break;
 	}
-    if ((oper->type == PROG_STRING || oper->type == PROG_FUNCTION)
-	    && oper->data.string &&
-	    --oper->data.string->links == 0)
-	free((void *) oper->data.string);
-	if ((oper->type == PROG_SOCKET) && (oper->data.sock->links == 0))
-	{
-	   if (oper->data.sock->connected)
-	   {
-          shutdown(oper->data.sock->socknum,2);
-	      closesocket(oper->data.sock->socknum);
-	   }
-	   free((void *) oper->data.sock);
-	}
-    if (oper->type == PROG_LOCK && oper->data.lock != TRUE_BOOLEXP)
-	free_boolexp(oper->data.lock);
-    oper->line = line;
-    oper->data.addr = (void *)file;
-    oper->type = PROG_CLEARED;
+	oper->line = line;
+	oper->data.addr = (void *) file;
+	oper->type = PROG_CLEARED;
 }
 
 void    push(struct inst * stack, int *top, int type, voidptr res);
@@ -241,7 +328,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     if (!MLevel(program) || !MLevel(OWNER(program)) ||
 	    ((source != NOTHING) && !TMage(OWNER(source)) &&
 	     !can_link_to(OWNER(source), TYPE_EXIT, program))) {
-	notify_nolisten(player, "Program call: Permission denied.", 1);
+	anotify_nolisten(player,  CFAIL "Program call: Permission denied.", 1);
 	return 0;
     }
     if (free_frames_list) {
@@ -260,7 +347,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->trig = source;
     fr->events = NULL;
     fr->timercount = 0;
-    fr->started = time(NULL);
+    fr->started = current_systime;
     fr->prog = program;
     fr->player = player;
     fr->instcnt = 0;
@@ -290,11 +377,8 @@ interp(int descr, dbref player, dbref location, dbref program,
     /* set basic local variables */
 
     fr->svars = NULL;
-    fr->varset.top = 0;
-    fr->varset.st[0] = (vars *) malloc(sizeof(vars));
+    fr->lvars = NULL;
     for (i = 0; i < MAX_VAR; i++) {
-	(*fr->varset.st[0])[i].type = PROG_INTEGER;
-	(*fr->varset.st[0])[i].data.number = 0;
 	fr->variables[i].type = PROG_INTEGER;
 	fr->variables[i].data.number = 0;
     }
@@ -321,15 +405,24 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->brkpt.pccount[0]   = -2;
     fr->brkpt.prog[0]      = program;
 
-    (*fr->varset.st[0])[0].type = PROG_OBJECT;
-    (*fr->varset.st[0])[0].data.objref = player;
-    (*fr->varset.st[0])[1].type = PROG_OBJECT;
-    (*fr->varset.st[0])[1].data.objref = location;
-    (*fr->varset.st[0])[2].type = PROG_OBJECT;
-    (*fr->varset.st[0])[2].data.objref = source;
-    (*fr->varset.st[0])[3].type = PROG_STRING;
-    (*fr->varset.st[0])[3].data.string =
-	(!*match_cmdname) ? 0 : alloc_prog_string(match_cmdname);
+    fr->proftime.tv_sec = 0;
+    fr->proftime.tv_usec = 0;
+    fr->totaltime.tv_sec = 0;
+    fr->totaltime.tv_usec = 0;
+
+    fr->variables[0].type = PROG_OBJECT;
+    fr->variables[0].data.objref = player;
+    fr->variables[1].type = PROG_OBJECT;
+    fr->variables[1].data.objref = location;
+    fr->variables[2].type = PROG_OBJECT;
+    fr->variables[2].data.objref = source;
+    fr->variables[3].type = PROG_STRING;
+    fr->variables[3].data.string = (!*match_cmdname) ? 0 : alloc_prog_string(match_cmdname);
+
+    ts_useobject(program);
+    if (DBFETCH(program)->sp.program.code) {
+	DBFETCH(program)->sp.program.code[3].data.number++;
+    }
 
     DBFETCH(program)->sp.program.instances++;
     push(fr->argument.st, &(fr->argument.top), PROG_STRING, match_args ?
@@ -413,16 +506,10 @@ prog_clean(struct frame * fr)
     for (i = 1; i <= fr->caller.top; i++)
 	DBFETCH(fr->caller.st[i])->sp.program.instances--;
 
-    for (i = fr->varset.top; i > -1; i--) {
-	for (j = 0; j < MAX_VAR; j++)
-	    CLEAR(&((*fr->varset.st[i])[j]));
-	free(fr->varset.st[i]);
-	fr->varset.top--;
-    }
-
     for (i = 0; i < MAX_VAR; i++)
 	CLEAR(&fr->variables[i]);
 
+	localvar_freeall(fr);
 	scopedvar_freeall(fr);
 
     if (fr->fors.st) {
@@ -488,24 +575,40 @@ false(struct inst * p)
 void 
 copyinst(struct inst * from, struct inst * to)
 {
-    *to = *from;
-    if (from->type == PROG_STRING && from->data.string) {
-	from->data.string->links++;
-    }
-	if (from->type == PROG_ARRAY && from->data.array) {
-		from->data.array->links++;
+	*to = *from;
+	switch(from->type) {
+	case PROG_FUNCTION:
+	    if (from->data.mufproc) {
+			to->data.mufproc = (struct muf_proc_data*)malloc(sizeof(struct muf_proc_data));
+			to->data.mufproc->procname = string_dup(from->data.mufproc->procname);
+			to->data.mufproc->vars = from->data.mufproc->vars;
+			to->data.mufproc->args = from->data.mufproc->args;
+		}
+		break;
+	case PROG_STRING:
+	    if (from->data.string) {
+			from->data.string->links++;
+		}
+		break;
+	case PROG_ARRAY:
+	    if (from->data.array) {
+			from->data.array->links++;
+		}
+		break;
+	case PROG_ADD:
+		from->data.addr->links++;
+		DBFETCH(from->data.addr->progref)->sp.program.instances++;
+		break;
+	case PROG_LOCK:
+	    if (from->data.lock != TRUE_BOOLEXP) {
+			to->data.lock = copy_bool(from->data.lock);
+		}
+		break;
+      case PROG_SOCKET:
+	    if (from->data.sock)
+			from->data.sock->links++;
+	    break;
 	}
-    if (from->type == PROG_ADD) {
-	from->data.addr->links++;
-	DBFETCH(from->data.addr->progref)->sp.program.instances++;
-    }
-	if (from->type == PROG_SOCKET && from->data.sock)
-	{
-		from->data.sock->links++;
-	}
-    if (from->type == PROG_LOCK && from->data.lock != TRUE_BOOLEXP) {
-	to->data.lock = copy_bool(from->data.lock);
-    }
 }
 
 
@@ -520,6 +623,36 @@ copyvars(vars *from, vars *to)
 }
 
 
+
+void
+calc_profile_timing(dbref prog, struct frame *fr)
+{
+    struct timeval tv;
+    struct inst *first, *second;
+    gettimeofday(&tv, NULL);
+    tv.tv_usec -= fr->proftime.tv_usec;
+    tv.tv_sec -= fr->proftime.tv_sec;
+    if (tv.tv_usec < 0) {
+        tv.tv_usec += 1000000;
+        tv.tv_sec -= 1;
+    }
+    first = DBFETCH(prog)->sp.program.code;
+    second = &first[1];
+    first->data.number += tv.tv_sec;
+    second->data.number += tv.tv_usec;
+    if (second->data.number >= 1000000) {
+        second->data.number -= 1000000;
+        first->data.number += 1;
+    }
+    fr->totaltime.tv_sec += tv.tv_sec;
+    fr->totaltime.tv_usec += tv.tv_usec;
+    if (fr->totaltime.tv_usec > 1000000) {
+	fr->totaltime.tv_usec -= 1000000;
+	fr->totaltime.tv_sec += 1;
+    }
+}
+
+
 static int interp_depth = 0;
 
 void 
@@ -529,6 +662,9 @@ do_abort_loop(dbref player, dbref program, const char *msg,
 {
     char buffer[128];
 
+    if (pc) {
+	calc_profile_timing(program,fr);
+    }
     if (clinst1)
 	CLEAR(clinst1);
     if (clinst2)
@@ -587,26 +723,28 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 
 	tmpline = DBFETCH(program)->sp.program.first;
 	DBFETCH(program)->sp.program.first = read_program(program, 0);
-	do_compile(-1, OWNER(program), program);
+	do_compile(-1, OWNER(program), program, 0);
 	free_prog_text(DBFETCH(program)->sp.program.first);
 	DBSTORE(program, sp.program.first, tmpline);
 	pc = fr->pc = DBFETCH(program)->sp.program.start;
 	if (!pc) {
 	    abort_loop("Program not compilable. Cannot run.", NULL, NULL);
 	}
+	DBFETCH(program)->sp.program.code[3].data.number++;
     }
-    ts_useobject(program);
+/*    ts_useobject(program); */
     err = 0;
 
     instr_count = 0;
     mlev = ProgMLevel(program);
+    gettimeofday(&fr->proftime, NULL);
 
     /* This is the 'natural' way to exit a function */
     while (stop) {
 	fr->instcnt++;
 	instr_count++;
 	if ((fr->multitask == PREEMPT) || (FLAGS(program) & BUILDER)) {
-	    if (mlev == LMAGE) {
+	    if (mlev >= LMAGE) {
 		instr_count = 0;/* if program is wizbit, then clear count */
 	    } else {
 		/* else make sure that the program doesn't run too long */
@@ -622,6 +760,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING, program, fr,
 		    (fr->multitask==FOREGROUND) ? "FOREGROUND" : "BACKGROUND");
 		interp_depth--;
+		calc_profile_timing(program,fr);
 		return NULL;
 	    }
 	}
@@ -637,7 +776,8 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		/* Small fix so only program owner can see debug traces */
 	    char   *m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
 	    notify_nolisten(player, m, 1);
-	} else if ( FLAGS(program) & DARK && FLAG2(program) & F2PARENT ) {
+	}
+      if ( FLAGS(program) & DARK && FLAG2(program) & F2PARENT && (OWNER(program) != player || player == -1 )) {
 	    char   *m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
 	    notify_nolisten(OWNER(program), m, 1);
       }
@@ -696,6 +836,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 				sprintf(buf, "     %s", m);
 				notify_nolisten(player, buf, 1);
 			    }
+			    calc_profile_timing(program,fr);
 			    return NULL;
 			}
 		    }
@@ -729,9 +870,61 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		atop++;
 		break;
 
+		case PROG_SVAR_AT:
+			{
+				struct inst *tmp;
+				if (atop >= STACK_SIZE)
+					abort_loop("Stack overflow.", NULL, NULL);
+
+				tmp = scopedvar_get(fr, pc->data.number);
+				if (!tmp)
+					abort_loop("Scoped variable number out of range.", NULL, NULL);
+
+				copyinst(tmp, arg + atop);
+				pc++;
+				atop++;
+			}
+			break;
+
+		case PROG_SVAR_BANG:
+			{
+				struct inst *tmp;
+				if (atop < 1)
+					abort_loop("Stack Underflow.", NULL, NULL);
+
+				tmp = scopedvar_get(fr, pc->data.number);
+				if (!tmp)
+					abort_loop("Scoped variable number out of range.", NULL, NULL);
+
+				CLEAR(tmp);
+				copyinst(arg + --atop, tmp);
+				pc++;
+			}
+			break;
+
 	    case PROG_FUNCTION:
-		pc++;
-		break;
+			{
+				int i = pc->data.mufproc->args;
+				if (atop < i)
+					abort_loop("Stack Underflow.", NULL, NULL);
+				if (fr->skip_declare)
+					fr->skip_declare = 0;
+				else
+					scopedvar_addlevel(fr, pc->data.mufproc->vars);
+				while (i-->0)
+				{
+					struct inst *tmp;
+					temp1 = arg + --atop;
+					tmp = scopedvar_get(fr, i);
+					if (!tmp)
+						abort_loop("Internal error: Scoped variable number out of range in FUNCTION init.", temp1, NULL);
+					CLEAR(tmp);
+					copyinst(temp1, tmp);
+					CLEAR(temp1);
+				}
+				pc++;
+			}
+			break;
 
 	    case PROG_IF:
 		if (atop < 1)
@@ -744,17 +937,18 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		CLEAR(temp1);
 		break;
 
-          case PROG_DECLVAR:
-		scopedvar_addlevel(fr, pc->data.number);
-		pc++;
-		break;
-
 	    case PROG_EXEC:
 		if (stop >= STACK_SIZE)
 		    abort_loop("System Stack Overflow", NULL, NULL);
 		sys[stop].progref = program;
 		sys[stop++].offset = pc + 1;
+		pc = pc->data.call;
+		fr->skip_declare = 0;  /* Make sure we DON'T skip var decls */
+		break;
+
 	    case PROG_JMP:
+		/* Don't need to worry about skipping scoped var decls here. */
+		/* JMP to a function header can only happen in IN_JMP */
 		pc = pc->data.call;
 		break;
 
@@ -777,9 +971,13 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			if (program != temp1->data.addr->progref) {
 			    abort_loop("Destination outside current program.", temp1, NULL);
 			}
+			if (temp1->data.addr->data->type == PROG_FUNCTION) {
+				fr->skip_declare = 1;
+			}
 			pc = temp1->data.addr->data;
 			CLEAR(temp1);
 			break;
+
 		    case IN_EXECUTE:
 			if (atop < 1)
 			    abort_loop("Stack Underflow. Missing address.", NULL, NULL);
@@ -799,10 +997,6 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			    fr->caller.st[++fr->caller.top] = program;
 			    mlev = ProgMLevel(program);
 			    DBFETCH(program)->sp.program.instances++;
-			    fr->varset.top++;
-			    fr->varset.st[fr->varset.top] = (vars *) malloc(sizeof(vars));
-			    copyvars(fr->varset.st[fr->varset.top - 1],
-				    fr->varset.st[fr->varset.top]);
 			}
 			pc = temp1->data.addr->data;
 			CLEAR(temp1);
@@ -834,7 +1028,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			    tmpline = DBFETCH(temp1->data.objref)->sp.program.first;
 			    DBFETCH(temp1->data.objref)->sp.program.first =
 				read_program(temp1->data.objref, 0);
-			    do_compile(-1, OWNER(temp1->data.objref), temp1->data.objref);
+			    do_compile(-1, OWNER(temp1->data.objref), temp1->data.objref, 0);
 			    free_prog_text(DBFETCH(temp1->data.objref)->sp.program.first);
 			    DBSTORE(temp1->data.objref, sp.program.first, tmpline);
 			    if (!(DBFETCH(temp1->data.objref)->sp.program.code))
@@ -863,21 +1057,20 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 				pbs = pbs->next;
 			    }
 			    if (!pbs)
-				abort_loop("PUBLIC or WIZCALL Function not found. (2)", temp2, temp2);
+				abort_loop("PUBLIC or WIZCALL-type Function not found. (2)", temp2, temp2);
 			    if (mlev < pbs->mlev)
-				abort_loop("Insufficient permissions to call WIZCALL function. (2)", temp2, temp2);
+				abort_loop("Insufficient permissions to call WIZCALL-type function. (2)", temp2, temp2);
 			    pc = pbs->addr.ptr;
 			}
 			if (temp1->data.objref != program) {
+			    calc_profile_timing(program,fr);
+			    gettimeofday(&fr->proftime, NULL);
 			    program = temp1->data.objref;
 			    fr->caller.st[++fr->caller.top] = program;
 			    DBFETCH(program)->sp.program.instances++;
 			    mlev = ProgMLevel(program);
-			    fr->varset.top++;
-			    fr->varset.st[fr->varset.top] = (vars *) malloc(sizeof(vars));
-			    copyvars(fr->varset.st[fr->varset.top - 1],
-				    fr->varset.st[fr->varset.top]);
 			}
+			DBFETCH(program)->sp.program.code[3].data.number++;
 			ts_useobject(program);
 			CLEAR(temp1);
 			if (temp2)
@@ -891,19 +1084,15 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 				    (Typeof(sys[stop - 1].progref) != TYPE_PROGRAM))
 				abort_loop("Internal error.  Invalid address.", NULL, NULL);
 			    DBFETCH(program)->sp.program.instances--;
+			    calc_profile_timing(program,fr);
+			    gettimeofday(&fr->proftime, NULL);
 			    program = sys[stop - 1].progref;
 			    mlev = ProgMLevel(program);
-			    {
-				int i;
-
-				for (i = 0; i < MAX_VAR; i++) {
-				    CLEAR(&CurrVar[i]);
-				}
-			    }
 			    fr->caller.top--;
-			    free(fr->varset.st[fr->varset.top--]);
 			}
 			scopedvar_poplevel(fr);
+		      calc_profile_timing(program,fr);
+		      gettimeofday(&fr->proftime, NULL);
 			pc = sys[--stop].offset;
 			break;
 
@@ -913,6 +1102,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			muf_event_register(player, program, fr);
 			DBSTORE(player, sp.player.block, (!fr->been_background));
 			interp_depth--;
+			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
 			break;
@@ -929,6 +1119,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			DBSTORE(player, sp.player.block, 0);
 			add_muf_read_event(fr->descr, player, program, fr);
 			interp_depth--;
+			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
 			break;
@@ -954,6 +1145,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 			DBSTORE(player, sp.player.block, 0);
 			add_muf_tread_event(fr->descr, player, program, fr, temp1->data.number);
 			interp_depth--;
+			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
 			break;
@@ -972,6 +1164,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 				NOTHING, NOTHING, program, fr, "SLEEPING");
 			DBSTORE(player, sp.player.block, (!fr->been_background));
 			interp_depth--;
+			calc_profile_timing(program,fr);
 			return NULL;
 			/* NOTREACHED */
 			break;
@@ -1001,6 +1194,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	    prog_clean(fr);
 	    DBSTORE(player, sp.player.block, 0);
 	    interp_depth--;
+	    calc_profile_timing(program,fr);
 	    return NULL;
 	}
     }                           /* while */
@@ -1022,11 +1216,13 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	reload(fr, atop, stop);
 	prog_clean(fr);
 	interp_depth--;
+	calc_profile_timing(program,fr);
 	return rv;
     }
     reload(fr, atop, stop);
     prog_clean(fr);
     interp_depth--;
+    calc_profile_timing(program,fr);
     return NULL;
 }
 
@@ -1039,27 +1235,27 @@ interp_err(dbref player, dbref program, struct inst *pc,
     int     errcount;
 
     err++;
-    if (OWNER(origprog) == OWNER(player)) {
+    if (OWNER(origprog) == player && player != -1) {
 	strcpy(buf, "Program Error.  Your program just got the following error.");
     } else {
-      if(FLAG2(origprog) & F2PARENT)
-         notify_nolisten(OWNER(origprog), "Program Error.  Your program just got the following error.", 1);
 	sprintf(buf, "Programmer Error.  Please tell %s what you typed, and the following message.",
 		NAME(OWNER(origprog)));
     }
     notify_nolisten(player, buf, 1);
+    if(FLAG2(origprog) & F2PARENT && player != OWNER(origprog))
+       notify_nolisten(OWNER(origprog), "Program Error.  Your program just got the following error.", 1);
 
     sprintf(buf, "%s(#%d), line %d; %s: %s", NAME(program), program, pc->line,
 	    msg1, msg2);
     notify_nolisten(player, buf, 1);
-    if(FLAG2(origprog) & F2PARENT && OWNER(origprog) != OWNER(player))
+    if(FLAG2(origprog) & F2PARENT && OWNER(origprog) != player)
        notify_nolisten(OWNER(origprog), buf, 1);
 
     errcount = get_property_value(origprog, ".debug/errcount");
     errcount++;
     add_property(origprog, ".debug/errcount", NULL, errcount);
     add_property(origprog, ".debug/lasterr", buf, 0);
-    add_property(origprog, ".debug/lastcrash", NULL, (int)time(NULL));
+    add_property(origprog, ".debug/lastcrash", NULL, (int)current_systime);
     add_property(origprog, ".debug/lastplayer", NULL, (int)player);
 
     if (origprog != program) {
@@ -1067,7 +1263,7 @@ interp_err(dbref player, dbref program, struct inst *pc,
 	errcount++;
 	add_property(program, ".debug/errcount", NULL, errcount);
 	add_property(program, ".debug/lasterr", buf, 0);
-	add_property(program, ".debug/lastcrash", NULL, (int)time(NULL));
+	add_property(program, ".debug/lastcrash", NULL, (int)current_systime);
       add_property(program, ".debug/lastplayer", NULL, (int)player);
     }
 }
@@ -1131,6 +1327,7 @@ permissions(int mlev, dbref player, dbref thing)
 	case TYPE_PLAYER:
 	    return 0;
 	case TYPE_EXIT:
+	    return (OWNER(thing) == OWNER(player) || OWNER(thing) == NOTHING);
 	case TYPE_ROOM:
 	case TYPE_THING:
 	case TYPE_PROGRAM:
@@ -1188,12 +1385,13 @@ do_abort_interp(dbref player, const char *msg, struct inst * pc,
     char buffer[128];
 
     fr->pc = pc;
+    calc_profile_timing(program,fr);
     interp_err(player, program, pc, arg, atop, fr->caller.st[1],
 	       insttotext(pc, buffer, sizeof(buffer), 30, program), msg);
-    if (controls(OWNER(player), program))
+    if (controls(player, program) && player != -1)
 	muf_backtrace(player, program, STACK_SIZE, fr);
-    else
-       if (FLAG2(program) & F2PARENT && OWNER(player) != OWNER(program))
+/*    else */
+       if (FLAG2(program) & F2PARENT && player != OWNER(program))
           muf_backtrace(OWNER(program), program, STACK_SIZE, fr);
     switch (nargs) {
 	case 4:
@@ -1214,6 +1412,7 @@ do_abort_silent()
 {
     err++;
 }
+
 
 
 

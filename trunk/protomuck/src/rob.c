@@ -22,7 +22,7 @@ do_give(int descr, dbref player, const char *recipient, int amount)
 
     /* do amount consistency check */
     if (amount < 0 && !Mage(OWNER(player))) {
-	anotify(player, CINFO "You can not steal money. Welcome to a true utopia.");
+	anotify_nolisten2(player, CINFO "You can not steal money. Welcome to a true utopia.");
 	return;
     } else if (amount == 0) {
 	anotify_fmt(player, CFAIL "You must specify a positive number of %s.",
@@ -39,15 +39,15 @@ do_give(int descr, dbref player, const char *recipient, int amount)
     }
     switch (who = match_result(&md)) {
 	case NOTHING:
-	    anotify(player, CINFO "Give to whom?");
+	    anotify_nolisten2(player, CINFO "Give to whom?");
 	    return;
 	case AMBIGUOUS:
-	    anotify(player, CINFO "I don't know who you mean!");
+	    anotify_nolisten2(player, CINFO "I don't know who you mean!");
 	    return;
 	default:
 	    if (!Mage(OWNER(player))) {
 		if (Typeof(who) != TYPE_PLAYER) {
-		    anotify(player, CFAIL "You can only give to other players.");
+		    anotify_nolisten2(player, CFAIL "You can only give to other players.");
 		    return;
 		} else if (DBFETCH(who)->sp.player.pennies + amount >
                            tp_max_pennies) {
@@ -72,12 +72,12 @@ do_give(int descr, dbref player, const char *recipient, int amount)
 			amount,
 			amount == 1 ? tp_penny : tp_pennies,
 			NAME(who));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 		sprintf(buf, CNOTE "%s gives you %d %s.",
 			NAME(player),
 			amount,
 			amount == 1 ? tp_penny : tp_pennies);
-		anotify(who, buf);
+		anotify_nolisten2(who, buf);
 		break;
 	    case TYPE_THING:
 		DBFETCH(who)->sp.thing.value += amount;
@@ -85,7 +85,7 @@ do_give(int descr, dbref player, const char *recipient, int amount)
 			NAME(who),
 			DBFETCH(who)->sp.thing.value,
 		    DBFETCH(who)->sp.thing.value == 1 ? tp_penny : tp_pennies);
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 		break;
 	    default:
 		anotify_fmt(player, CFAIL "You can't give %s to that!", tp_pennies);

@@ -46,7 +46,7 @@ log2filetime(char *myfilename, char *format,...)
     time_t  lt;
     char buf[40];
 
-    lt = time(NULL);
+    lt = current_systime;
     va_start(args, format);
 
     *buf = '\0';
@@ -74,7 +74,7 @@ log_status(char *format,...)
     time_t  lt;
     char buf[40];
 
-    lt = time(NULL);
+    lt = current_systime;
     va_start(args, format);
 
     *buf = '\0';
@@ -137,7 +137,7 @@ log_gripe(char *format,...)
     char buf[40];
 
     va_start(args, format);
-    lt = time(NULL);
+    lt = current_systime;
 
     *buf = '\0';
     if ((fp = fopen(LOG_GRIPE, "a")) == NULL) {
@@ -162,7 +162,7 @@ log_command(char *format,...)
     time_t  lt;
 
     va_start(args, format);
-    lt = time(NULL);
+    lt = current_systime;
 
     *buf = '\0';
     if ((fp = fopen(COMMAND_LOG, "a")) == NULL) {
@@ -200,3 +200,4 @@ anotify_fmt(dbref player, char *format,...)
     anotify(player, bufr);
     va_end(args);
 }
+

@@ -16,8 +16,8 @@
 #include "interface.h"
 #include "externs.h"
 
-const char *generation = "314";
-const char *creation = "Tue Jul 4 2000 at 23:10:51 EDT";
+const char *generation = "446";
+const char *creation = "Mon Aug 21 2000 at 00:20:31 EDT";
 const char *version = PATCHLEVEL;
 
 const char *infotext[] =
@@ -43,6 +43,8 @@ const char *infotext[] =
     "Thanks are also due towards the multiple people who had also",
     "contributed ideas for the MUCK as we worked on it, and even tried to",
     "help us out along the way.",
+    "Feel free to check ProtoMUCK's webpage at the following address:",
+    "http://protomuck.sourceforge.net/",
     " ",
 #ifdef WINNT
     "The Cygwin-32 freeware porting tools used to create the WinNT/95",
@@ -64,6 +66,6 @@ do_credits(dbref player)
     int i;
 
     for (i = 0; infotext[i]; i++) {
-        anotify(player, infotext[i]);
+        anotify_nolisten2(player, infotext[i]);
     }
 }

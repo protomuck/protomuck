@@ -348,7 +348,7 @@ string_dup(const char *s)
 char *
 intostr(int i)
 {
-    char num[16];
+    static char num[16];
     int j, k;
     char *ptr2;
 

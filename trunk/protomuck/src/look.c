@@ -228,7 +228,7 @@ look_details(dbref player, dbref what, const char *propname)
 	    }
 	    if(controls(player, what))
 		strcat(buf2, CINFO "(detail)");
-	    anotify(player, buf2);
+	    anotify_nolisten2(player, buf2);
 	}
     }
 }
@@ -251,10 +251,10 @@ look_contents(dbref player, dbref loc, const char *contents_name)
 	if (can_see(player, thing, can_see_loc)) {
 	    /* something exists!  show him everything */
 	    saw_something = 1;
-	    anotify(player, contents_name);
+	    anotify_nolisten2(player, contents_name);
 	    DOLIST(thing, DBFETCH(loc)->contents) {
 		if (can_see(player, thing, can_see_loc)) {
-		    anotify(player, ansi_unparse_object(player, thing));
+		    anotify_nolisten2(player, ansi_unparse_object(player, thing));
 		}
 	    }
 	    break;		/* we're done */
@@ -263,7 +263,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
     if(!saw_something) {
 	if(count_details(player, loc, "_obj"))
 	{
-	    anotify(player, contents_name);
+	    anotify_nolisten2(player, contents_name);
 	    look_details(player, loc, "_obj");
 	}
     }
@@ -291,7 +291,7 @@ look_room(int descr, dbref player, dbref loc, int verbose)
     char obj_num[20];
  
     /* tell him the name, and the number if he can link to it */
-    anotify(player, ansi_unparse_object(player, loc));
+    anotify_nolisten2(player, ansi_unparse_object(player, loc));
 
     /* tell him the description */
     if (Typeof(loc) == TYPE_ROOM) {
@@ -490,15 +490,15 @@ do_look_at(int descr, dbref player, const char *name, const char *detail)
 		exec_or_notify(descr, player, thing,
 				PropDataStr(lastmatch), "(@detail)");
 	    } else if ((int)lastmatch == AMBIGUOUS) {
-		anotify(player, CINFO AMBIGUOUS_MESSAGE);
+		anotify_nolisten2(player, CINFO AMBIGUOUS_MESSAGE);
 
 	    } else if (*detail) {
 		notify(player, "You see nothing special.");
 	    } else {
-		anotify(player, CINFO NOMATCH_MESSAGE);
+		anotify_nolisten2(player, CINFO NOMATCH_MESSAGE);
 	    }
 	} else {
-	    anotify(player, CINFO AMBIGUOUS_MESSAGE);
+	    anotify_nolisten2(player, CINFO AMBIGUOUS_MESSAGE);
 	}
     }
 }
@@ -643,7 +643,7 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
 		if (!*ptr || recurse) {
 		    cnt++;
 		    displayprop(player, thing, buf, buf2);
-		    anotify(player, buf2);
+		    anotify_nolisten2(player, buf2);
 		} 
 		if (recurse) ptr = "**";
 		cnt += listprops_wildcard(player, thing, buf, ptr);
@@ -727,7 +727,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 	/* show him the properties */
 	cnt = listprops_wildcard(player, thing, "", dir);
 	sprintf(buf, CINFO "%d propert%s listed.", cnt, (cnt == 1 ? "y" : "ies"));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	return;
     }
     switch (Typeof(thing)) {
@@ -753,91 +753,91 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 	    strcpy(buf, ansi_unparse_object(player, thing));
 	    break;
     }
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
 #ifdef VERBOSE_EXAMINE
-    anotify(player, flag_description(thing));
+    anotify_nolisten2(player, flag_description(thing));
 #endif				/* VERBOSE_EXAMINE */
 
     if (GETDESC(thing)) {
         sprintf(buf, CYAN "DESC:" AQUA " %s", tct(GETDESC(thing),buf2));
-        anotify(player, buf);
+        anotify_nolisten2(player, buf);
     }
     if (GETIDESC(thing)) {
         sprintf(buf, CYAN "IDESC:" AQUA " %s", tct(GETIDESC(thing),buf2));
-        anotify(player, buf);
+        anotify_nolisten2(player, buf);
     }
 
     if (GETANSIDESC(thing)) {
         sprintf(buf, CYAN "ANSIDESC:" AQUA " %s", tct(GETANSIDESC(thing),buf2));
-        anotify(player, buf);
+        anotify_nolisten2(player, buf);
     }
     if (GETIANSIDESC(thing)) {
         sprintf(buf, CYAN "IANSIDESC:" AQUA " %s", tct(GETIANSIDESC(thing),buf2));
-        anotify(player, buf);
+        anotify_nolisten2(player, buf);
     }
 
     if (GETHTMLDESC(thing)) {
         sprintf(buf, CYAN "HTMLDESC:" AQUA " %s", tct(GETHTMLDESC(thing),buf2));
-        anotify(player, buf);
+        anotify_nolisten2(player, buf);
     }
     if (GETIHTMLDESC(thing)) {
         sprintf(buf, CYAN "IHTMLDESC:" AQUA " %s", tct(GETIHTMLDESC(thing),buf2));
-        anotify(player, buf);
+        anotify_nolisten2(player, buf);
     }
 
     sprintf(buf, VIOLET "Key:" PURPLE " %s",
             unparse_boolexp(player, GETLOCK(thing), 1) );
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
     sprintf(buf, VIOLET "Chown_OK Key:" PURPLE " %s",
 	    unparse_boolexp(player, get_property_lock(thing, "_/chlk"), 1) );
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
     sprintf(buf, VIOLET "Container Key:" PURPLE " %s",
 	    unparse_boolexp(player, get_property_lock(thing, "_/clk"), 1) );
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
     sprintf(buf, VIOLET "Force Key:" PURPLE " %s",
 	    unparse_boolexp(player, get_property_lock(thing, "@/flk"), 1) );
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
     if (GETSUCC(thing)) {
 	sprintf(buf, AQUA "Success:" CYAN " %s", tct(GETSUCC(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
     if (GETFAIL(thing)) {
 	sprintf(buf, AQUA "Fail:" CYAN " %s", tct(GETFAIL(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
     if (GETDROP(thing)) {
 	sprintf(buf, AQUA "Drop:" CYAN " %s", tct(GETDROP(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
     if (GETOSUCC(thing)) {
 	sprintf(buf, AQUA "Osuccess:" CYAN " %s", tct(GETOSUCC(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
     if (GETOFAIL(thing)) {
 	sprintf(buf, AQUA "Ofail:" CYAN " %s", tct(GETOFAIL(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
     if (GETODROP(thing)) {
 	sprintf(buf, AQUA "Odrop:" CYAN " %s", tct(GETODROP(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
 
     if (tp_who_doing && GETDOING(thing)) {
 	sprintf(buf, AQUA "Doing:" CYAN " %s", tct(GETDOING(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
     if (tp_who_doing && GETOECHO(thing)) {
 	sprintf(buf, AQUA "Oecho:" CYAN " %s", tct(GETOECHO(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
     if (tp_who_doing && GETPECHO(thing)) {
 	sprintf(buf, AQUA "Pecho:" CYAN " %s", tct(GETPECHO(thing),buf2));
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
     }
 
     /* Timestamps */
@@ -846,15 +846,15 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
     time_tm = localtime((&(DBFETCH(thing)->ts.created)));
     (void) format_time(buf, BUFFER_LEN,
 		       (char *) FOREST "Created:" GREEN "  %a %b %e %T %Z %Y\0", time_tm);
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
     time_tm = localtime((&(DBFETCH(thing)->ts.modified)));
     (void) format_time(buf, BUFFER_LEN,
 		       (char *) FOREST "Modified:" GREEN " %a %b %e %T %Z %Y\0", time_tm);
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
     time_tm = localtime((&(DBFETCH(thing)->ts.lastused)));
     (void) format_time(buf, BUFFER_LEN,
 		       (char *) FOREST "Lastused:" GREEN " %a %b %e %T %Z %Y\0", time_tm);
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
     if (Typeof(thing) == TYPE_PROGRAM) {
 	sprintf(buf, FOREST "Usecount:" GREEN " %d     "
 		     FOREST "Instances:" GREEN " %d",
@@ -862,28 +862,28 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 	       DBFETCH(thing)->sp.program.instances);
     } else
 	sprintf(buf, FOREST "Usecount:" GREEN " %d", DBFETCH(thing)->ts.usecount);
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
     sprintf(buf, VIOLET "In Memory:" PURPLE " %d bytes", size_object(thing, 0));
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
-    anotify(player, YELLOW "[ Use 'examine <object>=/' to list root properties. ]");
+    anotify_nolisten2(player, YELLOW "[ Use 'examine <object>=/' to list root properties. ]");
 
     /* show him the contents */
     if (DBFETCH(thing)->contents != NOTHING) {
 	if (Typeof(thing) == TYPE_PLAYER)
-	    anotify(player, BLUE "Carrying:");
+	    anotify_nolisten2(player, BLUE "Carrying:");
 	else
-	    anotify(player, BLUE "Contents:");
+	    anotify_nolisten2(player, BLUE "Contents:");
 	DOLIST(content, DBFETCH(thing)->contents) {
-	    anotify(player, ansi_unparse_object(player, content));
+	    anotify_nolisten2(player, ansi_unparse_object(player, content));
 	}
     }
     switch (Typeof(thing)) {
 	case TYPE_ROOM:
 	    /* tell him about exits */
 	    if (DBFETCH(thing)->exits != NOTHING) {
-		anotify(player, BLUE "Exits:");
+		anotify_nolisten2(player, BLUE "Exits:");
 		DOLIST(exit, DBFETCH(thing)->exits) {
 		    strcpy(buf, ansi_unparse_object(player, exit));
 		    anotify_fmt(player, "%s " CYAN "to %s", buf,
@@ -894,31 +894,31 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 		    );
 		}
 	    } else {
-		anotify(player, BLUE "No exits.");
+		anotify_nolisten2(player, BLUE "No exits.");
 	    }
 
 	    /* print dropto if present */
 	    if (DBFETCH(thing)->sp.room.dropto != NOTHING) {
 		sprintf(buf, AQUA "Dropped objects go to: %s",
 		     ansi_unparse_object(player, DBFETCH(thing)->sp.room.dropto));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 	    }
 	    break;
 	case TYPE_THING:
 	    /* print home */
 	    sprintf(buf, AQUA "Home: %s",
 		    ansi_unparse_object(player, DBFETCH(thing)->sp.thing.home));	/* home */
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
 	    /* print location if player can link to it */
 	    if (DBFETCH(thing)->location != NOTHING && (controls(player, DBFETCH(thing)->location)
 		 || can_link_to(player, NOTYPE, DBFETCH(thing)->location))) {
 		sprintf(buf, AQUA "Location: %s",
 			ansi_unparse_object(player, DBFETCH(thing)->location));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 	    }
 	    /* print thing's actions, if any */
 	    if (DBFETCH(thing)->exits != NOTHING) {
-		anotify(player, BLUE "Actions/exits:");
+		anotify_nolisten2(player, BLUE "Actions/exits:");
 		DOLIST(exit, DBFETCH(thing)->exits) {
 		    strcpy(buf, ansi_unparse_object(player, exit));
 		    anotify_fmt(player, "%s " CYAN "to %s", buf,
@@ -929,7 +929,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 		    );
 		}
 	    } else {
-		anotify(player, BLUE "No actions attached.");
+		anotify_nolisten2(player, BLUE "No actions attached.");
 	    }
 	    break;
 	case TYPE_PLAYER:
@@ -937,18 +937,18 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 	    /* print home */
 	    sprintf(buf, AQUA "Home: %s",
 		    ansi_unparse_object(player, DBFETCH(thing)->sp.player.home));	/* home */
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
 
 	    /* print location if player can link to it */
 	    if (DBFETCH(thing)->location != NOTHING && (controls(player, DBFETCH(thing)->location)
 		 || can_link_to(player, NOTYPE, DBFETCH(thing)->location))) {
 		sprintf(buf, AQUA "Location: %s",
 			ansi_unparse_object(player, DBFETCH(thing)->location));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 	    }
 	    /* print player's actions, if any */
 	    if (DBFETCH(thing)->exits != NOTHING) {
-		anotify(player, BLUE "Actions/exits:");
+		anotify_nolisten2(player, BLUE "Actions/exits:");
 		DOLIST(exit, DBFETCH(thing)->exits) {
 		    strcpy(buf, ansi_unparse_object(player, exit));
 		    anotify_fmt(player, "%s " CYAN "to %s", buf,
@@ -959,13 +959,13 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 		    );
 		}
 	    } else {
-		anotify(player, BLUE "No actions attached.");
+		anotify_nolisten2(player, BLUE "No actions attached.");
 	    }
 	    break;
 	case TYPE_EXIT:
 	    if (DBFETCH(thing)->location != NOTHING) {
 		sprintf(buf, AQUA "Source: %s", ansi_unparse_object(player, DBFETCH(thing)->location));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 	    }
 	    /* print destinations */
 	    if (DBFETCH(thing)->sp.exit.ndest == 0)
@@ -975,28 +975,32 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 		    case NOTHING:
 			break;
 		    case HOME:
-			anotify(player, AQUA "Destination: *HOME*");
+			anotify_nolisten2(player, AQUA "Destination: *HOME*");
 			break;
 		    default:
 			sprintf(buf, AQUA "Destination: %s",
 				ansi_unparse_object(player, (DBFETCH(thing)->sp.exit.dest)[i]));
-			anotify(player, buf);
+			anotify_nolisten2(player, buf);
 			break;
 		}
 	    }
 	    break;
 	case TYPE_PROGRAM:
-	    if (DBFETCH(thing)->sp.program.siz)
-		sprintf(buf, VIOLET "Program compiled size:" PURPLE " %d instructions", DBFETCH(thing)->sp.program.siz);
-	    else
-		sprintf(buf, VIOLET "Program not compiled.");
-	    anotify(player, buf);
+	    if (DBFETCH(thing)->sp.program.siz) {
+		struct inst *first = DBFETCH(thing)->sp.program.code;
+		sprintf(buf, VIOLET "Program compiled size: " PURPLE "%d instructions", DBFETCH(thing)->sp.program.siz);
+ 	      anotify_nolisten2(player, buf);
+		sprintf(buf, VIOLET "Cummulative runtime: " PURPLE "%d.%06d seconds", first->data.number, first[1].data.number);
+ 	      anotify_nolisten2(player, buf);
+	    } else {
+		anotify_nolisten2(player, VIOLET "Program not compiled.");
+          }
 
 	    /* print location if player can link to it */
 	    if (DBFETCH(thing)->location != NOTHING && (controls(player, DBFETCH(thing)->location)
 		 || can_link_to(player, NOTYPE, DBFETCH(thing)->location))) {
 		sprintf(buf, AQUA "Location: %s", ansi_unparse_object(player, DBFETCH(thing)->location));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 	    }
 	    break;
 	default:
@@ -1012,7 +1016,7 @@ do_score(dbref player, int domud)
     char    buf[BUFFER_LEN];
     sprintf(buf, CINFO "You have %d %s.", DBFETCH(player)->sp.player.pennies,
 	    DBFETCH(player)->sp.player.pennies == 1 ? tp_penny : tp_pennies);
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 }
 
 void 
@@ -1022,11 +1026,11 @@ do_inventory(dbref player)
 
     if ((thing = DBFETCH(player)->contents) == NOTHING &&
 	  !count_details(player, player, "_obj") ) {
-	anotify(player, BLUE "You aren't carrying anything.");
+	anotify_nolisten2(player, BLUE "You aren't carrying anything.");
     } else {
-	anotify(player, BLUE "You are carrying:");
+	anotify_nolisten2(player, BLUE "You are carrying:");
 	if(thing != NOTHING ) { DOLIST(thing, thing) {
-	    anotify(player, ansi_unparse_object(player, thing));
+	    anotify_nolisten2(player, ansi_unparse_object(player, thing));
 	} }
 	look_details(player, player, "_obj");
     }
@@ -1503,8 +1507,8 @@ checkflags(dbref what, struct flgchkdat check)
 	}
     }
     if (check.forold) {
-        if( ((((time(NULL))-DBFETCH(what)->ts.lastused) < tp_aging_time) ||
-	     (((time(NULL))-DBFETCH(what)->ts.modified) < tp_aging_time))
+        if( ((((current_systime)-DBFETCH(what)->ts.lastused) < tp_aging_time) ||
+	     (((current_systime)-DBFETCH(what)->ts.modified) < tp_aging_time))
 	     != (!check.isold) )
 	    return(0);
     }
@@ -1577,7 +1581,7 @@ display_objinfo(dbref player, dbref obj, int output_type)
 	    strcpy(buf, buf2);
 	    break;
     }
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 }
 
 
@@ -1610,7 +1614,7 @@ do_find(dbref player, const char *name, const char *flags)
 		total++;
 	    }
 	}
-	anotify(player, CINFO "***End of List***");
+	anotify_nolisten2(player, CINFO "***End of List***");
 	anotify_fmt(player, CSUCC "%d objects found.", total);
     }
 }
@@ -1636,7 +1640,7 @@ do_owned(dbref player, const char *name, const char *flags)
     if (Mage(OWNER(player)) && *name) {
 	if ((victim = strcmp(name, "me") ? lookup_player(name) : player)
 		== NOTHING) {
-	    anotify(player, CINFO "Who?");
+	    anotify_nolisten2(player, CINFO "Who?");
 	    return;
 	}
     } else
@@ -1648,7 +1652,7 @@ do_owned(dbref player, const char *name, const char *flags)
 	    total++;
 	}
     }
-    anotify(player, CINFO "***End of List***");
+    anotify_nolisten2(player, CINFO "***End of List***");
     anotify_fmt(player, CSUCC "%d objects found.", total);
 }
 
@@ -1677,12 +1681,12 @@ do_trace(int descr, dbref player, const char *name, int depth)
 
     for (i = 0; (!depth || i < depth) && thing != NOTHING; i++) {
 	if (controls(player, thing) || can_link_to(player, NOTYPE, thing))
-	    anotify(player, ansi_unparse_object(player, thing));
+	    anotify_nolisten2(player, ansi_unparse_object(player, thing));
 	else
-	    anotify(player, CINFO "**Missing**");
+	    anotify_nolisten2(player, CINFO "**Missing**");
 	thing = DBFETCH(thing)->location;
     }
-    anotify(player, CINFO "***End of List***");
+    anotify_nolisten2(player, CINFO "***End of List***");
 }
 
 void 
@@ -1718,7 +1722,7 @@ do_entrances(int descr, dbref player, const char *name, const char *flags)
 	thing = noisy_match_result(&md);
     }
     if (thing == NOTHING) {
-	anotify(player, CINFO "I don't know what object you mean.");
+	anotify_nolisten2(player, CINFO "I don't know what object you mean.");
 	return;
     }
     if (!controls(OWNER(player), thing)) {
@@ -1761,7 +1765,7 @@ do_entrances(int descr, dbref player, const char *name, const char *flags)
 	    }
 	}
     }
-    anotify(player, CINFO "***End of List***");
+    anotify_nolisten2(player, CINFO "***End of List***");
     anotify_fmt(player, CSUCC "%d objects found.", total);
 }
 
@@ -1827,7 +1831,7 @@ do_contents(int descr, dbref player, const char *name, const char *flags)
 	    total++;
 	}
     }
-    anotify(player, CINFO "***End of List***");
+    anotify_nolisten2(player, CINFO "***End of List***");
     anotify_fmt(player, CSUCC "%d objects found.", total);
 }
 
@@ -1859,7 +1863,7 @@ exit_match_exists(dbref player, dbref obj, const char *name)
 	if (exit_matches_name(exit, name)) {
 	    sprintf(buf, "  %ss are trapped on %.2048s",
 		    name, ansi_unparse_object(player, obj));
-	    anotify(player, buf);
+	    anotify_nolisten2(player, buf);
 	}
 	exit = DBFETCH(exit)->next;
     }
@@ -1895,7 +1899,7 @@ do_sweep(int descr, dbref player, const char *name)
 	thing = noisy_match_result(&md);
     }
     if (thing == NOTHING) {
-	anotify(player, CINFO "I don't know what object you mean.");
+	anotify_nolisten2(player, CINFO "I don't know what object you mean.");
 	return;
     }
 
@@ -1905,7 +1909,7 @@ do_sweep(int descr, dbref player, const char *name)
     }
     
     sprintf(buf, CINFO "Listeners in %s:", ansi_unparse_object(player, thing));
-    anotify(player, buf);
+    anotify_nolisten2(player, buf);
 
     ref = DBFETCH(thing)->contents;
     for (; ref != NOTHING; ref = DBFETCH(ref)->next) {
@@ -1915,7 +1919,7 @@ do_sweep(int descr, dbref player, const char *name)
 		    sprintf(buf, "  %s" NORMAL " is a %splayer.",
 			    ansi_unparse_object(player, ref),
 			    online(ref)? "" : "sleeping ");
-		    anotify(player, buf);
+		    anotify_nolisten2(player, buf);
 		}
 		break;
 	    case TYPE_THING:
@@ -1944,7 +1948,7 @@ do_sweep(int descr, dbref player, const char *name)
 		    strcat(buf, " object owned by ");
 		    strcat(buf, ansi_unparse_object(player, OWNER(ref)));
 		    strcat(buf, NORMAL ".");
-		    if (tellflag) anotify(player, buf);
+		    if (tellflag) anotify_nolisten2(player, buf);
 		}
 		exit_match_exists(player, ref, "page");
 		exit_match_exists(player, ref, "whisper");
@@ -1958,7 +1962,7 @@ do_sweep(int descr, dbref player, const char *name)
     while (loc != NOTHING) {
 	if (controls(player, loc)) {
 	    if (!flag) {
-		anotify(player, CINFO "Listening rooms down the environment:");
+		anotify_nolisten2(player, CINFO "Listening rooms down the environment:");
 		flag = 1;
 	    }
 
@@ -1971,7 +1975,7 @@ do_sweep(int descr, dbref player, const char *name)
 		     get_property(loc, "_olisten"))) {
 		sprintf(buf, "  %s" NORMAL " is a listening room.",
 			ansi_unparse_object(player, loc));
-		anotify(player, buf);
+		anotify_nolisten2(player, buf);
 	    }
 
 	    exit_match_exists(player, loc, "page");
@@ -1981,8 +1985,9 @@ do_sweep(int descr, dbref player, const char *name)
 	}
 	loc = getparent(loc);
     }
-    anotify(player, CINFO "**End of list**");
+    anotify_nolisten2(player, CINFO "**End of list**");
 }
+
 
 
 

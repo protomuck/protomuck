@@ -44,6 +44,7 @@ prop_write_perms(dbref player, dbref obj, const char *name, int mlev)
 	    if (Prop_ReadOnly(name)) return 0;
 	    if (!string_compare(name, "sex")) return 0;
 	}
+      if (string_prefix(name, "_msgmacs/")) return 0;
     }
     if (mlev < LWIZ) {
         if (Prop_Hidden(name)) return 0;
@@ -998,5 +999,6 @@ prim_islockedp(PRIM_PROTOTYPE)
 
    PushInt(result);
 }
+
 
 

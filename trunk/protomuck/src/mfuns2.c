@@ -207,7 +207,7 @@ mfn_testlock(MFUNARGS)
     lok = get_property_lock(obj, argv[1]);
     if (argc > 3 && lok == TRUE_BOOLEXP)
 	return (argv[3]);
-    if (eval_boolexp(descr, player, lok, obj)) {
+    if (eval_boolexp(descr, who, lok, obj)) {
 	return "1";
     } else {
 	return "0";
@@ -1814,5 +1814,6 @@ mfn_escape(MFUNARGS)
 
 
 #endif /* MPI */
+
 
 

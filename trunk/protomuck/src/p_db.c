@@ -49,7 +49,142 @@ copyobj(dbref player, dbref old, dbref new)
     DBDIRTY(new);
 }
 
+int
+has_flagp(dbref ref, char *flag, int mlev)
+{
+    int     truwiz = 0, tmp2 = 0, lev = 0, tmp3 = 0;
 
+    tmp = 0;
+    result = 0;
+    {
+	while (*flag == '!') {
+	    flag++;
+	    result = (!result);
+	}
+	if (!*flag)
+	    return -1;
+
+	if (string_prefix("dark", flag)
+		|| string_prefix("debug", flag)) {
+	    tmp = DARK;
+	} else if (string_prefix("sticky", flag)
+		 || string_prefix("silent", flag)) {
+	    tmp = STICKY;
+	} else if (string_prefix("abode", flag)
+                || string_prefix("autostart", flag)
+                || string_prefix("abate", flag)) {
+	    tmp = ABODE;
+	} else if (string_prefix("chown_ok", flag) || string_prefix("color_on", flag) || string_prefix("ansi", flag)) {
+	    tmp = CHOWN_OK;
+	} else if (string_prefix("haven", flag)
+		 || string_prefix("harduid", flag) || string_prefix("hide", flag)) {
+	    tmp = HAVEN;
+	} else if (string_prefix("jump_ok", flag)) {
+	    tmp = JUMP_OK;
+	} else if (string_prefix("link_ok", flag) || string_prefix("light", flag)) {
+	    tmp = LINK_OK;
+	} else if (string_prefix("builder", flag)) {
+	    tmp = BUILDER;
+	} else if (string_prefix("meeper", flag) || string_prefix("mpi", flag)) {
+	    lev = LMPI;
+	} else if (string_prefix("mucker", flag) || string_prefix("mucker1", flag) || string_prefix("m1", flag)) {
+	    lev = LMUF;
+	} else if (string_prefix("nucker", flag) || string_prefix("mucker2", flag) || string_prefix("m2", flag)) {
+	    lev = LM2;
+	} else if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) || string_prefix("m3", flag)) {
+	    lev = LM3;
+	} else if (string_prefix("interactive", flag)) {
+	    tmp = INTERACTIVE;
+	} else if (string_prefix("mage", flag)) {
+	    lev = LMAGE;
+	} else if (string_prefix("truemage", flag)) {
+	    lev = LMAGE;
+	    truwiz = 1;
+	} else if (string_prefix("wizard", flag)) {
+	    lev = LWIZ;
+	} else if (string_prefix("truewizard", flag)) {
+	    lev = LWIZ;
+	    truwiz = 1;
+	} else if (string_prefix("archwizard", flag)) {
+	    lev = LARCH;
+	} else if (string_prefix("truearchwizard", flag)) {
+	    lev = LARCH;
+	    truwiz = 1;
+      } else if (string_prefix("boy", flag)) {
+          lev = LBOY;
+      } else if (string_prefix("trueboy", flag)) {
+          lev = LBOY;
+          truwiz = 1;
+      } else if (string_prefix("man", flag)) {
+          lev = LMAN;
+      } else if (string_prefix("trueman", flag)) {
+          lev = LMAN;
+          truwiz = 1;
+	} else if (string_prefix("zombie", flag) || string_prefix("puppet", flag)) {
+	    tmp = ZOMBIE;
+	} else if (string_prefix("xforcible", flag)) {
+	    tmp = XFORCIBLE;
+	} else if (string_prefix("vehicle", flag)
+		 || string_prefix("viewable", flag)) {
+	    tmp = VEHICLE;
+	} else if (string_prefix("quell", flag)) {
+	    tmp = QUELL;
+	} else if (string_prefix("guest", flag)) {
+	    tmp2 = F2GUEST;
+	} else if (string_prefix("logwall", flag) && (mlev >= LWIZ)) {
+	    tmp2 = F2LOGWALL;
+	} else if (string_prefix("mufcount", flag)) {
+	    tmp2 = F2MUFCOUNT;
+	} else if (string_prefix("parent", flag) || (string_prefix("prog_debug", flag) && !string_prefix("pro", flag))) {
+	    tmp2 = F2PARENT;
+	} else if (string_prefix("protect", flag)) {
+	    tmp2 = F2PROTECT;
+	} else if (string_prefix("hidden", flag) && (mlev >= LWIZ)) {
+	    tmp2 = F2HIDDEN;
+	} else if (string_prefix("command", flag)) {
+	    tmp2 = F2COMMAND;
+	} else if (string_prefix("antiprotect", flag)) {
+	    tmp2 = F2ANTIPROTECT;
+	} else if (string_prefix("examine_ok", flag)) {
+	    tmp2 = F2EXAMINE_OK;
+	} else if (string_prefix("mobile", flag)
+		|| string_prefix("offer", flag)
+	) {
+	    tmp2 = F2MOBILE;
+        } else if (string_prefix("pueblo", flag)) {
+            tmp2 = F2PUEBLO;
+	} else if (string_prefix("html", flag)) {
+	    tmp2 = F2HTML;  tmp3 = F2PUEBLO;
+        } else if (string_prefix("nhtml", flag)) {
+            tmp2 = F2HTML;
+	} else return -1;
+    }
+  if (Typeof(ref) == TYPE_PLAYER && tmp == DARK) {
+     if (result)
+        result = (tmp && (((FLAGS(ref) & tmp) == 0) || ((FLAG2(ref) & F2HIDDEN) == 0)));
+     else
+        result = (tmp && (((FLAGS(ref) & tmp) != 0) || ((FLAG2(ref) & F2HIDDEN) != 0)));
+  } else if (lev) {
+    if (result)
+	result = (lev >  ((truwiz) ? MLevel(ref) : QLevel(ref)));
+    else
+	result = (lev <= ((truwiz) ? MLevel(ref) : QLevel(ref)));
+  } else if (tmp2 && (tmp3 == 0)) {
+    if (result)
+	result = ((FLAG2(ref) & tmp2) == 0);
+    else
+	result = ((FLAG2(ref) & tmp2) != 0);
+  } else if (tmp3)
+  {
+    result = (((FLAG2(ref) & tmp3) != 0) || ((FLAG2(ref) & tmp2) != 0));
+  } else if (tmp) {
+    if (result)
+	result = (tmp && ((FLAGS(ref) & tmp) == 0));
+    else
+	result = (tmp && ((FLAGS(ref) & tmp) != 0));
+  } else return -1;
+  return result;
+}
 
 void 
 prim_addpennies(PRIM_PROTOTYPE)
@@ -686,7 +821,28 @@ void
 prim_flagp(PRIM_PROTOTYPE)
 /* FLAG? */
 {
-    int     truwiz = 0, tmp2 = 0, lev = 0, tmp3 = 0;
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    if (!valid_object(oper2))
+	abort_interp("Invalid object");
+    ref = oper2->data.objref;
+    CHECKREMOTE(ref);
+    {
+      char   *flag = oper1->data.string->data;
+
+      result = has_flagp(ref, flag, mlev);
+      if(result == -1)
+         abort_interp("Unknown flag");
+    }
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
+/*    int     truwiz = 0, tmp2 = 0, lev = 0, tmp3 = 0;
 
     CHECKOP(2);
     oper1 = POP();
@@ -702,7 +858,6 @@ prim_flagp(PRIM_PROTOTYPE)
     tmp = 0;
     result = 0;
     {
-	char   *flag = oper1->data.string->data;
 
 	while (*flag == '!') {
 	    flag++;
@@ -833,7 +988,7 @@ prim_flagp(PRIM_PROTOTYPE)
 
     CLEAR(oper1);
     CLEAR(oper2);
-    PushInt(result);
+    PushInt(result); */
 }
 
 
@@ -1591,6 +1746,152 @@ prim_nextplayer(PRIM_PROTOTYPE)
 }
 
 void
+prim_nextprogram(PRIM_PROTOTYPE)
+{
+	dbref ownr;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (!valid_object(oper1))
+		abort_interp("Invalid object.");
+	if (mlev < 3)
+		abort_interp(tp_noperm_mesg);
+	ref = oper1->data.objref;
+	CHECKREMOTE(ref);
+
+	if (Typeof(ref) == TYPE_PROGRAM) {
+		ref++;
+	}
+	while (ref < db_top && (Typeof(ref) != TYPE_PROGRAM))
+		ref++;
+
+	if (ref >= db_top) {
+		ref = NOTHING;
+	}
+	CLEAR(oper1);
+	PushObject(ref);
+}
+
+void
+prim_nextexit(PRIM_PROTOTYPE)
+{
+	dbref ownr;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (!valid_object(oper1))
+		abort_interp("Invalid object.");
+	if (mlev < 3)
+		abort_interp(tp_noperm_mesg);
+	ref = oper1->data.objref;
+	CHECKREMOTE(ref);
+
+	if (Typeof(ref) == TYPE_EXIT) {
+		ref++;
+	}
+	while (ref < db_top && (Typeof(ref) != TYPE_EXIT))
+		ref++;
+
+	if (ref >= db_top) {
+		ref = NOTHING;
+	}
+	CLEAR(oper1);
+	PushObject(ref);
+}
+
+void
+prim_nextroom(PRIM_PROTOTYPE)
+{
+	dbref ownr;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (!valid_object(oper1))
+		abort_interp("Invalid object.");
+	if (mlev < 3)
+		abort_interp(tp_noperm_mesg);
+	ref = oper1->data.objref;
+	CHECKREMOTE(ref);
+
+	if (Typeof(ref) == TYPE_ROOM) {
+		ref++;
+	}
+	while (ref < db_top && (Typeof(ref) != TYPE_ROOM))
+		ref++;
+
+	if (ref >= db_top) {
+		ref = NOTHING;
+	}
+	CLEAR(oper1);
+	PushObject(ref);
+}
+
+void
+prim_nextthing(PRIM_PROTOTYPE)
+{
+	dbref ownr;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (!valid_object(oper1))
+		abort_interp("Invalid object.");
+	if (mlev < 3)
+		abort_interp(tp_noperm_mesg);
+	ref = oper1->data.objref;
+	CHECKREMOTE(ref);
+
+	if (Typeof(ref) == TYPE_THING) {
+		ref++;
+	}
+	while (ref < db_top && (Typeof(ref) != TYPE_THING))
+		ref++;
+
+	if (ref >= db_top) {
+		ref = NOTHING;
+	}
+	CLEAR(oper1);
+	PushObject(ref);
+}
+
+void
+prim_nextentrance(PRIM_PROTOTYPE)
+{
+	dbref lrom;
+      int i;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (!valid_object(oper1))
+		abort_interp("Invalid object.");
+	if (mlev < LMAGE)
+		abort_interp("Mage only prim.");
+	ref = oper1->data.objref;
+	CHECKREMOTE(ref);
+
+	if (Typeof(ref) != TYPE_EXIT) {
+            lrom = ref;
+		ref = 0;
+	} else {
+            lrom = DBFETCH(ref)->sp.exit.dest[0];
+		ref++;
+	}
+	while (ref < db_top)
+            if (Typeof(ref) == TYPE_EXIT)
+               if (DBFETCH(ref)->sp.exit.dest[0] == lrom && ref != lrom)
+                  break;
+               else
+                  ref++;
+            else
+               ref++;
+
+	if (ref >= db_top) {
+		ref = NOTHING;
+	}
+	CLEAR(oper1);
+	PushObject(ref);
+}
+
+void
 prim_newplayer(PRIM_PROTOTYPE)
 {
    char buf[80];
@@ -1634,18 +1935,20 @@ prim_newplayer(PRIM_PROTOTYPE)
        FLAGS(newplayer) = FLAGS(tp_player_prototype);
        FLAG2(newplayer) = FLAG2(tp_player_prototype);
 
-       newp->properties = copy_prop(tp_player_prototype);
-       newp->exits = NOTHING;
-       newp->contents = NOTHING;
-       newp->next = NOTHING;
+       if (tp_pcreate_copy_props) {
+          newp->properties = copy_prop(tp_player_prototype);
+          newp->exits = NOTHING;
+          newp->contents = NOTHING;
+          newp->next = NOTHING;
 #ifdef DISKBASE
-       newp->propsfpos = 0;
-       newp->propsmode = PROPS_UNLOADED;
-       newp->propstime = 0;
-       newp->nextold = NOTHING;
-       newp->prevold = NOTHING;
-       dirtyprops(newplayer);
+          newp->propsfpos = 0;
+          newp->propsmode = PROPS_UNLOADED;
+          newp->propstime = 0;
+          newp->nextold = NOTHING;
+          newp->prevold = NOTHING;
+          dirtyprops(newplayer);
 #endif
+       }
        DBDIRTY(newplayer);
     }
     OWNER(newplayer) = newplayer;
@@ -1720,23 +2023,26 @@ prim_copyplayer(PRIM_PROTOTYPE)
        FLAGS(newplayer) = FLAGS(ref);
        FLAG2(newplayer) = FLAG2(ref);
 
-       newp->properties = copy_prop(ref);
-       newp->exits = NOTHING;
-       newp->contents = NOTHING;
-       newp->next = NOTHING;
+       if (1) {
+          newp->properties = copy_prop(ref);
+          newp->exits = NOTHING;
+          newp->contents = NOTHING;
+          newp->next = NOTHING;
 #ifdef DISKBASE
-       newp->propsfpos = 0;
-       newp->propsmode = PROPS_UNLOADED;
-       newp->propstime = 0;
-       newp->nextold = NOTHING;
-       newp->prevold = NOTHING;
-       dirtyprops(newplayer);
+          newp->propsfpos = 0;
+          newp->propsmode = PROPS_UNLOADED;
+          newp->propstime = 0;
+          newp->nextold = NOTHING;
+          newp->prevold = NOTHING;
+          dirtyprops(newplayer);
 #endif
+       }
        DBDIRTY(newplayer);
 /*    } */
     OWNER(newplayer) = player;
     DBFETCH(newplayer)->sp.player.home = DBFETCH(ref)->sp.player.home;
     DBFETCH(newplayer)->exits = NOTHING;
+    DBFETCH(newplayer)->owner = newplayer;
     DBFETCH(newplayer)->sp.player.pennies = DBFETCH(ref)->sp.player.pennies;
     DBFETCH(newplayer)->sp.player.password = alloc_string(password);
     DBFETCH(newplayer)->sp.player.curr_prog = NOTHING;
@@ -1745,7 +2051,7 @@ prim_copyplayer(PRIM_PROTOTYPE)
     /* link him to player_start */
     PUSH(newplayer, DBFETCH(DBFETCH(ref)->sp.player.home)->contents);
     add_player(newplayer);
-    newp->location = tp_player_start;
+    newp->location = DBFETCH(ref)->sp.player.home;
     DBDIRTY(newplayer);
     DBDIRTY(tp_player_start);
     if(MLevel(newplayer) > LM3) SetMLevel(newplayer, LM3);
@@ -1825,9 +2131,6 @@ prim_toadplayer(PRIM_PROTOTYPE) {
 	    DBFETCH(victim)->sp.player.password = 0;
 	}
 	dequeue_prog(victim, 0);  /* dequeue progs that player's running */
-	FLAGS(victim) = (FLAGS(victim) & ~TYPE_MASK) | TYPE_THING;
-	OWNER(victim) = player;	/* you get it */
-	DBFETCH(victim)->sp.thing.value = 1;
 
 	/* anotify(victim, BLUE "You have been frobbed!  Been nice knowing you.");
 	anotify_fmt(player, GREEN "You frob %s.", PNAME(victim)); */
@@ -1841,6 +2144,9 @@ prim_toadplayer(PRIM_PROTOTYPE) {
 	NAME(victim) = alloc_string(buf);
 	DBDIRTY(victim);
 	boot_player_off(victim);
+	FLAGS(victim) = (FLAGS(victim) & ~TYPE_MASK) | TYPE_THING;
+	OWNER(victim) = player;	/* you get it */
+	DBFETCH(victim)->sp.thing.value = 1;
 
 	if(tp_recycle_frobs) recycle(fr->descr, player, victim);
       CLEAR(oper1);
@@ -1986,6 +2292,220 @@ prim_compiledp(PRIM_PROTOTYPE)
    CLEAR(oper1);
    PushInt(DBFETCH(ref)->sp.program.siz);
 }
+
+
+void
+prim_setpassword(PRIM_PROTOTYPE)
+{
+    char *ptr, *ptr2;
+
+    CHECKOP(3);
+    oper1 = POP();
+    oper2 = POP();
+    oper3 = POP();
+    if (mlev < LMAGE)
+       abort_interp("W1 or better only.");
+    if (oper1->type != PROG_STRING)
+	abort_interp("Password string expected");
+    if (oper3->type != PROG_OBJECT)
+	abort_interp("Player dbref expected");
+    ref = oper3->data.objref;
+    if (ref != NOTHING && !valid_player(oper3))
+	abort_interp("Player dbref expected");
+    CHECKREMOTE(ref);
+    if (oper2->type != PROG_STRING)
+	abort_interp("Password string expected");
+    ptr = oper2->data.string? oper2->data.string->data : "";
+    ptr2 = oper1->data.string? oper1->data.string->data : "";
+    if (ref != NOTHING && strcmp(ptr, DBFETCH(ref)->sp.player.password))
+	abort_interp("Incorrect password");
+    free((void *) DBFETCH(ref)->sp.player.password);
+    DBSTORE(ref, sp.player.password, alloc_string(ptr2));
+    CLEAR(oper1);
+    CLEAR(oper2);
+    CLEAR(oper3);
+}
+
+void
+prim_newpassword(PRIM_PROTOTYPE)
+{
+    char *ptr2;
+
+    CHECKOP(2);
+    oper1 = POP();
+    oper3 = POP();
+    if (mlev < LARCH)
+       abort_interp("W3 or better only.");
+    if (oper1->type != PROG_STRING)
+	abort_interp("Password string expected");
+    if (oper3->type != PROG_OBJECT)
+	abort_interp("Player dbref expected");
+    ptr2 = oper1->data.string? oper1->data.string->data : "";
+    ref = oper3->data.objref;
+    if (ref != NOTHING && !valid_player(oper3))
+	abort_interp("Player dbref expected");
+    CHECKREMOTE(ref);
+    if (MLevel(ref) >= mlev || (MLevel(ref) >= LMAGE && mlev < LBOY))
+      abort_interp(tp_noperm_mesg);
+    free((void *) DBFETCH(ref)->sp.player.password);
+    DBSTORE(ref, sp.player.password, alloc_string(ptr2));
+    CLEAR(oper1);
+    CLEAR(oper3);
+}
+
+void
+prim_next_flag(PRIM_PROTOTYPE)
+{
+    char *flag;
+
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (mlev < LMAGE)
+       abort_interp("W1 or better only.");
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    if (!valid_object(oper2))
+	abort_interp("Invalid object");
+    ref = oper2->data.objref;
+    flag = oper1->data.string->data;
+    CHECKREMOTE(ref);
+    result = has_flagp(ref, flag, mlev);
+    if (result == -1)
+       abort_interp("Unknown flag");
+    result = 0;
+    ref++;
+    for(; ref < db_top; ref++) {
+       result = has_flagp(ref, flag, mlev);
+       if (result == -1)
+          abort_interp("Unknown flag");
+       if (result)
+          break;
+    }
+    if(result == 0 || ref >= db_top)
+       ref = NOTHING;
+    PushObject(ref);
+}
+
+void
+prim_nextowned_flag(PRIM_PROTOTYPE)
+{
+    char *flag;
+    dbref ownr;
+
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (mlev < LMAGE)
+       abort_interp("W1 or better only.");
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    if (!valid_object(oper2))
+	abort_interp("Invalid object");
+    ref = oper2->data.objref;
+    flag = oper1->data.string->data;
+    CHECKREMOTE(ref);
+    result = has_flagp(ref, flag, mlev);
+    if (result == -1)
+       abort_interp("Unknown flag");
+    result = 0;
+    ownr = OWNER(ref);
+    if (Typeof(ref) == TYPE_PLAYER) {
+       ref = 0;
+    } else {
+       ref++;
+    }
+    for(; ref < db_top; ref++) {
+       result = has_flagp(ref, flag, mlev);
+       if (result == -1)
+          abort_interp("Unknown flag");
+       if (result && OWNER(ref) == ownr && ref != ownr)
+          break;
+    }
+    if(result == 0 || ref >= db_top)
+       ref = NOTHING;
+    PushObject(ref);
+}
+
+void
+prim_nextplayer_flag(PRIM_PROTOTYPE)
+{
+    char *flag;
+
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (mlev < LMAGE)
+       abort_interp("W1 or better only.");
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    if (!valid_object(oper2))
+	abort_interp("Invalid object");
+    ref = oper2->data.objref;
+    flag = oper1->data.string->data;
+    CHECKREMOTE(ref);
+    result = has_flagp(ref, flag, mlev);
+    if (result == -1)
+       abort_interp("Unknown flag");
+    result = 0;
+    ref++;
+    for(; ref < db_top; ref++) {
+       result = has_flagp(ref, flag, mlev);
+       if (result == -1)
+          abort_interp("Unknown flag");
+       if (result && Typeof(ref) == TYPE_PLAYER)
+          break;
+    }
+    if(result == 0 || ref >= db_top)
+       ref = NOTHING;
+    PushObject(ref);
+}
+
+void
+prim_nextthing_flag(PRIM_PROTOTYPE)
+{
+    char *flag;
+
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (mlev < LMAGE)
+       abort_interp("W1 or better only.");
+    if (oper1->type != PROG_STRING)
+	abort_interp("Invalid argument type (2)");
+    if (!(oper1->data.string))
+	abort_interp("Empty string argument (2)");
+    if (!valid_object(oper2))
+	abort_interp("Invalid object");
+    ref = oper2->data.objref;
+    flag = oper1->data.string->data;
+    CHECKREMOTE(ref);
+    result = has_flagp(ref, flag, mlev);
+    if (result == -1)
+       abort_interp("Unknown flag");
+    result = 0;
+    ref++;
+    for(; ref < db_top; ref++) {
+       result = has_flagp(ref, flag, mlev);
+       if (result == -1)
+          abort_interp("Unknown flag");
+       if (result && Typeof(ref) == TYPE_THING)
+          break;
+    }
+    if(result == 0 || ref >= db_top)
+       ref = NOTHING;
+    PushObject(ref);
+}
+
+
+
+
 
 
 

@@ -29,6 +29,9 @@ extern const char *tp_rwho_server;
 
 extern const char *tp_reg_email;
 
+extern const char *tp_proplist_counter_fmt;
+extern const char *tp_proplist_entry_fmt;
+
 
 /* times */
 #ifdef RWHO
@@ -82,6 +85,7 @@ extern int tp_playermax_limit;
 extern int tp_num_backups;
 
 /* dbrefs */
+extern dbref tp_quit_prog;
 extern dbref tp_huh_command;
 extern dbref tp_login_huh_command;
 extern dbref tp_login_who_prog;
@@ -98,6 +102,7 @@ extern dbref tp_www_surfer;
 /* booleans */
 extern int tp_hostnames;
 extern int tp_log_commands;
+extern int tp_log_interactive;
 extern int tp_log_connects;
 extern int tp_log_mud_commands;
 extern int tp_log_failed_commands;
@@ -142,9 +147,12 @@ extern int tp_idleboot;
 extern int tp_playermax;
 extern int tp_db_readonly;
 extern int tp_process_timer_limit;
+extern int tp_pcreate_copy_props;
 extern int tp_enable_home;
 extern int tp_quiet_moves;
+extern int tp_quiet_connects;
 extern int tp_expanded_debug;
+extern int tp_proplist_int_counter;
 
 extern int tune_count_parms();
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
@@ -153,6 +161,8 @@ extern void tune_save_parms_to_file(FILE *f);
 extern int tp_building;
 extern int tp_all_can_build_rooms;
 extern int tp_restricted_building;
+
+
 
 
 

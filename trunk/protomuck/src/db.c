@@ -413,7 +413,7 @@ log_program_text(struct line * first, dbref player, dbref i)
     char	fname[BUFFER_LEN],
     		buf1[BUFFER_LEN],
     		buf2[BUFFER_LEN];
-    time_t  lt = time(NULL);
+    time_t  lt = current_systime;
 
 #ifndef SANITY
     strcpy(fname, PROGRAM_LOG);
@@ -442,16 +442,12 @@ log_program_text(struct line * first, dbref player, dbref i)
 #endif
 }
 
-int
-write_program(struct line * first, dbref i, dbref saver)
+void
+write_program(struct line * first, dbref i)
 {
     FILE   *f;
     char    fname[BUFFER_LEN];
-    int returnme = 1;
 
-    if (MCP(i))
-     sprintf(fname, "mcp/%d.mcp", (int) i); 
-    else
      sprintf(fname, "muf/%d.m", (int) i);
     f = fopen(fname, "w");
     if (!f) {
@@ -470,33 +466,6 @@ write_program(struct line * first, dbref i, dbref saver)
 	first = first->next;
     }
     fclose(f);
-    if (MCP(i))
-    {
-       char fname2[BUFFER_LEN];
-       int errornum; 
-
-       notify(saver, "Parsing MCP into MUF...");
-       sprintf(fname2, "muf/%d.m", (int) i);
-       errornum = convert(fname, fname2, saver);
-       if (errornum != MCP_OK)
-       {
-          returnme = 0;
-          switch (errornum)
-          {
-	     case MCP_INFILE:
-               notify(saver, "Error reading file!");
-               log_status("Couldn't open file %s (read)!\n", fname);
-               break;
-             case MCP_OUTFILE:
-               notify(saver, "Error writing file!");
-               log_status("Couldn't open file %s (write)!\n", fname2);
-               break;
-             default: break;
-          }
-          notify(saver, "Parse unsuccessful.");
-       }
-    }
-    return(returnme);
 }
 
 int 
@@ -923,8 +892,15 @@ db_free_object(dbref i)
 
     if (Typeof(i) == TYPE_EXIT && o->sp.exit.dest) {
 	free((void *) o->sp.exit.dest);
-    } else if (Typeof(i) == TYPE_PLAYER && o->sp.player.password) {
-	free((void *) o->sp.player.password);
+    } else if (Typeof(i) == TYPE_PLAYER) {
+        if (o->sp.player.password) {
+            free((void *) o->sp.player.password);
+        }
+        if (o->sp.player.descrs) {
+            free((void*)o->sp.player.descrs);
+            o->sp.player.descrs = NULL;
+            o->sp.player.descr_count = 0;
+        }
     }
 #ifndef SANITY
     if (Typeof(i) == TYPE_PROGRAM) {
@@ -1036,10 +1012,10 @@ db_read_object_old(FILE * f, struct object * o, dbref objno)
     pennies = getref(f);
 
     /* timestamps mods */
-    o->ts.created = time(NULL);
-    o->ts.lastused = time(NULL);
+    o->ts.created = current_systime;
+    o->ts.lastused = current_systime;
     o->ts.usecount = 0;
-    o->ts.modified = time(NULL);
+    o->ts.modified = current_systime;
 
     FLAGS(objno) |= getfref(f, &f2);
     FLAG2(objno) |= f2;
@@ -1104,6 +1080,8 @@ db_read_object_old(FILE * f, struct object * o, dbref objno)
 	    o->exits = NOTHING;
 	    o->sp.player.pennies = pennies;
 	    o->sp.player.password = password;
+          o->sp.player.descrs = NULL;
+          o->sp.player.descr_count = 0;
 	    break;
 	case TYPE_GARBAGE:
 	    OWNER(objno) = NOTHING;
@@ -1143,10 +1121,10 @@ db_read_object_new(FILE * f, struct object * o, dbref objno)
     LOADOSUCC(objno, getstring_oldcomp_noalloc(f));
 
     /* timestamps mods */
-    o->ts.created = time(NULL);
-    o->ts.lastused = time(NULL);
+    o->ts.created = current_systime;
+    o->ts.lastused = current_systime;
     o->ts.usecount = 0;
-    o->ts.modified = time(NULL);
+    o->ts.modified = current_systime;
 
     /* OWNER(objno) = getref(f); */
     /* o->pennies = getref(f); */
@@ -1213,6 +1191,8 @@ db_read_object_new(FILE * f, struct object * o, dbref objno)
 	    o->exits = getref(f);
 	    o->sp.player.pennies = getref(f);
 	    o->sp.player.password = getstring(f);
+          o->sp.player.descrs = NULL;
+          o->sp.player.descr_count = 0;
 	    break;
     }
 }
@@ -1395,6 +1375,8 @@ db_read_object_foxen(FILE * f, struct object * o, dbref objno,
 	    o->sp.player.password = getstring(f);
 	    o->sp.player.curr_prog = NOTHING;
 	    o->sp.player.insert_mode = 0;
+          o->sp.player.descrs = NULL;
+          o->sp.player.descr_count = 0;
 	    break;
 	case TYPE_PROGRAM:
 #ifdef VERBOSELOAD
@@ -1443,7 +1425,7 @@ autostart_progs()
 		o = DBFETCH(i);
 		tmp = o->sp.program.first;
 		o->sp.program.first = (struct line *) read_program(i,0);
-		do_compile(-1, OWNER(i), i);
+		do_compile(-1, OWNER(i), i, 0);
 		free_prog_text(o->sp.program.first);
 		o->sp.program.first = tmp;
 	    }
@@ -1632,6 +1614,7 @@ db_read(FILE * f)
 	c = getc(f);
     }				/* for */
 }				/* db_read */
+
 
 
 

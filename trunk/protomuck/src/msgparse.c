@@ -14,6 +14,8 @@
 #include "msgparse.h"
 #include "mfun.h"
 
+time_t mpi_prof_start_time;
+
 
 #ifdef MPI
 
@@ -59,6 +61,7 @@ safeputprop(dbref obj, dbref perms, char *buf, char *val)
     }
     if (!Wizperms(perms)) {
         if (Prop_SeeOnly(buf)) return 0;
+        if (string_prefix(buf, "_msgmacs/")) return 0;
     }
     if (!val) {
         remove_property(obj, buf);
@@ -68,13 +71,29 @@ safeputprop(dbref obj, dbref perms, char *buf, char *val)
     return 1;
 }
 
+const char *
+safegetprop_limited(dbref player, dbref what, dbref whom, dbref perms, const char *inbuf)
+{
+    const char *ptr;
+
+    while (what != NOTHING) {
+	if (OWNER(what) == whom || Wizard(what) ||
+	    safegetprop_strict(player, what, perms, "~mpi_macros_ok")
+	) {
+	    ptr = safegetprop_strict(player, what, perms, inbuf);
+	    if (!ptr || *ptr) return ptr;
+	}
+        what = getparent(what);
+    }
+    return "";
+}
 
 const char *
 safegetprop_strict(dbref player, dbref what, dbref perms, const char *inbuf)
 {
     const char *ptr;
     char  bbuf[BUFFER_LEN];
-    char  vl[32];
+    static char  vl[32];
 
     if (!inbuf) {
         notify_nolisten(player, "PropFetch: Propname required.", 1);
@@ -302,7 +321,7 @@ isneighbor(dbref d1, dbref d2)
 int
 mesg_local_perms(dbref player, dbref perms, dbref obj)
 {
-    if (OWNER(perms) == OWNER(getloc(obj))) return 1;
+    if ((getloc(obj) != NOTHING) && (OWNER(perms) == OWNER(getloc(obj)))) return 1;
     if (isneighbor(perms, obj)) return 1;
     if (isneighbor(player, obj)) return 1;
     if (Mageperms(perms)) return 1;
@@ -438,7 +457,7 @@ struct mpivar {
     char *buf;
 };
 
-struct mpivar varv[MPI_MAX_VARIABLES];
+static struct mpivar varv[MPI_MAX_VARIABLES];
 int varc = 0;
 
 int
@@ -477,7 +496,7 @@ struct mpifunc {
     char *buf;
 };
 
-struct mpifunc funcv[MPI_MAX_FUNCTIONS];
+static struct mpifunc funcv[MPI_MAX_FUNCTIONS];
 int funcc = 0;
 
 int
@@ -524,8 +543,9 @@ msg_is_macro(dbref player, dbref what, dbref perms, const char *name)
     sprintf(buf2, "_msgmacs/%s", name);
     obj = what;
     ptr = get_mfunc(name);
-    if (!ptr || !*ptr) ptr = safegetprop(player, OWNER(obj), perms, buf2);
-    if (!ptr || !*ptr) ptr = safegetprop(player, obj, perms, buf2);
+    if (!ptr || !*ptr) ptr = safegetprop_strict(player, OWNER(obj), perms, buf2);
+    if (!ptr || !*ptr) ptr = safegetprop_limited(player, obj, OWNER(obj), perms, buf2);
+    if (!ptr || !*ptr) ptr = safegetprop_strict(player, 0, perms, buf2);
     if (!ptr || !*ptr) return 0;
     return 1;
 }
@@ -546,7 +566,8 @@ msg_unparse_macro(dbref player, dbref what, dbref perms, char *name, int argc, a
     obj = what;
     ptr = get_mfunc(name);
     if (!ptr || !*ptr) ptr = safegetprop_strict(player, OWNER(obj), perms, buf2);
-    if (!ptr || !*ptr) ptr = safegetprop(player, obj, perms, buf2);
+    if (!ptr || !*ptr) ptr = safegetprop_limited(player, obj, OWNER(obj), perms, buf2);
+    if (!ptr || !*ptr) ptr = safegetprop_strict(player, 0, perms, buf2);
     while (ptr && *ptr && p < (maxchars - 1)) {
         if (*ptr == '\\') {
             if (*(ptr+1) == 'r') {
@@ -607,7 +628,7 @@ insert_mfn(const char *name, int i)
 {
     hash_data hd;
 
-    (void) kill_def(name);
+    (void) free_hash(name, msghash, MSGHASHSIZE);
     hd.ival = i;
     (void) add_hash(name, hd, msghash, MSGHASHSIZE);
 }
@@ -632,6 +653,7 @@ mesg_init(void)
 
     for (i = 0; mfun_list[i].name; i++)
         insert_mfn(mfun_list[i].name, i + 1);
+    mpi_prof_start_time = time(NULL);
 }
 
 
@@ -1060,11 +1082,32 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf, const char
 #else
     if (tp_do_mpi_parsing) {
 #endif
-	return do_parse_mesg_2(descr, player, what, what, inbuf, abuf, outbuf, mesgtyp);
+      char *tmp = NULL;
+	struct timeval st, et;
+
+	tmp = do_parse_mesg_2(descr, player, what, what, inbuf, abuf, outbuf, mesgtyp);
+	gettimeofday(&et,NULL);
+	if (strcmp(tmp,inbuf)) {
+	  et.tv_usec -= st.tv_usec;
+	  et.tv_sec -= st.tv_sec;
+	  if (et.tv_usec < 0) {
+	    et.tv_usec += 1000000;
+	    et.tv_sec -= 1;
+	  }
+	  DBFETCH(what)->mpi_prof_sec += et.tv_sec;
+	  DBFETCH(what)->mpi_prof_usec += et.tv_usec;
+	  if (DBFETCH(what)->mpi_prof_usec >= 1000000) {
+	    DBFETCH(what)->mpi_prof_usec -= 1000000;
+	    DBFETCH(what)->mpi_prof_sec += 1;
+	  }
+	  DBFETCH(what)->mpi_prof_use++;
+	}
+	return(tmp);
     } else
 #endif
 	strcpy(outbuf, inbuf);
     return outbuf;
 }
+
 
 

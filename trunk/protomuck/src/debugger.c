@@ -40,7 +40,17 @@ list_proglines(dbref player, dbref program, struct frame *fr, int start, int end
     }
     tmpline = DBFETCH(program)->sp.program.first;
     DBSTORE(program, sp.program.first, fr->brkpt.proglines);
-    do_list(player, program, range, argc);
+	{
+		int tmpflg = (FLAGS(player) & INTERNAL);
+
+		FLAGS(player) |= INTERNAL;
+
+		do_list(player, program, range, argc);
+
+		if (!tmpflg) {
+			FLAGS(player) &= ~INTERNAL;
+		}
+	}
     DBSTORE(program, sp.program.first, tmpline);
     return;
 }
@@ -66,8 +76,7 @@ show_line_prims(dbref program, struct inst *pc, int maxprims, int markpc)
 	++linestart;
 
     for (lineend = pc + 1, maxback = maxprims; lineend < end &&
-	    lineend->line == thisline && lineend->type != PROG_FUNCTION &&
-	    --maxback; ++lineend);
+	    lineend->line == thisline && lineend->type != PROG_FUNCTION && --maxback; ++lineend);
     if (lineend >= end || lineend->line > thisline ||
 	    lineend->type == PROG_FUNCTION)
 	--lineend;
@@ -112,7 +121,7 @@ funcname_to_pc(dbref program, const char *name)
     siz = DBFETCH(program)->sp.program.siz;
     for (i = 0; i < siz; i++) {
         if ((code[i].type == PROG_FUNCTION) &&
-                !string_compare(name, code[i].data.string->data)) {
+                !string_compare(name, code[i].data.mufproc->procname)) {
             return (code + i);
         }
     }
@@ -150,7 +159,7 @@ unparse_sysreturn(dbref *program, struct inst *pc)
         }
     }
     if (ptr->type == PROG_FUNCTION) {
-        fname = ptr->data.string->data;
+		fname = ptr->data.mufproc->procname;
     } else {
         fname = "???";
     }
@@ -252,21 +261,20 @@ list_program_functions(dbref player, dbref program, char *arg)
     anotify_nolisten(player, CINFO "*function words*", 1);
     while (count-- > 0) {
 	if (ptr->type == PROG_FUNCTION) {
-	    if (ptr->data.string) {
-		if (!*arg || equalstr(arg, ptr->data.string->data)) {
-		    notify_nolisten(player, ptr->data.string->data, 1);
-		}
-	    }
+			if (ptr->data.mufproc) {
+				if (!*arg || equalstr(arg, ptr->data.mufproc->procname)) {
+					notify_nolisten(player, ptr->data.mufproc->procname, 1);
+				}
+			}
 	}
 	ptr++;
     }
     anotify_nolisten(player, CINFO "Done.", 1);
 }
 
-#define CurrVar (*(fr->varset.st[fr->varset.top]))
 
 static void
-debug_printvar(dbref player, struct frame *fr, const char *arg)
+debug_printvar(dbref player, dbref program, struct frame *fr, const char *arg)
 {
 	int i;
 	int lflag = 0;
@@ -293,8 +301,17 @@ debug_printvar(dbref player, struct frame *fr, const char *arg)
 		anotify_nolisten(player, CINFO "Variable number out of range.", 1);
 		return;
 	}
-	if (lflag) {
-		notify_nolisten(player, insttotext(&(CurrVar[i]), buf, sizeof(buf), 4000, -1), 1);
+	if (sflag) {
+		struct inst *tmp = scopedvar_get(fr, i);
+
+		if (!tmp) {
+			notify_nolisten(player, "Scoped variable number out of range.", 1);
+			return;
+		}
+		notify_nolisten(player, insttotext(tmp, buf, sizeof(buf), 4000, -1), 1);
+	} else if (lflag) {
+                struct localvars *lvars = localvars_get(fr, program);
+		notify_nolisten(player, insttotext(&(lvars->lvars[i]), buf, sizeof(buf), 4000, -1), 1);
 	} else {
 		notify_nolisten(player, insttotext(&(fr->variables[i]), buf, sizeof(buf), 4000, -1),
 						1);
@@ -306,6 +323,7 @@ push_arg(dbref player, struct frame *fr, const char *arg)
 {
     int num, lflag, sflag = 0;
     float inum;
+
 
     if (fr->argument.top >= STACK_SIZE) {
 	anotify_nolisten(player, CFAIL "That would overflow the stack.", 1);
@@ -384,6 +402,11 @@ push_arg(dbref player, struct frame *fr, const char *arg)
 int primitive(const char *token);
 
 struct inst primset[3];
+static struct muf_proc_data temp_muf_proc_data = {
+    "__Temp_Debugger_Proc",
+	0,
+	0
+};
 struct shared_string shstr;
 
 int
@@ -397,13 +420,17 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
     dbref ref;
     int i, j, cnt;
 
-    while (isspace(*text)) text++;
+    while (isspace(*text))
+		text++;
     strcpy(cmd, text);
     ptr = cmd + strlen(cmd);
-    if (ptr > cmd) ptr--;
-    while (ptr >= cmd && isspace(*ptr)) *ptr-- = '\0';
+    if (ptr > cmd)
+		ptr--;
+    while (ptr >= cmd && isspace(*ptr))
+		*ptr-- = '\0';
     for (arg = cmd; *arg && !isspace(*arg); arg++);
-    if (*arg) *arg++ = '\0';
+    if (*arg)
+		*arg++ = '\0';
     if (!*cmd && fr->brkpt.lastcmd) {
         strcpy(cmd, fr->brkpt.lastcmd);
     } else {
@@ -431,7 +458,8 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
     if (!string_compare(cmd, "cont")) {
     } else if (!string_compare(cmd, "finish")) {
         if (fr->brkpt.count >= MAX_BREAKS) {
-            anotify_nolisten(player, CFAIL "Cannot finish because there are too many breakpoints set.", 1);
+            anotify_nolisten(player, CFAIL
+							"Cannot finish because there are too many breakpoints set.", 1);
             add_muf_read_event(descr, player, program, fr);
             return 0;
         }
@@ -447,9 +475,11 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
         return 0;
     } else if (!string_compare(cmd, "stepi")) {
         i = atoi(arg);
-        if (!i) i = 1;
+        if (!i)
+			i = 1;
         if (fr->brkpt.count >= MAX_BREAKS) {
-            anotify_nolisten(player, CFAIL "Cannot stepi because there are too many breakpoints set.", 1);
+            anotify_nolisten(player, CFAIL "Cannot stepi because there are too many breakpoints set.",
+							1);
             add_muf_read_event(descr, player, program, fr);
             return 0;
         }
@@ -465,9 +495,11 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
         return 0;
     } else if (!string_compare(cmd, "step")) {
         i = atoi(arg);
-        if (!i) i = 1;
+        if (!i)
+			i = 1;
         if (fr->brkpt.count >= MAX_BREAKS) {
-            anotify_nolisten(player, CFAIL "Cannot step because there are too many breakpoints set.", 1);
+            anotify_nolisten(player, CFAIL "Cannot step because there are too many breakpoints set.",
+							1);
             add_muf_read_event(descr, player, program, fr);
             return 0;
         }
@@ -563,21 +595,18 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
 	    return 0;
 	}
 
-	shstr.data[0] = '\0';
-	shstr.links = 1;
-	shstr.length= strlen(shstr.data);
 	primset[0].type = PROG_FUNCTION;
 	primset[0].line = 0;
-	primset[0].data.string = &shstr;
-	primset[1].type = PROG_DECLVAR;
-	primset[1].line = 0;
-	primset[1].data.number = 0;
+	primset[0].data.mufproc = &temp_muf_proc_data;
+	primset[0].data.mufproc->vars = 0;
+	primset[0].data.mufproc->args = 0;
 	primset[1].type = PROG_PRIMITIVE;
 	primset[1].line = 0;
-	primset[1].data.number = /* i */ get_primitive(arg);
+	primset[1].data.number = get_primitive(arg);
 	primset[2].type = PROG_PRIMITIVE;
 	primset[2].line = 0;
-	primset[2].data.number = primitive("EXIT");
+	primset[2].data.number = IN_RET;
+	/* primset[3].data.number = primitive("EXIT"); */
 
 	fr->system.st[fr->system.top].progref = program;
 	fr->system.st[fr->system.top++].offset = fr->pc;
@@ -608,7 +637,8 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
                 i = pinst->line;
             }
         }
-        if (!i) i = fr->pc->line;
+        if (!i)
+			i = fr->pc->line;
         j = fr->brkpt.count++;
         fr->brkpt.temp[j] = 0;
         fr->brkpt.level[j] = -1;
@@ -660,7 +690,8 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
     } else if (!string_compare(cmd, "stack")) {
         anotify_nolisten(player, CINFO "*Argument stack top*", 1);
         i = atoi(arg);
-        if (!i) i = STACK_SIZE;
+        if (!i)
+			i = STACK_SIZE;
         ptr = "";
         ref = program;
         for (j = fr->argument.top; j>0 && i-->0;) {
@@ -678,9 +709,9 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
         anotify_nolisten(player, CINFO "Done.", 1);
 	add_muf_read_event(descr, player, program, fr);
         return 0;
-    } else if (!string_compare(cmd, "list") ||
-	       !string_compare(cmd, "listi")) {
+    } else if (!string_compare(cmd, "list") || !string_compare(cmd, "listi")) {
         int startline, endline;
+
         startline = endline = 0;
 	add_muf_read_event(descr, player, program, fr);
         if ((ptr2 = (char *)index(arg, ','))) {
@@ -763,8 +794,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
             fr->brkpt.showstack = 0;
             anotify_nolisten(player, CSUCC "Trace turned off.", 1);
         } else {
-            sprintf(buf, CINFO "Trace is currently %s.",
-                    fr->brkpt.showstack? "on" : "off");
+            sprintf(buf, CINFO "Trace is currently %s.", fr->brkpt.showstack? "on" : "off");
             anotify_nolisten(player, buf, 1);
         }
         return 0;
@@ -773,7 +803,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
 	add_muf_read_event(descr, player, program, fr);
         return 0;
     } else if (!string_compare(cmd, "print")) {
-	debug_printvar(player, fr, arg);
+        debug_printvar(player, program, fr, arg);
 	add_muf_read_event(descr, player, program, fr);
         return 0;
     } else if (!string_compare(cmd, "push")) {
@@ -781,11 +811,15 @@ muf_debugger(int descr, dbref player, dbref program, const char *text, struct fr
 	add_muf_read_event(descr, player, program, fr);
         return 0;
     } else if (!string_compare(cmd, "pop")) {
+	add_muf_read_event(descr, player, program, fr);
+	if (fr->argument.top < 1) {
+		notify_nolisten(player, "Nothing to pop.", 1);
+		return 0;
+	}
 	fr->argument.top--;
 	CLEAR(fr->argument.st + fr->argument.top);
-	anotify_nolisten(player, CSUCC "Stack item popped.", 1);
-	add_muf_read_event(descr, player, program, fr);
-        return 0;
+	notify_nolisten(player, "Stack item popped.", 1);
+	return 0;
     } else if (!string_compare(cmd, "help")) {
 notify_nolisten(player, "cont            continues execution until a breakpoint is hit.", 1);
 notify_nolisten(player, "finish          completes execution of current function.", 1);
@@ -823,6 +857,7 @@ notify_nolisten(player, "quit            stop execution here.", 1);
     }
     return 0;
 }
+
 
 
 

@@ -300,7 +300,7 @@ get_username(int a, int prt, int myprt)
     ptr = index(ptr + 1, ':');
     if (!ptr) goto bad;
     ptr++;
-    if (*ptr) ptr++;
+/*    if (*ptr) ptr++; */
 
     close(fd);
     if ((ptr2 = index(ptr, '\r'))) *ptr2 = '\0';

@@ -138,7 +138,7 @@ update_fetchstats()
     time_t now;
     int slot, i;
     
-    now = time(NULL);
+    now = current_systime;
     slot = ((now / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
     if (slot != lastfetchslot) {
         if (lastfetchslot == -1) {
@@ -163,7 +163,7 @@ report_fetchstats(dbref player)
     char buf[BUFFER_LEN];
     time_t now;
     
-    now = time(NULL);
+    now = current_systime;
     i = slot = ((now / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
 
     while (lastfetchslot != slot) {
@@ -235,7 +235,7 @@ report_cachestats(dbref player)
     total = proploaded_Q.count;
     checked = 0;
     gap = 0;
-    when = now = time(NULL);
+    when = now = current_systime;
     notify(player, "Mins  Objs (%of db) Graph of #objs vs. age.");
     for (; checked < total; when -= 60) {
         count = 0;
@@ -314,7 +314,7 @@ disposeprops_notime(dbref obj)
 int 
 disposeprops(dbref obj)
 {
-    if ((time(NULL) - DBFETCH(obj)->propstime) < tp_clean_interval)
+    if ((current_systime - DBFETCH(obj)->propstime) < tp_clean_interval)
 	return 0;	/* don't dispose if less than X minutes old */
     return disposeprops_notime(obj);
 }
@@ -324,7 +324,7 @@ void
 dispose_all_oldprops(void)
 {
     dbref i;
-    time_t now = time(NULL);
+    time_t now = current_systime;
 
     for (i = 0; i < db_top; i++) {
 	if ((now - DBFETCH(i)->propstime) >= tp_clean_interval)
@@ -357,7 +357,7 @@ int
 fetchprops_priority(dbref obj, int mode)
 {
     /* update fetched timestamp */
-    DBFETCH(obj)->propstime = time(NULL);
+    DBFETCH(obj)->propstime = current_systime;
 
     /* if in memory, don't try to reload. */
     if (DBFETCH(obj)->propsmode != PROPS_UNLOADED) {
@@ -436,4 +436,5 @@ propfetch(dbref obj, PropPtr p)
 }
 
 #endif				/* DISKBASE */
+
 

@@ -561,10 +561,10 @@ noisy_match_result(struct match_data * md)
 
     switch (match = match_result(md)) {
 	case NOTHING:
-	    anotify(md->match_who, CINFO NOMATCH_MESSAGE);
+	    anotify_nolisten2(md->match_who, CINFO NOMATCH_MESSAGE);
 	    return NOTHING;
 	case AMBIGUOUS:
-	    anotify(md->match_who, CINFO AMBIGUOUS_MESSAGE);
+	    anotify_nolisten2(md->match_who, CINFO AMBIGUOUS_MESSAGE);
 	    return NOTHING;
 	default:
 	    return match;

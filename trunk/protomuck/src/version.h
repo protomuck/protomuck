@@ -1,9 +1,13 @@
-#define NEONBASE "2.16"
+#define PROTOBASE "1.01"
 #ifdef WIN32
-  #define NEONVER "NeonMuck " NEONBASE "-win32(WS2)"
+  #define PROTOVER "Proto" PROTOBASE "-win32"
 #else
-  #define NEONVER "NeonMuck " NEONBASE
+  #define PROTOVER "Proto" PROTOBASE
 #endif
-#define VERSION "Muck2.2fb5.55"
+#define NEONVER "Neon2.17"
+#define VERSION "Muck2.2fb5.67"
 
 extern const char *infotext[];
+
+
+

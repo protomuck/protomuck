@@ -39,9 +39,9 @@ do_dump(dbref player, const char *newfile)
 	} else {
 	    sprintf(buf, CINFO "Dumping to file %s...", dumpfile);
 	}
-	anotify(player, buf);
+	anotify_nolisten2(player, buf);
 	dump_db_now();
-	anotify(player, CINFO "Done.");
+	anotify_nolisten2(player, CINFO "Done.");
     } else {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
     }
@@ -52,9 +52,9 @@ void
 do_delta(dbref player)
 {
     if (Mage(player)) {
-	anotify(player, CINFO "Dumping deltas...");
+	anotify_nolisten2(player, CINFO "Dumping deltas...");
 	delta_dump_now();
-	anotify(player, CINFO "Done.");
+	anotify_nolisten2(player, CINFO "Done.");
     } else
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 }
@@ -287,10 +287,11 @@ void fork_and_dump(void)
 {
     epoch++;
 
-    last_monolithic_time = time(NULL);
+    last_monolithic_time = current_systime;
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
 
     dump_database_internal();
+    time(&current_systime);
     host_save();
 }
 
@@ -305,8 +306,8 @@ time_for_monolithic(void)
     int a, b;
 
     if (!last_monolithic_time)
-	last_monolithic_time = time(NULL);
-    if (time(NULL) - last_monolithic_time >=
+	last_monolithic_time = current_systime;
+    if (current_systime - last_monolithic_time >=
 	    (tp_monolithic_interval - tp_dump_warntime)
     ) {
 	return 1;
@@ -516,7 +517,7 @@ process_command(int descr, dbref player, char *command)
     }
 
     if ((tp_log_commands || (tp_log_guests && Guest(OWNER(player)))) &&
-	    (!(FLAGS(player)&(INTERACTIVE | READMODE)))) {
+	    (tp_log_interactive || !(FLAGS(player)&(INTERACTIVE | READMODE)))) {
 	log_command("%s%s%s%s(%d) in %s(%d):%s %s\n",
 		    Mage(OWNER(player)) ? "WIZ: " : "",
 		    (Typeof(player) != TYPE_PLAYER) ? NAME(player) : "",
@@ -554,6 +555,20 @@ process_command(int descr, dbref player, char *command)
 
     /* if player is a wizard, and uses overide token to start line...*/
     /* ... then do NOT run actions, but run the command they specify. */
+    if (!strcmp(command, WHO_COMMAND)) {
+       char xxbuf[BUFFER_LEN];
+
+       strcpy(xxbuf, "@");
+       strcat(xxbuf, WHO_COMMAND);
+       strcat(xxbuf, " ");
+       strcat(xxbuf, command + sizeof(WHO_COMMAND) - 1);
+       if (can_move(descr, player, xxbuf, 5)) {
+          do_move(descr, player, xxbuf, 5);
+       } else {
+          pdump_who_users(descr, command + sizeof(WHO_COMMAND) - 1);
+       }
+       return;
+    }
 
     if (!( *command == OVERIDE_TOKEN && TMage(player) )) {
 	if( can_move(descr, player, command, 0) ) {
@@ -887,21 +902,19 @@ process_command(int descr, dbref player, char *command)
 				Matched("@memory");
 				do_memory(player);
 				break;
-			    case 'c':
-			    case 'C':
-				switch (command[4]) {
-				   case '2':
-				     Matched("@mcp2muf");
-				     match_and_list(descr, player, arg1, arg2, 0);
-				     break;
-				   default:
-				     Matched("@mcp");
-				     do_prog(descr, player, arg1, 1);
-				     break;
-				}
-                     default:
-                        goto bad;
-			}
+			    case 'p':
+			    case 'P':
+			        Matched("@mpitops");
+			        do_mpi_topprofs(player, arg1);
+			        break;
+			    case 'u':
+			    case 'U':
+			        Matched("@muftops");
+			        do_muf_topprofs(player, arg1);
+			        break;
+			    default:
+			        goto bad;
+                  }
 			break;
 		    case 'n':
 		    case 'N':
@@ -980,7 +993,7 @@ process_command(int descr, dbref player, char *command)
 			    case 'r':
 			    case 'R':
 				if (string_prefix("@program", command)) {
-				    do_prog(descr, player, arg1, 0);
+				    do_prog(descr, player, arg1);
 				    break;
 				} else if (string_prefix("@proginfo", command)) {
 				    do_proginfo(player, arg1);
@@ -1086,9 +1099,12 @@ process_command(int descr, dbref player, char *command)
 				break;
                       case 'o':
                       case 'O':
-				if (string_compare(command, "@toad"))
-				    goto bad;
-				do_frob(descr, player, arg1, arg2);
+				if (!string_compare(command, "@toad"))
+ 				   do_frob(descr, player, arg1, arg2);
+                        else if (!string_compare(command, "@tops"))
+                           do_all_topprofs(player, arg1);
+                        else
+                           goto bad;
 				break;
 			    case 'r':
 			    case 'R':
@@ -1136,7 +1152,7 @@ process_command(int descr, dbref player, char *command)
 		    case 'v':
 		    case 'V':
 			Matched("@version");
-			anotify(player, CRIMSON PROTOVER PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+			anotify_nolisten2(player, CRIMSON "ProtoMUCK " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
 			break;
 		    case 'w':
 		    case 'W':
@@ -1415,6 +1431,7 @@ process_command(int descr, dbref player, char *command)
 }
 
 #undef Matched
+
 
 
 

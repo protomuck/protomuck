@@ -63,13 +63,13 @@ RM= -rm -f
 SRC_PREFIX=
 MKDEPEND= makedepend
 MAKE= make
-MKTAGS= ctags -t
+MKTAGS= ctags
 
 ##########################################################################
 #            You should not have to change anything below here           #
 ##########################################################################
 
-MISCSRC= Makefile ChangeLog COPYING mkversion.sh mcplex.fl mcpparse.y
+MISCSRC= Makefile ChangeLog COPYING mkversion.sh
 
 CSRC= array.c boolexp.c case.c cgi.c compile.c compress.c create.c db.c  \
 	debugger.c disassem.c diskprop.c edit.c events.c game.c hashtab.c  \
@@ -82,11 +82,8 @@ CSRC= array.c boolexp.c case.c cgi.c compile.c compress.c create.c db.c  \
       stringutil.c timequeue.c timestamp.c tune.c unparse.c utils.c      \
       wiz.c reg.c netresolve.c sanity.c
 
-MCPSRC= mcpparse.c mcplex.c
-
 MSRC= olddecomp.c reconst.c interface.c
-
-SRC= ${MISCSRC} ${CSRC} ${MSRC} ${MCPSRC}
+SRC= ${MISCSRC} ${CSRC} ${MSRC}
 
 COBJ= array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
 	debugger.o disassem.o diskprop.o edit.o events.o game.o hashtab.o  \
@@ -97,7 +94,7 @@ COBJ= array.o boolexp.o case.o cgi.o compile.o compress.o create.o db.o  \
       p_stack.o p_strings.o property.o propdirs.o props.o random.o rob.o \
       rwho.o signal.o set.o smatch.o send.o speech.o strftime.o          \
       stringutil.o timequeue.o timestamp.o tune.o unparse.o utils.o      \
-      wiz.o reg.o netresolve.o sanity.o mcpparse.o mcplex.o mcputil.o    \
+      wiz.o reg.o netresolve.o sanity.o
 
 LOBJ= copyright.o
 MOBJ= olddecomp.o reconst.o interface.o resolver.o topwords.o
@@ -180,7 +177,6 @@ clean:
 cleaner: clean
 	${RM} Makefile config.status config.cache ${INCLUDE}/autoconf.h
 	${RM} ${TARGETS} config.log version.c
-	${RM} mcpparse.c ${INCLUDE}/mcpparse.h mcplex.c
 	cp Makefile.cfg Makefile
 
 clobber: cleaner
@@ -200,4 +196,5 @@ install: all
 # #######################################################################
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+
 

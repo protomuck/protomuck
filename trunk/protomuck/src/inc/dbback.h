@@ -1,7 +1,7 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/dbback.h,v 1.1.1.1 2000-09-18 01:04:34 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/dbback.h,v 1.2 2000-09-18 02:03:38 akari Exp $
  * $Log: not supported by cvs2svn $
  * Revision 1.3  1996/09/19 07:13:58  jtraub
  * removed KILL_OK flag (renamed to UNDEF_FLAG_1)
