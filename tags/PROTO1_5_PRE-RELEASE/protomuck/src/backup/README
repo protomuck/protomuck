@@ -1,0 +1,6 @@
+If you do not have Bison and Flex installed on your system,
+copy these files out into the src directory.  The .c files go in
+src, and the .h files in src/inc...  they were built under a clean
+Flex/Bison distribution.
+
+--Loki
