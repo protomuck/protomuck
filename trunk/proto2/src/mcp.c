@@ -7,15 +7,22 @@
 
 #include <stdlib.h>
 #include <ctype.h>
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-# ifdef APPLE
-# include <sys/malloc.h>
-# endif
-#else
-#include <malloc.h>
-#endif
 #include <string.h>
-#include <sys/time.h>
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+# if defined(__APPLE__) && defined(HAVE_SYS_MALLOC_H)
+#  include <sys/malloc.h>
+# endif
+#elif defined(HAVE_MALLOC_H)
+# include <malloc.h>
+#endif
+
+#ifndef WIN_VC
+# include <sys/time.h>
+#else
+# include <time.h>
+#endif
+
 #include "db.h"
 #include "externs.h"
 #include "mcp.h"

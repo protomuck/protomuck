@@ -1317,7 +1317,7 @@ process_command(int descr, dbref player, char *command)
                                       PROTOBASE SYSPURPLE " (" SYSRED
                                       VERSION SYSPURPLE ")");
 # else
-#  ifdef APPLE
+#  if defined(__APPLE__)
                     anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK OS-X "
                                       PROTOBASE SYSPURPLE " (" SYSRED
                                       VERSION SYSPURPLE ")");

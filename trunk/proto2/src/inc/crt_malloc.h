@@ -4,11 +4,15 @@
 #define _CRT_MALLOC_H
 
 #include <sys/types.h>
-#ifdef APPLE
-#include <sys/malloc.h>
-#else
-#include <malloc.h>
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+# if defined(__APPLE__) && defined(HAVE_SYS_MALLOC_H)
+#  include <sys/malloc.h>
+# endif
+#elif defined(HAVE_MALLOC_H)
+# include <malloc.h>
 #endif
+
 extern void CrT_check(const char *, int);
 extern int CrT_check_everything(const char *, int);
 extern void CrT_summarize_to_file(const char *file, const char *comment);
@@ -19,7 +23,6 @@ extern void CrT_free(void *p, const char *whatfile, int whatline);
 extern char *CrT_string_dup(const char *, const char *, int);
 extern char *CrT_alloc_string(const char *, const char *, int);
 extern struct shared_string *CrT_alloc_prog_string(const char *, const char *, int);
-
 
 #define malloc(x)            CrT_malloc(      x,      __FILE__, __LINE__)
 #define calloc(x,y)          CrT_calloc(      x, y,   __FILE__, __LINE__)

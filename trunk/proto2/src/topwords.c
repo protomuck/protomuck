@@ -3,13 +3,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
-# ifdef APPLE
-# include <sys/malloc.h>
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+# if defined(__APPLE__) && defined(HAVE_SYS_MALLOC_H)
+#  include <sys/malloc.h>
 # endif
-#else
-#include <malloc.h>
+#elif defined(HAVE_MALLOC_H)
+# include <malloc.h>
 #endif
+
 #include "db.h"
 #include "externs.h"
 

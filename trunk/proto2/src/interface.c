@@ -35,7 +35,7 @@
 #include "interp.h"
 #include "newhttp.h"            /* hinoserm */
 
-#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(APPLE)
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__APPLE__)
 typedef int socklen_t;
 #endif
 
