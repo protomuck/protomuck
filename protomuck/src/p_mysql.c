@@ -134,7 +134,6 @@ void prim_sqlquery(PRIM_PROTOTYPE)
     unsigned long i = 0;
     stk_array *nw;
     stk_array *fieldsList;
-    int fieldListMade = 0;
     char errbuf[BUFFER_LEN];
     nargs = 1;
 
@@ -176,18 +175,16 @@ void prim_sqlquery(PRIM_PROTOTYPE)
         fields = mysql_fetch_fields(res);
         counter = 0;
         fieldsList = new_array_packed(num_fields);
+        for (i = 0; i < num_fields; ++i)
+            array_set_intkey_strval(&fieldsList, i, fields[i].name);
         while ((row = mysql_fetch_row(res))) { //fetch all rows, push limit
             nw = new_array_dictionary();
             if (counter++ < num_rows) {
                 for (i = 0; i < num_fields; ++i ) {
-                    if (row[i]) {
+                    if (row[i]) 
                         array_set_strkey_strval(&nw, fields[i].name, row[i]);
-                        if (!fieldListMade)
-                            array_set_intkey_strval(&fieldsList, i, 
-                                                     fields[i].name);
-                    }
+                    
                 }
-                fieldListMade = 1;
                 PushArrayRaw(nw);
             } else 
                 break;/* The limit has been reached, exit the while loop */
