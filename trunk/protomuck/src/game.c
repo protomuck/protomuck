@@ -1440,8 +1440,8 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
    dbref progRef = AMBIGUOUS;
    dbref where = player;
    char propName[BUFFER_LEN];
-   char *workBuf;
-   sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER);
+   const char *workBuf = NULL; 
+   sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);
    strcpy(match_cmdname, command);
    strcpy(match_args, arg);            
    ptr = envprop_cmds(&where, propName, 0);
@@ -1451,7 +1451,7 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
 #endif
    switch(PropType(ptr)){
       case PROP_STRTYP:
-           strcpy(workBuf, get_uncompress(PropDataStr(ptr)));
+           workBuf =  get_uncompress(PropDataStr(ptr));
            break;
       case PROP_REFTYP:
            progRef = PropDataRef(ptr);
@@ -1460,7 +1460,6 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
            return 0;
            break;
    }
-
    if (workBuf && *workBuf){
       if (*workBuf == '&')
          progRef = AMBIGUOUS;
@@ -1473,7 +1472,6 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
             notify_descriptor(descr, workBuf);
          else {
             notify(player, workBuf);
-            notify(player, "eh");
          }
          return 1;
       }
