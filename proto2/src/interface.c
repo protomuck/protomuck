@@ -1622,6 +1622,7 @@ shovechars(void)
                         shutdown(d->descriptor, 1); /* hinoserm */
                     } else
 #endif /* NEWHTTP */
+                    if ( d->type != CT_INBOUND )//Don't touch MUF sockets
                         shutdownsock(d);
                 }               /* if d->booted != 3 */
             }                   /* if (d->booted) */
