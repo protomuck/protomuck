@@ -21,9 +21,9 @@
 #include "externs.h"
 #include "netresolve.h"         /* hinoserm */
 
-#ifndef HOSTCACHE_DEBUG
-#define HOSTCACHE_DEBUG
-#endif
+//#ifndef HOSTCACHE_DEBUG
+//#define HOSTCACHE_DEBUG
+//#endif
 
 struct hostinfo *hostdb = NULL; /* the main host cache */
 struct husrinfo *userdb = NULL; /* the username list */
@@ -265,7 +265,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
             h->links++;
             h->uses++;
 #ifdef HOSTCACHE_DEBUG
-            log_status("HOST: Cached: %X (%s), %s\n", h->a, host_as_hex(h->a), h->name);
+            log_status("HOST: In cache: %X (%s), %s\n", h->a, host_as_hex(h->a), h->name);
 #endif /* HOSTCACHE_DEBUG */
             if (current_systime - h->wupd > 80)
                 host_request(h, lport, prt);
