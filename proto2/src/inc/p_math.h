@@ -13,6 +13,7 @@ extern void prim_not (PRIM_PROTOTYPE);
 extern void prim_lessthan (PRIM_PROTOTYPE);
 extern void prim_greathan (PRIM_PROTOTYPE);
 extern void prim_equal (PRIM_PROTOTYPE);
+extern void prim_noteq (PRIM_PROTOTYPE);
 extern void prim_lesseq (PRIM_PROTOTYPE);
 extern void prim_greateq (PRIM_PROTOTYPE);
 extern void prim_random (PRIM_PROTOTYPE);
@@ -30,18 +31,18 @@ extern void prim_sign(PRIM_PROTOTYPE);
 
 #define PRIMS_MATH_FUNCS prim_add, prim_subtract, prim_multiply, prim_divide, \
     prim_mod, prim_bitor, prim_bitxor, prim_bitand, prim_bitshift, prim_and,  \
-    prim_or, prim_not, prim_lessthan, prim_greathan, prim_equal, prim_lesseq, \
-    prim_greateq, prim_random, prim_int, prim_srand, prim_setseed,            \
-    prim_getseed, prim_plusplus, prim_minusminus, prim_dist2d, prim_2ddist,   \
-    prim_3ddist, prim_abs, prim_sign
+    prim_or, prim_not, prim_lessthan, prim_greathan, prim_equal, prim_noteq,  \
+    prim_lesseq, prim_greateq, prim_random, prim_int, prim_srand,             \
+    prim_setseed, prim_getseed, prim_plusplus, prim_minusminus, prim_dist2d,  \
+    prim_2ddist, prim_3ddist, prim_abs, prim_sign
 
 #define PRIMS_MATH_NAMES  "+",  "-",  "*",  "/",          \
     "%", "BITOR", "BITXOR", "BITAND", "BITSHIFT", "AND",  \
-    "OR",  "NOT",  "<",  ">",  "=",  "<=",                \
+    "OR",  "NOT",  "<",  ">",  "=",  "!=", "<=",          \
     ">=", "RANDOM", "INT", "SRAND", "SETSEED", "GETSEED", \
     "++", "--", "DIST2D", "2DDIST", "3DDIST", "ABS", "SIGN"
  
-#define PRIMS_MATH_CNT 29
+#define PRIMS_MATH_CNT 30
 
 
 
