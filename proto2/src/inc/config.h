@@ -516,9 +516,9 @@
 
 #ifdef USE_PS
 # ifndef HAVE_SETPROCTITLE
-#  if (defined(BSD) || defined(__bsdi__) || defined(__hurd__)) && !defined(__darwin__)
+#  if (defined(BSD) || defined(__bsdi__) || defined(__hurd__)) && !defined(__APPLE__)
 #   define PS_CHANGE_ARGV
-#  elif defined(__linux__) || defined(_AIX) || defined(__sgi) || (defined(sun) && !defined(BSD)) || defined(ultrix) || defined(__ksr__) || defined(__osf__) || defined(__QNX__) || defined(__svr4__) || defined(__svr5__) || defined(__darwin__)
+#  elif defined(__linux__) || defined(_AIX) || defined(__sgi) || (defined(sun) && !defined(BSD)) || defined(ultrix) || defined(__ksr__) || defined(__osf__) || defined(__QNX__) || defined(__svr4__) || defined(__svr5__) || defined(__APPLE__)
 #   define PS_CLOBBER_ARGV
 #  else
 #   undef USE_PS
