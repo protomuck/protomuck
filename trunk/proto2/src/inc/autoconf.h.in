@@ -127,3 +127,6 @@
 
 /* Define this to enable MySQL support. */
 #undef SQL_SUPPORT
+
+/* Define this to disable DB compress support. */
+#undef NO_COMPRESS

@@ -8,7 +8,7 @@
  * compatible systems by Peter A. Torkelson, aka WhiteFire.
  */
 
-                                                                                                                         /* #define _POSIX_SOURCE *//* Solaris needs this */
+                                                                                                                                                                                                          /* #define _POSIX_SOURCE *//* Solaris needs this */
 #ifdef SOLARIS
 #  ifndef _POSIX_SOURCE
 #    define _POSIX_SOURCE       /* Solaris needs this */
@@ -211,23 +211,31 @@ sig_reap_resolver(int i)
     int pid = waitpid(-1, &status, WNOHANG);
 
 #if defined(SPAWN_HOST_RESOLVER) && defined(RESTART_RESOLVER)
-    extern void spawn_resolver(void);
-    extern void log_status(char *format, ...);
     extern int resolverpid;
 
-    if (resolverpid && status != 256 && resolverpid == pid) {
+    if (resolverpid && resolverpid == pid && WIFSIGNALED(status)) {
         spawn_resolver();
-        log_status("RES: Resolver restarted.\n");
+        log_status("RES: Resolver restarted. (signal %d)\n", WTERMSIG(status));
     }
 #endif
-
-/* #if defined(SPAWN_HOST_RESOLVER)
-        extern void kill_resolver(void);
-	kill_resolver();
-#endif */
-
-/* Alynna - make the parent process any save done messages */
-if (dumper_pid && (dumper_pid == pid) && tp_dbdump_warning) wall_and_flush(tp_dumpdone_mesg);
+#ifndef DISKBASE
+    /* Alynna - make the parent process any save done messages */
+    /* but only if ProtoMUCK is using forked dumps. -hinoserm */
+    else if (tp_dbdump_warning && dumper_pid && dumper_pid == pid) {
+        if (WIFSIGNALED(status)) {
+            log_status("WARNING!!! Forked dump process terminated with abnormal"
+                       " signal %d! This usually means the dumper process"
+                       " crashed and your database _WAS NOT SAVED_! Check the"
+                       " logs for possible information.", WTERMSIG(status));
+        } else if (WIFEXITED(status) && WEXITSTATUS(status)) {
+            log_status("WARNING!!! Forked dump process terminated with abnormal"
+                       " return code %d! This usually means the dumper process"
+                       " crashed and your database _WAS NOT SAVED_! Check the"
+                       " logs for possible information.", WEXITSTATUS(status));
+        } else
+            wall_and_flush(tp_dumpdone_mesg);
+    }
+#endif
 
 #if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN_VC)
     return 0;

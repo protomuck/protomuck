@@ -247,6 +247,7 @@ dump_database_internal(void)
 
     if (tp_periodic_program_purge)
         free_unused_programs();
+
 #ifdef DISKBASE
     dispose_all_oldprops();
 #endif
@@ -315,7 +316,7 @@ panic(const char *message)
 }
 
 void
-dump_database(void)
+dump_database(register bool dofork)
 {
     epoch++;
 
@@ -329,11 +330,13 @@ dump_database(void)
     dump_database_internal();
 #else
     /* Alynna - saving the PID of the dumper so I can get around an SSL issue */
-    dumper_pid = fork();
-    if (!dumper_pid) {
+    if (dofork) {
+        if (!(dumper_pid = fork())) {
+            dump_database_internal();
+            _exit(0);
+        }
+    } else
         dump_database_internal();
-        _exit(0);
-    }
 #endif
     log_status("DUMP: %s.#%d# (done)\n", dumpfile, epoch);
 }
@@ -344,28 +347,29 @@ time_t last_monolithic_time = 0;
  * Named "fork_and_dump()" mostly for historical reasons...
  */
 void
-fork_and_dump(void)
+fork_and_dump(register bool dofork)
 {
     epoch++;
 
     last_monolithic_time = current_systime;
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
+
     if (tp_dump_propqueues)
         propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
     if (tp_dbdump_warning)
         wall_and_flush(tp_dumping_mesg);
 
-
-
 #ifdef DISKBASE
     dump_database_internal();
 #else
     /* Alynna - saving the PID of the dumper so I can get around an SSL issue */
-    dumper_pid = fork();
-    if (!dumper_pid) {
+    if (dofork) {
+        if (!(dumper_pid = fork())) {
+            dump_database_internal();
+            _exit(0);
+        }
+    } else
         dump_database_internal();
-        _exit(0);
-    }
 #endif
     time(&current_systime);
     host_save();
@@ -431,7 +435,7 @@ void
 dump_deltas(void)
 {
     if (time_for_monolithic()) {
-        fork_and_dump();
+        fork_and_dump(1);
         deltas_count = 0;
         return;
     }
@@ -453,8 +457,6 @@ dump_deltas(void)
     host_save();
 }
 #endif
-
-extern short db_conversion_flag;
 
 int
 init_game(const char *infile, const char *outfile)
@@ -550,7 +552,6 @@ cleanup_game(void)
 
 }
 
-extern short wizonly_mode;
 void
 do_restrict(dbref player, const char *arg)
 {

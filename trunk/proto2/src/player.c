@@ -189,3 +189,63 @@ delete_player(dbref who)
 
     return;
 }
+
+bool
+check_password(dbref player, const char *check_pw)
+{
+/* Alynna's new toy to load DBs with FB6 passwords in them!
+ */
+    if (player != NOTHING) {
+        const char *password = DBFETCH(player)->sp.player.password;
+        char md5buf[64];
+
+        /*
+           Note. We wanted to detect here whether we were running
+           a FB6 DB (type 8) or a Proto DB (type 7), but it turns 
+           out the passwords have to stay encrypted (because you cant
+           decrypt an MD5 hash, and the DB will be saved as type 7,
+           thus breaking the detection.  Therefore we must ALWAYS
+           check if the password is an MD5 hash. 
+         */
+
+        if (!password || !*password)
+            return 1;
+
+        if (!strcmp(check_pw, password))
+            return 1;
+
+        MD5base64(md5buf, check_pw, strlen(check_pw));
+        if (!strcmp(md5buf, password))
+            return 1;
+    }
+    return 0;
+}
+
+bool
+set_password(dbref player, const char *password)
+{
+/* Proto now sets passwords encrypted.
+ */
+/* Does not! -Hinoserm */
+//    char md5buf[64]; /* Must... stop... C++... comments... -Hinoserm */
+
+    if (player != NOTHING) {
+        if (!password || !*password) {
+            if (DBFETCH(player)->sp.player.password)
+                free((void *) DBFETCH(player)->sp.player.password);
+            DBSTORE(player, sp.player.password, NULL);
+            return 1;
+        }
+
+        if (!ok_password(password))
+            return 0;
+
+        //MD5base64(md5buf, set_pw, strlen(set_pw));
+        if (DBFETCH(player)->sp.player.password)
+            free((void *) DBFETCH(player)->sp.player.password);
+        DBSTORE(player, sp.player.password, alloc_string(password));
+        return 1;
+    }
+
+    return 0;
+}

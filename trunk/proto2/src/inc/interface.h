@@ -179,6 +179,10 @@ struct descriptor_data {
 
 extern char restart_message[BUFFER_LEN];
 extern char shutdown_message[BUFFER_LEN];
+extern bool db_conversion_flag;
+extern bool db_decompression_flag;
+extern bool wizonly_mode;
+extern bool verboseload;
 extern unsigned int bytesIn;
 extern unsigned int bytesOut;
 extern unsigned int commandTotal;
@@ -236,6 +240,7 @@ extern char *pipnum(int c);
 extern const char *addrout(int, int, unsigned short);
 extern char *pport(int c);
 extern void make_nonblocking(register int s);
+extern char *time_format_2(time_t dt);
 
 extern void pboot(int c);
 extern void pdboot(int c);
@@ -274,8 +279,13 @@ extern void pdump_who_users(int c, char *user);
 extern const char* host_as_hex( unsigned addr );
 extern int index_descr(int index);
 extern void close_sockets(const char *msg);
+#ifdef SPAWN_HOST_RESOLVER
 extern void kill_resolver(void);
-
+extern void spawn_resolver(void);
+extern void resolve_hostnames(void);
+extern int resolverpid;
+extern int resolver_sock[2];
+#endif
 #ifdef IGNORE_SUPPORT
 extern char ignorance(register dbref src, dbref tgt);
 extern void init_ignore(dbref tgt);
@@ -290,13 +300,11 @@ extern dbref connect_player(const char *name, const char *password);
 extern void do_look_around(int descr, dbref player);
 
 extern int init_game(const char *infile, const char *outfile);
-extern void dump_database(void);
 extern void panic(const char *);
-extern int check_password(dbref player, const char *check_pw);
-extern int set_password(dbref player, const char *set_pw);
 
 #ifdef USE_SSL
 extern SSL_CTX *ssl_ctx;
+extern SSL_CTX *ssl_ctx_client;
 #endif
 
 /* Ansi Colors */

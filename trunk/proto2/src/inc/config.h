@@ -535,6 +535,10 @@
 # define RANDOM()	rand()
 #endif
 
+#if defined(NO_COMPRESS) && defined(COMPRESS)
+# undef COMPRESS
+#endif
+
 /*
  * Time stuff.
  */

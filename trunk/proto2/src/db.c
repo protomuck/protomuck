@@ -34,9 +34,6 @@ struct macrotable *macrotop;
 extern char *alloc_string(const char *);
 #endif
 
-extern short db_conversion_flag;
-extern short db_decompression_flag;
-
 int number(const char *s);
 int ifloat(const char *s);
 void putproperties(FILE * f, int obj);

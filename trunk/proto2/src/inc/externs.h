@@ -45,13 +45,6 @@
 extern char match_args[];
 extern char match_cmdname[];
 
-/* From interface.c */
-extern short verboseload;
-#ifdef USE_SSL
-extern SSL_CTX *ssl_ctx;
-extern SSL_CTX *ssl_ctx_client;
-#endif
-
 /* From debugger.c */
 extern int muf_debugger(int descr, dbref player, dbref program,
                         const char *text, struct frame *fr);
@@ -145,7 +138,6 @@ extern void propqueue(int descr, dbref player, dbref where, dbref trigger,
 extern void envpropqueue(int descr, dbref player, dbref where, dbref trigger,
                          dbref what, dbref xclude, const char *propname,
                          const char *toparg, int mlev, int mt);
-extern char *time_format_2(time_t dt);
 
 /* From compress.c */
 extern void init_compress_from_file(FILE * dicto);
@@ -199,14 +191,14 @@ extern void do_auto_archive(int descr, dbref player);
 extern void do_dump(dbref player, const char *newfile);
 extern void do_shutdown(dbref player, const char *muckname, const char *msg);
 extern void do_restart(dbref player, const char *muckname, const char *msg);
-extern void fork_and_dump(void);
+extern void fork_and_dump(register bool dofork);
 extern void archive_site(void);
-extern void dump_database(void);
+extern void dump_database(register bool dofork);
 extern int prop_command(int descr, dbref player, char *command, char *arg,
                         char *type, int mt);
 extern void dump_warning(void);
-extern int dumper_pid;
 extern char dump_done;
+extern int dumper_pid;
 
 #ifdef DELTADUMPS
 extern void dump_deltas(void);
@@ -283,6 +275,8 @@ extern void do_password(dbref player, const char *old, const char *newobj);
 extern void add_player(dbref who);
 extern void delete_player(dbref who);
 extern void clear_players(void);
+extern bool check_password(dbref player, const char *check_pw);
+extern bool set_password(dbref player, const char *set_pw);
 
 /* From predicates.c */
 extern bool ok_name(register const char *name);
