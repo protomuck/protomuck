@@ -84,7 +84,7 @@ do_credits(dbref player)
     int i;
 
     for (i = 0; infotext[i]; i++) {
-        anotify_nolisten2(player, infotext[i]);
+        anotify(player, infotext[i]);
     }
 }
 EOF

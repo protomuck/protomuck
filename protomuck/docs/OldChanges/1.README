@@ -1,7 +1,4 @@
-NeonMUCK Changes Files
-----------------------
-The work on NeonMUCK was not highly documented. These files are the only
-indications of any record keeping on the changes that went into NeonMUCK.
-They have been included here as a reference as to what ProtoMUCK evolved 
-from. Nothing contained in them is implied to be correct, or to even be 
-supported in ProtoMUCK anymore. 
+This directory contains the change logs from the various versions of MUCK
+prior to NeonMuck that went into the composition of Neon.  None of the
+information in them is gaurenteed to be correct, or even close.  These are
+included merely so that people can see from what NeonMuck was derived.

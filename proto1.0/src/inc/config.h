@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/inc/config.h,v 1.3 2000-09-20 18:42:02 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/proto1.0/src/inc/config.h,v 1.1.1.1 2000-09-20 18:26:34 akari Exp $
  * $Log: not supported by cvs2svn $
  *
  * Revision 1.3  2000/06/27 22:32:17  moose
@@ -68,11 +68,10 @@
  *
  */
 
-#define INTERNAL_PORT 9996    /* Port for internal use */
-#define TINYPORT      9999    /* Port that tinymuck uses for playing */
-#define WWWPORT       9998    /* Port for the webpage */
-#define PUEBLOPORT    9997    /* Port for pueblo users for playing */
-
+#define INTERNAL_PORT 3006
+#define TINYPORT 3005
+#define WWWPORT 3004
+#define PUEBLOPORT 3007
 /*
  * Some systems can hang for up to 30 seconds while trying to resolve
  * hostnames.  Define this to use a non-blocking second process to resolve
@@ -80,7 +79,7 @@
  * (make resolver) and put it in the directory that the protomuck program is
  * run from.
  */
-#define SPAWN_HOST_RESOLVER
+#undef SPAWN_HOST_RESOLVER
 
 /*
  * Set this to be the file that you wish the ProtoMUCK file prims to
@@ -144,13 +143,13 @@
 
 /* Define this to set which server to use for e-mail registration.
  */
-#define MAILSERVER "mail.somewhere.com"
+#define MAILSERVER "mail.eskimo.com"
 
 /* Needed for a dummy load at startup.  Define to a small MIDI
  * somewhere which has the correct MIME type.  Preferably on
  * your local server.
  */
-#define DUMMYMIDI "http://www.somewhere.com/~user/asong.mid"
+#define DUMMYMIDI "http://adobe.chaco.com/~jeremy/ami/smoon.mid"
 
 /* This is a shortcut.  Define this to add ALL compatiblity options.
  * To ensure TinyMUCKfb compatiblity.

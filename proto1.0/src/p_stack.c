@@ -453,7 +453,7 @@ prim_version(PRIM_PROTOTYPE)
     char temp[256];
     CHECKOP(0);
     CHECKOFLOW(1);
-    sprintf(temp, "%s(ProtoMUCK%s)", VERSION, PROTOBASE);
+    sprintf(temp, "%s(%s)", NEONVER, VERSION);
     PushString(temp);
 }
 

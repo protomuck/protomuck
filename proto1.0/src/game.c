@@ -39,9 +39,9 @@ do_dump(dbref player, const char *newfile)
 	} else {
 	    sprintf(buf, CINFO "Dumping to file %s...", dumpfile);
 	}
-	anotify_nolisten2(player, buf);
+	anotify(player, buf);
 	dump_db_now();
-	anotify_nolisten2(player, CINFO "Done.");
+	anotify(player, CINFO "Done.");
     } else {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
     }
@@ -52,9 +52,9 @@ void
 do_delta(dbref player)
 {
     if (Mage(player)) {
-	anotify_nolisten2(player, CINFO "Dumping deltas...");
+	anotify(player, CINFO "Dumping deltas...");
 	delta_dump_now();
-	anotify_nolisten2(player, CINFO "Done.");
+	anotify(player, CINFO "Done.");
     } else
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 }
@@ -554,20 +554,6 @@ process_command(int descr, dbref player, char *command)
 
     /* if player is a wizard, and uses overide token to start line...*/
     /* ... then do NOT run actions, but run the command they specify. */
-    if (!strcmp(command, WHO_COMMAND)) {
-       char xxbuf[BUFFER_LEN];
-
-       strcpy(xxbuf, "@");
-       strcat(xxbuf, WHO_COMMAND);
-       strcat(xxbuf, " ");
-       strcat(xxbuf, command + sizeof(WHO_COMMAND) - 1);
-       if (can_move(descr, player, xxbuf, 5)) {
-          do_move(descr, player, xxbuf, 5);
-       } else {
-          pdump_who_users(descr, command + sizeof(WHO_COMMAND) - 1);
-       }
-       return;
-    }
 
     if (!( *command == OVERIDE_TOKEN && TMage(player) )) {
 	if( can_move(descr, player, command, 0) ) {
@@ -1150,7 +1136,7 @@ process_command(int descr, dbref player, char *command)
 		    case 'v':
 		    case 'V':
 			Matched("@version");
-			anotify_nolisten2(player, CRIMSON "ProtoMUCK " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+			anotify(player, CRIMSON PROTOVER PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
 			break;
 		    case 'w':
 		    case 'W':

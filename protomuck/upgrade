@@ -101,11 +101,11 @@ endif
 echo "Copying neon.db and neon.new and renaming to"
 echo "proto.db and proto.new"
 
-cp -f $DBOLD $PROTODIR/data/proto.db
-cp -f $DBNEW $PROTODIR/data/proto.new
+cp $DBOLD $PROTODIR/data/proto.db
+cp $DBNEW $PROTODIR/data/proto.new
 
 echo "Copying all MUF code to $PROTODIR/"
-cp -f -R $MUFDIR $PROTODIR/
+cp -R $MUFDIR $PROTODIR/
 
 #Got the essentials done, now copy the rest.
 
@@ -114,82 +114,82 @@ echo " "
 
 if ( -r $PARMFILE ) then
 	echo "Copying @tune parameters as parmfile.cfg to $PROTODIR/data/"
-	cp -f $PARMFILE $PROTODIR/data/
+	cp $PARMFILE $PROTODIR/data/
 endif
 
 if ( -r $MCPDIR ) then
 	echo "Copying any MCP code to $PROTODIR/mcp/" 
-	cp -f -r $MCPDIR $PROTODIR/
+	cp -r $MCPDIR $PROTODIR/
 endif
 
 if ( -r $LOGSDIR ) then
 	echo "Copying contents of log directory to $PROTODIR/log/"
-	cp -f -r $LOGSDIR $PROTODIR/
+	cp -r $LOGSDIR $PROTODIR/
 endif
 
 if ( -r $FILESDIR ) then
 	echo "Copying contents of files/ directory to $PROTODIR/files/"
-	cp -f -r $FILESDIR $PROTODIR/
+	cp -r $FILESDIR $PROTODIR/
 endif
 
 if ( -r $WELCOMET ) then
 	echo "Copying welcome.txt to $PROTODIR/data/"
-	cp -f $WELCOMET $PROTODIR/data/
+	cp $WELCOMET $PROTODIR/data/
 endif
 
 if ( -r $WELCOMEH ) then
 	echo "Copying welcome.html to $PROTODIR/data/"
-	cp -f $WELCOMEH $PROTODIR/data/
+	cp $WELCOMEH $PROTODIR/data/
 endif
 
 if ( -r $WELCOMED ) then
 	echo "Copying welcome/ directory to $PROTODIR/data/welcome/"
-	cp -f -r $WELCOMED $PROTODIR/data/
+	cp -r $WELCOMED $PROTODIR/data/
 endif
 
 if ( -r $NEWST ) then
 	echo "Copying news.txt to $PROTODIR/data/" 
-	cp -f $NEWST $PROTODIR/data/
+	cp $NEWST $PROTODIR/data/
 endif
 
 if ( -r $NEWSD ) then
 	echo "Copying news directory to $PROTODIR/data/news/"
-	cp -f -r $NEWSD $PROTODIR/data/
+	cp -r $NEWSD $PROTODIR/data/
 endif
 
 if ( -r $MOTD ) then
 	echo "Copying motd.txt to $PROTODIR/data/" 
-	cp -f $MOTD $PROTODIR/data/
+	cp $MOTD $PROTODIR/data/
 endif
 
 if ( -r $MPIHELPD ) then
 	echo "Copying mpihelp directory to $PROTODIR/data/mpihelp/"
-	cp -f -r $MPIHELPD $PROTODIR/data/
+	cp -r $MPIHELPD $PROTODIR/data/
 endif
 
 if ( -r $MAND ) then
 	echo "Copying man directory to $PROTODIR/data/man/"
-	cp -f -r $MAND $PROTODIR/data/
+	cp -r $MAND $PROTODIR/data/
 endif
 
 if ( -r $INFOD ) then
 	echo "Copying info directory to $PROTODIR/data/info/"
-	cp -f -r $INFOD $PROTODIR/data/
+	cp -r $INFOD $PROTODIR/data/
 endif
 
 if ( -r $HELPD ) then
 	echo "Copying help directory to $PROTODIR/data/help/"
-	cp -f -r $HELPD $PROTODIR/data/
+	cp -r $HELPD $PROTODIR/data/
 endif
 
 if ( -r $CONNECT ) then
 	echo "Copying connect.txt to $PROTODIR/data/ directory."
-	cp -f $CONNECT $PROTODIR/data/
+	cp $CONNECT $PROTODIR/data/
 endif
 echo " "
 if ( -r $PROTODIR/data/proto.new ) then
 	echo "**neon.new found, copying over proto.db**"
-      cp -f $PROTODIR/data/proto.new $PROTODIR/data/proto.db
+      cp $PROTODIR/data/proto.new $PROTODIR/data/proto.db
 endif   
 
 echo " "

@@ -1,9 +1,10 @@
+#ifdef MPI
 
 typedef struct mfun_dat MFNDAT;
 
 struct mfun_dat {
     char   *name;
-    const char *(*mfn) (MFUNARGS);
+    const char *(*mfn) ();
     short     parsep;
     short     postp;
     short     stripp;
@@ -40,7 +41,6 @@ MFNDAT mfun_list[] =
     {"DEFAULT",   mfn_default,   0, 0, 0,  2, 2},
     {"DELAY",     mfn_delay,     1, 0, 1,  2, 2},
     {"DELPROP",   mfn_delprop,   1, 0, 1,  1, 2},
-    {"DESCR",     mfn_descr,     1, 0, 1,  0, 0},
     {"DICE",      mfn_dice,      1, 0, 1,  1, 3},
     {"DIRPROPS",  mfn_dirprops,  1, 0, 1,  1, 2},
     {"DIST",      mfn_dist,      1, 0, 1,  2, 6},
@@ -118,7 +118,6 @@ MFNDAT mfun_list[] =
     {"OTELL",     mfn_otell,     1, 0, 0,  1, 3},
     {"OWNER",     mfn_owner,     1, 0, 1,  1, 1},
     {"PARSE",     mfn_parse,     0, 0, 0,  3, 5},
-    {"PARSE_ANSI",mfn_parse_ansi,1, 0, 0,  2, 2},
     {"PLAYMIDI",  mfn_playmidi,  1, 0, 0,  1, 2},
     {"PMATCH",    mfn_pmatch,    1, 0, 1,  1,-1},
     {"PRONOUNS",  mfn_pronouns,  1, 0, 0,  1, 2},
@@ -142,14 +141,11 @@ MFNDAT mfun_list[] =
     {"SUBLIST",   mfn_sublist,   1, 0, 0,  1, 4},
     {"SUBST",     mfn_subst,     1, 0, 0,  3, 3},
     {"SUBT",      mfn_subt,      1, 0, 1,  2, 9},
-    {"SYSPARM",   mfn_sysparm,   1, 0, 1,  1, 1},
     {"TESTLOCK",  mfn_testlock,  1, 0, 1,  2, 4},
     {"HTML",      mfn_html,      1, 0, 0,  1, 2},
     {"ANSI",      mfn_ansi,      1, 0, 0,  1, 2},
     {"TELL",      mfn_tell,      1, 0, 0,  1, 2},
-    {"TELLDESCR", mfn_telldescr, 1, 0, 0,  1, 2},
     {"TIME",      mfn_time,      1, 0, 1,  0, 1},
-    {"TIMING",    mfn_timing,    0, 0, 0,  1, 1},
     {"TIMESTR",   mfn_timestr,   1, 0, 1,  1, 1},
     {"TIMESUB",   mfn_timesub,   1, 1, 1,  3, 4},
     {"TOLOWER",   mfn_tolower,   1, 0, 0,  1, 1},
@@ -166,10 +162,7 @@ MFNDAT mfun_list[] =
     {NULL, NULL, 0, 0, 0, 0, 0}                    /* Ends the mfun list */
 };
 
-
-
-
-
+#endif /* MPI */
 
 
 

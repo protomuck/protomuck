@@ -20,147 +20,39 @@
 
 
 struct mufevent_process {
-    struct mufevent_process *next, *prev;
-    dbref player;
-    dbref prog;
-    int descr;                  //Added in proto for login screen support
-    int filtercount;
-    char **filters;
-    struct frame *fr;
+	struct mufevent_process *next;
+	dbref player;
+	dbref prog;
+	struct frame *fr;
 } *mufevent_processes;
-
-
-/* static void muf_event_process_free(struct mufevent* ptr)
- * Frees up a mufevent_process once you are done with it.
- * This shouldn't be used outside this module.
- */
-static void
-muf_event_process_free(struct mufevent_process *ptr)
-{
-    int i;
-
-    if (ptr->next) {
-        ptr->next->prev = ptr->prev;
-    }
-    if (ptr->prev) {
-        ptr->prev->next = ptr->next;
-    } else {
-        mufevent_processes = ptr->next;
-    }
-
-    ptr->prev = NULL;
-    ptr->next = NULL;
-    ptr->player = NOTHING;
-    ptr->prog = NOTHING;
-    if (ptr->fr) {
-        prog_clean(ptr->fr);
-        ptr->fr = NULL;
-    }
-    if (ptr->filters) {
-        for (i = 0; i < ptr->filtercount; i++) {
-            if (ptr->filters[i]) {
-                free(ptr->filters[i]);
-                ptr->filters[i] = NULL;
-            }
-        }
-        free(ptr->filters);
-        ptr->filters = NULL;
-        ptr->filtercount = 0;
-    }
-    free(ptr);
-}
-
-
-/* void muf_event_register_specific(dbref player, dbref prog, struct frame* fr, int eventcount, char** eventids)
- * Called when a MUF program enters EVENT_WAITFOR, to register that
- * the program is ready to process MUF events of the given ID type.
- * This duplicates the eventids list for itself, so the caller is
- * responsible for freeing the original eventids list passed.
- */
-void
-muf_event_register_specific(dbref player, dbref prog, struct frame *fr,
-                            int eventcount, char **eventids)
-{
-    struct mufevent_process *newproc;
-    struct mufevent_process *ptr;
-    struct descriptor_data *curdescr = NULL;
-    int i;
-
-    newproc =
-        (struct mufevent_process *) malloc(sizeof(struct mufevent_process));
-
-    newproc->prev = NULL;
-    newproc->next = NULL;
-    newproc->player = player;
-    newproc->descr = fr->descr;
-    newproc->prog = prog;
-    newproc->fr = fr;
-    newproc->filtercount = eventcount;
-    if (player == NOTHING) {
-        curdescr = get_descr(fr->descr, NOTHING);
-        if (curdescr) {
-            curdescr->interactive = 2;
-            DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
-        }
-    }
-    if (eventcount > 0) {
-        newproc->filters = (char **) malloc(eventcount * sizeof(char **));
-        for (i = 0; i < eventcount; i++) {
-            newproc->filters[i] = string_dup(eventids[i]);
-        }
-    } else {
-        newproc->filters = NULL;
-    }
-
-    ptr = mufevent_processes;
-    while (ptr && ptr->next) {
-        ptr = ptr->next;
-    }
-    if (!ptr) {
-        mufevent_processes = newproc;
-    } else {
-        ptr->next = newproc;
-        newproc->prev = ptr;
-    }
-}
 
 
 /* void muf_event_register(dbref player, dbref prog, struct frame* fr)
  * Called when a MUF program enters EVENT_WAIT, to register that
- * the program is ready to process any type of MUF events.
+ * the program is ready to process MUF events.
  */
 void
 muf_event_register(dbref player, dbref prog, struct frame *fr)
 {
-    muf_event_register_specific(player, prog, fr, 0, NULL);
-}
+	struct mufevent_process *newproc;
+	struct mufevent_process *ptr;
 
+	newproc = (struct mufevent_process *) malloc(sizeof(struct mufevent_process));
 
-/* int muf_event_read_notify(int descr, dbref player)
- * Sends a "READ" event to the first foreground or preempt muf process
- * that is owned by the given player.  Returns 1 if an event was sent,
- * 0 otherwise.
- */
-int
-muf_event_read_notify(int descr, dbref player)
-{
-    struct mufevent_process *ptr;
+	newproc->player = player;
+	newproc->prog = prog;
+	newproc->fr = fr;
+	newproc->next = NULL;
 
-    ptr = mufevent_processes;
-    while (ptr) {
-        if (ptr->player == player) {
-            if (ptr->fr && ptr->fr->multitask != BACKGROUND) {
-                struct inst temp;
-
-                temp.type = PROG_INTEGER;
-                temp.data.number = descr;
-                muf_event_add(ptr->fr, "READ", &temp, 1);
-                return 1;
-            }
-        }
-        ptr = ptr->next;
-    }
-    return 0;
+	ptr = mufevent_processes;
+	while (ptr && ptr->next) {
+		ptr = ptr->next;
+	}
+	if (!ptr) {
+		mufevent_processes = newproc;
+	} else {
+		ptr->next = newproc;
+	}
 }
 
 
@@ -170,23 +62,24 @@ muf_event_read_notify(int descr, dbref player)
 int
 muf_event_dequeue_pid(int pid)
 {
-    struct mufevent_process *proc, *tmp;
-    int count = 0;
+	struct mufevent_process **prev;
+	struct mufevent_process *next;
+	int count = 0;
 
-    proc = mufevent_processes;
-    while (proc) {
-        tmp = proc;
-        proc = proc->next;
-        if (tmp->fr->pid == pid) {
-            if (!tmp->fr->been_background)
-                DBFETCH(tmp->player)->sp.player.block = 0;
-            muf_event_purge(tmp->fr);
-            muf_event_process_free(tmp);
-            ++count;
-        }
-    }
-
-    return count;
+	prev = &mufevent_processes;
+	while (*prev) {
+		if ((*prev)->fr->pid == pid) {
+			next = (*prev)->next;
+			muf_event_purge((*prev)->fr);
+			prog_clean((*prev)->fr);
+			count++;
+			free(*prev);
+			*prev = next;
+		} else {
+			prev = &((*prev)->next);
+		}
+	}
+	return count;
 }
 
 
@@ -197,22 +90,22 @@ muf_event_dequeue_pid(int pid)
 static int
 event_has_refs(dbref program, struct frame *fr)
 {
-    int loop;
+	int loop;
 
-    for (loop = 1; loop < fr->caller.top; loop++) {
-        if (fr->caller.st[loop] == program) {
-            return 1;
-        }
-    }
+	for (loop = 1; loop < fr->caller.top; loop++) {
+		if (fr->caller.st[loop] == program) {
+			return 1;
+		}
+	}
 
-    for (loop = 0; loop < fr->argument.top; loop++) {
-        if (fr->argument.st[loop].type == PROG_ADD &&
-            fr->argument.st[loop].data.addr->progref == program) {
-            return 1;
-        }
-    }
+	for (loop = 0; loop < fr->argument.top; loop++) {
+		if (fr->argument.st[loop].type == PROG_ADD &&
+			fr->argument.st[loop].data.addr->progref == program) {
+			return 1;
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 
@@ -222,64 +115,40 @@ event_has_refs(dbref program, struct frame *fr)
 int
 muf_event_dequeue(dbref prog)
 {
-    struct mufevent_process *proc, *tmp;
-    int count = 0;
+	struct mufevent_process **prev;
+	struct mufevent_process *tmp;
+	int count = 0;
 
-    proc = mufevent_processes;
-    while (proc) {
-        tmp = proc;
-        proc = proc->next;
-        if (prog == NOTHING || tmp->player == prog || tmp->prog == prog ||
-            event_has_refs(prog, tmp->fr)) {
-            if (!tmp->fr->been_background)
-                DBFETCH(tmp->player)->sp.player.block = 0;
-            muf_event_purge(tmp->fr);
-            muf_event_process_free(tmp);
-            ++count;
-        }
-    }
-    return count;
+	prev = &mufevent_processes;
+	while (*prev) {
+		if (prog == NOTHING || (*prev)->player == prog || (*prev)->prog == prog ||
+			event_has_refs(prog, (*prev)->fr)) {
+			tmp = *prev;
+			*prev = tmp->next;
+			muf_event_purge(tmp->fr);
+			prog_clean(tmp->fr);
+			count++;
+			free(tmp);
+		} else {
+			prev = &((*prev)->next);
+		}
+	}
+	return count;
 }
 
 
-/* int muf_event_dequeue(int descr)
- * Just like muf_event_dequeue except that it only checks for
- * matching descriptors instead of the other criteria that the 
- * other function checks for. Since descr's could be the same 
- * value as a program or player dbref, this needed to be handled
- * seperately. In order to get this to work, a descr field was added
- * to struct mufevent_process.
- */
-int
-muf_event_dequeue_descr(int descr)
-{
-    struct mufevent_process *proc, *tmp;
-    int count = 0;
 
-    proc = mufevent_processes;
-    while (proc) {
-        tmp = proc;
-        proc = proc->next;
-        if (tmp->descr == descr) {
-            muf_event_purge(tmp->fr);
-            muf_event_process_free(tmp);
-            ++count;
-        }
-    }
-    return count;
-}
-
-struct frame *
+struct frame*
 muf_event_pid_frame(int pid)
 {
-    struct mufevent_process *ptr = mufevent_processes;
+	struct mufevent_process *ptr = mufevent_processes;
 
-    while (ptr) {
-        if (ptr->fr && ptr->fr->pid == pid)
-            return ptr->fr;
-        ptr = ptr->next;
-    }
-    return NULL;
+	while (ptr) {
+		if (ptr->fr && ptr->fr->pid == pid)
+			return ptr->fr;
+		ptr = ptr->next;
+	}
+	return NULL;
 }
 
 
@@ -289,18 +158,23 @@ muf_event_pid_frame(int pid)
 int
 muf_event_controls(dbref player, int pid)
 {
-    struct mufevent_process *proc = mufevent_processes;
+	struct mufevent_process *tmp;
+	struct mufevent_process *ptr = mufevent_processes;
 
-    while (proc && pid != proc->fr->pid) {
-        proc = proc->next;
-    }
-    if (!proc)                  /* process not found */
-        return 0;
+	tmp = ptr;
+	while ((ptr) && (pid != ptr->fr->pid)) {
+		tmp = ptr;
+		ptr = ptr->next;
+	}
 
-    if (!controls(player, proc->prog) && player != proc->player)
-        return 0;               /*player doesn't own prog, nor is running it */
+	if (!ptr) {
+		return 0;
+	}
 
-    return 1;
+	if (!controls(player, ptr->prog) && player != ptr->player) {
+		return 0;
+	}
+	return 1;
 }
 
 
@@ -311,39 +185,23 @@ muf_event_controls(dbref player, int pid)
 int
 muf_event_list(dbref player, char *pat)
 {
-    char buf[BUFFER_LEN];
-    int count = 0;
-    time_t rtime = time((time_t *) NULL);
-    time_t etime;
-    double pcnt;
-    struct mufevent_process *proc = mufevent_processes;
+	char buf[BUFFER_LEN];
+	int count = 0;
+	time_t rtime = time((time_t *) NULL);
+	struct mufevent_process *proc = mufevent_processes;
 
-    while (proc) {
-        if (proc->fr) {
-            etime = rtime - proc->fr->started;
-            if (etime > 0) {
-                pcnt = proc->fr->totaltime.tv_sec;
-                pcnt += proc->fr->totaltime.tv_usec / 1000000;
-                pcnt = pcnt * 100 / etime;
-                if (pcnt > 100.0) {
-                    pcnt = 100.0;
-                }
-            } else {
-                pcnt = 0.0;
-            }
-        }
-        sprintf(buf, pat,
-                proc->fr->pid, "--",
-                time_format_2((long) (rtime - proc->fr->started)),
-                (proc->fr->instcnt / 1000), pcnt, proc->prog,
-                NAME(proc->player), "EVENT_WAITFOR");
-        if (Wiz(OWNER(player)) || (OWNER(proc->prog) == OWNER(player))
-            || (proc->player == player))
-            notify_nolisten(player, buf, 1);
-        count++;
-        proc = proc->next;
-    }
-    return count;
+	while (proc) {
+		sprintf(buf, pat,
+				proc->fr->pid, "--",
+				time_format_2((long) (rtime - proc->fr->started)),
+				(proc->fr->instcnt / 1000), proc->prog, NAME(proc->player), "EVENT_WAIT");
+		if (Wiz(OWNER(player)) || (OWNER(proc->prog) == OWNER(player))
+			|| (proc->player == player))
+			notify_nolisten(player, buf, 1);
+		count++;
+		proc = proc->next;
+	}
+	return count;
 }
 
 
@@ -351,37 +209,44 @@ muf_event_list(dbref player, char *pat)
  * Returns how many events are waiting to be processed.
  */
 int
-muf_event_count(struct frame *fr)
+muf_event_count(struct frame* fr)
 {
-    struct mufevent *ptr;
-    int count = 0;
+	struct mufevent *ptr;
+	int count = 0;
 
-    for (ptr = fr->events; ptr; ptr = ptr->next)
-        count++;
+	for (ptr = fr->events; ptr; ptr = ptr->next)
+		count++;
 
-    return count;
+	return count;
 }
 
 
-/* int muf_event_exists(struct frame* fr, const char* eventid)
- * Returns how many events of the given event type are waiting to be processed.
- * The eventid passed can be an smatch string.
+/* void muf_event_add(struct frame* fr, char* event, struct inst* val)
+ * Adds a MUF event to the event queue for the given program instance.
  */
-int
-muf_event_exists(struct frame *fr, const char *eventid)
+void
+muf_event_add(struct frame *fr, char *event, struct inst *val)
 {
-    struct mufevent *ptr;
-    int count = 0;
-    char pattern[BUFFER_LEN];
+	struct mufevent *newevent;
+	struct mufevent *ptr;
 
-    strcpy(pattern, eventid);
+	newevent = (struct mufevent *) malloc(sizeof(struct mufevent));
 
-    for (ptr = fr->events; ptr; ptr = ptr->next)
-        if (equalstr(pattern, ptr->event))
-            count++;
+	newevent->event = string_dup(event);
+	copyinst(val, &newevent->data);
+	newevent->next = NULL;
 
-    return count;
+	ptr = fr->events;
+	while (ptr && ptr->next) {
+		ptr = ptr->next;
+	}
+	if (!ptr) {
+		fr->events = newevent;
+	} else {
+		ptr->next = newevent;
+	}
 }
+
 
 
 /* static void muf_event_free(struct mufevent* ptr)
@@ -391,167 +256,28 @@ muf_event_exists(struct frame *fr, const char *eventid)
 static void
 muf_event_free(struct mufevent *ptr)
 {
-    CLEAR(&ptr->data);
-    free(ptr->event);
-    ptr->event = NULL;
-    ptr->next = NULL;
-    free(ptr);
+	CLEAR(&ptr->data);
+	free(ptr->event);
+	ptr->event = NULL;
+	ptr->next = NULL;
+	free(ptr);
 }
-
-
-/* void muf_event_add(struct frame* fr, char* event, struct inst* val, int exclusive)
- * Adds a MUF event to the event queue for the given program instance.
- * If the exclusive flag is true, and if an item of the same event type
- * already exists in the queue, the new one will NOT be added.
- */
-void
-muf_event_add(struct frame *fr, char *event, struct inst *val, int exclusive)
-{
-    struct mufevent *newevent;
-    struct mufevent *ptr;
-
-    ptr = fr->events;
-    while (ptr && ptr->next) {
-        if (exclusive && !strcmp(event, ptr->event)) {
-            return;
-        }
-        ptr = ptr->next;
-    }
-
-    if (exclusive && ptr && !strcmp(event, ptr->event)) {
-        return;
-    }
-
-    newevent = (struct mufevent *) malloc(sizeof(struct mufevent));
-    newevent->event = string_dup(event);
-    copyinst(val, &newevent->data);
-    newevent->next = NULL;
-
-    if (!ptr) {
-        fr->events = newevent;
-    } else {
-        ptr->next = newevent;
-    }
-}
-
-
-
-/* struct mufevent* muf_event_pop_specific(struct frame* fr, int eventcount, const char** events)
- * Removes the first event of one of the specified types from the event queue
- * of the given program instance.
- * Returns a pointer to the removed event to the caller.
- * Returns NULL if no matching events are found.
- * You will need to call muf_event_free() on the returned data when you
- * are done with it and wish to free it from memory.
- */
-struct mufevent *
-muf_event_pop_specific(struct frame *fr, int eventcount, char **events)
-{
-    struct mufevent *tmp = NULL;
-    struct mufevent *ptr = NULL;
-    int i;
-
-    for (i = 0; i < eventcount; i++) {
-        if (fr->events && equalstr(events[i], fr->events->event)) {
-            tmp = fr->events;
-            fr->events = tmp->next;
-            return tmp;
-        }
-    }
-
-    ptr = fr->events;
-    while (ptr && ptr->next) {
-        for (i = 0; i < eventcount; i++) {
-            if (equalstr(events[i], ptr->next->event)) {
-                tmp = ptr->next;
-                ptr->next = tmp->next;
-                return tmp;
-            }
-        }
-        ptr = ptr->next;
-    }
-
-    return NULL;
-}
-
-
-
-/* void muf_event_remove(struct frame* fr, char* event, int doall)
- * Removes a given MUF event type from the event queue of the given
- * program instance.  If which is MUFEVENT_ALL, all instances are removed.
- * If which is MUFEVENT_FIRST, only the first instance is removed.
- * If which is MUFEVENT_LAST, only the last instance is removed.
- */
-void
-muf_event_remove(struct frame *fr, char *event, int which)
-{
-    struct mufevent *tmp = NULL;
-    struct mufevent *ptr = NULL;
-
-    while (fr->events && !strcmp(event, fr->events->event)) {
-        if (which == MUFEVENT_LAST) {
-            tmp = fr->events;
-            break;
-        } else {
-            tmp = fr->events;
-            fr->events = tmp->next;
-            muf_event_free(tmp);
-            if (which == MUFEVENT_FIRST) {
-                return;
-            }
-        }
-    }
-
-    ptr = fr->events;
-    while (ptr && ptr->next) {
-        if (!strcmp(event, ptr->next->event)) {
-            if (which == MUFEVENT_LAST) {
-                tmp = ptr;
-                ptr = ptr->next;
-            } else {
-                tmp = ptr->next;
-                ptr->next = tmp->next;
-                muf_event_free(tmp);
-                if (which == MUFEVENT_FIRST) {
-                    return;
-                }
-            }
-        } else {
-            ptr = ptr->next;
-        }
-    }
-}
-
-
-
-/* static struct mufevent* muf_event_peek(struct frame* fr)
- * This returns a pointer to the top muf event of the given
- * program instance's event queue.  The event is not removed
- * from the queue.
- */
-static struct mufevent *
-muf_event_peek(struct frame *fr)
-{
-    return fr->events;
-}
-
 
 
 /* static struct mufevent* muf_event_pop(struct frame* fr)
  * This pops the top muf event off of the given program instance's
- * event queue, and returns it to the caller.  The caller should
- * call muf_event_free() on the data when it is done with it.
+ * event queue, and returns it to the caller.
  */
 static struct mufevent *
 muf_event_pop(struct frame *fr)
 {
-    struct mufevent *ptr = NULL;
+	struct mufevent *ptr = NULL;
 
-    if (fr->events) {
-        ptr = fr->events;
-        fr->events = fr->events->next;
-    }
-    return ptr;
+	if (fr->events) {
+		ptr = fr->events;
+		fr->events = fr->events->next;
+	}
+	return ptr;
 }
 
 
@@ -562,9 +288,9 @@ muf_event_pop(struct frame *fr)
 void
 muf_event_purge(struct frame *fr)
 {
-    while (fr->events) {
-        muf_event_free(muf_event_pop(fr));
-    }
+	while (fr->events) {
+		muf_event_free(muf_event_pop(fr));
+	}
 }
 
 
@@ -576,222 +302,64 @@ muf_event_purge(struct frame *fr)
  * events processed at a time.
  */
 void
-muf_event_process(void)
+muf_event_process()
 {
-    int limit = 10;
-    struct mufevent_process *proc, *tmp;
-    struct mufevent *ev;
-    dbref current_program;
-    struct descriptor_data *curdescr = NULL;
-    int block, is_fg;
+	int limit = 10;
+	struct mufevent_process *proc;
+	struct mufevent_process *next;
+	struct mufevent_process **prev;
+	struct mufevent_process **nextprev;
+	struct mufevent *ev;
+	dbref tmpcp;
+	int tmpbl;
+	int tmpfg;
 
-    proc = mufevent_processes;
-    while (proc && limit > 0) {
-        tmp = proc->next;
-        if (proc->fr) {
-            if (proc->filtercount > 0) {
-                /* Search prog's event list for the apropriate event type. */
-                /* HACK:  This is probably inefficient to be walking this
-                 * queue over and over. Hopefully it's usually a short list.
-                 */
-                ev = muf_event_pop_specific(proc->fr, proc->filtercount,
-                                            proc->filters);
-            } else {
-                /* Pop first event off of prog's event queue. */
-                ev = muf_event_pop(proc->fr);
-            }
-            if (ev) {
-                limit--;
-                if (proc->fr->argument.top + 1 >= STACK_SIZE) {
-                    /*
-                     * Uh oh! That MUF program's stack is full!
-                     * Print an error, free the frame, and exit.
-                     */
-                    notify_nolisten(proc->player, "Program stack overflow.", 1);
-                    prog_clean(proc->fr);
-                } else {
-                    current_program =
-                        DBFETCH(proc->player)->sp.player.curr_prog;
-                    block = DBFETCH(proc->player)->sp.player.block;
-                    is_fg = (proc->fr->multitask != BACKGROUND);
+	proc = mufevent_processes;
+	prev = &mufevent_processes;
+	while (proc && limit > 0) {
+		nextprev = &((*prev)->next);
+		next = proc->next;
+		if (proc->fr) {
+			ev = muf_event_pop(proc->fr);
+			if (ev) {
+				limit--;
 
-                    copyinst(&ev->data,
-                             &(proc->fr->argument.st[proc->fr->argument.top]));
-                    proc->fr->argument.top++;
-                    push(proc->fr->argument.st, &(proc->fr->argument.top),
-                         PROG_STRING, MIPSCAST alloc_prog_string(ev->event));
+				nextprev = prev;
+				*prev = proc->next;
 
-                    interp_loop(proc->player, proc->prog, proc->fr, 0);
+				if (proc->fr->argument.top + 1 >= STACK_SIZE) {
+					/*
+					 * Uh oh! That MUF program's stack is full!
+					 * Print an error, free the frame, and exit.
+					 */
+					notify_nolisten(proc->player, "Program stack overflow.", 1);
+					prog_clean(proc->fr);
+				} else {
+                              tmpcp = DBFETCH(proc->player)->sp.player.curr_prog;
+                              tmpbl = DBFETCH(proc->player)->sp.player.block;
+					tmpfg = (proc->fr->multitask != BACKGROUND);
 
-                    if (!is_fg) {
-                        DBFETCH(proc->player)->sp.player.block = block;
-                        if (proc->player == NOTHING) {
-                            curdescr = get_descr(proc->descr, NOTHING);
-                            if (curdescr)
-                                curdescr->block = block;
-                        }
-                        DBFETCH(proc->player)->sp.player.curr_prog
-                            = current_program;
-                    }
-                }
-                muf_event_free(ev);
+					copyinst(&ev->data, &(proc->fr->argument.st[proc->fr->argument.top]));
+					proc->fr->argument.top++;
+					push(proc->fr->argument.st, &(proc->fr->argument.top),
+						 PROG_STRING, MIPSCAST alloc_prog_string(ev->event));
 
-                tmp = proc->next; /* proc->next might have changed */
-                proc->fr = NULL; /* don't want to free the program itself */
-                muf_event_process_free(proc);
-            }
-        }
-        proc = tmp;
-    }
+					interp_loop(proc->player, proc->prog, proc->fr, 0);
+
+					if (!tmpfg) {
+                                    DBFETCH(proc->player)->sp.player.block = tmpbl;
+                                    DBFETCH(proc->player)->sp.player.curr_prog = tmpcp;
+					}
+				}
+				muf_event_free(ev);
+
+				proc->fr = NULL;
+				proc->next = NULL;
+				free(proc);
+			}
+		}
+		prev = nextprev;
+		proc = next;
+	}
 }
 
-/* called from get_pids() in timequeue.c for use in 
- * the GETPIDS prim. */
-stk_array *
-get_mufevent_pids(stk_array *nw, dbref ref)
-{
-    struct inst temp1;
-
-    struct mufevent_process *proc = mufevent_processes;
-
-    while (proc) {
-        if (proc->player == ref || proc->prog == ref || proc->fr->trig == ref
-            || ref < 0) {
-            temp1.type = PROG_INTEGER;
-            temp1.data.number = proc->fr->pid;
-            array_appenditem(&nw, &temp1);
-            CLEAR(&temp1);
-        }
-        proc = proc->next;
-    }
-
-    return nw;
-}
-
-stk_array *
-get_mufevent_pidinfo(stk_array *nw, int pid)
-{
-    struct inst temp1, temp2;
-    stk_array *arr;
-    time_t rtime = time(NULL);
-    time_t etime = 0;
-    double pcnt = 0.0;
-    int i;
-
-    struct mufevent_process *proc = mufevent_processes;
-
-    while (proc && (proc->fr->pid != pid)) {
-        proc = proc->next;
-    }
-    if (proc && (proc->fr->pid == pid)) {
-        if (proc->fr) {
-            etime = rtime - proc->fr->started;
-            if (etime > 0) {
-                pcnt = proc->fr->totaltime.tv_sec;
-                pcnt += proc->fr->totaltime.tv_usec / 1000000;
-                pcnt = pcnt * 100 / etime;
-                if (pcnt > 100.0) {
-                    pcnt = 100.0;
-                }
-            } else {
-                pcnt = 0.0;
-            }
-        }
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("PID");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = proc->fr->pid;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("CALLED_PROG");
-        temp2.type = PROG_OBJECT;
-        temp2.data.objref = proc->prog;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("TRIG");
-        temp2.type = PROG_OBJECT;
-        temp2.data.objref = proc->fr->trig;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("PLAYER");
-        temp2.type = PROG_OBJECT;
-        temp2.data.objref = proc->player;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("CALLED_DATA");
-        temp2.type = PROG_STRING;
-        temp2.data.string = alloc_prog_string("EVENT_WAITFOR");
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("INSTCNT");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = proc->fr->instcnt;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("DESCR");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = proc->fr->descr;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("CPU");
-        temp2.type = PROG_FLOAT;
-        temp2.data.fnumber = pcnt;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("NEXTRUN");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = -1;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("STARTED");
-        temp2.type = PROG_INTEGER;
-        temp2.data.number = (int) proc->fr->started;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("TYPE");
-        temp2.type = PROG_STRING;
-        temp2.data.string = alloc_prog_string("MUFEVENT");
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("SUBTYPE");
-        temp2.type = PROG_STRING;
-        temp2.data.string = alloc_prog_string("");
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-        temp1.type = PROG_STRING;
-        temp1.data.string = alloc_prog_string("FILTERS");
-        arr = new_array_packed(0);
-        for (i = 0; i < proc->filtercount; i++) {
-            array_set_intkey_strval(&arr, i, proc->filters[i]);
-        }
-        temp2.type = PROG_ARRAY;
-        temp2.data.array = arr;
-        array_setitem(&nw, &temp1, &temp2);
-        CLEAR(&temp1);
-        CLEAR(&temp2);
-    }
-    return nw;
-}

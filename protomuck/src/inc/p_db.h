@@ -30,6 +30,7 @@ extern void prim_setown(PRIM_PROTOTYPE);
 extern void prim_newobject(PRIM_PROTOTYPE);
 extern void prim_newroom(PRIM_PROTOTYPE);
 extern void prim_newexit(PRIM_PROTOTYPE);
+extern void prim_lockedp(PRIM_PROTOTYPE);
 extern void prim_recycle(PRIM_PROTOTYPE);
 extern void prim_setlockstr(PRIM_PROTOTYPE);
 extern void prim_getlockstr(PRIM_PROTOTYPE);
@@ -46,20 +47,6 @@ extern void prim_objmem(PRIM_PROTOTYPE);
 extern void prim_movepennies(PRIM_PROTOTYPE);
 extern void prim_instances(PRIM_PROTOTYPE);
 extern void prim_compiledp(PRIM_PROTOTYPE);
-extern void prim_setpassword(PRIM_PROTOTYPE);
-extern void prim_newpassword(PRIM_PROTOTYPE);
-extern void prim_nextentrance(PRIM_PROTOTYPE);
-extern void prim_ispowerp(PRIM_PROTOTYPE);
-extern void prim_powerp(PRIM_PROTOTYPE);
-extern void prim_newprogram(PRIM_PROTOTYPE);
-extern void prim_compile(PRIM_PROTOTYPE);
-extern void prim_uncompile(PRIM_PROTOTYPE);
-extern void prim_contents_array(PRIM_PROTOTYPE);
-extern void prim_exits_array(PRIM_PROTOTYPE);
-extern void prim_getlinks_array(PRIM_PROTOTYPE);
-extern void prim_getobjinfo(PRIM_PROTOTYPE);
-extern void prim_findnext(PRIM_PROTOTYPE);
-extern void prim_find_array(PRIM_PROTOTYPE);
 
 #define PRIMS_DB_FUNCS prim_addpennies, prim_moveto, prim_pennies,       \
     prim_dbcomp, prim_dbref, prim_contents, prim_exits, prim_next,       \
@@ -67,30 +54,25 @@ extern void prim_find_array(PRIM_PROTOTYPE);
     prim_set, prim_mlevel, prim_flagp, prim_playerp, prim_thingp,        \
     prim_roomp, prim_programp, prim_exitp, prim_okp, prim_location,      \
     prim_owner, prim_getlink, prim_setlink, prim_setown, prim_newobject, \
-    prim_newroom, prim_newexit,  prim_recycle,              \
+    prim_newroom, prim_newexit, prim_lockedp, prim_recycle,              \
     prim_setlockstr, prim_getlockstr, prim_part_pmatch, prim_controls,   \
-    prim_truename, prim_checkpassword, prim_pmatch, prim_newplayer,      \
-    prim_copyplayer, prim_toadplayer, prim_objmem, prim_getlinks,        \
-    prim_movepennies, prim_instances, prim_compiledp, prim_setpassword,  \
-    prim_newpassword, prim_nextentrance, prim_ispowerp, prim_powerp,     \
-    prim_newprogram, prim_compile, prim_uncompile, prim_contents_array,  \
-    prim_exits_array, prim_getlinks_array, prim_getobjinfo, prim_findnext,\
-    prim_find_array
+    prim_truename, prim_checkpassword, prim_pmatch, prim_nextowned,      \
+    prim_nextplayer, prim_newplayer, prim_copyplayer, prim_toadplayer,   \
+    prim_objmem, prim_getlinks, prim_movepennies, prim_instances, prim_compiledp
 
-#define PRIMS_DB_NAMES "ADDPENNIES", "MOVETO", "PENNIES",    \
-    "DBCMP", "DBREF", "CONTENTS", "EXITS", "NEXT",           \
-    "NAME", "SETNAME", "MATCH", "RMATCH", "COPYOBJ",         \
-    "SET", "MLEVEL", "FLAG?", "PLAYER?", "THING?",           \
-    "ROOM?", "PROGRAM?", "EXIT?", "OK?", "LOCATION",         \
-    "OWNER", "GETLINK", "SETLINK", "SETOWN", "NEWOBJECT",    \
-    "NEWROOM", "NEWEXIT",  "RECYCLE",              \
-    "SETLOCKSTR", "GETLOCKSTR", "PART_PMATCH", "CONTROLS",   \
-    "TRUENAME", "CHECKPASSWORD", "PMATCH", "NEWPLAYER",      \
-    "COPYPLAYER", "TOADPLAYER", "OBJMEM", "GETLINKS",        \
-    "MOVEPENNIES", "INSTANCES", "COMPILED?", "SETPASSWORD",  \
-    "NEWPASSWORD", "NEXTENTRANCE", "ISPOWER?", "POWER?",     \
-    "NEWPROGRAM", "COMPILE", "UNCOMPILE", "CONTENTS_ARRAY",  \
-    "EXITS_ARRAY", "GETLINKS_ARRAY", "GETOBJINFO", "FINDNEXT",\
-    "FIND_ARRAY"
+#define PRIMS_DB_NAMES "ADDPENNIES", "MOVETO", "PENNIES",  \
+    "DBCMP", "DBREF", "CONTENTS", "EXITS", "NEXT",         \
+    "NAME", "SETNAME", "MATCH", "RMATCH", "COPYOBJ",       \
+    "SET", "MLEVEL", "FLAG?", "PLAYER?", "THING?",         \
+    "ROOM?", "PROGRAM?", "EXIT?", "OK?", "LOCATION",       \
+    "OWNER", "GETLINK", "SETLINK", "SETOWN", "NEWOBJECT",  \
+    "NEWROOM", "NEWEXIT", "LOCKED?", "RECYCLE",            \
+    "SETLOCKSTR", "GETLOCKSTR", "PART_PMATCH", "CONTROLS", \
+    "TRUENAME", "CHECKPASSWORD", "PMATCH", "NEXTOWNED",    \
+    "NEXTPLAYER", "NEWPLAYER", "COPYPLAYER", "TOADPLAYER", \
+    "OBJMEM", "GETLINKS", "MOVEPENNIES", "INSTANCES", "COMPILED?"
 
-#define PRIMS_DB_CNT 60
+#define PRIMS_DB_CNT 49
+
+
+

@@ -606,7 +606,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	fr->instcnt++;
 	instr_count++;
 	if ((fr->multitask == PREEMPT) || (FLAGS(program) & BUILDER)) {
-	    if (mlev >= LMAGE) {
+	    if (mlev == LMAGE) {
 		instr_count = 0;/* if program is wizbit, then clear count */
 	    } else {
 		/* else make sure that the program doesn't run too long */
@@ -637,8 +637,7 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 		/* Small fix so only program owner can see debug traces */
 	    char   *m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
 	    notify_nolisten(player, m, 1);
-	}
-      if ( FLAGS(program) & DARK && FLAG2(program) & F2PARENT && (OWNER(program) != player || player == -1 )) {
+	} else if ( FLAGS(program) & DARK && FLAG2(program) & F2PARENT ) {
 	    char   *m = debug_inst(pc, arg, dbuf, sizeof(dbuf), atop, program);
 	    notify_nolisten(OWNER(program), m, 1);
       }
@@ -1040,20 +1039,20 @@ interp_err(dbref player, dbref program, struct inst *pc,
     int     errcount;
 
     err++;
-    if (OWNER(origprog) == player && player != -1) {
+    if (OWNER(origprog) == OWNER(player)) {
 	strcpy(buf, "Program Error.  Your program just got the following error.");
     } else {
+      if(FLAG2(origprog) & F2PARENT)
+         notify_nolisten(OWNER(origprog), "Program Error.  Your program just got the following error.", 1);
 	sprintf(buf, "Programmer Error.  Please tell %s what you typed, and the following message.",
 		NAME(OWNER(origprog)));
     }
     notify_nolisten(player, buf, 1);
-    if(FLAG2(origprog) & F2PARENT && player != OWNER(origprog))
-       notify_nolisten(OWNER(origprog), "Program Error.  Your program just got the following error.", 1);
 
     sprintf(buf, "%s(#%d), line %d; %s: %s", NAME(program), program, pc->line,
 	    msg1, msg2);
     notify_nolisten(player, buf, 1);
-    if(FLAG2(origprog) & F2PARENT && OWNER(origprog) != player)
+    if(FLAG2(origprog) & F2PARENT && OWNER(origprog) != OWNER(player))
        notify_nolisten(OWNER(origprog), buf, 1);
 
     errcount = get_property_value(origprog, ".debug/errcount");
@@ -1191,10 +1190,10 @@ do_abort_interp(dbref player, const char *msg, struct inst * pc,
     fr->pc = pc;
     interp_err(player, program, pc, arg, atop, fr->caller.st[1],
 	       insttotext(pc, buffer, sizeof(buffer), 30, program), msg);
-    if (controls(player, program) && player != -1)
+    if (controls(OWNER(player), program))
 	muf_backtrace(player, program, STACK_SIZE, fr);
-/*    else */
-       if (FLAG2(program) & F2PARENT && player != OWNER(program))
+    else
+       if (FLAG2(program) & F2PARENT && OWNER(player) != OWNER(program))
           muf_backtrace(OWNER(program), program, STACK_SIZE, fr);
     switch (nargs) {
 	case 4:

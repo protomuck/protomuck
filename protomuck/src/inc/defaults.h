@@ -1,5 +1,3 @@
-#include "config.h"
-
 #define DUMPWARN_MESG   MARK "Save soon."
 #define DELTAWARN_MESG  MARK "Save soon."
 #define DUMPDELTAS_MESG MARK "Saving..."
@@ -9,22 +7,14 @@
 /* Change the default color scheme of the server */
 /* It could be possible to include both BG and FG color combos here, */
 /* just separate them by spaces */
-#ifndef NO_SYSCOLOR
 #define CCFAIL "RED"
 #define CCSUCC "GREEN"
 #define CCINFO "YELLOW"
 #define CCNOTE "WHITE"
 #define CCMOVE "CYAN"
-#else
-#define CCFAIL ""
-#define CCSUCC ""
-#define CCINFO ""
-#define CCNOTE ""
-#define CCMOVE ""
-#endif
 
 /* Change this to the name of your muck.  ie: FurryMUCK, or AnimeMUCK, etc */
-#define MUCKNAME "ProtoMuck"
+#define MUCKNAME "NeonMuck"
 #define WWWDIR "_/www"
 #define PROP_PRECIOUS "@/precious"
 #define PROP_ID  "@/id"
@@ -47,14 +37,17 @@
 /*  Idleboot message.  */
 #define IDLEBOOT_MESSAGE "*poke* *poke*  Psst!"
 
-/* How long someone can idle for on the connection screen. */
-#define CONNIDLE TIME_MINUTE(5)
-
 /*  How long someone can idle for.  */
 #define MAXIDLE TIME_HOUR(4)
 
 /*  Boot idle players?  */
 #define IDLEBOOT 1
+
+/*  How long before items reset */
+#define ITEMWAIT TIME_MINUTE(7)
+
+/*  How long before mobs reset */
+#define MOBWAIT TIME_MINUTE(7)
 
 /* Limit max number of players to allow connected?  (wizards are immune) */
 #define PLAYERMAX 0
@@ -74,13 +67,15 @@
 #define DUMP_WARNTIME TIME_MINUTE(2) /* warning time before a dump */
 #define MONOLITHIC_INTERVAL TIME_DAY(1) /* max time between full dumps */
 #define CLEAN_INTERVAL TIME_MINUTE(15) /* time between unused obj purges */
-#define CRON_INTERVAL TIME_MINUTE(15) /* frequency of cron-daemon runs */
-#define IDLETIME TIME_MINUTE(30) /* Time until player is idle */
-#define ARCHIVE_INTERVAL TIME_DAY(7) /* Frequency of site archiving */
-/* The minimum amount of time that must pass between site archives.
- * Note that this setting does not have a related @tune in-muck
- */
-#define ARCHIVE_DELAY TIME_MINUTE(30)
+#define CRON_INTERVAL TIME_MINUTE(15) /* frequency of cron-daemon runs 8?
+
+
+/* Information needed for RWHO. */
+#ifdef RWHO
+#define RWHO_INTERVAL TIME_MINUTE(4)
+#define RWHO_PASSWD "potrzebie"
+#define RWHO_SERVER "riemann.math.okstate.edu"
+#endif
 
 /* amount of object endowment, based on cost */
 #define MAX_OBJECT_ENDOWMENT 0
@@ -141,7 +136,13 @@
  */
 #define FREE_FRAMES_POOL 8
 
+
+
+
 #define PLAYER_START ((dbref) 0)  /* room number of player start location */
+
+
+
 
 /* Use gethostbyaddr() for hostnames in logs and the wizard WHO list. */
 #define HOSTNAMES 1
@@ -149,14 +150,11 @@
 /* Server support of @doing (reads the _/do prop on WHOs) */
 #define WHO_DOING 1
 
-/* To enable logging of all regular commands */
+/* To enable logging of all commands */
 #define LOG_COMMANDS 0
 
 /* To enable logging of connection commands */ /* Actually for seeing http */
 #define LOG_CONNECTS 0
-
-/* To enable logging of all INTERACTIVE commands, (muf editor, muf READ, etc) */
-#define LOG_INTERACTIVE 0
 
 /* Log failed commands ( HUH'S ) to status log */
 #define LOG_FAILED_COMMANDS 0
@@ -166,7 +164,7 @@
 
 /* Log the text of changed programs when they are saved.  This is helpful
  * for catching people who upload scanners, use them, then recycle them. */
-#define LOG_PROGRAMS 0
+#define LOG_PROGRAMS 1
 
 /* Log the connections and transmissions of socket usage. Does not
  * log what is actually transmitted, only addresses and port #'s. */
@@ -178,13 +176,6 @@
  */
 
 #define LOG_FILES 0 
-
-/* Log failed attempts to look something up using functions such
- * as 'help', 'news', 'mpi', and 'man'. By checking this, doc
- * writers can try to add entries for things that players are
- * not finding when they're using help. 
- */
-#define LOG_FAILEDHELP 0
 
 /* give a bit of warning before a database dump. */
 #define DBDUMP_WARNING 1
@@ -203,10 +194,6 @@
 /* Makes all items under the environment of a room set Wizard, be controlled
  * by the owner of that room, as well as by the object owner, and Wizards. */
 #define REALMS_CONTROL 0
-
-/* Forbid MCP and MCP-GUI calls at less than given mucker level. 4 = wiz */ 
-#define MCP_MUF_MLEV 3 
-
 
 /* Allows 'listeners' (see CHANGES file) */
 #define LISTENERS 0
@@ -248,9 +235,6 @@
  * be controlled by the player, or else be set JUMP_OK */
 #define SECURE_TELEPORT 0
 
-/* Allow MUF to perform bytecode optimizations */
-#define OPTIMIZE_MUF 0 
-
 /* With this defined to 1, exits that aren't on TYPE_THING objects will */
 /* always act as if they have at least a Priority Level of 1.  */
 /* Define this if you want to use this server with an old db, and don't want */
@@ -275,5 +259,4 @@
 
 /* Define to 0 to prevent diskbasing of property values, or to 1 to allow. */
 #define DISKBASE_PROPVALS 1
-
 

@@ -73,7 +73,6 @@ extern int anotify(dbref player, const char *msg);
 extern int notify_html(dbref player, const char *msg);
 extern int queue_string(struct descriptor_data *d, const char *s);
 extern int notify_nolisten(dbref player, const char *msg, int isprivate);
-extern int notify_nolisten2(dbref player, const char *msg);
 extern int notify_html_nolisten(dbref player, const char *msg, int isprivate);
 extern int anotify_nolisten(dbref player, const char *msg, int isprivate);
 extern int notify_from_echo(dbref from, dbref player, const char *msg, int isprivate);
@@ -125,8 +124,6 @@ extern int pdescrflush(int c);
 extern int pdescrp(int c);
 extern int pdescrtype(int c);
 extern void pdescr_welcome_user(int c);
-extern void pdescr_logout(int c);
-extern void pdump_who_users(int c, char *user);
 
 /* the following symbols are provided by game.c */
 

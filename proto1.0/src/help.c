@@ -1,3 +1,15 @@
+/* $Header: /export/home/davin/tmp/protocvs/proto1.0/src/help.c,v 1.1.1.1 2000-09-20 18:26:11 akari Exp $
+ *
+ * $Log: not supported by cvs2svn $
+ * Revision 1.3  1996/10/02 18:25:20  loki
+ * Added support for WinNT compiling for cross-compile.
+ * (WInNT doesn't do directories right.)
+ *
+ * Revision 1.2  1996/09/26 17:20:02  loki
+ * Fixed a minor bug in info.
+ *
+ */
+
 #include "copyright.h"
 #include "config.h"
 
@@ -63,7 +75,7 @@ spit_file_segment(dbref player, const char *filename, const char *seg)
     if ((f = fopen(filename, "r")) == NULL) {
 	sprintf(buf, CINFO "%s is missing.  Management has been notified.",
 		filename);
-	anotify_nolisten2(player, buf);
+	anotify(player, buf);
 	fputs("spit_file:", stderr);
 	perror(filename);
     } else {
@@ -112,7 +124,7 @@ spit_file_segment_lines(dbref player, const char *filename, const char *seg)
     if ((f = fopen(filename, "r")) == NULL) {
 	sprintf(buf, CINFO "%s is missing.  Management has been notified.",
 		filename);
-	anotify_nolisten2(player, buf);
+	anotify(player, buf);
 	fputs("spit_file:", stderr);
 	perror(filename);
     } else {
@@ -189,7 +201,7 @@ index_file(dbref player, const char *onwhat, const char *file)
     if ((f = fopen(file, "r")) == NULL) {
 	sprintf(buf, YELLOW
 		"%s is missing.  Management has been notified.", file);
-	anotify_nolisten2(player, buf);
+	anotify(player, buf);
 	fprintf(stderr, "help: No file %s!\n", file);
     } else {
 	arglen = strlen(topic);
@@ -199,7 +211,7 @@ index_file(dbref player, const char *onwhat, const char *file)
 		    if (!(fgets(buf, sizeof buf, f))) {
 			sprintf(buf, CINFO "There is no help for \"%s\"",
 				onwhat);
-			anotify_nolisten2(player, buf);
+			anotify(player, buf);
 			fclose(f);
 			return;
 		    }
@@ -208,7 +220,7 @@ index_file(dbref player, const char *onwhat, const char *file)
 		    if (!(fgets(buf, sizeof buf, f))) {
 			sprintf(buf, CINFO "There is no help for \"%s\"",
 				onwhat);
-			anotify_nolisten2(player, buf);
+			anotify(player, buf);
 			fclose(f);
 			return;
 		    }
@@ -386,7 +398,7 @@ do_motd(dbref player, char *text)
 	unlink(MOTD_FILE);
 	log2file(MOTD_FILE, "- - - - - - - - - - - - - - - - - - - "
 		 "- - - - - - - - - - - - - - - - - - -");
-	anotify_nolisten2(player, CSUCC "MOTD cleared.");
+	anotify(player, CSUCC "MOTD cleared.");
 	return;
     }
     lt = time(NULL);
@@ -394,7 +406,7 @@ do_motd(dbref player, char *text)
     add_motd_text_fmt(text);
     log2file(MOTD_FILE, "- - - - - - - - - - - - - - - - - - - "
 	     "- - - - - - - - - - - - - - - - - - -");
-    anotify_nolisten2(player, CSUCC "MOTD updated.");
+    anotify(player, CSUCC "MOTD updated.");
 }
 
 
@@ -428,7 +440,7 @@ do_info(dbref player, const char *topic, const char *seg)
 		if (*(dp->d_name) != '.') 
 		{
 		    if (!f)
-			anotify_nolisten2(player, CINFO "Available information files are:");
+			anotify(player, CINFO "Available information files are:");
 		    if ((cols++ > 2) || 
 			((strlen(buf) + strlen(dp->d_name)) > 64)) 
 		    {
@@ -448,12 +460,11 @@ do_info(dbref player, const char *topic, const char *seg)
 	if (f)
 	    notify(player, buf);
 	else
-	    anotify_nolisten2(player, CINFO "No information files are available.");
+	    anotify(player, CINFO "No information files are available.");
 	/* free(buf); */
 #else /* !DIR_AVALIBLE */
-	anotify_nolisten2(player, CINFO "Type 'info index' for a list of files.");
+	anotify(player, CINFO "Type 'info index' for a list of files.");
 #endif /* !DIR_AVALIBLE */
     }
 }
-
 

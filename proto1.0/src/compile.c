@@ -321,7 +321,7 @@ init_defs(void)
     insert_def("strip", "striplead striptail");
     insert_def("instring", "tolower swap tolower swap instr");
     insert_def("rinstring", "tolower swap tolower swap rinstr");
-    insert_def("stripspaces", "strip begin dup \"  \" instr while \" \" \"  \" subst repeat");
+    insert_def("stripspaces", "strip begin dup "  " while " " "  " subst repeat");
 #ifndef OLDPARSE
     insert_def("parseprop", "4 pick 4 rotate getpropstr rot rot parsempi");
 #endif
@@ -381,7 +381,7 @@ init_defs(void)
     insert_def("array_diff", "2 array_ndiff");
     insert_def("array_union", "2 array_nunion");
     insert_def("array_intersect", "2 array_nintersect");
-    insert_def("sockopen", "nbsockopen \"Invalid host.\" over strcmp if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck if \"noerr\" break then 1 sleep repeat then");
+
     /* include any defines set in #0's _defs/ propdir. */
     include_defs((dbref) 0);
 
@@ -430,9 +430,9 @@ do_proginfo(dbref player, const char *arg)
     int tcnt=0, tsize=0, tinst=0, timem=0, ccnt, csize, cinst, cimem;
 
     if( *arg != '#' ) {
-	anotify_nolisten2(player, YELLOW "Usage: @proginfo #prognum");
+	anotify(player, YELLOW "Usage: @proginfo #prognum");
 	if (Mage(OWNER(player))) {
-	    anotify_nolisten2(player, AQUA "Inst Object ProgSz Insts " BROWN "Name");
+	    anotify(player, AQUA "Inst Object ProgSz Insts " BROWN "Name");
 	    for(i=0;i<db_top;i++) {
 		if(Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.siz) {
 		    tcnt  += ccnt  = DBFETCH(i)->sp.program.instances;
@@ -443,23 +443,23 @@ do_proginfo(dbref player, const char *arg)
 			ccnt, csize, cimem, cinst,
 			ansi_unparse_object(player, i), NAME(OWNER(i))
 		    );
-		    anotify_nolisten2(player, buf);
+		    anotify(player, buf);
 		}
 	    }
 	    sprintf(buf, AQUA "%4d %6d %6d %5d " BROWN "Total",
 			tcnt, tsize, timem, tinst);
-	    anotify_nolisten2(player, buf );
+	    anotify(player, buf );
 	}
 	return;
     }
 
     thing = (dbref) atoi(arg+1);
     if( Typeof(thing) != TYPE_PROGRAM || !controls(player,thing)) {
-	anotify_nolisten2(player, RED NOPERM_MESG);
+	anotify(player, RED NOPERM_MESG);
 	return;
     }
 
-    anotify_nolisten2(player, YELLOW "1 = cleanable, 0 = used recently");
+    anotify(player, YELLOW "1 = cleanable, 0 = used recently");
     sprintf( buf, "AI: %d Age: %d Instances: %d==0?",
 	!(FLAGS(thing) & (ABODE|INTERNAL)),
 	(now - DBFETCH(thing)->ts.lastused) > tp_clean_interval,

@@ -129,20 +129,20 @@ email_newbie( const char *name, const char *email, const char *rlname )
 	/* Create random password to be mailed user: */
 	reg_make_password( pw );
 	if (!ok_player_name(name)) {
-	    anotify( tp_reg_wiz, RED "AutoReg> Sorry, that name is invalid or in use." );
+	    anotify( tp_reg_wiz, CFAIL "AutoReg> Sorry, that name is invalid or in use." );
 	} else if (!strchr(email,'@') || !strchr(email,'.')) {
-	    anotify( tp_reg_wiz, RED "AutoReg> That isn't a valid email address." );
+	    anotify( tp_reg_wiz, CFAIL "AutoReg> That isn't a valid email address." );
 	} else if (email[0]=='<') {
-	    anotify( tp_reg_wiz, RED "AutoReg> Can't have <>s around the email address." );
+	    anotify( tp_reg_wiz, CFAIL "AutoReg> Can't have <>s around the email address." );
 	} else {
 	    if ((newguy = create_player(name, pw)) == NOTHING) {
-		anotify( tp_reg_wiz, RED "AutoReg> Name exists or illegal name." );
+		anotify( tp_reg_wiz, CFAIL "AutoReg> Name exists or illegal name." );
 	    } else {
-		log_status("PCRE: %s(%d) by %s(%d)\n",
-			   NAME(newguy), (int) newguy, NAME(tp_reg_wiz), (int) tp_reg_wiz);
-		    anotify_fmt(tp_reg_wiz,
-			GREEN "AutoReg> Player %s created as object #%d.",
-			NAME(newguy), newguy);
+		log_status("PCRE: %s(%d) by %s\n",
+			   NAME(newguy), (int) newguy, unparse_object(MAN, tp_reg_wiz));
+		    notify_fmt(tp_reg_wiz,
+			/* CSUCC */ "AutoReg> Player %s created as object #%d.",
+			NAME(newguy), (int) newguy);
 
 		/* Record email address on new char: */
 		{   char buf[ 1024 ];
@@ -187,7 +187,7 @@ hop_newbie( dbref player, int entry )
 	get_file_line( LOG_HOPPER, line, entry );
 	if( line[0] == '\0' )
 	{
-	    anotify( player, RED "Invalid hopper entry." );
+	    anotify( player, CFAIL "Invalid hopper entry." );
 	    return;
 	}
 
@@ -197,11 +197,11 @@ hop_newbie( dbref player, int entry )
 
 	if( (*name) == '\0' || (*email) == '\0' || (*rlname) == '\0' )
 	{
-	    anotify( player, RED "Mangled hopper entry." );
+	    anotify( player, CFAIL "Mangled hopper entry." );
 	    return;
 	}
 
-	anotify_fmt(player, GREEN "Name: '%s' Email: '%s' RLName: '%s'",
+	anotify_fmt(player, CSUCC "Name: '%s' Email: '%s' RLName: '%s'",
 		name, email, rlname);
 
 	email_newbie(name, email, rlname);
@@ -240,10 +240,9 @@ do_hopper( dbref player, const char *arg )
 	int e;
 
 	a = strcpy( buf, arg );
-      a = strcat( buf, "\0");
 
 	if( !Arch( OWNER( player ) ) ) {
-		anotify_nolisten2( player, RED NOPERM_MESG ); return;
+		anotify( player, RED NOPERM_MESG ); return;
 	}
 
 	if( *a == '\0' ) {
@@ -274,16 +273,16 @@ notify( player, "@set #0=@/jerks/email@address:DYMonYR:YourWizName:Reason" );
 	if( !string_compare( a, "list" ) ) {
 		if( hop_count() > 0 ) {
 		    spit_file_segment_lines( player, LOG_HOPPER, p );
-		    anotify_nolisten2( player, CINFO "Done." );
+		    anotify( player, CINFO "Done." );
 		} else
-		    anotify_nolisten2( player, CINFO "The registration hopper is empty." );
+		    anotify( player, CINFO "The registration hopper is empty." );
 		return;
 	}
 
 	if( tp_reg_wiz != player ) {
-		anotify_nolisten2( player, CFAIL "You are not set as the registration wizard." );
-		anotify_nolisten2( player, CINFO "To process or clear registrations, type:" );
-		anotify_nolisten2( player, CNOTE "@tune reg_wiz=me" );
+		anotify( player, CFAIL "You are not set as the registration wizard." );
+		anotify( player, CINFO "To process or clear registrations, type:" );
+		anotify( player, CNOTE "@tune reg_wiz=me" );
 		return;
 	}
 
@@ -291,21 +290,21 @@ notify( player, "@set #0=@/jerks/email@address:DYMonYR:YourWizName:Reason" );
 		e = atoi(p);
 
 		if( e <= 0 || (*p) == '\0' ) {
-			anotify_nolisten2( player, CFAIL "Missing or invalid file entry number." );
+			anotify( player, CFAIL "Missing or invalid file entry number." );
 			return;
 		}
-		hop_newbie( player, e );
-/*            anotify_nolisten2(player, CFAIL "The hopper is disabled due to instability."); */
+/*		hop_newbie( player, e ); */
+            anotify(player, CFAIL "The hopper is disabled due to instability.");
 		return;
 	}
 
 	if( !string_compare( a, "clear" ) ) {
 		unlink( LOG_HOPPER );
-		anotify_nolisten2( player, CSUCC "Registration hopper cleared." );
+		anotify( player, CSUCC "Registration hopper cleared." );
 		return;
 	}
 
-	anotify_nolisten2( player, CINFO "Unknown option, type '@hopper' for help." );
+	anotify( player, CINFO "Unknown option, type '@hopper' for help." );
 }
 
 void
@@ -315,7 +314,7 @@ do_wizchat(dbref player, const char *arg)
 
 	if( !Mage(OWNER(player)) )
 	{
-		anotify_nolisten2( player, RED NOPERM_MESG );
+		anotify( player, RED NOPERM_MESG );
 		return;
 	}
 
@@ -390,10 +389,10 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
     }
     switch (destination = match_result(&md)) {
 	case NOTHING:
-	    anotify_nolisten2(player, CINFO "Send it where?");
+	    anotify(player, CINFO "Send it where?");
 	    break;
 	case AMBIGUOUS:
-	    anotify_nolisten2(player, CINFO "I don't know where you mean!");
+	    anotify(player, CINFO "I don't know where you mean!");
 	    break;
 	case HOME:
 	    switch (Typeof(victim)) {
@@ -440,17 +439,17 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 		    if ( Typeof(destination) != TYPE_ROOM &&
 			 Typeof(destination) != TYPE_PLAYER &&
 			 Typeof(destination) != TYPE_THING) {
-			anotify_nolisten2(player, CFAIL "Bad destination.");
+			anotify(player, CFAIL "Bad destination.");
 			break;
 		    }
                     if (!Wiz(victim) &&
                             (Typeof(destination) == TYPE_THING &&
                                 !(FLAGS(destination) & VEHICLE))) {
-                        anotify_nolisten2(player, CFAIL "Destination object is not a vehicle.");
+                        anotify(player, CFAIL "Destination object is not a vehicle.");
                         break;
                     }
 		    if (parent_loop_check(victim, destination)) {
-			anotify_nolisten2(player, CFAIL "Objects can't contain themselves.");
+			anotify(player, CFAIL "Objects can't contain themselves.");
 			break;
 		    }
                     if(Typeof(destination)==TYPE_PLAYER) {
@@ -462,23 +461,23 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 #else
 					(FLAG2(destination)&F2GUEST)) {
 #endif
-			anotify_nolisten2(player, CFAIL "Guests aren't allowed there.");
+			anotify(player, CFAIL "Guests aren't allowed there.");
 			break;
 		    }
-		    anotify_nolisten2(victim, CNOTE "You feel a wrenching sensation...");
+		    anotify(victim, CNOTE "You feel a wrenching sensation...");
 		    enter_room(descr, victim, destination, DBFETCH(victim)->location);
-		    anotify_nolisten2(player, CSUCC "Teleported.");
+		    anotify(player, CSUCC "Teleported.");
 		    break;
 		case TYPE_THING:
 		    if (parent_loop_check(victim, destination)) {
-			anotify_nolisten2(player, CFAIL "You can't make a container contain itself!");
+			anotify(player, CFAIL "You can't make a container contain itself!");
 			break;
 		    }
 		case TYPE_PROGRAM:
 		    if (Typeof(destination) != TYPE_ROOM
 			    && Typeof(destination) != TYPE_PLAYER
 			    && Typeof(destination) != TYPE_THING) {
-			anotify_nolisten2(player, CFAIL "Bad destination.");
+			anotify(player, CFAIL "Bad destination.");
 			break;
 		    }
 		    if (!((controls(player, destination) ||
@@ -494,11 +493,11 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			    && !(FLAGS(destination) & STICKY))
 			destination = DBFETCH(destination)->sp.room.dropto;
 		    moveto(victim, destination);
-		    anotify_nolisten2(player, CSUCC "Teleported.");
+		    anotify(player, CSUCC "Teleported.");
 		    break;
 		case TYPE_ROOM:
 		    if (Typeof(destination) != TYPE_ROOM) {
-			anotify_nolisten2(player, CFAIL "Bad destination.");
+			anotify(player, CFAIL "Bad destination.");
 			break;
 		    }
 		    if (!controls(player, victim)
@@ -508,17 +507,17 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 			break;
 		    }
 		    if (parent_loop_check(victim, destination)) {
-			anotify_nolisten2(player, CFAIL "Parent would create a loop.");
+			anotify(player, CFAIL "Parent would create a loop.");
 			break;
 		    }
 		    moveto(victim, destination);
-		    anotify_nolisten2(player, CSUCC "Parent set.");
+		    anotify(player, CSUCC "Parent set.");
 		    break;
 		case TYPE_GARBAGE:
-		    anotify_nolisten2(player, CFAIL "That is garbage.");
+		    anotify(player, CFAIL "That is garbage.");
 		    break;
 		default:
-		    anotify_nolisten2(player, CFAIL "You can't teleport that.");
+		    anotify(player, CFAIL "You can't teleport that.");
 		    break;
 	    }
 	    break;
@@ -533,7 +532,7 @@ do_force(int descr, dbref player, const char *what, char *command)
     struct match_data md;
 
     if (force_level) {
-        anotify_nolisten2(player, CFAIL "Can't @force an @force.");
+        anotify(player, CFAIL "Can't @force an @force.");
         return;
     }
 
@@ -567,7 +566,7 @@ do_force(int descr, dbref player, const char *what, char *command)
     }
 
     if (Man(victim)) {
-	anotify_nolisten2(player, CFAIL "You cannot force the man.");
+	anotify(player, CFAIL "You cannot force the man.");
 	return;
     }
 
@@ -588,7 +587,7 @@ do_force(int descr, dbref player, const char *what, char *command)
     loc = getloc(victim);
     if (!Wiz(player) && Typeof(victim) == TYPE_THING && loc != NOTHING &&
 	    (FLAGS(loc) & ZOMBIE) && Typeof(loc) == TYPE_ROOM) {
-	anotify_nolisten2(player, CFAIL "It is in a no-puppet zone.");
+	anotify(player, CFAIL "It is in a no-puppet zone.");
 	return;
     }
 
@@ -607,7 +606,7 @@ do_force(int descr, dbref player, const char *what, char *command)
 	    *(ptr2++) = *(ptr++);
 	*ptr2 = '\0';
 	if (lookup_player(objname) != NOTHING) {
-	    anotify_nolisten2(player, CFAIL "Puppets cannot have a player's name.");
+	    anotify(player, CFAIL "Puppets cannot have a player's name.");
 	    return;
 	}
     }
@@ -652,7 +651,7 @@ do_stats(dbref player, const char *name)
 	    else
 		owner = lookup_player(name);
 	    if (owner == NOTHING) {
-		anotify_nolisten2(player, CINFO "Who?");
+		anotify(player, CINFO "Who?");
 		return;
 	    }
 	    if (   (!Mage(OWNER(player)))
@@ -742,7 +741,7 @@ do_stats(dbref player, const char *name)
 	}
 #endif
 
-/* #ifdef DELTADUMPS */
+#ifdef DELTADUMPS
         {
             char buf[BUFFER_LEN];
             struct tm *time_tm;
@@ -757,7 +756,7 @@ do_stats(dbref player, const char *name)
             anotify_fmt(player, RED "%7d unsaved object%s     Last dump: %s",
 	        altered, (altered == 1) ? "" : "s", buf);
         }
-/* #endif */
+#endif
 
 	if( garbage > 0 )
 	    anotify_fmt(player, NORMAL
@@ -787,11 +786,11 @@ do_boot(dbref player, const char *name)
     if ( Typeof(player) != TYPE_PLAYER ) return;
 
     if (!Mage(player)) {
-	anotify_nolisten2(player, CFAIL "Only wizards can boot someone off.");
+	anotify(player, CFAIL "Only wizards can boot someone off.");
 	return;
     }
     if ((victim = lookup_player(name)) == NOTHING) {
-	anotify_nolisten2(player, CINFO "Who?");
+	anotify(player, CINFO "Who?");
 	return;
     }
     if (Typeof(victim) != TYPE_PLAYER) {
@@ -800,15 +799,15 @@ do_boot(dbref player, const char *name)
     }
 
     if (Man(victim)) {
-	anotify_nolisten2(player, CFAIL "You can't boot the man!");
+	anotify(player, CFAIL "You can't boot the man!");
 	return;
     }
     if (!Man(player) && TMage(victim)) {
-	anotify_nolisten2(player, CFAIL "You can't boot wizards.");
+	anotify(player, CFAIL "You can't boot wizards.");
 	return;
     }
 
-	anotify_nolisten2(victim, BLUE "Shaaawing!  See ya!");
+	anotify(victim, BLUE "Shaaawing!  See ya!");
 	if (boot_off(victim)) {
 	    log_status("BOOT: %s(%d) by %s(%d)\n", NAME(victim),
 		victim, NAME(player), player);
@@ -831,23 +830,23 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
 	return;
     }
     /* if(tp_db_readonly) {
-	anotify_nolisten2(player, CFAIL DBRO_MESG);
+	anotify(player, CFAIL DBRO_MESG);
 	return;
     } */
     if ((victim = lookup_player(name)) == NOTHING) {
-	anotify_nolisten2(player, CINFO "Who?");
+	anotify(player, CINFO "Who?");
 	return;
     }
     if (Typeof(victim) != TYPE_PLAYER) {
-	anotify_nolisten2(player, CFAIL "You can only frob players.");
+	anotify(player, CFAIL "You can only frob players.");
 	return;
     }
     if (get_property_class( victim, "@/precious" )) {
-	anotify_nolisten2(player, CFAIL "That player is precious.");
+	anotify(player, CFAIL "That player is precious.");
 	return;
     }
     if (TMage(victim)) {
-	anotify_nolisten2(player, CFAIL "You can't frob a wizard.");
+	anotify(player, CFAIL "You can't frob a wizard.");
 	return;
     }
     if (!*recip) {
@@ -855,7 +854,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
     } else {
 	if ((recipient = lookup_player(recip)) == NOTHING
 		|| recipient == victim) {
-	    anotify_nolisten2(player, CINFO "Give their stuff to who?");
+	    anotify(player, CINFO "Give their stuff to who?");
 	    return;
 	}
     }
@@ -891,7 +890,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
 	OWNER(victim) = player;	/* you get it */
 	DBFETCH(victim)->sp.thing.value = 1;
 
-	anotify_nolisten2(victim, BLUE "You have been frobbed!  Been nice knowing you.");
+	anotify(victim, BLUE "You have been frobbed!  Been nice knowing you.");
 	anotify_fmt(player, CSUCC "You frob %s.", PNAME(victim));
 	log_status("FROB: %s(%d) by %s(%d)\n", NAME(victim),
 		   victim, NAME(player), player);
@@ -932,7 +931,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
     if (!strcmp( arg1, "me" ))
     	victim = player;
     else if ((victim = lookup_player(arg1)) == NOTHING) {
-	anotify_nolisten2(player, CINFO "Who?");
+	anotify(player, CINFO "Who?");
 	return;
     }
     if (
@@ -946,7 +945,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
     }
 
     if (get_property_class( victim, "@/precious" )) {
-	anotify_nolisten2(player, CFAIL "That player is precious.");
+	anotify(player, CFAIL "That player is precious.");
 	return;
     }
 
@@ -956,7 +955,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
 	( strcmp( arg2, "yes" ) ||
 	  !Arch(player) )
     ) {
-	anotify_nolisten2(player, CFAIL "Wrong password.");
+	anotify(player, CFAIL "Wrong password.");
 	return;
     }
 	
@@ -970,7 +969,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
 	    case TYPE_ROOM:
 		if (thing == tp_player_start || thing == GLOBAL_ENVIRONMENT)
 		{
-			anotify_nolisten2(player, CFAIL
+			anotify(player, CFAIL
 				"Cannot recycle player start or global environment.");
 			break;
 		}
@@ -996,13 +995,13 @@ do_newpassword(dbref player, const char *name, const char *password)
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     } else if ((victim = lookup_player(name)) == NOTHING) {
-	anotify_nolisten2(player, CINFO "Who?");
+	anotify(player, CINFO "Who?");
     } else if (*password != '\0' && !ok_password(password)) {
 	/* Wiz can set null passwords, but not bad passwords */
-	anotify_nolisten2(player, CFAIL "Poor password.");
+	anotify(player, CFAIL "Poor password.");
 
     } else if (Man(victim)) {
-	anotify_nolisten2(player, CFAIL "You can't change the man's password!");
+	anotify(player, CFAIL "You can't change the man's password!");
 	return;
     } else {
 	if (TMage(victim) && !Man(player)) {
@@ -1014,7 +1013,7 @@ do_newpassword(dbref player, const char *name, const char *password)
 	if (DBFETCH(victim)->sp.player.password)
 	    free((void *) DBFETCH(victim)->sp.player.password);
 	DBSTORE(victim, sp.player.password, alloc_string(password));
-	anotify_nolisten2(player, CSUCC "Password changed.");
+	anotify(player, CSUCC "Password changed.");
 	anotify_fmt(victim, CNOTE
 		"Your password has been changed by %s.", NAME(player));
 	log_status("NPAS: %s(%d) by %s(%d)\n", NAME(victim), (int) victim,
@@ -1033,7 +1032,7 @@ do_pcreate(dbref player, const char *user, const char *password)
     }
     newguy = create_player(user, password);
     if (newguy == NOTHING) {
-	anotify_nolisten2(player, CFAIL "Create failed.");
+	anotify(player, CFAIL "Create failed.");
     } else {
 	log_status("PCRE: %s(%d) by %s(%d)\n",
 		   NAME(newguy), (int) newguy, NAME(player), (int) player);
@@ -1058,12 +1057,12 @@ do_serverdebug(int descr, dbref player, const char *arg1, const char *arg2)
 
 #ifdef DISKBASE
     if (!*arg1 || string_prefix(arg1, "cache")) {
-	anotify_nolisten2(player, CINFO "Cache info:");
+	anotify(player, CINFO "Cache info:");
 	diskbase_debug(player);
     }
 #endif
 
-    anotify_nolisten2(player, CINFO "Done.");
+    anotify(player, CINFO "Done.");
 }
 
 
@@ -1160,7 +1159,7 @@ do_memory(dbref who)
     CrT_summarize_to_file("malloc_log", "Manual Checkpoint");
 #endif
 
-    anotify_nolisten2(who, CINFO "Done.", 1);
+    anotify(who, CINFO "Done.");
 }
 
 void
@@ -1173,11 +1172,11 @@ do_fixw(dbref player, const char *msg)
 	return;
     }
     if( strcmp(msg, "Convert DB to new level system.") ) {
-	anotify_nolisten2(player, CINFO "What's the magic phrase?");
+	anotify(player, CINFO "What's the magic phrase?");
 	return;
     }
     if( RawMLevel(player) != LM3 ) {
-	anotify_nolisten2(player, CFAIL "If you want to do @fixw, you must be set M3.");
+	anotify(player, CFAIL "If you want to do @fixw, you must be set M3.");
     }
     for( i = 0; i < db_top; i++ ) {
 	if(FLAGS(i) & W3)
@@ -1189,7 +1188,7 @@ do_fixw(dbref player, const char *msg)
 	else if(FLAGS(i) & (W2))
 	    SetMLevel(i, LM1);
     }
-    anotify_nolisten2(player, CINFO "Done.");
+    anotify(player, CINFO "Done.");
 }
 
 

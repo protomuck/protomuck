@@ -47,17 +47,6 @@ extern void prim_objmem(PRIM_PROTOTYPE);
 extern void prim_movepennies(PRIM_PROTOTYPE);
 extern void prim_instances(PRIM_PROTOTYPE);
 extern void prim_compiledp(PRIM_PROTOTYPE);
-extern void prim_setpassword(PRIM_PROTOTYPE);
-extern void prim_newpassword(PRIM_PROTOTYPE);
-extern void prim_next_flag(PRIM_PROTOTYPE);
-extern void prim_nextowned_flag(PRIM_PROTOTYPE);
-extern void prim_nextplayer_flag(PRIM_PROTOTYPE);
-extern void prim_nextthing_flag(PRIM_PROTOTYPE);
-extern void prim_nextprogram(PRIM_PROTOTYPE);
-extern void prim_nextexit(PRIM_PROTOTYPE);
-extern void prim_nextroom(PRIM_PROTOTYPE);
-extern void prim_nextentrance(PRIM_PROTOTYPE);
-extern void prim_nextthing(PRIM_PROTOTYPE);
 
 #define PRIMS_DB_FUNCS prim_addpennies, prim_moveto, prim_pennies,       \
     prim_dbcomp, prim_dbref, prim_contents, prim_exits, prim_next,       \
@@ -69,29 +58,21 @@ extern void prim_nextthing(PRIM_PROTOTYPE);
     prim_setlockstr, prim_getlockstr, prim_part_pmatch, prim_controls,   \
     prim_truename, prim_checkpassword, prim_pmatch, prim_nextowned,      \
     prim_nextplayer, prim_newplayer, prim_copyplayer, prim_toadplayer,   \
-    prim_objmem, prim_getlinks, prim_movepennies, prim_instances,        \
-    prim_compiledp, prim_setpassword, prim_newpassword, prim_next_flag,  \
-    prim_nextowned_flag, prim_nextplayer_flag, prim_nextthing_flag,      \
-    prim_nextprogram, prim_nextexit, prim_nextroom, prim_nextentrance,   \
-    prim_nextthing
+    prim_objmem, prim_getlinks, prim_movepennies, prim_instances, prim_compiledp
 
-#define PRIMS_DB_NAMES "ADDPENNIES", "MOVETO", "PENNIES",   \
-    "DBCMP", "DBREF", "CONTENTS", "EXITS", "NEXT",          \
-    "NAME", "SETNAME", "MATCH", "RMATCH", "COPYOBJ",        \
-    "SET", "MLEVEL", "FLAG?", "PLAYER?", "THING?",          \
-    "ROOM?", "PROGRAM?", "EXIT?", "OK?", "LOCATION",        \
-    "OWNER", "GETLINK", "SETLINK", "SETOWN", "NEWOBJECT",   \
-    "NEWROOM", "NEWEXIT", "LOCKED?", "RECYCLE",             \
-    "SETLOCKSTR", "GETLOCKSTR", "PART_PMATCH", "CONTROLS",  \
-    "TRUENAME", "CHECKPASSWORD", "PMATCH", "NEXTOWNED",     \
-    "NEXTPLAYER", "NEWPLAYER", "COPYPLAYER", "TOADPLAYER",  \
-    "OBJMEM", "GETLINKS", "MOVEPENNIES", "INSTANCES",       \
-    "COMPILED?", "SETPASSWORD", "NEWPASSWORD", "NEXT_FLAG", \
-    "NEXTOWNED_FLAG", "NEXTPLAYER_FLAG", "NEXTTHING_FLAG",  \
-    "NEXTPROGRAM", "NEXTEXIT", "NEXTROOM", "NEXTENTRANCE",  \
-    "NEXTTHING"
+#define PRIMS_DB_NAMES "ADDPENNIES", "MOVETO", "PENNIES",  \
+    "DBCMP", "DBREF", "CONTENTS", "EXITS", "NEXT",         \
+    "NAME", "SETNAME", "MATCH", "RMATCH", "COPYOBJ",       \
+    "SET", "MLEVEL", "FLAG?", "PLAYER?", "THING?",         \
+    "ROOM?", "PROGRAM?", "EXIT?", "OK?", "LOCATION",       \
+    "OWNER", "GETLINK", "SETLINK", "SETOWN", "NEWOBJECT",  \
+    "NEWROOM", "NEWEXIT", "LOCKED?", "RECYCLE",            \
+    "SETLOCKSTR", "GETLOCKSTR", "PART_PMATCH", "CONTROLS", \
+    "TRUENAME", "CHECKPASSWORD", "PMATCH", "NEXTOWNED",    \
+    "NEXTPLAYER", "NEWPLAYER", "COPYPLAYER", "TOADPLAYER", \
+    "OBJMEM", "GETLINKS", "MOVEPENNIES", "INSTANCES", "COMPILED?"
 
-#define PRIMS_DB_CNT 60
+#define PRIMS_DB_CNT 49
 
 
 

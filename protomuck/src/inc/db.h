@@ -3,22 +3,9 @@
 #ifndef __DB_H
 #define __DB_H
 
-#include "config.h"
 #include <stdio.h>
-#include <math.h>
-#ifndef WIN_VC
-# include <time.h>
-#endif
-#include <sys/time.h>
-#ifdef HAVE_TIMEBITS_H
-#  define __need_timeval 1
-#  include <timebits.h>
-#endif
-
-#ifdef SQL_SUPPORT
-#include <mysql/mysql.h>
-#include <mysql/mysql_version.h>
-#endif
+#include <time.h>
+/* #include "array.h" */
 
 /* max length of command argument to process_command */
 #define MAX_COMMAND_LEN 3072
@@ -27,63 +14,13 @@
 
 /* smallest possible numbers to use before a float is considered to be '0' or
    'false'. */
-/* Defining INF as infinite.  This is HUGE_VAL on IEEE754 systems. */
-#ifdef CYGWIN
-# define INF  (HUGE_VAL)
-# define NINF (-HUGE_VAL)
-#else
-#ifdef WIN32
-#include <limits>
-using namespace std;
-# define INF (numeric_limits<double>::infinity())
-# define NINF (-1 * numeric_limits<double>::infinity())
-#elif defined(HUGE_VAL)
-# define INF (HUGE_VAL)
-# define NINF (-HUGE_VAL)
-#else
-# define INF (1E999)
-# define NINF (-1E999)
-#endif
-#endif
-/* Defining Pi, Half Pi, and Quarter Pi.  */
-#ifdef M_PI
-# define F_PI M_PI
-# define NF_PI -M_PI
-#else
-# define F_PI 3.14159265359
-# define NF_PI -3.14159265359
-#endif
+#define SMALL_NUM 1.0E-37
+#define NSMALL_NUM -1.0E-37
 
-#ifdef M_PI_2
-# define H_PI M_PI_2
-# define NH_PI -M_PI_2
-#else
-# define H_PI 1.5707963268
-# define NH_PI -1.5707963268
-#endif
-
-#ifdef M_PI_4  /* A quarter slice.  Yum. */
-# define Q_PI M_PI_4
-# define NQ_PI -M_PI_4
-#else
-# define Q_PI 0.7853981634
-# define NQ_PI -0.7853981634
-#endif
-
-
-
-
-extern time_t current_systime;
 extern char match_args[BUFFER_LEN];
 extern char match_cmdname[BUFFER_LEN];
 
 typedef int dbref;		/* offset into db */
-
-#define TIME_INFINITE ((sizeof(time_t) == 4)? 0xefffffff : 0xefffffffffffffff)
-#define valid_obj(a) (a > -1 && a < db_top)
-#define DB_READLOCK(x)
-#define DB_WRITELOCK(x)
-#define DB_RELEASE(x)
 
 #ifdef GDBM_DATABASE
 #  define DBFETCH(x)  dbfetch(x)
@@ -104,15 +41,9 @@ typedef int dbref;		/* offset into db */
 #define NAME(x)     (db[x].name)
 #define PNAME(x)    (db[x].name)
 #define RNAME(x)    (db[x].name)
-#define OWNER(x)    (db[x].owner)
 #define FLAGS(x)    (db[x].flags)
 #define FLAG2(x)    (db[x].flag2)
-#define FLAG3(x)    (db[x].flag3)
-#define FLAG4(x)    (db[x].flag4)
-#define POWERS(x)   (db[OWNER(x)].powers)
-#define POWERSDB(x) (db[x].powers)
-#define POWER2(x)   (db[OWNER(x)].power2)
-#define POWER2DB(x) (db[x].power2)
+#define OWNER(x)    (db[x].owner)
 
 /* defines for possible data access mods. */
 #define GETMESG(x,y)   (get_property_class(x, y))
@@ -227,67 +158,29 @@ typedef int dbref;		/* offset into db */
 
 #define F2GUEST		    0x1     /* Guest character */
 #define F2LOGWALL	          0x2     /* Wizard sees logs walled */
-#define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ 
+#define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ /* Why can't we just make this automatic? */
 #define F2HIDDEN            0x8     /* The new HIDDEN flag */
-#define F2MOBILE	         0x10     /* Mobile object */ 
+#define F2MOBILE	         0x10     /* Mobile object */ /* What use is this, really? */
 #define F2PUEBLO           0x20     /* Player has Pueblo multimedia support */
 #define F2HTML             0x40     /* Player has at least BASIC HTML, maybe Pueblo */
-#define F2MCP              0x80     /* Legacy. Was for Loki's MCP programs */ 
+#define F2MCP              0x80     /* Program is a MUCK C Program. */ /* Should we keep MCP? */
 #define F2PROTECT         0x100     /* The new PROTECT flag */
 #define F2PARENT          0x200     /* The new PARENT flag */
-#define F2COMMAND         0x400     /* For command props - INTERNAL FLAG ONLY */
+#define F2COMMAND         0x400     /* For the new MUSH-style commands -- NO SUPPORT YET */
 #define F2EXAMINE_OK      0x800     /* The new EXAMINE_OK flag */
 #define F2ANTIPROTECT    0x1000     /* Anti-protect flag to allow a wizard to combat against PROTECT. */
-#define F2IDLE           0x2000     /* To watch if someone is idle or not. */
-#define F2NO_COMMAND     0x4000     /* Set on an object to prevent command props from being ran */
-#define F2LIGHT          0x8000     /* The LIGHT flag to counteract against the DARK flag */
-#define F2TRUEIDLE      0x10000     /* To watch if someone is idle past the @tune'd idletime */
-
-/* Proto @Powers */
-
-#define POW_ANNOUNCE          0x1   /* [a] Can use @wall and dwall commands */
-#define POW_BOOT              0x2   /* [b] Can use @boot and dboot commands */
-#define POW_CHOWN_ANYTHING    0x4   /* [c] Can @chown anything, unless it is PROTECTed */
-#define POW_EXPANDED_WHO      0x8   /* [x] Gets the wizard version of WHO */
-#define POW_HIDE             0x10   /* [h] Can set themselves DARK or login HIDDEN */
-#define POW_IDLE             0x20   /* [i] Not effected by the idle limit */
-#define POW_LINK_ANYWHERE    0x40   /* [l] Can @link an exit to anywhere */
-#define POW_LONG_FINGERS     0x80   /* [g] Can do anything from a long distance */
-#define POW_NO_PAY          0x100   /* [n] Infinite money */
-#define POW_OPEN_ANYWHERE   0x200   /* [o] @open an exit from any location */
-#define POW_PLAYER_CREATE   0x400   /* [p] @pcreate, @newpassword, @name */
-#define POW_SEARCH          0x800   /* [s] Can use @find, @entrances, and @contents */
-#define POW_SEE_ALL        0x1000   /* [e] Can examine any object, and @list any program */
-#define POW_TELEPORT       0x2000   /* [t] Fee use of @teleport */
-#define POW_SHUTDOWN       0x4000   /* [d] Ability to @shutdown and @restart*/
-#define POW_CONTROL_MUF    0x8000   /* [f] Ability to control all MUFs */
-#define POW_CONTROL_ALL   0x10000   /* [r] Ability to control all objects */
-#define POW_ALL_MUF_PRIMS 0x20000   /* [m] Gives full access to MUF prims */
-#define POW_STAFF         0x40000   /* [w] Special support for 'staff' bits in MUF */
-#define POW_PLAYER_PURGE      0x80000   /* [u] @purge and @toad power */
-
-/* FREE POWER LETTERS: jkqvyz */
 
 /* what flags to NOT dump to disk. */
 #define DUMP_MASK	(INTERACTIVE | SAVED_DELTA | OBJECT_CHANGED | LISTENER | READMODE | SANEBIT)
-#define DUM2_MASK	(F2IDLE | F2COMMAND | F2TRUEIDLE)
-#define DUM3_MASK (0)
-#define DUM4_MASK (0)
-
-/* what powers to NOT dump to disk. */
-#define POWERS_DUMP_MASK (0)
-#define POWER2_DUMP_MASK (0)
+#define DUM2_MASK	(0)
 
 typedef int object_flag_type;
-typedef int object_power_type;
 
 #define DoNull(s) ((s) ? (s) : "")
 #define Typeof(x) ((x == HOME) ? TYPE_ROOM : (FLAGS(x) & TYPE_MASK))
 
 #define MAN	(1)
 #define Man(x)   ((x) == MAN)
-#define GOD (1)
-#define God(x)   ((x) == GOD)
 
 #define LMAN	(9)
 #define LBOY      (8)
@@ -300,12 +193,10 @@ typedef int object_power_type;
 #define LMUF	(2)
 #define LMPI	(1)
 
-#define CheckMWLevel(x)       ( ( ((FLAGS(x) & W4)?1:0)<<3 ) + \
+#define RawMWLevel(x)         ( ( ((FLAGS(x) & W4)?1:0)<<3 ) + \
                                 ( ((FLAGS(x) & W3)?1:0)<<2 ) + \
                                 ( ((FLAGS(x) & W2)?1:0)<<1 ) + \
                                 ( ((FLAGS(x) & W1)?1:0)    )    )
-
-extern int RawMWLevel(dbref thing);
 
 #define RawMLevel(x)    ( Man(x) ? LMAN : RawMWLevel(x) )
 
@@ -322,13 +213,11 @@ extern int RawMWLevel(dbref thing);
 #define TBoy(x)         (MLevel(x) >= LBOY)
 #define TArch(x)		(MLevel(x) >= LARCH)
 #define TWiz(x)		(MLevel(x) >= LWIZ)
-#define TWizard(x)      (MLevel(x) >= LWIZ)
 #define TMage(x)		(MLevel(x) >= LMAGE)
 
 #define Boy(x)          (QLevel(x) >= LBOY)
 #define Arch(x)		(QLevel(x) >= LARCH)
 #define Wiz(x)		(QLevel(x) >= LWIZ)
-#define Wizard(x)       (QLevel(x) >= LWIZ)
 #define Mage(x)		(QLevel(x) >= LMAGE)
 
 #define Mucker3(x) (MLevel(x) >= LM3)
@@ -336,8 +225,6 @@ extern int RawMWLevel(dbref thing);
 #define Mucker1(x) (MLevel(x) >= LM1)
 #define Mucker(x)	 (MLevel(x) >= LMUF)
 #define Meeper(x)	 (MLevel(x) >= LMPI)
-
-#define WizHidden(x)    (QLevel(x) >= (tp_wizhidden_access_bit+4))
 
 
 #define PREEMPT 0
@@ -365,19 +252,10 @@ extern int RawMWLevel(dbref thing);
 #define Linkable(x) ((x) == HOME || \
                      (((Typeof(x) == TYPE_ROOM || Typeof(x) == TYPE_THING) ? \
                       (FLAGS(x) & ABODE) : (FLAGS(x) & LINK_OK)) != 0))
-#define Light(x)    (FLAG2(x) & F2LIGHT)
+#define Light(x)    ( FLAGS(x) & LINK_OK && !(Typeof(x) == TYPE_ROOM) && !(Typeof(x) == TYPE_PROGRAM) )
 #define Protect(x)  (FLAG2(x) & F2PROTECT)
 #define Hidden(x)   (FLAG2(x) & F2HIDDEN)
 
-#define OkObj(x)  ( ((x) >= 0) && ((x) < db_top) )
-#define OkRoom(x) ( OkObj(x) && (Typeof(x)==TYPE_ROOM) )
-#define EnvRoom   ( OkRoom(GLOBAL_ENVIRONMENT) ? GLOBAL_ENVIRONMENT : 0 )
-#define RootRoom  ( (const) (OkRoom(tp_player_start) ? tp_player_start : EnvRoom) )
-#define OkType(x) (	(Typeof(x)==TYPE_THING) ||	\
-			(Typeof(x)==TYPE_ROOM) ||	\
-			(Typeof(x)==TYPE_EXIT) ||	\
-			(Typeof(x)==TYPE_PLAYER) ||	\
-			(Typeof(x)==TYPE_PROGRAM)	)
 
 /* Boolean expressions, for locks */
 typedef char boolexp_type;
@@ -411,48 +289,29 @@ struct line {
     struct line *next, *prev;	/* the next line and the previous line */
 };
 
-/* constants and defines for MUV data types */
-#define MUV_ARRAY_OFFSET		16
-#define MUV_ARRAY_MASK			(0xff << MUV_ARRAY_OFFSET)
-#define MUV_ARRAYOF(x)			(x + (1 << MUV_ARRAY_OFFSET))
-#define MUV_TYPEOF(x)			(x & ~MUV_ARRAY_MASK)
-#define MUV_ARRAYSETLEVEL(x,l)	((l << MUV_ARRAY_OFFSET) | MUF_TYPEOF(x))
-#define MUV_ARRAYGETLEVEL(x)	((x & MUV_ARRAY_MASK) >> MUV_ARRAY_OFFSET)
-
 /* stack and object declarations */
 /* Integer types go here */
-#define PROG_VARIES      255    /* MUV flag denoting variable number of args */
-#define PROG_VOID        254    /* MUV void return type */
-#define PROG_UNTYPED     253    /* MUV unknown var type */
-
-#define PROG_CLEARED       0
-#define PROG_PRIMITIVE     1	/* forth prims and hard-coded C routines */
-#define PROG_INTEGER       2	/* integer types */
-#define PROG_FLOAT         3    /* Floating point numbers */
-#define PROG_OBJECT        4	/* database objects */
-#define PROG_VAR           5	/* variables */
-#define PROG_LVAR          6	/* variables */
-#define PROG_SVAR          7    /* variables */
+#define PROG_CLEARED     0
+#define PROG_PRIMITIVE   1	/* forth prims and hard-coded C routines */
+#define PROG_INTEGER     2	/* integer types */
+#define PROG_FLOAT       3    /* Floating point numbers */
+#define PROG_OBJECT      4	/* database objects */
+#define PROG_VAR         5	/* variables */
+#define PROG_LVAR        6	/* variables */
+#define PROG_SVAR        7    /* variables */
 /* Pointer types go here, numbered *AFTER* PROG_STRING */
-#define PROG_STRING        9	/* string types */
-#define PROG_FUNCTION      10   /* function names for debugging. */
-#define PROG_LOCK          11	/* boolean expression */
-#define PROG_ADD           12	/* program address - used in calls&jmps */
-#define PROG_IF            13	/* A low level IF statement */
-#define PROG_EXEC          14	/* EXECUTE shortcut */
-#define PROG_JMP           15	/* JMP shortcut */
-#define PROG_ARRAY         16   /* Array @ = (r1)..(ri) (i) */
-#define PROG_DICTIONARY    17   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
-#define PROG_SOCKET        18   /* ProtoMUCK socket type */
-#define PROG_MARK          19   /* Stack markers */
-#define PROG_SVAR_AT       20   /* @ shortcut for scoped vars */
-#define PROG_SVAR_AT_CLEAR 21   /* @ for scoped vars with optimization on */
-#define PROG_SVAR_BANG     22   /* ! shortcut for scoped vars */
-#define PROG_TRY           23   /* TRY shortcut */
-#define PROG_LVAR_AT       24   /* @ shortcut for lvars */
-#define PROG_LVAR_AT_CLEAR 25   /* @ for local vars with var clear optim */
-#define PROG_LVAR_BANG     26   /* ! shortcut for local vars */
-#define PROG_MYSQL         27   /* A MySQL database connection */
+#define PROG_STRING      9	/* string types */
+#define PROG_FUNCTION    10   /* function names for debugging. */
+#define PROG_LOCK        11	/* boolean expression */
+#define PROG_ADD         12	/* program address - used in calls&jmps */
+#define PROG_IF          13	/* A low level IF statement */
+#define PROG_EXEC        14	/* EXECUTE shortcut */
+#define PROG_JMP         15	/* JMP shortcut */
+#define PROG_DECLVAR     16   /* DECLare scoped VARiables */
+#define PROG_ARRAY       17   /* Array @ = (r1)..(ri) (i) */
+#define PROG_DICTIONARY  18   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
+#define PROG_SOCKET      19   /* NeonMuck socket type */
+#define PROG_MARK        20   /* Stack markers -- not in yet */
 
 #define MAX_VAR        104	/* maximum number of variables including the
 				 * basic ME and LOC                */
@@ -477,69 +336,29 @@ struct stack_addr {             /* for the system calstack */
     struct inst *offset;        /* the address of the call */
 };
 
+
+struct muf_socket {             /* placeholder so more data can be */
+   int socknum;                 /* added at a later date  --Loki   */
+   int connected;
+   int links;
+   char lastchar;
+};
+
 struct stk_array_t;
-
-struct muf_socket {             /* struct for MUF socket data */
-   int socknum;                 /* The descriptor number for the socket */
-   int connected;               /* Set to 1 if ever connected */
-   int listening;               /* Set to 1 if successfully opened listening */
-   int links;                   /* Number of instances of the socket. */
-   int host;                    /* the host address integer */
-   char *raw_input;             /* recieve queue for telnet connections. */
-   char *raw_input_at;          /* for use in handling the recieve queue */
-   int  inIAC;                  /* For correct telnet negotiations. */
-   int connected_at;            /* Systime connection was made. */
-   int last_time;               /* last time command recieved. */
-   const char *hostname;        /* string host name for incoming cons */
-   const char *username;        /* string user name for incoming cons */
-   int commands;                /* number of commands entered. */
-   int port;                    /* port number that LSOCKET is listening on */
-   int usequeue;                /* toggles recieve buffer behavior */
-   int usesmartqueue;          /* makes the socket completely telnet savy */
-   int is_player;               /* means to not close the socket when clearing*/
-   int readWaiting;             /* to support socket events */
-};
-
-struct muf_socket_queue {
-    int pid;                        /* to keep track of the correct frame */
-    struct muf_socket *theSock;     /* points to the MUF socket item */
-    struct frame *fr;               /* the frame the socket belongs to */
-    struct muf_socket_queue *next;
-};
-
-#ifdef SQL_SUPPORT
-struct muf_sql { /* struct for MUF SQL connections */
-    MYSQL *mysql_conn; /* The connection descriptor struct */
-    int connected;     /* Bool indicating if connected or not */
-    int timeout;       /* Timeout for this connection */
-    int links;         /* number of instances of this connection */
-};
-#endif
-
-struct muf_proc_data {
-    char *procname;
-	int vars;
-	int args;
-	const char **varnames;
-};
 
 struct inst {			/* instruction */
     short   type;
     short   line;
     union {
-        struct shared_string *string;  /* strings */
-        struct boolexp *lock;     /* boolean lock expression */
-        int     number;		  /* used for both primitives and integers */
-        double  fnumber;          /* used for float storage */
-        dbref   objref;		  /* object reference */
-        struct stk_array_t *array;/* FB6 style array */
-        struct inst *call;	  /* use in IF and JMPs */
-        struct prog_addr *addr;   /* the result of 'funcname */
-        struct muf_socket *sock;  /* a ProtoMUCK socket */
-#ifdef SQL_SUPPORT
-	struct muf_sql *mysql;    /* A MySQL connection */
-#endif
-        struct muf_proc_data *mufproc; /* Data specific to each procedure */
+	struct shared_string *string;  /* strings */
+	struct boolexp *lock;     /* boolean lock expression */
+	int     number;		  /* used for both primitives and integers */
+      float   fnumber;          /* used for float storage */
+	dbref   objref;		  /* object reference */
+	struct inst *call;	  /* use in IF and JMPs */
+	struct prog_addr *addr;   /* the result of 'funcname */
+      struct stk_array_t *array;/* FB6 style array */
+      struct muf_socket *sock;  /* a neonmuck socket */
     }       data;
 };
 
@@ -553,14 +372,6 @@ struct forvars {
 	struct inst end;
 	int step;
 	struct forvars *next;
-};
-
-struct tryvars {
-	int depth;
-	int call_level;
-	int for_count;
-	struct inst *addr;
-	struct tryvars *next;
 };
 
 struct stack {
@@ -578,11 +389,9 @@ struct callstack {
     dbref   st[STACK_SIZE];
 };
 
-struct localvars {
-	struct localvars *next;
-	struct localvars **prev;
-	dbref prog;
-	vars lvars;
+struct varstack {
+    int     top;
+    vars   *st[STACK_SIZE];
 };
 
 struct forstack {
@@ -590,19 +399,12 @@ struct forstack {
 	struct forvars *st;
 };
 
-struct trystack {
-	int top;
-	struct tryvars *st;
-};
-
 #define MAX_BREAKS 16
 struct debuggerdata {
     unsigned debugging:1;   /* if set, this frame is being debugged */
-    unsigned force_debugging:1; /* if set, debugger active even without Z */
     unsigned bypass:1;      /* if set, bypass breakpoint on starting instr */
     unsigned isread:1;      /* if set, the prog is trying to do a read */
     unsigned showstack:1;   /* if set, show stack debug line, each inst. */
-    unsigned dosyspop:1;    /* if set, fix system stack before returning */
     int lastlisted;         /* last listed line */
     char *lastcmd;          /* last executed debugger command */
     short breaknum;         /* the breakpoint that was just caught on */
@@ -624,7 +426,6 @@ struct debuggerdata {
 
 struct scopedvar_t {
       int count;
-      const char** varnames;
       struct scopedvar_t *next;
       struct inst vars[1];
 };
@@ -632,11 +433,6 @@ struct scopedvar_t {
 struct dlogidlist {
       struct dlogidlist *next;
       char dlogid[32];
-};
-
-struct mufwatchpidlist {
-	struct mufwatchpidlist *next;
-	int pid;
 };
 
 #define STD_REGUID  0
@@ -650,19 +446,15 @@ struct frame {
     struct stack argument;          /* argument stack */
     struct callstack caller;        /* caller prog stack */
     struct forstack fors;           /* for loop stack */
-    struct trystack trys;           /* try block stack */
-    struct localvars* lvars;        /* local variables */
+    struct varstack varset;         /* local variables */
     vars    variables;              /* global variables */
     struct inst *pc;                /* next executing instruction */
     int     writeonly;              /* This program should not do reads */
     int     multitask;              /* This program's multitasking mode */
     int     perms;                  /* permissions restrictions on program */
     int     level;                  /* prevent interp call loops */
-    int     preemptlimit;           /* cap preempt insts in _/instlimit prop */
     short   already_created;        /* this prog already created an object */
     short   been_background;        /* this prog has run in the background */
-    short   skip_declare;           /* tells interp to skip next scoped var decl */
-    short   wantsblanks;            /* tells interps to accept blank reads */
     dbref   trig;                   /* triggering object */
     dbref   prog;                   /* program dbref */
     dbref   player;                 /* person who ran the program */
@@ -670,18 +462,12 @@ struct frame {
     int     instcnt;                /* How many instructions have run. */
     int     timercount;             /* How many timers currently exist. */
     int     pid;                    /* what is the process id? */
-    char   *errorstr;               /* The error string thrown */
-    int     aborted;                /* indicates program aborted */
     int     descr;                  /* Descriptor of running player */
     void *rndbuf;                   /* buffer for seedable random */
     struct scopedvar_t *svars;      /* Variables with function scoping. */
     struct mufevent *events;        /* MUF event list. */
     struct debuggerdata brkpt;      /* info the debugger needs */
-    struct timeval proftime;        /* profiling timing code */
-    struct timeval totaltime;       /* profiling timing code */
     struct dlogidlist *dlogids;     /* List of dlogids this frame uses. */
-    struct mufwatchpidlist *waiters;
-     struct mufwatchpidlist *waitees;
 	union {
 		struct {
 			unsigned int div_zero:1;	/* Divide by zero */
@@ -705,16 +491,6 @@ struct publics {
     struct publics *next;
 };
 
-
-struct mcp_binding {
-	struct mcp_binding *next;
-
-	char *pkgname;
-	char *msgname;
-	struct inst *addr;
-};
-
-
 /* union of type-specific fields */
 
 union specific {      /* I've been railroaded! */
@@ -736,24 +512,18 @@ union specific {      /* I've been railroaded! */
 	short   insert_mode;	/* in insert mode? */
 	short   block;
 	const char *password;
-        int*    descrs;
-        short   descr_count;
-        int     last_descr;
     }       player;
-    struct {			      /* PROGRAM-specific fields */
-	short   curr_line;	      /* current-line */
-	unsigned short instances;     /* #instances of this prog running */
-	int     siz;		      /* size of code */
-	struct inst *code;	      /* byte-compiled code */
-	struct inst *start;	      /* place to start executing */
-	struct line *first;	      /* first line */
-	struct publics *pubs;	      /* public subroutine addresses */
-	struct mcp_binding *mcpbinds;	/* MCP message bindings. */
-      struct timeval proftime;      /* Profiling time spent in this program */
-      time_t profstart;             /* Time when profiling started for this prog */
-      unsigned int profuses;        /* # calls to this program while profiling */
+    struct {			/* PROGRAM-specific fields */
+	short   curr_line;	/* current-line */
+	unsigned short instances;  /* #instances of this prog running */
+	int     siz;		/* size of code */
+	struct inst *code;	/* byte-compiled code */
+	struct inst *start;	/* place to start executing */
+	struct line *first;	/* first line */
+	struct publics *pubs;	/* public subroutine addresses */
     }       program;
 };
+
 
 /* timestamps record */
 
@@ -784,12 +554,9 @@ struct object {
     short   spacer;
 #endif
 
-    object_flag_type flags, flag2, flag3, flag4;
-    object_power_type powers, power2;
+    object_flag_type flags, flag2;
     struct timestamps ts;
     union specific sp;
-    unsigned int     mpi_prof_use;
-    struct timeval   mpi_proftime;
 };
 
 struct macrotable {
@@ -830,8 +597,6 @@ extern dbref db_top;
 extern char *alloc_string(const char *);
 #endif
 
-extern struct line * read_program(dbref);
-extern struct line * get_new_line(void);
 extern int fetch_propvals(dbref obj, const char *dir);
 
 extern dbref getparent(dbref obj);
@@ -840,15 +605,13 @@ extern dbref db_write_deltas(FILE *f);
 
 extern void free_prog_text(struct line * l);
 
-extern void write_program(struct line * first, dbref i);
+extern int write_program(struct line * first, dbref i, dbref saver);
 
 extern void log_program_text(struct line * first, dbref player, dbref i);
 
-#ifndef MALLOC_PROFILING
 extern struct shared_string *alloc_prog_string(const char *);
-#endif
 
-extern dbref new_object(void);	/* return a new object */
+extern dbref new_object();	/* return a new object */
 
 extern dbref getref(FILE *);	/* Read a database reference from a file. */
 
@@ -885,9 +648,7 @@ extern void db_clear_object(dbref i);
 
 extern void macrodump(struct macrotable *node, FILE *f);
 
-extern void macroload(FILE *f);
-
-extern int WLevel(dbref player);
+extern void macroload();
 
 #define DOLIST(var, first) \
   for((var) = (first); (var) != NOTHING; (var) = DBFETCH(var)->next)
@@ -923,14 +684,6 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
-
-
-
-
-
-
-
-
 
 
 

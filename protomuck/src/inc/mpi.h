@@ -5,14 +5,15 @@
 #define MPI_ISLISTENER	0x02
 #define MPI_ISLOCK	0x04
 #define MPI_ISDEBUG	0x08
-#define MPI_NOHOW       0x20
 
+#ifdef MPI
 
 extern char *
 mesg_parse(int descr, dbref player, dbref what, dbref perms,
             const char *inbuf, char *outbuf,
             int maxchars, int mesgtyp);
 
+#endif /* MPI */
 
 extern char *
 do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms, const char *inbuf,

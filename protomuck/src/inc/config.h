@@ -1,6 +1,6 @@
 /*
- * Revision 1.4  2001/02/17 12:22:25  alynna 
- * Make this thing compile flawlessly under CYGWIN  
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.1.1.1 2000-09-18 01:04:32 akari Exp $
+ * $Log: not supported by cvs2svn $
  *
  * Revision 1.3  2000/06/27 22:32:17  moose
  * Edited for ProtoMUCK
@@ -14,9 +14,6 @@
  * Tunable parameters -- Edit to you heart's content 
  *
  */
-#ifndef __CONFIG_H
-#define __CONFIG_H
-
 #include "copyright.h"
 
 /************************************************************************
@@ -26,97 +23,15 @@
  are compiled in.
  ************************************************************************/
 
-/* Alynna - Lets make something so that later on it will see the CYGWIN 
- * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN
- * will be detected.  If not, define me.
- */
-#undef CYGWIN 
-
-/* If compiling for OS-X, #define this and follow these instructions:
- * After running ./configure, edit Makefile and change the line that
- * reads: CC=gcc to
- *        CC=cc -no-cpp-precomp
- * Edit the restart script line that
- * reads: #limit stacksize 16384 to
- *         limit stacksize 16384
- */
-#undef APPLE
-  
-/* Alynna - If you defined CYGWIN, set these to your timezone offset in 
- * hours.  -8 = PST, -5 = EST, 0 = GMT 
- */
-#define CYGWIN_TZ -8 
-#define CYGWIN_TZX "PST" 
-
-/* Define this to disable the colors used in many of the in-server
- * commands. Leave it undefined for traditional in-server ANSI 
- * in the MUCK's commands.
- * System colors are defined at the end of interface.h as SYS<color>
- * tags. If you would like to make it so that only certain colors
- * are used in-server, you could define this, and then go define
- * specifically which colors you want used. Otherwise, pretty much
- * all the color used in in-server commands will be disabled by
- * #defining this. 
- */
-#undef NO_SYSCOLOR
-
-/* Define this to compile with MySQL support. MySQL must be installed
- * somewhere on your system. When compiling with this option, you
- * MUST run ./configure --with-mysql in the proto/src directory
- * in order to include the necessary MySQL libraries. 
- * If the mysql headers are in the normal /user/include/mysql/
- * location, then it will find it fine. Otherwise, type:
- * ./configure --with-mysql=<path to the mysql headers>
- */
-#undef SQL_SUPPORT
-
-/* Define FILE_PRIMS to compile in a set of W4 level file-access
- * and control prims. The file prims are often a problem when
- * compiling on non-linux servers, so if you are having problems
- * compiling p_file.c, and don't intend to use file prims, you may
- * want to undef this.
- */
-
-#define FILE_PRIMS
-
-/* Define MUF_SOCKETS to include the MUF socket prims.
- * MUF socket support is necessary for any MUF programs
- * that involve opening connections to other servers,
- * or opening listening ports in MUF. However, this support
- * will often prevent a clean compile on some systems, so
- * if you are encountering compile time errors in p_socket.c
- * you may want to undef this.
- */
-
-#define MUF_SOCKETS
-
-/* Define MUF_EDIT_PRIMS to compile in a set of prims that have
- * the ability to edit MUF code or the MUF macros. This can be
- * potentially risky, as it grants the MUF code the ability to edit
- * other MUF code, so if you have doubts about its use, #undef it.
- */
-
-#define MUF_EDIT_PRIMS
-
 /* Detaches the process as a daemon so that it don't cause problems
  * keeping a terminal line open and such. Logs normal output to a file
- * and writes out a protomuck.pid file
+ * and writes out a protomuck.pid file 
  */
+#undef DETACH
 
-
-#define DETACH
-
-// If you have problems compiling with DETACH defined, uncomment one
-// of these:
-
-// For Linux and most POSIX
-// #define USE_SID
-
-// For SysV stuff
-// #define USE_SYSVPGRP
-
-// For BSDs
-// #define USE_BSDPGRP
+/* Makes God (#1) immune to @force, @newpassword, and being set !Wizard.  
+ */
+#define GOD_PRIV
 
 /* Use to compress string data (recomended)
  */
@@ -140,20 +55,23 @@
  * TinyMUD Classic ran on that port.  It was the office number of James
  * Aspnes, who wrote TinyMUD from which TinyMUCK eventually was derived.
  *
- * Please note: ProtoMUCK will use up to 3 ports:
+ * Please note: ProtoMUCK will use up to 4 ports:
  *
- * The main port (set it here or in restart or in parmfile.cfg  or at startup)
+ * The internal port (don't worry about this, just make sure it's a free 
+ *  port.)
  *
- * The HTTPD port (Defaults to 1 below main port. Can be changed in
- *                 parmfile.cfg) 
+ * The main port (set it here or in config or at startup)
  *
- * The Pueblo port (Defaults to 2 below main port. Can be changed in 
- *                  parmfile.cfg) 
+ * The HTTPD port (set it here or in config or at startup)
+ *
+ * The Pueblo port (set it here or in config or at startup)
  *
  */
 
-#define TINYPORT      4567    /* Port that tinymuck uses for playing */
-
+#define INTERNAL_PORT 3006
+#define TINYPORT 3005
+#define WWWPORT 3004
+#define PUEBLOPORT 3007
 /*
  * Some systems can hang for up to 30 seconds while trying to resolve
  * hostnames.  Define this to use a non-blocking second process to resolve
@@ -161,24 +79,38 @@
  * (make resolver) and put it in the directory that the protomuck program is
  * run from.
  */
-#define SPAWN_HOST_RESOLVER
+#undef SPAWN_HOST_RESOLVER
 
-/* If this is defined, the resolver will try to restart itself if killed. */
-#define RESTART_RESOLVER 
+/*
+ * Set this to be the file that you wish the ProtoMUCK file prims to
+ * be set to save to by default. "files/" is the normal directory
+ * chosen, though "../public_html" might be another favorite. Setting
+ * this to a directory that does not exist will disable file prims 
+ * except for use with shortcuts.
+ */
+#define FILE_PRIMS_DIRECTORY "files/"
 
 /* Debugging info for database loading */
-/* Alynna - Obsoleted, use -verboseload command line option */
-/* #undef VERBOSELOAD */
+#undef VERBOSELOAD
 
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
 /* a bad net connection for the server. */
 #undef DEBUGPROCESS
 
-/* Define this to make various system related @tune options changable */
-/* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
-/* all @tune options as before. */
-#undef W4_TUNEABLES
+/* Define MORTWHO to make it so wizards need to type WHO! to see hosts */
+/* When undefined, WHO! will show the mortal WHO+@doing (without going Q) */
+#define MORTWHO
+
+/* Define to compile in RWHO support */
+#undef RWHO
+
+/* Define to compile in MPI support */
+#define MPI
+
+/* Define to require that a room a Guest can go in have the Guest flag */
+/* If undefined, Guests will be banned from rooms with a Guest flag */
+#define G_NEEDFLAG
 
 /* Define to compile in HTTPD server WWW page support */
 #define HTTPD
@@ -187,31 +119,50 @@
 /* The _/www:http://... links won't work on some clients without it. */
 #define HTTPDELAY
 
-/* Define this to turn off the 'exiting insert mode' message in the
- * MUF editor for the picky programmer in you.
+/* Define this to compile the old FB-style PARSEPROP in.
+ * If undefined, PARSEPROP is an internal alias to Proto's PARSEMPI
  */
-#undef NO_EXITMSG
+#define OLDPARSE
 
-/* Define the following to allow dynamic linked exits. This allows
- * an action's destination to be changed by the message calls, 
- * either by using MUF or MPI within the calls.  
- * I.e., @succ, @odrop, ect. Only requirement is that the new
- * destination must be of the same type as the old destination.
- * If the exit points to a room, the reassigned destination must
- * point to a room as well, and this does not work with actions
- * that are pointing to programs.   
+/* Define this for old, FB-style control checks (e.g. W2 and higher
+ * control everything, instead of you-control-everything-with-a
+ * Lower-level-than-you.
  */
-#define DYNAMIC_LINKS
+#define FB_CONTROLS
+
+/* Define this to compile in support for the older, less secure _connect
+ * _disconnect, _arrive, _depart, and such triggers as well as Proto's
+ * ~arrive, ~depart, etc.
+ */
+#define ALLOW_OLD_TRIGGERS
+
+/* Define this to keep backups of past dumps instead of deleting them.
+ *
+ */
+#define KEEPDUMPS
 
 /* Define this to set which server to use for e-mail registration.
  */
-#define MAILSERVER "mail.somewhere.com"
+#define MAILSERVER "mail.eskimo.com"
 
 /* Needed for a dummy load at startup.  Define to a small MIDI
  * somewhere which has the correct MIME type.  Preferably on
  * your local server.
  */
-#define DUMMYMIDI "http://www.somewhere.com/~user/asong.mid"
+#define DUMMYMIDI "http://adobe.chaco.com/~jeremy/ami/smoon.mid"
+
+/* This is a shortcut.  Define this to add ALL compatiblity options.
+ * To ensure TinyMUCKfb compatiblity.
+ */
+#undef TINYMUCKFB_COMPAT
+
+
+/* All compiler directives to mod for FB support go in here. */
+#ifdef TINYMUCKFB_COMPAT
+   #define OLDPARSE
+   #define ALLOW_OLD_TRIGGERS
+   #define FB_CONTROLS
+#endif
 
 /************************************************************************
    Game Options
@@ -221,7 +172,7 @@
 
 /* Set this to your mark for shouts, dumps, etc.  Also change @tunes */
 
-#define MARK "[!]"
+#define MARK "[!] "
 
 /* Make the `examine' command display full names for types and flags */
 #define VERBOSE_EXAMINE
@@ -310,7 +261,6 @@
 #define COMMAND_LOG "logs/commands"     /* Player commands */
 #define PROGRAM_LOG "logs/programs"     /* text of changed programs */
 #define CONNECT_LOG "logs/connects"	/* text of connection info */
-#define HELP_LOG    "logs/help"         /* text of failed help attemtps */
 
 #define MACRO_FILE  "muf/macros"
 #define PID_FILE    "protomuck.pid"      /* Write the server pid to ... */
@@ -320,15 +270,6 @@
 #ifdef LOCKOUT
 # define LOCKOUT_FILE "data/lockout.txt"
 #endif /* LOCKOUT */
-
-/*
- * Set this to be the file that you wish the ProtoMUCK file prims to
- * be set to save to by default. "files/" is the normal directory
- * chosen, though "../public_html" might be another favorite. Setting
- * this to a directory that does not exist will disable file prims 
- * except for use with shortcuts.
- */
-#define FILE_PRIMS_DIRECTORY "files/"
 
 #ifdef DETACH
 # define LOG_FILE "logs/protomuck"          /* Log stdout to ... */      
@@ -341,17 +282,14 @@
   You probably will not have to monkey with this unless the muck fails
  to compile for some reason.
  ************************************************************************/
-#ifdef APPLE
-#define __FreeBSD__
-#endif
 
 /* If you get problems compiling strftime.c, define this. */
-#undef USE_STRFTIME
+#define USE_STRFTIME
 
 /* Use this only if your realloc does not allocate in powers of 2
  * (if your realloc is clever, this option will cause you to waste space).
  * SunOS requires DB_DOUBLING.  ULTRIX doesn't.  */
-#define DB_DOUBLING
+#define  DB_DOUBLING
 
 /* Prevent Many Fine Cores. */
 #undef NOCOREDUMP
@@ -365,7 +303,7 @@
 /* This gives some debug malloc profiling, but also eats some overhead,
    so only define if your using it. */
 #undef MALLOC_PROFILING
-/* #undef CRT_DEBUG_ALSO TRUE */
+#undef CRT_DEBUG_ALSO
 
 /************************************************************************/
 /************************************************************************/
@@ -398,30 +336,10 @@
 #include <ctype.h>
 #include <sys/types.h>
 
-#ifdef _MSC_VER 
-/* 
- * If you are using Visual C++, please use 6.0 or later.
- */
-#define WIN_VC
-#endif
-
-
-/* Alynna: I am just going to assume this works.  
- * Not touching VC++ with 10 foot pole.  :) */
-#ifdef WIN_VC
+#ifdef WIN32
 # include "winconf.h"
 # include "process.h"
 # include <winsock.h>
-# define  errnosocket WSAGetLastError()
-# ifdef  SPAWN_HOST_RESOLVER
-#  undef SPAWN_HOST_RESOLVER
-# endif
-  /* Define WINNT >= 4.0 to get better WinSock compile */
-# ifdef _WIN32_WINNT
-#  undef _WIN32_WINNT
-# endif
-# define _WIN32_WINNT 0x0400
-# include <windows.h>
 # define  strcasecmp(x,y) stricmp((x),(y))
 # define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
 # define  waitpid(x,y,z) cwait((y),(x),_WAIT_CHILD)
@@ -431,9 +349,7 @@
 # define  getdtablesize() (FD_SETSIZE)
 # define  readsocket(x,y,z) recv((x),(y),(z),0)
 # define  writesocket(x,y,z) send((x),(y),(z),0)
-# define  random() rand()
-# define  srandom() srand()
-  extern void gettimeofday(struct timeval *tval, void *tzone);
+# define  gettimeofday(x,y) (((x)->tv_sec = time(NULL)) + ((x)->tv_usec = 0))
 # define  errnosocket WSAGetLastError()
 #else
 # include "autoconf.h"
@@ -514,19 +430,9 @@
  * Not realy used for anything any more, probably can be scrapped,
  * will see in a version or so.
  */
-
-/* Alynna: Modified to define CYGWIN, just in case this really is CYGWIN
- * And the user didnt define it, and DONT define WIN32 here, as CYGWIN
- * fills in for WIN32.  The UNIX stuff will usually work.
- */
 #if defined(linux) || defined(__linux__) || defined(LINUX)
 # define SYS_TYPE "Linux"
 # define LINUX
-#endif
-
-#if defined(__CYGWIN__)
-# define SYS_TYPE "Cygwin"
-# define CYGWIN
 #endif
 
 #ifdef sgi
@@ -544,7 +450,7 @@
 # define ULTRIX
 #endif
 
-#ifdef bsd4_3
+#ifdef bds4_3
 # ifndef SYS_TYPE
 #  define SYS_TYPE "BSD 4.3"
 # endif
@@ -565,19 +471,12 @@
 
 #if defined(SYSTYPE_SYSV) || defined(_SYSTYPE_SYSV)
 # ifndef SYS_TYPE
-#  define SYS_TYPE "SYSV"
+#  define SYS_TYPE "SVSV"
 # endif
 #endif
 
-#if defined(__WINDOWS__) 
-# define SYS_TYPE "WINDOWS"
-# if !defined(WIN32) && !defined(__VISUAL_C__)
-#  define WIN32
-# endif
-#endif
-
-#if defined(WIN_VC)
-# define SYS_TYPE "WINDOWS"
+#if defined(__WINDOWS__)
+# define SYS_TYPE "WIN32"
 #endif
 
 #ifndef SYS_TYPE
@@ -591,6 +490,3 @@
 
 
 
-
-
-#endif /* _CONFIG_H_ */

@@ -21,7 +21,7 @@ echo "The program to find the optimized words took less than 15 minutes."
 echo ""
 
 echo "Uncompressing the input db..."
-./protomuck -convert -decompress $1 $tmpfile
+./neonmuck -convert -decompress $1 $tmpfile
 
 echo "Calculating the optimized wordlist..."
 ( \

@@ -3,8 +3,7 @@
  */
 
 extern char x2c(char *what);
-extern void unescape_url(char *url);
+extern unescape_url(char *url);
 extern char * getcgivar(char *cgiinput, char *param);
-extern void escape_url(char *out, char *in);
-
+extern escape_url(char *out, char *in);
 

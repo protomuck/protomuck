@@ -40,52 +40,40 @@ const char *version = PATCHLEVEL;
 
 const char *infotext[] =
 {
+
+    "ProtoMUCK " PROTOBASE " (" VERSION " -- " NEONVER ")",
     " ",
-    SYSRED "ProtoMUCK " PROTOBASE " " SYSWHITE "-- " SYSCRIMSON VERSION,
-#if defined(WIN32) || (WIN_VC)
-    SYSYELLOW "WINDOWS" SYSBROWN
-# ifdef WIN_VC
-        ": Visual C++"
-# else
-#  ifdef WIN_CY
-        ": Cygwin"
-#  endif
-# endif
+    "Based on the original code written by these programmers:",
+    "  David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",
+    " ",
+    "Others who have done major coding work along the way:",
+    "  Lachesis, ChupChups, FireFoot, Russ 'Random' Smith, Dr. Cat,",
+    "  Revar, Points, Loki, PakRat, Nodaitsu",
+    " ",
+    "ProtoMuck is derived from TinyMUCK, which was itself an extension",
+    "of TinyMUD.  Proto is an updated version of the NeonMUCK code base,",
+    "which originaly came from the FuzzBall distribution, by Foxen/Revar,",
+    "of TinyMUCK.",
+    " ",
+    "And, here is the list of the programmers for ProtoMUCK:",
+    "  Moose/Van  : ashitaka@home.com    Akari : Nakoruru08@hotmail.com",
+    " ",
+    "Thanks are also due towards the multiple people who had also",
+    "contributed ideas for the MUCK as we worked on it, and even tried to",
+    "help us out along the way.",
+    "Feel free to check ProtoMUCK's webpage at the following address:",
+    "http://protomuck.sourceforge.net/",
+    " ",
+#ifdef WINNT
+    "The Cygwin-32 freeware porting tools used to create the WinNT/95",
+    "distribution of ProtoMuck are created and maintained by Cygnus.",
+    "http://www.cygnus.com/gnu-win32 for more information.",
+    " ",
 #endif
-    " ",
-    SYSCYAN "Based on the original code written by these programmers:",
-    "  " SYSAQUA "David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",
-    " ",
-    SYSCYAN "Others who have provided major help along the way:",
-    "  " SYSAQUA "Lachesis, ChupChups, FireFoot, Russ 'Random' Smith, Dr. Cat,",
-    "  " SYSAQUA "Revar, Points, Loki, PakRat, Nodaitsu, Kaeru, Cutey_Honey,",
-    "  " SYSAQUA "Zobeid",
-    " ",
-    SYSWHITE "ProtoMuck is derived from TinyMUCK, which was itself an extension",
-    SYSWHITE
-        "of TinyMUD.  Proto is an updated version of the NeonMUCK code base,",
-    SYSWHITE
-        "which originaly came from the FuzzBall distribution, by Foxen/Revar,",
-    SYSWHITE "of TinyMUCK.",
-    " ",
-    SYSGREEN "And, here is the list of the programmers for ProtoMUCK:",
-    SYSFOREST "  Akari    - Project Administrator and Lead Programmer",
-    SYSFOREST "  Hinoserm - Programmer",
-    SYSFOREST "  Alynna   - Programmer and WinProto developer",
-    SYSFOREST "  Moose    - Retired Project Administrator",
-    " ",
-    SYSWHITE "Thanks are also due towards the multiple people who had also",
-    SYSWHITE
-        "contributed ideas for the MUCK as we worked on it, and helped",
-    SYSWHITE "us out along the way.",
-    SYSCYAN "Feel free to check ProtoMUCK's webpage at the following address:",
-    SYSAQUA "http://protomuck.sourceforge.net/",
-    " ",
-    SYSBLUE "The Pueblo multimedia protocol is (C)Chaco Communications.",
-    SYSBLUE "http://www.chaco.com/pueblo for more information.",
-    SYSBLUE "The recommended client by us for any mu* server is BeipMU*.",
-    SYSBLUE "http://beipmu.twu.net/ for more information.",
-    CINFO "Done.",
+    "The Pueblo multimedia protocol is (C)Chaco Communications.",
+    "http://www.chaco.com/pueblo for more information.",
+    "The recommended client by us for any mu* server is BeipMU*.",
+    "http://beipmu.twu.net/ for more information.",
     0,
 };
 
@@ -96,12 +84,10 @@ do_credits(dbref player)
     int i;
 
     for (i = 0; infotext[i]; i++) {
-        anotify_nolisten2(player, infotext[i]);
+        anotify(player, infotext[i]);
     }
 }
 EOF
 
 exit 0
-
-
 

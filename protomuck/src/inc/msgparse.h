@@ -1,3 +1,4 @@
+#ifdef MPI
 
 #define MAX_MFUN_NAME_LEN 16
 #define MAX_MFUN_LIST_LEN 512
@@ -47,10 +48,9 @@ dbref mesg_dbref_local(int descr, dbref player, dbref what, dbref perms, char *b
 char *ref2str(dbref obj, char *buf);
 int truestr(char *buf);
 
-int check_mvar_overflow(int count);
 int new_mvar(const char *varname, char *buf);
 char *get_mvar(const char *varname);
-int free_top_mvar(void);
+int free_top_mvar();
 
 int new_mfunc(const char *funcname, const char *buf);
 const char *get_mfunc(const char *funcname);
@@ -61,14 +61,14 @@ int free_mfuncs(int downto);
 #define MFUNARGS int descr, dbref player, dbref what, dbref perms, int argc, \
                 argv_typ argv, char *buf, int mesgtyp
 
-#define CHECKRETURN(vari,funam,num) if (!vari) { snprintf(buf, BUFFER_LEN, "%s %c%s%c (%s)", get_mvar("how"), MFUN_LEADCHAR, funam, MFUN_ARGEND, num);  notify_nolisten(player, buf, 1);  return NULL; }
+#define CHECKRETURN(vari,funam,num) if (!vari) { sprintf(buf, "%s %c%s%c (%s)", get_mvar("how"), MFUN_LEADCHAR, funam, MFUN_ARGEND, num);  notify_nolisten(player, buf, 1);  return NULL; }
 
-#define ABORT_MPI(funam,mesg) { snprintf(buf, BUFFER_LEN, "%s %c%s%c: %s", get_mvar("how"), MFUN_LEADCHAR, funam, MFUN_ARGEND, mesg);  notify_nolisten(player, buf, 1);  return NULL; }
+#define ABORT_MPI(funam,mesg) { sprintf(buf, "%s %c%s%c: %s", get_mvar("how"), MFUN_LEADCHAR, funam, MFUN_ARGEND, mesg);  notify_nolisten(player, buf, 1);  return NULL; }
 
 typedef char argv_typ[10][BUFFER_LEN];
 
 #define MesgParse(in,out) mesg_parse(descr, player, what, perms, (in), (out), BUFFER_LEN, mesgtyp)
 
 
-
+#endif /* MPI */
 

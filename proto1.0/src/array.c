@@ -25,12 +25,9 @@
   Remodified by Revar
 */
 
-#ifndef AVL_RT
+
 #define AVL_RT(x)  (x->right)
-#endif
-#ifndef AVL_LF
 #define AVL_LF(x)  (x->left)
-#endif
 #define AVL_KEY(x) (&(x->key))
 #define AVL_COMPARE(x,y) array_tree_compare(x,y)
 
@@ -450,7 +447,7 @@ array_tree_next_node(array_tree * ptr, array_iter * key)
  *****************************************************************/
 
 stk_array *
-new_array(void)
+new_array()
 {
 	stk_array *new;
 
@@ -490,7 +487,7 @@ new_array_packed(int size)
 
 
 stk_array *
-new_array_dictionary(void)
+new_array_dictionary()
 {
 	stk_array *new;
 
@@ -1483,10 +1480,8 @@ array_is_homogenous(stk_array * arr, int typ)
 
 
 
-
-
 int
-array_set_strkey(stk_array ** harr, const char *key, struct inst *val)
+array_set_strkey(stk_array ** harr, char *key, struct inst *val)
 {
 	struct inst name;
 	int result;
@@ -1504,16 +1499,20 @@ array_set_strkey(stk_array ** harr, const char *key, struct inst *val)
 
 
 int
-array_set_strkey_intval(stk_array ** arr, const char *key, int val)
+array_set_strkey_intval(stk_array ** arr, char *key, int val)
 {
+	struct inst name;
 	struct inst value;
 	int result;
 
+	name.type = PROG_STRING;
+	name.data.string = alloc_prog_string(key);
 	value.type = PROG_INTEGER;
 	value.data.number = val;
 
-	result = array_set_strkey(arr, key, &value);
+	result = array_setitem(arr, &name, &value);
 
+	CLEAR(&name);
 	CLEAR(&value);
 
 	return result;
@@ -1522,24 +1521,29 @@ array_set_strkey_intval(stk_array ** arr, const char *key, int val)
 
 
 int
-array_set_strkey_strval(stk_array ** harr, const char *key, const char *val)
+array_set_strkey_strval(stk_array ** harr, char *key, char *val)
 {
+	struct inst name;
 	struct inst value;
 	int result;
 
+	name.type = PROG_STRING;
+	name.data.string = alloc_prog_string(key);
 	value.type = PROG_STRING;
 	value.data.string = alloc_prog_string(val);
 
-	result = array_set_strkey(harr, key, &value);
+	result = array_setitem(harr, &name, &value);
 
+	CLEAR(&name);
 	CLEAR(&value);
 
 	return result;
 }
 
 
+
 int
-array_set_strkey_refval(stk_array ** harr, const char *key, dbref val)
+array_set_strkey_refval(stk_array ** harr, char *key, dbref val)
 {
 	struct inst value;
 	int result;
@@ -1553,7 +1557,6 @@ array_set_strkey_refval(stk_array ** harr, const char *key, dbref val)
 
 	return result;
 }
-
 
 
 

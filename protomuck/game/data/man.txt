@@ -1,12 +1,12 @@
 ==================================================================
-                     ProtoMUCK 1.80 MUF Manual
+                     ProtoMUCK 1.0 MUF Manual
 
 Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
 See CREDITS.
 
 To get manual information on a topic, type MAN <topic>. 
-There are several topics on working with MUF. See: MAN TOPIC LIST
+There are several topics on working with MUF. See: TOPIC LIST
 
 To view lists of prims for different prim categories:
 PRIMS1 - Variables, Multitasking, Math and Logic
@@ -14,8 +14,7 @@ PRIMS2 - Stacks, Control Structures, Props
 PRIMS3 - Time, Data Conversion, Notifying (I/O)
 PRIMS4 - Connections, Locks, Strings
 PRIMS5 - Data Base, System, Sockets
-PRIMS6 - Arrays, Files, MCP Prims
-PRIMS7 - MUF editing prims, MySQL prims
+PRIMS6 - Arrays, Files
 
 To view a list of prim topics: PRIMS LIST
 ~~~~~
@@ -23,68 +22,62 @@ PRIM1|PRIMS1|PRIMS|PRIMITIVES
 Variable Prims:
   VAR     VARIABLE     VARIABLE?     LVAR     LOCALVAR
   @       !            ME            TRIGGER  COMMAND
-  DESCR   VAR!
+  DESCR
 
 Multitasking Prims:
-  PREEMPT       FOREGROUND     BACKGROUND     MODE         SETMODE
+  PREEMPT       FOREGROUND     BACKGROUND     MODE     SETMODE
   PR_MODE       FG_MODE        BG_MODE        SLEEP
-  EVENT_WAIT    EVENT_SEND     EVENT_COUNT    EVENT_EXISTS
-  TIMER_START   TIMER_STOP     EVENT_WAITFOR  WATCHPID
+  EVENT_WAIT    EVENT_SEND     EVENT_COUNT
+  TIMER_START   TIMER_STOP
 
 Math and Logic Prims:
   +     -     *     /     %     <     >     =     <=     >=  
   RANDOM     BITOR     BITXOR     BITSHIFT     ++     -- 
-  CEIL       FLOOR     SQRT       PI           ROUND  
+  INF        CEIL      FLOOR      SQRT         PI     ROUND  
   SIN        COS       TAN        ASIN         ACOS   ATAN
-  ATAN2      DIST3D    XYZ_TO_POLAR            POLAR_TO_XYZ  
+  ATAN2      DIST3D    XYZ_TO_POLAR     POLAR_TO_XYZ  
   EXP        LOG       LOG10      FABS         POW    FRAND
-  FMOD       MODF      AND        OR           NOT    ABS
-  SRAND      GETSEED   SETSEED    SIGN         XOR
+  FMOD       MODF      AND     OR     NOT
+  SRAND      GETSEED   SETSEED
 
 See: PRIMS2
 ~~~~
 PRIM2|PRIMS2
 Stack Prims:
-  DUP         DUPN       LDUP          OVER        POP          
-  ROT         ROTATE     SORT          SWAP        DEPTH     
+  DUP         DUPN       LDUP     OVER     POP     POPN     PICK     
+  ROT         ROTATE     SORT     SWAP    DEPTH    PUT      MARK?
   NUMBER?     DBREF?     INT?          STRING?     ADDRESS?
-  SOCKET?     LOCK?      FLOAT?        VARIABLE?   ARRAY?   
-  MARK        }          CHECKARGS     REVERSE     LREVERSE 
-  POPN        PICK       PUT           DESCR?      SQL? 
-  MARK? 
+  SOCKET?     LOCK?      FLOAT?        VARIABLE?   ARRAY?   DESCR?
+  MARK        }          CHECKARGS     REVERSE     LREVERSE
 
 Control Structures:
-  EXIT         CALL       EXECUTE     READ        PUBLIC      SLEEP
-  PID          ISPID?     KILL        IF          ELSE        THEN
-  QUEUE        FORK       INTERP      CALLER      ABORT       CASE
-  TRIG         PROG       PARSEMPI    PARSEPROP               CANCALL?
-  BEGIN        UNTIL      REPEAT      WHILE       BREAK       CONTINUE
-  COMPILED?    TREAD      FOREACH     FOR         PROPQUEUE   ENVPROPQUEUE         
-  INSTANCES    MAGECALL   WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
-  GETPIDS      TRY        CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
-  PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE              DEBUGGER_BREAKPOINT
+  EXIT       CALL     EXECUTE     READ     PUBLIC      SLEEP
+  PID        ISPID?   KILL        IF       ELSE        THEN
+  QUEUE      FORK     INTERP      CALLER   ABORT       CASE
+  TRIG       PROG     PARSEMPI    PARSEPROP            CANCALL?
+  BEGIN      UNTIL    REPEAT      WHILE    BREAK       CONTINUE
+  WIZCALL    TREAD    FOREACH     FOR      PROPQUEUE   ENVPROPQUEUE         
+  COMPILED?  INSTANCES
 
 Property Prims:
-  ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
-  GETPROPSTR  GETPROPVAL    GETPROPFVAL     ENVPROPSTR    NEXTPROP
-  DESC        IDESC         HTMLDESC        IHTMLDESC     PROPDIR?
-  SETDESC     SETSUCC       SETFAIL         SETDROP       SETOSUCC
-  SETOFAIL    SETODROP      SUCC            FAIL          DROP
-  OSUCC       OFAIL         ODROP           GETLOCKSTR  
-  ANSIDESC    SETANSIDESC   IANSIDESC       SETIANSIDESC
-  REFLIST_ADD REFLIST_FIND  REFLIST_DEL     COPYPROPS
+  ADDPROP     GETPROP     SETPROP     ENVPROP     REMOVE_PROP
+  GETPROPSTR  GETPROPVAL  GETPROPFVAL ENVPROPSTR  NEXTPROP
+  DESC        IDESC       HTMLDESC    IHTMLDESC   PROPDIR?
+  SETDESC     SETSUCC     SETFAIL     SETDROP     SETOSUCC
+  SETOFAIL    SETODROP    SUCC        FAIL        DROP
+  OSUCC       OFAIL       ODROP       GETLOCKSTR  
+  ANSIDESC    SETANSIDESC IANSIDESC   SETIANSIDESC  
 
 See: PRIMS3
 ~~~~~
 PRIM3|PRIMS3
 Time Prims:
   TIME     SYSTIME     TIMESTAMPS     TIMESPLIT     TIMEFMT
-  DATE     GMTOFFSET   SYSTIME_PRECISE
+  DATE     GMTOFFSET
 
 Data Conversion:
   ATOI     DBREF     INT     INTOSTR     CTOI     ITOC
-  STOD     DTOS      FLOAT   STRTOF      FTOSTR   ITOH
-  HTOI     FTOSTRC
+  STOD     DTOS      FLOAT   STRTOF      FTOSTR
 
 Notifying Prims (I/O):
   NOTIFY              NOTIFY_EXCLUDE              NOTIFY_EXCEPT
@@ -93,8 +86,6 @@ Notifying Prims (I/O):
   NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
   NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
   STOPMIDI            PLAYMIDI                    COMMANDTEXT
-  ARRAY_ANSI_NOTIFY   ARRAY_NOTIFY_HTML           ANSI_NOTIFY_DESCRIPTOR
-  NOTIFY_DESCRIPTOR_CHAR
 
 See: PRIMS4
 ~~~~~
@@ -103,14 +94,9 @@ PRIM4|PRIMS4
 Connection Prims:
   AWAKE?     ONLINE     CONCOUNT     CONDBREF     CONTIME
   CONIDLE    CONDESCR   CONHOST      CONBOOT      CONNOTIFY
-  CONUSER    CONIPNUM   CONPORT      DESCRCON     NEXTDESCR 
+  CONUSER    CONIPNUM   CONPORT      DESCRCON      NEXTDESCR 
   DESCRIPTORS      DESCR_SETUSER     DESCR        DESCRFLUSH
   DESCR_HTML?      DESCR_PUEBLO?     DESCR?       DESCR_WELCOME_USER
-  DESCR_LOGOUT     DESCRDBREF        DESCRIDLE    DESCRTIME
-  DESCRHOST        DESCRIPNUM        DESCRPORT    DESCRCONPORT
-  DESCRLEASTIDLE   DESCRMOSTIDLE     FIRSTDESCR   LASTDESCR
-  DESCRUSER        GETDESCRINFO      DESCRBOOT    DESCR_SET
-  DESCR_FLAG?      DESCRBUFSIZE
 
 Locks Management:
   SETLOCKSTR     GETLOCKSTR     LOCKED?     PARSELOCK
@@ -125,84 +111,51 @@ Strings Prims:
   STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
   FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
   ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
-  NAME-OK?      PNAME-OK?    ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
-  POWER_2CHAR   UNESCAPE_URL ESCAPE_URL
- 
+
 See: PRIMS5
 ~~~~~
 PRIMS5|PRIM5
 
 Data Base Prims:
-  CONTENTS      EXITS       NEXT         NEXTOWNED      NEXTPLAYER
-  SETNAME       SET         SETOWN       SETLINK        GETLINKS
-  MATCH         RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
-  NEWPLAYER     COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
-  GETLINK       LOCATION    OWNER        CONTROLS       NEXT_FLAG 
-  FLAG?         MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
-  NEWROOM       NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
-  PENNIES       ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
-  COPYOBJ       RECYCLE     MOVETO       STATS          DBTOP
-  OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
-  NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
-  NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
-  PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
-  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    STAFF?
-        
+  CONTENTS    EXITS       NEXT         NEXTOWNED      NEXTPLAYER
+  SETNAME     SET         SETOWN       SETLINK        GETLINKS
+  MATCH       RMATCH      PART_PMATCH  PMATCH
+  NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM
+  GETLINK     LOCATION    OWNER        CONTROLS 
+  FLAG?       MLEVEL      DBCMP        CHECKPASSWORD 
+  NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS
+  PENNIES     ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
+  COPYOBJ     RECYCLE     MOVETO       STATS          DBTOP
+  OK?         THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
+
 System Prims:
-  SYSPARM         SETSYSPARM     LOGSTATUS     VERSION     FORCE
-  FORCE_LEVEL     MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
-  DUMP            DELTA          SHUTDOWN      RESTART     ARMAGEDDON
-  SYSPARM_ARRAY
+  SYSPARM     SETSYSPARM     LOGSTATUS     VERSION     FORCE
 
 Socket Prims:
-  SOCKOPEN        SOCKCLOSE      SOCKSEND      SOCKRECV       NBSOCKOPEN
-  SOCKCHECK       LSOCKOPEN      SOCKACCEPT    GET_SOCKINFO   SOCKET_SETUSER
-  SET_SOCKOPT     SOCKTODESCR    SOCKSHUTDOWN
+  SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV
 
 See: PRIMS6
 ~~~~~
 PRIMS6|PRIM6
 
 Array Prims:
-  ARRAY_MAKE           ARRAY_MAKE_DICT      }DICT              }LIST
-  ARRAY_EXPLODE        ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
-  ARRAY_FIRST          ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
-  ARRAY_GETITEM        ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_SORT
-  ARRAY_GETRANGE       ARRAY_SETRANGE       ARRAY_INSERTRANGE  ARRAY?
-  ARRAY_DELITEM        ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
-  ARRAY_NINTERSECT     ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
-  ARRAY_NOTIFY         ARRAY_REVERSE        DESCR_ARRAY        DICTIONARY?
-  ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS 
-  ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
-  ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
-  ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
-  ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
-  ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
-  EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
-  ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED 
-  ARRAY_INTERPRET      }CAT
+  ARRAY_MAKE         ARRAY_MAKE_DICT      }DICT              }ARRAY
+  ARRAY_EXPLODE      ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
+  ARRAY_FIRST        ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
+  ARRAY_GETITEM      ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_INSERTITEM
+  ARRAY_GETRANGE     ARRAY_SETRANGE       ARRAY_INSERTRANGE  
+  ARRAY_DELITEM      ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
+  ARRAY_NINTERSECT   ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
+  ARRAY_NOTIFY       ARRAY_REVERSE        ARRAY?             DICTIONARY?
+  ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS     ARRAY_PUT_PROPVALS 
+  ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST     ARRAY_INSERTITEM
+  ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST      ARRAY_FINDVAL
+  DESCR_ARRAY          ONLINE_ARRAY           ARRAY_EXCLUDEVAL
 
 File Prims: 
-  FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
-  BWRITE    BREAD    BAPPEND   FRM        FREN     MKDIR
-  FPUBLISH  FSINFO   FSTATS    CURID      FSIZE    GETDIR
-
-MCP Prims:
-  MCP_REGISTER    MCP_REGISTER EVENT   MCP_SUPPORTS       MCP_BIND
-  MCP_SEND        GUI_AVAILABLE        GUI_DLOG_CREATE    GUI_DLOG_SHOW
-  GUI_DLOG_CLOSE  GUI_CTRL_CREATE      GUI_VALUES_SET     GUI_VALUES_GET
-  GUI_VALUE_GET   GUI_CTRL_COMMAND
-
-~~~~~
-PRIMS7|PRIM7
-
-MUF Editing Prims:
-  KILL_MACRO          INSERT_MACRO      GET_MACROS_ARRAY 
-  PROGRAM_LINECOUNT   PROGRAM_GETLINES  PROGRAM_DELETELINES  
-  PROGRAM_INSERTLINES
-
-MySQL Prims:
-  SQLQUERY    SQLCONNECT    SQLCLOSE    SQLPING    SQL?
+  FWRITE    FREAD    FREADN    FAPPEND    FCR
+  BWRITE    BREAD    BAPPEND   FRM        FREN
+  FPUBLISH    FSINFO   FSTATS    CURID      FSIZE
 ~~~~~
 PRIMSLIST|PRIMS LIST|LIST PRIMS
 MATH PRIMS         - Prims that handle math.
@@ -223,9 +176,6 @@ MULTITASKING PRIMS - Prims that handle MUF multitasking levels.
 SOCKET PRIMS       - Prims for working with ProtoMUCK socket control.
 FILE PRIMS         - Prims for managing files on the server level.
 ARRAY PRIMS        - Prims for working with MUF arrays.
-MCP PRIMS          - Prims for working with graphical MUF protocal.
-MUF EDIT PRIMS     - Prims for making MUF editors.
-SQL PRIMS          - Prims for working with MySQL databases. 
 
 See: TOPIC LIST for different discussions of topics.
 ~
@@ -249,12 +199,8 @@ SOCKETS            - Some notes about the socket support in ProtoMUCK.
 FILE PRIMS         - Some notes about the file prims.
 FLOAT PRIMS        - A note explaining float support in MUF.
 ARRAY PRIMS        - Some notes on using arrays with MUF. 
-FUNCTION HEADERS   - Notes about using function headers in MUF.
 MUF EVENTS         - Notes on how to use events in MUF.
-MCP PRIMS          - Notes on the graphical MUF prims.
 WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
-EXCEPTION HANDLING - Notes on exception handling in MUF.
-MUF OPTIMIZING     - What the new byte code optimizer actually does. 
 CREDITS            - Who to blame this mess on!
 ~~~~
 MATH PRIMS|MATHPRIMS
@@ -263,11 +209,11 @@ The following prims are used to perform arithmetic with MUF:
 
 +     -     *     /     %     <     >     =     <=     >=  
 RANDOM     BITOR     BITXOR     BITSHIFT     ++     --
-CEIL       FLOOR     SQRT       PI           ROUND  
+INF        CEIL      FLOOR      SQRT         PI     ROUND  
 SIN        COS       TAN        ASIN         ACOS   ATAN
 ATAN2      DIST3D    XYZ_TO_POLAR     POLAR_TO_XYZ  
 EXP        LOG       LOG10      FABS         POW    FRAND
-FMOD       MODF      ABS        SIGN
+FMOD       MODF
 SRAND      GETSEED   SETSEED
 See: FLOAT PRIMS
 ~~~~
@@ -275,20 +221,20 @@ LOGICAL OPERATORS|LOGIC PRIMS|LOGICAL PRIMS
 
 The following prims are used to make logic comparisons in MUF:
 
-AND     OR     NOT    XOR
+AND     OR     NOT
 
 ~
 PROP PRIMS|PROPS|PROPPRIMS
 
 The following prims are used to work with properties on objects:
-ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
-GETPROPSTR  GETPROPVAL    GETPROPFVAL     ENVPROPSTR    NEXTPROP
-DESC        IDESC         HTMLDESC        IHTMLDESC     PROPDIR?
-SETDESC     SETSUCC       SETFAIL         SETDROP       SETOSUCC
-SETOFAIL    SETODROP      SUCC            FAIL          DROP
-SUCC        OFAIL         ODROP           GETLOCKSTR  
-ANSIDESC    SETANSIDESC   IANSIDESC       SETIANSIDESC
-REFLIST_ADD REFLIST_FIND  REFLIST_DEL     COPYPROPS
+
+ADDPROP     GETPROP     SETPROP     ENVPROP     REMOVE_PROP
+GETPROPSTR  GETPROPVAL  GETPROPFVAL ENVPROPSTR  NEXTPROP
+DESC        IDESC       HTMLDESC    IHTMLDESC   PROPDIR?
+SETDESC     SETSUCC     SETFAIL     SETDROP     SETOSUCC
+SETOFAIL    SETODROP    SUCC        FAIL        DROP
+OSUCC       OFAIL       ODROP       GETLOCKSTR
+ANSIDESC    SETANSIDESC IANSIDESC   SETIANSIDESC  
 
 ~
 NOTIFICATION PRIMS|NOTIFICATIONPRIMS|NOTIFICATION
@@ -301,8 +247,6 @@ NOTIFY_HTML         NOTIFY_HTML_EXCLUDE         NOTIFY_HTML_EXCLUDE
 NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
 NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
 STOPMIDI            PLAYMIDI                    COMMANDTEXT
-ARRAY_ANSI_NOTIFY   NOTIFY_ARRAY_HTML           ANSI_NOTIFY_DESCRIPTOR
-NOTIFY_DESCRIPTOR_CHAR
 
 ~
 CONVERSION PRIMS|COVERSION|CONVERSIONPRIMS|CONVERTING
@@ -320,8 +264,6 @@ DTOS      ( d -- s )
 FLOAT     ( i -- f )
 STRTOF    ( s -- f )
 FTOSTR    ( f -- s )
-ITOH      ( i -- s )
-HTOI      ( s -- i )
 
 See: DATA TYPES
 ~~~~
@@ -329,32 +271,27 @@ DATABASE PRIMS|DATA BASE PRIMS|DATABASEPRIMS|DATA BASEPRIMS
 
 The following prims are used to work with the MUCK database:
 
-  CONTENTS      EXITS       NEXT         NEXTOWNED      NEXTPLAYER
-  SETNAME       SET         SETOWN       SETLINK        GETLINKS
-  MATCH         RMATCH      PART_PMATCH  PMATCH         NEWPASSWORD
-  NEWPLAYER     COPYPLAYER  TOADPLAYER   OBJMEM         SETPASSWORD
-  GETLINK       LOCATION    OWNER        CONTROLS       NEXT_FLAG 
-  FLAG?         MLEVEL      DBCMP        CHECKPASSWORD  NEXTOWNED_FLAG
-  NEWROOM       NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
-  PENNIES       ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
-  COPYOBJ       RECYCLE     MOVETO       STATS          DBTOP
-  OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
-  NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
-  NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
-  PNAME-OK?     NAME-OK?    FINDNEXT     EXITS_ARRAY    CONTENTS_ARRAY
-  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    STAFF?
+CONTENTS    EXITS       NEXT         NEXTOWNED      NEXTPLAYER
+SETNAME     SET         SETOWN       SETLINK        GETLINKS
+MATCH       RMATCH      PART_PMATCH  PMATCH
+NEWPLAYER   COPYPLAYER  TOADPLAYER   OBJMEM
+GETLINK     LOCATION    OWNER        CONTROLS 
+FLAG?       MLEVEL      DBCMP        CHECKPASSWORD 
+NEWROOM     NEWOBJECT   NEWEXIT      TIMESTAMPS
+PENNIES     ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
+COPYOBJ     RECYCLE     MOVETO       STATS          DBTOP
+OK?         THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
+
 ~~~~
 STACK PRIMS|STACKPRIMS
 
 These prims are used to move and manipulate things on the stack:
 
-  DUP         DUPN       LDUP          OVER        POP          
-  ROT         ROTATE     SORT          SWAP        DEPTH     
-  NUMBER?     DBREF?     INT?          STRING?     ADDRESS?
-  SOCKET?     LOCK?      FLOAT?        VARIABLE?   ARRAY?   
-  MARK        }          CHECKARGS     REVERSE     LREVERSE 
-  POPN        PICK       PUT           DESCR?      SQL? 
-  MARK? 
+DUP         DUPN       LDUP     OVER     POP     POPN     PICK     
+ROT         ROTATE     SORT     SWAP    DEPTH    PUT      MARK?
+NUMBER?     DBREF?     INT?          STRING?     ADDRESS?
+SOCKET?     LOCK?      FLOAT?        VARIABLE?   ARRAY?   DESCR?
+MARK        }          CHECKARGS     REVERSE     LREVERSE
 
 See: DATA TYPES
 ~~~~~
@@ -369,30 +306,26 @@ STRCUT        SPLIT        RSPLIT       MIDSTR       SMATCH
 STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
 FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
 ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
-PNAME-OK?     NAME-OK?     ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
-POWER_2CHAR   UNESCAPE_URL ESCAPE_URL
 
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
 NOTIFY will work with standard ANSI format, such as FB6 uses. To
-use MUSH or TIDLE style ANSI, run the string with MUSH or TILDE ANSI
-tags through PARSE_ANSI and it will convert the tags to standard 
-ANSI which are then compatible with NOTIFY. 
+use MUSH style ANSI, run the string with MUSH ANSI tags through
+PARSE_ANSI and it will convert the tags to standard ANSI which
+are then compatible with NOTIFY. 
 See STANDARD ANSI, MUSH ANSI, NEON ANSI.
 ~~~~
 PROGRAM PRIMS|PROGRAMPRIMS
 
 These prims are used to direct the MUF programs:
 
-EXIT         CALL      EXECUTE     READ        PUBLIC      SLEEP
-PID          ISPID?    KILL        IF          ELSE        THEN
-QUEUE        FORK      INTERP      CALLER      ABORT       CASE
-TRIG         PROG      PARSEMPI    PARSEPROP   CANCALL?
-BEGIN        UNTIL     REPEAT      WHILE       BREAK       CONTINUE
-COMPILED?    TREAD     FOREACH     FOR         PROPQUEUE   ENVPROPQUEUE         
-INSTANCES    MAGECALL  WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
-GETPIDS      TRY       CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
-PARSEPROPEX  DEBUG_ON  DEBUG_OFF   DEBUG_LINE              DEBUGGER_BREAKPOINT
+EXIT       CALL     EXECUTE     READ     PUBLIC      SLEEP
+PID        ISPID?   KILL        IF       ELSE        THEN
+QUEUE      FORK     INTERP      CALLER   ABORT       CASE
+TRIG       PROG     PARSEMPI    PARSEPROP            CANCALL?
+BEGIN      UNTIL    REPEAT      WHILE    BREAK       CONTINUE
+WIZCALL    TREAD    FOREACH     FOR      PROPQUEUE   ENVPROPQUEUE         
+COMPILED?  INSTANCES
 
 See: LOOPS, MULTITASKING
 ~~~~
@@ -401,7 +334,7 @@ TIME PRIMS|TIMEPRIMS
 The following prims are used to work with time:
 
 TIME     SYSTIME     TIMESTAMPS     TIMESPLIT     TIMEFMT
-DATE     GMTOFFSET   SYSTIME_PRECISE
+DATE     GMTOFFSET
 
 Like most UNIX programs, time manipulation is handled in
 seconds, and then broken down into readable formats for users.
@@ -415,7 +348,7 @@ The following prims are used to work with variables in MUF:
 
 VAR     VARIABLE     VARIABLE?     LVAR     LOCALVAR
 @       !            ME            TRIGGER  COMMAND
-DESCR   VAR!
+DESCR
 
 Some of the above are not true prims, in that they have no
 affect on the stack, but are classified as prims for reference
@@ -425,22 +358,11 @@ CONNECTION PRIMS|CONECTIONPRIMS
 
 The following prims are used to work with connections:
 
-For working with DBREFS:
-  AWAKE?           ONLINE           
-
-For working with Connection Numbers:
-  CONCOUNT         CONDBREF          CONIDLE       CONDESCR
-  CONHOST          CONBOOT           CONUSER       CONIPNUM
-  CONPORT          CONTIME           CONNOTIFY    
-
-For working with Descriptors:
-  DESCRCON         NEXTDESCR         DESCRIPTORS   DESCR_SETUSER
-  DESCR            DESCRFLUSH        DESCR?        DESCR_WELCOME_USER  
-  DESCR_HTML?      DESCR_PUEBLO?     DESCR_LOGOUT  DESCRDBREF
-  DESCRIDLE        DESCRTIME         DESCRHOST     DESCRIPNUM
-  DESCRPORT        DESCRCONPORT      FIRSTDESCR    LASTDESCR
-  DESCRLEASTIDLE   DESCRMOSTIDLE     DESCRUSER     GETDESCRINFO
-  DESCRBOOT        DESCR_SET         DESCR_FLAG?   DESCRBUFSIZE
+AWAKE?     ONLINE     CONCOUNT     CONDBREF     CONTIME
+CONIDLE    CONDESCR   CONHOST      CONBOOT      CONNOTIFY
+CONUSER    CONIPNUM   CONPORT      DESCRCON      NEXTDESCR
+DESCRIPTORS      DESCR_SETUSER     DESCR        DESCRFLUSH
+DESCR_HTML?      DESCR_PUEBLO?     DESCR?       DESCR_WELCOME_USER
 ~~~~~~
 LOCK PRIMS
 
@@ -448,17 +370,15 @@ These prims help MUF interact with locks on the MUCK:
 
 SETLOCKSTR     GETLOCKSTR     LOCKED?     PARSELOCK
 UNPARSELOCK    PRETTYLOCK     TESTLOCK    LOCK?
-ISLOCKED?      CHECKLOCK      CHECKLOCK
+ISLOCKED? 
 
 ~~~~~
 SYSTEM PRIMS|SYSTEMPRIMS
 
 These prims are used to make changes in the MUCK system:
 
-SYSPARM         SETSYSPARM     LOGSTATUS     VERSION     FORCE
-FORCE_LEVEL     MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
-DUMP            DELTA          SHUTDOWN      RESTART     ARMAGEDDON
-SYSPARM_ARRAY
+SYSPARM     SETSYSPARM     LOGSTATUS     VERSION     FORCE
+
 ~~~~~
 MULTITASKING PRIMS
 
@@ -467,11 +387,12 @@ These prims are used to manage MUF program run-modes:
 PREEMPT       FOREGROUND     BACKGROUND     MODE     SETMODE
 PR_MODE       FG_MODE        BG_MODE        SLEEP
 EVENT_WAIT    EVENT_SEND     EVENT_COUNT
-TIMER_START   TIMER_STOP     EVENT_WAITFOR  WATCHPID
+TIMER_START   TIMER_STOP
+
 
 See: MULTITASKING
 ~~~~
-DATA TYPES|OBJECT TYPES|DATATYPES
+DATA TYPES
 
 These are the fundamental data types in MUF:
 
@@ -481,7 +402,6 @@ strings  (s)       - ASCII Character strings.
 dbrefs   (d)       - Database reference numbers.
 addresses(address) - Names of MUF functions.
 socket   (socket)  - A socket pointer.
-lsocket  (lsocket) - A listening socket pointer
 array    (a)       - A MUF style array.
 locks    (l)       - A special string that represents a lock
 variables(v)       - Variables that store any data type.
@@ -533,7 +453,7 @@ By using \ in front of a prim name it is possible to force the
 MUF to compile using the inserver version of that prim instead of
 any definitions of that prim.
 ~~~
-MUSHANSI|MUSH ANSI|MUSH COLORS
+MUSHANSI|MUSH ANSI
 
 MUSH ANSI uses the following letters, prepended with %c. 
 Example: %cg turns the text green.
@@ -550,33 +470,9 @@ Example: %cg turns the text green.
         c - cyan foreground             C - cyan background
         w - white foreground            W - white background
 
-See: NEON ANSI, STANDARD ANSI, TILDE ANSI
+See: NEON ANSI, STANDARD ANSI
 ~~~
-TILDE ANSI|TILDEANSI|TILDE COLORS
-
-TILDE ANSI started out as a MUF library on FB MUCKs, and was 
-eventually worked into the internal notification routines of
-GlowMUCK. It is basically a short cut format for STANDARD ANSI
-formats. 
-Example: ~&110 turns the text red.
-If you want to leave one of the attributes as it was, use a '-'.
-Example: ~&1-- changes the text to bold without changing the color.
-Syntax: ~&<Attribute><Foreground Color><Background Color>
-
-Attributes: 
-        0 = Normal        5 = Blinking
-        1 = Bold          7 = Hidden
-        2 = Invert        8 = Invert
-
-Colors for Foreground and Background:
-        0 - Black         4 - Blue
-        1 - Red           5 - Magenta/Purple
-        2 - Green         6 - Cyan
-        3 - Yellow        7 - Grey/White
-
-See: STANDARD ANSI, NEON ANSI, MUSH ANSI
-~~~
-STANDARDANSI|STANDARD ANSI|STANDARD COLORS
+STANDARDANSI|STANDARD ANSI
 
 STANDARD ANSI color tags are created by: 
 \[[ followed by a series of number instructions seperated by ;
@@ -604,9 +500,9 @@ the color they are defining. The choices are as follows:
 More than one instruction can follow the initial \[[, for example:
 \[[1;37;4;41m = Bold, underline, white text over red background.
 
-See: NEON ANSI, MUSH ANSI, TILDE ANSI
+See: NEON ANSI, MUSH ANSI
 ~~~~
-NEON ANSI|NEONANSI|NEON COLORS|ANSI
+NEON ANSI|NEONANSI
 
 NeonANSI is done by putting a color code between two ^ signs.
 Example: ^RED^ would turn all the following text red.
@@ -620,22 +516,9 @@ BLUE             NAVY    or CBLUE            BBLUE
 PURPLE           VIOLET  or CPURPLE          BPURPLE
 CYAN             AQUA    or CCYAN            BCYAN
 WHITE            GRAY    or CWHITE           BWHITE
-BLACK            GLOOM   or CBLACK           BBLACK
+                 GLOOM   or CBLACK
 
-In addition, the following ANSI tokens can be used:
-    ^CFAIL^ -- Color defined for when commands fail. 
-    ^CSUCC^ -- Color defined for when commands work.
-    ^CINFO^ -- A color used in various info outputs.
-    ^CNOTE^ -- Another info output color.
-    ^CMOVE^ -- The color defined for the arrive/depart messages.
-
-The actual color these tags represent may vary from place to place as well
-as character to character, depending on settings made both at compile time, 
-as well as in the muck. These can all be customized in-muck with:
-    _/colors/fail          _/colors/succ          _/colors/info
-    _/colors/note          _/colors/move
-
-See: MUSH ANSI, STANDARD ANSI, TILDE ANSI, and NEON ANSI2
+See: MUSH ANSI, STANDARD ANSI
 ~~~
 MATH OPERATORS|+|-|*|/|%|MODULO|ADD|SUBTRACT|MULTIPLY|DIVIDE
 
@@ -720,7 +603,7 @@ i = integer 1 if true, 0 otherwise.
 Performs the boolean `and' operation on x and y, returning i as 1 if
 both i1 and i2 are TRUE, and returning i as 0 otherwise.
 ~
-ANSI_NOTIFY
+ANSI_NOTIFY|ANSI
 
 ansi_notify ( d s -- )
 ----------------------
@@ -733,8 +616,6 @@ set = C, or a PUPPET owned by a player set = C, then the message will
 be sent with ANSI tags for showing color. If the player is not set = C
 the message will be sent, stripped of ANSI tags, for normal message 
 displaying.
-
-See: ANSI
 ~
 ATOI
 
@@ -938,38 +819,40 @@ flags.
 See: FLAGLIST for a list of the flags that can be checked for.
 ~
 FLAGLIST
+
 Names and aliases of flags:
 
-ABODE/AUTOSTART/ABATE   (A)     BUILDER/BOUND           (B)
-CHOWN_OK/COLOR_ON/ANSI  (C)     DARK/DEBUG              (D)
-GUEST                   (G)     HAVEN/HARDUID/HIDE      (H)
-IDLE                    (I)     JUMP_OK                 (J)     
-ANTIPROTECT             (K)     LINK_OK                 (L)     
-NO_COMMAND              (N)     LIGHT                   (O)     
-QUELL                   (Q)     SILENT/SETUID/STICKY    (S)     
-VEHICLE/VIEWABLE        (V)     XFORCIBLE               (X)     
-EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)     
-LOGWALL                 (!)     MUFCOUNT                (+)     
-PROTECT                 (*)     PARENT/PROG_DEBUG       (%)     
-HIDDEN                  (#)     MOBILE                  (?)
-
-Non-Settable Flags:
-EXIT                    (E)     FORTH PROGRAM           (F)
-TRUEIDLE                        PLAYER                  (P)
-ROOM                    (R)     THING                   (T)
-UNLINKED                (U)     LISTENER                (N/A)
-COMMAND                 (N/A)   PUEBLO                  ($)
-HTML                    (&)     UNUSED/OLD              (@)
-INTERNAL                
-
-Permissions Bits:
-MEEPER                  (M)     MUCKER1                 (M1)
-MUCKER2                 (M2)    MUCKER3                 (M3)
-WIZARD1/MAGE            (W1)    WIZARD2/WIZARD          (W2)
-WIZARD3/ARCHWIZARD      (W3)    WIZARD4/BOY             (W4)
-WIZARD5/MAN             (W5)
-Type 'help <flag>' to get more help on a flag.
-
+ABODE, ABATE, AUTOSTART
+BUILDER
+CHOWN_OK, COLOR_ON, ANSI
+COMMAND        (*Not supported yet*)
+DARK
+GUEST
+HAVEN, HARDUID
+HIDDEN
+HTML
+INTERACTVE     (*If a player is in the MUF editor or using a program*)
+JUMP_OK
+LINK_OK, LIGHT
+LOGWALL
+MOBILE, OFFER  (*No coded effect*)
+MUFCOUNT
+PARENT
+PUEBLO
+PROTECT
+QUELL
+STICKY, SILENT
+VEHICLE, VIEWABLE
+XFORCIBLE
+ZOMBIE, PUPPET
+MEEPER, MPI
+M1, MUCKER1, MUCKER
+M2, MUCKER2, NUCKER
+M3, MUCKER3, SUCKER
+(*The following return 0 if the player is set QUELL*)
+MAGE, WIZARD, ARCHWIZARD, BOY, MAN 
+(*The following return 1, even if the player is set QUELL*)
+TRUEMAGE, TRUEWIZARD, TRUEARCHWIZARD, TRUEBOY, TRUEMAN
 ~
 GETLINK
 
@@ -1048,12 +931,9 @@ before the if. For every IF in a word, there MUST be a THEN, and
 vice-versa.  ELSE is optional.
 In MUF, the following are FALSE:
 Empty strings.
-A dbref of #-1. (All other negative dbrefs are TRUE).
+Negative dbref numbers.
 0 integers.
 0.00000 float points.
-The { stack marker.
-MUF arrays with nothing in them. ( empty arrays )
-Locks that always pass. ( True bools )
 All other data types and conditions are TRUE.
 
 See: IF2 for a summary. See CASES for a similiar structure.
@@ -1063,14 +943,14 @@ IF2|ELSE2|THEN2
 IF - THEN: Executes everything between the IF and the THEN if the
            top of the stack is true, otherwise skips to what comes
            after the THEN.
-   <anything on the stack> IF <code> THEN
+  <anything on the stack> IF <code> THEN
 
 IF - ELSE - THEN: Executes everything between the IF and the ELSE
                   if the top of the stack is true. If the top of 
                   the stack is false, it executes everything 
                   between the ELSE and the THEN, skipping what
                   comes between the IF and the ELSE.
-   <anything on the stack> IF <code> ELSE <code> THEN
+  <anything on the stack> IF <code> ELSE <code> THEN
 ~
 CASES|CASE|WHEN|END|DEFAULT|ENDCASE
 
@@ -1086,12 +966,12 @@ default = pop 1 if
 endcase = pop pop 1 until 
 
 These definitions make it possible to create CASE structures in MUF:
- <data> case
-   <test> when <effect> end
-   <test> when <effect> end
-   <test> when <effect> end
-   <test> when <effect> end
-  default <otherwise> end
+<data> case
+  <test> when <effect> end
+  <test> when <effect> end
+  <test> when <effect> end
+  <test> when <effect> end
+  default <otherwise>  end
 endcase
 
 See: CASE2 for an example in MUF.
@@ -1117,16 +997,7 @@ d = Any valid dbref.
 s = String representing the name of the dbref.
 
 Takes object d and returns its true name string field.
-
-As of Proto1.6 and newer, the TRUENAME prim behaves as follows:
-If the dbref is a thing or player, it returns the %n alias of that
-object. If it is an exit, it will return the name of that exit up to
-the first ';' mark. Any other object will just return that object's
-full name. Also, if the alias matches to the name of an existing 
-player on the MUCK, the normal name of the player or puppet is 
-returned instead of the alias.
-
-See: NAME
+This is the same as name if the MUCK doesn't use anoniminity.
 ~
 INSTR
 
@@ -1238,10 +1109,9 @@ d = Any valid dbref.
 s = string containing the name.
 
 Given any valid dbref number, it will return the name of that object
-as a string. If the dbref is of a recycled object, the name returned
-will be '<garbage>'.
+as a string.
 
-See: SETNAME
+See: TRUENAME, SETNAME
 ~
 NEXT
 
@@ -1507,13 +1377,7 @@ lock will always fail and print the fail messages at read time.  It
 cannot be used in a program associated with a room object. A program
 running in background mode cannot use the read prim. 
 
-As of Proto 1.7, READ can work with descriptors that are not yet connected
-to players. This is useful for programs called via @logincommand/ props, as
-well as programs run via the MUF port. In both of these cases, the READ prim
-can be used in the same way it is used in in-MUCK programs. The running the
-program will be blocked, and the next input from the descriptor will be pushed
-onto the stack. 
-See: BACKGROUND, TREAD, READ_WANTS_BLANKS
+See: BACKGROUND, TREAD
 ~
 REMOVE_PROP
 
@@ -1646,7 +1510,6 @@ PUEBLO = "pueblo"
 HTML = "html"
 PARENT = "parent"
 PROTECT = "protect"
-MEEPER = "m"
 See SET2 for special notes about some of the flags.
 See also SETNAME, SETDESC, and FLAG?.
 ~
@@ -2092,7 +1955,7 @@ NEWOBJECT
 newobject (d1 s -- d2)
 ----------------------
 Level: M2 to W2 Journeyman to Wizard
-d1 = dbref representing a player or thing.
+d1 = dbref representing a player, room, or thing.
 s  = string containing the name of the new object.
 d2 = dbref of new object when it is made.
 
@@ -2140,7 +2003,6 @@ Declares a previously defined function to be public for execution by other
 programs.  This is a compile-time directive, not a run-time primitive.  To
 call a public function, put the dbref of the program on the stack, then put
 a string, containing the function name, on the stack, then use CALL.
-
 For example: 
 
   #888 "functionname" CALL
@@ -2368,10 +2230,6 @@ stack, with the total for the MUCK on the top of the stack.
 Descriptors are numbers assigned to a player when they connect and do
 not change for the life of that connection. A connection number is the
 relative possition of a connection in the WHO list.
-
-As of Proto1.5 and newer, this prim will also include descriptors that
-are not yet connected to a character when given #-1. This would be 
-connections that are still at the login screen.
 
 See DESCRCON, CONDESCR.
 ~
@@ -2647,12 +2505,12 @@ string, the following special characters will do as follows:
 
    *  '{word1|word2|etc}' will match a single word, if it is one of those
         given, separated by | characters, between the {}s.  A word ends with
-        a space or at the end of the string.  The given example would match
-        either the words "word1", "word2", or "etc".
+	a space or at the end of the string.  The given example would match
+	either the words "word1", "word2", or "etc".
         {} word patterns will only match complete words: "{foo}*" and "{foo}p"
-        do not match "foop" and "*{foo}" and "p{foo}" do not match "pfoo".
+	do not match "foop" and "*{foo}" and "p{foo}" do not match "pfoo".
         {} word patterns can be easily meaningless; they will match nothing
-        if they:
+	if they:
            (a) contains spaces,
            (b) do not follow a wildcard, space or beginning of string,
            (c) are not followed by a wildcard, space or end of string.
@@ -2663,22 +2521,22 @@ SMATCH2
 
    *  If the first char of a {} word set is a '^', then it will match a single
         word if it is NOT one of those contained within the {}s.  Example:
-        '{^Foxen|Fiera}' will match any single word EXCEPT for Foxen or Fiera.
+	'{^Foxen|Fiera}' will match any single word EXCEPT for Foxen or Fiera.
 
    *  '[aeiou]' will match a single character as long as it is one of those
-        contained between the []s.  In this case, it matches any vowel.
+	contained between the []s.  In this case, it matches any vowel.
 
    *  If the first char of a [] char set is a '^', then it will match a single
         character if it is NOT one of those contained within the []s.  Example:
-        '[^aeiou]' will match any single character EXCEPT for a vowel.
+	'[^aeiou]' will match any single character EXCEPT for a vowel.
 
    *  If a [] char set contains two characters separated by a '-', then it will
-        match any single character that is between those two given characters.
-        Example:  '[a-z0-9_]' would match any single character between 'a' and
-        'z', inclusive, any character between '0' and '9', inclusive, or a '_'.
+	match any single character that is between those two given characters.
+	Example:  '[a-z0-9_]' would match any single character between 'a' and
+	'z', inclusive, any character between '0' and '9', inclusive, or a '_'.
 
    *  The '\' character will disable the special meaning of the character that
-        follows it, matching it literally.
+	follows it, matching it literally.
 
 Type 'man smatch3' for examples.
 ~
@@ -2860,7 +2718,8 @@ Level: M1 Apprentice
 
 Prevents a program from being swapped out to do multitasking.  Needed in
 some cases to protect crucial data from being changed while it is being
-worked on. Basically what this command does is to turn off multitasking,
+worked on.  A program will remain in preempt mode until it's execution is
+completed.  Basically what this command does is to turn off multitasking,
 but then you have a limit on how many instructions you can run without
 needing either to pause with a SLEEP, or have a Wizbit on the program.
 
@@ -3123,9 +2982,6 @@ contime             (i1 -- i2)
 conidle             (i1 -- i2)
 nextprop            (d s1 -- s2)
 propdir?            (d s -- i)
-descridle           ( i -- i )
-descrtime           ( i -- i )
-findnext            ( d1 d2 s1 s2 -- d3 )
 
 See: M2, MUCKER LEVELS, invididual prim entries for more details
 ~
@@ -3138,12 +2994,11 @@ condbref            (i -- d)
 connotify           (i s -- )
 stats ( d -- total rooms exits things programs players garbage )
 recycle             (d -- )
-condescr            ( i -- i )
-descrcon            ( i -- i )
-descriptors         ( d -- ix...i1 i ) 
-queue               ( i d s -- i )
-parseprop           ( d s s i -- s )
-parsepropex         ( d s1 dict i -- dict s )
+condescr            ( i1 -- i2 )
+descrcon            (i1 -- i2)
+descriptors         (d -- ix...i1 i) 
+queue               (i1 d s -- i2)
+parseprop           (d s1 s2 i -- s3)
 nextplayer          ( d -- d' )
 descr_array         ( d -- a )
 online_array        (   -- a )
@@ -3153,48 +3008,20 @@ descr_pueblo?       ( i -- i )
 descr_welcome_user  ( i --   )
 descr?              ( i -- i )
 event_send          ( i s ? -- )
-motd_notify         ( d -- )
-nextprogram         ( d -- d )
-nextexit            ( d -- d )
-nextroom            ( d -- d )
-nextthing           ( d -- d )
-descrdbref          ( i -- d )
-watchpid            ( i -- )
-getobjinfo          ( d -- dict )
-descrbufsize        ( d -- i )
 
 See: M3, MUCKER LEVELS, individual prim entries for more details
 ~~~~~
-M3 PRIMS2|M3PRIMS2
-
-~~~
 W1PRIMS|W1 PRIMS|W1_PRIMS|W1-PRIMS
 The following prims become available at the level of W1, though
 they still may have some uses reserved for higher permission levels:
 
-newexit                (d1 s -- d2)
-conhost                (i -- s)
-conipnum               (i -- s)
-nextdescr              (i1 -- i2)
-fork                   ( -- i)
-nextowned              ( d -- d' )
-notify_descriptor      ( i s -- )
-ansi_notify_descriptor ( i s -- )
-setpassword            ( d s1 s2 -- )
-next_flag              ( d s -- d )
-nextowned_flag         ( d s -- d )
-nextplayer_flag        ( d s -- d )
-nextthing_flag         ( d s -- d )
-nextplayer_power       ( d s -- d )
-nextentrance           ( d d -- d )
-descrhost              ( i -- s )
-descripnum             ( i -- s )
-firstdescr             ( d -- i )
-lastdescr              ( d -- i )
-descr_flag?            ( i s -- i )
-notify_descriptor_char ( i i -- )
-bandwidth              ( -- i i i )
-get_macros_array       ( -- dict )
+newexit             (d1 s -- d2)
+conhost             (i -- s)
+conipnum            (i -- s)
+nextdescr           (i1 -- i2)
+fork                ( -- i)
+nextowned           ( d -- d' )
+notify_descriptor   ( i s -- )
 
 See: W1, MUCKER LEVELS, individual prim entries for more details
 ~~~~
@@ -3208,10 +3035,6 @@ can do with these prims that a W2 cannot do.
 conboot             (i -- )
 parsempi            ( d s1 s2 i -- s3 )
 descr_setuser       ( i1 d s -- i2 )
-program_getlines    ( d i i -- arr )
-program_linecount   ( d -- i )
-insert_macro        ( s s -- i )
-kill_macro          ( s -- i )
 
 See: W2, MUCKER LEVELS, individual prim entries for more details
 ~
@@ -3235,32 +3058,8 @@ sockopen            ( s1 i -- socket s2 )
 socksend            ( socket s -- i ) 
 sockrecv            ( socket -- s )
 sockclose           ( socket -- i )
-nbsockopen          ( s1 i -- socket s2 )
-get_sockinfo        ( socket -- dict )
-sockcheck           ( socket -- i )
-socket_setuser      ( socket d s -- i )
-set_sockopt         ( socket i -- i )
-socktodescr         ( socket -- i )
 propqueue           ( d1 s1 d2 s2 -- )
 envpropqueue        ( d1 s1 d2 s2 -- )
-newpassword         ( d s -- )
-descr_logout        ( i -- )
-descruser           ( i -- s )
-descrport           ( i -- s )
-descrconport        ( i -- i )
-getpids             ( d -- arr )
-getpidinfo          ( i -- dict )
-getdescrinfo        ( i -- dict )
-descrboot           ( i -- )
-descr_set           ( i s -- )
-dump                ( -- )
-delta               ( -- )
-sqlclose            ( sql -- )
-sqlping             ( sql -- i )
-sqlquery            ( sql s -- dict ... dictn n arr )
-sqlconnect          ( s s s s i -- sql i )
-copyprops           ( d s d s i -- i )
-sockshutdown        ( socket i -- i )
 
 See: W3, MUCKER LEVELS, individual prim entries for details
 ~
@@ -3273,8 +3072,7 @@ fwrite              ( s1 s2 i1 -- i2 )
 fappend             ( s1 s2 -- i )
 fread               ( s1 i -- s2 )
 freadn              ( s1 i1 i2 -- s2 )
-freadto             ( s1 i1 s2 -- i2 s3 )
-fpublish            ( s -- i )
+FPUBLISH              ( s -- i )
 fcr                 ( s -- i )
 bread               ( s1 i1 -- i2 )
 bwrite              ( i1 s i2 -- i3 )
@@ -3285,18 +3083,6 @@ fstats              ( s -- i1 ... i6 )
 fsize               ( s -- i )
 frm                 ( s -- i )
 fren                ( s1 s2 -- i )
-getdir              ( s -- arr )
-mkdir               ( s -- i )
-newprogram          ( s -- d )
-compile             ( d i -- i )
-uncompile           ( d -- )
-lsockopen           ( i i -- lsocket s )
-sockaccept          ( lsocket -- socket )
-armageddon          ( s -- )
-shutdown            ( s -- )
-restart             ( s -- )
-program_insertlines ( d i1 arr -- i2 )
-program_deletelines ( d i1 i2 -- i3 )
 
 See: W4, MUCKER LEVELS, individual prim entries for more details.
 ~
@@ -3343,21 +3129,20 @@ See also FOREGROUND, BACKGROUND, PREEMPT, FORK, QUEUE, KILL, and SLEEP.
 DIRECTIVES|DIR|$DEFINE|DEFINE|$DEF|DEF|$UNDEF|UNDEF|$ECHO|ECHO
 
 $define <defname> <definition> $enddef
-  Basically the same as C's #define <defname> <definition>. Used to create
-  definitions that can be used later in the program.
+  Basically the same as C's #define <defname> <definition>
 
 $def <defname> <definition>
   This is the same as $define, except that the definition stops at the end
   of the program line, without using an ending $enddef.
 
 $undef <defname>
-  About the same as C's #undef 
+  About the same as C's #undef <defname>
 
 $echo <string>
   Echos the given string to the screen of the person compiling the program.
   Runs at compile-time.
 
-Type 'man dir2' for more directives and 'man dir list' for a listing.
+Type 'man dir2' for more directives.
 ~
 DIR2|DIRECTIVES2|DIRECTIVE2|$IFDEF|$IFNDEF|IFDEF|IFNDEF|VERSION|__VERSION
 
@@ -3373,23 +3158,27 @@ __proto
   A pre$defined macro that contains the most recent version of
   ProtoMUCK in the MUCK's code.
 
+__muckname
+  A pre$defined macro that contains the name of the MUCK as 
+  set in the @tune table.
+
 $ifdef <condition> <compile this if true> $else <compile if false> $endif
 
-$ifndef <condition> <compile this if true> $else <compile this if false> $endif
+$ifndef <condition> <compile this if true> $else <compile if false> $endif
 
 Where <condition> is either a $defined name, or a test that consists of
-a $defined name, a comparator (=,<, or > ) and a test value, all in one
+a $defined name, a comparator (=, <, or >) and a test value, all in one
 word without space.  The $else clause is optional.  Compiler directives
 are nestable also.  Some examples:
 
   $ifndef __version>Muck2.2fb3.5 $define envprop .envprop $enddef $endif
   $define ploc $ifdef proplocs .proploc $else $endif $enddef
 
-Type 'man dir3' for more directives and 'man dir list' for a listing.
+Type 'man dir3' for more directives.
 ~
-DIR3|DIRECTIVES3|DIRECTIVE3|$INCLUDE|INCLUDE
+DIR3|DIRECTIVES3|DIRECTIVE3
 
-$include <dbref|progreg|integer>
+$include <dbref|progreg>
 
 Sets a bunch of $defines from the properties in the /_defs/ propdir.
 For example, if object #345 had the following properties:
@@ -3404,154 +3193,26 @@ references to 'desc', 'setpropstr', 'setpropval', and 'setprop' would
 be expanded to the string values of their respective programs. ie:
 'desc' would be replaced throughout the program with '"_/de" getpropstr'
 
-If the following integers are passed, then one can control which _defs
-and macros get loaded into the program as well:
-0 = Macros and MUF owner _defs and #0 _defs
-1 = #0 _defs and MUF owner _defs but not macros.
-2 = macros only.
+Type 'man dir4' for more hints.
+~
+DIR4|DIRECTIVES4|DIRECTIVE4
 
-Note that for non-wizards, #0 _defs/ are always loaded no matter what.
-
-Type 'man dir4' for more directives and 'man dir list' for a listing.
-~~~~
-DIR4|DIRECTIVES4|DIRECTIVE4|$BETA|$ALPHA|$VERSION|$LIB-VERSION
-$beta <integer>
-    Sets an integer prop on the program under a _Beta prop. Note that
-    the _Beta prop is cleared at compile time, so if this directive is
-    not in the code, that prop will not have a value.
-
-$alpha <integer>
-    Sets an integer prop on the program under a _Alpha prop. The _Alpha
-    prop is cleared at compile time, so without this directive, there
-    will be no value under the prop.
-
-$version <float>
-    Sets a string prop on the program under a _Version prop.
-
-$lib-version <float>
-    Sets a string prop on the program under _Lib-Version.
-
-See 'man dir5' for more directives and 'man dir list' for a listing.
-~~~~~
-DIR5|DIRECTIVES5|$AUTHOR|$NOTE|$ANSI|$ABORT|$LOG_STATUS|$SHOW_STATUS
-$author <string>
-    Sets a string prop on the program under _Author.
-
-$note <string>
-    Sets a string (up to the end of the line in the code) under a
-    _note prop.
-
-$ansi <message>
-    Same as $echo, except that it accepts Neon ANSI tags (^RED^).
-
-$abort [<message>]
-    Aborts compiling and prints out the error message.
-
-$log_status <message>
-    Adds a line to the status log. Also gets shown to LOGWALL W3s.
-
-$show_status <message>
-    Walls the message to LOGWALL W3s without logging it to the status log.
-
-See 'man dir6' for more directives and 'man dir list' for a listing.
-~~~~
-DIR6|DIRECTIVES6|$PUBDEF|$NOMACROS|$CLEARDEFS|$LIBDEF
-$pubdef 
-    By using this directive, the _defs/ directory on a MUF program can
-    be set at compile time. 
-    $pubdef :   = Removes the _defs/ directory on the program object.
-    $pubdef <def name> = Removes only that _def/ from program object.
-    $pubdef <def name> <definition> = Sets that public _def/
-    $pubdef \<def name> <definition> = Only sets _def/ if not already set.
-    E.g.: $pubdef tell me @ swap notify
-       would put a _defs/tell:me @ swap notify prop on the program object.
-    Def names cannot have ':' nor '/' in them.
-
-$libdef 
-    This directive allows one to simply name the function to be added
-    to the _defs/ directory and the rest will be handled automatically
-    at compile time.
-    E.g.: $libdef somefunction
-        would put a _defs/somefunction:<ref> "somefunction" call 
-        prop on the program object.
-
-$nomacros 
-    Ignore all macros during compiling.
-
-$cleardefs [ALL]
-    Ignores program _defs/ when compiling the program. Wizards can use
-    $cleardefs ALL to also ignore #0 _defs/ when compiling. This does
-    not affect macros, and internal _defs/ are always loaded no matter what.
-
-See 'man dir7' for more directives and 'man dir list' for a listing.
-~~~~~
-|DIR7|DIRECTIVES7|$ifbeta|$ifalpha|$ifver|$iflibver|$ifauthor|$iflib|$ifcancall
-Note: In all cases, you can replace <library/prog dbref> with the word: this
-      to indicate the program being compiled. These are all $if $else $endif
-      constructions. Refer to $ifdef $else $endif for details on usage.
-
-$ifbeta    <library/dbref> <integer>   $ifnbeta    <library/dbref> <integer>
-$ifalpha   <library/dbref> <integer>   $ifnalpha   <library/dbref> <integer>  
-$ifver     <library/dbref> <float>     $ifnver     <library/dbref> <float>  
-$iflibver  <library/dbref> <float>     $ifnlibver  <library/dbref> <float>  
-$ifauthor  <library/dbref> <smatch>    $ifnauthor  <library/dbref> <smatch>  
-$iflib     <library to check for>      $ifnlib     <library to check for>    
-$ifcancall <library/dbref> <function>  $ifncancall <library/dbref> <function>
-
-Some special defines that can be checked via $ifdef:
-    HAVE_SQL            - If $ifdef'd, means SQL support was compiled in.
-    HAVE_FILE_PRIMS     - If $ifdef'd, means File prims are compiled in.
-    HAVE_SOCKET_PRIMS   - If $ifdef'd, means Socket prims are compiled in.
-    HAVE_MUF_EDIT_PRIMS - If $ifdef'd, means the MUF editing prims are compiled.
-
-See 'man dir8' for more information on directives.
-
-~~~~
-DIR8|DIRECTIVES8|DIRECTIVE8
-
-You can escape a token in MUF so that it will be interpreted literally.
+You can now escape a token in MUF so that it will be interpreted literally.
 ie:  \.pmatch will try to compile '.pmatch' without expanding it as a
 macro.  This lets you make special things with $defines such as:
 $define addprop over over or if \addprop else pop pop remove_prop $enddef
 so that all the 'addprop's in the program will be expanded to the
 definition, but the 'addprop' in the definition will not try to expand
 recursively.  It will call the actual addprop.
-
-See 'man dir list' for a list of all directives.
-~~~~~
-DIR LIST|DIRLIST|ALL DIRECTIVES|DIRS
- 
-Working with props:
-$alpha      $pubdef    $note      $lib-version
-$beta       $author    $version
-
-Working with macros and definitions:
-$define     $enddef    $def       $undef
-$cleardefs  $include   $nomacros  
-
-Notification:
-$echo       $ansi      $abort     $show_status
-$log_status
-
-Compilier Variables:
-__version  __neon      __proto    __muckname
-
-Conditionals:
-$ifdef     $ifalpha    $ifbeta    $ifver       $iflibver
-$ifndef    $ifnalpha   $ifnbeta   $ifnver      $ifnlibver
-$ifauthor  $iflib      $ifcancall
-$ifnauthor $ifnlib     $ifncancall
-
-See 'man dirs' for more infomation on directives.
-~~~~
+~
 LIBRARIES|LIBS|LIB1|LIBS1|LIBRARIES1
 
 How to use a library:
     1) Use "@register lib" to list what libraries exist.
-    2) Use "@view $lib/<library name>" to list the docs on that library.
+    2) Use "@view $lib/<libraryname>" to list the docs on that library.
     3) When you've found the library and the function you want, then all
         you have to do in your program is, at the beginning of it,
-          $include $lib/<library name>
+          $include $lib/<libraryname>
         then just use the function name to invoke it later in your program
         and it will run as if it were a function in your program.
 
@@ -3562,15 +3223,15 @@ LIB2|LIBS2|LIBRARIES2|LIBRARY2
 How to make a library:
     1) create a program with several useful generic subroutines.
     2) DOCUMENT those subroutines in a commented out header in the prog.
-    3) @set <program>=_docs:<command to list those docs you made>
+    3) @set <program>=_docs:<command to list those DOCS you made>
     4) make sure that all the functions are declared PUBLIC.
     5) Make sure the program is set LINK_OK.
     6) Globally register the program with the @register command with a
         prefix of "lib/".  ie: @reg lib-strings=lib/strings
     7) Set up the interface for each function on the program. To do this,
         you will need to set properties on the program in the form
-          _defs/<callname>:"$" match "" call
-        where  is the name that you want to have people use to
+          _defs/<callname>:"$<libname>" match "<funcname>" call
+        where <callname> is the name that you want to have people use to
         invoke it in their programs, <libname> is the registered name you
         gave it (ie: lib/strings), and <funcname> is the actual name of
         the function in the program.  Example:
@@ -3699,8 +3360,8 @@ This version of the MUF manual has been edited, and rewritten for use with
   WhiteFire (kinomon@glia.biostr.washington.edu), who cleaned them up a lot.
 
   ProtoMUCK is the result of the combined efforts of programmers: 
-                           Moose and Akari
-       and is based initially on NeonMUCK version 2.17 and FB6.
+                             Van and Akari
+                 and is based on NeonMUCK version 2.17
 
 See: CREDITS2 for a list of contributors
 ~~
@@ -3709,19 +3370,21 @@ CREDITS2
 The following names are known for contributing to the MUF support in MUCK:
 
 Lachesis  - Wrote the MUF compiler, introduced MUF to MUCKS.
-Foxen     - A lot of the original work on the FB and FB6 code base and docs.
+Foxen     - A lot of the original work on the FB and FB6 code base.
 Whitefire - Some of the older MUF prims.
 Points    - Author of the float support for FB6.
 Loki      - Many bug fixes and new prims added in NeonMUCK
-Nodaitsu  - Contributed file prims from MakoMUCK.
-Moose     - Author of several of the ProtoMUCK exclusive prims.
+Nodaitsu  - Contributed socket prims and file prims from MakoMUCK.
+Van       - Author of several of the ProtoMUCK exclusive prims.
 Akari     - Author of some ProtoMUCK prims, debugger, tester.
 
 No doubt many others have added their own contributions to MUF over
 the years. Sending a message to Nakoruru08@hotmail.com with the name
 of those left out of this list, and what they contributed, will result
 in a more accurate list with time.
-~~~~~~~~~~~~~
+~
+
+~
 FLAGS|FLAG1|FLAGS1|DEBUG|ZOMBIE|DEBUG-EDITOR|DARK|PARENT|PROG_DEBUG
 The following flags have a certain affect on MUF when set on the 
 program object itself:
@@ -3752,7 +3415,7 @@ PROG_DEBUG (%) = This is the same as the PARENT flag. Programs set both
 
 See: FLAGS2
 ~
-FLAGS2|FLAG2|AUTOSTART|ABODE|BOUND|BUILDER|EXPANDED_DEBUG|XFORCIBLE
+FLAGS2|FLAG2|AUTOSTART|ABODE|BOUND|BUILDER
 
 AUTOSTART (A) = On dbload, if a program is set AUTOSTART *AND* is
             owned by a wizard, then it will be placed in the timequeue
@@ -3764,16 +3427,9 @@ BOUND (B) = Programs set BOUND run in preempt mode, regardless of the
             mode the program would normally run in, ignoring all attempts
             to change the mode during the run of the program.
 
-EXPANDED_DEBUG (X) = Programs set with EXPANDED_DEBUG will display much
-            longer string data, and will also display the contents of 
-            MUF arrays, up to the size allowed by the buffer. Removing
-            this flag makes it so that debug output is sent in the 
-            traditional manner of shorter strings and no contents of the
-            arrays being seen.
-
 See: FLAGS3
 ~~~
-FLAGS3|FLAG3|VEHICLE|VIEWABLE|LINK_OK|O|OLDCOMMENT
+FLAGS3|FLAG3|VEHICLE|VIEWABLE|LINK_OK
 
 VIEWABLE (V) = A program set VIEWABLE can be @listed by any player 
             expect for guests.
@@ -3785,44 +3441,21 @@ LINK_OK (L) = Setting a program linkable makes it available for use by
             set = L. If an action not owned by the program owner is
             already linked to the program when the L flag is removed, then
             the action will no longer work.
-
-OLDCOMMENT (O) = Setting a program with OLDCOMMENT makes it so that the
-            comments in it are parsed using the traditional comment 
-            parser. Comments are handled using Proto's comment parser
-            by default and this should only be used if an older program
-            fails to compile due to it's comments not complying with the
-            new method.
-
-See: FLAGS4
 ~~~
-FLAGS4|FLAG4|HARDUID|HAVEN|STICKY|SETUID|QUELL
+FLAGS4|FLAG4|HARDUID|HAVEN|STICKY|SETUID
 
 HARDUID (H) = If a program has the HARDUID flag set on it, then it runs
             with the uid and permissions of the owner of the -trigger-
             of the program. If the program is a timequeue event with
-            trigger #-1, then it will run with the permissions and uid
+            triggeer #-1, then it will run with the permissions and uid
             of the owner of the program.
 
 SETUID (S) = If a program is set both SETUID and HARDUID, and it is owned
             by a wizard, it inherits the uid and mucker level of the 
-            program or trigger that calls it, ignoring other permissions 
-            settings on the program. If the program was not called by 
-            another program it runs at the normal permissions level of the 
-            program owner.
-            Note: MUF in Neon, Glow, and Proto run SETUID by default, which
-                  means they run at the level of the program's owner.
-
-QUELL (Q) = As of Proto1.6 and newer, if a program is set both HARDUID and 
-            QUELL, then it will run at the permission level of the bit on 
-            that program object itself.
-         
-See: FLAGS5   
-~~~~~
-FLAGS5|FLAG5|NO_OPTIMIZE|NO_COMMENT
-
-NO_OPTIMIZIE (N) = Setting this flag on a MUF object will keep that 
-            program from being optimized during compile time if the
-            MUF optimizer is @tuned to yes. See MUF OPTIMING.
+            program that calls it, ignoring other permissions settings on
+            the program. If the program was not called by another program
+            it runs at the normal permissions level of the program owner.
+            Note: MUF in Neon, Glow, and Proto run SETUID by default.
 
 WIZARD/MUCKER (M1 - W4 ) = The limit of what a program can and cannot do
             is influenced by the M/W bit of the owner of the program. 
@@ -3832,10 +3465,6 @@ WIZARD/MUCKER (M1 - W4 ) = The limit of what a program can and cannot do
             exceptions: 
             Any MUF that parses MPI at any point will be affected by its
             M/W bit. And a MUF without at least a M1 bit will not run.
-            Note: Under NO circumstances can a program ever run at a 
-                  higher permission level than its owner, regardless of
-                  H, S, Q, M, and W flags set on the program object or
-                  calling objects. 
 
 See: MUCKER LEVELS
 ~
@@ -3875,9 +3504,7 @@ something that its owner does.
 All propqueues can take the form of _, ~, or @ props.
 
 Propqueue props can be of type dbref or string. If of type string, they
-need to be a number that looks like an int or a dbref, or be MPI code. If 
-they are to be MPI that is to be parsed, they must start with a & mark at
-the beginning.
+need to be a number that looks like an int or a dbref.
 
 Programs called from propqueues run in BACKGROUND mode by default, and
 therefore cannot use the READ prim.
@@ -3890,17 +3517,11 @@ MUCK. A _connect prop on #0 would be called anytime someone connects
 on the MUCK.
 
 Propqueues are ran in the order they appear in the directory
-(alphabetical). The actual name of the prop is not important, other than
-in determining the order. 
-
-For every propqueue there is also a o-propqueue. For example: 
-  _disconnect/ and _odisconnect/            _idle/ and _oidle/
-This only matters if the prop contains MPI to be parsed. The o-propqueues
-make the MPI public as opposed to private to just the player.
+(alphabetical). 
 
 See: PROPQUEUES2 for types of queues.
 ~
-PROPQUEUE2|PROPQUEUES2|LISTEN|CONNECT|DISCONNECT|ALISTEN
+PROPQUEUE2|PROPQUEUES2|LISTEN|CONNECT|DISCONNECT
 
 _listen/ = Listen props are limited to a certain level of 
        permissions, depending on an @tuned setting. Typically M3
@@ -3910,9 +3531,6 @@ _listen/ = Listen props are limited to a certain level of
        a NOTIFY directly to the object. The contents of the stack
        is whatever string was heard that triggered the program. The
        command @ for listen-prop called programs is "(_Listen)"
-
-_alisten/ = Exactly like the _listen/ propqueue, except that strings
-       retain their Neon ANSI tags.
 
 _connect/ = Connect props are called when a player connects.
        They can be on the room the player connects in, or on the 
@@ -3926,7 +3544,7 @@ _disconnect/ = Works just like the connect props, except is run
 
 See PROPQUEUES3 for additional queues.
 ~
-PROPQUEUES3|PROPQUEUE3|ARRIVE|DEPART|_ARRIVE|_DEPART
+PROPQUEUES3|PROPQUEUE3|ARRIVE|DEPART
 
 _arrive/ = Runs programs whenever something arrives in a 
         room. The object that triggers it can be a player or a
@@ -3944,49 +3562,7 @@ _depart/ = Runs programs whenever something departs from a room. The
         "Queued event.", the loc @ is the room that was left. The
         trigger varies just like with the arrive prop calls, even
         when 'home' is used, the dbref given is the room that was left.
-
-See: PROPQUEUES4 for additional propqueues.
-~~~~~
-PROPQUEUES4|PROPQUEUE4|IDLE|UNIDLE|LOOK
-
-_idle/  = This propqueue is called when a player reaches a certain
-        amount of time idle. The idle time is determined by the
-        idletime @tuneable option. The starting arguement is "Idle",
-        the me @ is the player that became idle, the trig will be #-1,
-        the loc @ will be the location of the player, and command @
-        will be "Queued event."
-
-_unidle/ = This propqueue is called when a player unidles after reaching
-        the idletime @tuneable option. All of the information will be the
-        same as the _idle/ propqueue, except the starting arguement will
-        be "Unidle".
-
-_look/  = This propqueue tends to be handled by MUF look front ends, and
-        has no automatic in-server function. However, since it is @tuneable,
-        and most look programs support the _look/ propqueue, it is mentioned
-        here.
-
-See: PROPQUEUES5 for additional propqueues.
-~~~~
-PROPQUEUES5|PROPQUEUE5|LOGIN|DISCLOGIN|DUMPWARN|@DUMPWARN|DUMP|@DUMP
-
-@login = Called when a connection is made to the login screen. The initial
-        argument is 'Login', command @ is 'Queued event.', trig is #0, 
-        me @ is #0, loc @ is #0. This propqueue can only be set on #0.
-
-@disclogin = Called when a connection is dropped from the login screen.
-        The initial conditions are the same as _login/, except that the initial
-        arguement is 'Disclogin'.
-
-@dumpwarn = Called right before the periodic Save warning message would be
-        shown. The trigger is #-1, the player triggering is #1, the loc @ 
-        is #0. This propqueue can only be set on #0.
-
-@dump = Called right before a data base save. Trigger is #-1, player 
-        triggering is #1, the loc @ is #0. This propqueue can only be
-        set on #0.
-
-~~~~~
+~
 PUT
 
 put ( xn...x1 xi i -- xn...xi...x1 )
@@ -4232,7 +3808,7 @@ See: EXECUTE, ADDRESS
 ADDRESS
 
 Function names can be placed on the stack and treated just like 
-any other data type by entering them in the code as '<function_name>'.
+any other data type by entering them in the code as '<function_name>.
 The function name can then be manipulated around the stack just
 like any other data object in MUF. It can be called by the
 EXECUTE prim. Other than functions such as DUP, ROT, etc, that handle
@@ -4249,8 +3825,7 @@ Level: M1 Apprentice
 x = Any object on the stack.
 i = integer representing true or false result.
 
-Given x, returns 1 if x is a normal socket descriptor, or -1 if x is
-a listening socket descriptor, otherwise it returns 0. 
+Given x, returns 1 if x is a socket descriptor, otherwise returns 0.
 ~
 LOCK?
 
@@ -4384,7 +3959,7 @@ should either be 1, for when you want {delay} messages to be sent to the
 player only, or 0, when you want the rest of the players in the room to get
 the omessages.
 
-See: PARSEMPI, PARSEPROPEX
+See: PARSEMPI
 ~
 PARSEMPI
 
@@ -4461,8 +4036,8 @@ string s, that player will be connected to that descriptor number, without
 dropping the connection to the MUCK. From the MUCK's perspective, it first
 disconnects that descriptor from the old dbref, then connects the new one,
 as if QUIT was used for the original player, and the second player then
-connected. It returns 1 if the descriptor was found and reassigned, 
-or 0 in case of password failure.
+connected. The program aborts if the password is invalid. It returns 1
+if the descriptor was found and reassigned, 0 otherwise.
 ~
 INTERP
 
@@ -4641,14 +4216,10 @@ on the stack while debugging, so it is important to keep track of which
 is which while working on a program. 
 
 When a program aborts or ends with any sockets still open, all open 
-sockets are closed. 
-NOTE: Socket prims are a compile time option and may not be present.
-SOCKOPEN is included strictly for backwards compatability, though now
-returns a non-blocking socket as well.
+sockets are closed, so there is not the problem of leaving open sockets
+like there was in NeonMUCK.
 
-See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
-     SOCKET?, SOCKDESCR, NBSOCKRECV, LSOCKOPEN, SOCKACCEPT, GET_SOCKINFO,
-     SOCKET_SETUSER, SET_SOCKOPT, SOCKTODESCR, SOCKSHUTDOWN
+See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV
 ~
 SOCKOPEN
 
@@ -4665,9 +4236,8 @@ another site. If the host name is not recognized by DNS, the program
 will abort, otherwise will attempt to open a connection. If the 
 connection is successful, a socket variable and string containing
 "noerr" are returned to the stack. Any other result than "noerr" 
-should be treated as a failed connection, and the socket return should
-be discarded. The code on this has been changed to create safer
-non-blocking sockets instead, and the timeout is 10 seconds.
+should be treated as a failed connection, and end the attempt by 
+popping the socket variable returned as well.
 
 See: SOCKETS
 ~
@@ -4682,18 +4252,16 @@ i = integer indicating success.
 
 Given a socket descriptor and a string, socksend will attempt to send
 the string to the given descriptor. If the string is successfully sent,
-it will return a true integer value to the stack, otherwise it will
-return 0, indicating that the connection has been closed.
+it will return a true integer value to the stack, otherwise 0.
 
 See: SOCKETS
 ~
-NBSOCKRECV|SOCKRECV
+SOCKRECV
 
-nbsockrecv ( socket -- i s )
-----------------------------
+sockrecv ( socket -- s )
+------------------------
 Level: W3 ArchWizard
-socket = socket descriptor to check for a string at.
-i = integer representing connection status.
+socket = socket descriptor to heck for a string at.
 s = string representing what was received, or an empty string if nothing.
 
 Given a socket descriptor, will attempt to receive an incoming string.
@@ -4703,27 +4271,8 @@ empty string is pushed. This prim needs to be used in some kind of loop
 to be particularlly useful, otherwise it may always seem to just return
 empty strings.
 
-The integer returned will be 0 if the connection has been dropped.
-
-SOCKRECV is still supported, but it is now an inserver #define of:
-nbsockrecv swap pop
-
 See: SOCKETS
-~~~
-SOCKDESCR
-sockdescr ( socket -- i )
--------------------------
-Level: W3 ArchWizard
-socket = MUF socket descriptor.
-i = socket number
-
-When sockets are created, they are assigned a unique socket number that
-is valid through the life of the socket. This prim will return that number
-to the stack. This prim cannot be used as an indicator of a socket being open
-or closed, as sockets retain their socket number even if the connection is
-closed.
-
-~~
+~
 SOCKCLOSE
 
 sockclose ( socket -- i )
@@ -4738,11 +4287,7 @@ it. When a MUF program ends, either by crashing, or ending normally,
 any open socket connections are automatically closed. Still, it is a 
 good practice to close them manually when they are no longer needed.
 
-This prim is depricated as of 1.80 and newer. Starting with Proto 1.9,
-it will be replaced by an in-server define of:
-2 SOCKSHUTDOWN
-
-See: SOCKETS, SOCKSHUTDOWN
+See: SOCKETS
 ~
 SPLIT
 
@@ -4765,8 +4310,8 @@ See: RSPLIT
 ~
 RSPLIT
 
-rsplit ( s1 s2 -- s3 s4 )
--------------------------
+split ( s1 s2 -- s3 s4 )
+------------------------
 Level: M1 Apprentice
 s1 = string to split.
 s2 = string representing the point at which to split s1.
@@ -4776,7 +4321,7 @@ Given a string, s1, and another string, s2, will split s1
 just after the last instance of s2 in s1. Note that the 
 s2 is not included in either string after it the split
 is done, so
-"Some Sample String" " " split will produce "Some Sample" "String"
+"Some String" " " split will produce "Some" "String"
 If s2 is not found, it returns the original string, plus
 an empty string to the stack.
 
@@ -4852,23 +4397,16 @@ of character that could be returned will still be put on the stack.
 If s1 is an empty string, returns an empty string no matter what.
 If i1 is a point that is beyond the range of s1, returns a null string.
 ~
-NOTIFY_DESCRIPTOR|DESCRNOTIFY|ANSI_NOTIFY_DESCRIPTOR
+NOTIFY_DESCRIPTOR
 
-notify_descriptor or ansi_notify_descriptor or descrnotify ( i s -- )
----------------------------------------------------------------------
+notify_descriptor ( i s -- )
+----------------------------
 Level: W1 Mage
 i = integer representing a descriptor number.
 s = string to notify to that descriptor.
 
 Given a string i, and a descriptor number, will notify to that
 descriptor directly.
-descrnotify is an alias to notify_descriptor. Both of these will 
-strip out any standad ANSI when notifying to descriptors that are not 
-connected to a player, since there is no C flag to check for.
-
-ansi_notify_descriptor works the same, except that it parses Neon ANSI,
-just like ansi_notify.
-
 ~
 STRENCRYPT
 
@@ -4901,7 +4439,7 @@ an inaccurate message to the stack.
 
 See: STRENCRYPT
 ~
-FILE PRIMS|FILE_PRIMS|FILEPRIMS
+FILE PRIMS|FILE_PRIMS
 
 ProtoMUCK includes several MUF prims for working with files on the 
 server. Due to the inherint risks associated with having this access
@@ -4913,18 +4451,14 @@ directories that can be accessed. Note that when file prims are used
 in the secure mode, they will only work if the directories and location
 of the MUCK are in the default arrangement that the MUCK comes in.
 
-Note: File prims are a compile time option and may not actually be 
-      present.
-
 A list of the file prims:
-FWRITE, FREAD, FREADN, FREADTO, FAPPEND, FCR - For use with characters.
+FWRITE, FREAD, FREADN, FAPPEND, FCR - For use with characters.
 BWRITE, BREAD, BAPPEND - For use with integer values for ASCII.
-FPUBLISH, FSINFO, FSTATS, CURID, FSIZE, FNAME-OK? - Getting file/host information.
+FPUBLISH, FSINFO, FSTATS, CURID, FSIZE - Getting file/host information.
 FRM, FREN - For moving/removing files.
-GETDIR, MKDIR - For working with directories.
 See: SHORTCUTS
 ~~~~~~
-SHORTCUTS|FILE SHORTCUTS|FILESHORTCUTS|SHORTCUT|FILE SHORTCUT
+SHORTCUTS
 
 The following tokens, when used in the file name for file prims, will
 allow on to access otherwise secured directories and files:
@@ -4937,17 +4471,15 @@ $CONNECT.TXT      = data/connect.txt
 $HELP.TXT         = data/help.txt
 $MAN.TXT          = data/man.txt
 $MPIHELP.TXT      = data/mpihelp.txt
-$SYSPARMS.TXT     = data/sysparms.txt
 $NEWS/            = data/news/
 $HELP/            = data/help/
 $INFO/            = data/info/
 $MAN/             = data/man/
 $MPIHELP/         = data/mpihelp/
-$MUF/             = muf/
 $WELCOME/         = data/welcome/
 $PUBLIC_HTML/     = ../../public_html/
 $WWW/             = ../../www/
-$LOGS/            = logs/
+
 See: FILE PRIMS
 ~
 FWRITE
@@ -5016,10 +4548,10 @@ If the range of characters to be read in exceed the length of the
 file, then it will read in characters up to the end of the file.
 
 See: FILE PRIMS, SHORTCUTS
-~~~
+~
 FPUBLISH
 
-fpublish ( s -- i )
+FPUBLISH ( s -- i )
 -----------------
 Level: W4 Boy
 s = string representing file name to change the mode on.
@@ -5161,8 +4693,7 @@ i = integer representing the size in bytes.
 
   Takes a file/pathname as string s, and returns i, which
 is equal to the last byte position in the file.  (ie; It
-is equal to the file size of s.) Returns -1 if the file
-does not exist.
+is equal to the file size of s.)
 
 See: FILE PRIMS, SHORTCUTS
 ~
@@ -5171,8 +4702,8 @@ FRM
 frm ( s -- i )
 --------------
 Level: W4 Boy
-s = string representing file name to remove.
-i = integer representing success or failure. 0 indicates success.
+s = string representing fiile name to remove.
+i = integer representing success or failure.
 
 Given a filename on the server, removes that file. If the file was
 removed fine, then a 0 is returned to the stack. If the file did 
@@ -5200,20 +4731,7 @@ location s2, it will be overwritten. If the rename attempt is
 finished successfully, 0 is returned to the stack, otherwise -1.
 
 See: FILE PRIMS, SHORTCUTS
-~~~~
-FNAME-OK?
-
-fname-ok? ( s -- i )
---------------------
-Level: W4 Boy
-s = Any non-empty string.
-i = integer indicating if the string is a valid file prim shortcut or not.
-
-Given a string, checks to see if the string forms a valid file shortcut
-to use with the file prims. If not, returns 0, if it is, it returns a 1.
-
-See: FILE PRIMS, SHORTCUTS
-~~~~
+~
 ++|--
 
 ++ and -- ( x -- x' )
@@ -5227,6 +4745,18 @@ any of those three data types, ++ will increment it by one, and
 -- will decrement it by one. If the value is stored in a 
 variable, the result is returned to the variable, replacing the
 old value.
+~
+INF
+
+inf ( -- f )
+------------
+Level: M1 Apprentice
+f = float value representing Infinite
+
+Returns the value of an Infinite result.  Most functions will not
+accept this value as a legal input.
+
+See: FLOAT PRIMS
 ~
 CEIL
 
@@ -5331,23 +4861,13 @@ signs of both values, and avoiding problems with DIVBY0. This is
 useful to get an angle from X-Y coordinates.
 
 See: FLOAT PRIMS
-~~~~
-KAERU
-
-kaeru ( d i s1 -- i ) 
---------------------- 
-Level: W6 Frog
-
-Takes dbref, integer, and string and will return 0 if Kaeru is idle. 
-It theoretically returns 1 if Kaeru is unidle, but that has yet to 
-happen.
-~~~~
+~
 DIST3D
 
 dist3D ( nx ny nz -- f )
 ------------------------
 nx ny nz = 3 numbers representing a 3d coordinate.
-f = float representing those coordinate's distance from the origin.
+f = float representing those coordinate's distance from the origen.
 
 Returns the distance of the XYZ coordinate (fx,fy,fz) from the origin.
 
@@ -5567,7 +5087,7 @@ FLOAT ERRORS PRIMS: CLEAR, ERROR_NUM, CLEAR_ERROR, SET_ERROR, IS_SET?
 
 See: Individual entries for more details. ERROR? for float error help.
 ~~~~~
-ARRAY PRIMS|ARRAYS|ARRAY
+ARRAY PRIMS|ARRAYS
 
 First appearing in FB6, array support in MUF provides the user with 
 a number of shortcuts when it comes to filtering through data, 
@@ -5595,22 +5115,18 @@ See: ARRAYS2
 ARRAYS2|ARRAY2
 
 The following ARRAY prims are available:
-ARRAY_MAKE           ARRAY_MAKE_DICT      }DICT              }LIST
-ARRAY_EXPLODE        ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
-ARRAY_FIRST          ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
-ARRAY_GETITEM        ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_SORT
-ARRAY_GETRANGE       ARRAY_SETRANGE       ARRAY_INSERTRANGE  ARRAY?
-ARRAY_DELITEM        ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
-ARRAY_NINTERSECT     ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
-ARRAY_NOTIFY         ARRAY_REVERSE        DESCR_ARRAY        DICTIONARY?
-ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS 
-ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
-ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
-ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
-ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
-ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
-EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
-ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED
+ARRAY_MAKE         ARRAY_MAKE_DICT      }DICT              }ARRAY
+ARRAY_EXPLODE      ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
+ARRAY_FIRST        ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
+ARRAY_GETITEM      ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_INSERTITEM
+ARRAY_GETRANGE     ARRAY_SETRANGE       ARRAY_INSERTRANGE  
+ARRAY_DELITEM      ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
+ARRAY_NINTERSECT   ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
+ARRAY_NOTIFY       ARRAY_REVERSE        ARRAY?             DICTIONARY?
+ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS     ARRAY_PUT_PROPVALS 
+ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST     ARRAY_FINDVAL
+ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST      ARRAY_EXCLUDEVAL
+DESCR_ARRAY          ONLINE_ARRAY
 
 See: Individual entries for more information.
 ~~~~~~
@@ -5677,26 +5193,6 @@ dbref numbers.
 
 See: ARRAY PRIMS
 ~
-}DICT|}LIST|}join
-------------
-}dict ( { x1 x2 x3 ... xn -- dict )
-}list ( { x1 x2 x3 ... xn -- array )
-}join ( { s1 s2 s3 ... xn -- s4 )
---------------------------------------
-Level: M1 Apprentice
-{  = The opening stack marker.
-x1 ... xn = A range of items on the stack.
-dict = A dictionary array.
-array = A list array.
-s4 = A string of the concated values s1 through sn
-
-These are all in-server $defines for:
-} array_make
-} array_make_dict
-} array_make "" array_join
-
-See: ARRAY PRIMS
-~~~
 ARRAY_MAKE
 
 array_make ( {?} -- a )
@@ -5819,10 +5315,10 @@ If @ was the beginning of the array, or the array is empty, the
 integer will be 0, otherwise will be 1.
 
 See: ARRAY PRIMS, ARRAY_PREV, ARRAY_FIRST, ARRAY_NEXT
-~~~~
-ARRAY_NEXT
+~
+ARRAY_PREV
 
-array_next( a @ -- @' i )
+array_prev( a @ -- @' i )
 -------------------------
 Level: M1 Apprentice
 a  = An array.
@@ -5836,7 +5332,7 @@ If @ was the end of the array, or the array is empty, the
 integer and index marker will be 0, otherwise will be 1. 
 
 See: ARRAY PRIMS, ARRAY_PREV, ARRAY_FIRST, ARRAY_NEXT
-~~~~
+~
 ARRAY_GETITEM|[]
 
 array_getitem( a @ -- x )
@@ -5954,7 +5450,7 @@ See: ARRAY PRIMS
 ARRAY_DELITEM
 
 array_delitem( a @ -- a' )
---------------------------
+---------------------------
 Level: M1 Apprentice
 a  = An array.
 @  = A valid index marker for array a1.
@@ -5969,7 +5465,6 @@ See: ARRAY PRIMS, ARRAY_DELRANGE
 ARRAY_DELRANGE
 
 array_delrange( a @1 @2 -- a' )
--------------------------------
 Level: M1 Apprentice
 a  = An array.
 @1 = Index marker indicating starting position to delete from.
@@ -6034,12 +5529,10 @@ previous difference from the top of the stack down.
 See: ARRAY PRIMS, STACKRANGE, ARRAY_NUNION, ARRAY_NINTERSECT
      ARRAY_DIFF
 ~
-ARRAY_NOTIFY|ARRAY_ANSI_NOTIFY|ARRAY_NOTIFY_HTML
+ARRAY_NOTIFY
 
 array_notify( a1 a2 -- )
-array_ansi_notify( a1 a2 -- )
-array_notify_html( a1 a2 -- )
------------------------------
+------------------------
 Level: M1 Apprentice
 a1 = An array of all strings.
 a2 = An array of all dbref numbers.
@@ -6048,8 +5541,7 @@ Notifies all of the dbref objects in a2 the entire contents of
 a1. Will notify to rooms and players, and can be picked up by
 listen props. However, ZOMBIE objects do not seem to get notified.
 Will still name append messages for M1 if the @tune is set to 
-require that. The ANSI and HTML versions work just the same, except
-for handling ANSI and HTML sending as well.
+require that.
 
 See: ARRAY PRIMS
 ~
@@ -6115,17 +5607,16 @@ ARRAY_GET_PROPLIST
 
 array_get_proplist( d s -- a )
 ------------------------------
+Level: M3 Master
 d = Any valid dbref.
-s = string representing the lsedit list to read from.
+s = string representing the directory to read from.
 a = array containing the propvals for all the props under that propdir.
 
-Given a valid dbref, and a string that represents the property list to
-read from, this prim will read the lsedit list into a string array.
-The lsedit list name, s, need not end with the # mark. Thus
-"somelist" 
-and 
-"somelist#" 
-will both be able to retrieve the lsedit list under 'somelist#'. 
+Given a valid dbref, and a string that represents the directory from
+which to read the property values in from, it will read the value of
+every property under that directory into an array, regardless of
+property type. The index markers will be integers that are numbered 
+sequentially, starting from 1. 
 
 See: ARRAY PRIMS, ARRAY_GET_PROPVALS, ARRAY_PUT_PROPLIST
 ~
@@ -6307,8 +5798,7 @@ array_union      = 2 array_nunion
 array_intersect  = 2 array_nintersect
 
 See: ARRAY_NDIFF, ARRAY_NUNION, ARRAY_NINTERSECT, ARRAY PRIMS
-~~~~
-~~~~
+
 CLEAR
 
 clear ( -- )
@@ -6443,7 +5933,7 @@ player or thing does not pass the lock, then 1 is returned to the
 stack. If d1 passes the lock, or there is no lock, then 0 is 
 returned to the stack.
 
-See: TESTLOCK, LOCKED?, CHECKLOCK
+See: TESTLOCK, LOCKED?
 ~~
 PROPQUEUE
 
@@ -6556,13 +6046,9 @@ Descriptors are numbers that always stay the same for a connection,
 while a connection# is the relative position in the WHO list of a
 connection.
 
-As of Proto1.5 and newer, the array will include descriptors that are not
-yet connected to a character when given #-1. These would be the connections
-that are open to the login screen that have not logged in yet.
-
 See DESCRIPTORS, DESCRCON, CONDESCR, ARRAY PRIMS
 ~~~~
-ONLINE_ARRAY
+ONLINE_ARRAY|
 
 online_array ( -- a )
 ---------------------
@@ -6657,17 +6143,15 @@ returns the values:
     "ab/cd'efg"   "hi//jk'lm"   "'"
 
 ~~
-MAGECALL|WIZCALL|ARCHCALL|BOYCALL
+WIZCALL
 
-magecall wizcall archcall boycall <funcname>
---------------------------------------------
+wizcall <funcname>
+------------------
 Level: M1 Apprentice
 funcname = The name of any function in the program.
 
-  Specifies that the given function is a Wiz-only public function.  The function
-can only be called by programs running under the permissioned equal to the level
-of the call. An ARCHCALL function, for example, is like a PUBLIC function, except 
-it can only be called by programs running at W3 or higher in permissions.
+  Specifies that the given function is a WIZCALL function.  A WIZCALL function
+is like a PUBLIC function, except it can only be called by wizbit programs.
 
 See: PUBLIC
 ~~~
@@ -6839,10 +6323,6 @@ EVENT_WAIT. The event type will be "USER." with the given id string
 in string s appended to it. The event id string can be no longer than
 32 characters. The event data arguement will be passed to the process
 as the data element read by event_wait.
-As of Proto1.6, in keeping in line with FB6 changes, EVENT_SEND now sends
-a dictionary instead of just a value. The array will contain 'data' with
-the value, "caller_pid" with the PID of the caller, and "caller_prog" with
-the dbref of the caller.
 
 See: EVENTS
 ~~
@@ -6898,8 +6378,8 @@ following event prims are available:
 
 Timers: TIMER_START, TIMER_STOP
 User Events: EVENT_SEND
-Receiving Events: EVENT_WAIT, EVENT_WAITFOR
-Misc: EVENT_COUNT, EVENT_EXISTS
+Receiving Events: EVENT_WAIT
+Misc: EVENT_COUNT
 ~~
 TEXTATTR
 
@@ -6935,9 +6415,6 @@ display the message with ANSI color.
 Type 0 = FB6 style ANSI tags:  \[[0;31
 Type 1 = Neon style ANSI tags: ^RED^
 Type 2 = Mush style ANSI tags: %cg%ch
-Type 3 = Tilde style ANSI tags: ~&110
-
-See: ANSI
 ~~~~
 ANSI_STRLEN
 
@@ -6998,7 +6475,6 @@ tags are to be escaped. The choices are:
 Type 0 = FB6 style ANSI tags:  \[[0;31
 Type 1 = Neon style ANSI tags: ^RED^
 Type 2 = Mush style ANSI tags: %cg%ch
-Type 3 = Tilde style ANSI tags: ~&110
 ~~~
 UNPARSE_ANSI
 
@@ -7017,7 +6493,6 @@ The choices for types are:
 Type 0 = FB6 style ANSI tags:  \[[0;31
 Type 1 = Neon style ANSI tags: ^RED^
 Type 2 = Mush style ANSI tags: %cg%ch
-Type 3 = Tilde style ANSI tags: ~&110
 ~~~
 COMPILED?
 
@@ -7055,7 +6530,7 @@ Given a dbref, a propdir name, and a list style array, creates
 a list on that object with the contents of that array. The list
 that is created will be compatible with the lseditor.
 
-See: ARRAY PRIMS, ARRAY_GET_PROPLIST
+See: ARRAY_PRIMS, ARRAY_GET_PROPLIST
 ~~~
 ARRAY_FINDVAL
 
@@ -7133,2456 +6608,3 @@ s' = The same string, with all spaces cut down to just one.
 Strips out all the extra spaces from a string, both from the
 front, the tail, and between words. So the following string:
 "  This is    ProtoMUCK.  " would become "This is ProtoMUCK."
-~~~~
-SETPASSWORD
-
-setpassword( d s1 s2 -- )
--------------------------
-Level: W1 Mage
-d  = Any valid player dbref.
-s1 = The player's old password.
-s2 = The player's new password.
-
-Given a player's dbref and their old password in s1, will change
-the player's password to s2. 
-~~~~
-NEWPASSWORD
-
-newpassword( d s -- )
----------------------
-Level: W3 ArchWizard
-d = Any valid player dbref.
-s = That player's new password.
-
-Changes player d's password to the contents of string s. If player is
-a wizard, then the program must be running under W4 level in order to
-change their password.
-~~~~
-NEXT_FLAG
-
-next_flag( d1 s -- d2 )
------------------------
-Level: W1 Mage
-d1 = Any dbref.
-s  = String representing the flag to search for. 
-d2 = Next dbref in the data base with that flag.
-
-Given a dbref d, checks through the data base to return the next 
-dbref that has that flag set on it. If there are no more objects 
-in the data base that have that flag, then #-1 is returned. 
-
-See: NEXTOWNED_FLAG, NEXTPLAYER_FLAG, NEXTTHING_FLAG
-~~~
-NEXTOWNED_FLAG
-
-nextowned_flag( d1 s -- d2 )
-----------------------------
-Level: W1 Mage
-d1 = Any valid dbref.
-s  = string representing the flag to search for.
-d2 = Next dbref in data base with that flag owned by that player.
-
-Given a valid dbref, d1, and a string representing the flag to look
-for, will return the next item owned by the same player that owns
-d1. I.e., if d1 is a player, it returns the first item found that
-the player owns that has that flag. If d1 is an object, it returns
-the next item owned by the player who owns d1 that also has the flag s.
-If no objects are found, then #-1 is returned.
-
-See: NEXT_FLAG, NEXTPLAYER_FLAG, NEXTTHING_FLAG
-~~~
-NEXTPLAYER_FLAG
-
-nextplayer_flag( d1 s -- d2 )
------------------------------
-Level: W1 Mage
-d1 = Any valid dbref.
-s  = string representing the flag to search for.
-d2 = Next player dbref in data base with that flag.
-
-Given a dbref, searches up the data base and returns the first player
-that has the flag s set. If there are no players found with that flag
-set, #-1 is returned.
-
-See: NEXT_FLAG, NEXTOWNED_FLAG, NEXTTHING_FLAG
-~~~
-NEXTTHING_FLAG
-
-nextthing_flag( d1 s -- d2 )
-----------------------------
-Level: W1 Mage
-d1 = Any valid dbref.
-s  = string representing the flag to search for.
-d2 = Next thing dbref in data base with that flag.
-
-Given a dbref, searches up the data base and returns the next object of
-type thing that has the flag s set. If there are no players found with 
-that flag set, #-1 is returned.
-
-See: NEXT_FLAG, NEXTOWNED_FLAG, NEXTPLAYER_FLAG
-~~~~~
-DESCR_LOGOUT
-
-descr_logout( i -- )
---------------------
-Level: W3 ArchWizard
-i = integer representing a descriptor.
-
-Given a valid descriptor number, returns the user to the login screen, 
-effectively disconnecting the character but leaving the connection 
-open.
-~~~
-MOTD_NOTIFY
-
-motd_notify ( d -- )
---------------------
-Level: M3 Master
-d = Any valid player dbref.
-
-Given a player dbref, d, will display the contents of the motd.txt file
-to that character.
-~~~~
-EXPLODE_ARRAY
-
-explode_array( s1 s2 -- a )
----------------------------
-Level: M1 Apprentice
-s1 = string to explode.
-s2 = character to explode s1 by.
-a  = A list array containing the contents of s1 broken up by s2.
-
-Does exactly what the EXPLODE prim does, except instead of returning
-the strings to the stack, it places them in a list style array.
-
-See: EXPLODE
-~~~
-NEXTPROGRAM
-
-nextprogram( d1 -- d2 )
------------------------
-Level: M3 Master
-d1 = Any valid dbref.
-d2 = Next program in the data base, or #-1.
-
-Given a valid dbref, returns the dbref of the next object in the 
-data base that is of type program. If there are no more programs in
-the data base after d1, then #-1 is returned.
-
-See: NEXTPLAYER, NEXTEXIT, NEXTROOM, NEXTTHING.
-~~~
-NEXTEXIT
-
-nextexit( d1 -- d2 )
---------------------
-Level: M3 Master
-d1 = Any valid dbref.
-d2 = Next exit in the data base, or #-1.
-
-Given a valid dbref, returns the dbref of the next object in the
-data base that is of type exit. If there are no more exits in the
-data base after d1, then #-1 is returned.
-
-See: NEXTPLAYER, NEXTROOM, NEXTTHING, NEXTPROGRAM.
-~~~~
-NEXTROOM
-
-nextroom( d1 -- d2 )
---------------------
-Level: M3 Master
-d1 = Any valid dbref.
-d2 = Next room in the data base, or #-1.
-
-Given a valid dbref, returns the dbref of the next object in the 
-data base that is of type exit. If there are no more exits in the
-data base after d1, then #-1 is returned.
-
-See: NEXTPLAYER, NEXTTHING, NEXTPROGRAM, NEXTEXIT
-~~~
-NEXTTHING
-
-nextthing( d1 -- d2 )
----------------------
-Level: M3 Master
-d1 = Any valid dbref.
-d2 = Next thing in the data base, or #-1.
-
-Given a valid dbref, returns the dbref of the next object in the 
-data base that is of type thing. If there are no more things in the
-data base after d1, then #-1 is returned.
-
-See: NEXTPLAYER, NEXTEXIT, NEXTROOM, NEXTPROGRAM
-~~~
-NEXTENTRANCE
-
-nextentrance( d1 d2 -- d3 )
-------------------------
-Level: W1 Mage
-d1 = Dbref of object to check entrances for.
-d2 = Starting object to search from.
-d3 = Next entrance after d2, or #-1 if there are no more entrances.
-
-Will search for entrances that link to object d1. The search begins
-at d2 and works its way up through the data base. d2 does not necessarially
-have to be an object linked to d1, or even a valid dbref. Passing #-1 as d2
-will make it so that the search begins at the bottom of the data base, before
-#0.
-~~~~~
-NBSOCKOPEN
-
-nbsockopen( s1 i -- socket s2 )
--------------------------------
-Level: W3 ArchWizard
-s1 = string representing the domain name to connect to.
-i  = Port number to open the connection to.
-socket = Special data type, represented as (SOCKET) on the stack.
-s2 = Error string.
-
-Given a host and a port number to connect to, returns a message string
-and a socket object that may or may not be connecting still. If the 
-host name is valid, s2 will contain "Operation now in progress".
-Otherwise, a string containing the nature of the error will be returned,
-such as "Invalid host."
-The socket that is returned should then be checked with SOCKCHECK until
-the connection is completed, or a pre-determined time out has been reached.
-Note: The socket -must- clear through sockcheck before being used, or
-it may not perform correctly when used with socksend.
-
-See: SOCKCHECK, SOCKET PRIMS
-~~~~
-SOCKCHECK
-
-sockcheck( socket -- i )
-------------------------
-Level: W3 ArchWizard
-socket = MUF socket.
-i = Integer representing connected or not. -1, 0, or 1.
-
-Given a socket generated by NBSOCKOPEN, will return 0 if the socket is
-still trying to connect, or 1 if the socket has connected. This should
-be used in a loop to learn when a socket created by NBSOCKOPEN has 
-finally connected. It is essential to check new sockets with sockcheck
-before using them to transmit data, as they will not perform correctly
-with socksend until having cleared sockcheck. 
-If sockcheck ever returns -1, that indicates that the connection was refused.
-This usually happens when trying to connect to an invalid port number on
-a valid host.
-
-
-Brief example of using NBSOCKOPEN and SOCKCHECK to establish a connection:
-var mysock
-: opensock ( -- i, tries to connect for 10 seconds before timing out )
-  "some.server.com" 1864 nbsockopen pop mysock !
-  1 10 1 for pop mysock @ sockcheck if 1 exit then 1 sleep
-  repeat 0
-;
-
-See: NBSOCKOPEN, SOCKET PRIMS
-~~~~
-FUNCTION HEADERS|HEADERS|FUNCTIONHEADERS|FUNCTION_HEADERS
-
-New in FB6 and Proto is the ability to write function headers that will
-create the scoped variables and place the correct arguements into them
-before actually beginning the function itself. Function headers are
-created by ending a function name with a '[' mark. This tells the compilier
-that you are declaring a set of variables with initial values pulled from
-the stack. The function header is closed with a ']'. Each variable can also
-be preceeded by a type name and a colon that represents the type of data
-that the variable should be initialized with. Anything after a '--' in the
-function header will be ignored. The idea is to put what the proceedure will
-be returning there. For example:
-: demo[ str:strVar int:intVar -- arr:arrVar ]
-
-This would declare 2 variables, strVar and intVar, and place the top two
-stack items in them as their initial values. According to the type names
-on each variable, the top stack item should be an inst, and the 2nd item a
-string, but this is not actually checked when the program is run. 
-arrVar is not declared in the function header, as it comes after the '--', 
-indicating that this function is intended to return an array.
-The type names that should be used for the sake of consistency are:
-'addr', 'arr','dbref', 'dict', 'float', 'int', 'lock', 'str', 'var', 
-or 'lvar'.
-~~~~~
-VAR!
-
-var! ( x var! <name> -- )
--------------------------
-Level: M1 Apprentice
-x = Any data tyle
-<name> = Name of the variable to declare.
-
-This is a short cut to declare a variable and initialize it with something
-from the top of the stack all in one step. During compile time it is 
-expanded to: 
-var <name> <name> !
-~~~~~
-ISPOWER?
-
-ispower? ( s -- i )
--------------------
-Level: M1 Apprentice
-s = A string representing a possible @power.
-i = Integer indicating true or false.
- 
-Given a string, returns 1 if that string represents a valid
-@power and 0 if string represents an invalid @power.
-~~~
-POWER?
-
-power? ( d s -- i )
--------------------
-Level: M1 Apprentice
-d = Any valid player dbref.
-s = String representing the @power to check for.
-i = Integer indicating true or false.
- 
-Given a valid player dbref and a string containing a valid
-@power to check for, returns 1 if that player has been given
-that @power, and 0 if not.
-~~~
-NEXTPLAYER_POWER
-
-nextplayer_power ( d1 s -- d2 )
--------------------------------
-Level: W1 Mage
-d1 = Valid player dbref.
-s  = String representing the power to search for.
-d2 = Dbref of next player in the data base, or #-1.
- 
-Given a valid player dbref, and a string representing the @power
-to search for, returns the dbref# of the next player in the
-data base that has that @power set, or #-1 if no players were
-found with that power set.
-
-See: NEXTPLAYER_FLAG
-~~~~
-PNAME-OK?
-
-pname-ok? ( s -- i )
------------------
-Level: M1 Apprentice
-s = Any string.
-i = Integer indicating valid or not.
-
-Given a string, will return a 1 if s contains a valid player name, 
-otherwise returns 0.
-
-See: NAME-OK?
-~~~~
-NAME-OK?
-
-name-ok? ( s -- i )
--------------------
-Level: M1 Apprentice
-s = Any string.
-i = Integer indicating valid or not.
-
-Given a string, will return a 1 if s contains a valid name for
-any object, otherwise returns 0.
-
-See: PNAME-OK?
-~~
-ANSI_MIDSTR
-
-ansi_midstr ( s1 i1 i2 -- s2 )
-------------------------------
-Level: M1 Apprentice
-s1 = Original string.
-i1 = integer representing the start point.
-i2 = integer representing the length.
-s2 = string representing the contents of s1 from i1 to i2.
-
-Returns a sub-string of s1, starting at position i1, of length
-i2. The first character is considered position 1, so that:
-"testing" 2 3 midstr will return the value "est"
-The difference between this and the normal midstr is that 
-ANSI codes will be ignored when determining the string positions
-from which to take the mid-string from. This applies only to the 
-real ANSI escape codes. Use parse_ansi to convert other ANSI to
-real ANSI.
-
-If s1 is shorter than the range given by i2, then the maximum number
-of character that could be returned will still be put on the stack.
-If s1 is an empty string, returns an empty string no matter what.
-If i1 is a point that is beyond the range of s1, returns a null string.
-~~~~~
-MCP PRIMS|MCP|MCPPRIMS|GUI PRIMS|GUIPRIMS|GUI
-
-GUI MCP from FB6. 
-At the time this version of the manual was completed, I had no idea
-how to use the MCP prims. Below is a list of the MCP prims that are
-in Proto, and each one is documented within this manual. Further
-documentation regarding the use of this prims will be provided once
-the way they are to be used becomes more clear. All of the manual
-entries for them were taken straight from the FB6 MUF Manual.
-
-MCP: MCP_REGISTER, MCP_REGISTER_EVENT, MCP_SUPPORTS, MCP_BIND, MCP_SEND
-GUI: GUI_AVAILABLE, GUI_DLOG_CREATE, GUI_DLOG_SHOW, GUI_DLOG_CLOSE
-     GUI_CTRL_CREATE, GUI_VALUES_SET, GUI_VALUES_GET, GUI_CTRL_COMMAND
-     GUI_VALUE_GET
-
-~~~~~~~~~~~~~~
-MCP_REGISTER
-
-mcp_register ( s f1 f2 -- )
----------------------------
-Level: M1 Apprentice
-s  = String containing the name of an MCP package to register.
-f1 = Float representing minimum version number supported.
-f2 = Float representing maximum version number supported.
-
-Registers an MCP package so that clients can know what is supported. 
-The minimum and maximum versions supported are represented as floating 
-point numbers, with the minor version number being divided by 1000. For 
-example, an MCP package of version 1.1 is represented as 1.001, and a 
-version of 1.23 is represented as 1.023. This lets you use mathematical 
-compares to check version numbers. 
-
-See: MCP PRIMS
-~~~~~~~
-MCP_REGISTER_EVENT
-
-mcp_register_event ( s f1 f2 -- )
----------------------------------
-Level: M1 Apprentice
-s  = string containing package name to register.
-f1 = Float representing the minimum version package supported.
-f2 = Float representing the maximum version package supported.
-
-Registers an MCP package so that clients can know what is supported, 
-and marks this process as wanting to receive MCP messages as Muf Events. 
-These events can be read with EVENT_WAIT, and will have event ids 
-starting with "MCP.", followed by the package and message names. The 
-event data will be a dictionary, containing "descr", "package", 
-"message", and "args" elements. The args element will have a dictionary 
-of message arguments as it's value. The minimum and maximum package
-versions supported are represented as floating point numbers, with the 
-minor version number being divided by 1000. For example, an MCP package 
-of version 1.1 is represented as 1.001, and a version of 1.23 is 
-represented as 1.023. This lets you use arithmetic compares to check 
-version numbers. Since this primitive arranges for MCP messages to be 
-received as muf events, there is no need to use the MCP_BIND primitive 
-with this. A side benefit is that _any_ MCP message sent for this package 
-can be caught, not just the ones you bound. Also, the process that will 
-handle the events is kept alive, so your data stored in variables, or on 
-the stack, is kept.
-
-See: MCP PRIMS
-~~~~~~~~~~~~
-MCP_SUPPORTS
-
-mcp_supports ( i s -- f )
--------------------------
-Level: M1 Apprentice
-i = integer representing a valid descriptor.
-s = string representing a MCP package name.
-f = float representing the packet version number supported.
-
-Returns the version number of this package that is supported by this 
-connection descriptor. If this package isn't supported, returns 0.0 
-The version number is represented as a floating point number, with 
-the minor version number being divided by 1000. For example, an MCP 
-package of version 1.1 is represented as 1.001, and a version of 1.23 
-is represented as 1.023. This lets you use mathematical compares to 
-check version numbers. 
-
-See: MCP PRIMS
-~~~~~~~~~~~
-MCP_BIND
-
-mcp_bind ( s1 s2 a -- )
------------------------
-Level: M1 Apprentice
-s1 = string containing a package name.
-s2 = string containing a specific message.
-a  = A function address.
-
-Binds a specific message, so if it is received, the given function is called. The callback function is assumed to accept the args: ( intDescr dictArgs -- ) where dictArgs is a dictionary array contain- ing key-value pairs that represent the arguments of the message. Each argument can either have a string value, or a list array of strings, where the list array is used for multi-line values. 
-
-See: MCP PRIMS
-~~~~~ 
-MCP_SEND
-
-mcp_send ( i s1 s2 dict -- )
-----------------------------
-Level: M1 Apprentice
-i  = integer representing valid descriptor.
-s1 = string representing package name.
-s2 = string containing MCP message.
-dict = Dictionary array.
-
-Sends an MCP message for the given package to the given connection 
-descriptor. dictArgs contains key-value pairs, where each key is an 
-argument name, and the value is the argument value. Values can be 
-strings, floats, dbrefs, integers, or array lists of strings. They 
-all get translated into an appropriate string format before getting 
-sent. 
-
-See: MCP PRIMS
-~~~~~
-GUI_AVAILABLE
-
-gui_available ( i -- f )
-------------------------
-Level: M1 Apprentice
-i = integer containing valid descriptor.
-f = float representing a version number.
-
-Returns the floating point version number of the MCP GUI protocol 
-supported by the given descriptor's connection. The version is 
-encoded in the number such that major version 8, minor version 12 
-is represented as 8.012. If the MCP protocol is not available on 
-that descriptor, then 0.0 is returned. 
-
-See: MCP PRIMS
-~~~~~~~~
-GUI_DLOG_CREATE
-
-gui_dlog_create ( i s1 s2 dict -- s3 )
---------------------------------------
-Level: M1 Apprentice
-i  = integer representing a valid descriptor.
-s1 = string representing the type of dialog to show user.
-s2 = string representing title to appear in the title bar.
-dict = dictionary array.
-s3 = string representing dialogid.
-
-If a user has a client that can support the MCP GUI protocol, then 
-this primitive can be used to generate a dialog on their screen. The 
-intDescr is the integer descriptor of the connection to show the dialog 
-on. The strType is the type of the dialog to create. Currently, the only 
-options for strType are D_SIMPLE, D_TABBED, or D_HELPER. The strTitle 
-argument is the title to show in the titlebar of the dialog. dictArgs 
-is a dictionary array that contains extra optional arguments for creating 
-the dialog. In general, dictArgs is only used to specify "panes" and "names"
- for D_TABBED and D_HELPER dialogs. This primitive returns a string 
-containing the dialogid, used by other prims to add controls or make various 
-changes. This dialog will be hidden and not shown to the user until it has 
-been displayed with the GUI_DLOG_SHOW command. 
-
-Supported optional args are:
-    names      list of user-viewable pane names for D_TABBED & D_HELPER dlogs.
-    panes      list of pane ids for D_TABBED and D_HELPER dialogs.
-    width      requested width of dialog in pixels.
-    height     requested height of dialog in pixels.
-    resizable  allows resizing in "x", "y", or "both" dimensions.
-    minwidth   minimum width of window in pixels.
-    minheight  minimum height of window in pixels.
-    maxwidth   maximum width of window in pixels.
-    maxheight  maximum height of window in pixels.
-
-See: MCP PRIMS
-~~~~~~~~
-GUI_DLOG_SHOW
-
-gui_dlog_show ( s -- )
-----------------------
-Level: M1 Apprentice
-s = string containing a MCP dialog to be shown to user.
-
-Forces a given dialog to be shown to the user. The strDlogId 
-is what was returned by the GUI_DLOG_CREATE (or similar) command. 
-
-See: MCP PRIMS
-~~~~~~
-GUI_DLOG_CLOSE
-
-gui_dlog_close ( s -- )
------------------------
-Level: M1 Apprentice
-s = string containing a dialog id.
-
-Forces a given dialog to be closed and destroyed. The strDlogId 
-is what was returned by the GUI_DLOG_CREATE (or similar) command. 
-
-See: MCP PRIMS, GUI_DLOG_CREATE
-~~~~~ 
-GUI_CTRL_CREATE
-
-gui_ctrl_create ( s1 s2 s3 dict -- )
-------------------------------------
-Level: M1 Apprentice
-s1 = string containing a dialog ID.
-s2 = string containing dialog type.
-s3 = string containing control ID.
-dict - dictionary array.
-
-Creates a new control in a given dialog. strDlogID contains the 
-dlogid returned from a GUI_DLOG_SIMPLE (or similar) command. 
-strType contains the control type. To make debugging easier and 
-faster, MUF $defs have been provided for each control type. They 
-are: C_DATUM, C_LABEL, C_HRULE, C_VRULE, C_BUTTON, C_CHECKBOX, 
-C_EDIT, C_MULTIEDIT, C_COMBOBOX, C_SPINNER, C_SCALE, C_LISTBOX, 
-C_FRAME, C_NOTEBOOK. If you use these instead of the actual type 
-name strings, then if you mistype one, it will throw an error when 
-trying to compile, instead of when you try to run it. The strCtrlID 
-arg is the id to give the control, for use in reading the values 
-back later, or modifying the control. dictArgs is used to pass any 
-other arguments needed to create the control. This will be used by 
-almost all controls. It is a dictionary array that contains argnames 
-as keys, each with an argument value. 
-
-See: MCP PRIMS
-~~~~~ 
-GUI_VALUES_GET
-
-gui_values_get ( s -- dict )
-----------------------------
-Level: M1 Apprentice
-s = string containing a dialog ID.
-dict = dictionary array.
-
-Returns a dictionary containing all the control values for the given 
-dialog. The keys are the control ids. 
-
-See: MCP PRIMS
-~~~~~~~~~
-GUI_VALUE_SET
-
-gui_value_set ( s1 s2 s3 -- )
------------------------------
-Level: M1 Apprentice
-s1 = string containing dialog ID.
-s2 = string containing control ID.
-s3 = string containing value to assign to control id.
-
-Sets the value of a given control in a given dialog.
-
-See: MCP PRIMS
-~~~~~~~~~~~
-FORCE_LEVEL
-
-force_level ( -- i )
---------------------
-Level: M1 Apprentice
-i = Integer representing a number of force levels.
-
-This prim can be used to determine if a program's call was due to 
-@force, {force:}, or the force prim. Any result higher than 0
-indicates that the program's call was the result of a forcing.
-A return of 0 indicates the player called the program without
-being forced.
-~~~~
-ARRAY_SORT
-
-array_sort ( a1 i -- a2 )
--------------------------
-Level: M1 Apprentice
-a1 = List style array.
-i  = integer representing sort type.
-a2 = Sorted array.
-
-This sorts all the items in the list array given, based on the given 
-sort type. This can sort strings, integers, floats, dbrefs, or mixes 
-of types.  Integers are sorted in with floats, but strings sort after 
-all numbers.  Dbrefs sort after the other number types, but before 
-string types.  Other stack item types will sort separately, but in an 
-undefined consistent order.  The valid sort types are 0 - 3, which have
-the following inserver muf macro $defines:
-
-    SORTTYPE_CASE_ASCEND     Case sensitive and ascending order.
-    SORTTYPE_NOCASE_ASCEND   Case insensitive and ascending order.
-    SORTTYPE_CASE_DESCEND    Case sensitive and descending order.
-    SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
-    SORTTYPE_SHUFFLE         Randomize the order of the array elements.
-
-See: ARRAY PRIMS, SORT
-~~~~~
-EVENT_WAITFOR
-
-event_waitfor ( a -- x s )
---------------------------
-Level: M1 Apprentice
-a = an array of string IDs.
-x = The return value from the event found.
-s = string containing the ID of the event found.
-
-This will wait for an event to occur that matches one of the eventid 
-strings in the given string list array.  The first event in the event 
-queue that matches will be removed from the event queue, and will be 
-returned, with the apropriate context data.  If there is no matching 
-event, then this process will pause until a matching event becomes 
-available.  The eventIDs are case sensitive.
-
-See: MUF EVENTS
-~~~~~
-EVENT_EXISTS
-
-event_exists ( s -- i )
------------------------
-Level: M1 Apprentice
-s = string containing a MUF event ID.
-i = integer representing the number of pending events with that ID.
-
-Returns the number of pending events that have the given eventID type.
-
-See: MUF EVENTS
-~~~~~
-GUI_CTRL_COMMAND
-
-gui_ctrl_command ( s1 s2 s3 a -- )
-----------------------------------
-Level: M1 Apprentice
-s1 = string with the Dialogue ID.
-s2 = string with the control ID.
-s3 = string with the specific GUI command.
-a  = dictionary style array with the arguements of the command.
-
-This is the generic primitive for executing a GUI control specific 
-command. The dictionary contains the arguments for the given command.
-
-See: MCP PRIMS
-~~~~~~~~
-GUI_VALUE_GET
-
-gui_value_get ( s1 s2 -- a )
-----------------------------
-Level: M1 Apprentice
-s1 = string with the dialogue ID.
-s2 = string with the control ID.
-a  = A string list array representing the current value of the given control.
-
-This gets the current value of the given GUI control, and returns it 
-as a string list array. 
-
-See: MCP PRIMS
-~~~~~
-PARSE_NEON
-
-parse_neon ( d s1 s2 -- s3 )
-----------------------------
-Level: M1 Apprentice
-d  = Any valid dbref.
-s1 = String of text that may contain the ANSI tags.
-s2 = The default color to insert into the tags where there is no preference.
-s3 = The string returned with the Neon ansi tags replaced with standard ANSI.
-
-This prim is designed to go along with the new color customization support
-in ProtoMUCK. It takes a string with Neon style ANSI tags (See 'man neon ansi')
-and converts them to standard ANSI format. However, it bases the conversion on
-the preferences set on the dbref object, d, that is passed as well. First object
-d is checked for color preference props. 
-If none are found, #0 is checked for global color preferences. If none are found 
-there either, then the default colors are used for normal color tags, or the 
-color passed in s2 is used, if the tag wasn't a normal color tag. I.e., if s1 
-contains a ^GREEN^ tag, and no preference is found on object d, nor on #0, then 
-the color GREEN will be put in at that spot. But if the tag in s1 was something
-like ^WHISPER^, and there is no pref for that on object d nor on #0, then 
-the color indicated by string s2 will be inserted at that point. 
-It is important to note that string s2 needs to contain a color formatted in
-STANDARD ANSI (see 'man standard ansi'), -not- a normal Neon ANSI color tag.
-
-See: COLORS for details on how Proto custom color props operate.
-~~~~~
-COLORS|CUSTOM COLORS|PARSE_NEON2|CUSTOM ANSI|NEON ANSI2
-Color preferences are found under the _/colors/ directory on objects. 
-For example, if the ANSI tag in s1 is ^GREEN^, and player d has a prop:
-_/colors/green:forest
-then instead of seeing GREEN when they get ansi_notified, they will see FOREST
-instead. Or if the ANSI tag in s1 is ^PAGE^, and the player has a prop:
-_/colors/page:yellow
-then s1 will get returned as s4 with the standard ANSI code for 'yellow'
-in place of the ^PAGE^ tags. This color customization supports sub-directories
-as well. For example, if the ANSI tag is ^SAY/POSE^, and the player has a prop:
-_/colors/say/text:cyan
-then the occurances of ^SAY/POSE^ will be replaced with the standard ANSI for
-cyan.
-This color customization does not loop. For example if a player had:
-_/colors/green:red        
-and
-_/colors/red:blue
-^GREEN^ tags would be turned into the color red, not blue.
-
-Note that the preferences on object d always take priority over the global
-preferences on #0. 
-~~~~~~
-AKARI
-akari ( -- i )
--------------------
-Level: M3 Master
-i = 1 or 0
-Takes a program, shakes it, claims it... and then uses it to control the rest
-of the MUCK. Use with care. Returns 1 if the operation is successful, or 0 if
-there were not enough cookies to warrant a takeover.
-~~~
-MAN
-MUF Manual
-----------
-The manual is arranged into entries on various MUF topics, special prim types,
-individual prim entries, and other information.
-
-For a list of MUF topics see: TOPICS LIST
-For a list of the topics on MUF prims see: PRIMS LIST
-For a list of condensed list of the MUF prims avalable see:
-   PRIMS1 PRIMS2 PRIMS3 PRIMS4 PRIMS5 PRIMS6
-
-The MUF manual is intended to be a reference to someone who already has  
-some of understanding of MUF. Those looking to learn MUF from the ground
-up should refer to some of the online resources available on the internet.
-~~~~~
-DESCRDBREF
-descrdbref ( i -- d )
----------------------
-Level: M3 Master
-i = integer representing valid descriptor number.
-d = dbref of the player connected to that descriptor.
-
-Given a valid descriptor number, returns the player connected to that 
-descriptor.
-~~~~~
-DESCRIDLE
-descridle ( i1 -- i2 )
-----------------------
-Level: M2 Journeyman
-i1 = A valid descriptor.
-i2 = The idle time for that connected descriptor.
-
-Given a valid descriptor, returns the amount of time that connection has
-been idle in seconds.
-~~~~
-DESCRTIME
-descrtime ( i1 -- i2 )
-----------------------
-Level: M2 Journeyman
-i1 = A valid descriptor.
-i2 = The time that descriptor has been connected in seconds.
-
-Given a valid descriptor, returns the amount of time that connection has
-been open in seconds.
-~~~~
-DESCRHOST
-descrhost ( i -- s )
---------------------
-Level: W1 Mage
-i = A valid descriptor.
-s = string representing the hostname for that connection.
-
-Given a valid descriptor, returns the IP host name for that connection.
-~~~~
-DESCRUSER
-descruser ( i -- s )
---------------------
-Level: W3 ArchWizard
-i = Valid descriptor.
-s = string containing the user name.
-
-Given a valid descriptor, returns a string representing the username of 
-that connection's IP address.
-~~~
-DESCRIPNUM
-descripnum ( i -- s )
----------------------
-Level: W1 Mage
-i = Valid descriptor.
-s = string representing a IP number.
-
-Given a valid descriptor, returns the IP number for that connection as a 
-string.
-~~~~
-DESCRPORT
-descrport ( i -- s )
---------------------
-Level: W3 ArchWizard
-i = Valid descriptor.
-s = string representing a port number.
-
-Given a valid descriptor, returns the IP port number for that connection
-as a string. Note that that this is -not- the port that the user connected
-to the muck via, but instead is a port that they are using from their IP
-service to connect to the muck.
-~~~~
-DESCRCONPORT
-descrconport ( i1 -- i2 )
--------------------------
-Level: W3 ArchWizard
-i1 = Valid descriptor.
-i2 = integer representing a port number.
-
-Given a valid descriptor, returns an integer representing the port number that
-that user connected via.
-~~~~~
-DESCRLEASTIDLE
-descrleastidle ( d -- i )
--------------------------
-Level: M1 Apprentice
-d = A valid player dbref.
-i = That player's descriptor that is the least idle.
-
-Given a valid player dbref, returns that player's least idle descriptor.
-~~~~
-DESCRMOSTIDLE
-descrmostidle ( d -- i )
-------------------------
-Level: M1 Apprentice
-d = A valid player dbref.
-i = That player's descriptor that is the most idle.
-
-Given a valid player dbref, returns that player's most idle descriptor
-connection.
-~~~~
-FIRSTDESCR
-firstdescr ( d -- i )
----------------------
-Level: W1 Mage
-d = A valid player dbref or #-1.
-i = integer representing a descriptor.
-
-Given a valid player dbref, returns that player's first descriptor number
-to the MUCK. If given #-1, returns the very first descriptor connected
-to the MUCK out of all the players.
-~~~
-LASTDESCR
-lastdescr ( d -- i )
---------------------
-Level: W1 Mage
-d = A valid dbref or #-1.
-i = integer representing a descriptor.
-
-Given a valid player dbref, returns that player's first descriptor
-number to the MUCK. If given #-1, returns the very first descriptor
-connected to the MUCK out of all the players.
-~~~~
-ARRAY_JOIN
-
-array_join ( a s1 -- s2 )
--------------------------
-Level: M1 Apprentice
-a  = List array.
-s1 = Delimiter string.
-s2 = String containing the contents of the array seperated by s1.
-
-Given a list array, will return a string that is the contatenation of
-all the items in the array, with each item seperated by the string in 
-s1. For example:
-{ "one" 2 "three" 3.14159 } array_make "... " array_join
-would return:
-"one... 2... three... 3.14159"
-~~~
-ARRAY_MATCHVAL
-
-array_matchval ( a1 s -- a2 )
------------------------------
-Level: M1 Apprentice
-a1 = An array with all strings for its values.
-s  = string containing a smatch pattern string.
-a2 = dictionary array with containing key-value pairs.
-
-Takes an array of all strings and a string representing a smatch pattern.
-It returns a dictionary array that contains all the key-value pairs where
-the value was a string that matched the given smatch wild card pattern.
-
-See: SMATCH, ARRAY_MATCHKEY
-~~~~
-ARRAY_MATCHKEY
-
-array_matchkey ( a1 s -- a2 )
------------------------------
-Level: M1 Apprentice
-a1 = An array with all strings for its values.
-s  = string containing a smatch pattern string.
-a2 = dictionary array with containing key-value pairs.
-
-Takes a dictionary array of all strings and a string representing a smatch pattern.
-It returns a dictionary array that contains all the key-value pairs where
-the the key was a string that matches the smatch wild card pattern.
-
-See: SMATCH, ARRAY_MATCHKEY
-~~~~
-ARRAY_EXTRACT
-
-array_extrat ( a1 a2 -- a3 )
-----------------------------
-Level: M1 Apprentice
-a1 = An array.
-a2 = A list array of indexes.
-a3 = A dictionary array.
-
-Given an array, and a second array that contains a list of index keys,
-returns an array that contains only the elements who's keys were listed
-in a2.
-~~~~
-FINDNEXT
-
-findnext ( d1 d2 s1 s2 -- d3 )
-------------------------------
-Level: M2 Journeyman
-d1 = dbref to start from.
-d2 = Owner to search for.
-s1 = Name smatch pattern.
-s2 = string containing a flag list.
-
-Searches for the next object in the data base that comes after d1 that
-is owned by d1, who's name matches the wildcard pattern in s1, and 
-who's flags match those specified in s2.
-
-A search can be started with #-1, to ensure that all objects owned
-by that player are checked. 
-
-Players of M3 or higher can have d2 be #-1, which will leave out the
-ownership checks. 
-Players at M2 level can only perform searches with an owner being
-the one that is the effective UID of the program.
-
-If s1 is an empty string, then name checks will not be done. 
-If s2 is an empty string, then flag checks will not be done.
-
-The s1 checks for patterns using the smatch method.
-The s2 is checked for the same sorts of flags used with the 
-in-server @find command. Eg: "F3!D" will match all MUF programs
-in the data base that are set mucker lefvel 3, and are not debug.
-
-If there are no matches remaining in the data base after d1, then #-1
-is returned. Otherwise d3 is the next matching objec that fits the 
-parameters.
-
-See also NEXT, NEXTOWNED, SMATCH, HELP @FIND.
-~~~~~
-FREADTO
-
-freadto ( s1 i1 s2 -- i2 s3 )
------------------------------
-Level: W4 Boy
-s1 = string containing the file name.
-i1 = integer representing starting offset.
-s2 = string containing a character to stop at.
-i2 = integer representing final offset.
-s3 = string read in from the file.
-
-Given a file name, a starting offset, and a character to search for, reads
-in the text file up until it either reaches the character contained in s2,
-the end of the file, or the buffer size limit is reached, and returns it as
-s3. i2 is the ending offset that the read in from the file ended at. 
-
-At the moment, s2 may only be a single character. If more than one character is
-passed, only the first one is considered. There is one special case that can
-be used for s2 to find a normally unprintable character.
-$EOF$ - Will cause it to read until it finds the end of the file or hits the
-        buffer size limit.
-
-Use '\r' to read to stop at line breaks.
-~~~~
-ARRAY_FILTER_PROP
-
-array_filter_prop ( a1 s1 s2 -- a2 )
-------------------------------------
-Level: M1 Apprentice
-a1 = A list array of all dbrefs.
-s1 = string representing prop name.
-s2 = smatch string representing prop contents.
-a2 = A list array with only the dbrefs that passed the filter.
-
-Given a list array of all dbrefs, a string representing the name of the
-prop to search for in s1, and a string that can be smatched to the contents
-of the props being checked in s2, returns an array that contains only
-the dbrefs that have the prop in s1 with contents that pass the smatch 
-matching with s2. 
-So if "*" is passed as s2, then all dbrefs that have that prop at all
-will get put into array a2.
-~~~~~
-GETPIDS
-
-getpids ( d -- array )
-----------------------
-Level: W3 ArchWizard
-d = Valid dbref.
-array = An array of the PIDs associated with that dbref.
-
-If d is a program dbref, will return all the PIDs that represent
-active occurances of that program. If d is a player dbref, will
-return an array of all the PIDs assigned to that player. If d is
-a trigger dbref, it will return all the active PIDs associated with
-that trigger. And finally, if d is #-2, then all active PIDs will be
-included in the array that gets returned.
-
-See: GETPIDINFO
-~~~~
-GETPIDINFO
-
-getpidinfo ( i -- dict )
-------------------------
-Level: W3 ArchWizard
-i = integer to represent an active PID.
-dict = A dictionary array containing information about that process.
-
-Given a valid active PID, returns a dictionary with information about
-that process. The information returned is:
-CALLED_DATA - The last instruction in the process.
-CALLED_PROG - The program dbref#.
-CPU         - The amount of CPU time used up by the process.
-DESCR       - The descriptor that called the program.
-INSTCNT     - The number of instructions run so far.
-NEXTRUN     - When the process is due to run again.
-PID         - That process ID.
-PLAYER      - The player dbref that PID belongs to.
-STARTED     - Systime in seconds when the process started.
-SUBTYPE     - Additional information about the process.
-TRIG        - The trigger that called that process.
-TYPE        - What type of process it is. MUF/MPI.
-
-See: GETPIDS
-~~~~~~
-NEWPROGRAM
-
-newprogram ( s -- d )
----------------------
-Level: W4 Boy
-s = string representing name of new program.
-d = dbref of the new program object.
-
-Given a string, creates an empty program object and returns the dbref
-to the stack.
-~~~~
-COMPILE
-
-compile ( d i1 -- i2 )
-----------------------
-Level: W4 Boy
-d  = Program dbref.
-i1 = Indicates if compilier messages should be shown or not.
-i2 = Indicates if compiling was successful or not.
-
-Given a valid dbref program, it runs that program through the
-compilier. If i1 is 0, then no message is shown to the player that
-the program is being compilied, or if it is successful or not. If 
-1 is passed, then the compilier messages are displayed. If the 
-program does not compile, then 0 is returned to the stack, otherwise
-the number of instructions in the compiled program are returned.
-
-See: UNCOMPILE
-~~~~~
-UNCOMPILE
-
-uncompile ( d -- ) 
-------------------
-Level: W4 Boy
-d = Valid program dbref.
-
-Uncompiles the program out of memory. This is not the same as
-the MUF editor's decompile option, which spams the player with the 
-decompiling code. This simply removes the compiled program from
-memory, so that it will compiled fresh again the next time a player
-uses it.
-~~~~
-WATCHPID
-
-watchpid ( i -- )
------------------
-Level: M3 Master
-i = integer representing PID.
-
-Sends a "PROC.EXIT.pid" event to the process given when the process 
-referred to exits. If the process does not exist, the event will be
-sent immediately. The exit event can be retrieved by a call to 
-EVENT_WAITFOR. The event type will be "PROC.EXIT." with the PID of the
-process appended to it. The PID will also be returned as the data value
-from the event.
-~~~~
-TRY
-
-try ( i -- )
-------------
-Level: M1 Apprentice
-i = integer representing number of stack objects to lock. 
-
-From FB6 comes exception handling in MUF. In order to initiate a section of
-code that will be able to handle exceptions, a TRY instruction is called.
-TRY takes an integer that represents the number of items on the stack to
-lock from use during the TRY-CATCH section of code. If any attempt to pop
-or change those locked stack items takes place between the TRY and CATCH
-prims, then an error will be thrown and the MUF program skips to the next
-CATCH prim. 
-
-See: CATCH, ENDCATCH, EXCEPTION HANDLING
-~~~~
-CATCH
-
-catch ( -- s )
---------------
-Level: M1 Apprentice
-s = string representing the error that was thrown in the TRY-CATCH block.
-
-CATCH marks off a section of code that will be called only if there is an
-error thrown in the TRY-CATCH block before the CATCH. This prim pops off 
-all of the items from the stack that were not locked by the TRY prim, then
-unlocks the stack. It returns a string that represents the error that caused
-the code to skip to the CATCH-ENDCATCH block.
-
-See: TRY, ENDCATCH, EXCEPTION HANDLING
-~~~~~
-ENDCATCH
-
-endcatch ( -- ) 
----------------
-Level: M1 Apprentice
-
-This prim represents the end of a CATCH-ENDCATCH section of code. If there
-are no errors thrown in the TRY-CATCH portion of the code, then none of the
-code between CATCH and ENDCATCH will be run. 
-
-See: TRY, CATCH, EXCEPTION HANDLING
-~~~~
-EXCEPTION HANDLING|EXCEPTIONS|ERROR THROWING|ERROR CATCHING|EXCEPTION CATCHING
-
-Exception Handling
-------------------
-New from FB6 is the ability to catch exceptions thrown within the MUF code.
-This is done by setting up a TRY - CATCH - ENDCATCH construction within
-the code. 
-TRY      denotes the start of a section of code that can catch errors, and 
-         locks off the top so many items of the stack from being used. 
-CATCH    denotes where the code should skip to if an error is thrown after the
-         TRY call.
-ENDCATCH denotes the end of the CATCH block of code. If no error is thrown in 
-         the TRY-CATCH segment, then the code between CATCH and ENDCATCH is
-         never run. 
-
-One might think of the sections of the TRY-CATCH-ENDCATCH arrangement to be
-much like the IF-ELSE-THEN arrangement. Except that the code between the
-CATCH-ENDCATCH will only be skipped to if an error is encountered in the
-TRY-CATCH section of the program. 
-An example of it in use:
-: get_a_prop ( d s -- s )
-  2 TRY 
-    getpropstr
-  CATCH
-    pop ""
-  ENDCATCH
-;
-
-See: TRY, CATCH, ENDCATCH
-~~~~
-CONTENTS_ARRAY
-
-contents_array ( d -- arr )
----------------------------
-Level: M1 Apprentice
-d = Any dbref other than a program or exit.
-arr = list array containing that ref's contents.
-
-Given a valid dbref that is not a program or an exit, returns that
-object's contents in a list array.
-~~~~
-EXITS_ARRAY
-
-exits_array ( d -- arr )
-------------------------
-Level: M1 Apprentice
-d = Any dbref other than a program or exit.
-arr = list array containing that ref's exits.
-
-Given a valid dbref that is not a program or an exit, returns that
-object's exits in a list array.
-~~~~
-GETOBJINFO
-
-getobjinfo ( d -- dict )
-------------------------
-Level: M3 Master
-d = Any valid dbref.
-dict = A dictionary array of some data base related info on that object.
-
-Returns a dictionary array containing the following information on an
-object:
-BLOCK       (i) - If the player can't do an action (from a read, or
-                  foreground program), this is 1, otherwise 0.
-CONTENTS    (d) - The start of that object's contents list.
-CREATED     (i) - Systime that object was created.
-CURR_PROG   (d) - Current program being run in foreground, or #-1.
-DBREF       (d) - That object's dbref #.
-EXITS       (d) - Start of that object's exits list.
-HOME        (d) - dbref of that object's home location.
-INSERT_MODE (i) - 1 if that object is insert mode, otherwise 0.
-LASTUSED    (i) - systime when that object was last used.
-LOCATION    (d) - dbref of object's current location.
-MODIFIED    (i) - systime of when the object was last modified.
-NAME        (s) - That object's name.
-NEXT        (d) - What comes next in the data base when using the 'next' prim.
-PENNIES     (i) - That object's penny count.
-USECOUNT    (i) - That object's use count.
-~~~~
-GETDESCRINFO
-
-getdescrinfo ( i -- dict )
---------------------------
-Level: W3 ArchWizard
-i = integer representing a valid descriptor.
-dict = dictionary array containing info about that descriptor.
-
-Given a valid descriptor, returns the following information about it:
-BOOTED        (i) - Always 0, unless that descriptor will be booted shortly.
-COMMANDS      (i) - Number of commands entered by that descriptor.
-CON_NUMBER    (i) - Current connection number (place in WHO list)
-CONNECTED     (i) - Always 1, unless the descriptor has just been dropped.
-CONNECTED_AT  (i) - Systime that descriptor connected at.
-CONPORT       (i) - The port that descriptor is connected via.
-DESCRIPTOR    (i) - The descriptor number.
-FAILS         (i) - Number of failed tries at the connection screen for 
-                    descriptors not yet connected to a character.
-HOSTADDR      (i) -
-HOSTNAME      (s) - Hostname for the IP address.
-HTTP_LOGIN    (i) - Is 1 if connected via the web login support.
-HTTPDATA      (s) -
-INPUT_LEN     (i) - Number of bytes sent in by that descriptor.
-LAST_TIME     (i) - The last time any input was sent from the player. 
-OUTPUT_LEN    (i) - Number of bytes sent out to that descriptor.
-OUTPUTQUEUE   (i) - Number of lines of text waiting in the outputqueue.
-OUTPUT_PREFIX (s) - See 'help outputprefix'.
-OUTPUT_SUFFIX (s) - See 'help outputsufix'.
-PLAYER        (d) - The character's dbref that descr belongs to.
-PORT          (i) - The IP port that player connects from.
-TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port.
-USERNAME      (s) - The user name for that descr's IP address.
-~~~~
-FIND_ARRAY
-
-find_array ( d1 s1 s2 -- arr )
----------------------------------
-Level: M2 Journeyman
-d1 = Owner to search for.
-s1 = Name smatch pattern.
-s2 = string containing a flag list.
-arr = An array containing all the matches according to the parameters.
-
-This prim works exactly like the FINDNEXT prim, except that it returns
-all matches to the stack in a list array all at once. It is comperable to
-the in-game @find command, except all matches are returned to the stack
-in a single array.
-  
-See: FINDNEXT, ARRAY PRIMS
-~~~~
-DESCRBOOT
-
-descrboot ( i -- )
-------------------
-Level: W3 ArchWizard
-i = integer representing descriptor.
-
-Boots the given descriptor from the MUCK.
-
-See: CONBOOT
-~~~
-DESCR_SET
-
-descr_set ( i s -- )
---------------------
-Level: W3 ArchWizard
-i = integer representing a descriptor
-s = string representing the flag to set
-
-Used to set descriptor flags on descriptors. 
-
-See: 'HELP DESCRIPTOR FLAGS' for a list of descriptor flags
-~~~~
-DESCR_FLAG?
-
-descr_flag? ( i1 s -- i2 )
---------------------------
-i1 = integer representing a descriptor
-s  = string representing the flag to check for
-i2 = integer representing result
-
-Used to check for checking for the presense of descriptor flags on
-descriptors.
-
-See: 'HELP DESCRIPTOR FLAGS' for a list of descriptor flags.
-~~~~~
-JMP
-
-jmp ( address -- )
-------------------
-address - A function address to jump to
-
-Moves program iteration to that function address. Was an early
-way to implement tail recursion without the overhead of pushing
-another function onto the stack. By today's standards, this is 
-no longer an issue and use of this prim has been deprecated. It
-still exists because it is one of the prims that the internal
-program iteration uses JMP to implement loops and if-else-then
-statements.
-~~~~
-GETDIR
-
-getdir ( s -- arr )
--------------------
-Level: W4 Boy
-s = String representing directory to check for.
-arr = Array containing the contents of that directory.
-
-Given a directory name, it returns an array containing that
-directory's contents. Subdirectories are indicated with a / mark 
-following the name. If given just '/' as the directory name, it
-returns the contents of the files/ directory. Works under the same 
-rules as the rest of the file prims concerning the use of shortcuts 
-for security reasons.
-
-If nothing exists at the location s, then 0 is returned.
-If a file exists, but is not a directory, then 0 is returned.
-If the directory exists, then the array is returned. The array may
-    be empty if the directory is empty. 
-
-Example: "$INFO/" getdir would return the contents of the data/info directory
-
-See: FILE PRIMS, SHORTCUTS
-~~~~~
-ARRAY_CUT
-
-array_cut ( a1 @ -- a2 a3 )
----------------------------
-Level: M1 Apprentice
-a1 = Array to cut.
-@  = Index of where to cut at.
-a2 = Contents of a1 before the index of @
-a3 = Contents of a1 after the index of @
-
-Given an array and an index in the array, it cuts the array into
-two arrays at that possition. The 2 arrays remain the same type
-of array as the original array was. The first array will contain
-all of the items that were before the index, and the second array
-will contain all the items that were after the index. 
-~~~~~~~
-ARRAY_COMPARE
-
-array_compare ( a1 a2 -- i )
-----------------------------
-Level: M1 Apprentice
-a1 = An array to be compared.
-a2 = The array to compare a1 to.
-i  = Indicates the result. 
-
-Compares the two arrays and returns 0 if they are exactly the same, otherwise
-it returns a negative value if the second array is greater than the first, and
-a possitive value if the first array is greater than the second. It is case
-sensitive.
-~~~~
-REFLIST_FIND
-
-reflist_find ( d1 s1 d2 -- i )
-------------------------------
-d1 = dbref of where the prop is.
-s1 = string representing the name of the prop.
-d2 = dbref to search for in the ref list.
-i  = integer indicating if where the dbref is in the string if it is present.
-
-A reflist is a list of dbrefs in a string type prop, often used for permissions
-lists, player lists, etc. This prim takes a dbref object, the name of the 
-reflist prop, and then checks to see if d2 is one of the dbrefs listed in the
-reflist. If it isn't, it returns 0, if it is, it returns the position of d2
-in the reflist. In other words, if it's the first dbref, then 1 is returned,
-2 if it's the second, etc.
-
-See: REFLIST_DEL, REFLIST_ADD
-~~~~~~
-REFLIST_ADD
-
-reflist_add ( d1 s1 d2 -- )
----------------------------
-d1 = dbref of where the prop is.
-s1 = string representing the dbref.
-d2 = dbref to add to the reflist.
-
-A reflist is a list of dbrefs in a string type prop, often used for permissions
-lists, player lists, etc. This prim adds dbref d2 to the reflist stored in the
-prop s1 on object d1. If the dbref is already in the reflist, then it gets 
-moved to the end of the list. 
-
-See: REFLIST_FIND, REFLIST_DEL
-~~~~~
-REFLIST_DEL
-
-reflist_del ( d1 s1 d2 -- )
----------------------------
-d1 = dbref of where the prop is.
-s1 = Name of the prop.
-d2 = dbref to remove from the reflist.
-
-A reflist is a list of dbrefs in a string type prop, often used for permissions
-lists, player lists, etc. This prim removes dbref d2 from the reflist stored in
-the prop s1 on object d1. If the dbref is not found in that reflist, then no
-changes are made to the reflist.
-
-See: REFLIST_FIND, REFLIST_ADD
-~~~~~
-DIFF3
-
-diff3 ( fx1 fy1 fz1 fx2 fy2 fz2 -- fx' fy' fz' )
-------------------------------------------------
-Level: M1 Apprentice
-fx# ... - The numbers to subtract from each other.
-fx' ... - The difference between each of the points.
-
-Performs the following math:
-fx1 - fx2, fy1 - fy2, and fz1 - fz2, then pushes the 3 answers onto the stack.
-~~~~~
-FLAG_2CHAR
-
-flag_2char ( s1 -- s2 )
------------------------
-Level: M1 Apprentice
-s1 = string containing a flag name.
-s2 = string containing a flag token.
-
-Given a valid flag, returns a string containing that flag's token.
-Example:
-"PARENT" would return "%"
-"LINK_OK" would return "L"
-
-See: POWER_2CHAR
-~~~~
-POWER_2CHAR ( s1 -- s2 )
-------------------------
-Level: M1 Apprentice
-s1 = string containing a power name.
-s2 = string contaiing a power token.
-
-Given a valid power, returns a string containing that power's token.
-Example:
-"CONTROL_MUF" would return "f"
-"HIDE" would return "h"
-
-See: FLAG_2CHAR
-~~~~
-NOTIFY_DESCRIPTOR_CHAR
-
-notify_descriptor_char ( i1 i2 -- )
------------------------------------
-Level: W1 Mage
-i1 = A valid descriptor
-i2 = integer representing the ASCII character to notify out
-
-This prim notifies a single character out to the descriptor.
-It does not include an endline, so most modern MU* clients will
-ignore it. 
-It isn't intended to be a normal means of notifying strings out
-to connections, but rather was implemented for 'special 
-circumstances' programming, when something needs to be notified
-to a connection without undergoing any changes in-muck.
-~~~~
-BANDWIDTH
-
-bandwidth ( -- i1 i2 i3 )
--------------------------
-Level: W1 Mage
-i1 = Total number of bytes input to the MUCK.
-i2 = Total number of bytes output by the MUCK.
-i3 = Total number of commands entered since startup.
-
-This reports stats on the bandwidth usage of the MUCK in the form 
-of bytes total.  Adding i1 and i2 together should give a very accurate
-total of the amount of data that has flowed over the MUCK's connections.
-~~~~~
-LSOCKOPEN
-
-lsockopen ( i1 i2 -- lsock s )
-------------------------------
-Level: W4 Boy
-i1 = integer representing the waiting queue size
-i2 = integer representing the port to listen on
-lsock = A listening MUF socket
-s  = string containing status message
-
-Given a waiting queue size and a port number, attempts to bind and
-open a listening socket to that port. The waiting queue represents
-the number of connections that can be waiting to be accepted at one
-time. If you do not know what this is, just set it to 5. The port 
-should be something over 1024 and must not be in use by anything 
-else already.
-
-If everything works out, an open listening socket is pushed onto
-the stack and s will contain "noerr". If an error happens, then a
-0 is pushed onto the stack in place of the socket and s will 
-contain a message indicating an error. 
-
-Once a listening socket is made, that port will stay open for as
-long as there is an instance of that MUF socket (either in a 
-variable or on the stack). Use SOCKACCEPT to accept incoming
-connections.
-
-See: SOCKACCEPT, SOCKET PRIMS
-~~~~
-SOCKACCEPT
-
-sockaccept (lsocket -- socket or 0 )
-------------------------------------
-Level: W4 Boy
-lsocket = A listening socket as created by lsockopen
-socket = A traditional send/recieve MUF socket.
-
-Given an open listening socket, checks for any incoming
-connections waiting to be accepted. If there are no waiting
-connections, it returns a 0 to the stack.
-
-If there is a waiting connection, a normal MUF socket is
-created and pushed onto the stack. One can then interact
-with the connection via SOCKSEND and NBSOCKRECIEVE like 
-normal.
-
-See: LSOCKOPEN, SOCKET PRIMS
-~~~~~~~~~~~
-ARMAGEDDON
-
-armageddon ( s -- )
---------------------
-Level: W4 Boy
-s = Message to send to all users before shutdown.
-
-This primitive can be used to terminate the MUCK without an
- automatic database save. Please note, that all data created
- after the last database save, will be lost.
-
-See the help file on @armageddon for more information.
-~~~~~~~~~~~
-SHUTDOWN|RESTART
-
-shutdown ( s -- )
-restart  ( s -- )
---------------------
-Level: W4 Boy
-s = Message to send to all users before shutdown.
-
-These primitives can be used to shutdown or restart the MUCK.
-
-See the help files on @shutdown and @restart for more info.
-~~~~~~~~~~~
-DUMP|DELTA
-
-dump  ( -- )
-delta ( -- )
---------------------
-Level: W3 ArchWizard
-
-These primitives can be used to force the MUCK to dump a standard
- or delta database save.
-~~~~
-STAFF?
-
-staff? ( d -- i )
------------------
-Level: M1 Apprentice
-d - dbref of player to check
-i - integer to represent true or false.
-
-Returns true if that player has either a W1 bit or higher, or
-has the STAFF @power set on them. 
-
-Inserver define for:
-dup player? if dup "W" flag? swap "STAFF" power? or else pop 0 then
-~~~~
-ARRAY_SORT_INDEXED
-
-array_sort_indexed ( a1 i ? -- a2 )
------------------------------------
-Level: M1 Apprentice
-a1 = A list array of arrays (a stack range of arrays turned into a single array )
-i  = Sort type. Can be a #define listed below.
-?  = An index key value.
-a2 = A list array of sorted arrays
-
-Given a list array of arrays, this will sort all of the contained arrays
-according to the contents of one of their index values as specified by the
-? parameter in the arguments.  The types of sorting available are:
-
-    SORTTYPE_CASE_ASCEND     Case sensitive and ascending order.
-    SORTTYPE_NOCASE_ASCEND   Case insensitive and ascending order.
-    SORTTYPE_CASE_DESCEND    Case sensitive and descending order.
-    SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
-    SORTTYPE_SHUFFLE         Randomize the order of the array elements.
-
-Once the sorting is done, the contents of a2 will be a sequence of arrays
-sorted according to the element value corresponding to the index indicated
-by the ? argument.
-~~~
-ABS
-
-abs ( i1 -- i1 )
-----------------
-Level: M1 Apprentice
-i1 = Any integer
-i1 = Absolute value of that integer
-
-Simply returns the absolute value of the integer. Note that in ProtoMUCK,
-this can be done with the FABS prim as well. 
-
-Ex. Both -1 and 1 would return 1.
-~~~~~~~~
-SIGN
-
-sign ( i1 -- i2 )
------------------
-Level: M1 Apprentice
-i1 = Any integer
-i2 = The sign of the integer.
-
-Just added this prim for compatibility reasons with FB6, but it seems to
-be the most pointless prim ever. 
-
-If i1 is negative, i2 will be -1.
-If i1 is zero, i2 will be 0.
-If i1 is positive, i2 will be 1.
-
-Letting you do:
-<number> sign -1 = if   ( branch if <number> is negative. 4 steps. )
-For the record, you could do the same thing in 2 steps anyway:
-<number> 0 < if
-
-In other words, don't use the prim. :P
-~~~~
-DESCRBUFSIZE
-
-descrbufsize ( i1 -- i2 )
--------------------------
-Level: M3 Master
-i1 = A valid descr number.
-i2 = The space in bytes left.
-
-Returns the number of bytes left in that descriptor's output buffer
-before <Flushed> gets displayed and the buffer purged. 
-~~~~
-READ_WANTS_BLANKS
-
-read_wants_blanks ( -- )
-------------------------
-Level: M1 Apprentice
-
-When used, it will toggle whether or not blank entries from the user
-will be caught by the READ prim or not. Initally, READ will ignore
-blank strings sent by the user, but after this prim is used once, it
-will make it so that empty input from the user will be caught by 
-READ, causing a empty string to be pushed onto the stack.
-Note that if READ_WANTS_BLANKS is used a second time, it will turn
-off the behavior (i.e., it will toggle it each time it is used. ).
-Also, this behavior affects all 'read events', so TREAD, or 
-EVENT_WAITFOR can also be affected.
-
-See: READ, TREAD, EVENT_WAITFOR
-~~~~
-MUF EDIT PRIMS|MUF EDITING PRIMS|MUF EDIT
-These prims are used for editing MUF and macros. Tools needed for
-writing custom MUF editors. They are a compile time option and
-may not be present.
-
-For macros: KILL_MACRO, INSERT_MACRO, GET_MACROS_ARRAY
-For code: PROGRAM_LINECOUNT, PROGRAM_GETLINES, PROGRAM_DELETELINES, 
-          PROGRAM_INSERTLINES
-~~~~~
-KILL_MACRO
-
-kill_macro ( s -- i )
----------------------
-Level: W2 Wizard
-s = Name of the macro to delete.
-i = Indicator of success.
-
-Given the name of a macro in the macro table, deletes it. Returns
-1 if the macro was deleted, or 0 if the macro was not found.
-
-See: MUF EDITING PRIMS
-~~~~
-INSERT_MACRO
-
-insert_macro( s1 s2 -- i )
---------------------------
-Level: W2 Wizard
-s1 = Name of the macro to add.
-s2 = Definition of the macro to add.
-i  = Indicator of success.
-
-Given the name of a macro, and its definition, inserts the macro
-into the macro table. Returns 1 if the macro was added or 0 if not.
-
-See: MUF EDITING PRIMS
-~~~~
-GET_MACROS_ARRAY
-
-get_macros_array ( -- dict )
-----------------------------
-Level: W1 Mage
-dict = Contains all the macros and their definitions.
-
-Returns a dictionary array where the key values are macro names,
-and the data values are the definitions of the corresponding macros.
-
-See: MUF EDITING PRIMS
-~~~~
-PROGRAM_LINECOUNT
-
-program_linecount ( d -- i )
-----------------------------
-Level: W2 Wizard
-d = dbref of a valid program object.
-i = The number of lines in that program.
-
-Returns the number of lines found in the program.
-Note that in order to do this, the MUCK must load the entire
-program into memory from the disk, so it is not recommended that
-this prim be used frequently as longer programs could pause 
-the MUCK while being loaded.
-
-See: MUF EDITING PRIMS
-~~~~
-PROGRAM_GETLINES
-
-program_getlines ( d i1 i2 -- arr )
------------------------------------
-Level: M1 to W2 Apprentice to Wizard
-d  = dbref of the program to get the lines from.
-i1 = Starting line to retrieve.
-i2 = Last line to retrieve.
-arr = List array containing the requested lines of code.
-
-Given a dbref, and a starting and end point, returns a list
-array containing those lines of code. 
-
-Under W2 permissions, it can retrieve lines from any program
-that is not set PROTECT.
-An owner of a program can always retrieve their own program's
-lines.
-Anyone can retrieve lines from any program set VIEWABLE, unless
-the program is set PROTECT.
-
-See: MUF EDITING PRIMS
-~~~
-PROGRAM_DELETELINES
-
-program_deletelines ( d i1 i2 -- i3 )
--------------------------------------
-Level: W4 Boy
-d  = dbref of the program to delete the lines from.
-i1 = First line to delete.
-i2 = Last line to delete.
-i3 = Number of lines actually deleted.
-
-Given a program, a range of lines to delete, will delete
-those lines from the program. i3 contains the actual 
-number of lines deleted in case there were fewer lines
-in the program than in the range to be deleted.
-
-Note that this prim will error out if the program d is
-already being edited by someone. To avoid this error,
-check for the INTERNAL flag with the flag? prim. If a
-program is INTERNAL, then it is being edited by the 
-in-server MUF editor. 
-See: MUF EDITING PRIMS
-~~~
-PROGRAM_INSERTLINES
-
-program_insertlines( d i1 arr -- i2 )
--------------------------------------
-Level: W4 Boy
-d  = dbref of the program to insert the lines into.
-i1 = Starting line to insert at.
-arr = List array containing the strings of code to insert.
-i2 = The line number that the last line of code was inserted at.
-
-Given a dbref d, a starting point of 1 or greater, and an array
-of strings of code, inserts them into the MUF code at that point
-if possible.  If the start number is higher than the actual number
-of lines in the program, it will insert the lines at the end of
-the code. It returns i2, the line number that the last line was
-inserted at. 
-
-Note that this prim will error out if the program d is
-already being edited by someone. To avoid this error,
-check for the INTERNAL flag with the flag? prim. If a
-program is INTERNAL, then it is being edited by the 
-in-server MUF editor. 
-See: MUF EDITING PRIMS
-~~~~
-SQL PRIMS|SQLPRIMS
-
-This is a set of prims for working with MySQL data bases.
-They are a compile time option and may not actually be
-available.
-
-SQLCONNECT, SQLQUERY, SQLPING, SQLCLOSE
-~~~~
-SQLCONNECT
-
-sqlconnect ( s1 s2 s3 s4 i1 -- (MYSQL) i2 )
-        or ( s1 s2 s3 s4 i1 -- s5 i2      )
--------------------------------------------
-Level: W3 ArchWizard
-s1 = hostname to connect to.
-s2 = username to login as.
-s3 = password to use.
-s4 = database to use after connecting.
-i1 = Timeout in seconds to wait before giving up.
-i2 = Success or failure.
-s5 = Error message.
-
-This prim is used to establish a MYSQL connection.
-Note that the entire MUCK will be halted while waiting
-for the connection to be made, so it is recommended that
-the database be on the same machine or that the timeout
-be set to very low. 
-
-s1, s3, s4 can be blank, but s2 must have a user name.
-If hostname (s1) is blank, it is assumed to be localhost.
-
-If the connection is successful, a -0- is pushed onto the
-stack along with a (MYSQL) data structure. 
-If the connection was unsuccessful, an error number is pushed
-along with a string containing the error message. 
-
-See: SQL PRIMS
-~~~~~
-SQLQUERY
-
-sqlquery ( (MYSQL) s1 -- dict1 ... dictn n arr )
-      or ( (MYSQL) s1 -- s2 i )
-------------------------------------------------
-Level: W3 ArchMage
-(MYSQL) - A MySQL socket.
-s1 = The query to send to the data base. 
-dict1 ... dictn = Each row of the result is pushed on as a dict.
-arr = A list array of the field names in order.
-n = Number of rows returned.
-s2 = Error string.
-i = Error number.
-
-Used to make a query to a MySQL data base.
-The result is pushed onto the stack as a series of dictionaries,
-where the key values are the names of the fields, and the data
-values are the contents of the fields for that row. Next a number
-indicating the number of rows returned is pushed. 
-A list array is pushed onto the stack containing the names of the 
-fields in the order that they appear in the data base.
-
-The max number of results can be set by an @tune (defaults to 40),
-to keep it from trying to push rows up to the stack limit.
-
-If there is an error with the query, an error number and a string
-containing the error message are pushed onto the stack instead.
-Thus it is best to check the -second- argument returned for success
-for failure when using this prim.
-
-See: SQL PRIMS
-~~~~
-SQLPING
-
-sqlping ( (MYSQL) -- i )
-------------------------
-Level: W3 ArchWizard
-(MYSQL) = SQL data socket.
-i = open or closed connection.
-
-Checks the status of the MySQL connection. Pushes 1 onto
-the stack if it is open, and 0 if it is closed. Note that
-once a MySQL connection is found to be closed via 
-SQLPING, it is no longer usable for queries and a new
-connection must be made.
-
-See: SQL PRIMS
-~~~~
-SQLCLOSE
-
-sqlclose ( (MYSQL) -- ) 
------------------------
-Level: W3 ArchWizard
-(MYSQL) = SQL data socket.
-
-Closes a MySQL connection. Note that once a connection has
-been closed using SQLCLOSE, it is no longer usable with
-SQLQUERY and a new connection must be made.
-
-See: SQL PRIMS
-~~~~ 
-SQL?
-
-sql? ( x -- i )
----------------
-Level: M1 Apprentice
-x = Any stack object.
-i = 1 if it is a MYSQL connection, otherwise 0.
-
-Returns 1 if the top of the stack is a MYSQL connection, otherwise
-a 0 is returned. 
-
-See: SQL PRIMS
-~~~~
-GET_SOCKINFO
-
-get_sockinfo ( (SOCKET) -- dict )
----------------------------------
-Level: W3 ArchWizard
-(SOCKET) = A MUF socket.
-
-Returns a dictionary containing information about the socket as
-follows:
-
-DESCR        = The socket's descriptor number. (int)
-CONNECTED    = Indicates the socket established a connection. (int)
-LISTENING    = Indicates it is a listening socket. (int)
-HOST         = The hexidecimal host address. Only means anything
-                   when used with SOCKACCEPT sockets. (str)
-CONNECTED_AT = Systime the socket was connected. (int)
-LAST_TIME    = Systime that the last input came on that socket.
-               With Listening Sockets, it is the time that the last
-                   connection was accepted. (int)
-COMMANDS     = The number of times a message has been recieved on that
-                   socket. (int)
-               With Listening Sockets, it is the number of sockets
-                   that it has accepted.
-PORT         = The port that the socket is on. (int)
-               With sockets made with NBSOCKOPEN it is the remote port.
-               With sockets made with LSOCKOPEN it is the port it is
-                   listening to.
-               With sockets made with SOCKACCEPT it is the port that 
-                   the socket connected to.
-SOCKQUEUE    = Indicates if the recieve buffer is turned on or not. (int)
-SMARTQUEUE   = Indicates if the recieve buffer is telent compliant. (int)
-READWAITING  = Indicates that the socket is ready for reading. (int)
-HOSTNAME     = Hostname for the socket's connection.
-               With NBSOCKOPEN sockets, it is the host it is connecting to.
-               With LSOCKOPEN sockets, it just says 'localhost'.
-               With SOCKACCEPT sockets, it is the remote connection's host.
-USERNAME     = Username for the socket's connection.
-               With NBSOCKOPEN sockets, it is the player's name.
-               With LSOCKOPEN sockets, it is the muck name.
-               With SOCKACCEPT sockets, it is the remote connection username.
-
-See: SOCKET PRIMS
-~~~~
-SOCKET_SETUSER
-
-socket_setuser( (SOCKET) d s -- i )
------------------------------------
-Level: W3 ArchWizard
-(SOCKET) = MUF Socket
-d = dbref of player to connect the socket to.
-s = string containing that player's password.
-i = Indicates failure or not.
-
-Given a MUF socket, a valid player dbref, and that player's password,
-will establish a normal telnet connection to that character using the
-MUF socket's descriptor. 
-
-As far as the user can tell, the connection will seem like a standard
-telnet connection to the MUCK from thereon out. Note that the SOCKET
-can't be a listening socket. Normally it -should- be a socket made
-from SOCKACCEPT, but in theory, sockets made by NBSOCKOPEN can be
-used in the same way, though the behavior isn't certain. Note that
-the username and host address of the player is only valid if
-using this with sockets made from SOCKACCEPT.
-
-As a final note: Once a MUF socket is connected to a player, it should
-no longer be used as a MUF socket.
-
-See: SOCKET PRIMS
-~~~~~
-SET_SOCKOPT
-
-set_sockopt ( (SOCKET) i1 -- i2 )
----------------------------------
-Level: W3 ArchWizard
-(SOCKET) = A MUF socket.
-i1 = Integer representing what options to set.
-i2 = Indicates success or failure.
-
-This prim is used to configure a variety of SOCKET options. 
-
-These are the following options options for i1:
-NOQUEUE =      Traditional NBSOCKRECV behavior. This is also the default behavior,
-               so there is little reason to send 0, unless you are turning off
-               the recieve buffer after having turned it on.
-SIMPLEQUEUE  = Buffers all valid ASCII input until it hits an end-of-line, or
-               the buffer fills up, in which case, it pushes the string onto 
-               the stack. With most client connections, this won't make any
-               difference, since most clients send their data as full lines
-               anyway. But raw Windows telnet, Hyperterminal, and a few other
-               clients do not.
-TELNETQUEUE  = Exactly the same as option 1, except that the buffer is Telnet
-               compliant. That is to say, it won't contain non-printable
-               ASCII, and if backspace or delete is encountered, it will
-               remove characters from the buffer accordingly. 
-HOMEINSTANCE = Assigns the MUF Socket to the current instance. This determines
-               which instance gets notified of Socket Events on that socket.
-               By default, events only get sent to the instance that the
-               socket was created in. Using this option, the socket will
-               be reassigned to the current instance. 
-
-Note: Changing the mode from TELNETQUEUE or SIMPLEQUEUE to NOQUEUE will cause
-      any buffered data to be lost. 
-
-See: SOCKET PRIMS, SOCKET EVENTS
-~~~~
-SOCKET EVENTS|SOCKETEVENTS|EVENT SOCKETS
-
-Socket Events
--------------
-
-As of Proto 1.80, MUF sockets can have events as well.  This allows
-one to write MUF Socket programs that don't revolve around CPU
-wasting loops for NBSOCKRECV and SOCKACCEPT. Instead, by learning
-to use Socket Events correctly, it becomes possible to let MUF
-socket using programs to sleep when there is no traffic on their
-sockets.  
-
-Then @tune socket_events is set to 'yes', MUF sockets will be
-polled by the server several times faster than they could be
-polled in MUF. When the server finds a MUF socket is ready
-to be read from, it sends a Socket event to that socket's
-'Home Instance'. When a normal socket has an event, that means
-there is some kind of input to be read from it. When listening
-sockets have an event, that means there is a connection waiting
-to be accepted by them. 
-
-EVENT_WAITFOR will return:
-(SOCKET) "SOCKET.READ.<sock number>" for normal sockets and
-(LSOCKET) "SOCKET.LISTEN.<sock number>" for listening sockets. 
-
-See: SOCKET EVENTS 2
-~~~
-SOCKET EVENTS 2|SOCKETEVENTS 2|SOCKET EVENTS2
-
-Socket Events - Continued
--------------------------
-
-Only one PID can recieve events for one socket at a time. This
-PID is called the 'Home Instance' for the socket. By default,
-this is always the PID that the socket was created in. However,
-by using:
-(SOCKET) HOMEINSTANCE SET_SOCKOPT
-the 'Home Instance' for that socket gets changed to whatever
-the currently running PID is. 
-
-For example, if a socket is accepted via SOCKACCEPT in one
-program instance, and then a process is forked off to handle
-reading input from that socket in another instance, simply 
-use HOMEINSTANCE SET_SOCKOPT on that socket once it is in 
-its new PID to make it so that Socket events will be recieved
-to that new PID instead of the PID where the socket was made
-via SOCKACCEPT. 
-
-Correct use of Socket Events can greatly increase the efficiency
-of MUF socket programs, elimiating wasteful checking loops.
-~~~~
-COPYPROPS
-
-copyprops ( d1 s1 d2 s2 i1 -- i2 )
-----------------------------------
-Level: W3 ArchWizard
-d1 - Source object
-s1 - Source propdir
-d2 - Destination object
-s2 - Destination propdir
-i1 - If 1, recurse into propdirs
-i2 - Number of properties copied
-
-This primitive can be used to copy the properties and
- sub-properties from the specified propdir of one object
- into a specified propdir on another object.
-
-If i1 is 1, COPYPROPS will also copy all propdirs and
- their properties from the specified propdir.
-
-Example:
-  #200 "a" #400 "/" 0 copyprops
- Would copy:
-  /a/la:no
-  /a/bob?:yes
- But would not copy:
-  /a/b/c:yes
-  /a/f/g/l:no
-~~~
-CHECKLOCK
-
-checklock ( d1 d2 s -- i )
---------------------------
-Level: M1 Apprentice
-d1 = dbref of a player or thing.
-d2 = dbref of object that has the lock.
-s  = prop that contains the lock.
-i  = integer representing result.
-
-Given a player or thing in d1, and an object in d2, checks the prop
-s for a lock. Will run all the same checks that LOCKED? will, including
-any MUF calls that are contained in the lock. This prim works just 
-the same as ISLOCKED? except that it will call MUF unlike ISLOCKED?
-If the player or thing does not pass the lock, then 1 is returned to 
-the stack. If d1 passes the lock, or there is no lock, then 0 is 
-returned to the stack.
-
-See: TESTLOCK, LOCKED?, CHECKLOCK
-~~~
-SYSPARM_ARRAY
-
-sysparm_array ( s -- dict )
---------------------------
-Level: M1 Apprentice
-s = string to smatch parm names against or empty.
-dict = dictionary containing the matching @tune parameters.
-
-Given a string to smatch @tune names against, returns a dictionary
-of the matching @tune options with the syntax of:
-{ <parameter name>:<parameter value> }
-
-If s is an empty string, it returns the entire @tune table.
-~~~~
-XOR
-
-xor ( x x -- i )
-----------------
-x = Any to stack data objects.
-i = Result of boolean XOR.
-
-Performs the XOR operation on the top two stack objects.
-~~~~
-SOCKTODESCR
-
-socktodescr ( (SOCKET) -- i )
------------------------------
-Level: W3 ArchWizard
-(SOCKET) = A MUF socket. 
-i = integer representing the descriptor number of the socket.
-
-Given a MUF socket, adds the descriptor for that MUF socket to the
-internal descriptor table, making it a valid descriptor as far as the 
-MUCK can tell. Almost no coders will have a use for this prim, but
-it was essential in order for the MUF based webserver project to be
-backwards compatible. 
-
-There is ONE advantage of using this prim that might be useful to 
-others. That is for notifying out large amounts of data to a socket.
-Since the MUF sockets are BLOCKING when using SOCKSEND, they might 
-abort or error on excessive data going out, whereas using 
-NOTIFY_DESCRIPTOR to notify to the descriptor made by this prim will
-allow the output to be queued just like standard outgoing MUF text. 
-
-The newly made descriptor will show up in !WHO as [Inbound]. There
-are a few things to keep in mind should you chose to use this prim:
-    The [Inbound] descriptor will never be idled off by the
-        inserver idle routines.
-    While the [Inbound] descriptor can be written to via
-        the various descriptor notification routines,
-        it cannot be read from AT ALL. The original MUF
-        socket MUST be used with NBSOCKRECV to read in anything
-        on that connection.
-    The descriptor will be unconditionally closed once the MUF
-        socket it was made from no longer exists. 
-~~~~
-PARSEPROPEX
-
-parsepropex ( d s1 dict i -- dict' s2 )
----------------------------------------
-Level: M3 Master
-d  = Object on which the prop exists.
-s1 = Prop name. 
-dict = Dictionary of variables.
-i  = Private/public bool.
-s2 = Result after MPI parsing. 
-
-Similiar to PARSEPROP, except that it allows the programmer to
-pass a dictionary of variables to go with the MPI parsing. 
-The dict has the syntax of:
-{ <var name>:<var value> }
-i indicates if any messages from {delay:} should be public or
-private. 
-The variable dictionary will be returned after the parsing with
-any new changes made to the variables during parsing reflected in
-it. 
-
-See: PARSEPROP, PARSEMPI
-~~~~
-DEBUG_ON|DEBUG_OFF|DEBUG_LINE
-
-debug_on   ( -- )
-debug_off  ( -- )
-debug_line ( -- )
------------------
-Level: M1 Apprentice
-
-debug_on    - Sets the program DEBUG.
-debug_off   - Removes the DEBUG flag from a program.
-debug_line  - Prints out a single line of debug tracing for whatever is
-              on the stack that instant. 
-~~~~
-MUF OPTIMIZING|MUFOPTIMIZING
-
-MUF Optimizing
---------------
-New in Proto 1.80 is the byte-code optimizer as implemented in FB6.
-optimize_muf must be @tuned to yes for it to work. If a program is
-set = N, then that program will not be optimized during compile time.
-
-The MUF optimizer removes redundent steps from the MUF code and also
-combines certain instructions into single steps, all to reduce the
-number of instructions ran during run time. The actual number of 
-instructions reduced will be reported during compile time.
-
-Most of the optimization involves variables, in terms of reducing the
-number of steps needed to set, clear, retrieve data, etc. 
-
-The other things that are currently optimized are as follows:
-"" strcmp 0 =        ------> not
-# # +                ------> <sum of the two ints>
-# # -                ------> <difference of the two ints>
-# # *                ------> <product of the two ints>
-# # /                ------> <quotent of the two ints>
-# # %                ------> <result of MOD on the two ints>
-0 =                  ------> not
-1 +                  ------> ++
-1 -                  ------> --
-rot rot swap         ------> swap rot
-not not if           ------> if
-
-There is room for additional optimization to be added in future versions:
-"" stringcmp 0 = into simply 'not'
-and
-"" stringcmp not if into simply 'not' 
-There's a bunch of others too.
-floating point number optimizing. 
-~~~
-ITOH
- 
-itoh ( i -- s )
------------------
-Level: M1 Apprentice
-i = Integer to convert to hexadecimal.
-s = Hexadecimal value returned as string.
- 
-Converts an integer into a hexadecimal string.
- 
-Example:
-     15 becomes "0F"
-    255 becomes "FF"
-   4095 becomes "FFF"
-  65535 becomes "FFFF"
- 
-See: HTOI
-~~~~
-HTOI
- 
-htoi ( s -- i )
------------------
-Level: M1 Apprentice
-s = Hexidecimal string to convert into integer.
-i = Integer value of hexidecimal string.
- 
-Converts a hexadecimal string into an integer.
- 
-Example:
-     "E" becomes 14
-    "8A" becomes 138   
-   "E4A" becomes 3658
-  "FFFA" becomes 65530
- 
-See: ITOH
-~~~~
-UNESCAPE_URL
- 
-unescape_url ( s1 -- s2 )
------------------
-Level: M1 Apprentice
-s1 = URL string to process.
-s2 = URL string returned with %xx hex codes converted.
- 
-Given an escaped URL as argument s1, converts the %xx hex
-codes into their ASCII character values.
- 
-Used primarily by the MUF webserver and HTMuf/CGI 
-programs.
-     
-See: ESCAPE_URL
-~~~~
-ESCAPE_URL
- 
-escape_url ( s1 -- s2 )
------------------
-Level: M1 Apprentice
-s1 = Unescaped URL string to process.
-s2 = Escaped URL string.
- 
-Given an unescaped URL as argument s1, converts certain 
-characters
-into %xx hex values.
- 
-Used primarily by the MUF webserver and HTMuf/CGI 
-programs.
- 
-See: UNESCAPE_URL
-~~~~
-SOCKSHUTDOWN
-
-sockshutdown ( (SOCKET) i1 -- i2 )
-----------------------------------
-Level: W3 ArchWizard
-i1 = integer (0 through 2) indicating how to shut down the socket.
-i2 = success indicator
-
-This closes down the socket. You can control in which way you want
-the socket to be shutdown. 
-i1 can be the following values:
-0 = Stop recieving data for this socket. 
-1 = Stop trying to transmit any data from this socket. This will
-    also keep the TCP layer from looking for acknowledgement packets
-    on this connection.
-2 = Close down the socket in both directions. This is the traditional
-    SOCKCLOSE behavior. 
-
-This prim will replace SOCKCLOSE in 1.9. SOCKCLOSE will be defined
-as '2 SOCKSHUTDOWN' come 1.9. 
-
-See: SOCKCLOSE
-~~~~
-MKDIR
-
-mkdir ( s -- i )
-----------------
-Level: W4 Boy
-s = name and path of the new directory
-i = Success in making the directory
-
-Given a string, attempts to make a directory by that name. Respects
-and requires the file token shortcuts. If the directory is made,
-1 is returned. 0 is returned if the prim was unable to make the
-directory.
-
-See: FILE PRIMS, SHORTCUTS
-~~~~
-DEBUGGER_BREAKPOINT
-
-debugger_breakpoint ( -- )
---------------------------
-Level: M1 Apprentice
-
-When this prim is encountered, the MUF is forced straight into the 
-interactive debugger mode on whoever it was that was running the MUF.
-~~~~~
-SYSTIME_PRECISE
-
-systime_precise ( -- f )
-------------------------
-Level: M1 Apprentice
-f = floating point number
-
-This prim returns the systime time with an accuracy down to millisecond
-accuracy. Can be used for high precision timing loops.
-~~~~~
-ARRAY_INTERPRET|}CAT
-
-array_interpret ( a -- s )
----------------
-Level: M1 Apprentice
-
-This primitive takes the array given, converts all floats to strings with
-the least significant zeros truncated, converts all integers to strings, 
-converts all locks to strings, converts all dbrefs to names, and contencates
-all strings into one, returning the string.
-
-Example: 
-{ #2 " has " 2 3 + " apples and gave " 1 2 / " to you. } array_make array_interpret
-Results in "Alynna has 5 apples and gave 0.5 to you." if #2 is named Alynna.
-
-}cat is an inserver define for '} array_make array_interpret', so the following
-works: { "The answer is: " 2 3 4 5 + + + }cat
-~~~~~
-FTOSTRC
-
-ftostrc ( f -- s )
--------
-Level: M1 Apprentice
-
-Takes the float on the stack, and converts it to a string representation of the
-float with all significant digits removed.   So 1.000000 becomes '1', and 
-0.666000 becomes "0.666".
-
-It should also in most cases round 5.9999999999... right up to "6" for you.

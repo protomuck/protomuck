@@ -2,39 +2,13 @@
                  by Foxen/Revar (foxen@belfry.com)
                  --  NeonMUCK MPI additions by  --
                   Loki/Jaybe (loki@dragoncat.net)
-              -- ProtoMUCK v1.60 MPI additions by  --
+                 -- ProtoMUCK MPI additions by  --
                    Moose/Van (ashitaka@home.com)
 
 You may get a listing of topics that you can get help on, either sorted
 Alphabetically or sorted by Category.  To get these indexes, type:
         mpi alpha         or
-        mpi category      or
-        mpi new
-~
-~----------------------------------------------------------------------------
-~
-NEW|WHATSNEW|WHAT'SNEW|WHAT'S NEW|WHATS NEW|WHAT IS NEW|WHATISNEW
-What's new in MPI?
-
-New addition to ProtoMUCK v1.80:
-  {parse_ansi}
- 
-New additions to ProtoMUCK v1.60:
-  {descr}   {sysparm}
- 
-New additions to ProtoMUCK v1.50:
-  {timing}  {telldescr}
-  Seperated 'mpi category' into different sections. Now it isn't so spammy.
- 
-New additions to ProtoMUCK 1.03:
-  {idle} and {ontime} now use least idle connection.
- 
-New additions to ProtoMUCK v1.00:
-  {oansi}   {pmatch}     {match}
-  {lmatch}
-  {max} and {min} now accept any number of arguments.
-  All {tell}-like functions now notify listeners.
-  {list} and {lexec} no longer abort on non-existant lists.
+        mpi category
 ~
 ~----------------------------------------------------------------------------
 ~
@@ -43,189 +17,71 @@ CATEGORY|TOPICS|SECTIONS
 
 You can get more help on the following topics:
 
-  Definitions and Details                  (DefDets)
-  Time Functions                           (TimeFuncs)
-  Logical Functions                        (LogicFuncs)
-  Property Handling                        (PropFuncs)
-  String Functions                         (StringFuncs)
-  Math Functions                           (MathFuncs)
-  Looping Functions                        (Looping)
-  Database Related Functions               (DBFuncs)
-  Connection Related Functions             (ConnFuncs)
-  Variable Handling Functions              (VarFuncs)
-  List Handling Functions                  (ListFuncs)
-  Miscellaneous Functions                  (MiscFuncs)
-  Macros and Functions                     (Functions)
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
 Definitions and Details|DefDets
-Definitions and Details
- 
-  comments     definitions  
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+comments     definitions  
+
 Time Functions|TimeFuncs
-Time Functions
- 
-  convsecs     convtime     date         delay        ftime        kill
-  ltimestr     secs         stimestr     time         timestr      timing
-  tzoffset
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+convsecs     convtime     date         delay        ftime        kill
+ltimestr     secs         stimestr     time         timestr      tzoffset
+
 Logical Functions|LogicFuncs
-Logical Functions
- 
-  and          eq           ge           gt           if           le
-  lt           ne           not          or           xor          
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+and          eq           ge           gt           if           le
+lt           ne           not          or           xor          
+
 Property Handling|PropFuncs
-Property Handling
- 
-  concat       delprop      exec         exec!        index        index!
-  lexec        list         listprops    prop         prop!        propdir
-  rand         select       store        timesub      
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+concat       delprop      exec         exec!        index        index!
+lexec        list         listprops    prop         prop!        propdir
+rand         select       store        timesub      
+
 String Functions|Strings|StringFuncs
-String Functions
- 
-  ansi         attr         center       default      escape       eval  
-  html         instr        left         lit          midstr       nl    
-  null         oansi        ohtml        otell        pronouns     right 
-  smatch       strip        strlen       subst        tell         tolower
-  toupper      telldescr    parse_ansi
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+ansi         attr         center       default      escape       eval         
+html         instr        left         lit          midstr       nl           
+null         oansi        ohtml        otell        pronouns     right        
+smatch       strip        strlen       subst        tell         tolower      
+toupper
+
 Math Functions|Math|MathFuncs
-Math Functions
- 
-  abs          add          dec          dice         dist         div
-  inc          max          min          mod          mult         sign
-  subt         
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+abs          add          dec          dice         dist         div
+inc          max          min          mod          mult         sign
+subt         
+
 Looping Functions|Loops|Looping
-Looping Functions
- 
-  filter       fold         for          foreach      parse        while
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+filter       fold         for          foreach      parse        while
+
 Database Related Functions|Database|DBFuncs
-Database Related Functions
- 
-  contains     contents     controls     created      dbeq         exits    
-  flags        force        fullname     holds        istype       lastused 
-  links        loc          locked       match        modified     money    
-  name         nearby       owner        pmatch       ref          testlock 
-  type         usecount
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+contains     contents     controls     created      dbeq         exits        
+flags        force        fullname     holds        istype       lastused     
+links        loc          locked       match        modified     money        
+name         nearby       owner        pmatch       ref          testlock     
+type         usecount
+
 Connection Related Functions|Connection|ConnFuncs
-Connection Related Functions
- 
-  awake        idle         online       ontime       descr
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+awake        idle         online       ontime       
+
 Variable Handling Functions|Variable|Variables|Vars|Var|VarFuncs
-Variable Handling Functions
- 
-  &arg         &cmd         &how         set          v            with
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+&arg         &cmd         &how         set          v            with
+
 List Handling Functions|List Handling|ListFuncs
-List Handling Functions|List Handling
- 
-  commas       count        lcommon      lmatch       lmember      lrand   
-  lremove      lsort        lunion       lunique      mklist       sublist  
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+commas       count        lcommon      lmatch       lmember      lrand        
+lremove      lsort        lunion       lunique      mklist       sublist      
+
 Miscellaneous Functions|Miscellaneous|Misc|MiscFuncs
-Miscellaneous Functions
- 
-  debug        debugif      isdbref      isnum        muckname     muf
-  version      sysparm
- 
-Use 'mpi <topicname>' to get more information on a topic.
-~
-~
-~----------------------------------------------------------------------------
-~
-~
+debug        debugif      isdbref      isnum        muckname     muf
+version      
+
 Macros and Functions|Functions
-Macros and Functions
- 
-  func         macros       
- 
+func         macros       
+
+
 Use 'mpi <topicname>' to get more information on a topic.
 ~
 ~----------------------------------------------------------------------------
 ~
 ALPHA|ALPHABETICAL|COMMANDS
                  Alphabetical Index of Topics:
- 
+
 You can get more help on the following topics:
- 
+
 &arg         &cmd         &how         abs          add          and
 ansi         attr         awake        center       commas       comments
 concat       contains     contents     controls     convsecs     convtime
@@ -243,14 +99,14 @@ lunion       lunique      macros       match        max          midstr
 min          mklist       mod          modified     money        muckname     
 muf          mult         name         ne           nearby       nl           
 not          null         online       ontime       or           oansi        
-ohtml        otell        owner        parse        parse_ansi   
-pmatch       pronouns     prop         prop!        propdir      rand    
-ref          right        secs         select       set          sign   
-smatch       stimestr     store        strip        strlen       sublist  
-subst        subt         tell         testlock     time         timestr    
-timesub      tolower      toupper      type         tzoffset     usecount  
-v            version      while        with         xor
- 
+ohtml        otell        owner        parse        pmatch       pronouns     
+prop         prop!        propdir      rand         ref          right        
+secs         select       set          sign         smatch       stimestr     
+store        strip        strlen       sublist      subst        subt         
+tell         testlock     time         timestr      timesub      tolower      
+toupper      type         tzoffset     usecount     v            version      
+while        with         xor
+
 Use 'mpi <topicname>' to get more information on a topic.
 ~
 ~
@@ -300,12 +156,6 @@ both considered false.  Any other value is considered true.
 TZOFFSET
 {tzoffset}
     Returns local time zone offset from GMT in seconds.
-~
-~
-TIMING
-{timing:mpi}
-    Notifies the player running the mpi code how long it takes to run the
-code from start to finish.
 ~
 ~
 TIME
@@ -919,13 +769,6 @@ Works just like {otell} but only is displayed to those with a Pueblo flag.
 HTML codes are parsed and executed by the Pueblo client.
 ~
 ~
-TELLDESCR
-{telldescr:string}
-{telldescr:string,descr}
-    Works exactly like {tell}, except it will notify the descriptor given.
-If no descriptor is provided, then it will notify the current descriptor.
-~
-~
 TELL
 {tell:string}
 {tell:string,player}
@@ -1395,11 +1238,6 @@ will match to Arthur.
 ~----------------------------------------------------------------------------
 ~
 ~
-DESCR
-{descr}
-    Returns the descriptor running the MPI code.
-~
-~
 ONLINE
 {online}
     Returns a list of players who are online.  This function can only be
@@ -1696,12 +1534,6 @@ to only debug the running of the command {dostuff} when the argument will
 be the player who is running the MPI.
 ~
 ~
-SYSPARM
-{sysparm:<system option>}
-    Allows normal players to get a system parameter if they have permission
-to access it.
-~
-~
 ~
 ~----------------------------------------------------------------------------
 ~                       Macros and Functions|Functions
@@ -1760,22 +1592,6 @@ arguments:
 	}
     }
     {names:{contents:here},1,1}
-~~~
-PARSE_ANSI
-
-{parse_ansi:type,string}
-------------------------
-
-Similiar to the MUF PARSE_ANSI prim, it will convert any type of ANSI
-code into Standard ANSI. The following ANSI codes are handled:
-
-Type 0 = FB6 style ANSI tags:  \[[0;31
-Type 1 = Neon style ANSI tags: ^RED^
-Type 2 = Mush style ANSI tags: %cg%ch
-Type 3 = Tilde style ANSI tags: ~&110
-
-~~~~ 
-
 
 
 

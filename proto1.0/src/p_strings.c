@@ -1820,22 +1820,21 @@ prim_parse_ansi(PRIM_PROTOTYPE)
       CLEAR(oper1);
       CLEAR(oper2);
       PushNullStr;
-   } else {
-
-      ctype = oper1->data.number;
-      sprintf(buf3, "%s", oper2->data.string->data);
-      CLEAR(oper1);
-      CLEAR(oper2);
-
-      if (ctype == 0)
-        sprintf(buf4, "%s", buf3);
-      if (ctype == 1)
-         sprintf(buf4, "%s", parse_ansi(buf, buf3));
-      if (ctype == 2)
-        sprintf(buf4, "%s", parse_mush_ansi(buf, buf3));
-
-      PushString(buf4);
    }
+
+   ctype = oper1->data.number;
+   sprintf(buf3, "%s", oper2->data.string->data);
+   CLEAR(oper1);
+   CLEAR(oper2);
+
+   if (ctype == 0)
+      sprintf(buf4, "%s", buf3);
+   if (ctype == 1)
+      sprintf(buf4, "%s", parse_ansi(buf, buf3));
+   if (ctype == 2)
+      sprintf(buf4, "%s", parse_mush_ansi(buf, buf3));
+
+   PushString(buf4);
 }
 
 void
@@ -1860,26 +1859,25 @@ prim_unparse_ansi(PRIM_PROTOTYPE)
       CLEAR(oper1);
       CLEAR(oper2);
       PushNullStr;
-   } else {
-
-      ctype = oper1->data.number;
-      sprintf(buf3, "%s", oper2->data.string->data);
-      CLEAR(oper1);
-      CLEAR(oper2);
-
-      if (ctype == 0) {
-         strip_ansi(buf, buf3);
-         sprintf(buf4, "%s", buf);
-      }
-      if (ctype == 1) {
-         unparse_ansi(buf, buf3);
-         sprintf(buf4, "%s", buf);
-      }
-      if (ctype == 2)
-         sprintf(buf4, "%s", unparse_mush_ansi(buf, buf3));
-
-      PushString(buf4);
    }
+
+   ctype = oper1->data.number;
+   sprintf(buf3, "%s", oper2->data.string->data);
+   CLEAR(oper1);
+   CLEAR(oper2);
+
+   if (ctype == 0) {
+      strip_ansi(buf, buf3);
+      sprintf(buf4, "%s", buf);
+   }
+   if (ctype == 1) {
+      unparse_ansi(buf, buf3);
+      sprintf(buf4, "%s", buf);
+   }
+   if (ctype == 2)
+      sprintf(buf4, "%s", unparse_mush_ansi(buf, buf3));
+
+   PushString(buf4);
 }
 
 void
@@ -1904,23 +1902,22 @@ prim_escape_ansi(PRIM_PROTOTYPE)
       CLEAR(oper1);
       CLEAR(oper2);
       PushNullStr;
-   } else {
-
-      ctype = oper1->data.number;
-      sprintf(buf3, "%s", oper2->data.string->data);
-      CLEAR(oper1);
-      CLEAR(oper2);
-
-      if (ctype == 0)
-         sprintf(buf4, "%s", escape_ansi(buf, buf3));
-      if (ctype == 1) {
-         sprintf(buf4, "%s", tct(buf3, buf));
-      }
-      if (ctype == 2)
-         sprintf(buf4, "%s", mush_tct(buf3, buf));
-
-      PushString(buf4);
    }
+
+   ctype = oper1->data.number;
+   sprintf(buf3, "%s", oper2->data.string->data);
+   CLEAR(oper1);
+   CLEAR(oper2);
+
+   if (ctype == 0)
+      sprintf(buf4, "%s", escape_ansi(buf, buf3));
+   if (ctype == 1) {
+      sprintf(buf4, "%s", tct(buf3, buf));
+   }
+   if (ctype == 2)
+      sprintf(buf4, "%s", mush_tct(buf3, buf));
+
+   PushString(buf4);
 }
 
 

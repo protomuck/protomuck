@@ -60,10 +60,10 @@ do_whisper(int descr, dbref player, const char *arg1, const char *arg2)
     }
     switch (who = match_result(&md)) {
 	case NOTHING:
-	    anotify_nolisten2(player, CINFO "Who?");
+	    anotify(player, CINFO "Who?");
 	    break;
 	case AMBIGUOUS:
-	    anotify_nolisten2(player, CINFO "I don't know who you mean!");
+	    anotify(player, CINFO "I don't know who you mean!");
 	    break;
 	default:
 	    if(Meeper(OWNER(player))) {
@@ -78,7 +78,7 @@ do_whisper(int descr, dbref player, const char *arg1, const char *arg2)
 					PNAME(player), PNAME(player), buf2+1);
 		if (!anotify_from(player, who, buf)) {
 		    sprintf(buf, BLUE "%s is not connected.", PNAME(who));
-		    anotify_nolisten2(player, buf);
+		    anotify(player, buf);
 		    break;
 		}
 		sprintf(buf, BLUE "You whisper, \"" PURPLE "%s %s" BLUE "\" to %s.",
@@ -89,7 +89,7 @@ do_whisper(int descr, dbref player, const char *arg1, const char *arg2)
 		sprintf(buf, BLUE "%s whispers, \"" PURPLE "%s" BLUE "\"", PNAME(player), buf2);
 		if (!anotify_from(player, who, buf)) {
 		    sprintf(buf, BLUE "%s is not connected.", PNAME(who));
-		    anotify_nolisten2(player, buf);
+		    anotify(player, buf);
 		    break;
 		}
 		sprintf(buf, BLUE "You whisper, \"" PURPLE "%s" BLUE "\" to %s.", buf2, PNAME(who));
@@ -127,7 +127,7 @@ do_wall(dbref player, const char *message)
 
     if (Mage(player) && Typeof(player) == TYPE_PLAYER) {
 	if (!*message) {
-	    anotify_nolisten2(player, CINFO "Shout what?");
+	    anotify(player, CINFO "Shout what?");
 	    return;
 	}
 	switch(message[0]) {
@@ -163,7 +163,7 @@ do_gripe(dbref player, const char *message)
 	if (Wiz(player)) {
 	    spit_file(player, LOG_GRIPE);
 	} else {
-	    anotify_nolisten2(player, CINFO "What's wrong?");
+	    anotify(player, CINFO "What's wrong?");
 	}
 	return;
     }
@@ -172,7 +172,7 @@ do_gripe(dbref player, const char *message)
     log_gripe("%s(%d) in %s(%d): %s\n",
 	      NAME(player), player, NAME(loc), loc, message);
 
-    anotify_nolisten2(player, CINFO "Your complaint has been filed.");
+    anotify(player, CINFO "Your complaint has been filed.");
 
     sprintf(buf, MARK "Gripe from %s: %s", NAME(player), message);
     wall_wizards(buf);
@@ -191,20 +191,20 @@ do_page(int descr, dbref player, const char *arg1, const char *arg2)
     }
     if ( strcmp(arg1, "me") ) {
 	if ((target = lookup_player(arg1)) == NOTHING) {
-	    anotify_nolisten2(player, CINFO "Who?");
+	    anotify(player, CINFO "Who?");
 	    return;
 	}
     } else target = player;
 
     if(Guest(player)) {
 	if(!Mage(target)) {
-	    anotify_nolisten2(player, CINFO "Guests can only page wizards, type 'wizzes'.");
+	    anotify(player, CINFO "Guests can only page wizards, type 'wizzes'.");
 	    return;
 	}
     }
 
     if (FLAGS(target) & HAVEN) {
-	anotify_nolisten2(player, CFAIL "That player is haven.");
+	anotify(player, CFAIL "That player is haven.");
 	return;
     }
     if(Meeper(OWNER(player))) {
@@ -227,10 +227,10 @@ do_page(int descr, dbref player, const char *arg1, const char *arg2)
 	}
     }
     if (anotify_from(player, target, buf))
-	anotify_nolisten2(player, CSUCC "Your message has been sent.");
+	anotify(player, CSUCC "Your message has been sent.");
     else {
 	sprintf(buf, CSUCC "%s is not connected.", PNAME(target));
-	anotify_nolisten2(player, buf);
+	anotify(player, buf);
     }
 }
 
@@ -507,7 +507,6 @@ blank(const char *s)
 
     return !(*s);
 }
-
 
 
 
