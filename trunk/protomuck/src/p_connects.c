@@ -1246,3 +1246,21 @@ prim_descr_flagp(PRIM_PROTOTYPE)
     CLEAR(oper2);
     PushInt(result);
 }
+
+void
+prim_bandwidth(PRIM_PROTOTYPE)
+{ 
+    /* BANDWIDTH reports the 3 global stats of bytesIn, bytesOut
+     * and commandsTotal
+     */
+    /* -- int int */
+    
+    if (mlev < LMAGE)
+        abort_interp("bandwidth is a W1 prim.");
+
+    CHECKOFLOW(3);
+
+    PushInt(bytesIn);
+    PushInt(bytesOut);
+    PushInt(commandTotal);
+}

@@ -926,6 +926,31 @@ prim_ansi_notify_descriptor(PRIM_PROTOTYPE)
     CLEAR(oper2);
 }
 
+void
+prim_notify_descriptor_char(PRIM_PROTOTYPE)
+{
+    /* NOTIFY_DESCRIPTOR_CHAR is used to notify a ASCII
+     * character to a descriptor as identified by the integer
+     * passed.
+     */
+  
+    char theChar;
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (mlev < LMAGE)
+        abort_interp("Mage primitive.");
+    if (oper1->type != PROG_INTEGER || oper2->type != PROG_INTEGER )
+        abort_interp("Requires integer arguements.");
+    if(!pdescrp(oper2->data.number))
+        abort_interp("Not a valid descriptor.");
+    theChar = (char) oper1->data.number;
+    
+    notify_descriptor_char(oper2->data.number, theChar);
+    CLEAR(oper1);
+    CLEAR(oper2);
+}
+
 void 
 prim_notify(PRIM_PROTOTYPE)
 {

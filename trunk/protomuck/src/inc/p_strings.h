@@ -51,6 +51,7 @@ extern void prim_ansi_midstr(PRIM_PROTOTYPE);
 extern void prim_textattr(PRIM_PROTOTYPE);
 extern void prim_flag_2char(PRIM_PROTOTYPE);
 extern void prim_power_2char(PRIM_PROTOTYPE);
+extern void prim_notify_descriptor_char(PRIM_PROTOTYPE);
 
 #define PRIMS_STRINGS_FUNCS prim_numberp, prim_stringcmp, prim_strcmp,        \
     prim_strncmp, prim_strcut, prim_strlen, prim_strcat, prim_atoi,           \
@@ -66,7 +67,7 @@ extern void prim_power_2char(PRIM_PROTOTYPE);
     prim_tokensplit, prim_fmtstring, prim_parse_ansi, prim_unparse_ansi,      \
     prim_escape_ansi, prim_ansi_strlen, prim_ansi_strcut, prim_ansi_strip,    \
     prim_ansi_midstr, prim_textattr, prim_parse_neon, prim_notify_descriptor, \
-    prim_flag_2char, prim_power_2char
+    prim_flag_2char, prim_power_2char, prim_notify_descriptor_char
 
 #define PRIMS_STRINGS_NAMES "NUMBER?", "STRINGCMP", "STRCMP",        \
     "STRNCMP", "STRCUT", "STRLEN", "STRCAT", "ATOI",                 \
@@ -81,9 +82,9 @@ extern void prim_power_2char(PRIM_PROTOTYPE);
     "FMTSTRING", "PARSE_ANSI", "UNPARSE_ANSI", "ESCAPE_ANSI",        \
     "ANSI_STRLEN", "ANSI_STRCUT", "ANSI_STRIP", "ANSI_MIDSTR",       \
     "TEXTATTR", "PARSE_NEON", "DESCRNOTIFY", "FLAG_2CHAR",           \
-    "POWER_2CHAR"
+    "POWER_2CHAR", "NOTIFY_DESCRIPTOR_CHAR"
 
-#define PRIMS_STRINGS_CNT 55
+#define PRIMS_STRINGS_CNT 56
 
 
 
