@@ -925,6 +925,8 @@ const char *dest_name)
 
     if ((thing == noisy_match_result(&md)) == NOTHING)
         return;
+    if (thing == AMBIGUOUS)
+        return;
 
     /* check if new target would be valid. */
     switch (Typeof(thing)) {
