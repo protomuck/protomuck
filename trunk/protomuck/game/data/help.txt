@@ -1,4 +1,4 @@
-Welcome to the ProtoMuck 1.5 User's Guide!
+Welcome to the ProtoMuck 1.7 User's Guide!
 
 You can get more help on the following topics:
 -----------------------------------------------------
@@ -117,7 +117,7 @@ Server and Data Base tools:
 @armageddon        @restart           @shutdown           @restrict    
 @sanity            @sanchange         @sanfix             @examine
 @uncompile         @fixwizbits        @tune               @dbginfo
-@ports suppport    MUF Ports
+@ports suppport    MUF Ports          @autoarchive
 
 'Player Relations' Tools:
 @boot              @frob              dboot               @toad
@@ -2182,6 +2182,8 @@ In addition to being able to do everything a W3 can do, W4's
 can also set W1, W2, and W3 bits on other players. They can
 also set @powers capabilities on players, and run @sanchange
 to try to manually alter the MUCK's data base to fix a problem.
+W4 also have certain @tune settings that only they can set.
+W4 is also the lowest level that can run @autoarchive.
 ~~~
 W5|WIZARD5|THE MAN|THEMAN|#1
 MAN (W5)
@@ -3503,3 +3505,44 @@ from MUF port to a normal text port connection.
 There are some other prims that may be useful in working with MUF ports, such
 as ANSI_NOTIFY_DESCRIPTOR, DESCR, DESCR_SETFLAG, and DESCR_FLAG?
 ~~~~
+@AUTOARCHIVE|AUTOARCHIVE
+
+@autoarchive
+------------
+Permissions: W4 Boy
+
+@autoarchive runs the 'archive' script stored in the same directory as the 
+protomuck binary. What this script does exactly will depend on the settings
+one determines in the configurable options. One should check to make sure 
+that the archive script conforms to their needs before enabling this support.
+
+@autoarchive can be run in three different ways:
+On a set interval as determined by the archive_interval @tune setting.
+Run in-muck by a W4 typing '@autoarchive'.
+Run in the shell by typing './archive' in the directory where it is located.
+
+To configure it so that the archives take up the least amount of space as
+possible, make sure that you set the following in the 'archive' script:
+ARCHIVE_LOGS = 0
+REMOVE_DUMPS = 1
+CLEAR_HOSTCACHE = 1
+ARCHIVE_MUF = 2 
+And remove the *.o files in the source directory after having compiled your MUCK.
+If you chose to archive logs, make sure to clean out the oldlogs/ directory now
+and then, since those can really build up over time. 
+
+See: @AUTOARCHIVE2 for more information.
+~~~~~~~~~~~~
+@AUTOARCHIVE2|AUTOARCHIVE2
+Note: The archive script can only be called once every 30 minutes from within the
+      MUCK, though you can run it on the shell level as often as you'd like.
+
+Disclaimer: While every measure was taken to make sure @autoarchive support is
+            100% safe, it is a new concept and the chance does exist, albeit 
+            unlikely, that it could damage, erase, or otherwise affect your site
+            in a detrimental way. 
+            It is recommended that you make an archive the old fashioned, manual
+            way before switching over to this automated system. If you notice any
+            unusal behavior after switching to autoarchiving, turn off the 
+            auto_archive immediately and report it to the ProtoMUCK authors.
+~~~~~~
