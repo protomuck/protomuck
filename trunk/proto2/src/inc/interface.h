@@ -295,6 +295,10 @@ extern void panic(const char *);
 extern int check_password(dbref player, const char *check_pw);
 extern int set_password(dbref player, const char *set_pw);
 
+#ifdef USE_SSL
+extern SSL_CTX *ssl_ctx;
+#endif
+
 /* Ansi Colors */
 #define ANSINORMAL      "\033[0m"
 #define ANSIFLASH       "\033[5m"

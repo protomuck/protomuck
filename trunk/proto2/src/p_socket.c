@@ -1,4 +1,7 @@
 /*
+ * Revision 1.7  2003/11/5 Alynna
+ * Added MUF SSL sockets.
+ *
  * Revision 1.6  2000/5/26 Akari
  * Changed sockets to W3 level.
  * Added empty string type checking to prevent crashers.
@@ -196,7 +199,15 @@ prim_socksend(PRIM_PROTOTYPE)
 
         sprintf(buf, "%s\n", oper2->data.string->data);
 
-        result = writesocket(oper1->data.sock->socknum, buf, strlen(buf));
+#ifdef SSL_SOCKETS
+            if (!oper1->data.sock->ssl_session) {
+#endif
+                result = writesocket(oper1->data.sock->socknum, buf, strlen(buf));
+#ifdef SSL_SOCKETS
+            } else {
+                result = SSL_write(oper1->data.sock->ssl_session, buf, strlen(buf));
+            }
+#endif
 
         if (tp_log_sockets)
             log2filetime("logs/sockets", "#%d by %s SOCKSEND:  %d\n", program,
@@ -259,7 +270,15 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 
     select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
-        readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+#ifdef SSL_SOCKETS
+        if (!oper1->data.sock->ssl_session) {
+#endif
+            readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+#ifdef SSL_SOCKETS
+        } else {
+            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+        }
+#endif
         conRead = readme;
         while (readme > 0 && charCount < BUFFER_LEN) {
             if ((*mystring == '\0') || (((*mystring == '\n') ||
@@ -269,7 +288,15 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
             ++charCount;
             /* if (isascii(*mystring)) -- Commented this out to test 8-bit support on the stack -Hinoserm */
             *bufpoint++ = *mystring;
-            readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+#ifdef SSL_SOCKETS
+            if (!oper1->data.sock->ssl_session) {
+#endif
+                readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+#ifdef SSL_SOCKETS
+            } else {
+                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+            }
+#endif
         }
         if (*mystring == '\n' && oper1->data.sock->usequeue) {
             gotmessage = 1;     /* needed to catch enter presses for sockqueue */
@@ -374,7 +401,15 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
     select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
 
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
-        readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+#ifdef SSL_SOCKETS
+        if (!oper1->data.sock->ssl_session) {
+#endif
+            readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+#ifdef SSL_SOCKETS
+        } else {
+            readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+        }
+#endif
         if (readme > 0) {
             gotmessage = 1;
             aChar = mystring[0];
@@ -409,6 +444,14 @@ prim_sockclose(PRIM_PROTOTYPE)
     if (oper1->data.sock->is_player) { /* don't close descrs */
         result = 0;
     } else {
+#ifdef SSL_SOCKETS
+        /* Alynna - Must be done twice to enact a bidirectional shutdown,
+           so do it again if still open, meaning remote end allows socket reuse */
+        if (oper1->data.sock->ssl_session) {
+            if (SSL_shutdown(oper1->data.sock->ssl_session) < 1)
+                SSL_shutdown(oper1->data.sock->ssl_session);
+        }
+#endif
         if (shutdown(oper1->data.sock->socknum, 2) == -1)
 #if defined(BRAINDEAD_OS)
             result = -1;
@@ -417,12 +460,10 @@ prim_sockclose(PRIM_PROTOTYPE)
 #endif
         else
             result = 0;
-
         if (tp_log_sockets)
             log2filetime("logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program,
                          unparse_object(PSafe, PSafe),
                          oper1->data.sock->socknum);
-
         oper1->data.sock->connected = 0;
         remove_socket_from_queue(oper1->data.sock);
     }
@@ -437,7 +478,6 @@ prim_sockshutdown(PRIM_PROTOTYPE)
     CHECKOP(2);                 /* socket int */
     oper2 = POP();
     oper1 = POP();
-
     if (mlev < LARCH)
         abort_interp("Socket calls are ArchWiz-only primitives.");
     if (oper1->type != PROG_SOCKET)
@@ -447,7 +487,6 @@ prim_sockshutdown(PRIM_PROTOTYPE)
     tmp = oper2->data.number;
     if (tmp < 0 || tmp > 2)
         abort_interp("Method can only be 0, 1, or 2");
-
     if (oper1->data.sock->is_player && tmp == 2) { /* don't close descrs */
         result = 0;
     } else {
@@ -459,12 +498,19 @@ prim_sockshutdown(PRIM_PROTOTYPE)
 #endif
         else
             result = 0;
-
         if (tp_log_sockets)
             log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n",
                          program, unparse_object(PSafe, PSafe),
                          oper1->data.sock->socknum);
         if (tmp == 2) {
+#ifdef SSL_SOCKETS
+            /* Alynna - Must be done twice to enact a bidirectional shutdown,
+               so do it again if still open, meaning remote end allows socket reuse */
+            if (oper1->data.sock->ssl_session) {
+                if (SSL_shutdown(oper1->data.sock->ssl_session) < 1)
+                    SSL_shutdown(oper1->data.sock->ssl_session);
+            }
+#endif
             oper1->data.sock->connected = 0; /* only say not-connected if */
             remove_socket_from_queue(oper1->data.sock); /* complete shutdown.  */
         }
@@ -497,7 +543,6 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         abort_interp("String argument expected.");
     if (!oper1->data.string)
         abort_interp("Host cannot be an empty string.");
-
     if (!(myhost = gethostbyname(oper1->data.string->data))) {
         strcpy(myresult, "Invalid host.");
         result = (struct inst *) malloc(sizeof(struct inst));
@@ -509,9 +554,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         bcopy((char *) myhost->h_addr, (char *) &name.sin_addr,
               myhost->h_length);
         mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
-
         make_nonblocking(mysock);
-
         if (connect(mysock, (struct sockaddr *) &name, sizeof(name)) == -1)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
             sprintf(myresult, "ERROR: %d", errnosocket);
@@ -520,7 +563,6 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 #endif
         else
             strcpy(myresult, "noerr");
-
         /* Socket was made, now initialize the muf_socket struct */
         result = (struct inst *) malloc(sizeof(struct inst));
         result->type = PROG_SOCKET;
@@ -545,11 +587,116 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->usequeue = 0;
         result->data.sock->usesmartqueue = 0;
         result->data.sock->readWaiting = 0;
+#ifdef SSL_SOCKETS
+        result->data.sock->ssl_session = NULL;
+#endif
         add_socket_to_queue(result->data.sock, fr);
-
         if (tp_log_sockets)
-            log2filetime("logs/sockets", "#%d by %s SOCKOPEN:  %s:%d -> %d\n",
-                         program, unparse_object(PSafe, PSafe),
+            log2filetime("logs/sockets",
+                         "#%d by %s SOCKOPEN:  %s:%d -> %d\n", program,
+                         unparse_object(PSafe, PSafe),
+                         oper1->data.string->data, oper2->data.number,
+                         result->data.sock->socknum);
+    }
+
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+    copyinst(result, &arg[(*top)++]);
+    CLEAR(result);
+    PushString(myresult);
+    if (result)
+        free((void *) result);
+}
+
+void
+prim_ssl_nbsockopen(PRIM_PROTOTYPE)
+{
+    struct inst *result = NULL;
+    register int mysock = 0;
+    struct sockaddr_in name;
+    struct hostent *myhost;
+    char myresult[255];
+#ifdef SSL_SOCKETS
+    int ssl_error;
+#endif
+#ifndef SSL_SOCKETS
+    abort_interp("MUF SSL sockets not supported.");
+#endif
+    CHECKOP(2);
+    oper2 = POP();
+    oper1 = POP();
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Integer argument expected.");
+    if ((oper2->data.number < 1) || (oper2->data.number > 65535))
+        abort_interp("Invalid port number.");
+    if (oper1->type != PROG_STRING)
+        abort_interp("String argument expected.");
+    if (!oper1->data.string)
+        abort_interp("Host cannot be an empty string.");
+    if (!(myhost = gethostbyname(oper1->data.string->data))) {
+        strcpy(myresult, "Invalid host.");
+        result = (struct inst *) malloc(sizeof(struct inst));
+        result->type = PROG_INTEGER;
+        result->data.number = 0;
+    } else {
+        name.sin_port = (int) htons(oper2->data.number);
+        name.sin_family = AF_INET;
+        bcopy((char *) myhost->h_addr, (char *) &name.sin_addr,
+              myhost->h_length);
+        mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
+        make_nonblocking(mysock);
+        if (connect(mysock, (struct sockaddr *) &name, sizeof(name)) == -1)
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+            sprintf(myresult, "ERROR: %d", errnosocket);
+#else
+            strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        else
+            strcpy(myresult, "noerr");
+        /* Socket was made, now initialize the muf_socket struct */
+        result = (struct inst *) malloc(sizeof(struct inst));
+        result->type = PROG_SOCKET;
+        result->data.sock =
+            (struct muf_socket *) malloc(sizeof(struct muf_socket));
+        result->data.sock->socknum = mysock;
+        result->data.sock->connected = 0;
+        result->data.sock->links = 1;
+        result->data.sock->listening = 0;
+        result->data.sock->raw_input = NULL;
+        result->data.sock->raw_input_at = NULL;
+        result->data.sock->inIAC = 0;
+        result->data.sock->commands = 0;
+        result->data.sock->is_player = 0;
+        result->data.sock->port = oper2->data.number; /* remote port # */
+        result->data.sock->hostname = alloc_string(oper1->data.string->data);
+        result->data.sock->host = ntohl(name.sin_addr.s_addr);
+        result->data.sock->username =
+            alloc_string(unparse_object(PSafe, PSafe));
+        result->data.sock->connected_at = time(NULL);
+        result->data.sock->last_time = time(NULL);
+        result->data.sock->usequeue = 0;
+        result->data.sock->usesmartqueue = 0;
+        result->data.sock->readWaiting = 0;
+#ifdef SSL_SOCKETS
+        result->data.sock->ssl_session = SSL_new(ssl_ctx);
+        SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
+        ssl_error = SSL_connect(result->data.sock->ssl_session);
+        if (ssl_error == 0) {
+            sprintf(myresult, "SSLerr: %d %d %s", 
+                    ssl_error, 
+                    SSL_get_error(result->data.sock->ssl_session, ssl_error),
+                    ERR_reason_error_string(SSL_get_error(result->data.sock->ssl_session, ssl_error))
+                    );
+        }
+#endif
+        add_socket_to_queue(result->data.sock, fr);
+        if (tp_log_sockets)
+            log2filetime("logs/sockets",
+                         "#%d by %s SOCKOPEN:  %s:%d -> %d\n", program,
+                         unparse_object(PSafe, PSafe),
                          oper1->data.string->data, oper2->data.number,
                          result->data.sock->socknum);
     }
@@ -570,17 +717,14 @@ prim_sockcheck(PRIM_PROTOTYPE)
     /* socket -- i */
     CHECKOP(1);
     oper1 = POP();              /* socket */
-
     if (mlev < LARCH)
         abort_interp("Socket calls are ArchWiz-only primitives.");
     if (oper1->type != PROG_SOCKET)
         abort_interp("Socket argument expected!");
     if (oper1->data.sock->listening)
         abort_interp("SOCKCHECK does not work with listening SOCKETS.");
-
     oper1->data.sock->last_time = time(NULL);
     result = oper1->data.sock->connected;
-
     CLEAR(oper1);
     PushInt(result);
 }
@@ -592,12 +736,10 @@ prim_sockdescr(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();              /* SOCKET */
-
     if (mlev < LARCH)
         abort_interp("Socket prims are ArchWiz-only.");
     if (oper1->type != PROG_SOCKET)
         abort_interp("Socket arguement expected.");
-
     sockdescr = oper1->data.sock->socknum;
     CLEAR(oper1);
     PushInt(sockdescr);
@@ -617,7 +759,6 @@ prim_lsockopen(PRIM_PROTOTYPE)
     /* int<queue size> int<port#> */
     oper1 = POP();              /* port */
     oper2 = POP();              /* queue size */
-
     if (mlev < LBOY)
         abort_interp("lsockopen is W4 or above.");
     if (oper1->type != PROG_INTEGER || oper2->type != PROG_INTEGER)
@@ -626,21 +767,16 @@ prim_lsockopen(PRIM_PROTOTYPE)
         abort_interp("Invalid port number for LSOCKOPEN.");
     if (oper2->data.number < 1 || oper2->data.number > 20)
         abort_interp("Invalid queue size (between 5 and 20).");
-
     sockdescr = socket(AF_INET, SOCK_STREAM, 0); /* get the socket descr */
-
     my_addr.sin_family = AF_INET;
     my_addr.sin_port = (int) htons(oper1->data.number); /* set bind port # */
     my_addr.sin_addr.s_addr = INADDR_ANY; /* get my own IP address */
     memset(&(my_addr.sin_zero), '\0', 8); /* zero rest of struct */
-
     /* Make sure is able to reuse the port */
     setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, (char *) &yes, sizeof(int));
-
     /* Bind to the port */
     errors = bind(sockdescr, (struct sockaddr *) &my_addr,
                   sizeof(struct sockaddr));
-
     if (errors == -1) {
         /* Error binding to port. */
 #if defined(BRAINDEAD_OS) || defined(WIN32)
@@ -656,7 +792,6 @@ prim_lsockopen(PRIM_PROTOTYPE)
 
     /* activate listen port */
     errors = listen(sockdescr, oper2->data.number);
-
     if (errors == -1) {
         /* Error setting listen mode. */
 #if defined(BRAINDEAD_OS) || defined(WIN32)
@@ -671,7 +806,6 @@ prim_lsockopen(PRIM_PROTOTYPE)
     }
     /* set non-blocking */
     make_nonblocking(sockdescr);
-
     /* No errors, make our listening socket */
     strcpy(myresult, "noerr");
     result = (struct inst *) malloc(sizeof(struct inst));
@@ -694,12 +828,15 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->host = 1;
     result->data.sock->usequeue = 0;
     result->data.sock->readWaiting = 0;
+#ifdef SSL_SOCKETS
+    result->data.sock->ssl_session = NULL;
+#endif
     add_socket_to_queue(result->data.sock, fr);
-
     if (tp_log_sockets)
-        log2filetime("logs/sockets", "#%d by %s LSOCKOPEN: Port:%d -> %d\n",
-                     program, unparse_object(PSafe, PSafe),
-                     oper1->data.number, result->data.sock->socknum);
+        log2filetime("logs/sockets",
+                     "#%d by %s LSOCKOPEN: Port:%d -> %d\n", program,
+                     unparse_object(PSafe, PSafe), oper1->data.number,
+                     result->data.sock->socknum);
     CLEAR(oper1);
     CLEAR(oper2);
     copyinst(result, &arg[(*top)++]);
@@ -726,22 +863,18 @@ prim_sockaccept(PRIM_PROTOTYPE)
     CHECKOP(1);
     /* LSOCKET */
     oper1 = POP();              /* LSOCKET */
-
     if (mlev < LBOY)
         abort_interp("Listening sockets are for W4 or above.");
     if (oper1->type != PROG_SOCKET)
         abort_interp("Listening SOCKET arguement expected.");
     if (!(oper1->data.sock->listening))
         abort_interp("Must pass listening SOCKET to SOCKACCEPT.");
-
     t_val.tv_sec = 0;
     t_val.tv_usec = 0;
-
     sockdescr = oper1->data.sock->socknum;
     FD_ZERO(&reads);
     FD_SET(sockdescr, &reads);
     select(sockdescr + 1, &reads, NULL, NULL, &t_val);
-
     if (!(FD_ISSET(sockdescr, &reads))) { //No connection waiting
         CLEAR(oper1);
         PushInt(newsock);
@@ -750,8 +883,9 @@ prim_sockaccept(PRIM_PROTOTYPE)
     /* connection is waiting */
     addr_len = sizeof(remoteaddr);
     sockdescr = oper1->data.sock->socknum;
-    newsock = accept(sockdescr, (struct sockaddr *) &remoteaddr,
-                     (socklen_t *) &addr_len);
+    newsock =
+        accept(sockdescr, (struct sockaddr *) &remoteaddr,
+               (socklen_t *) &addr_len);
     if (newsock == -1) {        //some kind of error
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(CYGWIN)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
@@ -777,8 +911,9 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->inIAC = 0;
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
-    strcpy(hostname, addrout(oper1->data.sock->port, remoteaddr.sin_addr.s_addr,
-                             remoteaddr.sin_port));
+    strcpy(hostname,
+           addrout(oper1->data.sock->port, remoteaddr.sin_addr.s_addr,
+                   remoteaddr.sin_port));
     result->data.sock->hostname = alloc_string(hostname);
     sprintf(username, "%d", ntohs(remoteaddr.sin_port));
     result->data.sock->username = alloc_string(username); /* not done */
@@ -790,19 +925,130 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
     add_socket_to_queue(result->data.sock, fr);
-
     if (tp_log_sockets)
-        log2filetime("logs/sockets", "#%d by %s SOCKACCEPT: Port:%d -> %d\n",
-                     program, unparse_object(PSafe, PSafe),
-                     oper1->data.number, result->data.sock->socknum);
+        log2filetime("logs/sockets",
+                     "#%d by %s SOCKACCEPT: Port:%d -> %d\n", program,
+                     unparse_object(PSafe, PSafe), oper1->data.number,
+                     result->data.sock->socknum);
     oper1->data.sock->readWaiting = 0;
-
     CLEAR(oper1);
     copyinst(result, &arg[(*top)++]);
     CLEAR(result);
     if (result)
         free((void *) result);
 }
+
+
+void
+prim_ssl_sockaccept(PRIM_PROTOTYPE)
+{
+    int newsock = 0;
+    int sockdescr = 0;
+    struct inst *result;
+    char hostname[128];
+    char username[10];
+    char myresult[255];
+    struct sockaddr_in remoteaddr; // client's address
+    int addr_len;
+    fd_set reads;
+    struct timeval t_val;
+#ifdef SSL_SOCKETS
+    int ssl_error;
+#endif
+
+    CHECKOP(1);
+    /* LSOCKET */
+    oper1 = POP();              /* LSOCKET */
+#ifndef SSL_SOCKETS
+    abort_interp("MUF SSL sockets not supported.");
+#endif
+    if (mlev < LBOY)
+        abort_interp("Listening sockets are for W4 or above.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("Listening SOCKET arguement expected.");
+    if (!(oper1->data.sock->listening))
+        abort_interp("Must pass listening SOCKET to SOCKACCEPT.");
+    t_val.tv_sec = 0;
+    t_val.tv_usec = 0;
+    sockdescr = oper1->data.sock->socknum;
+    FD_ZERO(&reads);
+    FD_SET(sockdescr, &reads);
+    select(sockdescr + 1, &reads, NULL, NULL, &t_val);
+    if (!(FD_ISSET(sockdescr, &reads))) { //No connection waiting
+        CLEAR(oper1);
+        PushInt(newsock);
+        return;
+    }
+    /* connection is waiting */
+    addr_len = sizeof(remoteaddr);
+    sockdescr = oper1->data.sock->socknum;
+    newsock =
+        accept(sockdescr, (struct sockaddr *) &remoteaddr,
+               (socklen_t *) &addr_len);
+    if (newsock == -1) {        //some kind of error
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(CYGWIN)
+        sprintf(myresult, "ERROR: ERRORNOSOCKET");
+#else
+        strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        newsock = 0;
+        PushString(myresult);
+        return;
+    }
+
+    /* We have the new socket, now initialize muf_socket struct */
+    oper1->data.sock->commands += 1;
+    result = (struct inst *) malloc(sizeof(struct inst));
+    result->type = PROG_SOCKET;
+    result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    result->data.sock->socknum = newsock;
+    result->data.sock->connected = 1;
+    result->data.sock->links = 1;
+    result->data.sock->listening = 0;
+    result->data.sock->raw_input = NULL;
+    result->data.sock->raw_input_at = NULL;
+    result->data.sock->inIAC = 0;
+    result->data.sock->connected_at = time(NULL);
+    result->data.sock->last_time = time(NULL);
+    strcpy(hostname,
+           addrout(oper1->data.sock->port, remoteaddr.sin_addr.s_addr,
+                   remoteaddr.sin_port));
+    result->data.sock->hostname = alloc_string(hostname);
+    sprintf(username, "%d", ntohs(remoteaddr.sin_port));
+    result->data.sock->username = alloc_string(username); /* not done */
+    result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
+    result->data.sock->port = oper1->data.sock->port; /* port it connected to */
+    result->data.sock->usequeue = 0;
+    result->data.sock->usesmartqueue = 0;
+    result->data.sock->commands = 0;
+    result->data.sock->is_player = 0;
+    result->data.sock->readWaiting = 0;
+        result->data.sock->ssl_session = SSL_new(ssl_ctx);
+        SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
+        ssl_error = SSL_accept(result->data.sock->ssl_session);
+        if (ssl_error == 0) {
+            sprintf(myresult, "SSLerr: %d %d %s", 
+                    ssl_error, 
+                    SSL_get_error(result->data.sock->ssl_session, ssl_error),
+                    ERR_reason_error_string(SSL_get_error(result->data.sock->ssl_session, ssl_error))
+                    );
+            if (SSL_shutdown(result->data.sock->ssl_session) < 1)
+                SSL_shutdown(result->data.sock->ssl_session);
+        }
+    add_socket_to_queue(result->data.sock, fr);
+    if (tp_log_sockets)
+        log2filetime("logs/sockets",
+                     "#%d by %s SOCKACCEPT: Port:%d -> %d\n", program,
+                     unparse_object(PSafe, PSafe), oper1->data.number,
+                     result->data.sock->socknum);
+    oper1->data.sock->readWaiting = 0;
+    CLEAR(oper1);
+    copyinst(result, &arg[(*top)++]);
+    CLEAR(result);
+    if (result)
+        free((void *) result);
+}
+
 
 void
 prim_get_sockinfo(PRIM_PROTOTYPE)
@@ -813,15 +1059,16 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     /* (SOCKET) -- dict */
     CHECKOP(1);
     oper1 = POP();              /* socket */
-
     if (mlev < LARCH)
         abort_interp("Permission denied.");
     if (oper1->type != PROG_SOCKET)
         abort_interp("MUF Socket expected. (1)");
-
     theSock = oper1->data.sock;
     nw = new_array_dictionary();
     array_set_strkey_intval(&nw, "DESCR", theSock->socknum);
+#ifdef SSL_SOCKETS
+    array_set_strkey_intval(&nw, "SSL", theSock->ssl_session ? 1 : 0);
+#endif
     array_set_strkey_intval(&nw, "CONNECTED", theSock->connected);
     array_set_strkey_intval(&nw, "LISTENING", theSock->listening);
     array_set_strkey_strval(&nw, "HOST", host_as_hex(theSock->host));
@@ -836,10 +1083,8 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
                             theSock->hostname ? theSock->hostname : "");
     array_set_strkey_strval(&nw, "USERNAME",
                             theSock->username ? theSock->username : "");
-
     CLEAR(oper1);
     PushArrayRaw(nw);
-
 }
 
 void
@@ -856,7 +1101,6 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     oper3 = POP();              /* password */
     oper2 = POP();              /* player dbref */
     oper1 = POP();              /* non-listening socket */
-
     if (mlev < LARCH)
         abort_interp("Socket prims are W3.");
     if (oper1->type != PROG_SOCKET)
@@ -874,7 +1118,6 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     if (oper3->type != PROG_STRING)
         abort_interp("Expected string for password. (3)");
     ptr = oper3->data.string ? oper3->data.string->data : pad_char;
-
     password = DBFETCH(ref)->sp.player.password;
     if (password) {             /* check pass since character has one */
         if (strcmp(ptr, password)) { /* incorrect password */
@@ -889,25 +1132,32 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     /* passed password check. Now to connect. */
     /* first make sure that the socket is non-blocking */
     make_nonblocking(theSock->socknum);
-
     /* Now establish a normal telnet connection to the MUCK */
-    d = initializesock(theSock->socknum, theSock->hostname,
-                       atoi(theSock->username), theSock->host, CT_MUCK,
-                       theSock->port, 0);
+#ifdef SSL_SOCKETS
+    if (!theSock->ssl_session) {
+#endif
+        d = initializesock(theSock->socknum, theSock->hostname,
+                           atoi(theSock->username), theSock->host,
+                           CT_MUCK, theSock->port, 0);
+#ifdef SSL_SOCKETS
+    } else {
+        d = initializesock(theSock->socknum, theSock->hostname,
+                           atoi(theSock->username), theSock->host,
+                           CT_SSL, theSock->port, 0);
+    }
+#endif
     check_maxd(d);
-
     /* d is now in the descriptor list and properly initialized. 
      * Now connect it to a player. */
     result = plogin_user(d, ref);
-
     if (tp_log_connects && result)
-        log2filetime(CONNECT_LOG, "SOCKET_SETUSER: %2d %s %s(%s) %s P#%d\n",
+        log2filetime(CONNECT_LOG,
+                     "SOCKET_SETUSER: %2d %s %s(%s) %s P#%d\n",
                      theSock->socknum, unparse_object(ref, ref),
                      theSock->hostname, theSock->username,
                      host_as_hex(theSock->host), theSock->port);
     if (result)
         theSock->is_player = 1;
-
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -923,7 +1173,6 @@ prim_socktodescr(PRIM_PROTOTYPE)
     /* (SOCKET) -- int:descr */
     CHECKOP(1);
     oper1 = POP();              /* socket */
-
     if (mlev < LARCH)
         abort_interp("Socket prims are W3.");
     if (oper1->type != PROG_SOCKET)
@@ -935,24 +1184,18 @@ prim_socktodescr(PRIM_PROTOTYPE)
         abort_interp("This socket is not connected. (1)");
     if (theSock->is_player)
         abort_interp("This socket already connected to player or descr.");
-
     /* make sure socket is non-blocking */
     make_nonblocking(theSock->socknum);
-
     /* Now add the descriptor to the MUCK's descriptor list */
     d = initializesock(theSock->socknum, theSock->hostname,
                        atoi(theSock->username), theSock->host,
                        CT_INBOUND, theSock->port, 0);
-
     /* now the descriptor is queued with the rest of the MUCK's d's */
-
     check_maxd(d);
-
     if (tp_log_sockets)
         log2filetime("logs/sockets",
                      "#%d by %s SOCKTODESCR: %d", program,
                      unparse_object(PSafe, PSafe), theSock->socknum);
-
     theSock->is_player = -1;
     CLEAR(oper1);
     PushInt(d->descriptor);
@@ -968,7 +1211,6 @@ prim_set_sockopt(PRIM_PROTOTYPE)
     CHECKOP(2);
     oper2 = POP();              /* int */
     oper1 = POP();              /* socket */
-
     if (mlev < LARCH)
         abort_interp("Permission denied.");
     if (oper1->type != PROG_SOCKET)
@@ -977,7 +1219,6 @@ prim_set_sockopt(PRIM_PROTOTYPE)
     if (oper2->type != PROG_INTEGER)
         abort_interp("Expected integer. (2)");
     flag = oper2->data.number;
-
     if (flag == 0) {            /* remove any queue options */
         theSock->usequeue = 0;
         theSock->usesmartqueue = 0;
@@ -1000,7 +1241,6 @@ prim_set_sockopt(PRIM_PROTOTYPE)
         result = 1;
     } else
         result = 0;
-
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(result);

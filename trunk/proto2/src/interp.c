@@ -378,6 +378,13 @@ RCLEAR(struct inst *oper, char *file, int line)
                  * is_player == -1 - MUF socket made into a descriptor */
                 if (oper->data.sock->host && oper->data.sock->is_player < 1) {
                     if (oper->data.sock->is_player == 0) {
+#ifdef SSL_SOCKETS
+            	    if (oper->data.sock->ssl_session) {
+                        if (SSL_shutdown(oper->data.sock->ssl_session) < 1)
+                            SSL_shutdown(oper->data.sock->ssl_session);
+            		SSL_free(oper->data.sock->ssl_session);
+                        }
+#endif
                         shutdown(oper->data.sock->socknum, 2);
                         close(oper->data.sock->socknum);
                     } else if (oper->data.sock->is_player == -1) {

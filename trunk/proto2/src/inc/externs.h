@@ -1,4 +1,7 @@
 #include "copyright.h"
+#ifdef USE_SSL
+#include <openssl/err.h>
+#endif
 
 /*
  * Revision 1.14  2000/11/12 08:37:12  akari
@@ -47,6 +50,9 @@ extern char match_cmdname[];
 
 /* From interface.c */
 extern short verboseload;
+#ifdef USE_SSL
+extern SSL_CTX *ssl_ctx;
+#endif
 
 /* From debugger.c */
 extern int muf_debugger(int descr, dbref player, dbref program,

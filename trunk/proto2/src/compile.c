@@ -559,6 +559,12 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "MAX_IGNORES", "0");
 #endif
 
+#ifdef SSL_SOCKETS
+    insert_def(cstat, "SSL_SOCKETS", "1");
+    insert_def(cstat, "SSL_SOCKOPEN", "SSL_NBSOCKOPEN");
+#else
+    insert_def(cstat, "SSL_SOCKETS", "0");
+#endif
 #ifdef MCP_SUPPORT
 
     /* GUI dialog types */
@@ -627,6 +633,21 @@ include_internal_defs(COMPSTATE *cstat)
 #endif
 #ifdef MUF_EDIT_PRIMS
     insert_def(cstat, "HAVE_MUF_EDIT_PRIMS", "1");
+#endif
+
+#ifdef IGNORE_SUPPORT
+    insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
+    insert_def(cstat, "SQUELCH", "\"/@/ignore\" swap reflist_add");
+    insert_def(cstat, "UNSQUELCH", "\"/@/ignore\" swap reflist_del");
+    insert_def(cstat, "SQUELCHED?", "\"/@/ignore\" swap reflist_find");
+    insert_def(cstat, "SQUELCH_ARRAY", "\"/@/ignore\" array_get_reflist");
+#else
+    insert_def(cstat, "MAX_IGNORES", "0");
+#endif
+
+#ifdef SSL_SOCKETS
+    insert_def(cstat, "SSL_SOCKETS", "1");
+    insert_def(cstat, "SSL_SOCKOPEN", "SSL_NBSOCKOPEN");
 #endif
 
 }
