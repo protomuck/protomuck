@@ -330,7 +330,7 @@ look_room(int descr, dbref player, dbref loc, int verbose)
           exec_or_html_notify(descr, player, loc, GETIHTMLDESC(loc), "(@Idesc)");
        } else {
           if (GETIDESC(loc)) {
-	      exec_or_notify(descr, player, loc, GETDESC(loc), "(@IDesc)");
+	      exec_or_notify(descr, player, loc, GETIDESC(loc), "(@IDesc)");
           }
        }
     }
