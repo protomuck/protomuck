@@ -46,6 +46,7 @@
 #include "props.h"
 #include "tune.h"
 #include "cgi.h"
+#include "mpi.h"
 #include "db.h"
 //#include "defaults.h"
 //#include "strings.h"
@@ -193,11 +194,12 @@ http_log(struct descriptor_data *d, int debuglvl, char *format, ...)
     if (debuglvl <= tp_web_logwall_lvl)
         wall_logwizards(buf);
 
-    if(debuglvl <= tp_web_logfile_lvl) {
+    if (debuglvl <= tp_web_logfile_lvl) {
         *tbuf = '\0';
         if ((fp = fopen(HTTP_LOG, "a")) == NULL) {
             fprintf(stderr, "Unable to open %s!\n", HTTP_LOG);
-            fprintf(stderr, "%.16s: [%d]: %s", ctime(&lt), d ? d->descriptor : -1, buf);
+            fprintf(stderr, "%.16s: [%d]: %s", ctime(&lt),
+                    d ? d->descriptor : -1, buf);
         } else {
             format_time(tbuf, 32, "%c\0", localtime(&lt));
             fprintf(fp, "%.32s: [%d]: %s", tbuf, d ? d->descriptor : -1, buf);
@@ -522,28 +524,16 @@ http_decode64(const char *in, unsigned inlen, char *out)
 
 }
 
-#ifdef HTTP_MPI_SUPPORT
 char *
-http_parsempi(struct descriptor_data *d, dbref what, const char *yerf)
+http_parsempi(struct descriptor_data *d, dbref what, const char *yerf,
+              char *buf)
 {
-    char *ptr;
-    char buf[BUFFER_LEN];
-    dbref player;
-
-    player = OWNER(what);
-    if (yerf) {
-        (char *)ptr = (char *)yerf;
-	if (ptr) {
-           (char *)ptr = (char *)do_parse_mesg(d->descriptor, (dbref)player, (dbref)what, "WWW", ptr, buf, 0);
-        return (char *)*buf;
-	} else {
-        return NULL;    
-	}
-    } else {
-    return NULL;
-    }
+    if (yerf)
+        return (do_parse_mesg
+                (d->descriptor, OWNER(what), what, yerf, "WWW", buf, 0));
+    else
+        return "";
 }
-#endif
 
 int
 http_parsedest(struct descriptor_data *d)
@@ -565,7 +555,8 @@ http_parsedest(struct descriptor_data *d)
     for (p = buf; *p && *p == '/'; p++) ;
     unescape_url(p);
 
-    if (tp_web_allow_vhosts && OkObj(tp_www_root) && (d->http.smethod->flags & HS_VHOST)) {
+    if (tp_web_allow_vhosts && OkObj(tp_www_root)
+        && (d->http.smethod->flags & HS_VHOST)) {
         char *host = alloc_string(http_gethost(d));
 
         http_split(host, ':');
@@ -593,7 +584,9 @@ http_parsedest(struct descriptor_data *d)
         free((void *) host);
     }
 
-    if (tp_web_allow_players && *p == '~' && (d->http.smethod->flags & HS_PLAYER) && !(d->http.flags & HS_VHOST)) {
+    if (tp_web_allow_players && *p == '~'
+        && (d->http.smethod->flags & HS_PLAYER)
+        && !(d->http.flags & HS_VHOST)) {
         p++;
         q = http_split(p, '/');
         http_log(d, 4, "PLAYER:  '%s'\n", p);
@@ -703,9 +696,9 @@ http_makearray(struct descriptor_data *d)
     if ((d->http.smethod->flags & HS_BODY) && d->http.body.len && p) {
         array_set_strkey_intval(&nw, "BODYLen", d->http.body.len);
         //if (isascii_string(p)) {
-            if (strlen(p) < BUFFER_LEN)
-                array_set_strkey_strval(&nw, "BODY", p);
-            array_set_strkey_arrval(&nw, "POSTData", http_formarray(p));
+        if (strlen(p) < BUFFER_LEN)
+            array_set_strkey_strval(&nw, "BODY", p);
+        array_set_strkey_arrval(&nw, "POSTData", http_formarray(p));
         //}
     }
 
@@ -744,15 +737,15 @@ http_compile(struct descriptor_data *d, dbref player, dbref ref)
 {
     struct line *tmpline;
 
-	if (!DBFETCH(ref)->sp.program.start) {
-		tmpline = DBFETCH(ref)->sp.program.first;
-		DBFETCH(ref)->sp.program.first = read_program(ref);
-		do_compile(d->descriptor, player, ref, 0);
-		free_prog_text(DBFETCH(ref)->sp.program.first);
-		DBSTORE(ref, sp.program.first, tmpline);
-	}
+    if (!DBFETCH(ref)->sp.program.start) {
+        tmpline = DBFETCH(ref)->sp.program.first;
+        DBFETCH(ref)->sp.program.first = read_program(ref);
+        do_compile(d->descriptor, player, ref, 0);
+        free_prog_text(DBFETCH(ref)->sp.program.first);
+        DBSTORE(ref, sp.program.first, tmpline);
+    }
 
-	return (DBFETCH(ref)->sp.program.siz);
+    return (DBFETCH(ref)->sp.program.siz);
 }
 
 int
@@ -788,7 +781,8 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
     /* Permissions checks. Player and program must      */
     /* be web_htmuf_mlvl+, and program must be LINK_OK. */
     if (MLevel(player) < tp_web_htmuf_mlvl || MLevel(ref) < tp_web_htmuf_mlvl) {
-        http_senderror(d, 403, "Permission denied. (MLevel of program or player too low.)");
+        http_senderror(d, 403,
+                       "Permission denied. (MLevel of program or player too low.)");
         return 1;
     } else if (!(FLAGS(ref) & LINK_OK)) {
         http_senderror(d, 403, "Permission denied. (Program not set LINK_OK.)");
@@ -815,9 +809,12 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
         http_sendheader(d, 200, buf, -1);
 
     /* Do it! */
-    sprintf(match_args, "%d|%s|%s|%s", d->descriptor, d->hostname, d->username, d->http.cgidata);
+    sprintf(match_args, "%d|%s|%s|%s", d->descriptor, d->hostname, d->username,
+            d->http.cgidata);
     strcpy(match_cmdname, "(WWW)");
-    tmpfr = interp(d->descriptor, player, NOTHING, ref, d->http.rootobj, BACKGROUND, STD_HARDUID, 0);
+    tmpfr =
+        interp(d->descriptor, player, NOTHING, ref, d->http.rootobj, BACKGROUND,
+               STD_HARDUID, 0);
     if (tmpfr) {
         struct inst temp1;
         stk_array *nw = new_array_dictionary();
@@ -835,9 +832,9 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
         muf_event_add(tmpfr, "USER.SOCKINFO", &temp1, 0);
         CLEAR(&temp1);
 
-		interp_loop(player, ref, tmpfr, 1);
+        interp_loop(player, ref, tmpfr, 1);
 
-		d->http.pid = tmpfr->pid;
+        d->http.pid = tmpfr->pid;
     }
     d->booted = 4;
     return 1;
@@ -851,6 +848,7 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
     const char *m = NULL;
     int lines = 0;
     int i;
+
     if (!OkObj(what))
         return 0;
 
@@ -898,11 +896,9 @@ http_doproplist(struct descriptor_data *d, dbref what, const char *prop,
 #ifdef COMPRESS
             m = uncompress(m);
 #endif
-#ifdef HTTP_MPI_SUPPORT
-            if ((*m == (char)"&") && tp_web_allow_mpi) {
-	     m = http_parsempi(d, what, ++m);
-	    } 
-#endif
+            if (tp_web_allow_mpi && *m == '&')
+                m = http_parsempi(d, what, ++m, buf);
+
             queue_text(d, "%s\r\n", m);
         }
     }
@@ -1055,7 +1051,7 @@ http_listdir(struct descriptor_data *d, const char *dir, DIR * df)
         http_senderror(d, 403, "Directory listings are currently disabled.");
         return;
     }
-        
+
     http_sendheader(d, 200, "text/html; charset=iso-8859-1", -1);
     queue_text(d,
                "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\">\r\n"
@@ -1140,6 +1136,49 @@ http_dofile(struct descriptor_data *d)
 }
 
 int
+http_doprop(struct descriptor_data *d, const char *prop)
+{
+    char buf[BUFFER_LEN];
+    const char *m, *s;
+
+    if (!OkObj(d->http.rootobj))
+        return 0;
+
+    if (*prop && (Prop_Hidden(prop) || Prop_Private(prop)))
+        return 0;
+
+    /* Get the propery value. */
+    if (!(m = get_property_class(d->http.rootobj, prop)))
+        return 0;
+
+    m = get_uncompress(m);
+
+    if (!*m)
+        return 0;
+
+    if (tp_web_allow_mpi && *m == '&') {
+        sprintf(buf, "%s/_type", prop);
+        if ((s = get_property_class(d->http.rootobj, buf))) {
+            m = get_uncompress(m);
+            strcpy(buf, m);
+        } else
+            strcpy(buf, "text/html");
+
+        /* Send the header. */
+        if (string_compare(buf, "noheader"))
+            http_sendheader(d, 200, buf, -1);
+
+        queue_text(d, http_parsempi(d, d->http.rootobj, ++m, buf));
+    } else {
+        d->http.flags |= HS_REDIRECT;
+        http_sendredirect(d, m);
+    }
+
+    d->booted = 4;
+    return 1;
+}
+
+int
 http_dourl(struct descriptor_data *d)
 {
     char prop[BUFFER_LEN];
@@ -1159,18 +1198,17 @@ http_dourl(struct descriptor_data *d)
         && http_doproplist(d, d->http.rootobj, prop, 200))
         return 1;
 
-    if (tp_web_allow_htmuf && (d->http.smethod->flags & HS_HTMUF) && http_dohtmuf(d, prop))
+    if (tp_web_allow_htmuf && (d->http.smethod->flags & HS_HTMUF)
+        && http_dohtmuf(d, prop))
         return 1;
 
-    if (tp_web_allow_files && (d->http.smethod->flags & HS_FILE) && http_dofile(d))
+    if (tp_web_allow_mpi && http_doprop(d, prop))
         return 1;
 
-#ifdef HTTP_MPI_SUPPORT
-    /* finish me hino!  -- Alynna
-    if (tp_web_allow_mpi && is_prop(d->http.rootobj, prop) {
+    if (tp_web_allow_files && (d->http.smethod->flags & HS_FILE)
+        && http_dofile(d))
+        return 1;
 
-    } */
-#endif
     /* If it's a propdir and nothing else was found, */
     /* send a 403 error. Eventually, this'll be used */
     /* to display a directory listing.               */
@@ -1266,8 +1304,8 @@ http_process_input(struct descriptor_data *d, const char *input)
         for (; *p && *p == '/' && *(p + 1) == '/'; p++) ;
         d->http.dest = string_dup(p);
 
-        http_log(d, 1, "WWW: %d %s '%s' %s(%s)\n", d->descriptor, d->http.method,
-                 d->http.dest, d->hostname, d->username);
+        http_log(d, 1, "WWW: %d %s '%s' %s(%s)\n", d->descriptor,
+                 d->http.method, d->http.dest, d->hostname, d->username);
         http_log(d, 4, "VER:     '%s'\n", d->http.ver);
     } else {
         p = http_split(buf, ':');
