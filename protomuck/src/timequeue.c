@@ -1025,7 +1025,7 @@ dequeue_prog(dbref program, int sleeponly)
                                                      && (sleeponly ==
                                                          2))) : (!sleeponly))))
             {
-                tmp = ptr->next;
+                tmp->next = ptr->next;
                 free_timenode(ptr);
                 process_count--;
                 count++;
@@ -1081,7 +1081,7 @@ dequeue_prog_descr(int descr, int sleeponly)
             if ((ptr->descr == descr) &&
                 ((ptr->fr) ? (!((ptr->fr->multitask == BACKGROUND) &&
                                 (sleeponly == 2))) : (!sleeponly))) {
-                tmp = ptr->next;
+                tmp->next = ptr->next;
                 free_timenode(ptr);
                 process_count--;
                 count++;
