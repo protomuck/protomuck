@@ -271,7 +271,7 @@ prim_sockcheck(PRIM_PROTOTYPE)
       connected = 0;
    }
    if (connected == 1) {
-      getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, &len);
+      getsockopt(oper1->data.sock->socknum, SOL_SOCKET, SO_ERROR, &optval, (socklen_t *) &len);
 notify(1, "Doing check.");
       if ( optval != 0 )
          connected = -1;
@@ -294,3 +294,4 @@ prim_sockdescr(PRIM_PROTOTYPE)
     PushInt(sockdescr);
 }
   
+

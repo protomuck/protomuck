@@ -61,6 +61,8 @@ extern time_t next_cron_time(void);
 extern void check_cron_time(void);
 
 /* from timequeue.c */
+extern stk_array *get_pids(dbref ref);
+extern stk_array *get_pidinfo(int pid);
 extern int scan_instances(dbref program);
 extern void handle_read_event(int descr, dbref player, const char *command);
 extern int add_muf_read_event(int descr, dbref player, dbref prog, struct frame *fr);
@@ -457,6 +459,7 @@ extern time_t sel_prof_start_time;
 extern long sel_prof_idle_sec;
 extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
+
 
 
 

@@ -8,12 +8,10 @@
 #include <sys/time.h>
 #include "db.h"
 #include "externs.h"
-#include "interface.h"
 #include "mcp.h"
 #include "mcppkg.h"
 #include "tune.h"
-
-
+#include "interface.h"
 
 #define MCP_MESG_PREFIX		"#$#"
 #define MCP_QUOTE_PREFIX	"#$\""
@@ -22,7 +20,7 @@
 #define MCP_ARG_EMPTY		"\"\""
 #define MCP_ARG_DELIMITER	":"
 #define MCP_ARGLINE_DELIMCHAR1	'\n'
-#define MCP_ARGLINE_DELIMCHAR2	'\n'
+#define MCP_ARGLINE_DELIMCHAR2	'\r'
 #define MCP_SEPARATOR		" "
 #define MCP_INIT_PKG		"mcp"
 #define MCP_DATATAG		"_data-tag"
@@ -93,19 +91,19 @@ void
 mcp_package_register(const char *pkgname, McpVer minver, McpVer maxver, McpPkg_CB callback,
 					 void *context, ContextCleanup_CB cleanup)
 {
-	McpPkg *nw = (McpPkg *) malloc(sizeof(McpPkg));
+	McpPkg *nu = (McpPkg *) malloc(sizeof(McpPkg));
 
-	nw->pkgname = (char *) malloc(strlen(pkgname) + 1);
-	strcpy(nw->pkgname, pkgname);
-	nw->minver = minver;
-	nw->maxver = maxver;
-	nw->callback = callback;
-	nw->context = context;
-	nw->cleanup = cleanup;
+	nu->pkgname = (char *) malloc(strlen(pkgname) + 1);
+	strcpy(nu->pkgname, pkgname);
+	nu->minver = minver;
+	nu->maxver = maxver;
+	nu->callback = callback;
+	nu->context = context;
+	nu->cleanup = cleanup;
 
 	mcp_package_deregister(pkgname);
-	nw->next = mcp_PackageList;
-	mcp_PackageList = nw;
+	nu->next = mcp_PackageList;
+	mcp_PackageList = nu;
 }
 
 
@@ -239,14 +237,15 @@ mcp_frame_init(McpFrame * mfr, connection_t con)
 	mfr->packages = NULL;
 	mfr->messages = NULL;
 
-      if ( (((struct descriptor_data *) con)->type != CT_HTML) && tp_enable_mcp) {
-		mcp_mesg_init(&reply, MCP_INIT_PKG, "");
-		mcp_mesg_arg_append(&reply, "version", "2.1");
-		mcp_mesg_arg_append(&reply, "to", "2.1");
-		mcp_frame_output_mesg(mfr, &reply);
-		mcp_mesg_clear(&reply);
-	}
 
+        if ( (((struct descriptor_data *) con)->type != CT_HTML) 
+             && tp_enable_mcp) {
+    	    mcp_mesg_init(&reply, MCP_INIT_PKG, "");
+   	    mcp_mesg_arg_append(&reply, "version", "2.1");
+	    mcp_mesg_arg_append(&reply, "to", "2.1");
+	    mcp_frame_output_mesg(mfr, &reply);
+	    mcp_mesg_clear(&reply);
+        }
 	mfr->enabled = 0;
 }
 
@@ -693,7 +692,7 @@ mcp_frame_output_mesg(McpFrame * mfr, McpMesg * msg)
 		strcat(out, MCP_ARG_DELIMITER);
 		strcat(out, MCP_SEPARATOR);
 		out += strlen(out);
-		sprintf(datatag, "%0.8X%0.8X", random(), random());
+		sprintf(datatag, "%.8lX", random() ^ random());
 		strcat(out, datatag);
 	}
 
@@ -775,6 +774,7 @@ mcp_mesg_init(McpMesg * msg, const char *package, const char *mesgname)
 	msg->datatag = NULL;
 	msg->args = NULL;
 	msg->incomplete = 0;
+	msg->bytes = 0;
 	msg->next = NULL;
 }
 
@@ -819,6 +819,7 @@ mcp_mesg_clear(McpMesg * msg)
 		}
 		free(tmp);
 	}
+	msg->bytes = 0;
 }
 
 
@@ -912,7 +913,7 @@ mcp_mesg_arg_getline(McpMesg * msg, const char *argname, int linenum)
 
 /*****************************************************************
  *
- * void mcp_mesg_arg_append(
+ * int mcp_mesg_arg_append(
  *         McpMesg* msg,
  *         const char* argname,
  *         const char* argval
@@ -921,52 +922,75 @@ mcp_mesg_arg_getline(McpMesg * msg, const char *argname, int linenum)
  *   Appends to the list value of the named arg in the given mesg.
  *   If that named argument doesn't exist yet, it will be created.
  *   This is used to construct arguments that have lists as values.
+ *   Returns the success state of the call.  EMCP_SUCCESS if the
+ *   call was successful.  EMCP_ARGCOUNT if this would make too
+ *   many arguments in the message.  EMCP_ARGLENGTH is this would
+ *   cause an argument to exceed the max allowed number of lines.
  *
  *****************************************************************/
 
-void
+int
 mcp_mesg_arg_append(McpMesg * msg, const char *argname, const char *argval)
 {
 	McpArg *ptr = msg->args;
+	int namelen = strlen(argname);
+	int vallen = argval? strlen(argval) : 0;
 
+	if (namelen > MAX_MCP_ARGNAME_LEN) {
+		return EMCP_ARGNAMELEN;
+	}
+	if (vallen + msg->bytes > MAX_MCP_MESG_SIZE) {
+		return EMCP_MESGSIZE;
+	}
 	while (ptr && strcmp_nocase(ptr->name, argname)) {
 		ptr = ptr->next;
 	}
 	if (!ptr) {
+		if (namelen + vallen + msg->bytes > MAX_MCP_MESG_SIZE) {
+			return EMCP_MESGSIZE;
+		}
 		ptr = (McpArg *) malloc(sizeof(McpArg));
-		ptr->name = (char *) malloc(strlen(argname) + 1);
+		ptr->name = (char *) malloc(namelen + 1);
 		strcpy(ptr->name, argname);
 		ptr->value = NULL;
+		ptr->last = NULL;
 		ptr->next = NULL;
 		if (!msg->args) {
 			msg->args = ptr;
 		} else {
+			int limit = MAX_MCP_MESG_ARGS;
 			McpArg *lastarg = msg->args;
 
-			while (lastarg->next)
+			while (lastarg->next) {
+				if (!limit-->0) {
+					free(ptr->name);
+					free(ptr);
+					return EMCP_ARGCOUNT;
+				}
 				lastarg = lastarg->next;
+			}
 			lastarg->next = ptr;
 		}
+		msg->bytes += sizeof(McpArg) + namelen + 1;
 	}
 
 	if (argval) {
 		McpArgPart *nu = (McpArgPart *) malloc(sizeof(McpArgPart));
-		McpArgPart *ptr2 = ptr->value;
 
-		nu->value = (char *) malloc(strlen(argval) + 1);
+		nu->value = (char *) malloc(vallen + 1);
 		strcpy(nu->value, argval);
 		nu->next = NULL;
 
-		if (!ptr2) {
-			ptr->value = nu;
+		if (!ptr->last) {
+			ptr->value = ptr->last = nu;
 		} else {
-			while (ptr2->next) {
-				ptr2 = ptr2->next;
-			}
-			ptr2->next = nu;
+			ptr->last->next = nu;
+			ptr->last = nu;
 		}
+		msg->bytes += sizeof(McpArgPart) + vallen + 1;
 	}
 	ptr->was_shown = 0;
+	return EMCP_SUCCESS;
 }
 
 
@@ -991,14 +1015,20 @@ mcp_mesg_arg_remove(McpMesg * msg, const char *argname)
 
 	while (ptr && !strcmp_nocase(ptr->name, argname)) {
 		msg->args = ptr->next;
-		if (ptr->name)
+		msg->bytes -= sizeof(McpArg);
+		if (ptr->name) {
 			free(ptr->name);
+			msg->bytes -= strlen(ptr->name) + 1;
+		}
 		while (ptr->value) {
 			McpArgPart *ptr2 = ptr->value;
 
 			ptr->value = ptr->value->next;
-			if (ptr2->value)
+			msg->bytes -= sizeof(McpArgPart);
+			if (ptr2->value) {
+				msg->bytes -= strlen(ptr2->value) + 1;
 				free(ptr2->value);
+			}
 			free(ptr2);
 		}
 		free(ptr);
@@ -1012,14 +1042,20 @@ mcp_mesg_arg_remove(McpMesg * msg, const char *argname)
 	while (ptr) {
 		if (!strcmp_nocase(argname, ptr->name)) {
 			prev->next = ptr->next;
-			if (ptr->name)
+			msg->bytes -= sizeof(McpArg);
+			if (ptr->name) {
 				free(ptr->name);
+				msg->bytes -= strlen(ptr->name) + 1;
+			}
 			while (ptr->value) {
 				McpArgPart *ptr2 = ptr->value;
 
 				ptr->value = ptr->value->next;
-				if (ptr2->value)
+				msg->bytes -= sizeof(McpArgPart);
+				if (ptr2->value) {
+					msg->bytes -= strlen(ptr2->value) + 1;
 					free(ptr2->value);
+				}
 				free(ptr2);
 			}
 			free(ptr);
@@ -1141,7 +1177,7 @@ mcp_basic_handler(McpFrame * mfr, McpMesg * mesg, void *dummy)
 			mcp_mesg_init(&reply, MCP_INIT_PKG, "");
 			mcp_mesg_arg_append(&reply, "version", "2.1");
 			mcp_mesg_arg_append(&reply, "to", "2.1");
-			sprintf(authval, "%0.8X%0.8X", random(), random());
+			sprintf(authval, "%.8lX", random() ^ random());
 			mcp_mesg_arg_append(&reply, "authentication-key", authval);
 			mfr->authkey = (char *) malloc(strlen(authval) + 1);
 			strcpy(mfr->authkey, authval);
@@ -1568,6 +1604,34 @@ mcp_internal_parse(McpFrame * mfr, const char *in)
 
 
 /*
+* $Log: not supported by cvs2svn $
+* Revision 1.11  2001/02/02 05:03:44  revar
+* Added descr, trigger, player, and prog_uid datums to SEND_EVENT context.
+* Updated man.txt docs for SEND_EVENT changes and WATCHPID.
+* Added MCP message size limit.  Defaults to half a meg.
+*
+* Revision 1.10  2001/01/06 23:01:17  revar
+* Fixed bug with \r's in MCP arguments.
+*
+* Revision 1.9  2000/12/28 03:02:08  revar
+* Fixed support for Linux mallinfo() calls in @memory.
+* Fixed a crasher bug in ARRAY_NUNION, ARRAY_NDIFF, and ARRAY_NINTERSECT.
+* Fixed support for catching exceptions thrown in other muf programs.
+* Fixed some obscure bugs with getting gmt_offset on some systems.
+* Changed a whole lot of variables from 'new', 'delete', and 'class' to
+*  possibly allow moving to C++ eventually.
+* Added FINDNEXT primitive.
+* Updated TODO list.
+*
+* Revision 1.8  2000/11/23 10:30:22  revar
+* Changes for BSD compatability.
+* Changes to correct various sprintf format strings.
+*
+* Revision 1.7  2000/08/23 10:00:02  revar
+* Added @tops, @muftops, and @mpitops profiling commands.
+* Changed examine to show a program's cumulative runtimes.
+* Changes @ps to show process' %CPU usage.
+*
 * Revision 1.6  2000/07/18 18:12:40  winged
 * Various fixes to fix warnings under -Wall -Wstrict-prototypes -Wno-format -- not all problems are found or fixed yet
 *
@@ -1589,7 +1653,4 @@ mcp_internal_parse(McpFrame * mfr, const char *in)
 * Added log to bottom and comment to top
 *
 */
-
-
-
 

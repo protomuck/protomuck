@@ -23,6 +23,7 @@ typedef struct DlogData_t {
 	int descr;
 	DlogValue *values;
 	Gui_CB callback;
+	GuiErr_CB error_cb;
 	void *context;
 } DlogData;
 
@@ -155,6 +156,7 @@ gui_value_set_local(const char *dlogid, const char *id, int lines, const char **
 	DlogValue *ptr;
 	DlogData *ddata = gui_dlog_find(dlogid);
 	int i;
+	int limit = 256;
 
 	if (!ddata) {
 		return;
@@ -162,6 +164,9 @@ gui_value_set_local(const char *dlogid, const char *id, int lines, const char **
 	ptr = ddata->values;
 	while (ptr && strcmp(ptr->name, id)) {
 		ptr = ptr->next;
+		if (!limit--) {
+			return;
+		}
 	}
 	if (ptr) {
 		for (i = 0; i < ptr->lines; i++) {
@@ -214,15 +219,15 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 		show_mcp_error(mfr, msg->mesgname, "Invalid dialog ID.");
 		return;
 	}
-	if (!id || !*id) {
-		show_mcp_error(mfr, msg->mesgname, "Missing control ID.");
-		return;
-	}
 	if (!string_compare(msg->mesgname, "ctrl-value")) {
 		int valcount = mcp_mesg_arg_linecount(msg, "value");
 		int i;
 		const char **value = (const char **) malloc(sizeof(const char *) * valcount);
 
+		if (!id || !*id) {
+			show_mcp_error(mfr, msg->mesgname, "Missing control ID.");
+			return;
+		}
 		for (i = 0; i < valcount; i++) {
 			value[i] = mcp_mesg_arg_getline(msg, "value", i);
 		}
@@ -234,6 +239,10 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 		const char *dismissed = mcp_mesg_arg_getline(msg, "dismissed", 0);
 		int did_dismiss = 1;
 
+		if (!id || !*id) {
+			show_mcp_error(mfr, msg->mesgname, "Missing control ID.");
+			return;
+		}
 		if (!evt || !*evt) {
 			evt = "buttonpress";
 		}
@@ -247,18 +256,32 @@ gui_pkg_callback(McpFrame * mfr, McpMesg * msg, McpVer ver, void *context)
 		if (dat->callback) {
 			dat->callback(dat->descr, dlogid, id, evt, did_dismiss, dat->context);
 		}
+	} else if (!string_compare(msg->mesgname, "error")) {
+		const char *err  = mcp_mesg_arg_getline(msg, "errcode", 0);
+		const char *text = mcp_mesg_arg_getline(msg, "errtext", 0);
+		const char *id   = mcp_mesg_arg_getline(msg, "id", 0);
+
+		if (!err) {
+			err = "";
+		}
+		if (!text) {
+			text = "";
+		}
+		if (dat->error_cb) {
+			dat->error_cb(dat->descr, dlogid, id, err, text, dat->context);
+		}
 	}
 }
 
 
 const char *
-gui_dlog_alloc(int descr, Gui_CB callback, void *context)
+gui_dlog_alloc(int descr, Gui_CB callback, GuiErr_CB error_cb, void *context)
 {
 	char tmpid[32];
 	DlogData *ptr;
 
 	while (1) {
-		sprintf(tmpid, "%08X", random());
+		sprintf(tmpid, "%08lX", random());
 		if (!gui_dlog_find(tmpid)) {
 			break;
 		}
@@ -268,6 +291,7 @@ gui_dlog_alloc(int descr, Gui_CB callback, void *context)
 	strcpy(ptr->id, tmpid);
 	ptr->descr = descr;
 	ptr->callback = callback;
+	ptr->error_cb = error_cb;
 	ptr->context = context;
 	ptr->values = NULL;
 
@@ -393,7 +417,7 @@ GuiSupported(int descr)
 
 
 const char *
-GuiSimple(int descr, const char *title, Gui_CB callback, void *context)
+GuiSimple(int descr, const char *title, Gui_CB callback, GuiErr_CB error_cb, void *context)
 {
 	McpMesg msg;
 	McpFrame *mfr = descr_mcpframe(descr);
@@ -403,7 +427,7 @@ GuiSimple(int descr, const char *title, Gui_CB callback, void *context)
 		return NULL;
 	}
 	if (GuiSupported(descr)) {
-		id = gui_dlog_alloc(descr, callback, context);
+		id = gui_dlog_alloc(descr, callback, error_cb, context);
 		mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-create");
 		mcp_mesg_arg_append(&msg, "dlogid", id);
 		mcp_mesg_arg_append(&msg, "type", "simple");
@@ -420,7 +444,8 @@ GuiSimple(int descr, const char *title, Gui_CB callback, void *context)
 const char *
 GuiTabbed(int descr,
 		  const char *title,
-		  int pagecount, const char **pagenames, const char **pageids, Gui_CB callback, void *context)
+		  int pagecount, const char **pagenames, const char **pageids,
+		  Gui_CB callback, GuiErr_CB error_cb, void *context)
 {
 	McpMesg msg;
 	McpFrame *mfr = descr_mcpframe(descr);
@@ -431,7 +456,7 @@ GuiTabbed(int descr,
 		return NULL;
 	}
 	if (GuiSupported(descr)) {
-		id = gui_dlog_alloc(descr, callback, context);
+		id = gui_dlog_alloc(descr, callback, error_cb, context);
 		mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-create");
 		mcp_mesg_arg_append(&msg, "dlogid", id);
 		mcp_mesg_arg_append(&msg, "type", "tabbed");
@@ -452,7 +477,8 @@ GuiTabbed(int descr,
 const char *
 GuiHelper(int descr,
 		  const char *title,
-		  int pagecount, const char **pagenames, const char **pageids, Gui_CB callback, void *context)
+		  int pagecount, const char **pagenames, const char **pageids,
+		  Gui_CB callback, GuiErr_CB error_cb, void *context)
 {
 	McpMesg msg;
 	McpFrame *mfr = descr_mcpframe(descr);
@@ -463,7 +489,7 @@ GuiHelper(int descr,
 		return NULL;
 	}
 	if (GuiSupported(descr)) {
-		id = gui_dlog_alloc(descr, callback, context);
+		id = gui_dlog_alloc(descr, callback, error_cb, context);
 		mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-create");
 		mcp_mesg_arg_append(&msg, "dlogid", id);
 		mcp_mesg_arg_append(&msg, "type", "helper");
@@ -743,7 +769,8 @@ gui_ctrl_process_layout(McpMesg * msg, int layout)
 
 
 int
-gui_ctrl_make_v(const char *dlogid, const char *type, const char *pane, const char *id, const char *text, const char *value,
+gui_ctrl_make_v(const char *dlogid, const char *type, const char *pane,
+		        const char *id, const char *text, const char *value,
 				int layout, const char **args)
 {
 	McpMesg msg;
@@ -1050,7 +1077,7 @@ void
 do_post_dlog(int descr, const char *text)
 {
 	const char *keywords[] = { "Misc.", "Wedding", "Party", "Toading", "New MUCK" };
-	const char *dlg = GuiSimple(descr, "A demonstration dialog", post_dlog_cb, NULL);
+	const char *dlg = GuiSimple(descr, "A demonstration dialog", post_dlog_cb, NULL, NULL);
 
 	GuiEdit(dlg, NULL, "subj", "Subject", text, 60, GUI_EW);
 	GuiCombo(dlg, NULL, "keywd", "Keywords", "Misc.", 60, 1, GUI_EW | GUI_HEXP);
@@ -1066,5 +1093,4 @@ do_post_dlog(int descr, const char *text)
 
 	GuiShow(dlg);
 }
-
 

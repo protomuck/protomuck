@@ -146,11 +146,8 @@ muf_mcp_event_callback(McpFrame * mfr, McpMesg * mesg, McpVer version, void *con
 		argarr = new_array_dictionary();
 		for (arg = mesg->args; arg; arg = arg->next) {
 			if (!arg->value) {
-				argval.type = PROG_STRING;
-				argval.data.string = NULL;
-			} else if (!arg->value->next) {
-				argval.type = PROG_STRING;
-				argval.data.string = alloc_prog_string(arg->value->value);
+				argval.type = PROG_ARRAY;
+				argval.data.array = NULL;
 			} else {
 				McpArgPart *partptr;
 				int count = 0;
@@ -578,6 +575,31 @@ fbgui_muf_event_cb(GUI_EVENT_CB_ARGS)
 
 
 void
+fbgui_muf_error_cb(GUI_ERROR_CB_ARGS)
+{
+	char buf[BUFFER_LEN];
+	struct frame *fr = (struct frame *) context;
+	struct inst temp;
+
+	temp.type = PROG_ARRAY;
+	temp.data.array = new_array_dictionary();
+
+	array_set_strkey_intval(&temp.data.array, "descr",  descr);
+	array_set_strkey_strval(&temp.data.array, "dlogid", dlogid);
+	if (id) {
+		array_set_strkey_strval(&temp.data.array, "id", id);
+	}
+	array_set_strkey_strval(&temp.data.array, "errcode", errcode);
+	array_set_strkey_strval(&temp.data.array, "errtext", errtext);
+
+	sprintf(buf, "GUI.%s", dlogid);
+	muf_event_add(fr, buf, &temp, 0);
+	CLEAR(&temp);
+}
+
+
+
+void
 prim_gui_available(PRIM_PROTOTYPE)
 {
 	McpVer ver;
@@ -636,7 +658,8 @@ prim_gui_dlog_create(PRIM_PROTOTYPE)
 	if (!mfr)
 		abort_interp("Invalid descriptor number. (1)");
 
-	dlogid = gui_dlog_alloc(oper1->data.number, fbgui_muf_event_cb, fr);
+	dlogid = gui_dlog_alloc(oper1->data.number, fbgui_muf_event_cb,
+							fbgui_muf_error_cb, fr);
 	mcp_mesg_init(&msg, GUI_PACKAGE, "dlog-create");
 	mcp_mesg_arg_append(&msg, "title", title);
 
@@ -731,6 +754,7 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
 	char *dlogid = NULL;
 	char *ctrlid = NULL;
 	char *ctrltype = NULL;
+	char *valname = NULL;
 	stk_array *arr;
 	McpMesg msg;
 	McpFrame *mfr;
@@ -797,11 +821,15 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
 	}
 	
 	vallines = mcp_mesg_arg_linecount(&msg, "value");
-	if (ctrlid && vallines > 0) {
+	valname = mcp_mesg_arg_getline(&msg, "valname", 0);
+	if (!valname || !*valname) {
+		valname = ctrlid;
+	}
+	if (valname && vallines > 0) {
 		vallist = (char**)malloc(sizeof(char*) * vallines);
 		for (i = 0; i < vallines; i++)
 			vallist[i] = mcp_mesg_arg_getline(&msg, "value", i);
-		gui_value_set_local(dlogid, ctrlid, vallines, (const char**)vallist);
+		gui_value_set_local(dlogid, valname, vallines, (const char**)vallist);
 		free(vallist);
 	}
 
@@ -824,6 +852,8 @@ prim_gui_ctrl_create(PRIM_PROTOTYPE)
 void
 prim_gui_ctrl_command(PRIM_PROTOTYPE)
 {
+	int vallines = 0;
+	char **vallist = NULL;
 	char *dlogid = NULL;
 	char *ctrlid = NULL;
 	char *ctrlcmd = NULL;
@@ -831,6 +861,7 @@ prim_gui_ctrl_command(PRIM_PROTOTYPE)
 	McpMesg msg;
 	McpFrame *mfr;
 	int descr;
+	int i;
 
 	CHECKOP(4);
 	oper4 = POP();				/* dict args */
@@ -1111,6 +1142,7 @@ prim_gui_value_get(PRIM_PROTOTYPE)
 	CLEAR(oper2);
 	PushArrayRaw(nw);
 }
+
 
 
 

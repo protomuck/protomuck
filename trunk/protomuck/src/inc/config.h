@@ -290,7 +290,7 @@
 /* Use this only if your realloc does not allocate in powers of 2
  * (if your realloc is clever, this option will cause you to waste space).
  * SunOS requires DB_DOUBLING.  ULTRIX doesn't.  */
-#define  DB_DOUBLING
+#define DB_DOUBLING
 
 /* Prevent Many Fine Cores. */
 #undef NOCOREDUMP

@@ -87,6 +87,32 @@ char *parse_token( char *filename )
     filename = tempBuf2;
     return filename;
   }  
+  if ((temp = strstr( filename, "$MUF/" )) != NULL )
+  { char tempBuf[BUFFER_LEN] = "";
+    char tempBuf2[BUFFER_LEN] = "muf/";
+    int i = 0;
+    temp += 5;
+    for(; *temp != '\0'; temp++, i++ )
+      tempBuf[i] = *temp; 
+    i++;
+    tempBuf[i]='\0';
+    strcat( tempBuf2, tempBuf );
+    filename = tempBuf2;
+    return filename;
+  }  
+  if ((temp = strstr( filename, "$LOGS/" )) != NULL )
+  { char tempBuf[BUFFER_LEN] = "";
+    char tempBuf2[BUFFER_LEN] = "logs/";
+    int i = 0;
+    temp += 6;
+    for(; *temp != '\0'; temp++, i++ )
+      tempBuf[i] = *temp; 
+    i++;
+    tempBuf[i]='\0';
+    strcat( tempBuf2, tempBuf );
+    filename = tempBuf2;
+    return filename;
+  }  
   if ((temp = strstr( filename, "$INFO/" )) != NULL )
   { char tempBuf[BUFFER_LEN] = "";
     char tempBuf2[BUFFER_LEN] = "data/info/";
@@ -904,3 +930,4 @@ prim_fnameokp(PRIM_PROTOTYPE)
     CLEAR(oper1);
     PushInt(result);
 }
+

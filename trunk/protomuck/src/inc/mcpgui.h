@@ -83,6 +83,20 @@
 typedef void (*Gui_CB) (GUI_EVENT_CB_ARGS);
 
 
+/*
+ * Defines the error callback arguments, etc.
+ */
+#define GUI_ERROR_CB_ARGS \
+    int   descr,          \
+    const char * dlogid,  \
+    const char * id,      \
+    const char * errcode, \
+    const char * errtext, \
+    void* context
+
+typedef void (*GuiErr_CB) (GUI_ERROR_CB_ARGS);
+
+
 
 
 /*
@@ -99,12 +113,15 @@ int GuiSupported(int descr);
 /*
  * Second, create a dialog window.
  */
-const char *gui_dlog_alloc(int descr, Gui_CB callback, void *context);
-const char *GuiSimple(int descr, const char *title, Gui_CB callback, void *context);
-const char *GuiTabbed(int descr, const char *title, int pagecount, const char **pagenames, const char **pageids,
-				Gui_CB callback, void *context);
-const char *GuiHelper(int descr, const char *title, int pagecount, const char **pagenames, const char **pageids,
-				Gui_CB callback, void *context);
+const char *gui_dlog_alloc(int descr, Gui_CB callback, GuiErr_CB error_cb, void *context);
+const char *GuiSimple(int descr, const char *title, Gui_CB callback,
+						GuiErr_CB error_cb, void *context);
+const char *GuiTabbed(int descr, const char *title, int pagecount,
+						const char **pagenames, const char **pageids,
+						Gui_CB callback, GuiErr_CB error_cb, void *context);
+const char *GuiHelper(int descr, const char *title, int pagecount,
+						const char **pagenames, const char **pageids,
+						Gui_CB callback, GuiErr_CB error_cb, void *context);
 
 /*
  * Once you have a dialog, you can add menu items with these functions.
@@ -208,5 +225,4 @@ void muf_dlog_remove(struct frame *fr, const char *dlogid);
 void muf_dlog_purge(struct frame *fr);
 
 #endif							/* MCPGUI_H */
-
 

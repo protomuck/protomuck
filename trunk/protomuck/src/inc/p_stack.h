@@ -40,12 +40,15 @@ extern void prim_reverse(PRIM_PROTOTYPE);
 extern void prim_lreverse(PRIM_PROTOTYPE);
 extern void prim_dupn(PRIM_PROTOTYPE);
 extern void prim_ldup(PRIM_PROTOTYPE);
+extern void prim_socketp(PRIM_PROTOTYPE);
+extern void prim_markp(PRIM_PROTOTYPE);
+
+/* Internal functions */
 extern void prim_for(PRIM_PROTOTYPE);
 extern void prim_foreach(PRIM_PROTOTYPE);
 extern void prim_foriter(PRIM_PROTOTYPE);
 extern void prim_forpop(PRIM_PROTOTYPE);
-extern void prim_socketp(PRIM_PROTOTYPE);
-extern void prim_markp(PRIM_PROTOTYPE);
+extern void prim_trypop(PRIM_PROTOTYPE);
 
 #define PRIMS_STACK_FUNCS prim_pop, prim_dup, prim_at, prim_bang, prim_var,  \
     prim_localvar, prim_swap, prim_over, prim_pick, prim_put, prim_rot,      \
@@ -67,11 +70,12 @@ extern void prim_markp(PRIM_PROTOTYPE);
 
 #define PRIMS_STACK_CNT 43
 
-#define PRIMS_INTERNAL_FUNCS prim_foriter, prim_forpop
+#define PRIMS_INTERNAL_FUNCS prim_foriter, prim_forpop, prim_trypop
 
-#define PRIMS_INTERNAL_NAMES " FORITER", " FORPOP"
+#define PRIMS_INTERNAL_NAMES " FORITER", " FORPOP", " TRYPOP"
 
-#define PRIMS_INTERNAL_CNT 2
+#define PRIMS_INTERNAL_CNT 3
+
 
 
 

@@ -7,8 +7,8 @@
 #define IN_CALL          5
 #define IN_EXECUTE       6
 #define IN_RET           7
-#define IN_EVENT_WAIT    8
-#define IN_EVENT_WAITFOR 9
+#define IN_EVENT_WAITFOR 8
+#define IN_CATCH         9
 
 #define BASE_MIN 1
 #define BASE_MAX (9 + PRIMS_CONNECTS_CNT + PRIMS_DB_CNT + PRIMS_MATH_CNT + \
@@ -22,6 +22,7 @@ extern const char *base_inst[];
 extern char *insttotext(struct inst *, char *, int, int, dbref);
 /* and declare debug instruction diagnostic routine */
 extern char *debug_inst(struct inst *, struct inst *, char *, int, int, dbref);
+
 
 
 

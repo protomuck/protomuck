@@ -270,28 +270,29 @@ muf_event_list(dbref player, char *pat)
 	char buf[BUFFER_LEN];
 	int count = 0;
 	time_t rtime = time((time_t *) NULL);
-      time_t etime;
-      double pcnt = 0.0;
+	time_t etime;
+	double pcnt;
 	struct mufevent_process *proc = mufevent_processes;
 
 	while (proc) {
-            if (proc->fr) {
-                  etime = rtime - proc->fr->started;
-                  if (etime > 0) {
-                  	pcnt = proc->fr->totaltime.tv_sec;
-                  	pcnt += proc->fr->totaltime.tv_usec / 1000000;
-                  	pcnt = pcnt * 100 / etime;
-                  	if (pcnt > 100.0) {
-                  		pcnt = 100.0;
-                  	}
-                  } else {
-                  	pcnt = 0.0;
-                  }
-            }
+		if (proc->fr) {
+			etime = rtime - proc->fr->started;
+			if (etime > 0) {
+				pcnt = proc->fr->totaltime.tv_sec;
+				pcnt += proc->fr->totaltime.tv_usec / 1000000;
+				pcnt = pcnt * 100 / etime;
+				if (pcnt > 100.0) {
+					pcnt = 100.0;
+				}
+			} else {
+				pcnt = 0.0;
+			}
+		}
 		sprintf(buf, pat,
 				proc->fr->pid, "--",
 				time_format_2((long) (rtime - proc->fr->started)),
-				(proc->fr->instcnt / 1000), pcnt, proc->prog, NAME(proc->player), "EVENT_WAITFOR");
+				(proc->fr->instcnt / 1000), pcnt, proc->prog, NAME(proc->player),
+				"EVENT_WAITFOR");
 		if (Wiz(OWNER(player)) || (OWNER(proc->prog) == OWNER(player))
 			|| (proc->player == player))
 			notify_nolisten(player, buf, 1);
@@ -320,15 +321,19 @@ muf_event_count(struct frame* fr)
 
 /* int muf_event_exists(struct frame* fr, const char* eventid)
  * Returns how many events of the given event type are waiting to be processed.
+ * The eventid passed can be an smatch string.
  */
 int
 muf_event_exists(struct frame* fr, const char* eventid)
 {
 	struct mufevent *ptr;
 	int count = 0;
+	char pattern[BUFFER_LEN];
+	
+	strcpy(pattern, eventid);
 
 	for (ptr = fr->events; ptr; ptr = ptr->next)
-		if (!strcmp(ptr->event, eventid))
+		if (equalstr(pattern, ptr->event))
 			count++;
 
 	return count;
@@ -403,7 +408,7 @@ muf_event_pop_specific(struct frame *fr, int eventcount, char **events)
 	int i;
 
 	for (i = 0; i < eventcount; i++) {
-		if (fr->events && !strcmp(events[i], fr->events->event)) {
+		if (fr->events && equalstr(events[i], fr->events->event)) {
 			tmp = fr->events;
 			fr->events = tmp->next;
 			return tmp;
@@ -413,7 +418,7 @@ muf_event_pop_specific(struct frame *fr, int eventcount, char **events)
 	ptr = fr->events;
 	while (ptr && ptr->next) {
 		for (i = 0; i < eventcount; i++) {
-			if (!strcmp(events[i], ptr->next->event)) {
+			if (equalstr(events[i], ptr->next->event)) {
 				tmp = ptr->next;
 				ptr->next = tmp->next;
 				return tmp;
@@ -480,11 +485,11 @@ muf_event_remove(struct frame *fr, char *event, int which)
  * program instance's event queue.  The event is not removed
  * from the queue.
  */
-/* static struct mufevent *
+static struct mufevent *
 muf_event_peek(struct frame *fr)
 {
 	return fr->events;
-} */
+}
 
 
 
@@ -567,7 +572,7 @@ muf_event_process(void)
 					 * Uh oh! That MUF program's stack is full!
 					 * Print an error, free the frame, and exit.
 					 */
-					anotify_nolisten(proc->player, CINFO "Program stack overflow.", 1);
+					notify_nolisten(proc->player, "Program stack overflow.", 1);
 					prog_clean(proc->fr);
 				} else {
                               tmpcp = DBFETCH(proc->player)->sp.player.curr_prog;
@@ -597,7 +602,4 @@ muf_event_process(void)
 		proc = next;
 	}
 }
-
-
-
 

@@ -1039,7 +1039,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
             struct timeval tv = DBFETCH(thing)->sp.program.proftime;
 		sprintf(buf, VIOLET "Program compiled size: " PURPLE "%d instructions", DBFETCH(thing)->sp.program.siz);
  	      anotify_nolisten(player, buf, 1);
-		sprintf(buf, VIOLET "Cummulative runtime: " PURPLE "%d.%06d seconds", tv.tv_sec, tv.tv_usec);
+		sprintf(buf, VIOLET "Cumulative runtime: " PURPLE "%ld.%06ld seconds", tv.tv_sec, tv.tv_usec);
  	      anotify_nolisten(player, buf, 1);
 	    } else {
 		anotify_nolisten(player, VIOLET "Program not compiled.", 1);
@@ -2023,6 +2023,7 @@ do_sweep(int descr, dbref player, const char *name)
     }
     anotify_nolisten(player, CINFO "**End of list**", 1);
 }
+
 
 
 

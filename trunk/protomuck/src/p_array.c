@@ -929,6 +929,12 @@ sortcomp_nocase_descend(const void* x, const void* y)
 {
      return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 0));
 }
+
+int
+sortcomp_shuffle(const void* x, const void* y)
+{
+     return (((RANDOM() >> 8) % 5) - 2);
+}
  
  
 /* Sort types:
@@ -936,6 +942,7 @@ sortcomp_nocase_descend(const void* x, const void* y)
  * 2: nocase, ascending
  * 3: case, descending
  * 4: nocase, descending
+ * 5: randomize
  */
 void
 prim_array_sort(PRIM_PROTOTYPE)
@@ -969,6 +976,8 @@ prim_array_sort(PRIM_PROTOTYPE)
              case SORTTYPE_NOCASE_DESCEND:
                      comparator = sortcomp_nocase_descend;
                      break;
+             case SORTTYPE_SHUFFLE:
+                     comparator = sortcomp_shuffle;
              default:
                      abort_interp("Sort type argument contained an unexpected value. (2)");
      }
@@ -1928,6 +1937,7 @@ prim_array_extract(PRIM_PROTOTYPE)
 
 	PushArrayRaw(nw);
 }
+
 
 
 

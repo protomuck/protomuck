@@ -7,6 +7,7 @@
 #include "params.h"
 #include "match.h"
 
+#include "interp.h"
 #include "db.h"
 #include "tune.h"
 #include "mpi.h"
@@ -128,9 +129,12 @@ alloc_timenode(int typ, int subtyp, time_t mytime, int descr, dbref player, dbre
 static void
 free_timenode(timequeue ptr)
 {
-    if (ptr->command) free(ptr->command);
-    if (ptr->called_data) free(ptr->called_data);
-    if (ptr->str3) free(ptr->str3);
+    if (ptr->command)
+	free(ptr->command);
+    if (ptr->called_data)
+	free(ptr->called_data);
+    if (ptr->str3)
+	free(ptr->str3);
     if (ptr->fr) {
 	if (ptr->fr->multitask != BACKGROUND)
 	    DBFETCH(ptr->uid)->sp.player.block = 0;
@@ -141,7 +145,8 @@ free_timenode(timequeue ptr)
 					   ptr->subtyp == TQ_MUF_TREAD)) {
 	    FLAGS(ptr->uid) &= ~INTERACTIVE;
 	    FLAGS(ptr->uid) &= ~READMODE;
-	    anotify_nolisten(ptr->uid, CINFO "Data input aborted.  The command you were using was killed.", 1);
+	    anotify_nolisten(ptr->uid, CINFO
+							"Data input aborted.  The command you were using was killed.", 1);
 	}
     }
     if (free_timenode_count < tp_free_frames_pool) {
@@ -320,6 +325,33 @@ add_muf_delay_event(int delay, int descr, dbref player, dbref loc, dbref trig, d
 
 
 void
+read_event_notify(int descr, dbref player)
+{
+	struct frame *fr;
+	timequeue ptr;
+
+	if (muf_event_read_notify(descr, player)) {
+		return;
+	}
+
+	ptr = tqhead;
+	while (ptr) {
+		if (ptr->uid == player) {
+			if (ptr->fr && ptr->fr->multitask != BACKGROUND) {
+				struct inst temp;
+
+				temp.type = PROG_INTEGER;
+				temp.data.number = descr;
+				muf_event_add(ptr->fr, "READ", &temp, 1);
+				return;
+			}
+		}
+		ptr = ptr->next;
+	}
+}
+
+
+void
 handle_read_event(int descr, dbref player, const char *command)
 {
     struct frame *fr;
@@ -354,7 +386,6 @@ handle_read_event(int descr, dbref player, const char *command)
 	fr = ptr->fr;
 	typ = ptr->subtyp;
 	prog = ptr->called_prog;
-
       if (command) {
   	  /* remove the READ timequeue node from the timequeue */
 	  process_count--;
@@ -364,14 +395,12 @@ handle_read_event(int descr, dbref player, const char *command)
 	      tqhead = ptr->next;
 	  }
       }
-
 	/* remember next timequeue node, to check for more READs later */
 	lastevent = ptr;
 	ptr = ptr->next;
 
 	/* Make SURE not to let the program frame get freed.  We need it. */
 	lastevent->fr = NULL;
-
       if (command) {
 	  /*
 	   * Free up the READ timequeue node
@@ -444,8 +473,8 @@ handle_read_event(int descr, dbref player, const char *command)
 
 	if (!flag && fr) {
 	    interp_loop(player, prog, fr, 0);
-
-
+			/* WORK: if more input is pending, send the READ mufevent again. */
+			/* WORK: if no input is pending, clear READ mufevent from all of this player's programs. */
 	}
 
 	/*
@@ -473,7 +502,9 @@ next_timequeue_event(void)
     int     tmpbl, tmpfg;
     timequeue lastevent, event;
     int     maxruns = 0;
-    time_t  rtime = time((time_t *) NULL);
+    time_t  rtime = current_systime;
+
+
 
     lastevent = tqhead;
     while ((lastevent) && (rtime >= lastevent->when) && (maxruns < 30)) {
@@ -487,14 +518,14 @@ next_timequeue_event(void)
 	}
       event = tqhead;
       tqhead = tqhead->next;
-
+      process_count--;
 	event->eventnum = 0;
 	if (event->typ == TQ_MPI_TYP) {
 	    char cbuf[BUFFER_LEN];
 	    int ival;
 
-	    strcpy(match_args, event->str3? event->str3 : "");
-	    strcpy(match_cmdname, event->command? event->command : "");
+	    strcpy(match_args, event->str3 ? event->str3 : "");
+	    strcpy(match_cmdname, event->command ? event->command : "");
 	    ival = (event->subtyp & TQ_MPI_OMESG)? MPI_ISPUBLIC : MPI_ISPRIVATE;
 	    if (event->subtyp & TQ_MPI_LISTEN) {
 		ival |= MPI_ISLISTENER;
@@ -517,7 +548,7 @@ next_timequeue_event(void)
 		    sprintf(bbuf, ">> %.4000s %.*s",
 			    NAME(event->uid),
 			    (int)(4000 - strlen(NAME(event->uid))),
-			    pronoun_substitute(tqhead->descr, event->uid, cbuf));
+			    pronoun_substitute(event->descr, event->uid, cbuf));
 		    plyr = DBFETCH(event->loc)->contents;
 		    for (;plyr != NOTHING; plyr = DBFETCH(plyr)->next) {
 			if (Typeof(plyr)==TYPE_PLAYER && plyr!=event->uid)
@@ -539,8 +570,8 @@ next_timequeue_event(void)
 		    struct inst temp;
 
 		    temp.type = PROG_INTEGER;
-		    temp.data.number = tqhead->when;
-		    tqhead->fr->timercount--;
+		    temp.data.number = event->when;
+		    event->fr->timercount--;
 		    muf_event_add(event->fr, event->called_data, &temp, 0);
 		} else if (event->subtyp == TQ_MUF_TREAD) {
 		    handle_read_event(event->descr, event->uid, NULL);
@@ -557,7 +588,6 @@ next_timequeue_event(void)
 	}
 	event->fr = NULL;
 	free_timenode(event);
-	process_count--;
     }
 }
 
@@ -565,15 +595,6 @@ next_timequeue_event(void)
 int
 in_timequeue(int pid)
 {
-/*    timequeue ptr = tqhead;
-
-    if (!pid) return 0;
-    if (!tqhead) return 0;
-    while ((ptr) && (ptr->eventnum != pid))
-	ptr = ptr->next;
-    if (ptr)
-	return 1;
-    return 0; */
 	timequeue ptr = tqhead;
 
 	if (!pid)
@@ -589,11 +610,12 @@ in_timequeue(int pid)
 	return 0;
 }
 
+
 struct frame*
 timequeue_pid_frame(int pid)
 {
 	struct frame *out = NULL;
-	timequeue ptr = tqhead;
+	timequeue ptr;
 
 	if (!pid)
 		return NULL;
@@ -601,7 +623,8 @@ timequeue_pid_frame(int pid)
 	if (out != NULL)
 		return out;
 
-	if (!tqhead)
+      ptr = tqhead;
+	if (!ptr)
 		return NULL;
 	while ((ptr) && (ptr->eventnum != pid))
 		ptr = ptr->next;
@@ -610,10 +633,11 @@ timequeue_pid_frame(int pid)
 	return NULL;
 }
 
+
 time_t
 next_event_time(void)
 {
-    time_t  rtime = time((time_t *) NULL);
+    time_t  rtime = current_systime;
 
     if (tqhead) {
 	if (tqhead->when == -1) {
@@ -636,7 +660,7 @@ list_events(dbref player)
     char    buf2[BUFFER_LEN];
     int     count = 0;
     timequeue ptr = tqhead;
-    time_t  rtime = time((time_t *) NULL);
+    time_t  rtime = current_systime;
     time_t  etime = 0;
     double  pcnt = 0.0;
 
@@ -663,33 +687,28 @@ list_events(dbref player)
 			   ptr->eventnum, buf2,
 			   time_format_2((long) etime),
 			   (ptr->fr->instcnt / 1000), pcnt,
-			   ptr->called_prog, NAME(ptr->uid),
-			   ptr->called_data);
+			   ptr->called_prog, NAME(ptr->uid), ptr->called_data);
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_READ) {
 	    (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
 			   ptr->eventnum, "--",
 			   time_format_2((long) etime),
 			   (ptr->fr->instcnt / 1000), pcnt,
-			   ptr->called_prog, NAME(ptr->uid),
-			   ptr->called_data);
+			   ptr->called_prog, NAME(ptr->uid), ptr->called_data);
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TIMER) {
-	    (void) sprintf(buf, "(%6d) %4s %4s %5d #%-6d %-16s %.512s",
+	    (void) sprintf(buf, "(%6d) %4s %4s %5d %4.1f #%-6d %-16s %.512s",
 			   ptr->eventnum, buf2,
 			   time_format_2((long) etime),
 			   (ptr->fr->instcnt / 1000), pcnt,
-			   ptr->called_prog, NAME(ptr->uid),
-                     ptr->called_data);
+			   ptr->called_prog, NAME(ptr->uid), ptr->called_data);
 	} else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TREAD) {
-	    (void) sprintf(buf, "%8d %4s %4s %5d #%-6d %-16s %.512s",
+	    (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
 			   ptr->eventnum, buf2,
 			   time_format_2((long) etime),
 			   (ptr->fr->instcnt / 1000), pcnt,
-			   ptr->called_prog, NAME(ptr->uid),
-                     ptr->called_data);
+			   ptr->called_prog, NAME(ptr->uid), ptr->called_data);
 	} else if (ptr->typ == TQ_MPI_TYP) {
 	    (void) sprintf(buf, "%8d %4s   --   MPI   -- #%-6d %-16s \"%.512s\"",
-			   ptr->eventnum, buf2, ptr->trig, NAME(ptr->uid),
-			   ptr->called_data);
+			   ptr->eventnum, buf2, ptr->trig, NAME(ptr->uid), ptr->called_data);
 	} else {
 	    (void) sprintf(buf, "%8d %4s   0s     0   -- #%-6d %-16s \"%.512s\"",
 			   ptr->eventnum, buf2, ptr->called_prog,
@@ -723,6 +742,129 @@ descr_running_queue(int descr)
       ptr = ptr->next;
    }
    return icount;
+}
+
+stk_array *
+get_pids(dbref ref)
+{
+	struct inst temp1, temp2;
+	stk_array  *nw;
+	int count = 0;
+
+	timequeue ptr = tqhead;
+	nw = new_array_packed(0);
+	while (ptr) {
+		if ( ((ptr->typ != TQ_MPI_TYP) ? (ptr->called_prog == ref) : (ptr->trig == ref)) ||
+			(ptr->uid == ref) || (ref < NOTHING) ) {
+			temp2.type = PROG_INTEGER;
+			temp2.data.number = ptr->eventnum;
+			temp1.type = PROG_INTEGER;
+			temp1.data.number = count++;
+			array_setitem(&nw, &temp1, &temp2);
+			CLEAR(&temp1);
+			CLEAR(&temp2);
+		}
+		ptr = ptr->next;
+	}
+	return nw;
+}
+
+stk_array *
+get_pidinfo(int pid)
+{
+	struct inst temp1, temp2;
+	stk_array  *nw;
+	time_t      rtime = current_systime;
+	time_t      etime = 0;
+	double      pcnt  = 0.0;
+
+	timequeue ptr = tqhead;
+	nw = new_array_dictionary();
+      while (ptr && (ptr->eventnum != pid)) {
+		ptr = ptr->next;
+	}
+	if (ptr && (ptr->eventnum == pid)) {
+		if (ptr->fr) {
+			etime = rtime - ptr->fr->started;
+			if (etime > 0) {
+				pcnt = ptr->fr->totaltime.tv_sec;
+				pcnt += ptr->fr->totaltime.tv_usec / 1000000;
+				pcnt = pcnt * 100 / etime;
+				if (pcnt > 100.0) {
+					pcnt = 100.0;
+				}
+			} else {
+				pcnt = 0.0;
+			}
+		}
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("PID");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = ptr->eventnum;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("CALLED_PROG");
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = ptr->called_prog;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("TRIG");
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = ptr->trig;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("PLAYER");
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = ptr->uid;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("CALLED_DATA");
+		temp2.type = PROG_STRING;
+		temp2.data.string = alloc_prog_string(ptr->called_data);
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("INSTCNT");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = ptr->fr->instcnt;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("DESCR");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = ptr->descr;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("CPU");
+		temp2.type = PROG_FLOAT;
+		temp2.data.fnumber = (float) pcnt;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("NEXTRUN");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = (int) ptr->when;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("STARTED");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = (int) ptr->fr->started;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("TYPE");
+		temp2.type = PROG_STRING;
+		temp2.data.string = 	(ptr->typ == TQ_MUF_TYP) ? alloc_prog_string("MUF") :
+						(ptr->typ == TQ_MPI_TYP) ? alloc_prog_string("MPI") : alloc_prog_string("UNK") ;
+		array_setitem(&nw, &temp1, &temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("SUBTYPE");
+		temp2.type = PROG_STRING;
+		temp2.data.string = 	(ptr->typ == TQ_MUF_READ) ? alloc_prog_string("READ") :
+						(ptr->typ == TQ_MUF_TREAD) ? alloc_prog_string("TREAD") :
+						(ptr->typ == TQ_MUF_TIMER) ? alloc_prog_string("TIMER") :
+						(ptr->typ == TQ_MUF_DELAY) ? alloc_prog_string("DELAY") : alloc_prog_string("");
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+	}
+	return nw;
 }
 
 /*
@@ -783,7 +925,7 @@ dequeue_prog(dbref program, int sleeponly)
 int
 dequeue_process(int pid)
 {
-	timequeue tmp, ptr = tqhead;
+	timequeue tmp, ptr;
 	int deqflag = 0;
 
 	if (!pid)
@@ -791,9 +933,10 @@ dequeue_process(int pid)
 
 	if (muf_event_dequeue_pid(pid)) {
 		process_count--;
+		deqflag = 1;
 	}
 
-	tmp = ptr;
+	tmp = ptr = tqhead;
 	while (ptr) {
 		if (pid == ptr->eventnum) {
 			if (tmp == ptr) {
@@ -831,7 +974,7 @@ int
 dequeue_timers(int pid, char* id)
 {
 	char buf[40];
-	timequeue tmp, ptr = tqhead;
+	timequeue tmp, ptr;
 	int deqflag = 0;
 
 	if (!pid)
@@ -840,7 +983,7 @@ dequeue_timers(int pid, char* id)
 	if (id)
 		sprintf(buf, "TIMER.%.30s", id);
 
-	tmp = ptr;
+	tmp = ptr = tqhead;
 	while (ptr) {
 		if (pid == ptr->eventnum &&
 			ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TIMER &&
@@ -849,11 +992,13 @@ dequeue_timers(int pid, char* id)
 			if (tmp == ptr) {
 				tqhead = tmp = tmp->next;
 				ptr->fr->timercount--;
+				ptr->fr = NULL;
 				free_timenode(ptr);
 				ptr = tmp;
 			} else {
 				tmp->next = ptr->next;
 				ptr->fr->timercount--;
+				ptr->fr = NULL;
 				free_timenode(ptr);
 				ptr = tmp->next;
 			}
@@ -1230,6 +1375,7 @@ listenqueue(int descr, dbref player, dbref where, dbref trigger, dbref what, dbr
 	}
     }
 }
+
 
 
 
