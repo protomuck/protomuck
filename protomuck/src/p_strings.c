@@ -911,7 +911,7 @@ prim_notify(PRIM_PROTOTYPE)
 		strcpy(buf, buf2);
 	    }
 	}
-	notify_listeners(player, program, oper2->data.objref,
+	notify_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(oper2->data.objref), buf, 1);
     }
     CLEAR(oper1);
@@ -945,7 +945,7 @@ prim_notify_html(PRIM_PROTOTYPE)
 	    }
 	}
         strcat(buf, "\r");
-	notify_html_listeners(player, program, oper2->data.objref,
+	notify_html_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(oper2->data.objref), buf, 1);
     }
     CLEAR(oper1);
@@ -978,7 +978,7 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
 		strcpy(buf, buf2);
 	    }
 	}
-	notify_html_listeners(player, program, oper2->data.objref,
+	notify_html_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(oper2->data.objref), buf, 1);
     }
     CLEAR(oper1);
@@ -1010,7 +1010,7 @@ prim_ansi_notify(PRIM_PROTOTYPE)
 		strcpy(buf, buf2);
 	    }
 	}
-	ansi_notify_listeners(player, program, oper2->data.objref,
+	ansi_notify_listeners(fr->descr, player, program, oper2->data.objref,
 			 getloc(oper2->data.objref), buf, 1);
     }
     CLEAR(oper1);
@@ -1084,17 +1084,17 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 		    tmp = 1;
 		}
 		if (!tmp)
-		    notify_listeners(player, program, what, where, buf, 0);
+		    notify_listeners(fr->descr, player, program, what, where, buf, 0);
 		what = DBFETCH(what)->next;
 	    }
 	}
 
 	if (tp_listeners) {
-	    notify_listeners(player, program, where, where, buf, 0);
+	    notify_listeners(fr->descr, player, program, where, where, buf, 0);
 	    if (tp_listeners_env) {
 		what = DBFETCH(where)->location;
 		for (; what != NOTHING; what = DBFETCH(what)->location)
-		    notify_listeners(player, program, what, where, buf, 0);
+		    notify_listeners(fr->descr, player, program, what, where, buf, 0);
 	    }
 	}
     }
@@ -1168,17 +1168,17 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 		    tmp = 1;
 		}
 		if (!tmp)
-		    ansi_notify_listeners(player, program, what, where, buf, 0);
+		    ansi_notify_listeners(fr->descr, player, program, what, where, buf, 0);
 		what = DBFETCH(what)->next;
 	    }
 	}
 
 	if (tp_listeners) {
-	    notify_listeners(player, program, where, where, buf, 0);
+	    notify_listeners(fr->descr, player, program, where, where, buf, 0);
 	    if (tp_listeners_env) {
 		what = DBFETCH(where)->location;
 		for (; what != NOTHING; what = DBFETCH(what)->location)
-		    ansi_notify_listeners(player, program, what, where, buf, 0);
+		    ansi_notify_listeners(fr->descr, player, program, what, where, buf, 0);
 	    }
 	}
     }
@@ -1252,17 +1252,17 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
 		    tmp = 1;
 		}
 		if (!tmp)
-		    notify_html_listeners(player, program, what, where, buf, 0);
+		    notify_html_listeners(fr->descr, player, program, what, where, buf, 0);
 		what = DBFETCH(what)->next;
 	    }
 	}
 
 	if (tp_listeners) {
-	    notify_html_listeners(player, program, where, where, buf, 0);
+	    notify_html_listeners(fr->descr, player, program, where, where, buf, 0);
 	    if (tp_listeners_env) {
 		what = DBFETCH(where)->location;
 		for (; what != NOTHING; what = DBFETCH(what)->location)
-		    notify_html_listeners(player, program, what, where, buf, 0);
+		    notify_html_listeners(fr->descr, player, program, what, where, buf, 0);
 	    }
 	}
     }
@@ -1334,17 +1334,17 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 		    tmp = 1;
 		}
 		if (!tmp)
-		    notify_html_listeners(player, program, what, where, buf, 0);
+		    notify_html_listeners(fr->descr, player, program, what, where, buf, 0);
 		what = DBFETCH(what)->next;
 	    }
 	}
 
 	if (tp_listeners) {
-	    notify_html_listeners(player, program, where, where, buf, 0);
+	    notify_html_listeners(fr->descr, player, program, where, where, buf, 0);
 	    if (tp_listeners_env) {
 		what = DBFETCH(where)->location;
 		for (; what != NOTHING; what = DBFETCH(what)->location)
-		    notify_html_listeners(player, program, what, where, buf, 0);
+		    notify_html_listeners(fr->descr, player, program, what, where, buf, 0);
 	    }
 	}
     }
@@ -2291,6 +2291,7 @@ prim_textattr(PRIM_PROTOTYPE)
 	CLEAR(oper2);
 	PushString(buf);
 }
+
 
 
 

@@ -36,6 +36,7 @@ stk_array *array_promote(stk_array * arr);
 
 int array_count(stk_array * arr);
 int array_idxcmp(array_iter * a, array_iter * b);
+int array_idxcmp_case(array_iter * a, array_iter * b, int case_sens); 
 
  /**/ int array_keys_homogenous(stk_array * arr);
  /**/ int array_vals_homogenous(stk_array * arr);
@@ -66,6 +67,9 @@ int array_set_strkey_intval(stk_array ** arr, const char *key, int val);
 int array_set_strkey_strval(stk_array ** harr, const char *key, const char *val);
 int array_set_strkey_refval(stk_array ** harr, const char *key, dbref val); 
 
+char* array_get_intkey_strval(stk_array * arr, int key); 
+
 #endif       						/* MUFARRAY_H */
+
 
 

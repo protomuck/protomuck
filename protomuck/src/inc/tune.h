@@ -130,9 +130,6 @@ extern int tp_wiz_vehicles;
 extern int tp_wiz_name;
 extern int tp_recycle_frobs;
 extern int tp_m1_name_notify;
-/* extern int tp_registration;
-extern int tp_online_registration;
-extern int tp_fast_registration; */
 extern int tp_teleport_to_player;
 extern int tp_secure_teleport;
 extern int tp_exit_darking;
@@ -156,6 +153,7 @@ extern int tp_quiet_moves;
 extern int tp_quiet_connects;
 extern int tp_expanded_debug;
 extern int tp_proplist_int_counter;
+extern int tp_enable_mcp;
 
 extern int tune_count_parms();
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
@@ -164,6 +162,7 @@ extern void tune_save_parms_to_file(FILE *f);
 extern int tp_building;
 extern int tp_all_can_build_rooms;
 extern int tp_restricted_building;
+
 
 
 

@@ -687,11 +687,25 @@ prim_timer_stop(PRIM_PROTOTYPE)
 	if (oper1->type != PROG_STRING)
 		abort_interp("Expected a string timer id. (2)");
 
-    dequeue_timers(fr->pid, DoNullInd(oper1->data.string));
+      dequeue_timers(fr->pid, DoNullInd(oper1->data.string));
 
 	CLEAR(oper1);
 }
 
+void
+prim_event_exists(PRIM_PROTOTYPE)
+{
+      CHECKOP(1);
+      oper1 = POP();                      /* str: eventID to look for */
+
+      if (oper1->type != PROG_STRING || !oper1->data.string)
+            abort_interp("Expected a non-null string eventid to search for.");
+
+      result = muf_event_exists(fr, oper1->data.string->data);
+
+      CLEAR(oper1);
+      PushInt(result);
+} 
 
 void
 prim_event_count(PRIM_PROTOTYPE)
@@ -772,6 +786,7 @@ prim_force_level(PRIM_PROTOTYPE)
 {
    PushInt(force_level);
 }
+
 
 
 

@@ -267,9 +267,6 @@ int tp_wiz_vehicles                = WIZ_VEHICLES;
 int tp_wiz_name                    = 0;
 int tp_recycle_frobs               = 0;
 int tp_m1_name_notify              = M1_NAME_NOTIFY;
-/* int tp_registration                = REGISTRATION;
-int tp_online_registration         = 0;
-int tp_fast_registration           = 0; */
 int tp_teleport_to_player          = TELEPORT_TO_PLAYER;
 int tp_secure_teleport             = SECURE_TELEPORT;
 int tp_exit_darking                = EXIT_DARKING;
@@ -295,6 +292,7 @@ int tp_quiet_moves                 = 0;
 int tp_quiet_connects              = 0;
 int tp_expanded_debug              = 0;
 int tp_proplist_int_counter        = 0;
+int tp_enable_mcp                  = 1;
 
 struct tune_bool_entry {
     const char *name;
@@ -331,9 +329,6 @@ struct tune_bool_entry tune_bool_list[] =
     {"wiz_name",               &tp_wiz_name,                 LARCH, LMUF },
     {"recycle_frobs",          &tp_recycle_frobs,            WBOY , LMUF },
     {"m1_name_notify",         &tp_m1_name_notify,           LARCH, LMUF },
-/*    {"registration",           &tp_registration,             WBOY , LMAGE},
-    {"online_registration",    &tp_online_registration,      WBOY , LMAGE},
-    {"fast_registration",      &tp_fast_registration,        WBOY , LMAGE}, */
     {"teleport_to_player",     &tp_teleport_to_player,       LARCH, LMUF },
     {"secure_teleport",        &tp_secure_teleport,          LARCH, LMUF },
     {"exit_darking",           &tp_exit_darking,             LARCH, LMUF },
@@ -359,6 +354,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"quiet_connects",         &tp_quiet_connects,           LARCH, LMUF },
     {"expanded_debug",         &tp_expanded_debug,           LARCH, LMUF },
     {"proplist_int_counter",   &tp_proplist_int_counter,     LARCH, LMUF },
+    {"enable_mcp",             &tp_enable_mcp,               WBOY,  LMUF },
     {NULL, NULL, 0}
 };
 
@@ -990,5 +986,6 @@ do_tune(dbref player, char *parmname, char *parmval)
 	return;
     }
 }
+
 
 

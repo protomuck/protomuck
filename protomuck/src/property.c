@@ -47,9 +47,21 @@ set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
     if ((!(FLAGS(player) & LISTENER)) &&
 	    (string_prefix(type, "_listen") ||
 	     string_prefix(type, "~listen") ||
-		 string_prefix(type, "_olisten") ||
-	     string_prefix(type, "~olisten"))) {
+	     string_prefix(type, "@listen") ||
+	     string_prefix(type, "_olisten") ||
+	     string_prefix(type, "~olisten") ||
+	     string_prefix(type, "@olisten"))) {
 	FLAGS(player) |= LISTENER;
+    }
+
+    if ((!(FLAG2(player) & F2COMMAND)) &&
+	    (string_prefix(type, "_command") ||
+	     string_prefix(type, "~command") ||
+	     string_prefix(type, "@command") ||
+	     string_prefix(type, "_ocommand") ||
+	     string_prefix(type, "~ocommand") ||
+	     string_prefix(type, "@ocommand"))) {
+	FLAG2(player) |= F2COMMAND;
     }
 
     w = strcpy(buf, type);
@@ -259,6 +271,26 @@ remove_property_nofetch(dbref player, const char *type)
     l = DBFETCH(player)->properties;
     l = propdir_delete_elem(l, w);
     DBFETCH(player)->properties = l;
+    if ( (FLAGS(player) & LISTENER) && !(
+          get_property(player, "_listen" )  ||
+          get_property(player, "_olisten")  ||
+          get_property(player, "~listen" )  ||
+          get_property(player, "~olisten")  ||
+          get_property(player, "@olisten")  ||
+          get_property(player, "@listen" )
+         ) ) {
+       FLAGS(player) &= ~LISTENER;
+    }
+    if ( (FLAG2(player) & F2COMMAND) && !(
+          get_property(player, "_command" )  ||
+          get_property(player, "_ocommand")  ||
+          get_property(player, "~command" )  ||
+          get_property(player, "~ocommand")  ||
+          get_property(player, "@ocommand")  ||
+          get_property(player, "@command" )
+         ) ) {
+       FLAG2(player) &= ~F2COMMAND;
+    }
     DBDIRTY(player);
 }
 
@@ -726,29 +758,15 @@ PropPtr
 envprop_cmds(dbref *where, const char *propname, int typ)
 {
     PropPtr temp;
-    dbref where2;
     while (*where != NOTHING) {
-      if (FLAG2(*where) & F2COMMAND) {
+      if ( typ ? 1 : ((FLAG2(*where) & F2COMMAND) && !(FLAG2(*where) & F2NO_COMMAND))) {
 	   temp = get_property(*where, propname);
 #ifdef DISKBASE
 	   if (temp) propfetch(*where, temp);
 #endif
- 	   if (temp && (!typ || PropType(temp) == typ))
+ 	   if (temp)
 	      return temp;
       }
-/*      if (Typeof(*where) == TYPE_ROOM) {
-         where2 = where;
-         *where = DBFETCH(*where)->contents;
-         while ((Typeof(*where) == TYPE_ROOM) ||
-                (Typeof(*where) == TYPE_PROGRAM)) {
-            *where = DBFETCH(*where)->next;
-         }
-      } else {
-         *where = DBFETCH(*where)->next;
-      }
-      if (*where == NOTHING) {
-         *where = getparent(where2);
-      } */
 	*where = getparent(*where);
     }
     return NULL;
@@ -1104,6 +1122,7 @@ Prop_SysPerms(dbref player, const char *type)
    else
       return 0;
 }
+
 
 
 

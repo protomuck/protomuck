@@ -1,8 +1,33 @@
 #include "copyright.h"
 
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.14 2000-11-12 08:37:12 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/externs.h,v 1.15 2000-11-23 20:21:30 akari Exp $
  * $Log: not supported by cvs2svn $
+ * Revision 1.14  2000/11/12 08:37:12  akari
+ * Added force_level prim.
+ * Added idle/unidle propqueues.
+ * Added new parseprop.
+ * Added {telldescr:} MPI function.
+ * Added system-only props.
+ * Added custom color settings. (This was added a long time ago,
+ *    just now getting mentioned.)
+ * Added custom 404 screen for webserver. Under _/www/http/404
+ *    on the www_root room.
+ * Removed @hopper support all together.
+ * Finished command prop support.
+ * Added @logincommand props to be put on #0 and be called from the
+ *    login screen.
+ * Added COMMAND flag to go along with command props. Only objects
+ *    set with the COMMAND flag will be searched for command props.
+ * If a player examines an exit linked to a MUF set VIEWABLE, then
+ *    the dbref of the MUF program will be shown the player as well.
+ * @tune user_idle_propqueue. Disables or enables _idle/ and _unidle/
+ *    propqueues.
+ * @tune enable_idle_msgs. Causes a room to be notified when a player
+ *    reaches the point of being idle.
+ * @tune idletime. The time at which the server considers a player idle
+ *    for use with the idle propqueues and idle_msgs.
+ *
  * Revision 1.3  1996/09/19 07:15:13  jtraub
  * removed do_rob and do_kill commands
  *
@@ -235,9 +260,9 @@ extern void do_wall(dbref player, const char *message);
 extern void do_gripe(dbref player, const char *message);
 extern void do_say(int descr, dbref player, const char *message);
 extern void do_page(int descr, dbref player, const char *arg1, const char *arg2);
-extern int  notify_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
-extern int  ansi_notify_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
-extern int  notify_html_listeners(dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
+extern int  notify_listeners(int descr, dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
+extern int  ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
+extern int  notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj, dbref room, const char *msg, int isprivate);
 extern void notify_except(dbref first, dbref exception, const char *msg, dbref who);
 extern void notify_html_except(dbref first, dbref exception, const char *msg, dbref who);
 extern void anotify_except(dbref first, dbref exception, const char *msg, dbref who);
@@ -422,5 +447,6 @@ extern time_t sel_prof_start_time;
 extern long sel_prof_idle_sec;
 extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
+
 
 

@@ -57,7 +57,9 @@ int resolver_sock[2];
 
 struct descriptor_data  *descriptor_list = 0;
 
-static int sock, sock_html, sock_pueblo;
+static int sock = 0;
+static int sock_html = 0;
+static int sock_pueblo = 0;
 static int ndescriptors = 0;
 extern void fork_and_dump();
 
@@ -76,7 +78,7 @@ extern const char *uncompress(const char *);
 void    process_commands(void);
 void    shovechars(int port);
 void    shutdownsock(struct descriptor_data * d);
-struct descriptor_data *initializesock(int s, const char *hostname, int port, int hostaddr, int ctype);
+struct descriptor_data *initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, int cport);
 void    make_nonblocking(int s);
 void    freeqs(struct descriptor_data * d);
 void    welcome_user(struct descriptor_data * d);
@@ -87,7 +89,7 @@ int     boot_off(dbref player);
 void    boot_player_off(dbref player);
 const char *addrout(int, unsigned short);
 void    dump_users(struct descriptor_data * d, char *user);
-struct descriptor_data *new_connection(int sock, int ctype);
+struct descriptor_data *new_connection(int sock, int ctype, int cport);
 void    parse_connect(const char *msg, char *command, char *user, char *pass);
 void    set_userstring(char **userstring, const char *command);
 int     do_command(struct descriptor_data * d, char *command);
@@ -97,6 +99,8 @@ int     queue_string(struct descriptor_data *, const char *);
 int     queue_write(struct descriptor_data *, const char *, int);
 int     process_output(struct descriptor_data * d);
 int     process_input(struct descriptor_data * d);
+void    announce_login(struct descriptor_data *d);
+void    announce_disclogin(struct descriptor_data *d);
 void    announce_idle(struct descriptor_data *d);
 void    announce_unidle(struct descriptor_data *d);
 void    announce_connect(int descr, dbref);
@@ -511,6 +515,8 @@ notify_descriptor(int descr, const char *msg)
    char buf[BUFFER_LEN + 2];
    struct descriptor_data *d;
 
+   if (!msg || !*msg)
+      return;
    for (d = descriptor_list; d && (d->descriptor != descr); d = d->next);
    if (!d || d->descriptor != descr) return;
 
@@ -525,7 +531,7 @@ notify_descriptor(int descr, const char *msg)
 	if (*ptr2 == '\r')
 	    ptr2++;
    }
-   queue_string(d, buf);
+   queue_ansi(d, buf);
    process_output(d);   
 }
 
@@ -589,6 +595,8 @@ queue_ansi(struct descriptor_data *d, const char *msg)
 {
 	char buf[BUFFER_LEN + 8];
 
+      if (!msg || !*msg)
+         return 0;
 	if (d->connected) {
 		if (FLAGS(d->player) & CHOWN_OK) {
 			strip_bad_ansi(buf, msg);
@@ -822,12 +830,12 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 int 
 notify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
-    return notify_listeners(from, NOTHING, player, getloc(from), msg, isprivate);
+    return notify_listeners(dbref_first_descr(from), from, NOTHING, player, getloc(from), msg, isprivate);
 }
 
 int 
 notify_html_from_echo(dbref from, dbref player, const char *msg, int isprivate) {
-    return notify_html_listeners(from, NOTHING, player, getloc(from), msg, isprivate);
+    return notify_html_listeners(dbref_first_descr(from), from, NOTHING, player, getloc(from), msg, isprivate);
 }
 
 int 
@@ -889,7 +897,7 @@ anotify_nolisten(dbref player, const char *msg, int isprivate)
 int 
 anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate)
 {
-    return ansi_notify_listeners(from, NOTHING, player, getloc(from), msg, isprivate);
+    return ansi_notify_listeners(dbref_first_descr(from), from, NOTHING, player, getloc(from), msg, isprivate);
 }
 
 
@@ -1068,15 +1076,19 @@ shovechars(int port)
     struct descriptor_data *newd;
     int     avail_descriptors;
     struct timeval sel_in, sel_out;
-    int     wwwport, puebloport;
+    int     wwwport, puebloport, textport;
     int socknum;
     int openfiles_max;
 
     puebloport  = tp_puebloport;
     wwwport     = tp_wwwport;
-    sock_pueblo = make_socket(puebloport);
-    sock_html   = make_socket(wwwport);
-    sock        = make_socket(port);
+    textport    = port;
+    if (puebloport >= 1)
+       sock_pueblo = make_socket(puebloport);
+    if (wwwport >= 1)
+       sock_html   = make_socket(wwwport);
+    if (textport >= 1)
+       sock        = make_socket(textport);
     maxd = sock + 1;
     gettimeofday(&last_slice, (struct timezone *) 0);
 
@@ -1109,6 +1121,7 @@ shovechars(int port)
 		}
 		d->booted = 0;
 		process_output(d);
+            if (!d->connected) announce_disclogin(d);
 		shutdownsock(d);
 	    }
 	}
@@ -1125,9 +1138,12 @@ shovechars(int port)
 	FD_ZERO(&output_set);
 	FD_ZERO(&input_set);
 	if (ndescriptors < avail_descriptors) {
-	    FD_SET(sock, &input_set);
-	    FD_SET(sock_html, &input_set);
-	    FD_SET(sock_pueblo, &input_set);
+          if (textport >= 1)
+	       FD_SET(sock, &input_set);
+          if (wwwport >= 1)
+	       FD_SET(sock_html, &input_set);
+          if (puebloport >= 1)
+	       FD_SET(sock_pueblo, &input_set);
 	}
 	for (d = descriptor_list; d; d = d->next) {
 	    if (d->input.lines > 100)
@@ -1154,6 +1170,7 @@ shovechars(int port)
 		return;
 	    }
 	} else {
+          int cport = port;
 	    int csock = -1;
 	    int ctype = CT_MUCK;
 
@@ -1173,20 +1190,23 @@ shovechars(int port)
 	    }
 	    sel_prof_idle_use++;
 	    time(&now);
-	    if (FD_ISSET(sock, &input_set)) {
+	    if (textport > 1 ? FD_ISSET(sock, &input_set) : 0) {
+            cport = textport;
 		csock = sock;
 		ctype = CT_MUCK;
 	    }
-	    if (FD_ISSET(sock_html, &input_set)) {
+	    if (wwwport > 1 ? FD_ISSET(sock_html, &input_set) : 0) {
+            cport = wwwport;
 		csock = sock_html;
 		ctype = CT_HTML;
 	    }
-	    if (FD_ISSET(sock_pueblo, &input_set)) {
+	    if (puebloport > 1 ? FD_ISSET(sock_pueblo, &input_set) : 0) {
+            cport = puebloport;
 		csock = sock_pueblo;
 		ctype = CT_PUEBLO;
 	    }
 	    if (csock >= 0) {
-		if ((newd = new_connection(csock, ctype)) <= 0) {
+		if ((newd = new_connection(csock, ctype, cport)) <= 0) {
 		    if ((newd < 0) && errnosocket
 #ifndef WIN32
 			    && errno != EINTR
@@ -1486,7 +1506,7 @@ str2ip( const char *ipstr )
 }
 
 struct descriptor_data *
-new_connection(int sock, int ctype)
+new_connection(int sock, int ctype, int cport)
 {
     int     newsock;
     struct sockaddr_in addr;
@@ -1501,20 +1521,20 @@ new_connection(int sock, int ctype)
     } else {
 	strcpy(hostname, addrout(addr.sin_addr.s_addr, addr.sin_port));
 	if (reg_site_is_blocked(ntohl(addr.sin_addr.s_addr)) == TRUE) {
-	    log_status( "*BLK: %2d %s(%d) %s C#%d\n", newsock,
+	    log_status( "*BLK: %2d %s(%d) %s C#%d P#%d\n", newsock,
 		hostname, ntohs(addr.sin_port),
 		host_as_hex(ntohl(addr.sin_addr.s_addr)),
-		++crt_connect_count
+		++crt_connect_count, cport
 	    );
 	    shutdown(newsock, 2);
 	    closesocket(newsock);
 	    return 0;
 	}
 	if (ctype != 1)
-	log_status( "ACPT: %2d %s(%d) %s C#%d %s\n", newsock,
+	log_status( "ACPT: %2d %s(%d) %s C#%d P#%d %s\n", newsock,
 	    hostname, ntohs(addr.sin_port),
 	    host_as_hex(ntohl(addr.sin_addr.s_addr)),
-	    ++crt_connect_count,
+	    ++crt_connect_count, cport,
 	    ctype==0? "muck"    : (
 	    ctype==1? "html"    : (
 	    ctype==2? "Pueblo"  : (
@@ -1522,7 +1542,7 @@ new_connection(int sock, int ctype)
 	);
 	return initializesock( newsock,
 	    hostname, ntohs(addr.sin_port),
-	    ntohl(addr.sin_addr.s_addr), ctype
+	    ntohl(addr.sin_addr.s_addr), ctype, cport
 	);
     }
 }
@@ -1719,15 +1739,15 @@ shutdownsock(struct descriptor_data * d)
 {
     if (d->type != CT_HTML) { /* Ignore HTTP */
       if (d->connected) {
-	log_status("DISC: %2d %s %s(%s) %s, %d cmds\n",
+	log_status("DISC: %2d %s %s(%s) %s, %d cmds P#%d\n",
 		d->descriptor, unparse_object(d->player, d->player),
 		d->hostname, d->username,
-		host_as_hex(d->hostaddr), d->commands);
+		host_as_hex(d->hostaddr), d->commands, d->cport);
 	announce_disconnect(d);
       } else {
-	log_status("DISC: %2d %s(%s) %s, %d cmds (never connected)\n",
+	log_status("DISC: %2d %s(%s) %s, %d cmds P#%d (never connected)\n",
 		d->descriptor, d->hostname, d->username,
-		host_as_hex(d->hostaddr), d->commands);
+		host_as_hex(d->hostaddr), d->commands, d->cport);
       }
     }
 
@@ -1781,7 +1801,7 @@ mcpframe_to_user(McpFrame * ptr)
 }
 
 struct descriptor_data *
-initializesock(int s, const char *hostname, int port, int hostaddr, int ctype)
+initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, int cport)
 {
     struct descriptor_data *d;
     char buf[128];
@@ -1813,6 +1833,7 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype)
     d->last_time = d->connected_at;
     d->port = port;
     d->type = ctype;
+    d->cport = cport;
     mcp_frame_init(&d->mcpframe, d);
     d->http_login = 0;
     d->identify = strdup("nohttpdlogin");
@@ -1832,7 +1853,7 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype)
     if(remember_descriptor(d) < 0)
 	d->booted = 1; /* Drop the connection ASAP */
    
-
+    announce_login(d);
     welcome_user(d);
     return d;
 }
@@ -2537,24 +2558,36 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
     if (*name == '@') {
 	name++;
 	if( string_prefix("credits", name) ) {
-	    queue_ansi(d, "<HTML>\r\n<HEAD><TITLE>ProtoMuck Credits</TITLE></HEAD>\r\n");
-	    queue_ansi(d, "<H1>ProtoMuck Credits</H1>\r\n");
-	    queue_ansi(d, "<BODY><PRE>\r\n");
+	    queue_string(d, "<HTML>\r\n<HEAD><TITLE>ProtoMuck Credits</TITLE></HEAD>\r\n");
+	    queue_string(d, "<H1>ProtoMuck Credits</H1>\r\n");
+	    queue_string(d, "<BODY><PRE>\r\n");
 	    while(*dit) {
-		queue_ansi(d, *dit++);
-		queue_ansi(d, "\r\n");
+		queue_string(d, *dit++);
+		queue_string(d, "\r\n");
 	    }
-	    queue_ansi(d, "</PRE></BODY></HTML>\r\n");
+	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
+	    queue_string(d, "</BODY></HTML>\r\n");
+	    d->booted = 1;
+	} else if ( string_prefix("help", name) ) {
+	    queue_string(d, "<HTML>\r\n<HEAD><TITLE>Connection Help</TITLE></HEAD>\r\n");
+	    queue_string(d, "<BODY><PRE>\r\n");
+		cold = d->type;
+		d->type = CT_MUCK;
+		help_user(d);
+		d->type = cold;
+	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
+	    queue_string(d, "</BODY></HTML>\r\n");
 	    d->booted = 1;
 	} else if ( string_prefix("who", name) ) {
-	    queue_ansi(d, "<HTML>\r\n<HEAD><TITLE>Who's on now?</TITLE></HEAD>\r\n");
-	    queue_ansi(d, "<H1>Who's on now?</H1>\r\n");
-	    queue_ansi(d, "<BODY><PRE>\r\n");
+	    queue_string(d, "<HTML>\r\n<HEAD><TITLE>Who's on now?</TITLE></HEAD>\r\n");
+	    queue_string(d, "<H1>Who's on now?</H1>\r\n");
+	    queue_string(d, "<BODY><PRE>\r\n");
 	    if (tp_secure_who)
-		queue_ansi(d, "Connect and find out!\r\n");
+		queue_string(d, "Connect and find out!\r\n");
 	    else
 		dump_users(d, "");
-	    queue_ansi(d, "</PRE></BODY></HTML>\r\n");
+	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
+	    queue_string(d, "</BODY></HTML>\r\n");
 	    d->booted = 1;
 	} else if ( string_prefix("welcome", name) ) {
 	    queue_ansi(d, "<HTML>\r\n<HEAD><TITLE>Welcome!</TITLE></HEAD>\r\n");
@@ -2564,7 +2597,8 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		d->type = CT_MUCK;
 		welcome_user(d);
 		d->type = cold;
-	    queue_ansi(d, "</PRE></BODY></HTML>\r\n");
+	    queue_string(d, "</PRE><hr><p><A HREF=\"/\">Go back.</A><p>\r\n");
+	    queue_string(d, "</BODY></HTML>\r\n");
 	    d->booted = 1;
 	} else {
 	    httpd_unknown(d, name);
@@ -2572,7 +2606,8 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	return;
     } else if (*name == '~') { 
 	prop = ++name;
-	while (*prop && (*prop != '/')) buf[prop-name] = (*(prop++));
+	while (*prop && (*prop != '/'))
+         buf[prop-name] = (*(prop++));
 	buf[prop-name] = '\0';
 	if (*buf)
 	    what = lookup_player(buf);
@@ -2583,8 +2618,8 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 	prop = name;
 	what = tp_www_root;
     }
-    if ( what < 0 || what >= db_top ) {
-	httpd_unknown(d, prop);
+    if (!OkObj(what)) {
+	httpd_unknown(d, name);
 	return;
     }
     /* First check if there is an lsedit style list here */
@@ -2706,33 +2741,35 @@ check_connect(struct descriptor_data * d, const char *msg)
 #endif
     dbref   player;
     time_t  now;
-    int     result;
+    int     result, xref;
     char    msgargs[BUFFER_LEN];
 
     if( tp_log_connects )
 	log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg );
 
     parse_connect(msg, command, user, password);
+    for (xref = 0; command[xref]; xref++)
+       command[xref] = DOWNCASE(command[xref]);
     strcpy(msgargs, user);
     strcat(msgargs, " ");
     strcat(msgargs, password);
 
 #ifdef HTTPD
     if (d->type == CT_HTML && (d->http_login == 0)) {
-	if (!strcmp(command, "GET")) {
+	if (!strcmp(command, "get")) {
             if (!string_prefix(user, "/webinput")) 
-	    log_status(" GET: '%s' '%s' %s(%s) %s\n",
+	    log_status(" GET: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<hidden>", d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->cport);
 	    name = user;
 	    while( *name == '/' ) name++;
 	    httpd_get(d, name, password);
 	} else if (index(msg, ':')) {
 		/* Ignore http request fields */
 	} else if (d->http_login == 0) {
-	    log_status("XWWW: '%s' '%s' %s(%s) %s\n",
+	    log_status("XWWW: '%s' '%s' %s(%s) %s P#%d\n",
 		user, "<HIDDEN>", d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->cport);
 	    queue_ansi(d,
 		"<HTML>\r\n<HEAD><TITLE>400 Bad Request</TITLE></HEAD><BODY>\r\n"
 		"<H1>400 Bad Request</H1>\r\n"
@@ -2760,10 +2797,10 @@ check_connect(struct descriptor_data * d, const char *msg)
           }
 	    if (d->type == CT_HTML) queue_ansi(d, "<BR>");
 	    if( d->fails >= 3 ) d->booted = 1;
-	    log_status("FAIL: %2d %s pw '%s' %s(%s) %s\n",
+	    log_status("FAIL: %2d %s pw '%s' %s(%s) %s P#%d\n",
 		d->descriptor, user, "<hidden>",
 		d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->cport);
 
 	} else if ( (why=reg_user_is_suspended( player )) ) {
 	    queue_ansi(d,"\r\n" );
@@ -2773,19 +2810,19 @@ check_connect(struct descriptor_data * d, const char *msg)
 	    queue_ansi(d,"Please contact " );
 	    queue_ansi(d, tp_reg_email );
 	    queue_ansi(d," for assistance if needed.\r\n" );
-	    log_status("*LOK: %2d %s %s(%s) %s %s\n",
+	    log_status("*LOK: %2d %s %s(%s) %s %s P#%d\n",
 		d->descriptor, unparse_object(player, player),
 		d->hostname, d->username,
-		host_as_hex(d->hostaddr), why);
+		host_as_hex(d->hostaddr), why, d->cport);
 	    d->booted = 1;
 	} else if (reg_user_is_barred( d->hostaddr, player ) == TRUE) {
 	    char buf[ 1024 ];
 	    sprintf( buf, CFG_REG_MSG2, tp_reg_email );
 	    queue_ansi( d, buf );
-	    log_status("*BAN: %2d %s %s(%s) %s\n",
+	    log_status("*BAN: %2d %s %s(%s) %s P#%d\n",
 		d->descriptor, unparse_object(player, player),
 		d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->cport);
 	    d->booted = 1;
 	} else if ((wizonly_mode ||
 		 (tp_playermax && con_players_curr >= tp_playermax_limit)) &&
@@ -2804,15 +2841,15 @@ check_connect(struct descriptor_data * d, const char *msg)
           {
                 queue_ansi(d, "Only wizards can connect hidden.\r\n") ;
                 d->fails++;
-	          log_status("FAIL[CH]: %2d %s pw '%s' %s(%s) %s\n",
+	          log_status("FAIL[CH]: %2d %s pw '%s' %s(%s) %s P#%d\n",
 		      d->descriptor, user, "<hidden>",
 		      d->hostname, d->username,
-     		      host_as_hex(d->hostaddr));
+     		      host_as_hex(d->hostaddr), d->cport);
         } else {
-	    log_status("CONN: %2d %s %s(%s) %s\n",
+	    log_status("CONN: %2d %s %s(%s) %s P#%d\n",
 		d->descriptor, unparse_object(player, player),
 		d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->cport);
 	    d->connected = 1;
 	    d->connected_at = current_systime;
 	    d->player = player;
@@ -2854,9 +2891,9 @@ check_connect(struct descriptor_data * d, const char *msg)
      }
     } else if (prop_command(d->descriptor, (dbref) 0, command, msgargs, "@logincommand", 1)) { /* Check for replaced login commands */
     } else if (string_prefix("help", command) ) { /* Connection Help */
-	log_status("HELP: %2d %s(%s) %s %d cmds\n",
+	log_status("HELP: %2d %s(%s) %s %d cmds P#%d\n",
 	    d->descriptor, d->hostname, d->username,
-	    host_as_hex(d->hostaddr), d->commands);
+	    host_as_hex(d->hostaddr), d->commands, d->cport);
 	help_user(d);
     } else {
       if (Typeof(tp_login_huh_command) == TYPE_PROGRAM) {
@@ -2873,9 +2910,9 @@ check_connect(struct descriptor_data * d, const char *msg)
 		interp_loop(-1, tp_login_huh_command, tmpfr, 0);
 	   }
       } else {
-           log_status("TYPO: %2d %s(%s) %s '%s' %d cmds\n",
+           log_status("TYPO: %2d %s(%s) %s '%s' %d cmds P#%d\n",
              d->descriptor, d->hostname, d->username,
-             host_as_hex(d->hostaddr), command, d->commands);
+             host_as_hex(d->hostaddr), command, d->commands, d->cport);
            welcome_user(d);
       }
     }
@@ -2985,9 +3022,12 @@ close_sockets(const char *msg)
 	FREE(d);                                /****/
 	ndescriptors--;                         /****/
     }
-    closesocket(sock);
-    closesocket(sock_html);
-    closesocket(sock_pueblo);
+    if (sock != 0)
+       closesocket(sock);
+    if (sock_html != 0)
+       closesocket(sock_html);
+    if (sock_pueblo != 0)
+       closesocket(sock_pueblo);
 }
 
 struct descriptor_data *
@@ -3667,6 +3707,58 @@ announce_unidle(struct descriptor_data *d)
 }
 
 
+void 
+announce_login(struct descriptor_data *d)
+{
+    dbref   player = 0;
+    dbref   loc = 0;
+    char    buf[BUFFER_LEN];
+
+    if (d->connected)
+	return;
+
+    /* queue up all _login programs referred to by properties */
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"@login", "Login", 1, 1);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"@ologin", "Ologin", 1, 0);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"~login", "Login", 1, 1);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"~ologin", "Ologin", 1, 0);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"_login", "Login", 1, 1);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"_ologin", "Ologin", 1, 0);
+}
+
+
+void 
+announce_disclogin(struct descriptor_data *d)
+{
+    dbref   player = 0;
+    dbref   loc = 0;
+    char    buf[BUFFER_LEN];
+
+    if (d->connected)
+	return;
+
+    /* queue up all _login programs referred to by properties */
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"@disclogin", "Disclogin", 1, 1);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"@odisclogin", "Odisclogin", 1, 0);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"~disclogin", "Disclogin", 1, 1);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+	"~odisclogin", "Odisclogin", 1, 0);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+      "_disclogin", "Disclogin", 1, 1);
+    propqueue(d->descriptor, player, 0, 0, 0, 0,
+      "_odisclogin", "Odisclogin", 1, 0);
+}
+
+
 
 #ifdef MUD_ID
 void
@@ -4308,10 +4400,10 @@ pdescr_logout(int c)
 
     d = descrdata_by_descr(c);
     if (d && d->descriptor == c && d->player != NOTHING) {
-       log_status("LOGOUT: %2d %s %s(%s) %s\n",
-		d->descriptor, unparse_object(d->player, d->player),
+       log_status("LOGOUT: %2d %s %s(%s) %s P#%d\n",
+		d->descriptor, unparse_object(1, d->player),
 		d->hostname, d->username,
-		host_as_hex(d->hostaddr));
+		host_as_hex(d->hostaddr), d->cport);
        announce_disconnect(d);
        d->connected = 0;
        d->player = NOTHING;
@@ -4463,6 +4555,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

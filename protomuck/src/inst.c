@@ -15,7 +15,7 @@
 
 /* these arrays MUST agree with what's in inst.h */
 const char *base_inst[] = {
-    "JMP", "READ", "TREAD", "SLEEP", "CALL", "EXECUTE", "EXIT", "EVENT_WAIT",
+    "JMP", "READ", "TREAD", "SLEEP", "CALL", "EXECUTE", "EXIT", "EVENT_WAIT", "EVENT_WAITFOR",
     PRIMS_CONNECTS_NAMES,
     PRIMS_DB_NAMES,
     PRIMS_MATH_NAMES,
@@ -224,6 +224,7 @@ debug_inst(struct inst * pc, struct inst * stack, char *buffer, int buflen, int 
     strcat(buffer, insttotext(pc, buf2, buflen, 30, program));
     return (buffer);
 }
+
 
 
 

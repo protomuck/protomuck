@@ -11,6 +11,7 @@
 #include "interface.h"
 #include "mcp.h"
 #include "mcppkg.h"
+#include "tune.h"
 
 
 
@@ -238,7 +239,7 @@ mcp_frame_init(McpFrame * mfr, connection_t con)
 	mfr->packages = NULL;
 	mfr->messages = NULL;
 
-      if (((struct descriptor_data *) con)->type != CT_HTML) {
+      if ( (((struct descriptor_data *) con)->type != CT_HTML) && tp_enable_mcp) {
 		mcp_mesg_init(&reply, MCP_INIT_PKG, "");
 		mcp_mesg_arg_append(&reply, "version", "2.1");
 		mcp_mesg_arg_append(&reply, "to", "2.1");
@@ -1588,5 +1589,6 @@ mcp_internal_parse(McpFrame * mfr, const char *in)
 * Added log to bottom and comment to top
 *
 */
+
 
 

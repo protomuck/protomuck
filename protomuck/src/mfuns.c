@@ -338,11 +338,14 @@ mfn_listprops(MFUNARGS)
 	        }
 	    }
 	    if (flag) {
-	        if (*buf) {
-		    *endbuf++ = '\r';
-	        }
-	        strcpy(endbuf, ptr);
-	        endbuf += strlen(endbuf);
+              int entrylen = strlen(ptr);
+              if ((endbuf - buf) + entrylen + 2 < BUFFER_LEN) {
+	           if (*buf) {
+		       *endbuf++ = '\r';
+	           }
+	           strcpy(endbuf, ptr);
+	           endbuf += entrylen;
+              }
 	    }
 	}
 	pname = ptr;
@@ -377,31 +380,110 @@ mfn_concat(MFUNARGS)
 const char *
 mfn_select(MFUNARGS)
 {
-    dbref   obj = what;
-    char   *pname;
-    const char *ptr;
-    int i;
+	char origprop[BUFFER_LEN];
+	char propname[BUFFER_LEN];
+	char bestname[BUFFER_LEN];
+	dbref obj = what;
+	dbref bestobj;
+	char *pname;
+	const char *ptr;
+	char *out, *in;
+	int i, targval, bestval;
+	int baselen;
+	int limit;
 
-    pname = argv[1];
-    if (argc == 3) {
-        obj = mesg_dbref(descr, player, what, perms, argv[2]);
-    }
-    if (obj == PERMDENIED)
-	ABORT_MPI("LIST",tp_noperm_mesg);
-    if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
-	ABORT_MPI("LIST","Match failed.");
+	pname = argv[1];
+	if (argc == 3) {
+		obj = mesg_dbref(descr, player, what, perms, argv[2]);
+	}
+	if (obj == PERMDENIED)
+		ABORT_MPI("LIST", tp_noperm_mesg);
+	if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
+		ABORT_MPI("LIST", "Match failed.");
 
-    /*
-     * this adds the functionality (feep) of negative (EXCEPTIONAL)
-     * items in sparse lists as well as fixing select
-     */
+	/*
+	 * Search contiguously for a bit, looking for a best match.
+	 * This allows fast hits on LARGE lists.
+	 */
 
-    i = atoi(argv[0]);
-    do {
-	ptr = get_list_item(player, obj, perms, pname, i--);
-    } while (i >= 0 && ptr && !*ptr);
-    if (!ptr) ABORT_MPI("SELECT","Failed list read.");
-    return ptr;
+	limit = 18;
+	i = targval = atoi(argv[0]);
+	do {
+		ptr = get_list_item(player, obj, perms, pname, i--);
+	} while (limit-->0 && i >= 0 && ptr && !*ptr);
+	if (!ptr)
+		ABORT_MPI("SELECT", "Failed list read.");
+	if (*ptr)
+		return ptr;
+
+	/*
+	 * If we didn't find it before, search only existing props.
+	 * This gets fast hits on very SPARSE lists.
+	 */
+
+	/* First, normalize the base propname */
+	out = origprop;
+	in = argv[1];
+	while (*in) {
+		*out++ = PROPDIR_DELIMITER;
+		while (*in == PROPDIR_DELIMITER) in++;
+		while (*in && *in != PROPDIR_DELIMITER) *out++ = *in++;
+	}
+	*out++ = '\0';
+
+	i = targval;
+	bestname[0] = '\0';
+	bestval = 0;
+	baselen = strlen(origprop);
+	for (; obj != NOTHING; obj = getparent(obj)) {
+		pname = next_prop_name(obj, propname, origprop);
+		while (pname && string_prefix(pname, origprop)) {
+			ptr = pname + baselen;
+			if (*ptr == '#') ptr++;
+			if (!*ptr && is_propdir(obj, pname)) {
+				char propname2[BUFFER_LEN];
+				char *pname2;
+				int sublen = strlen(pname);
+
+				pname2 = strcpy(propname2, pname);
+				propname2[sublen++] = PROPDIR_DELIMITER;
+				propname2[sublen] = '\0';
+
+				pname2 = next_prop_name(obj, propname2, pname2);
+				while (pname2) {
+					ptr = pname2 + sublen;
+					if (number(ptr)) {
+						i = atoi(ptr);
+						if (bestval < i && i <= targval) {
+							bestval = i;
+							bestobj = obj;
+							strcpy(bestname, pname2);
+						}
+					}
+					pname2 = next_prop_name(obj, propname2, pname2);
+				}
+			}
+			ptr = pname + baselen;
+			if (number(ptr)) {
+				i = atoi(ptr);
+				if (bestval < i && i <= targval) {
+					bestval = i;
+					bestobj = obj;
+					strcpy(bestname, pname);
+				}
+			}
+			pname = next_prop_name(obj, propname, pname);
+		}
+	}
+	
+	if (*bestname) {
+		ptr = safegetprop_strict(player, bestobj, perms, bestname);
+		if (!ptr)
+			ABORT_MPI("SELECT", "Failed property read.");
+	} else {
+		ptr = "";
+	}
+	return ptr;
 }
 
 
@@ -1965,6 +2047,7 @@ mfn_center(MFUNARGS)
 }
 
 #endif /* MPI */
+
 
 
 
