@@ -10,6 +10,7 @@ You can get more help on the following topics:
   Administrative Commands                | (index4) |
   Object Flags                           | (index5) |
   MUCK Topics                            | (index6) |
+  Descriptor Flags                       | (index7) |
   Credits                                | (credits)|
 -----------------------------------------------------
 Type 'help <index>' to get more help on a topic.
@@ -47,7 +48,7 @@ say                pose               page                whisper
 gripe              motd               @doing              news
 info               @credits           @version            help
 inventory          score              mpi                 @sweep
-look               who
+look               who                score
 
 Movement of Players and Things:
 home               go                 @teleport           get
@@ -193,6 +194,28 @@ Boy Permissions   Programs              Regname
 Puppets
 
 Type 'help <topic>' to get more help on a topic.
+~~~
+DESCRIPTOR FLAGS|INDEX7|INDEX &
+
+Descriptor Flags
+----------------
+New as of Proto 1.7 are the presense of descriptor flags. These
+are just like the normal data base flags, except that they are
+on the descriptor itself. As such, they go away once the connection
+is gone. Also, since they are specific to the descriptor and not to
+any given player, it would be possible for a player to have different
+flags showing up on different descriptors. Flags can be seen by 
+using dinfo. Current flags are:
+DF_HTML        (Unimplemented)
+DF_PUEBLO      (Unimplemented)
+DF_MUF         (Unimplemented)
+DF_IDLE        (Set at the same time as the IDLE flag is)
+DF_TRUEIDLE    (Set as the same time as the TRUEIDLE flag is)
+DF_INTERACTIVE (Set at the same time as the INTERACTIVE flag is)
+DF_COLOR       (Currently does nothing. Settable via DESCR_SET prim)
+
+As time goes by, descriptor flags will begin to play a more important
+role, though for now they are for specific purposes. 
 ~                               Basic Commands
 ~
 @lock
@@ -1981,6 +2004,8 @@ it will drop you into the MUF debugger.  This lets you step line by line, or
 instruction by instruction through a muf program, setting breakpoints to
 stop at, and other nice things.  There is help available within the
 debugger, via the 'help' command.
+
+See: PUPPETS
 ~
 XFORCIBLE|XFORCEABLE|EXPANDED_DEBUG|X
 XFORCIBLE (X)
@@ -2964,6 +2989,11 @@ under the _/www/ directory. See 'man webserver' for more details.
 The @tune www_surfer is a player that defines the 'me @' when 
 webserver called MUF programs are run. Both of these @tuneables
 need to be set before webserver calls can be made.
+
+It's possible to make a custom 404 File Not Found message for the 
+MUCK to show whenever the requested location is not found. Simply
+lsedit a list on the www_root room as http/404 and that will get
+displayed instead.
 ~~~~
 BOGUS|PSEUDO|PSUEDO
 Bogus Commands
@@ -3360,7 +3390,22 @@ almost any muck that allows them:
 Note that this may or may not work depending on settings and preferences
 at various mucks, and there are better and more efficient ways to make
 puppets. This is just the down and dirty way of going about it.
+
+See: PUPPETS2
 ~~~~~~
+PUPPETS2|
+
+Puppets - Continued
+-------------------
+The following commands can be used to customize your puppets even more:
+@pecho - To set the prefix for notifying to you. See 'help @pecho'.
+
+_/pcon and _/pdcon:
+By setting messages in these props on the puppet object itself will
+replace the default
+%n wakes up. and %n falls asleep. 
+messages for the puppets when the owner connects and disconnects.
+~~~~~
 PROPQUEUES|PROPQUEUE
 
 Propqueues
@@ -3380,3 +3425,10 @@ unidle     - When a player unidles.
 look       - When something is looked at.
 login      - When a connection is made to the login screen.
 disclogin  - When a connection drops from the login screen.
+~~~~
+SCORE|
+score
+-----
+Just tells you how many credits you have... pretty much just some old
+legacy command. 
+~~~
