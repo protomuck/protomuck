@@ -884,7 +884,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
         accept(sockdescr, (struct sockaddr *) &remoteaddr,
                (socklen_t *) &addr_len);
     if (newsock == -1) {        //some kind of error
-#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(CYGWIN)
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
         strcpy(myresult, sys_errlist[errnosocket]);
@@ -990,7 +990,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
         accept(sockdescr, (struct sockaddr *) &remoteaddr,
                (socklen_t *) &addr_len);
     if (newsock == -1) {        //some kind of error
-#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(CYGWIN)
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
         strcpy(myresult, sys_errlist[errnosocket]);

@@ -55,7 +55,7 @@ extern const char *compress(const char *);
 /* smallest possible numbers to use before a float is considered to be '0' or
    'false'. */
 /* Defining INF as infinite.  This is HUGE_VAL on IEEE754 systems. */
-#ifdef CYGWIN
+#ifdef __CYGWIN__
 # define INF  (HUGE_VAL)
 # define NINF (-HUGE_VAL)
 #else

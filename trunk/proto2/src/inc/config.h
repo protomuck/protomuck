@@ -29,8 +29,10 @@
 /* Alynna - Lets make something so that later on it will see the CYGWIN 
  * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN
  * will be detected.  If not, define me.
+ * 
+ * Hopefully as of 2b6.50, this is obsolete.
  */
-#undef CYGWIN 
+/* #undef CYGWIN */
 
 /* If compiling for OS-X, #define this and follow these instructions:
  * After running ./configure, edit Makefile and change the line that
@@ -40,13 +42,14 @@
  * reads: #limit stacksize 16384 to
  *         limit stacksize 16384
  */
-//#undef APPLE
+/* #undef APPLE */
   
 /* Alynna - If you defined CYGWIN, set these to your timezone offset in 
  * hours.  -8 = PST, -5 = EST, 0 = GMT 
+ *
+ #define CYGWIN_TZ -8 
+ #define CYGWIN_TZX "PST" 
  */
-#define CYGWIN_TZ -8 
-#define CYGWIN_TZX "PST" 
 
 /* Alynna - Define this for SSL support */
 /* Note: Use ./configure --with-ssl */

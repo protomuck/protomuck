@@ -278,15 +278,14 @@ format_time(char *buf, int max_len, const char *fmt, struct tm *tmval)
                         break;
                     case 'Z':
 #ifdef HAVE_TM_ZONE
-/* If using cygwin and your timezone is not listed
-   you may add your case here */
-#ifdef CYGWIN
-                        strcpy(tmp, CYGWIN_TZX);
-#elif HAVE_TZNAME
+#ifdef HAVE_TZNAME
+#ifdef __CYGWIN__
+			tzset();
+#endif
                         strcpy(tmp, tzname[tmval->tm_isdst]);
 #else
                         strcpy(tmp, tmval->tm_zone);
-#endif /* CYGWIN */
+#endif
 #else
                         strcpy(tmp, "   ");
 #endif /* !HAVE_TM_ZONE */
@@ -328,9 +327,10 @@ get_tz_offset(void)
     return (int) (localtime(&now)->tm_gmtoff);
 #elif defined(WIN_VC) || defined(WIN32)
     return (int) _timezone;
-#elif defined(CYGWIN)
+#elif defined(__CYGWIN__)
 /* Same problem as above.  Its much easier to SET the DEFINE. */
-    return CYGWIN_TZ;
+    tzset();
+    return (int) _timezone;
 #else
     return (int) timezone;
 #endif
