@@ -2487,3 +2487,52 @@ prim_array_nested_del(PRIM_PROTOTYPE)
         copyinst(&nest[0], &arg[(*top)++]);
         CLEAR(&nest[0]);
 }
+
+void
+prim_array_sum(PRIM_PROTOTYPE)
+{
+    struct inst *in;
+    stk_array *arr;
+    double facc;
+    register int iacc;
+    int tiacc;
+    int done;
+    register int floaty;
+
+    CHECKOP(1);
+    oper1 = POP();              /* arr  Array */
+    if (oper1->type != PROG_ARRAY)
+        abort_interp("Argument not an array. (1)");
+
+    floaty = 0; iacc = 0; facc = 0.0;
+    arr = oper1->data.array;
+    done = !array_first(arr, &temp1);
+    while (!done) {
+        in = array_getitem(arr, &temp1);
+        switch (in->type) {
+            case PROG_INTEGER:
+                iacc += in->data.number;
+                break;
+            case PROG_FLOAT:
+		facc += in->data.fnumber;
+		floaty++;
+                break;
+            default:
+        	abort_interp("Invalid datatype in array (not integer or float)");
+                break;
+        }
+        done = !array_next(arr, &temp1);
+    }
+
+    CLEAR(oper1);
+
+    if (floaty) {
+	facc += iacc;
+	PushFloat(facc);
+    } else {
+	/* Need this to be out of a register for the push */
+	tiacc = iacc;
+	PushInt(tiacc);
+    }
+
+}
