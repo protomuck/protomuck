@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.4 2000-09-18 02:49:38 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/inc/config.h,v 1.5 2000-09-18 02:57:37 akari Exp $
  * $Log: not supported by cvs2svn $
  *
  * Revision 1.3  2000/06/27 22:32:17  moose
@@ -68,8 +68,8 @@
  *
  */
 
-#define TINYPORT      8881    /* Port that tinymuck uses for playing */
-
+#define TINYPORTt      8881    /* Port that tinymuck uses for playing */
+#define TINYPORT 3002
 /*
  * Some systems can hang for up to 30 seconds while trying to resolve
  * hostnames.  Define this to use a non-blocking second process to resolve

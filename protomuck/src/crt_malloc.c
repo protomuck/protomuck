@@ -357,7 +357,7 @@ void CrT_summarize_to_file(
 	fprintf(summarize_fd, "%s\n", comment);
     }
 
-    {   time_t lt = current_systime;
+    {   time_t lt = time(NULL);
 	fprintf(summarize_fd, "%s", ctime(&lt));
     }
 
@@ -488,7 +488,7 @@ void* CrT_malloc(
 
     if (b->live_bytes > b->max_bytes) {
 	b->max_bytes = b->live_bytes;
-	b->max_bytes_time = current_systime;
+	b->max_bytes_time = time(NULL);
     }
     if (b->live_blocks > b->max_blocks)
 	b->max_blocks = b->live_blocks;
@@ -540,7 +540,7 @@ void* CrT_calloc(
 
     if (b->live_bytes > b->max_bytes) {
 	b->max_bytes = b->live_bytes;
-	b->max_bytes_time = current_systime;
+	b->max_bytes_time = time(NULL);
     }
     if (b->live_blocks > b->max_blocks)
 	b->max_blocks = b->live_blocks;
@@ -571,7 +571,7 @@ void* CrT_realloc(
     }	}   }
 #endif
 
-    m        =  (Header) realloc(   m,   size + CRT_OVERHEAD_BYTES  );
+    m        =  (Header) realloc(   m,   size + sizeof(A_Header)    );
 
     if (!m) {
         fprintf(stderr, "CrT_realloc(): Out of Memory!\n");
@@ -599,7 +599,7 @@ void* CrT_realloc(
 
     if (b->live_bytes > b->max_bytes) {
 	b->max_bytes = b->live_bytes;
-	b->max_bytes_time = current_systime;
+	b->max_bytes_time = time(NULL);
     }
 
     return (void*) (m+1);
@@ -663,4 +663,5 @@ CrT_string_dup(const char *s, const char *file, int line)
 }
 
 #endif /* MALLOC_PROFILING */
+
 

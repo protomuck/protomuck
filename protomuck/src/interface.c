@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/interface.c,v 1.4 2000-09-18 02:49:37 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/interface.c,v 1.5 2000-09-18 02:57:36 akari Exp $
  *
  * $Log: not supported by cvs2svn $
  *
@@ -711,7 +711,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 			    sprintf(buf2, "%s %.*s", prefix,
 				(int)(BUFFER_LEN - (strlen(prefix) + 2)), buf);
 			}
-				darr = get_player_descrs(player, &dcount);
+				darr = get_player_descrs(OWNER(player), &dcount);
 
                         for (di = 0; di < dcount; di++) {
 				    if (Html(player))
@@ -815,7 +815,7 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 			    sprintf(buf2, "%s %.*s", prefix,
 				(int)(BUFFER_LEN - (strlen(prefix) + 2)), buf);
 			}
-				darr = get_player_descrs(player, &dcount);
+				darr = get_player_descrs(OWNER(player), &dcount);
 
                         for (di = 0; di < dcount; di++) {
                             queue_ansi(descrdata_by_descr(darr[di]), buf2);
@@ -3129,7 +3129,7 @@ check_connect(struct descriptor_data * d, const char *msg)
 	   if (tmpfr) {
 		interp_loop(-1, tp_login_huh_command, tmpfr, 0);
 	   }
-      } else if(!index(msg,':') && !string_compare(msg, "GET")) {
+      } else if(!index(msg,':') && string_compare(msg, "GET")) {
            log_status("TYPO: %2d %s(%s) %s '%s' %d cmds\n",
              d->descriptor, d->hostname, d->username,
              host_as_hex(d->hostaddr), command, d->commands);
@@ -4723,6 +4723,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 
