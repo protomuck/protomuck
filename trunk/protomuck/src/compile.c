@@ -158,7 +158,10 @@ struct prog_addr *alloc_addr(COMPSTATE *, int, struct inst *);
 struct INTERMEDIATE *prealloc_inst(COMPSTATE *cstat);
 struct INTERMEDIATE *new_inst(COMPSTATE *);
 void cleanpubs(struct publics *mypub);
+
+#ifdef MCP_SUPPORT
 void clean_mcpbinds(struct mcp_binding *mcpbinds);
+#endif
 void cleanup(COMPSTATE *);
 void add_proc(COMPSTATE *, const char *, struct INTERMEDIATE *, int rettype);
 void add_control_structure(COMPSTATE *, int typ, struct INTERMEDIATE *);
@@ -236,8 +239,10 @@ do_abort_compile(COMPSTATE *cstat, const char *c)
     free_prog(cstat->program);
     cleanpubs(DBFETCH(cstat->program)->sp.program.pubs);
     DBFETCH(cstat->program)->sp.program.pubs = NULL;
+#ifdef MCP_SUPPORT
     clean_mcpbinds(DBFETCH(cstat->program)->sp.program.mcpbinds);
     DBFETCH(cstat->program)->sp.program.mcpbinds = NULL;
+#endif
     DBFETCH(cstat->program)->sp.program.proftime.tv_sec = 0;
     DBFETCH(cstat->program)->sp.program.proftime.tv_usec = 0;
 }
@@ -430,7 +435,7 @@ include_defs(COMPSTATE *cstat, dbref i)
     while (j) {
         strcpy(dirname, "/_defs/");
         strcat(dirname, temp);
-        tmpptr = uncompress(get_property_class(i, dirname));
+        tmpptr = get_uncompress(get_property_class(i, dirname));
         if (tmpptr && *tmpptr)
             insert_def(cstat, temp, (char *) tmpptr);
         j = next_prop(pptr, j, temp);
@@ -545,6 +550,11 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "array_diff", "2 array_ndiff");
     insert_def(cstat, "array_union", "2 array_nunion");
     insert_def(cstat, "array_intersect", "2 array_nintersect");
+#ifdef IGNORE_SUPPORT
+    insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
+#endif
+
+#ifdef MCP_SUPPORT
 
     /* GUI dialog types */
     insert_def(cstat, "d_simple", "\"simple\"");
@@ -577,6 +587,9 @@ include_internal_defs(COMPSTATE *cstat)
                "d_tabbed swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
     insert_def(cstat, "gui_dlog_helper",
                "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
+
+#endif
+
     /* for SOCK_SETOPT */
     insert_def(cstat, "NOQUEUE", "0");
     insert_def(cstat, "SIMPLEQUEUE", "1");
@@ -592,7 +605,7 @@ include_internal_defs(COMPSTATE *cstat)
 
     /* inserver str .. cat */
     insert_def(cstat, "}cat", "} array_make array_interpret");
-       
+
 
 /* $defs for specific MUF prim sets */
 #ifdef SQL_SUPPPORT
@@ -639,8 +652,10 @@ uncompile_program(dbref i)
     free_prog(i);
     cleanpubs(DBFETCH(i)->sp.program.pubs);
     DBFETCH(i)->sp.program.pubs = NULL;
+#ifdef MCP_SUPPORT
     clean_mcpbinds(DBFETCH(i)->sp.program.mcpbinds);
     DBFETCH(i)->sp.program.mcpbinds = NULL;
+#endif
     DBFETCH(i)->sp.program.proftime.tv_sec = 0;
     DBFETCH(i)->sp.program.proftime.tv_usec = 0;
     DBFETCH(i)->sp.program.code = NULL;
@@ -1118,13 +1133,14 @@ OptimizeIntermediate(COMPSTATE *cstat)
 
                         /* int int / into Div */
                         if (IntermediateIsPrimitive(curr->next->next, DivNo)) {
-                         if (curr->next->in.data.number != 0) {
-                            curr->in.data.number /= curr->next->in.data.number;
-                            RemoveNextIntermediate(cstat, curr);
-                            RemoveNextIntermediate(cstat, curr);
-                            advance = 0;
-                            break;
-                         }
+                            if (curr->next->in.data.number != 0) {
+                                curr->in.data.number /= curr->next->in.data.
+                                    number;
+                                RemoveNextIntermediate(cstat, curr);
+                                RemoveNextIntermediate(cstat, curr);
+                                advance = 0;
+                                break;
+                            }
                         }
 
                         /* int int % into Result */
@@ -1283,8 +1299,10 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
     free_prog(cstat.program);
     cleanpubs(DBFETCH(cstat.program)->sp.program.pubs);
     DBFETCH(cstat.program)->sp.program.pubs = NULL;
+#ifdef MCP_SUPPORT
     clean_mcpbinds(DBFETCH(cstat.program)->sp.program.mcpbinds);
     DBFETCH(cstat.program)->sp.program.mcpbinds = NULL;
+#endif
     DBFETCH(cstat.program)->sp.program.proftime.tv_sec = 0;
     DBFETCH(cstat.program)->sp.program.proftime.tv_usec = 0;
     DBFETCH(cstat.program)->sp.program.profstart = current_systime;
@@ -1346,7 +1364,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
             percent = ((double) (optimcount)
                        / (double) instrCount) * 100;
             sprintf(buf2, "Program optimized by %d instructions "
-                    "in %d %s. (%#.4lg%%)", optimcount, passcount,
+                    "in %d %s. (%#.4g%%)", optimcount, passcount,
                     passcount == 1 ? "pass" : "passes", percent);
             strcpy(buf, SYSFOREST);
             strcat(buf, buf2);
@@ -1646,8 +1664,7 @@ do_directive(COMPSTATE *cstat, char *direct)
 {
     struct match_data md;
     char temp[BUFFER_LEN];
-    char *tmpname;
-    char *tmpptr;
+    char *tmpname, *tmpptr = NULL;
     int i = 0;
     int j;
 
@@ -1929,7 +1946,7 @@ do_directive(COMPSTATE *cstat, char *direct)
         tmpname = (char *) next_token_raw(cstat);
         if (!tmpname)
             abort_compile(cstat,
-                          "Unexpected end of file while doing $include.");
+                          "Unexpected end of file while doing $ifauthor.");
         if (string_compare(tmpname, "this")) {
             char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
 
@@ -1956,7 +1973,7 @@ do_directive(COMPSTATE *cstat, char *direct)
             strcpy(tmpptr, "Unknown");
             needFree = 1;
         } else
-            uncompress(tmpptr);
+            tmpptr = (char *) get_uncompress(tmpptr);
         tmpname = (char *) cstat->next_char;
         if (!tmpname || !*tmpname) {
             free(tmpptr);
@@ -2031,7 +2048,7 @@ do_directive(COMPSTATE *cstat, char *direct)
             strcpy(tmpptr, "0.0");
             needFree = 1;
         } else {
-            uncompress(tmpptr);
+            tmpptr = (char *) get_uncompress(tmpptr);
         }
         tmpname = (char *) next_token_raw(cstat);
         if (!tmpname || !*tmpname) {
@@ -2215,7 +2232,7 @@ do_directive(COMPSTATE *cstat, char *direct)
         tmpname = (char *) next_token_raw(cstat);
         if (!tmpname)
             abort_compile(cstat,
-                          "Unexpected end of file while doing $include.");
+                          "Unexpected end of file while doing $iflib.");
         {
             char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
 
@@ -2257,7 +2274,7 @@ do_directive(COMPSTATE *cstat, char *direct)
         }
 
     } else if (!string_compare(temp, "ansi")) {
-        char *holder = NULL;
+        /* char *holder = NULL; */
 
         while (*cstat->next_char && isspace(*cstat->next_char))
             cstat->next_char++; /* eating leading spaces */
@@ -2273,15 +2290,15 @@ do_directive(COMPSTATE *cstat, char *direct)
         tmpname = (char *) next_token_raw(cstat);
         holder = tmpname;
         if (!tmpname)
-            v_abort_compile(cstat,
-                            "Unexpected end of file looking for $lib/def name.");
+            abort_compile(cstat,
+                          "Unexpected end of file looking for $lib/def name.");
 
         if (index(tmpname, '/') ||
             index(tmpname, ':') ||
             Prop_SeeOnly(tmpname) || Prop_Hidden(tmpname)) {
             free(tmpname);
-            v_abort_compile(cstat,
-                            "Invalid $libdef name. No /, :, @, nor ~ allowed.");
+            abort_compile(cstat,
+                          "Invalid $libdef name. No /, :, @, nor ~ allowed.");
         } else {                /* okay string */
             char propname[BUFFER_LEN];
             char defstr[BUFFER_LEN];
@@ -2323,7 +2340,9 @@ do_directive(COMPSTATE *cstat, char *direct)
             abort_compile(cstat,
                           "Unexpected end of file while doing $include.");
         if (!number(tmpname)) {
-            {
+            if ( !string_compare(tmpname, "this" )) {
+                i = cstat->program;
+            } else {
                 char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
 
                 strcpy(tempa, match_args);
@@ -3191,21 +3210,26 @@ struct INTERMEDIATE *
 float_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *nw;
+
     nw = new_inst(cstat);
     nw->no = cstat->nowords++;
     nw->in.type = PROG_FLOAT;
     nw->in.line = cstat->lineno;
 #ifdef CYGWIN
     /* What does God neeed with a starship? */
-       nw->in.data.fnumber = 0.0;
-    if (!string_compare(token,"inf")) 
-     { nw->in.data.fnumber = (float) INF; }
-    if (!string_compare(token,"-inf")) 
-     { nw->in.data.fnumber = (float) NINF; }
-    if (!string_compare(token,"nan"))
-     { nw->in.data.fnumber = (float) NAN; }
-    if (!nw->in.data.fnumber) 
-     { sscanf(token, "%lg", &(nw->in.data.fnumber)); }
+    nw->in.data.fnumber = 0.0;
+    if (!string_compare(token, "inf")) {
+        nw->in.data.fnumber = (float) INF;
+    }
+    if (!string_compare(token, "-inf")) {
+        nw->in.data.fnumber = (float) NINF;
+    }
+    if (!string_compare(token, "nan")) {
+        nw->in.data.fnumber = (float) NAN;
+    }
+    if (!nw->in.data.fnumber) {
+        sscanf(token, "%lg", &(nw->in.data.fnumber));
+    }
 #else
     sscanf(token, "%lg", &(nw->in.data.fnumber));
 #endif
@@ -3748,6 +3772,8 @@ cleanpubs(struct publics *mypub)
     }
 }
 
+#ifdef MCP_SUPPORT
+
 void
 clean_mcpbinds(struct mcp_binding *mypub)
 {
@@ -3761,6 +3787,8 @@ clean_mcpbinds(struct mcp_binding *mypub)
         mypub = tmppub;
     }
 }
+
+#endif
 
 
 void
@@ -3897,8 +3925,7 @@ copy_program(COMPSTATE *cstat)
                     alloc_prog_string(curr->in.data.string->data) : 0;
                 break;
             case PROG_FUNCTION:
-                code[i].data.mufproc =
-                    (struct muf_proc_data *)
+                code[i].data.mufproc = (struct muf_proc_data *)
                     malloc(sizeof(struct muf_proc_data));
                 code[i].data.mufproc->procname =
                     string_dup(curr->in.data.mufproc->procname);
