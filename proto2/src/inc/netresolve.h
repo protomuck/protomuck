@@ -26,6 +26,7 @@ struct huinfo { /* host/user information */
 
 extern struct hostinfo *hostdb;
 extern struct husrinfo *userdb;
+extern unsigned int hostdb_count;
 
 #ifdef SPAWN_HOST_RESOLVER
 extern void kill_resolver(void);
