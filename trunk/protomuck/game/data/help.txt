@@ -187,7 +187,8 @@ Keys              Property Types        Garbage
 Descriptors       OverRide              Exit Priorities
 Parent Rooms      Containers            MUCK
 Mage Permissions  Wizard Permissions    ArchWizard Permissions
-Boy Permissions   Programs
+Boy Permissions   Programs              Regname
+Puppets
 
 Type 'help <topic>' to get more help on a topic.
 ~                               Basic Commands
@@ -259,10 +260,12 @@ location of each one.
 See @ENTRANCES, @FIND, @CONTENTS.
 
 ~
-@password
+@password|PASSWORD
 @password <old password>=<new password>
 ---------------------------------------
 This changes your old password to the new one.
+
+Note that passwords are case sensitive.
 ~
 @set|&
 @set <object> = [!] <flag> -or-
@@ -370,7 +373,7 @@ In order for a thing to be a container, it has to have a @conlock. See
 
 See @DROP, @ODROP, CONTAINER, and GET.
 ~
-examine
+examine|EX
 examine <object>[=propdir]
 --------------------------
 Permissions: !GUEST    - To use on own objects.
@@ -622,9 +625,17 @@ Permissions: W1 Mage - To see Wiz-WHO.
 Must be in all capitals, and typed in full. Lists the name of every player
 currently logged in, their time online, how long since they last did
 something, and optionally a @doing phrase of their choosing.  If given a
-player name, it displays only the matching names and idle times.
+player name, it displays only the matching names and idle times. The 
+message at the top of the @doing column may be changed by setting a prop on
+#0 called _poll:<message>.
 
-Mages may type WHO! to see more descriptive information of players online.
+Mages may type WHO ! to get the following info on the players:
+Descriptor #, Unparsed name, port #, Online time, Idle time, and ISP.
+Players of W3 and higher will also get the user name of the ISP. 
+
+New in Proto1.6 and newer is WHO !!, which gives the following info:
+Descriptor #, Unparsed name, Output Kbytes, Input Kbytes, # of commands, and 
+Port type.
 
 The WHO command can easily be replaced with a @WHO action that has a wizard
 flag set on it.  However, this will not work for login screens. Instead, you
@@ -912,7 +923,7 @@ Permissions: !GUEST
 Sets the given puppet object's prefix message which will be prepended to all
 text that gets notifed to its own via the puppet.
 ~
-@recycle|@destroy
+@recycle|@destroy|@rec
 @recycle <object> or @destroy <object>
 --------------------------------------
 Permissions: !GUEST
@@ -1327,7 +1338,7 @@ B-bit, then the newly @pcreated player will start with a B-bit.
 In addition, props set on the ProtoType player will be copied over to
 the new player if @tune pcreate_copy_props is set to 'yes'.
 ~~~~
-@POWERS|
+@POWERS|@POWER
 @powers [<player> [=[!]<power>]]
 -----------------------------
 Permissions: W4 Boy
@@ -1348,9 +1359,12 @@ See: POWERS
 POWERS|POWERS LIST|
 Powers List
 
+ALL_MUF_PRIMS   - Gives full access to MUF primitives
 ANNOUNCE        - Can use @wall and dwall commands
 BOOT            - Can use @boot and dboot commands
 CHOWN_ANYTHING  - Can @chown anything, unless it is PROTECTed
+CONTROL_ALL     - Has control over any object.
+CONTROL_MUF     - Has control over any MUF object.
 EXPANDED_WHO    - Gets the wizard version of WHO
 HIDE            - Can set themselves DARK or login HIDDEN
 IDLE            - Not effected by the idle limit
@@ -1359,8 +1373,9 @@ LONG_FINGERS    - Can do anything from a long distance
 NO_PAY          - Infinite money
 OPEN_ANYWHERE   - Can @open an exit from any location
 PLAYER_CREATE   - Can use @pcreate, @frob, and @toad
-SEARCH          - Can use @find, @entrances, and @contents
+SEARCH          - Can use @find, @entrances, @own, and @contents
 SEE_ALL         - Can examine any object, and @list any program
+SHUTDOWN        - Can run @shutdown or @restart
 TELEPORT        - Unrestricted use of @teleport
 
 See: @POWERS
@@ -1618,7 +1633,7 @@ the execution exits this program, the multitasking mode returns to what
 it was before the function was called.  This lets libraries of atomic
 functions be written.
 ~
-CHOWN_OK|COLOR_ANSI|COLOR_ON|COLOR_OK|COLOR
+CHOWN_OK|COLOR_ANSI|COLOR_ON|COLOR_OK|COLOR|COLORS
 CHOWN_OK or COLOR_ANSI or COLOR_ON or COLOR_OK (C)
 --------------------------------------------------
 When set on a room, program, exit, or thing, it means that anyone
@@ -1629,7 +1644,7 @@ When set on a player, it enables ANSI color where it is implemented.
 Puppets of players set = COLOR_OK will also 
 When set on a player, it enables ansi color on mucks that support it.
 
-See @CHOWN.
+See @CHOWN and MAN 
 ~
 DARK|DEBUG
 DARK or DEBUG (D)
@@ -1679,11 +1694,11 @@ MUFCOUNT (+)
 ------------
 If a MUF program is set MUFCOUNT, then when it is run, it will set the
 following information on the program under the ~muf/ directory:
-~muf/count      -- Number of instructions processed on last run.
-~muf/end        -- Time the program ended, in seconds.
-~muf/start      -- Time the program started, in seconds.
-~muf/trig       -- Dbref of the trigger that called the program. 
-~muf/who        -- Dbref of the player that called the program.
+ ~muf/count      -- Number of instructions processed on last run.
+ ~muf/end        -- Time the program ended, in seconds.
+ ~muf/start      -- Time the program started, in seconds.
+ ~muf/trig       -- Dbref of the trigger that called the program. 
+ ~muf/who        -- Dbref of the player that called the program.
 
 If a Player is set MUFCOUNT, then they will get the following
 printout after running every program they control:
@@ -2974,23 +2989,25 @@ admin need to be aware of:
 Default  -- Properties that start with no special symbol can be set on anyone by
             anyone using basic MUF or even MPI and can be read by anyone using
             MPI or basic MUF.
-. Props  -- Properties that start with a . mark cannot be read by MPI or
+ . Props  -- Properties that start with a . mark cannot be read by MPI or
             MUF running under M1 or M2 permissions, but can be read normally
             by a player by examining objects they control. They cannot be set
             by using non-W-bitted MPI, nor MUF running at a level lower than
             W2, on objects the player does not own.
-_ Props  -- Properties that start with a _ mark can be read by MPI or basic
+ _ Props  -- Properties that start with a _ mark can be read by MPI or basic
             MUF code, but cannot be set by MUF or MPI on another player's
             object when running at levels under W2.
-~ Props  -- These props can be read by any MPI or MUF code, as well as seen
+ ~ Props  -- These props can be read by any MPI or MUF code, as well as seen
             by any player when examining their own objects, but ~ props can
             only be set or removed by a W2 or higher, or MUF running under
             that permission level.
-@ Props  -- These props cannot be seen, set, removed, or changed by anyone
+ @ Props  -- These props cannot be seen, set, removed, or changed by anyone
             other than W3 level admin, or MUF programs running under W3 
             permissions.
 These are often referred to as:
 . = HIDDEN, _ = PROTECTED, ~ = WizOnly, @ = WizHidden
+
+See: PROPDIRS
 ~~~
 GARBAGE|
 Garbage
@@ -3114,7 +3131,7 @@ If one makes the center of town the parent room, then all of the exits in
 that room will be able to all other rooms parented to it, including exits
 that lead to other rooms. That's why this should be avoided. 
 ~~~~~
-COMMAND PROPS|PROPCOMMANDS|PROP COMMANDS|COMMANDPROPS
+COMMAND PROPS|PROPCOMMANDS|PROP COMMANDS|COMMANDPROPS|@COMMAND
 Command Props
 -------------
 New in Proto1.5 is the ability to create psuedo-actions by the use of 
@@ -3236,3 +3253,74 @@ be used, and can be read about by using the 'man' command.
 Type: MAN for help about MUF code.
       MPI for help about MPI code.
 ~~~
+THING|PROGRAM|EXIT|ROOM|PLAYER
+
+There are 5 types of objects in the MUCK's data base. They are indicated
+by the flag that is on them. 
+
+THING (No Flag) - These are objects that can be carried around, dropped,
+                  made into puppets or vehicles, and so on. These are 
+                  made with @create, and removed with @recycle
+
+PLAYER (P)      - These are the characters themselves. They are what users
+                  connect to in order to get on the MUCK. They are made with
+                  @pcreate and removed with @frob.
+
+EXIT   (E)      - Exits or actions are what players use to do things while
+                  on the MUCK. Exits can let players move into other rooms,
+                  run a MPI or MUF program, control a puppet, among some
+                  other things. They are made with either @open or @action,
+                  removed with @recycle, and linked with @link.
+
+ROOM   (R)      - Rooms are the places where everything goes. They contain
+                  players, objects, and even other rooms. They are made with
+                  @dig and removed with @recycle. 
+
+MUF    (F)      - MUF code is stored in special program objects. Editing
+                  these objects allows the MUF code to be altered. They are
+                  made with @program, altered with @edit, and removed with
+                  @recycle.
+~~~~~
+REGNAME|REGISTERED NAME|
+RegName
+-------
+Putting references to data base objects as a prop on yourself or rooms
+in your hierarchy makes a registered name that you can use to refer to
+that object instead of its normal full name or dbref#. For example:
+A prop such as _reg/rooms/home:#235
+would let me refer to #235 as $rooms/home without having to remember the
+number. 
+@propset dbref props can work with this as well, such as:
+@propset #0=dbref:_reg/lib/editor:#5543
+Will make it so that program #5543 can be looked up by using:
+$lib/editor instead of having to know the dbref# of lib-editor.muf every time.
+
+Registered names are valid on yourself, or up the hierarchy. Thus registered
+names on #0 are globals.
+~~~~
+PUPPETS
+Puppets
+-------
+The type of puppet support available may be different from MUCK to MUCK, 
+depending on how those who run it have set things up. Below are just
+simple instructions that tend to be universal for making a puppet on
+almost any muck that allows them:
+@create <puppet>
+@set <puppet>=Z
+@set <puppet>=X
+@flock <puppet>=me
+@action <control action>=me
+@link <control action>=$null
+@succ <control action>={force:<puppet's dbref>,{&arg}}
+
+Note that this may or may not work depending on settings and preferences
+at various mucks, and there are better and more efficient ways to make
+puppets. This is just the down and dirty way of going about it.
+~~~~~~
+
+
+
+
+
+
+
