@@ -453,7 +453,7 @@ prim_sockclose(PRIM_PROTOTYPE)
         abort_interp("Socket calls are ArchWiz-only primitives.");
     if (oper1->type != PROG_SOCKET)
         abort_interp("Socket argument expected!");
-    if (oper1->data.sock->is_player == -1) { /* don't close descrs */
+    if (oper1->data.sock->is_player) { /* don't close descrs */
         CLEAR(oper1);
         PushInt(myresult);
         return;
@@ -472,6 +472,49 @@ prim_sockclose(PRIM_PROTOTYPE)
                      unparse_object(player, player), oper1->data.sock->socknum);
     oper1->data.sock->connected = 0;
     CLEAR(oper1);
+    PushInt(myresult);
+}
+
+void
+prim_sockshutdown(PRIM_PROTOTYPE)
+{
+    int myresult = 0;
+    int how = 0;
+    CHECKOP(2); /* socket int */
+    oper2 = POP();
+    oper1 = POP();
+
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("Socket argument expected. (1)");
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Integer of 0 - 2 expected.");
+    how = oper2->data.number;
+    if (oper1->data.sock->is_player && how == 2) { /* don't close descrs*/
+        CLEAR(oper1);
+        CLEAR(oper2);
+        PushInt(myresult);
+        return;
+    }
+    if (how < 0 || how > 2)
+        abort_interp("Method can only be 0, 1, or 2");
+    if (shutdown(oper1->data.sock->socknum, how) == -1)
+#if defined(BRAINDEAD_OS)
+        myresult = -1;
+#else
+        myresult = errnosocket;
+#endif
+    else
+        myresult =0;
+    if (tp_log_sockets)
+        log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n", program,
+                     unparse_object(player, player), oper1->data.sock->socknum);
+    if (how == 2)
+        oper1->data.sock->connected = 0; /* only say not-connected if 
+                                          * complete shutdown. */
+    CLEAR(oper1);
+    CLEAR(oper2);
     PushInt(myresult);
 }
 
