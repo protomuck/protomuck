@@ -1486,8 +1486,6 @@ void
 prim_intostr(PRIM_PROTOTYPE)
 {
     char *ptr = NULL;
-    int val;
-    int negflag;
 
     CHECKOP(1);
     oper1 = POP();
@@ -1497,24 +1495,8 @@ prim_intostr(PRIM_PROTOTYPE)
         sprintf(buf, "%.16lg", oper1->data.fnumber);
         ptr = buf;
     } else {
-        val = oper1->data.number;
-        ptr = &buf[BUFFER_LEN];
-        negflag = (val < 0) ? 1 : 0;
-        val = abs(val);
-
-        *(--ptr) = '\0';
-        if (!val) {
-            *(--ptr) = '0';
-        } else {
-            while (val) {
-                *(--ptr) = '0' + (val % 10);
-                val /= 10;
-            }
-        }
-        if (negflag) {
-            *(--ptr) = '-';
-        }
-        /* sprintf(buf, "%d", oper1->data.number); */
+        sprintf(buf, "%d", oper1->data.number); 
+        ptr = buf;
     }
     CLEAR(oper1);
     PushString(ptr);
