@@ -68,11 +68,20 @@
 
 #define MUF_SOCKETS
 
-	    
+/* Define MUF_EDIT_PRIMS to compile in a set of prims that have
+ * the ability to edit MUF code or the MUF macros. This can be
+ * potentially risky, as it grants the MUF code the ability to edit
+ * other MUF code, so if you have doubts about its use, #undef it.
+ */
+
+#define MUF_EDIT_PRIMS
+
 /* Detaches the process as a daemon so that it don't cause problems
  * keeping a terminal line open and such. Logs normal output to a file
- * and writes out a protomuck.pid file 
+ * and writes out a protomuck.pid file
  */
+
+
 #define DETACH
 
 // If you have problems compiling with DETACH defined, uncomment one

@@ -73,6 +73,9 @@ void    (*prim_func[]) (PRIM_PROTOTYPE) =
 #ifdef SQL_SUPPORT
     PRIMS_MYSQL_FUNCS,
 #endif
+#ifdef MUF_EDIT_PRIMS
+    PRIMS_MUFEDIT_FUNCS,
+#endif
     PRIMS_INTERNAL_FUNCS,
     NULL
 };

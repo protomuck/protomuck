@@ -181,15 +181,9 @@ void prim_sqlquery(PRIM_PROTOTYPE)
             if (counter++ < num_rows) {
                 for (i = 0; i < num_fields; ++i ) {
                     if (row[i]) {
-                        temp1.type = PROG_STRING;
-                        temp1.data.string = alloc_prog_string(fields[i].name);
-                        temp2.type = PROG_STRING;
-                        temp2.data.string = alloc_prog_string(row[i]);
-                        array_setitem(&nw, &temp1, &temp2);
+                        array_set_strkey_strval(&nw, fields[i].name, row[i]);
                         if (!fieldListMade)
-                            array_appenditem(&fieldsList, &temp1);
-                        CLEAR(&temp1);
-                        CLEAR(&temp2);
+                            array_set_intkey_strval(&nw, i, fields[i].name);
                     }
                 }
                 fieldListMade = 1;
@@ -199,8 +193,8 @@ void prim_sqlquery(PRIM_PROTOTYPE)
         }
         mysql_free_result(res);
     }
-    PushArrayRaw(fieldsList);
     PushInt(num_rows);
+    PushArrayRaw(fieldsList);
     return;
 }
 
@@ -218,15 +212,17 @@ prim_sqlclose(PRIM_PROTOTYPE)
         abort_interp("MySQL prims are ArchWiz." );
     if (oper1->type != PROG_MYSQL)
         abort_interp("MySQL connection expected.");
- 
-    mysql_close(oper1->data.mysql->mysql_conn);
+    if (oper1->data.mysql->connected) {
+        mysql_close(oper1->data.mysql->mysql_conn);
+        oper1->data.mysql->connected = 0;
+    }
     CLEAR(oper1);
 }    
 
 void
 prim_sqlping(PRIM_PROTOTYPE)
 {
-    int result;
+    int result = 0;
     CHECKOP(1);
     /* MYSQL */
     oper1 = POP();
@@ -236,14 +232,15 @@ prim_sqlping(PRIM_PROTOTYPE)
     if (oper1->type != PROG_MYSQL)
         abort_interp("MySQL connection expected.");
 
-    result = mysql_ping(oper1->data.mysql->mysql_conn);
-    if (!result)
-        result = 1;
-    else
-        result = 0;
+    if (oper1->data.mysql->connected) {
+        result = mysql_ping(oper1->data.mysql->mysql_conn);
+        if (!result) 
+            result = 1;
+        else 
+            oper1->data.mysql->connected = 0;
+    }
     CLEAR(oper1);
     PushInt(result);
-
 }
 
 #endif

@@ -183,15 +183,15 @@ typedef int dbref;		/* offset into db */
 
 #define F2GUEST		    0x1     /* Guest character */
 #define F2LOGWALL	          0x2     /* Wizard sees logs walled */
-#define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ /* Why can't we just make this automatic somehow? */
+#define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ 
 #define F2HIDDEN            0x8     /* The new HIDDEN flag */
-#define F2MOBILE	         0x10     /* Mobile object */ /* What use is this, really? -- Should be replaced! */
+#define F2MOBILE	         0x10     /* Mobile object */ 
 #define F2PUEBLO           0x20     /* Player has Pueblo multimedia support */
 #define F2HTML             0x40     /* Player has at least BASIC HTML, maybe Pueblo */
-#define F2MCP              0x80     /* Program is a MUCK C Program. */ /* Being phased out. */
+#define F2MCP              0x80     /* Legacy. Was for Loki's MCP programs */ 
 #define F2PROTECT         0x100     /* The new PROTECT flag */
 #define F2PARENT          0x200     /* The new PARENT flag */
-#define F2COMMAND         0x400     /* For the new MUSH-style commands -- INTERNAL FLAG ONLY */
+#define F2COMMAND         0x400     /* For command props - INTERNAL FLAG ONLY */
 #define F2EXAMINE_OK      0x800     /* The new EXAMINE_OK flag */
 #define F2ANTIPROTECT    0x1000     /* Anti-protect flag to allow a wizard to combat against PROTECT. */
 #define F2IDLE           0x2000     /* To watch if someone is idle or not. */
@@ -762,6 +762,8 @@ extern dbref db_top;
 extern char *alloc_string(const char *);
 #endif
 
+extern struct line * read_program(dbref);
+extern struct line * get_new_line(void);
 extern int fetch_propvals(dbref obj, const char *dir);
 
 extern dbref getparent(dbref obj);

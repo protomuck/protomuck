@@ -1,3 +1,10 @@
+/* array.c is where all of the behind the scenes work is done for
+ * MUF array support. Making the arrays, balancing the trees,
+ * sorting them, and clearing them properly are all handled
+ * here. It was adopted into ProtoMuck from FB6, though slight
+ * differences exist between FB's version and Proto's. - Akari
+ */
+
 /* Primitives Package */
 
 #include "copyright.h"
@@ -37,6 +44,14 @@
 #define AVL_COMPARE(x,y) array_tree_compare(x,y,0, 0)
 #define valid_obj(a) (a > -1 && a < db_top)
 
+
+/* This key function helps sort dictionary arrays by comparing the
+ * key values, and also sorting list arrays by comparing the data
+ * values. It differs slightly from the FB6 implementaton in that
+ * it sorts dbref objects by their name rather than dbref#. 
+ * The 'int objname' parameter toggles this behavior. When it is 0
+ * dbrefs are sorted by number instead of the object name. -Akari
+ */
 static int
 array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
 {
@@ -371,7 +386,7 @@ array_tree_remove_node(array_iter * key, array_tree ** root)
 			      AVL_KEY(array_tree_getmax(AVL_LF(avl))),
 										   &AVL_LF(avl));
 			if (!tmp)
-				abort();		/* this shouldn't be possible. */
+				abort(); /* this shouldn't be possible. */
 			AVL_LF(tmp) = AVL_LF(avl);
 			AVL_RT(tmp) = AVL_RT(avl);
 			avl = tmp;
@@ -1658,4 +1673,20 @@ array_set_intkey(stk_array **harr, int key, struct inst *val)
 
     return result;
 
+}
+
+int
+array_set_intkey_strval(stk_array ** harr, int key, const char *val)
+{
+    struct inst value;
+    int result;
+    
+    value.type = PROG_STRING;
+    value.data.string = alloc_prog_string(val);
+    
+    result = array_set_intkey(harr, key, &value);
+
+    CLEAR(&value);
+
+    return result;
 }
