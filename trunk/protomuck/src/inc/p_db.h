@@ -93,11 +93,5 @@ extern void prim_find_array(PRIM_PROTOTYPE);
     "EXITS_ARRAY", "GETLINKS_ARRAY", "GETOBJINFO", "FINDNEXT",\
     "FIND_ARRAY"
 
-#define PRIMS_DB_CNT 61
-
-
-
-
-
-
+#define PRIMS_DB_CNT 60
 
