@@ -148,6 +148,7 @@ struct INTERMEDIATE *lvar_word(COMPSTATE *, const char *);
 struct INTERMEDIATE *svar_word(COMPSTATE *, const char *);
 const char *do_string(COMPSTATE *);
 void do_comment(COMPSTATE *);
+void do_comment_new(COMPSTATE *);
 int do_directive(COMPSTATE *, char *direct);
 struct prog_addr *alloc_addr(COMPSTATE *, int, struct inst *);
 struct INTERMEDIATE *prealloc_inst(COMPSTATE * cstat);
@@ -900,7 +901,10 @@ next_token_raw(COMPSTATE * cstat)
 	}
 	/* take care of comments */
 	if (*cstat->next_char == BEGINCOMMENT) {
-		do_comment(cstat);
+		if (FLAG2(cstat->program) & F2LIGHT)
+		    do_comment(cstat);
+		else
+		    do_comment_new(cstat);
 		return next_token_raw(cstat);
 	}
 	if (*cstat->next_char == BEGINSTRING)
@@ -966,7 +970,9 @@ next_token(COMPSTATE * cstat)
 
 
 /* skip comments */
-#ifdef OLDCOMMENT /* Traditional comment parser */
+/* This is the traditional FB comment parser. Used by putting the
+ * O flag on a program object.
+ */
 void
 do_comment(COMPSTATE * cstat)
 {
@@ -988,9 +994,13 @@ do_comment(COMPSTATE * cstat)
                 advance_line(cstat);
 	}
 }
-#else
+
+/* This is the new Proto comment parser that allows nested comments,
+ * used by default.
+ */
+
 void
-do_comment(COMPSTATE * cstat) /* ProtoMUCK Comment parser */
+do_comment_new(COMPSTATE * cstat) /* ProtoMUCK Comment parser */
 {  
     int parCount = 1;
     int startLine = cstat->lineno;
@@ -1018,7 +1028,6 @@ do_comment(COMPSTATE * cstat) /* ProtoMUCK Comment parser */
         }
     } while ( 1 );
 }
-#endif
 
 /* This tells us if the token is a compile time conditional directive. */
 int

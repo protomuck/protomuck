@@ -599,7 +599,8 @@ flag_description(dbref thing)
 	if (FLAG2(thing) & F2LOGWALL)
 	    strcat(buf, " LOGWALL");
       if (FLAG2(thing) & F2LIGHT)
-          strcat(buf, " LIGHT");
+          strcat(buf, (Typeof(thing) == TYPE_PROGRAM) ? " OLDCOMMENT" : 
+			  " LIGHT");
 	if (FLAG2(thing) & F2MUFCOUNT)
 	    strcat(buf, " MUFCOUNT");
       if (FLAG2(thing) & F2PROTECT)
@@ -1467,6 +1468,12 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		    check->clearflag2 |= F2EXAMINE_OK;
 		else
 		    check->setflag2 |= F2EXAMINE_OK;
+		break;
+            case '?':
+		if (mode)
+                    check->clearflag2 |= F2MOBILE;
+		else
+                    check->setflag2 |= F2MOBILE;
 		break;
 	    case 'a':
 		check->anypower = 0;

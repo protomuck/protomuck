@@ -66,6 +66,8 @@ char *parse_token( char *filename )
     return "data/help.txt";
   if (strstr( filename, "$MAN.TXT" ) != NULL )
     return "data/man.txt";
+  if (strstr( filename, "$SYSPARMS.TXT" ) != NULL )
+    return "data/sysparms.txt";
   if (strstr( filename, "$MPIHELP.TXT" ) != NULL )
     return "data/mpihelp.txt";
   if ((temp = strstr( filename, "$NEWS/" )) != NULL )

@@ -74,7 +74,7 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
       if (FLAG2(thing) & F2HTML)
 	    *p++ = '&';
       if (FLAG2(thing) & F2MOBILE)
-	    *p++ = '~';
+	    *p++ = '?';
     }
     if (thing == 1) {
        *p++ = 'W' ; *p++ = '5' ;
@@ -139,7 +139,7 @@ char
 flag_2char(char *flag)
 {
    if (string_prefix("mobile", flag))
-        return '~';
+        return '?';
    if (string_prefix("m", flag))
 	return 'M';
    if (string_prefix("w", flag))
@@ -177,11 +177,9 @@ flag_2char(char *flag)
       return 'G';
    if (string_prefix("idle", flag))
       return 'I';
-   if (string_prefix("logwall", flag))
-      return '!';
    if (string_prefix("mufcount", flag))
       return '+';
-   if (string_prefix("light", flag))
+   if (string_prefix("light", flag) || string_prefix("oldcomment", flag))
       return 'O';
    if (string_prefix("parent", flag) || string_prefix("prog_debug", flag))
       return '%';

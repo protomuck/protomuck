@@ -1820,6 +1820,7 @@ new_connection(int port, int sock)
     struct sockaddr_in addr;
     int     addr_len;
     int     ctype;
+    int     result;
     char    hostname[128];
 
     addr_len = sizeof(addr);
@@ -1864,6 +1865,11 @@ new_connection(int port, int sock)
                             "UNKNOWN" ))))
            );
         }
+        result = get_property_value((dbref)0, "~sys/concount");
+	result++;
+	add_property((dbref)0, "~sys/concount", NULL, result);
+	if (tp_allow_old_trigs) 
+            add_property((dbref)0, "_sys/concount", NULL, result);
 	return initializesock( newsock,
 	    hostname, ntohs(addr.sin_port),
 	    ntohl(addr.sin_addr.s_addr), ctype, port
@@ -2553,8 +2559,6 @@ process_commands(void)
                     }
                     d->booted = 3;
                     continue;
-               // } else {
-                 //   d->type = CT_MUCK;
                 }
             } 
 	    if (d->quota > 0 && (t = d->input.head)) {
