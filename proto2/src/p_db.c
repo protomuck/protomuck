@@ -1955,7 +1955,7 @@ prim_newplayer(PRIM_PROTOTYPE)
     DBFETCH(newplayer)->sp.player.home = tp_player_start;
     DBFETCH(newplayer)->exits = NOTHING;
     DBFETCH(newplayer)->sp.player.pennies = tp_start_pennies;
-    DBFETCH(newplayer)->sp.player.password = alloc_string("");
+    DBFETCH(newplayer)->sp.player.password = NULL;
     DBFETCH(newplayer)->sp.player.curr_prog = NOTHING;
     DBFETCH(newplayer)->sp.player.insert_mode = 0;
 #ifdef IGNORE_SUPPORT
