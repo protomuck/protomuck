@@ -452,16 +452,6 @@ prim_depth(PRIM_PROTOTYPE)
 }
 
 void
-prim_version(PRIM_PROTOTYPE)
-{
-    char temp[256];
-    CHECKOP(0);
-    CHECKOFLOW(1);
-    sprintf(temp, "%s(ProtoMUCK%s)", VERSION, PROTOBASE);
-    PushString(temp);
-}
-
-void
 prim_prog(PRIM_PROTOTYPE)
 {
     CHECKOP(0);

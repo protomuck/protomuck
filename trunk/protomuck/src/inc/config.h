@@ -126,7 +126,7 @@
 #define SPAWN_HOST_RESOLVER
 
 /* Debugging info for database loading */
-#define VERBOSELOAD
+#undef VERBOSELOAD
 
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */

@@ -520,7 +520,6 @@ include_internal_defs(COMPSTATE * cstat)
 /*      insert_def(cstat, "tread", "\"__tread\" timer_start { \"TIMER.__tread\" \"READ\" }list event_waitfor swap pop \"READ\" strcmp if \"\" 0 else read 1 \"__tread\" timer_stop then"); */
 
 	/* Array convenience defines */
-	insert_def(cstat, "}array", "} array_make");
 	insert_def(cstat, "}list", "} array_make");
 	insert_def(cstat, "}dict", "}  2 / array_make_dict");
         insert_def(cstat, "}join", "} array_make \"\" array_join");
@@ -561,7 +560,7 @@ include_internal_defs(COMPSTATE * cstat)
 	insert_def(cstat, "gui_dlog_helper", "d_helper swap \"panes\" over array_keys array_make \"names\" 4 rotate array_vals array_make 2 array_make_dict gui_dlog_create");
 	
 	/* One for the new staff prim */
-	insert_def(cstat, "staff?", "dup player? if dup \"W\" flag? swap \"STAFF\" power? or else pop 0 then");
+	insert_def(cstat, "staff?", "dup \"W\" flag? swap \"STAFF\" power? or");
 	
 }
 
