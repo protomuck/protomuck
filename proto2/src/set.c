@@ -690,7 +690,7 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
             anotify_nolisten2(player, CINFO "I don't know which one you mean!");
             return;
         default:
-            if (!truecontrols(player, thing) && 
+            if (!truecontrols(player, thing) &&
                 !((FLAGS(thing) & CHOWN_OK) && controls(player, thing))) {
                 anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
                 return;
@@ -1081,9 +1081,9 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
         return;
     }
     if (!truecontrols(OWNER(player), thing) && (!(FLAGS(thing) & CHOWN_OK) ||
-                                            Typeof(thing) == TYPE_PROGRAM ||
-                                            !test_lock(descr, player, thing,
-                                                       "_/chlk"))) {
+                                                Typeof(thing) == TYPE_PROGRAM ||
+                                                !test_lock(descr, player, thing,
+                                                           "_/chlk"))) {
         if (!(POWERS(player) & POW_CHOWN_ANYTHING)) {
             anotify_nolisten2(player,
                               CFAIL "You can't take possession of that.");
@@ -1498,7 +1498,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("IDLE", p) || !string_compare("I", p)) {
         f2 = F2IDLE;
 /*    } else if (string_prefix("PUEBLO", p)) {
-                                                anotify_nolisten2(player, CFAIL "This flag can't be user-set."); *//* Why did we have this here? It is unrequired */
+                                                        anotify_nolisten2(player, CFAIL "This flag can't be user-set."); *//* Why did we have this here? It is unrequired */
     } else {
         anotify_nolisten2(player, CINFO "I don't recognize that flag.");
         return;

@@ -252,7 +252,9 @@ flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
     if (flag == F2PROTECT && mlev < LBOY)
         return 0;
 #ifdef CONTROLS_SUPPORT
-    if (flag == F2CONTROLS && ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_PROGRAM)) && mlev < LBOY)
+    if (flag == F2CONTROLS
+        && ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_PROGRAM))
+        && mlev < LBOY)
         return 0;
 #endif
     if ((flag == F2IDLE) && (Typeof(ref) != TYPE_PLAYER))
@@ -940,12 +942,13 @@ prim_set(PRIM_PROTOTYPE)
 
     if (!*flag)
         abort_interp("Empty flag");
-    if ((check_flag1(flag) == CHOWN_OK) || (check_flag2(flag, &tWiz) == F2CONTROLS)) {
-     if (!newpermissions(mlev, ProgUID, ref, 1))
-         abort_interp(tp_noperm_mesg);
+    if ((check_flag1(flag) == CHOWN_OK)
+        || (check_flag2(flag, &tWiz) == F2CONTROLS)) {
+        if (!newpermissions(mlev, ProgUID, ref, 1))
+            abort_interp(tp_noperm_mesg);
     } else {
-     if (!newpermissions(mlev, ProgUID, ref, 0))
-         abort_interp(tp_noperm_mesg);
+        if (!newpermissions(mlev, ProgUID, ref, 0))
+            abort_interp(tp_noperm_mesg);
     }
     if (result && Typeof(ref) == TYPE_THING) {
         dbref obj = DBFETCH(ref)->contents;
@@ -2143,7 +2146,7 @@ prim_toadplayer(PRIM_PROTOTYPE)
     FLAGS(victim) = TYPE_THING;
     FLAG2(victim) = 0;
     FLAG3(victim) = 0;
-    FLAG4(victim) = 0;  
+    FLAG4(victim) = 0;
     POWERSDB(victim) = 0;
     POWER2DB(victim) = 0;
     OWNER(victim) = player;     /* you get it */
