@@ -98,7 +98,10 @@ Connection Prims:
   CONUSER    CONIPNUM   CONPORT      DESCRCON      NEXTDESCR 
   DESCRIPTORS      DESCR_SETUSER     DESCR        DESCRFLUSH
   DESCR_HTML?      DESCR_PUEBLO?     DESCR?       DESCR_WELCOME_USER
-  DESCR_LOGOUT
+  DESCR_LOGOUT     DESCRDBREF        DESCRIDLE    DESCRTIME
+  DESCRHOST        DESCRIPNUM        DESCRPORT    DESCRCONPORT
+  DESCRLEASTIDLE   DESCRMOSTIDLE     FIRSTDESCR   LASTDESCR
+  DESCRUSER
 
 Locks Management:
   SETLOCKSTR     GETLOCKSTR     LOCKED?     PARSELOCK
@@ -380,12 +383,22 @@ CONNECTION PRIMS|CONECTIONPRIMS
 
 The following prims are used to work with connections:
 
-AWAKE?     ONLINE     CONCOUNT     CONDBREF     CONTIME
-CONIDLE    CONDESCR   CONHOST      CONBOOT      CONNOTIFY
-CONUSER    CONIPNUM   CONPORT      DESCRCON      NEXTDESCR
-DESCRIPTORS      DESCR_SETUSER     DESCR        DESCRFLUSH
-DESCR_HTML?      DESCR_PUEBLO?     DESCR?       DESCR_WELCOME_USER
-DESCR_LOGOUT
+For working with DBREFS:
+  AWAKE?           ONLINE           
+
+For working with Connection Numbers:
+  CONCOUNT         CONDBREF          CONIDLE       CONDESCR
+  CONHOST          CONBOOT           CONUSER       CONIPNUM
+  CONPORT          CONTIME           CONNOTIFY    
+
+For working with Descriptors:
+  DESCRCON         NEXTDESCR         DESCRIPTORS   DESCR_SETUSER
+  DESCR            DESCRFLUSH        DESCR?        DESCR_WELCOME_USER  
+  DESCR_HTML?      DESCR_PUEBLO?     DESCR_LOGOUT  DESCRDBREF
+  DESCRIDLE        DESCRTIME         DESCRHOST     DESCRIPNUM
+  DESCRPORT        DESCRCONPORT      FIRSTDESCR    LASTDESCR
+  DESCRLEASTIDLE   DESCRMOSTIDLE     DESCRUSER
+
 ~~~~~~
 LOCK PRIMS
 
@@ -416,7 +429,7 @@ TIMER_START   TIMER_STOP
 
 See: MULTITASKING
 ~~~~
-DATA TYPES
+DATA TYPES|OBJECT TYPES
 
 These are the fundamental data types in MUF:
 
@@ -3010,6 +3023,8 @@ contime             (i1 -- i2)
 conidle             (i1 -- i2)
 nextprop            (d s1 -- s2)
 propdir?            (d s -- i)
+descridle           ( i -- i )
+descrtime           ( i -- i )
 
 See: M2, MUCKER LEVELS, invididual prim entries for more details
 ~
@@ -3041,10 +3056,13 @@ nextprogram         ( d -- d )
 nextexit            ( d -- d )
 nextroom            ( d -- d )
 nextthing           ( d -- d )
-nextentrance        ( d -- d )
+descrdbref          ( i -- d )
 
 See: M3, MUCKER LEVELS, individual prim entries for more details
 ~~~~~
+M3 PRIMS2|M3PRIMS2
+
+~~~
 W1PRIMS|W1 PRIMS|W1_PRIMS|W1-PRIMS
 The following prims become available at the level of W1, though
 they still may have some uses reserved for higher permission levels:
@@ -3062,6 +3080,11 @@ nextowned_flag      ( d s -- d )
 nextplayer_flag     ( d s -- d )
 nextthing_flag      ( d s -- d )
 nextplayer_power    ( d s -- d )
+nextentrance        ( d -- d )
+descrhost           ( i -- s )
+descripnum          ( i -- s )
+firstdescr          ( d -- i )
+lastdescr           ( d -- i )
 
 See: W1, MUCKER LEVELS, individual prim entries for more details
 ~~~~
@@ -3104,6 +3127,9 @@ propqueue           ( d1 s1 d2 s2 -- )
 envpropqueue        ( d1 s1 d2 s2 -- )
 newpassword         ( d s -- )
 descr_logout        ( i -- )
+descruser           ( i -- s )
+descrport           ( i -- s )
+descrconport        ( i -- i )
 
 See: W3, MUCKER LEVELS, individual prim entries for details
 ~
@@ -3586,7 +3612,7 @@ _disconnect/ = Works just like the connect props, except is run
 
 See PROPQUEUES3 for additional queues.
 ~
-PROPQUEUES3|PROPQUEUE3|ARRIVE|DEPART
+PROPQUEUES3|PROPQUEUE3|ARRIVE|DEPART|_ARRIVE|_DEPART
 
 _arrive/ = Runs programs whenever something arrives in a 
         room. The object that triggers it can be a player or a
@@ -5133,7 +5159,7 @@ FLOAT ERRORS PRIMS: CLEAR, ERROR_NUM, CLEAR_ERROR, SET_ERROR, IS_SET?
 
 See: Individual entries for more details. ERROR? for float error help.
 ~~~~~
-ARRAY PRIMS|ARRAYS
+ARRAY PRIMS|ARRAYS|ARRAY
 
 First appearing in FB6, array support in MUF provides the user with 
 a number of shortcuts when it comes to filtering through data, 
@@ -5240,6 +5266,23 @@ dbref numbers.
 
 See: ARRAY PRIMS
 ~
+}DICT|}ARRAY
+------------
+}dict ( { x1 x2 x3 ... xn -- dict )
+}array( { x1 x2 x3 ... xn -- array )
+--------------------------------------
+Level: M1 Apprentice
+{  = The opening stack marker.
+x1 ... xn = A range of items on the stack.
+dict = A dictionary array.
+array = A list array.
+
+These are both in-server $defines for:
+} array_make
+} array_dict_make
+
+See: ARRAY PRIMS
+~~~
 ARRAY_MAKE
 
 array_make ( {?} -- a )
@@ -5362,10 +5405,10 @@ If @ was the beginning of the array, or the array is empty, the
 integer will be 0, otherwise will be 1.
 
 See: ARRAY PRIMS, ARRAY_PREV, ARRAY_FIRST, ARRAY_NEXT
-~
-ARRAY_PREV
+~~~~
+ARRAY_NEXT
 
-array_prev( a @ -- @' i )
+array_next( a @ -- @' i )
 -------------------------
 Level: M1 Apprentice
 a  = An array.
@@ -5379,7 +5422,7 @@ If @ was the end of the array, or the array is empty, the
 integer and index marker will be 0, otherwise will be 1. 
 
 See: ARRAY PRIMS, ARRAY_PREV, ARRAY_FIRST, ARRAY_NEXT
-~
+~~~~
 ARRAY_GETITEM|[]
 
 array_getitem( a @ -- x )
@@ -5848,6 +5891,7 @@ array_union      = 2 array_nunion
 array_intersect  = 2 array_nintersect
 
 See: ARRAY_NDIFF, ARRAY_NUNION, ARRAY_NINTERSECT, ARRAY PRIMS
+~~~~
 ~~~~
 CLEAR
 
@@ -6841,7 +6885,7 @@ NEXTENTRANCE
 
 nextentrance( d1 -- d2 )
 ------------------------
-Level: M3 Master
+Level: W1 Mage
 d1 = Any valid dbref.
 d2 = First entrance to d1, or next entrance after d1.
 
@@ -6915,8 +6959,8 @@ be returning there. For example:
 
 This would declare 2 variables, strVar and intVar, and place the top two
 stack items in them as their initial values. According to the type names
-on each variable, the top stack item should be a string, and the 2nd item an
-int, but this is not actually checked when the program is run. 
+on each variable, the top stack item should be an inst, and the 2nd item a
+string, but this is not actually checked when the program is run. 
 arrVar is not declared in the function header, as it comes after the '--', 
 indicating that this function is intended to return an array.
 The type names that should be used for the sake of consistency are:
@@ -7401,3 +7445,149 @@ _/colors/red:blue
 
 Note that the preferences on object d always take priority over the global
 preferences on #0. 
+~~~~~~
+AKARI
+akari ( -- i )
+-------------------
+Level: M3 Master
+i = 1 or 0
+Takes a program, shakes it, claims it... and then uses it to control the rest
+of the MUCK. Use with care. Returns 1 if the operation is successful, or 0 if
+there were not enough cookies to warrant a takeover.
+~~~
+MAN
+MUF Manual
+----------
+The manual is arranged into entries on various MUF topics, special prim types,
+individual prim entries, and other information.
+
+For a list of MUF topics see: TOPICS LIST
+For a list of the topics on MUF prims see: PRIMS LIST
+For a list of condensed list of the MUF prims avalable see:
+   PRIMS1 PRIMS2 PRIMS3 PRIMS4 PRIMS5 PRIMS6
+
+The MUF manual is intended to be a reference to someone who already has  
+some of understanding of MUF. Those looking to learn MUF from the ground
+up should refer to some of the online resources available on the internet.
+~~~~~
+DESCRDBREF
+descrdbref ( i -- d )
+---------------------
+Level: M3 Master
+i = integer representing valid descriptor number.
+d = dbref of the player connected to that descriptor.
+
+Given a valid descriptor number, returns the player connected to that 
+descriptor.
+~~~~~
+DESCRIDLE
+descridle ( i1 -- i2 )
+----------------------
+Level: M2 Journeyman
+i1 = A valid descriptor.
+i2 = The idle time for that connected descriptor.
+
+Given a valid descriptor, returns the amount of time that connection has
+been idle in seconds.
+~~~~
+DESCRTIME
+descrtime ( i1 -- i2 )
+----------------------
+Level: M2 Journeyman
+i1 = A valid descriptor.
+i2 = The time that descriptor has been connected in seconds.
+
+Given a valid descriptor, returns the amount of time that connection has
+been open in seconds.
+~~~~
+DESCRHOST
+descrhost ( i -- s )
+--------------------
+Level: W1 Mage
+i = A valid descriptor.
+s = string representing the hostname for that connection.
+
+Given a valid descriptor, returns the IP host name for that connection.
+~~~~
+DESCRUSER
+descruser ( i -- s )
+--------------------
+Level: W3 ArchWizard
+i = Valid descriptor.
+s = string containing the user name.
+
+Given a valid descriptor, returns a string representing the username of 
+that connection's IP address.
+~~~
+DESCRIPNUM
+descripnum ( i -- s )
+---------------------
+Level: W1 Mage
+i = Valid descriptor.
+s = string representing a IP number.
+
+Given a valid descriptor, returns the IP number for that connection as a 
+string.
+~~~~
+DESCRPORT
+descrport ( i -- s )
+--------------------
+Level: W3 ArchWizard
+i = Valid descriptor.
+s = string representing a port number.
+
+Given a valid descriptor, returns the IP port number for that connection
+as a string. Note that that this is -not- the port that the user connected
+to the muck via, but instead is a port that they are using from their IP
+service to connect to the muck.
+~~~~
+DESCRCONPORT
+descrconport ( i1 -- i2 )
+-------------------------
+Level: W3 ArchWizard
+i1 = Valid descriptor.
+i2 = integer representing a port number.
+
+Given a valid descriptor, returns an integer representing the port number that
+that user connected via.
+~~~~~
+DESCRLEASTIDLE
+descrleastidle ( d -- i )
+-------------------------
+Level: M1 Apprentice
+d = A valid player dbref.
+i = That player's descriptor that is the least idle.
+
+Given a valid player dbref, returns that player's least idle descriptor.
+~~~~
+DESCRMOSTIDLE
+descrmostidle ( d -- i )
+------------------------
+Level: M1 Apprentice
+d = A valid player dbref.
+i = That player's descriptor that is the most idle.
+
+Given a valid player dbref, returns that player's most idle descriptor
+connection.
+~~~~
+FIRSTDESCR
+firstdescr ( d -- i )
+---------------------
+Level: W1 Mage
+d = A valid player dbref or #-1.
+i = integer representing a descriptor.
+
+Given a valid player dbref, returns that player's first descriptor number
+to the MUCK. If given #-1, returns the very first descriptor connected
+to the MUCK out of all the players.
+~~~
+LASTDESCR
+lastdescr ( d -- i )
+--------------------
+Level: W1 Mage
+d = A valid dbref or #-1.
+i = integer representing a descriptor.
+
+Given a valid player dbref, returns that player's first descriptor
+number to the MUCK. If given #-1, returns the very first descriptor
+connected to the MUCK out of all the players.

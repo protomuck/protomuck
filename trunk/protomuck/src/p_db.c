@@ -1855,35 +1855,56 @@ prim_nextthing(PRIM_PROTOTYPE)
 void
 prim_nextentrance(PRIM_PROTOTYPE)
 {
-	dbref lrom;
+      dbref lrom, ref;
       int i;
-
-	CHECKOP(1);
-	oper1 = POP();
+      CHECKOP(1);
+      oper1 = POP();
       oper2 = POP();
-	if (mlev < LMAGE)
-		abort_interp("Mage only prim.");
-	ref = oper1->data.objref;
+      if (mlev < LMAGE)
+            abort_interp("Mage only prim.");
+      if (!valid_object(oper1))
+            abort_interp("Invalid dbref (1).");
+      ref = oper2->data.objref;
       lrom = oper1->data.objref;
-      if (ref  < 0 || ref >= db_top || lrom < -3 || lrom == -2 || lrom >= db_top)
+      if (ref == AMBIGUOUS || ref < HOME || ref >= db_top || lrom <= HOME || lrom >= db_top)
             abort_interp("Invalid reference object");
-	CHECKREMOTE(ref);
-
-	while (ref < db_top)
-            if (Typeof(ref) == TYPE_EXIT)
-               if (DBFETCH(ref)->sp.exit.dest[0] == lrom && ref != lrom)
+      CHECKREMOTE(ref);
+      if (ref == HOME) {
+         ref = DBFETCH(player)->sp.player.home;
+      }
+      while (lrom < db_top) {
+            if (Typeof(lrom) == TYPE_EXIT) {
+               if ((DBFETCH(lrom)->sp.exit.dest[0] == ref) && (ref != lrom)) {
                   break;
-               else
-                  ref++;
-            else
-               ref++;
-
-	if (ref >= db_top) {
-		ref = NOTHING;
-	}
-	CLEAR(oper1);
+               } else {
+                  lrom++;
+               }
+            } else {
+               if (Typeof(lrom) == TYPE_ROOM) {
+                  if ((DBFETCH(lrom)->sp.room.dropto == ref) && (ref != lrom)) {
+                     break;
+                  } else {
+                     lrom++;
+                  }
+               } else {
+                  if ((Typeof(lrom) == TYPE_THING) || (Typeof(lrom) == TYPE_PLAYER)) {
+                     if ((Typeof(lrom) == TYPE_THING ? DBFETCH(lrom)->sp.thing.home == ref : DBFETCH(lrom)->sp.player.home == ref) && (ref != lrom)) {
+                        break;
+                     } else {
+                        lrom++;
+                     }
+                  } else {
+                     lrom++;
+                  }
+               }
+            }
+      }
+      if (lrom >= db_top) {
+            lrom = NOTHING;
+ }
+      CLEAR(oper1);
       CLEAR(oper2);
-	PushObject(ref);
+      PushObject(lrom);
 }
 
 void

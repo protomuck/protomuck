@@ -150,7 +150,6 @@ prim_contime(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
-
 void 
 prim_conhost(PRIM_PROTOTYPE)
 {
@@ -321,6 +320,8 @@ prim_nextdescr(PRIM_PROTOTYPE)
 	abort_interp("Mage prim");
     if (oper1->type != PROG_INTEGER)
 	abort_interp("Argument not an integer (1)");
+    if (!pdescrp(oper1->data.number))
+       abort_interp("That is not a valid descriptor.");
     result = oper1->data.number;
     result = pnextdescr(result);
     CLEAR(oper1);
@@ -350,10 +351,11 @@ prim_descriptors(PRIM_PROTOTYPE)
     CHECKOP(0);
 
     if (ref == NOTHING) {
-        for (result = pcount(); result; result--) {
+        result = pfirstdescr();
+        while(result) {
             CHECKOFLOW(1);
-            mydescr = pdescr(result);
-            PushInt(mydescr);
+            PushInt(result);
+            result = pnextdescr(result);
             mycount++;
         }
     } else {
@@ -396,13 +398,17 @@ prim_descr_array(PRIM_PROTOTYPE)
 	temp1.line = 0;
 	temp2.line = 0;
     if (ref == NOTHING) {
-                result = pcount();
-                newarr = new_array_packed(result);
-		for (i = 0; i < result; i++) {
+                result = pfirstdescr();
+                i = pdescrcount();
+                newarr = new_array_packed(i);
+                i = 0;
+		while (result) {
 			temp1.data.number = i;
-			temp2.data.number = pdescr(i + 1);
+			temp2.data.number = result;
 			array_setitem(&newarr, &temp1, &temp2);
-        }
+                  result = pnextdescr(result);
+                  i++;
+            }
 	} else {
         darr = get_player_descrs(ref, &dcount);
         newarr = new_array_packed(dcount);
@@ -438,6 +444,8 @@ prim_descr_setuser(PRIM_PROTOTYPE)
 	abort_interp("Player dbref expected (2)");
     if (oper3->type != PROG_STRING)
 	abort_interp("Password string expected");
+    if (!pdescrp(oper1->data.number))
+       abort_interp("That is not a valid descriptor.");
     ptr = oper3->data.string? oper3->data.string->data : "";
     if (ref != NOTHING) { 
         const char *passwd = DBFETCH(ref)->sp.player.password; 
@@ -472,6 +480,72 @@ prim_descr(PRIM_PROTOTYPE)
 }
 
 void
+prim_firstdescr(PRIM_PROTOTYPE)
+{
+	/* ref -- int */
+      int* darr;
+      int  dcount;
+
+      CHECKOP(1);
+      oper2 = POP();
+      if (mlev < LMAGE )
+         abort_interp("Mage level prim.");
+      if (oper2->type != PROG_OBJECT)
+         abort_interp("Player dbref expected (2)");
+      ref = oper2->data.objref;
+      if (ref != NOTHING && !valid_player(oper2))
+         abort_interp("Player dbref expected (2)");
+      if(ref == NOTHING) {
+         result = pfirstdescr();
+      } else {
+         if (Typeof(ref) != TYPE_PLAYER)
+            abort_interp("invalid argument");
+         if (online(ref)) {
+            darr = get_player_descrs(ref, &dcount);
+            result = index_descr(darr[dcount - 1]);
+         } else {
+            result = 0;
+         }
+      }
+      CHECKOFLOW(1);
+      CLEAR(oper2);
+      PushInt(result);
+}
+
+void
+prim_lastdescr(PRIM_PROTOTYPE)
+{
+	/* ref -- int */
+	int* darr;
+      int  dcount;
+
+	CHECKOP(1);
+      oper2 = POP();
+      if (mlev < LMAGE )
+         abort_interp("Mage level prim.");
+      if (oper2->type != PROG_OBJECT)
+         abort_interp("Player dbref expected (2)");
+      ref = oper2->data.objref;
+      if (ref != NOTHING && !valid_player(oper2))
+         abort_interp("Player dbref expected (2)");
+      if(ref == NOTHING) {
+         result = plastdescr();
+      } else {
+         if (Typeof(ref) != TYPE_PLAYER)
+            abort_interp("invalid argument");
+         if (online(ref)) {
+            darr = get_player_descrs(ref, &dcount);
+            result = index_descr(darr[0]);
+         } else {
+            result = 0;
+         }
+      }
+	CHECKOFLOW(1);
+      CLEAR(oper2);
+	PushInt(result);
+}
+
+void
 prim_descrflush(PRIM_PROTOTYPE)
 {
 	CHECKOP(1);
@@ -502,7 +576,9 @@ prim_descr_htmlp(PRIM_PROTOTYPE)
 
     result = ( (pdescrtype(oper1->data.number) == CT_PUEBLO) || (pdescrtype(oper1->data.number) == CT_HTML) );
 
+    CHECKOFLOW(1);
     CLEAR(oper1);
+    CHECKOFLOW(1);
     PushInt(result);
 }
 
@@ -522,6 +598,7 @@ prim_descr_pueblop(PRIM_PROTOTYPE)
 
     result = ( pdescrtype(oper1->data.number) == CT_PUEBLO );
 
+    CHECKOFLOW(1);
     CLEAR(oper1);
     PushInt(result);
 }
@@ -557,6 +634,7 @@ prim_descrp(PRIM_PROTOTYPE)
 
     result = pdescrp(oper1->data.number);
 
+    CHECKOFLOW(1);
     CLEAR(oper1);
     PushInt(result);
 }
@@ -591,6 +669,219 @@ prim_descr_logout(PRIM_PROTOTYPE)
        abort_interp("That is not a valid descriptor.");
 
     pdescr_logout(oper1->data.number);
+    CLEAR(oper1);
+}
+
+
+void
+prim_descrdbref(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LM3)
+	abort_interp("M3 prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   CHECKOFLOW(1);
+   PushObject(dr->player);
+}
+
+void
+prim_descridle(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+   int result;
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LM2)
+	abort_interp("M2 prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   result = time(NULL);
+   result = (result - dr->last_time);
+   CHECKOFLOW(1);
+   CLEAR(oper1);
+   PushInt(result);
+}
+
+void
+prim_descrtime(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+   int result;
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LM2)
+	abort_interp("M2 prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   result = time(NULL);
+   result = (result - dr->connected_at);
+   CLEAR(oper1);
+   CHECKOFLOW(1);
+   PushInt(result);
+}
+
+void
+prim_descrhost(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LARCH)
+       abort_interp("Mage prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   CLEAR(oper1);
+   CHECKOFLOW(1);
+   PushString(dr->hostname);
+}
+
+void
+prim_descruser(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LARCH)
+       abort_interp("Arch prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   CLEAR(oper1);
+   CHECKOFLOW(1);
+   PushString(dr->username);
+}
+
+void
+prim_descripnum(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+   static char ipnum[40];
+   const char *p;
+   struct descriptor_data *d;
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LMAGE)
+       abort_interp("Mage prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   p = host_as_hex(dr->hostaddr);
+   strcpy(ipnum, p);
+   CLEAR(oper1);
+   CHECKOFLOW(1);
+   PushString((char *) ipnum);
+}
+
+void
+prim_descrport(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+   static char port[40];
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LARCH)
+       abort_interp("Arch prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   sprintf(port, "%d", dr->port);
+   CLEAR(oper1);
+   CHECKOFLOW(1);
+   PushString((char *) port);
+}
+
+void
+prim_descrconport(PRIM_PROTOTYPE)
+{
+   struct descriptor_data *dr;
+   static char port[40];
+
+   CHECKOP(1);
+   oper1 = POP();
+    if (mlev < LARCH)
+       abort_interp("Arch prim");
+   if (oper1->type != PROG_INTEGER)
+	abort_interp("Argument not an integer (1)");
+   if (!pdescrp(oper1->data.number))
+      abort_interp("That is not a valid descriptor.");
+   dr = descrdata_by_descr(oper1->data.number);
+   CLEAR(oper1);
+   CHECKOFLOW(1);
+   PushInt(dr->cport);
+}
+
+void
+prim_descrleastidle(PRIM_PROTOTYPE)
+{
+	CHECKOP(1);
+      oper2 = POP();
+      if (oper2->type != PROG_OBJECT)
+         abort_interp("Player dbref expected (2)");
+      ref = oper2->data.objref;
+      if (!valid_player(oper2))
+         abort_interp("Player dbref expected (2)");
+      result = pdescr(least_idle_player_descr(ref));
+      CLEAR(oper1);
+      CHECKOFLOW(1);
+      PushInt(result);
+}
+
+void
+prim_descrmostidle(PRIM_PROTOTYPE)
+{
+	CHECKOP(1);
+      oper2 = POP();
+      if (oper2->type != PROG_OBJECT)
+         abort_interp("Player dbref expected (2)");
+      ref = oper2->data.objref;
+      if (!valid_player(oper2))
+         abort_interp("Player dbref expected (2)");
+      result = pdescr(most_idle_player_descr(ref));
+      CLEAR(oper1);
+      CHECKOFLOW(1);
+      PushInt(result);
+}
+
+void
+prim_descrboot(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (mlev < LARCH)
+       abort_interp("Arch prim");
+    if (oper1->type != PROG_INTEGER)
+       abort_interp("Argument not an integer (1)");
+    if (!pdescrp(oper1->data.number))
+       abort_interp("That is not a valid descriptor.");
+    pdboot(oper1->data.number);
     CLEAR(oper1);
 }
 

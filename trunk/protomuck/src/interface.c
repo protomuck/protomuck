@@ -4116,6 +4116,31 @@ least_idle_player_descr(dbref who)
 }
 
 
+int
+most_idle_player_descr(dbref who)
+{
+        struct descriptor_data *d;
+	struct descriptor_data *best_d = NULL;
+	int dcount, di;
+	int* darr;
+	long best_time = 0;
+
+	darr = get_player_descrs(who, &dcount);
+	for (di = 0; di < dcount; di++) {
+		d = descrdata_by_index(darr[di]);
+		if (d && (!best_time || d->last_time < best_time)) {
+			best_d = d;
+			best_time = d->last_time;
+		}
+	}
+	if (best_d) {
+		return best_d->con_number;
+	}
+	return 0;
+
+}
+
+
 char   *
 pipnum(int count)
 {
@@ -4177,6 +4202,20 @@ pboot(int count)
     }
 }
 
+void 
+pdboot(int c)
+{
+    struct descriptor_data *d;
+
+    d = descrdata_by_descr(c);
+
+    if (d) {
+	process_output(d);
+	d->booted = 1;
+	/* shutdownsock(d); */
+    }
+}
+
 
 void 
 pnotify(int count, char *outstr)
@@ -4207,6 +4246,52 @@ pdescr(int count)
 
 
 int 
+pdescrcount(void)
+{
+    struct descriptor_data *d;
+    int icount = 0;
+
+    d = descriptor_list;
+    while (d) {
+	d = d->next;
+      icount++;
+    }
+    return icount;
+}
+
+
+int 
+pfirstdescr(void)
+{
+    struct descriptor_data *d;
+
+    d = descriptor_list;
+
+    if (d)
+	return d->descriptor;
+
+    return -1;
+}
+
+
+int 
+plastdescr(void)
+{
+    struct descriptor_data *d;
+    int curdescr = 0;
+
+    d = descriptor_list;
+
+    while (d) {
+       curdescr = d->descriptor;
+       d = d->next;
+    }
+
+    return curdescr;
+}
+
+
+int 
 pnextdescr(int descr)
 {
     struct descriptor_data *d;
@@ -4214,8 +4299,8 @@ pnextdescr(int descr)
     d = descrdata_by_descr(descr);
     if (d)
 	d = d->next;
-    while (d && (!d->connected))
-	d = d->next;
+/*    while (d && (!d->connected))
+	d = d->next; */
     if (d)
 	return d->descriptor;
 
@@ -4572,6 +4657,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

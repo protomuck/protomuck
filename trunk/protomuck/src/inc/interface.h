@@ -67,6 +67,8 @@ extern void httpd(struct descriptor_data *d, const char *name, const char *http)
 extern void httpd_unknown(struct descriptor_data *d, const char *name);
 #endif
 
+extern struct  descriptor_data* descrdata_by_index(int index);
+extern struct descriptor_data* descrdata_by_descr(int i);
 extern int notify(dbref player, const char *msg);
 extern int notify_nolisten(dbref player, const char *msg, int ispriv);
 extern void notify_descriptor(int c, const char *msg);
@@ -99,6 +101,7 @@ extern void boot_player_off(dbref player);
 extern int online(dbref player);
 extern int *get_player_descrs(dbref player, int *count);
 extern int least_idle_player_descr(dbref who);
+extern int most_idle_player_descr(dbref who);
 extern int pcount();
 extern int pidle(int c);
 extern int pdbref(int c);
@@ -107,10 +110,13 @@ extern char *phost(int c);
 extern char *puser(int c);
 extern char *pipnum(int c);
 extern char *pport(int c);
-extern int pfirstdescr(dbref who);
 extern void pboot(int c);
+extern void pdboot(int c);
 extern void pnotify(int c, char *outstr);
 extern int pdescr(int c);
+extern int pdescrcount(void);
+extern int pfirstdescr(void);
+extern int plastdescr(void);
 extern int pdescrcon(int c);
 extern McpFrame *descr_mcpframe(int c);
 extern int pnextdescr(int c);
@@ -131,6 +137,7 @@ extern int pdescrtype(int c);
 extern void pdescr_welcome_user(int c);
 extern void pdescr_logout(int c);
 extern void pdump_who_users(int c, char *user);
+extern const char* host_as_hex( unsigned addr );
 
 /* the following symbols are provided by game.c */
 
@@ -265,6 +272,7 @@ extern void panic(const char *);
 #define ANSI_BG_BLUE	"\033[44m"
 #define ANSI_BG_MAGENTA	"\033[45m"
 #define ANSI_BG_WHITE	"\033[47m"
+
 
 
 
