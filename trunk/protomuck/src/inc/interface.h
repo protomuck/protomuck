@@ -21,6 +21,7 @@ struct text_queue {
 struct descriptor_data {
     int     descriptor;
     int     connected;
+    int     con_number;
     int     booted;
     int	    fails;
     dbref   player;
@@ -95,7 +96,10 @@ extern int restart_flag; /* if non-zero, should restart after shut down */
 extern void emergency_shutdown(void);
 extern int boot_off(dbref player);
 extern void boot_player_off(dbref player);
+extern void boot_player_off_too(dbref player);
 extern int online(dbref player);
+extern int *get_player_descrs(dbref player, int *count);
+extern int least_idle_player_descr(dbref who);
 extern int pcount();
 extern int pidle(int c);
 extern int pdbref(int c);
@@ -261,4 +265,5 @@ extern void panic(const char *);
 #define ANSI_BG_BLUE	"\033[44m"
 #define ANSI_BG_MAGENTA	"\033[45m"
 #define ANSI_BG_WHITE	"\033[47m"
+
 

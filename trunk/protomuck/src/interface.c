@@ -1,5 +1,5 @@
 /*
- * $Header: /export/home/davin/tmp/protocvs/protomuck/src/interface.c,v 1.3 2000-09-18 02:35:09 akari Exp $
+ * $Header: /export/home/davin/tmp/protocvs/protomuck/src/interface.c,v 1.4 2000-09-18 02:49:37 akari Exp $
  *
  * $Log: not supported by cvs2svn $
  *
@@ -114,6 +114,7 @@ void    check_connect(struct descriptor_data * d, const char *msg);
 void    close_sockets(const char *msg);
 int     boot_off(dbref player);
 void    boot_player_off(dbref player);
+void    boot_player_off_too(dbref player);
 const char *addrout(int, unsigned short);
 void    dump_users(struct descriptor_data * d, char *user);
 struct descriptor_data *new_connection(int sock, int ctype);
@@ -135,6 +136,7 @@ void    init_descr_count_lookup();
 void    remember_descriptor(struct descriptor_data *);
 void    remember_player_descr(dbref player, int);
 void    update_desc_count_table();
+int*    get_player_descrs(dbref player, int* count);
 void    forget_player_descr(dbref player, int);
 void    forget_descriptor(struct descriptor_data *);
 struct descriptor_data* descrdata_by_descr(int i);
@@ -654,16 +656,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 	if (*ptr2 == '\r')
 	    ptr2++;
 
-	if (Typeof(player) == TYPE_PLAYER) {
-	    darr = DBFETCH(player)->sp.player.descrs;
-	    dcount = DBFETCH(player)->sp.player.descr_count;
-	    if (!darr) {
-		dcount = 0;
-	    }
-	} else {
-	    dcount = 0;
-	    darr = NULL;
-	}
+	darr = get_player_descrs(player, &dcount);
 
         for (di = 0; di < dcount; di++) {
           d = descrdata_by_descr(darr[di]);
@@ -680,9 +673,9 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 		if((d->linelen > 0) && !(FLAGS(player)&CHOWN_OK)) {
 		    lwp = buf;
 		    len = strlen(buf);
-		    queue_ansi(d, buf);
+		    queue_ansi(descrdata_by_descr(darr[di]), buf);
 		} else
-		    queue_ansi(d, buf);
+		    queue_ansi(descrdata_by_descr(darr[di]), buf);
 
 		if (firstpass) retval++;
 	    }
@@ -718,16 +711,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 			    sprintf(buf2, "%s %.*s", prefix,
 				(int)(BUFFER_LEN - (strlen(prefix) + 2)), buf);
 			}
-                        if (Typeof(OWNER(player)) == TYPE_PLAYER) {
-                            darr   = DBFETCH(OWNER(player))->sp.player.descrs;
-                            dcount = DBFETCH(OWNER(player))->sp.player.descr_count;
-                            if (!darr) {
-                                dcount = 0;
-                            }
-                        } else {
-                            dcount = 0;
-                            darr = NULL;
-                        }
+				darr = get_player_descrs(player, &dcount);
 
                         for (di = 0; di < dcount; di++) {
 				    if (Html(player))
@@ -780,17 +764,7 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 	}
 	*(ptr1++) = '\0';
 
-
-	if (Typeof(player) == TYPE_PLAYER) {
-	    darr = DBFETCH(player)->sp.player.descrs;
-	    dcount = DBFETCH(player)->sp.player.descr_count;
-	    if (!darr) {
-		dcount = 0;
-	    }
-	} else {
-	    dcount = 0;
-	    darr = NULL;
-	}
+	darr = get_player_descrs(player, &dcount);
 
         for (di = 0; di < dcount; di++) {
             d = descrdata_by_descr(darr[di]);
@@ -800,10 +774,10 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 		{
 		    lwp = buf;
 		    len = strlen(buf);
-		    queue_ansi(d, buf);
+		    queue_ansi(descrdata_by_descr(darr[di]), buf);
 		} else if ((Html(d->player)) && (d->player == player))
 		{
-		    queue_ansi(d, buf);
+		    queue_ansi(descrdata_by_descr(darr[di]), buf);
 		    if (NHtml(d->player)) queue_string(d, "<BR>");
 		}
 		if (firstpass) retval++;
@@ -841,16 +815,7 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
 			    sprintf(buf2, "%s %.*s", prefix,
 				(int)(BUFFER_LEN - (strlen(prefix) + 2)), buf);
 			}
-                        if (Typeof(OWNER(player)) == TYPE_PLAYER) {
-                            darr   = DBFETCH(OWNER(player))->sp.player.descrs;
-                            dcount = DBFETCH(OWNER(player))->sp.player.descr_count;
-                            if (!darr) {
-                                dcount = 0;
-                            }
-                        } else {
-                            dcount = 0;
-                            darr = NULL;
-                        }
+				darr = get_player_descrs(player, &dcount);
 
                         for (di = 0; di < dcount; di++) {
                             queue_ansi(descrdata_by_descr(darr[di]), buf2);
@@ -1775,18 +1740,8 @@ flush_user_output(dbref player)
     int* darr;
     int dcount;
     struct descriptor_data *d;
- 
-    if (Typeof(player) == TYPE_PLAYER) {
-        darr = DBFETCH(player)->sp.player.descrs;
-        dcount = DBFETCH(player)->sp.player.descr_count;
-        if (!darr) {
-            dcount = 0;
-        }
-    } else {
-        dcount = 0;
-        darr = NULL;
-    }
 
+    darr = get_player_descrs(OWNER(player), &dcount);
     for (di = 0; di < dcount; di++) {
         d = descrdata_by_descr(darr[di]);
         if (d && !process_output(d)) {
@@ -2131,6 +2086,7 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype)
     d->player = NOTHING;
     d->booted = 0;
     d->fails = 0;
+    d->con_number = 0;
     d->connected_at = time((time_t *)NULL);
     make_nonblocking(s);
     d->output_prefix = 0;
@@ -3215,13 +3171,16 @@ parse_connect(const char *msg, char *command, char *user, char *pass)
 int 
 boot_off(dbref player)
 {
-    /* WORK: use player.descrs */
+    int* darr;
+    int dcount;
     struct descriptor_data *d;
     struct descriptor_data *last = NULL;
 
-    for (d = descriptor_list; d; d = d->next)
-	if (d->connected && d->player == player)
-	    last = d;
+	darr = get_player_descrs(player, &dcount);
+	if (darr) {
+        last = descrdata_by_descr(darr[0]);
+	}
+
 
     if (last) {
 	process_output(last);
@@ -3240,16 +3199,7 @@ boot_player_off(dbref player)
     int dcount;
     struct descriptor_data *d;
  
-    if (Typeof(player) == TYPE_PLAYER) {
-        darr = DBFETCH(player)->sp.player.descrs;
-        dcount = DBFETCH(player)->sp.player.descr_count;
-        if (!darr) {
-            dcount = 0;
-        }
-    } else {
-        dcount = 0;
-        darr = NULL;
-    }
+	darr = get_player_descrs(player, &dcount);
 
     for (di = 0; di < dcount; di++) {
         d = descrdata_by_descr(darr[di]);
@@ -3259,6 +3209,31 @@ boot_player_off(dbref player)
     }
 }
 
+void 
+boot_player_off_too(dbref player)
+{
+    int di;
+    int* darr;
+    int dcount;
+    struct descriptor_data *d;
+ 
+	darr = get_player_descrs(player, &dcount);
+
+    for (di = 0; di < dcount; di++) {
+        d = descrdata_by_descr(darr[di]);
+        if (d) {
+#ifdef HTTPDELAY
+		if(d->httpdata) {
+		    queue_string(d, d->httpdata);
+		    free((void *)d->httpdata);
+		    d->httpdata = NULL;
+		}
+#endif
+		process_output(d);
+            shutdownsock(d);
+        }
+    }
+}
 
 void
 close_sockets(const char *msg)
@@ -4049,6 +4024,7 @@ update_desc_count_table()
     {
         if (d->connected)
 	{
+	    d->con_number = c + 1;
 	    descr_count_table[c++] = d;
 	    current_descr_count++;
 	}
@@ -4076,11 +4052,32 @@ init_descriptor_lookup()
     }
 }
 
+int*
+get_player_descrs(dbref player, int* count)
+{
+	int* darr;
+
+	if (Typeof(player) == TYPE_PLAYER) {
+		*count = DBFETCH(player)->sp.player.descr_count;
+	    darr = DBFETCH(player)->sp.player.descrs;
+		if (!darr) {
+			*count = 0;
+		}
+		return darr;
+	} else {
+		*count = 0;
+		return NULL;
+	}
+}
+
 void
 remember_player_descr(dbref player, int descr)
 {
     int  count = DBFETCH(player)->sp.player.descr_count;
     int* arr   = DBFETCH(player)->sp.player.descrs;
+
+    if (Typeof(player) != TYPE_PLAYER)
+       return;
 
     if (!arr) {
         arr = (int*)malloc(sizeof(int));
@@ -4100,6 +4097,9 @@ forget_player_descr(dbref player, int descr)
 {
     int  count = DBFETCH(player)->sp.player.descr_count;
     int* arr   = DBFETCH(player)->sp.player.descrs;
+
+    if (Typeof(player) != TYPE_PLAYER)
+       return;
 
     if (!arr) {
         count = 0;
@@ -4245,6 +4245,31 @@ puser(int c)
     return (char *) NULL;
 }
 
+/*** Foxen ***/
+int
+least_idle_player_descr(dbref who)
+{
+	struct descriptor_data *d;
+	struct descriptor_data *best_d = NULL;
+	int dcount, di;
+	int* darr;
+	long best_time = 0;
+
+	darr = get_player_descrs(who, &dcount);
+	for (di = 0; di < dcount; di++) {
+		d = descrdata_by_descr(darr[di]);
+		if (d && (!best_time || d->last_time > best_time)) {
+			best_d = d;
+			best_time = d->last_time;
+		}
+	}
+	if (best_d) {
+		return best_d->con_number;
+	}
+	return 0;
+}
+
+
 char   *
 pipnum(int c)
 {
@@ -4309,6 +4334,7 @@ pboot(int c)
     }
 }
 
+
 void 
 pnotify(int c, char *outstr)
 {
@@ -4356,15 +4382,12 @@ pdescrcon(int c)
     struct descriptor_data *d;
     int     i = 1;
 
-    d = descriptor_list;
-    while (d && (d->descriptor != c)) {
-	if (d->connected) i++;
-	d = d->next;
-    }
-    if (d && d->connected) {
-	return (i);
-    }
-    return (0);
+    d = descrdata_by_descr(c);
+	if (d) {
+		return d->con_number;
+	} else {
+		return 0;
+	}
 }
 
 
@@ -4466,16 +4489,16 @@ pset_user2(int c, dbref who)
 int
 dbref_first_descr(dbref c)
 {
+	int dcount;
+	int* darr;
 	struct descriptor_data *d;
 
-	d = descriptor_list;
-	while (d && d->connected) {
-		if (d->player == c) {
-			return d->descriptor;
-		}
-		d = d->next;
+	darr = get_player_descrs(c, &dcount);
+	if (dcount > 0) {
+		return darr[dcount - 1];
+	} else {
+		return NOTHING;
 	}
-	return NOTHING;
 }
 
 int
@@ -4484,17 +4507,23 @@ pdescrflush(int c)
 	struct descriptor_data *d;
 	int i = 0;
 
-	d = descriptor_list;
-	while (d) {
-		if (c == -1 || (c == d->descriptor)) {
+	if (c != -1) {
+		d = descrdata_by_descr(c);
+		if (d) {
 			if (!process_output(d)) {
 				d->booted = 1;
 			}
 			i++;
 		}
-		d = d->next;
+	} else {
+		for (d = descriptor_list; d; d = d->next) {
+			if (!process_output(d)) {
+				d->booted = 1;
+			}
+			i++;
+		}
 	}
-	return (i);
+	return i;
 }
 
 int
@@ -4694,6 +4723,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

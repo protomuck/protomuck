@@ -2137,13 +2137,13 @@ prim_toadplayer(PRIM_PROTOTYPE) {
 	log_status("FROB[MUF]: %s(%d) by %s(%d)\n", NAME(victim),
 		   victim, NAME(player), player);
 
+	boot_player_off_too(victim);
 	delete_player(victim);
 	/* reset name */
 	sprintf(buf, "The soul of %s", PNAME(victim));
 	free((void *) NAME(victim));
 	NAME(victim) = alloc_string(buf);
 	DBDIRTY(victim);
-	boot_player_off(victim);
 	FLAGS(victim) = (FLAGS(victim) & ~TYPE_MASK) | TYPE_THING;
 	OWNER(victim) = player;	/* you get it */
 	DBFETCH(victim)->sp.thing.value = 1;
