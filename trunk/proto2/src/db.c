@@ -356,7 +356,6 @@ fetch_propvals(dbref obj, const char *dir)
     return cnt;
 }
 
-
 void
 putprops_copy(FILE * f, dbref obj)
 {
@@ -1471,8 +1470,6 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
 
     FLAGS(objno) &= ~SAVED_DELTA;
 
-
-
     if (dtype != 3) {
         if (verboseload)
             fprintf(stderr, "[timestamps v4] ");
@@ -1611,6 +1608,9 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
 
             break;
         case TYPE_GARBAGE:
+            free((void *) NAME(objno));
+            NAME(objno) = "<garbage>";
+
             if (verboseload)
                 fprintf(stderr, "[type: GARBAGE] ");
             break;

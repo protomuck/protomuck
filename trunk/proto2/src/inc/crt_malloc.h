@@ -11,6 +11,7 @@
 #endif
 extern void CrT_check(const char *, int);
 extern int CrT_check_everything(const char *, int);
+extern void CrT_summarize_to_file(const char *file, const char *comment);
 extern void *CrT_malloc(size_t size, const char *whatfile, int whatline);
 extern void *CrT_calloc(size_t num, size_t size, const char *whatfile, int whatline);
 extern void *CrT_realloc(void *p, size_t size, const char *whatfile, int whatline);

@@ -83,10 +83,6 @@ ssize_t socket_write(struct descriptor_data *d, const char *buf, size_t count);
 
 /* ssl.h is included in interface.h */
 
-#ifdef COMPRESS
-extern const char *uncompress(const char *);
-#endif
-
 void process_commands(void);
 void shovechars(void);
 void shutdownsock(struct descriptor_data *d);
@@ -299,6 +295,15 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
     strncpy(buf, pw, size);
     return ((pwlen > size) ? size : pwlen);
 }
+#endif
+
+#ifdef MALLOC_PROFILING
+extern void free_old_macros(void);
+extern void purge_all_free_frames(void);
+extern void purge_mfns(void);
+extern void cleanup_game(void);
+extern void tune_freeparms(void);
+extern void free_compress_dictionary(void);
 #endif
 
 int
@@ -1092,7 +1097,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
                         char pbuf[BUFFER_LEN];
                         const char *prefix;
 
-                        prefix = get_uncompress(GETPECHO(player));
+                        prefix = GETPECHO(player);
 
                         if (prefix && *prefix) {
                             char ch = *match_args;
@@ -1193,7 +1198,7 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
                         char pbuf[BUFFER_LEN];
                         const char *prefix;
 
-                        prefix = get_uncompress(GETPECHO(player));
+                        prefix = GETPECHO(player);
 
                         if (prefix && *prefix) {
                             char ch = *match_args;
@@ -1787,7 +1792,9 @@ shovechars(void)
 
 #ifdef MUF_SOCKETS
             for (curr = socket_list; curr; curr = curr->next) {
-                if (FD_ISSET(curr->theSock->socknum, &input_set) || (!curr->theSock->connected && FD_ISSET(curr->theSock->socknum, &output_set))) {
+                if (FD_ISSET(curr->theSock->socknum, &input_set)
+                    || (!curr->theSock->connected
+                        && FD_ISSET(curr->theSock->socknum, &output_set))) {
                     muf_socket_sendevent(curr);
                 }
             }
@@ -3616,12 +3623,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                 /****/
+        if (d->next)                                                                                                                         /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                                             /****/
+        if (d->hostname)                                                                                                                     /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                                             /****/
+        if (d->username)                                                                                                                     /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
@@ -3949,7 +3956,6 @@ dump_users(struct descriptor_data *d, char *user)
 
     if (!wizwho && tp_who_doing) {
         if ((p = get_property_class((dbref) 0, "_poll"))) {
-            p = get_uncompress(p);
             sprintf(dobuf, "%-43s", p);
         } else {
             sprintf(dobuf, "%-43s", "Doing...");
@@ -4089,13 +4095,10 @@ dump_users(struct descriptor_data *d, char *user)
                                                               player) &
                                                         INTERACTIVE)
                                                        ? "*" : " ") : " "),
-                                SYSCYAN, GETDOING(dlist->player) ?
-#ifdef COMPRESS
-                                uncompress(GETDOING(dlist->player))
-#else
-                                GETDOING(dlist->player)
-#endif
-                                : "");
+                                SYSCYAN,
+                                GETDOING(dlist->player) ? GETDOING(dlist->
+                                                                   player) :
+                                "");
                     } else {
                         sprintf(buf, "%s%s %s%10s%s%s%4s%s\r\n",
                                 SYSGREEN, plyrbuf, SYSPURPLE,
@@ -4226,7 +4229,7 @@ announce_puppets(dbref player, const char *msg, const char *prop)
                 if ((!Dark(where)) && (!Dark(player)) && (!Dark(what))) {
                     msg2 = msg;
                     if ((ptr = (char *) get_property_class(what, prop)) && *ptr)
-                        msg2 = get_uncompress(ptr);
+                        msg2 = ptr;
                     sprintf(buf, CMOVE "%.512s %.3000s", PNAME(what), msg2);
                     anotify_except(DBFETCH(where)->contents, what, buf, what);
                 }
@@ -5489,8 +5492,6 @@ init_ignore(dbref tgt)
     register short i = 0;
 
     if ((rawstr = get_property_class(tgt, "/@/ignore"))) {
-        rawstr = get_uncompress(rawstr);
-
         fprintf(stderr, "1: %s\n", rawstr);
 
         for (; *rawstr && isspace(*rawstr); rawstr++) ;

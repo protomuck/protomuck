@@ -15,12 +15,6 @@
 
 #define DOWNCASE(x) (tolower(x))
 
-#ifdef COMPRESS
-extern const char *uncompress(const char *);
-#else
-#define uncompress(x) x
-#endif /* COMPRESS */
-
 /*
  * routine to be used instead of strcasecmp() in a sorting routine
  * Sorts alphabetically or numerically as appropriate.
@@ -195,9 +189,9 @@ pronoun_substitute(int descr, dbref player, const char *str)
 
                 if (d == 'A' || d == 'S' || d == 'O' ||
                     d == 'P' || d == 'R' || d == 'N') {
-                    self_sub = get_uncompress(get_property_class(mywhere, prn));
+                    self_sub = get_property_class(mywhere, prn);
                 } else {
-                    self_sub = get_uncompress(envpropstr(&mywhere, prn));
+                    self_sub = envpropstr(&mywhere, prn);
                 }
 
                 if (self_sub) {
@@ -518,52 +512,47 @@ color_lookup(dbref player, const char *color, const char *defcolor,
         return defcolor;
     if (player != NOTHING) {
         if (!strcasecmp("SUCC", color) || !strcasecmp("CSUCC", color)) {
-            tempcolor = get_uncompress(GETMESG(player, "_/COLORS/SUCC"));
+            tempcolor = GETMESG(player, "_/COLORS/SUCC");
             if (!tempcolor)
-                tempcolor =
-                    get_uncompress(GETMESG(OWNER(player), "_/COLORS/SUCC"));
+                tempcolor = GETMESG(OWNER(player), "_/COLORS/SUCC");
             if (!tempcolor)
-                tempcolor = get_uncompress(GETMESG(0, "_/COLORS/SUCC"));
+                tempcolor = GETMESG(0, "_/COLORS/SUCC");
             if (!tempcolor)
                 tempcolor = CCSUCC;
             color = tempcolor;
         } else if (!strcasecmp("FAIL", color) || !strcasecmp("CFAIL", color)) {
-            tempcolor = get_uncompress(GETMESG(player, "_/COLORS/FAIL"));
+            tempcolor = GETMESG(player, "_/COLORS/FAIL");
             if (!tempcolor)
-                tempcolor =
-                    get_uncompress(GETMESG(OWNER(player), "_/COLORS/FAIL"));
+                tempcolor = GETMESG(OWNER(player), "_/COLORS/FAIL");
             if (!tempcolor)
-                tempcolor = get_uncompress(GETMESG(0, "_/COLORS/FAIL"));
+                tempcolor = GETMESG(0, "_/COLORS/FAIL");
             if (!tempcolor)
                 tempcolor = CCFAIL;
             color = tempcolor;
         } else if (!strcasecmp("INFO", color) || !strcasecmp("CINFO", color)) {
-            tempcolor = get_uncompress(GETMESG(player, "_/COLORS/INFO"));
+            tempcolor = GETMESG(player, "_/COLORS/INFO");
             if (!tempcolor)
-                tempcolor =
-                    get_uncompress(GETMESG(OWNER(player), "_/COLORS/INFO"));
+                tempcolor = GETMESG(OWNER(player), "_/COLORS/INFO");
             if (!tempcolor)
-                tempcolor = get_uncompress(GETMESG(0, "_/COLORS/INFO"));
+                tempcolor = GETMESG(0, "_/COLORS/INFO");
             if (!tempcolor)
                 tempcolor = CCINFO;
             color = tempcolor;
         } else if (!strcasecmp("NOTE", color) || !strcasecmp("CNOTE", color)) {
-            tempcolor = get_uncompress(GETMESG(player, "_/COLORS/NOTE"));
+            tempcolor = GETMESG(player, "_/COLORS/NOTE");
             if (!tempcolor)
-                tempcolor =
-                    get_uncompress(GETMESG(OWNER(player), "_/COLORS/NOTE"));
+                tempcolor = GETMESG(OWNER(player), "_/COLORS/NOTE");
             if (!tempcolor)
-                tempcolor = get_uncompress(GETMESG(0, "_/COLORS/NOTE"));
+                tempcolor = GETMESG(0, "_/COLORS/NOTE");
             if (!tempcolor)
                 tempcolor = CCNOTE;
             color = tempcolor;
         } else if (!strcasecmp("MOVE", color) || !strcasecmp("CMOVE", color)) {
-            tempcolor = get_uncompress(GETMESG(player, "_/COLORS/MOVE"));
+            tempcolor = GETMESG(player, "_/COLORS/MOVE");
             if (!tempcolor)
-                tempcolor =
-                    get_uncompress(GETMESG(OWNER(player), "_/COLORS/MOVE"));
+                tempcolor = GETMESG(OWNER(player), "_/COLORS/MOVE");
             if (!tempcolor)
-                tempcolor = get_uncompress(GETMESG(0, "_/COLORS/MOVE"));
+                tempcolor = GETMESG(0, "_/COLORS/MOVE");
             if (!tempcolor)
                 tempcolor = CCMOVE;
             color = tempcolor;
@@ -571,11 +560,11 @@ color_lookup(dbref player, const char *color, const char *defcolor,
         {
             strcpy(buf, "_/COLORS/");
             strcat(buf, color);
-            tempcolor = get_uncompress(GETMESG(player, buf));
+            tempcolor = GETMESG(player, buf);
             if (!tempcolor)
-                tempcolor = get_uncompress(GETMESG(OWNER(player), buf));
+                tempcolor = GETMESG(OWNER(player), buf);
             if (!tempcolor)
-                tempcolor = get_uncompress(GETMESG(0, buf));
+                tempcolor = GETMESG(0, buf);
             if (tempcolor)
                 color = tempcolor;
         }
@@ -1355,4 +1344,20 @@ has_suffix_char(const char *text, char suffix)
     if (tlen < 1)
         return 0;
     return text[tlen - 1] == suffix;
+}
+
+/* isascii_str():                                     */
+/*   Checks all characters in a string with isascii() */
+/*   and returns the result.                          */
+
+bool
+isascii_str(register const char *str)
+{
+    register const char *p;
+
+    for (p = str; *p; p++)
+        if (!isascii(*p))
+            return 0;
+
+    return 1;
 }

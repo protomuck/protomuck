@@ -56,36 +56,28 @@ connect_player(const char *name, const char *password)
 dbref
 create_player(const char *name, const char *password)
 {
-    char buf[80];
+    char buf[PLAYER_NAME_LIMIT + 16];
+    register struct object *newp;
     dbref player;
 
-    if (!ok_player_name(name) || !ok_password(password))
-        return NOTHING;
-    if (!tp_building || tp_db_readonly)
+    if (!ok_player_name(name) || !ok_password(password) || tp_db_readonly)
         return NOTHING;
 
     /* else he doesn't already exist, create him */
     player = new_object();
-/*    newp = DBFETCH(player); */
+    newp = DBFETCH(player);
 
     /* initialize everything */
     NAME(player) = alloc_string(name);
-    DBFETCH(player)->location = tp_player_start; /* home */
     FLAGS(player) = TYPE_PLAYER;
-    if (valid_obj(tp_player_prototype)
-        && (Typeof(tp_player_prototype) == TYPE_PLAYER)) {
-        struct object *newp = DBFETCH(player);
-        struct plist *daprops = DBFETCH(player)->properties;
 
+    if (OkObj(tp_player_prototype)
+        && (Typeof(tp_player_prototype) == TYPE_PLAYER)) {
         FLAGS(player) = FLAGS(tp_player_prototype);
         FLAG2(player) = FLAG2(tp_player_prototype);
 
         if (tp_pcreate_copy_props) {
-            daprops = (struct plist *) copy_prop(tp_player_prototype);
-            newp->properties = daprops;
-            newp->exits = NOTHING;
-            newp->contents = NOTHING;
-            newp->next = NOTHING;
+            newp->properties = copy_prop(tp_player_prototype);
 #ifdef DISKBASE
             newp->propsfpos = 0;
             newp->propsmode = PROPS_UNLOADED;
@@ -95,26 +87,27 @@ create_player(const char *name, const char *password)
             dirtyprops(player);
 #endif
         }
-        newp->location = tp_player_start;
-        DBDIRTY(player);
-    } else {
-        struct object *newp = DBFETCH(player);
-
-        newp->location = tp_player_start;
-        DBDIRTY(player);
     }
+
+    if (OkObj(tp_player_start)) {
+        DBFETCH(player)->location = tp_player_start;
+        DBFETCH(player)->sp.player.home = tp_player_start;
+    } else {
+        DBFETCH(player)->location = GLOBAL_ENVIRONMENT;
+        DBFETCH(player)->sp.player.home = GLOBAL_ENVIRONMENT;
+    }
+
     OWNER(player) = player;
-    DBFETCH(player)->sp.player.home = tp_player_start;
-    DBFETCH(player)->exits = NOTHING;
-    DBFETCH(player)->sp.player.pennies = tp_start_pennies;
-    DBFETCH(player)->sp.player.password = NULL;
-    DBFETCH(player)->sp.player.curr_prog = NOTHING;
-    DBFETCH(player)->sp.player.insert_mode = 0;
+    newp->exits = NOTHING;
+    newp->sp.player.pennies = tp_start_pennies;
+    newp->sp.player.password = NULL; /* this has to stay here. -hinoserm */
+    newp->sp.player.curr_prog = NOTHING;
+    newp->sp.player.insert_mode = 0;
 #ifdef IGNORE_SUPPORT
-    DBFETCH(player)->sp.player.ignoretime = 0;
+    newp->sp.player.ignoretime = 0;
 #endif /* IGNORE_SUPPORT */
 
-    /* new set password */
+    /* set password */
     set_password(player, password);
 
     /* link him to tp_player_start */
@@ -122,10 +115,8 @@ create_player(const char *name, const char *password)
     add_player(player);
     DBDIRTY(player);
     DBDIRTY(tp_player_start);
-    if (MLevel(player) > LM3)
-        SetMLevel(player, LM3);
 
-    sprintf(buf, CNOTE "%s is born!", PNAME(player));
+    sprintf(buf, CNOTE "%s is born!", NAME(player));
     anotify_except(DBFETCH(tp_player_start)->contents, NOTHING, buf, player);
 
     return player;

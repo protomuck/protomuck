@@ -143,7 +143,7 @@ safegetprop_strict(dbref player, dbref what, dbref perms, const char *inbuf)
         }
     }
 
-    return get_uncompress(ptr);
+    return ptr;
 }
 
 

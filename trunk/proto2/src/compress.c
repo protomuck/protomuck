@@ -80,7 +80,7 @@ save_compress_words_to_file(FILE * f)
 }
 
 void                            //From FB6, added in 1.7b4
-free_compress_dictionary()
+free_compress_dictionary(void)
 {
     int i;
 

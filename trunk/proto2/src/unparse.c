@@ -478,7 +478,7 @@ unparse_boolexp1(dbref player, struct boolexp *b,
                 strcpy(buftop, PropName(b->prop_check));
                 strcat(buftop, ":");
                 if (PropType(b->prop_check) == PROP_STRTYP)
-                    strcat(buftop, PropDataStr(b->prop_check));
+                    strcat(buftop, PropDataUNCStr(b->prop_check));
                 buftop += strlen(buftop);
                 break;
             default:

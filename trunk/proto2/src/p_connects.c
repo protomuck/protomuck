@@ -1177,6 +1177,8 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     curLen = (int) d->output.lines;
     temp2.data.number = curLen;
     array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    CLEAR(&temp2);
 
     PushArrayRaw(nw);
 }

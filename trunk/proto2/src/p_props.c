@@ -156,7 +156,6 @@ prim_getpropval(PRIM_PROTOTYPE)
 void 
 prim_getprop(PRIM_PROTOTYPE)
 {
-    const char *temp;
     PropPtr prptr;
     dbref obj2;
 
@@ -200,8 +199,7 @@ prim_getprop(PRIM_PROTOTYPE)
 #endif
 	    switch(PropType(prptr)) {
 	      case PROP_STRTYP:
-		  temp = get_uncompress(PropDataStr(prptr));
-		  PushString(temp);
+		  PushString(PropDataUNCStr(prptr));
 		  break;
 	      case PROP_LOKTYP:
 		  if (PropFlags(prptr) & PROP_ISUNLOADED) {
@@ -276,7 +274,7 @@ prim_getpropstr(PRIM_PROTOTYPE)
 #endif
 	    switch(PropType(ptr)) {
 		case PROP_STRTYP:
-		    temp = get_uncompress(PropDataStr(ptr));
+		    temp = PropDataUNCStr(ptr);
 		    break;
 		/*
 		 *case PROP_INTTYP:
@@ -405,7 +403,7 @@ prim_envprop(PRIM_PROTOTYPE)
 #endif
 	    switch(PropType(ptr)) {
 		case PROP_STRTYP:
-		    PushString(get_uncompress(PropDataStr(ptr)));
+		    PushString(PropDataUNCStr(ptr));
 		    break;
 		case PROP_INTTYP:
 		    result = PropDataVal(ptr);
@@ -472,7 +470,7 @@ prim_envpropstr(PRIM_PROTOTYPE)
 #endif
 	    switch(PropType(ptr)) {
 		case PROP_STRTYP:
-		    temp = get_uncompress(PropDataStr(ptr));
+		    temp = PropDataUNCStr(ptr);
 		    break;
 		/*
 		 *case PROP_INTTYP:
@@ -520,8 +518,7 @@ prim_envpropstr(PRIM_PROTOTYPE)
 void 
 prim_setprop(PRIM_PROTOTYPE)
 {
-    PTYPE str;
-    char tbuf[BUFFER_LEN];
+    PData pdat;
 
     CHECKOP(3);
     oper1 = POP();
@@ -555,7 +552,7 @@ prim_setprop(PRIM_PROTOTYPE)
 	char    tname[BUFFER_LEN];
 
 	tmpe = oper2->data.string->data;
-	while (*tmpe && *tmpe != '\r' && *tmpe != ':') tmpe++;
+	while (*tmpe && *tmpe != '\r' && *tmpe != ':' && *tmpe != '\n') tmpe++;
 	if (*tmpe)
 	    abort_interp("Illegal propname");
 
@@ -566,29 +563,29 @@ prim_setprop(PRIM_PROTOTYPE)
 
 	strcpy(tname, oper2->data.string->data);
 
-	switch(oper1->type) {
-	  case PROG_STRING:
-	    str = (oper1->data.string ? oper1->data.string->data : 0);
-	    set_property(oper3->data.objref, tname, PROP_STRTYP, str);
-	    break;
-	  case PROG_INTEGER:
-	    result = oper1->data.number;
-	    set_property(oper3->data.objref, tname, PROP_INTTYP, (char *)result);
-	    break;
+    switch (oper1->type) {
+        case PROG_STRING:
+            pdat.flags = PROP_STRTYP;
+            pdat.data.str = oper1->data.string ? oper1->data.string->data : NULL;
+            break;
+        case PROG_INTEGER:
+            pdat.flags = PROP_INTTYP;
+            pdat.data.val = oper1->data.number;
+            break;
         case PROG_FLOAT:
-          sprintf(tbuf, "%.15g", oper1->data.fnumber);
-          str = tbuf;
-          set_property(oper3->data.objref, tname, PROP_FLTTYP, str);
-          break;
-	  case PROG_OBJECT:
-	    ref = oper1->data.objref;
-	    set_property(oper3->data.objref, tname, PROP_REFTYP, (char *)ref);
-	    break;
-	  case PROG_LOCK:
-	    str = (PTYPE) copy_bool(oper1->data.lock);
-	    set_property(oper3->data.objref, tname, PROP_LOKTYP, str);
-	    break;
-	}
+            pdat.flags = PROP_FLTTYP;
+            pdat.data.fval = oper1->data.fnumber;
+            break;
+        case PROG_OBJECT:
+            pdat.flags = PROP_REFTYP;
+            pdat.data.ref = oper1->data.objref;
+            break;
+        case PROG_LOCK:
+            pdat.flags = PROP_LOKTYP;
+            pdat.data.lok = copy_bool(oper1->data.lock);
+            break;
+    }
+    set_property(oper3->data.objref, tname, &pdat);
 
 #ifdef LOG_PROPS
 	log2file("props.log", "#%d (%d) SETPROP: o=%d n=\"%s\"",
@@ -859,9 +856,6 @@ prim_parseprop(PRIM_PROTOTYPE)
 
         strcpy(type, oper1->data.string->data);
         temp = get_property_class(oper3->data.objref, type);
-        if(temp) {
-	    temp = get_uncompress(temp);
-	}
 
 #ifdef LOG_PROPS
         log2file("props.log", "#%d (%d) GETPROPSTR: o=%d n=\"%s\" s=\"%s\"",
@@ -1182,14 +1176,11 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
                 CHECKREMOTE(ref);
                 if (prop_read_perms(ProgUID, ref, prop, mlev)) {
                     ptr = get_property_class(ref, prop);
-                    if (ptr) {
-#ifdef COMPRESS
-                        ptr = uncompress(ptr);
-#endif /* COMPRESS */
+                    if (ptr)
                         strcpy(buf, ptr);
-                    } else {
+                    else
                         strcpy(buf, "");
-                    }  
+
                     if (equalstr(buf2, buf)) {
                         array_appenditem(&nu, in);
                     }
@@ -1331,8 +1322,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
                           mlev))
         abort_interp("Permission denied.");
 
-    mpi = get_uncompress(get_property_class(oper1->data.objref, 
-                           oper2->data.string->data));
+    mpi = get_property_class(oper1->data.objref, oper2->data.string->data);
     vars = oper3->data.array;
     novars = array_count(vars);
 
@@ -1466,10 +1456,14 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
     char propname[BUFFER_LEN]; 
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
-    char tbuf[BUFFER_LEN];
     PropPtr propadr, pptr, currprop;
-    PTYPE str;
+    PData pdat;
+
     int propcount = 0;
+
+#ifdef DISKBASE
+    fetchprops(destination);
+#endif
 
     /* loop through all properties in the current propdir */ 
     propadr = first_prop(source, (char *)sourcedir, &pptr, propname); 
@@ -1484,29 +1478,20 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
         propfetch(source, currprop); 
 #endif
         if(currprop > 0) {
-            switch(PropType(currprop)) { 
-                case PROP_STRTYP:
-                    str = PropDataStr(currprop);
-                    set_property(destination, buf2, PROP_STRTYP, str);
-                    break;
+    		pdat.flags = currprop->flags;
+
+            switch(PropType(currprop)) {
                 case PROP_INTTYP:
-                    set_property(destination, buf2, PROP_INTTYP, (char *)PropDataVal(currprop));
-                    break;
                 case PROP_FLTTYP:
-                    sprintf(tbuf, "%.15g", PropDataFVal(currprop));
-                    str = tbuf;
-                    set_property(destination, buf2, PROP_FLTTYP, str);
+                case PROP_REFTYP:
+                    pdat.data = currprop->data;
                     break;
-                case PROP_REFTYP: 
-                    set_property(destination, buf2, PROP_REFTYP, (char *)PropDataRef(currprop));
-                    break;
-                case PROP_LOKTYP: 
-                    str = (PTYPE) copy_bool(PropDataLok(currprop));
-                    set_property(destination, buf2, PROP_LOKTYP, str);
-                    break;
+                case PROP_LOKTYP:
+                    pdat.data.lok = copy_bool((currprop->data).lok);
                 case PROP_DIRTYP:
-                    break; 
+                    break;
             }
+		    set_property_nofetch(destination, buf2, &pdat, 1);
             propcount++;
        
             /* This has to go here, or it'll miss propdirs with values */

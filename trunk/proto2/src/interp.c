@@ -572,7 +572,7 @@ interp(int descr, dbref player, dbref location, dbref program,
         propfetch(program, tptr);
 #endif
         if (PropType(tptr) == PROP_STRTYP)
-            fr->preemptlimit = atoi(get_uncompress(PropDataStr(tptr)));
+            fr->preemptlimit = atoi(PropDataUNCStr(tptr));
     }
     /* set basic local variables */
 
