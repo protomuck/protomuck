@@ -1029,6 +1029,7 @@ OptimizeIntermediate(COMPSTATE *cstat)
     int ModNo = get_primitive("%");
     int DecrNo = get_primitive("--");
     int IncrNo = get_primitive("++");
+    int NoteqNo = get_primitive("!=");
 
     /* code assumes everything setup nicely */
     if (!cstat->first_word)
@@ -1250,6 +1251,17 @@ OptimizeIntermediate(COMPSTATE *cstat)
                                 advance = 0;
                                 break;
                             }
+                        }
+                    }
+                }
+                /* = not into != */
+                if (IntermediateIsPrimitive(curr, EqualsNo)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, NotNo)) {
+                            curr->in.data.number = NoteqNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
                         }
                     }
                 }

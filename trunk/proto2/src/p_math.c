@@ -466,6 +466,33 @@ prim_equal(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
+void
+prim_noteq(PRIM_PROTOTYPE)
+{
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (!comp_t(oper1) || !comp_t(oper2))
+        abort_interp("Invalid argument type.");
+    if (oper1->type == PROG_FLOAT || oper2->type == PROG_FLOAT) {
+        tf1 = (oper2->type == PROG_FLOAT) ? oper2->data.fnumber :
+            (oper2->type == PROG_INTEGER) ? oper2->data.number :
+            oper2->data.objref;
+        tf2 = (oper1->type == PROG_FLOAT) ? oper1->data.fnumber :
+            (oper1->type == PROG_INTEGER) ? oper1->data.number :
+            oper1->data.objref;
+        result = tf1 != tf2;
+    } else {
+        result =
+            (((oper2->type ==
+               PROG_INTEGER) ? oper2->data.number : oper2->data.objref)
+             != ((oper1->type == PROG_INTEGER) ? oper1->data.number : oper1->
+                 data.objref));
+    }
+    CLEAR(oper1);
+    CLEAR(oper2);
+    PushInt(result);
+}
 
 void
 prim_lesseq(PRIM_PROTOTYPE)
