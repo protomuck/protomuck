@@ -1681,8 +1681,12 @@ shovechars(void)
 #endif
 #ifdef MUF_SOCKETS
         for (curr = socket_list; curr; curr = curr->next) {
-            if (!curr->theSock->readWaiting) {
+            if (!curr->theSock->readWaiting && curr->theSock->connected == 1) {
                 FD_SET(curr->theSock->socknum, &input_set);
+                if (curr->theSock->socknum >= maxd)
+                    maxd = curr->theSock->socknum + 1;
+            } else if (!curr->theSock->connected) {
+                FD_SET(curr->theSock->socknum, &output_set);
                 if (curr->theSock->socknum >= maxd)
                     maxd = curr->theSock->socknum + 1;
             }
@@ -1781,7 +1785,7 @@ shovechars(void)
 
 #ifdef MUF_SOCKETS
             for (curr = socket_list; curr; curr = curr->next) {
-                if (FD_ISSET(curr->theSock->socknum, &input_set)) {
+                if (FD_ISSET(curr->theSock->socknum, &input_set) || (!curr->theSock->connected && FD_ISSET(curr->theSock->socknum, &output_set))) {
                     muf_socket_sendevent(curr);
                 }
             }
@@ -2795,7 +2799,7 @@ process_output(struct descriptor_data *d)
 }
 
 void
-make_nonblocking(int s)
+make_nonblocking(register int s)
 {
 #if !defined(O_NONBLOCK) || defined(ULTRIX) /* POSIX ME HARDER */
 # ifdef FNDELAY                 /* SUN OS */

@@ -233,8 +233,9 @@ extern int pontime(int c);
 extern char *phost(int c);
 extern char *puser(int c);
 extern char *pipnum(int c);
-extern const char * addrout( int, int, unsigned short);
+extern const char *addrout(int, int, unsigned short);
 extern char *pport(int c);
+extern void make_nonblocking(register int s);
 
 extern void pboot(int c);
 extern void pdboot(int c);
