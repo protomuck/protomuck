@@ -2021,6 +2021,8 @@ resolve_hostnames(void)
 		    if((d->hostaddr == ipnum) && (iport == d->port)) {
 			FREE(d->hostname);
 			FREE(d->username);
+                        while(isspace(*username))
+                            ++username; /* strip occasional leading spaces */
 			d->hostname = strsave(hostname);
 			d->username = strsave(username);
 		    }
