@@ -11,7 +11,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <float.h>
-#ifndef APPLE
+#ifndef NAN
 #include "nan.h"
 #endif
 #include "db.h"
