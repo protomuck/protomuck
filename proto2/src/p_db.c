@@ -452,6 +452,11 @@ prim_moveto(PRIM_PROTOTYPE)
             }
         }
 
+        if (!OkObj(victim))
+            abort_interp("Target argument is invalid");
+        if (!OkObj(dest))
+            abort_interp("Destination argument is invalid");
+
         if (Typeof(dest) == TYPE_EXIT)
             abort_interp("Destination argument is an exit");
         if (Typeof(victim) == TYPE_EXIT && (mlev < LM3))
