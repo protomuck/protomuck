@@ -889,7 +889,7 @@ array_next(stk_array * arr, array_iter * item)
 			array_tree *p;
 
 			p = array_tree_next_node(arr->data.dict, item);
-                        //CLEAR(item);
+                        CLEAR(item);
 			if (!p)
 				return 0;
 			copyinst(&p->key, item);

@@ -22,6 +22,7 @@ struct text_queue {
 struct descriptor_data {
     int                      descriptor;    /* Descriptor number */
     int                      connected;     /* Connected as a player? */
+    int                      did_connect;   /* Was connected to a player? */
     int                      con_number;    /* Connection number */
     int                      booted;        /* 1 = Booted, 2 = Boot with message, 3 = WEB boot */
     int                      fails;         /* Number of fail connection attempts */
