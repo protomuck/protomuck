@@ -1208,7 +1208,7 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
                         if (PropFlags(prptr) & PROP_ISUNLOADED) {
                             temp2.data.lock = TRUE_BOOLEXP;
                         } else {
-                            temp2.data.lock = PropDataLok(prptr);
+                            temp2.data.lock = copy_bool(PropDataLok(prptr));
                         }
                         break;
                     case PROP_REFTYP:
@@ -1338,7 +1338,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                         if (PropFlags(prptr) & PROP_ISUNLOADED) {
                             temp2.data.lock = TRUE_BOOLEXP;
                         } else {
-                            temp2.data.lock = PropDataLok(prptr);
+                            temp2.data.lock = copy_bool(PropDataLok(prptr));
                         }
                         break;
                     case PROP_REFTYP:
