@@ -333,8 +333,8 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                 break;
             gotmessage = 1;     /* indicates the socket sent -something- */
             ++charCount;
-            if (isascii(*mystring))
-                *bufpoint++ = *mystring;
+            /* if (isascii(*mystring)) -- Commented this out to test 8-bit support on the stack -Hinoserm */
+            *bufpoint++ = *mystring;
             readme = recv(oper1->data.sock->socknum, mystring, 1, 0);
         }
         if (*mystring == '\n' && oper1->data.sock->usequeue) {
@@ -367,17 +367,17 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                     p = NULL;
                     gotmessage = 1; /* to prevent clearing bigbuf later */
                     break;
-                } else if (p < pend && isascii(*q) && theSock->usesmartqueue) {
-                    if (isprint(*q))
-                        *p++ = *q;
-                    else if (*q == '\t') /* tab */
+                } else if (p < pend && theSock->usesmartqueue) { /* && isascii(*q) used to be in here -Hinoserm */
+                    if (*q == '\t') /* tab */
                         *p++ = ' ';
                     else if (*q == 8 || *q == 127) /* delete */
                         if (p > theSock->raw_input)
                             --p;
                         else
                             *p = '\0';
-                } else if (p < pend && isascii(*q) && theSock->usequeue)
+                    else *p++ = *q; /* Changed this a bit to test -Hinoserm */
+
+                } else if (p < pend && theSock->usequeue) /* && isascii(*q) used to be in here -Hinoserm */
                     *p++ = *q;
             }                   /* for */
             if (p > theSock->raw_input)

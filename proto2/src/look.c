@@ -65,11 +65,7 @@ exec_or_notify(int descr, dbref player, dbref thing,
     char tmpcmd[BUFFER_LEN];
     char tmparg[BUFFER_LEN];
 
-#ifdef COMPRESS
-    p = (char *) uncompress((char *) message);
-#else /* !COMPRESS */
-    p = (char *) message;
-#endif /* COMPRESS */
+    p = (char *) get_uncompress((char *) message);
 
     if (*p == EXEC_SIGNAL) {
         int i;

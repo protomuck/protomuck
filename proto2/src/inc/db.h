@@ -25,6 +25,20 @@
 #define BUFFER_LEN ((MAX_COMMAND_LEN)*4)
 #define FILE_BUFSIZ ((BUFSIZ)*8)
 
+/* compression stuff */
+#ifdef COMPRESS
+extern const char *uncompress(const char *);
+extern const char *compress(const char *);
+
+#define alloc_compressed(x) alloc_string(compress(x))
+#define get_compress(x) compress(x)
+#define get_uncompress(x) uncompress(x)
+#else /* COMPRESS */
+#define alloc_compressed(x) alloc_string(x)
+#define get_compress(x) (x)
+#define get_uncompress(x) (x)
+#endif /* COMPRESS */
+
 /* smallest possible numbers to use before a float is considered to be '0' or
    'false'. */
 /* Defining INF as infinite.  This is HUGE_VAL on IEEE754 systems. */

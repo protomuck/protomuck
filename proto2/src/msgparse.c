@@ -1180,10 +1180,6 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
     int tmpinst_cnt = mesg_instr_cnt;
 
     if (tp_do_mpi_parsing) {
-#ifdef COMPRESS
-        abuf = uncompress(abuf);
-#endif /* COMPRESS */
-
         *outbuf = '\0';
         if ((mesgtyp & MPI_NOHOW) == 0) {
             if (new_mvar("how", howvar))
@@ -1200,10 +1196,6 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
             return outbuf;
         strcpy(argvar, match_args);
         strcpy(tmparg, match_args);
-
-#ifdef COMPRESS
-        inbuf = uncompress(inbuf);
-#endif /* COMPRESS */
 
         dptr = MesgParse(inbuf, outbuf);
         if (!dptr) {
