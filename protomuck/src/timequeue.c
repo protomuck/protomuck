@@ -145,7 +145,6 @@ free_timenode(timequeue ptr)
                 if (curdescr)
                     curdescr->block = 0;
             }
-notify(3166, "about to prog_clean from free_timenode.");
 	    prog_clean(ptr->fr);
 	}
 	if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
