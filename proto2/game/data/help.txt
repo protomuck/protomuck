@@ -3759,3 +3759,12 @@ properties, which is good if you want to filter some commands earlier on and hav
 another command catch the rest.  The semaphores required to implement something
 like this are up to you to code.
 ~~~~~
+@HOSTCACHE|HOSTCACHE
+@hostcache
+@hostcache #show [<IP address>|all]
+@hostcache #restart
+@hostcache #flush [<name pattern>|all]
+--------------------------------------
+Permissions: W3 Arch
+
+With no arguments, this command will print out a few statistics relating to the hostname cache. The #show option by itself will list details for the top ten hostnames in the cache, sorted by the number of times referenced. Specifying a dotted decimal IP address will list the statistics for that IP, and 'all' will list the statistics for every entry in the table. The #restart option will attempt to reconnect the muck to the reslvd daemon, in the event the link is broken. Finally, the #flush option, when given a regular expression pattern describing an IP address or hostname, will flush all unused entries matching that expression, with 'all' matching all unused entries currently in the table.
