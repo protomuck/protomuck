@@ -434,6 +434,11 @@ prim_moveto(PRIM_PROTOTYPE)
         victim = oper2->data.objref;
         dest = oper1->data.objref;
 
+        CLEAR(oper1);
+        CLEAR(oper2);
+        nargs -= 2;
+
+
         if (Typeof(dest) == TYPE_EXIT)
             abort_interp("Destination argument is an exit");
         if (Typeof(victim) == TYPE_EXIT && (mlev < LM3))
@@ -543,8 +548,6 @@ prim_moveto(PRIM_PROTOTYPE)
     }
     fr->level--;
     interp_set_depth(fr);
-    CLEAR(oper1);
-    CLEAR(oper2);
 }
 
 void
