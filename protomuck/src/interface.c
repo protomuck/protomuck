@@ -2117,6 +2117,7 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, i
     MALLOC(d, struct descriptor_data, 1);
     d->descriptor = s;
     d->connected = 0;
+    d->did_connect = 0;
     d->player = NOTHING;
     d->booted = 0;
     d->fails = 0;
@@ -3262,6 +3263,7 @@ check_connect(struct descriptor_data * d, const char *msg)
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->cport);
 	    d->connected = 1;
+            d->did_connect = 1;
 	    d->connected_at = current_systime;
 	    d->player = player;
 		update_desc_count_table();
@@ -3383,7 +3385,7 @@ boot_player_off(dbref player)
     int dcount;
     struct descriptor_data *d;
  
-	darr = get_player_descrs(player, &dcount);
+    darr = get_player_descrs(player, &dcount);
 
 
     /* We need to be a tad more brutal as this player may be getting @toaded */
@@ -4248,12 +4250,15 @@ void
 announce_disclogin(struct descriptor_data *d)
 {
     dbref   player = 0;
-
     if (!d)
         return;
     if (d->connected)
 	return;
-    dequeue_prog_descr(d->descriptor, 0);
+    if (d->player != NOTHING)
+        return;
+    if (d->did_connect)
+        return;
+    dequeue_prog_descr(d->descriptor, 2);
     /* queue up all _login programs referred to by properties */
     propqueue(d->descriptor, player, 0, 0, 0, 0,
 	"@disclogin", "Disclogin", 1, 1);
