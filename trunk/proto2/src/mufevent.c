@@ -96,9 +96,8 @@ muf_event_register_specific(dbref player, dbref prog, struct frame *fr,
     newproc->prog = prog;
     newproc->fr = fr;
     newproc->filtercount = eventcount;
-    if (player == NOTHING) {
-        curdescr = get_descr(fr->descr, NOTHING);
-        if (curdescr) {
+    if (!OkObj(player)) {
+        if ((curdescr = get_descr(fr->descr, NOTHING))) {
             curdescr->interactive = 2;
             DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
         }
@@ -336,7 +335,8 @@ muf_event_list(dbref player, char *pat)
                 proc->fr->pid, "--",
                 time_format_2((long) (rtime - proc->fr->started)),
                 (proc->fr->instcnt / 1000), pcnt, proc->prog,
-                NAME(proc->player), "EVENT_WAITFOR");
+                (OkObj(proc->player)) ? NAME(proc->player) : "(Login)",
+                "EVENT_WAITFOR");
         if (Wiz(OWNER(player)) || (OWNER(proc->prog) == OWNER(player))
             || (proc->player == player))
             notify_nolisten(player, buf, 1);
@@ -581,9 +581,7 @@ muf_event_process(void)
     int limit = 10;
     struct mufevent_process *proc, *tmp;
     struct mufevent *ev;
-    dbref current_program;
     struct descriptor_data *curdescr = NULL;
-    int block, is_fg;
 
     proc = mufevent_processes;
     while (proc && limit > 0) {
@@ -610,9 +608,17 @@ muf_event_process(void)
                     notify_nolisten(proc->player, "Program stack overflow.", 1);
                     prog_clean(proc->fr);
                 } else {
-                    current_program =
-                        DBFETCH(proc->player)->sp.player.curr_prog;
-                    block = DBFETCH(proc->player)->sp.player.block;
+                    dbref current_program = NOTHING;
+                    short block = 0, is_fg;
+
+                    if (OkObj(proc->player)) {
+                        current_program =
+                            DBFETCH(proc->player)->sp.player.curr_prog;
+                        block = DBFETCH(proc->player)->sp.player.block;
+                    } else {
+                        if ((curdescr = get_descr(proc->descr, NOTHING)))
+                            block = curdescr->block;
+                    }
                     is_fg = (proc->fr->multitask != BACKGROUND);
 
                     copyinst(&ev->data,
@@ -624,14 +630,14 @@ muf_event_process(void)
                     interp_loop(proc->player, proc->prog, proc->fr, 0);
 
                     if (!is_fg) {
-                        DBFETCH(proc->player)->sp.player.block = block;
-                        if (proc->player == NOTHING) {
-                            curdescr = get_descr(proc->descr, NOTHING);
-                            if (curdescr)
+                        if (OkObj(proc->player)) {
+                            DBFETCH(proc->player)->sp.player.block = block;
+                            DBFETCH(proc->player)->sp.player.curr_prog =
+                                current_program;
+                        } else {
+                            if ((curdescr = get_descr(proc->descr, NOTHING)))
                                 curdescr->block = block;
                         }
-                        DBFETCH(proc->player)->sp.player.curr_prog
-                            = current_program;
                     }
                 }
                 muf_event_free(ev);

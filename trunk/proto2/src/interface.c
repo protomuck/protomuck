@@ -1622,7 +1622,7 @@ shovechars(void)
                         shutdown(d->descriptor, 1); /* hinoserm */
                     } else
 #endif /* NEWHTTP */
-                    if ( d->type != CT_INBOUND )//Don't touch MUF sockets
+                    if (d->type != CT_INBOUND) //Don't touch MUF sockets
                         shutdownsock(d);
                 }               /* if d->booted != 3 */
             }                   /* if (d->booted) */
@@ -3253,7 +3253,7 @@ do_command(struct descriptor_data *d, char *command)
             if (tp_secure_who || (reg_site_is_barred(d->hostaddr) == TRUE)) {
                 queue_ansi(d, "Login and find out!\r\n");
             } else {
-                if (valid_obj(tp_player_start)
+                if (OkObj(tp_player_start) && OkObj(tp_login_who_prog)
                     && Typeof(tp_login_who_prog) == TYPE_PROGRAM) {
                     char *full_command, xbuf[BUFFER_LEN], *msg;
 
@@ -3607,12 +3607,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                         /****/
+        if (d->next)                                                                                             /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                     /****/
+        if (d->hostname)                                                                                         /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                     /****/
+        if (d->username)                                                                                         /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
