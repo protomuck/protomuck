@@ -405,10 +405,6 @@
   You probably will not have to monkey with this unless the muck fails
  to compile for some reason.
  ************************************************************************/
-#ifdef APPLE
-#define __FreeBSD__
-#endif
-
 /* If you get problems compiling strftime.c, define this. */
 #undef USE_STRFTIME
 
