@@ -141,6 +141,195 @@ string_match(register const char *src, register const char *sub)
  *
  * %-type substitutions for pronouns
  *
+ * %a/%A for absolute possessive (his/hers/hirs/its, His/Hers/Hirs/Its)
+ * %s/%S for subjective pronouns (he/she/sie/it, He/She/Sie/It)
+ * %o/%O for objective pronouns (him/her/hir/it, Him/Her/Hir/It)
+ * %p/%P for possessive pronouns (his/her/hir/its, His/Her/Hir/Its)
+ * %r/%R for reflexive pronouns (himself/herself/hirself/itself,
+ *                                Himself/Herself/Hirself/Itself)
+ * %n    for the player's name.
+ */
+char *
+pronoun_substitute(int descr, dbref player, const char *str)
+{
+	char c;
+	char d;
+	char prn[3];
+	char globprop[128];
+	static char buf[BUFFER_LEN * 2];
+	char orig[BUFFER_LEN];
+	char *result;
+	const char *sexstr;
+	const char *self_sub;		/* self substitution code */
+	const char *temp_sub;
+	dbref mywhere = player;
+	int sex;
+
+	static const char *subjective[4] = { "", "it", "she", "he" };
+	static const char *possessive[4] = { "", "its", "her", "his" };
+	static const char *objective[4] = { "", "it", "her", "him" };
+	static const char *reflexive[4] = { "", "itself", "herself", "himself" };
+	static const char *absolute[4] = { "", "its", "hers", "his" };
+
+	prn[0] = '%';
+	prn[2] = '\0';
+
+	strcpy(orig, str);
+	str = orig;
+
+	sex = genderof(descr, player);
+	sexstr = get_property_class(player, "sex");
+        /*
+	if (sexstr) {
+		sexstr = do_parse_mesg(descr, player, player, sexstr, "(Lock)", sexbuf, MPI_ISLOCK);
+	}
+        */
+	while (sexstr && isspace(*sexstr)) sexstr++;
+	if (!sexstr || !*sexstr) {
+		sexstr = "_default";
+	}
+	result = buf;
+	while (*str) {
+		if (*str == '%') {
+			*result = '\0';
+			prn[1] = c = *(++str);
+			if (c == '%') {
+				*(result++) = '%';
+				str++;
+			} else {
+				mywhere = player;
+				d = (isupper(c)) ? c : toupper(c);
+
+				snprintf(globprop, sizeof(globprop), "_pronouns/%.64s/%s", sexstr, prn);
+				if (d == 'A' || d == 'S' || d == 'O' || d == 'P' || d == 'R' || d == 'N') {
+					self_sub = get_property_class(mywhere, prn);
+				} else {
+					self_sub = envpropstr(&mywhere, prn);
+				}
+				if (!self_sub) {
+					self_sub = get_property_class(player, globprop);
+				}
+				if (!self_sub) {
+					self_sub = get_property_class(0, globprop);
+				}
+				if (!self_sub && (sex == GENDER_UNASSIGNED)) {
+					snprintf(globprop, sizeof(globprop), "_pronouns/_default/%s", prn);
+
+					if (!(self_sub = get_property_class(player, globprop)))
+						self_sub = get_property_class(0, globprop);
+				}
+				if (self_sub) {
+					temp_sub = NULL;
+					if (self_sub[0] == '%' && toupper(self_sub[1]) == 'N') {
+						temp_sub = self_sub;
+						self_sub = PNAME(player);
+					}
+					if (((result - buf) + strlen(self_sub)) > (BUFFER_LEN - 2))
+						return buf;
+					strcatn(result, sizeof(buf) - (result - buf), self_sub);
+					if (isupper(prn[1]) && islower(*result))
+						*result = toupper(*result);
+					result += strlen(result);
+					str++;
+					if (temp_sub) {
+						if (((result - buf) + strlen(temp_sub+2)) > (BUFFER_LEN - 2))
+							return buf;
+						strcatn(result, sizeof(buf) - (result - buf), temp_sub+2);
+						if (isupper(temp_sub[1]) && islower(*result))
+							*result = toupper(*result);
+						result += strlen(result);
+						str++;
+					}
+				} else if (sex == GENDER_UNASSIGNED) {
+					switch (c) {
+					case 'n':
+					case 'N':
+					case 'o':
+					case 'O':
+					case 's':
+					case 'S':
+					case 'r':
+					case 'R':
+						strcatn(result, sizeof(buf) - (result - buf), PNAME(player));
+						break;
+					case 'a':
+					case 'A':
+					case 'p':
+					case 'P':
+						strcatn(result, sizeof(buf) - (result - buf), PNAME(player));
+						strcatn(result, sizeof(buf) - (result - buf), "'s");
+						break;
+					default:
+						result[0] = *str;
+						result[1] = 0;
+						break;
+					}
+					str++;
+					result += strlen(result);
+					if ((result - buf) > (BUFFER_LEN - 2)) {
+						buf[BUFFER_LEN - 1] = '\0';
+						return buf;
+					}
+				} else {
+					switch (c) {
+					case 'a':
+					case 'A':
+						strcatn(result, sizeof(buf) - (result - buf), absolute[sex]);
+						break;
+					case 's':
+					case 'S':
+						strcatn(result, sizeof(buf) - (result - buf), subjective[sex]);
+						break;
+					case 'p':
+					case 'P':
+						strcatn(result, sizeof(buf) - (result - buf), possessive[sex]);
+						break;
+					case 'o':
+					case 'O':
+						strcatn(result, sizeof(buf) - (result - buf), objective[sex]);
+						break;
+					case 'r':
+					case 'R':
+						strcatn(result, sizeof(buf) - (result - buf), reflexive[sex]);
+						break;
+					case 'n':
+					case 'N':
+						strcatn(result, sizeof(buf) - (result - buf), PNAME(player));
+						break;
+					default:
+						*result = *str;
+						result[1] = '\0';
+						break;
+					}
+					if (isupper(c) && islower(*result)) {
+						*result = toupper(*result);
+					}
+					result += strlen(result);
+					str++;
+					if ((result - buf) > (BUFFER_LEN - 2)) {
+						buf[BUFFER_LEN - 1] = '\0';
+						return buf;
+					}
+				}
+			}
+		} else {
+			if ((result - buf) > (BUFFER_LEN - 2)) {
+				buf[BUFFER_LEN - 1] = '\0';
+				return buf;
+			}
+			*result++ = *str++;
+		}
+	}
+	*result = '\0';
+	return buf;
+}
+
+
+/*
+ * pronoun_substitute()
+ *
+ * %-type substitutions for pronouns
+ *
  * %a/%A for absolute possessive (his/hers/its, His/Hers/Its)
  * %s/%S for subjective pronouns (he/she/it, He/She/It)
  * %o/%O for objective pronouns (him/her/it, Him/Her/It)
@@ -148,7 +337,7 @@ string_match(register const char *src, register const char *sub)
  * %r/%R for reflexive pronouns (himself/herself/itself,
  *                                Himself/Herself/Itself)
  * %n    for the player's name.
- */
+ 
 char *
 pronoun_substitute(int descr, dbref player, const char *str)
 {
@@ -158,7 +347,7 @@ pronoun_substitute(int descr, dbref player, const char *str)
     static char buf[BUFFER_LEN * 2];
     char orig[BUFFER_LEN];
     char *result;
-    const char *self_sub;       /* self substitution code */
+    const char *self_sub;   
     dbref mywhere = player;
     int sex;
 
@@ -285,7 +474,7 @@ pronoun_substitute(int descr, dbref player, const char *str)
     *result = '\0';
     return buf;
 }
-
+*/
 #ifndef MALLOC_PROFILING
 
 char *
@@ -1360,4 +1549,32 @@ isascii_str(register const char *str)
             return 0;
 
     return 1;
+}
+
+char*
+strcatn(char* buf, size_t bufsize, const char* src)
+{
+        int pos = strlen(buf);
+        char* dest = &buf[pos];
+
+        while (++pos < bufsize && *src) {
+                *dest++ = *src++;
+        }
+        if (pos <= bufsize) {
+                *dest = '\0';
+        }
+        return buf;
+}
+
+char*
+strcpyn(char* buf, size_t bufsize, const char* src)
+{
+        int pos = 0;
+        char* dest = buf;
+
+        while (++pos < bufsize && *src) {
+                *dest++ = *src++;
+        }
+        *dest = '\0';
+        return buf;
 }

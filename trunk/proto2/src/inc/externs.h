@@ -414,6 +414,9 @@ extern int is_prop_prefix(const char *, const char *);
 extern int has_suffix(const char *, const char *);
 extern int has_suffix_char(const char *, char);
 extern bool isascii_str(register const char *str);
+extern char* strcatn(char* buf, size_t bufsize, const char* src);
+extern char* strcpyn(char* buf, size_t bufsize, const char* src);
+
 
 #if !defined(MALLOC_PROFILING)
 extern char *string_dup(const char *s);
