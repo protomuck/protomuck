@@ -3117,7 +3117,7 @@ do_dwall(dbref player, const char *name, const char *msg)
 	return;
     }
     if(!*name || !*msg) {
-	anotify(player, CINFO "Usage: dwall descriptor=msg  or  dwall name=msg");
+	anotify(player, CINFO "Help: dwall me=#");
         return;
     }
     if(strcmp(name, "me"))
@@ -3142,7 +3142,7 @@ do_dwall(dbref player, const char *name, const char *msg)
   		notify(player, "~~~~~~~");
   		notify(player, "dwall player=msg -- tell player 'msg'");
   		notify(player, "dwall 14=message -- tell ds 14 'message'");
-  		notify(player, "dwall 14=:yerfs  -- pose 'yerfs' to ds 14");
+  		notify(player, "dwall 14=:poses  -- pose 'poses' to ds 14");
 		notify(player, "dwall 14=@boo    -- spoof 'boo' to ds 14");
 		notify(player, "dwall 14=!boo    -- same as @ with no 'mark'");
 		notify(player, "dwall 14=#       -- this help list");
@@ -3167,7 +3167,7 @@ do_dboot(dbref player, const char *name)
     struct descriptor_data *d;
     int who, descr;
 
-    if (!Wiz(player) && !(POWERS(player) & POW_BOOT)) {
+    if (!Arch(player) && !(POWERS(player) & POW_BOOT)) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }
@@ -3182,6 +3182,19 @@ do_dboot(dbref player, const char *name)
     if (!( d = get_descr(descr, who))) {
 	anotify(player, CINFO "Invalid descriptor or user not online.");
 	return;
+    }
+    who = d->player;
+    if (Man(who)) {
+        anotify(player, CFAIL "You cannot dboot the man!");
+        return;
+    }
+    if (Boy(who) && !Man(player)) {
+        anotify(player, CFAIL "Only the man can dboot boys.");
+        return;
+    }
+    if (Arch(who) && !Boy(player)) {
+        anotify(player, CFAIL "You cannot dboot ArchWizards.");
+        return;
     }
 
     d->booted = 1;

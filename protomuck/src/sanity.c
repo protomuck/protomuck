@@ -1074,6 +1074,10 @@ void sanechange(dbref player, const char *command)
     int *ip;
     int results;
     
+    if (force_level) {
+        anotify_nolisten2(player, CFAIL "Can't @force the use of @sanchange.");
+        return;
+    }
     if (player > NOTHING) {
 	if (!Boy(player)) {
 	    notify(player, "Only the Man may alter the basic structure of the universe!");

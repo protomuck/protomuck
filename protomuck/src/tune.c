@@ -250,6 +250,7 @@ int tp_log_programs                = LOG_PROGRAMS;
 int tp_log_guests                  = LOG_GUESTS;
 int tp_log_files                   = LOG_FILES;
 int tp_log_sockets                 = LOG_SOCKETS;
+int tp_log_failedhelp              = LOG_FAILEDHELP;
 int tp_dbdump_warning              = DBDUMP_WARNING;
 int tp_deltadump_warning           = DELTADUMP_WARNING;
 int tp_periodic_program_purge      = PERIODIC_PROGRAM_PURGE;
@@ -314,6 +315,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"log_guests",             &tp_log_guests,               WBOY , LWIZ },
     {"log_files",              &tp_log_files,                WBOY , LWIZ },
     {"log_sockets",            &tp_log_sockets,              WBOY , LWIZ },
+    {"log_failedhelp",         &tp_log_failedhelp,           WBOY , LWIZ },
     {"dbdump_warning",         &tp_dbdump_warning,           LARCH, LMUF },
     {"deltadump_warning",      &tp_deltadump_warning,        LARCH, LMUF },
     {"periodic_program_purge", &tp_periodic_program_purge,   LARCH, LMUF },

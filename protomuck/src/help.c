@@ -191,6 +191,7 @@ index_file(dbref player, const char *onwhat, const char *file)
 		"%s is missing.  Management has been notified.", file);
 	anotify_nolisten2(player, buf);
 	fprintf(stderr, "help: No file %s!\n", file);
+        log2file(HELP_LOG, "MISSING: %s", file);
     } else {
 	arglen = strlen(topic);
 	if (*topic && (arglen > 1)) {
@@ -201,6 +202,10 @@ index_file(dbref player, const char *onwhat, const char *file)
 				onwhat);
 			anotify_nolisten2(player, buf);
 			fclose(f);
+                        if(tp_log_failedhelp)
+                            log2file(HELP_LOG, "%s tried to look up '%s' in: %s.",
+                                     unparse_object(player, player), onwhat, 
+                                     file);
 			return;
 		    }
 		} while (*buf != '~');
@@ -210,6 +215,10 @@ index_file(dbref player, const char *onwhat, const char *file)
 				onwhat);
 			anotify_nolisten2(player, buf);
 			fclose(f);
+                        if(tp_log_failedhelp)
+                            log2file(HELP_LOG, "%s tried to look up '%s' in: %s.",
+                                     unparse_object(player, player), onwhat, 
+                                     file);
 			return;
 		    }
 		} while (*buf == '~');

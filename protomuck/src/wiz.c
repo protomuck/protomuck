@@ -585,7 +585,11 @@ do_boot(dbref player, const char *name)
 	anotify_nolisten2(player, CFAIL "You can't boot the man!");
 	return;
     }
-    if (!Man(player) && TMage(victim)) {
+    if (Boy(victim) && !Man(player)) {
+        anotify_nolisten2(player, CFAIL "Only the man can boot boys.");
+        return;
+    }
+    if (!Boy(player) && TMage(victim)) {
 	anotify_nolisten2(player, CFAIL "You can't boot wizards.");
 	return;
     }
@@ -1520,7 +1524,11 @@ do_fixw(dbref player, const char *msg)
 {
     int i;
 
-    if( !Boy(player) ) {
+    if (force_level) {
+        anotify_nolisten2(player, CFAIL "Can't @force an @force.");
+        return;
+    }
+    if( !Man(player) ) {
 	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	return;
     }

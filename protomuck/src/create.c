@@ -1051,10 +1051,6 @@ do_attach(int descr, dbref player, const char *action_name, const char *source_n
     if ((loc = DBFETCH(player)->location) == NOTHING)
 	return;
 
-    if (!Builder(player)) {
-	anotify_nolisten2(player, CFAIL NOBBIT_MESG);
-	return;
-    }
     if (tp_db_readonly) {
 	anotify_nolisten2(player, CFAIL DBRO_MESG);
 	return;
