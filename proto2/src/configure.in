@@ -1,0 +1,117 @@
+dnl
+dnl Process this file with autoconf to produce a configure script.
+dnl
+dnl TinyMUCK fb5.x auto-config script writen by: Peter "WhiteFire" Torkelson
+dnl
+AC_REVISION($Revision: 1.1.1.1 $)dnl
+AC_INIT(game.c)
+AC_CONFIG_HEADER(inc/autoconf.h)
+echo " "
+echo "ProtoMuck auto-configure script."
+echo " "
+echo "This script will try and determine things about your system so"
+echo "that Proto can compile correctly. This will create your Makefile"
+echo "and the header file autoconf.h in the include directory."
+echo " "
+
+dnl
+dnl Find the compiler first.
+dnl
+AC_PROG_CC
+AC_PROG_CPP
+
+dnl
+dnl Specific systems tests.
+dnl
+AC_ISC_POSIX
+AC_MINIX
+
+AC_PROG_LEX
+AC_PROG_YACC
+
+AC_ARG_WITH(mysql,
+[  --mysql[=mysqltop_path]   use MySQL database support],
+[
+if test "$withval" = yes; then
+    MYSQLTOP=
+else
+    MYSQLTOP=$withval
+fi
+
+found_mysql="0"
+if test "$MYSQLTOP" = ""; then
+    AC_CHECK_HEADERS(mysql.h,
+	 found_mysql="1")
+
+    AC_CHECK_HEADERS(mysql/mysql.h,
+        AC_DEFINE(HAVE_MYSQL_H)
+        INCL="-Imysql $INCL" 
+        found_mysql="1"
+    )
+else
+    AC_CHECK_HEADERS($MYSQLTOP/mysql.h,  
+        AC_DEFINE(HAVE_MYSQL_H)
+        INCL="-I$MYSQLTOP $INCL"
+        found_mysql="1"
+    )
+fi
+
+if test "$found_mysqlh" = "0"; then
+    AC_MSG_ERROR([cannot locate mysql.h header file.])
+fi
+AC_SUBST(INCL)
+LIBS="-lmysqlclient $LIBS"
+])
+
+dnl
+dnl Header files
+dnl
+AC_CHECK_HEADERS(malloc.h memory.h string.h unistd.h sys/resource.h sys/signal.h)
+AC_CHECK_HEADERS(sys/time.h)
+AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_HEADER_TIME
+echo "Checking for tm_gmtoff"
+AC_EGREP_HEADER([^_a-zA-Z]tm_gmtoff;, time.h, AC_DEFINE(HAVE_TM_GMTOFF))
+AC_EGREP_HEADER([^_a-zA-Z]tm_gmtoff;, sys/time.h, AC_DEFINE(HAVE_SYS_TM_GMTOFF))
+
+dnl
+dnl Libraries and functions.
+dnl
+AC_HAVE_LIBRARY(m, [LIBS="$LIBS -lm"])
+AC_HAVE_LIBRARY(socket,[LIBS="$LIBS -lsocket"] )
+AC_HAVE_LIBRARY(nsl, [LIBS="$LIBS -lnsl"])
+AC_FUNC_VPRINTF
+AC_CHECK_FUNCS(mallinfo getrlimit getrusage random)
+
+dnl
+dnl Types and structures
+dnl
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_SIGNAL
+AC_STRUCT_TIMEZONE
+
+dnl
+dnl Compiler characteristics
+dnl
+AC_C_CONST
+AC_C_INLINE
+
+dnl
+dnl Uname -a, just becuse.
+dnl
+echo "Checking value of uname -a"
+AC_DEFINE_UNQUOTED(UNAME_VALUE, "`uname -a`")
+
+dnl
+dnl An in the end, there was no more.
+dnl
+AC_OUTPUT(Makefile)
+echo " "
+echo "You should review the options in inc/config.h, and"
+echo "then type the following to build your system:"
+echo " "
+echo "make depend ; make"
+echo " "
+
