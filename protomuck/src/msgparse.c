@@ -325,6 +325,8 @@ mesg_read_perms(dbref player, dbref perms, dbref obj)
         return 1;
     if (OWNER(perms) == OWNER(obj))
         return 1;
+    if (controls(OWNER(perms),obj))
+        return 1;
     if (Wizperms(perms))
         return 1;
     return 0;
@@ -429,9 +431,10 @@ mesg_dbref_mage(int descr, dbref player, dbref what, dbref perms, char *buf)
 
     if (obj == UNKNOWN)
         return obj;
-    if (!Mageperms(perms) && OWNER(perms) != OWNER(obj)) {
+    if (controls(OWNER(perms), obj)) 
+        return obj;
+    if (!Mageperms(perms) && OWNER(perms) != OWNER(obj))
         obj = PERMDENIED;
-    }
     return obj;
 }
 

@@ -310,7 +310,7 @@ controls(dbref who, dbref what)
      * contained in a parent room he owns with at W1 bit or higher on it.
      * This gives him power to affect any object in his w-bitted parent room.
      */
-    if (tp_realms_control)
+    if (tp_realms_control && (Typeof(what) != TYPE_PLAYER))
         for (index = what; index != NOTHING; index = getloc(index))
             if ((OWNER(index) == who) && (Typeof(index) == TYPE_ROOM
                                           && Mage(index)))
