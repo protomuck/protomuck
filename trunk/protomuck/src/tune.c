@@ -46,6 +46,7 @@ const char *tp_rwho_server          = RWHO_SERVER;
 const char *tp_reg_email            = "admin@your.host.here";
 const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt   = "P#/N";
+const char *tp_unidle_command       = "";
 
 struct tune_str_entry {
     const char *group;
@@ -83,6 +84,7 @@ struct tune_str_entry tune_str_list[] =
     {"Legacy",   "reg_email",         &tp_reg_email,          WBOY , LARCH, 1},
     {"Props", "proplist_counter_fmt",&tp_proplist_counter_fmt,LARCH, LMUF , 1},
     {"Props",   "proplist_entry_fmt",&tp_proplist_entry_fmt,  LARCH, LMUF , 1},
+    {"IdleTime", "unidle_command",    &tp_unidle_command,     LARCH, LMUF , 1},
     {NULL, NULL, NULL, 0, 0, 0}
 };
 
@@ -322,6 +324,7 @@ int tp_auto_archive                = 0;
 int tp_optimize_muf                = OPTIMIZE_MUF;
 int tp_socket_events               = 1;
 int tp_compatible_muf_perms        = 0;
+int tp_allow_unidle                = 0;
 
 struct tune_bool_entry {
     const char *group;
@@ -400,6 +403,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"MUF",      "optimize_muf",        &tp_optimize_muf,        LBOY,  LMAGE},
     {"MUF",      "socket_events",       &tp_socket_events,       LARCH, LMUF },
     {"MUF",      "compatible_muf_perms",&tp_compatible_muf_perms,LBOY,  LMAGE},
+    {"Idletime", "allow_unidle"        ,&tp_allow_unidle,        LARCH, LMUF },
     {NULL, NULL, NULL, 0, 0}
 };
 

@@ -628,7 +628,8 @@ muf_event_process(void)
                             if (curdescr)
                                 curdescr->block = block;  
                         }
-                        DBFETCH(proc->player)->sp.player.curr_prog = block;
+                        DBFETCH(proc->player)->sp.player.curr_prog 
+                                              = current_program;
                     }
                 }
                 muf_event_free(ev);

@@ -14,7 +14,7 @@ extern const char *tp_noperm_mesg;
 extern const char *tp_noguest_mesg;
 
 extern const char *tp_idleboot_msg;
-
+extern const char *tp_unidle_command;
 extern const char *tp_penny;
 extern const char *tp_pennies;
 extern const char *tp_cpenny;
@@ -176,6 +176,7 @@ extern int tp_auto_archive;
 extern int tp_optimize_muf;
 extern int tp_socket_events;
 extern int tp_compatible_muf_perms;
+extern int tp_allow_unidle; 
 
 extern int tune_count_parms(void);
 extern void tune_load_parms_from_file(FILE *f, dbref player, int cnt);
