@@ -115,6 +115,22 @@ remove_socket_from_queue(struct muf_socket *oldSock)
     }
 }
 
+/* muf_socket_clean():                                              */
+/*  Used in prog_clean() to remove all sockets pointing to that     */
+/*  frame.                                                          */
+void
+muf_socket_clean(struct frame *fr)
+{
+    struct muf_socket_queue *curr = socket_list, *tmp;
+
+    while (curr) {
+        tmp = curr->next;
+        if (curr->fr == fr)
+            remove_socket_from_queue(curr->theSock);
+        curr = tmp;
+    }
+}
+
 /* muf_socket_sendevent():                                          */
 /*  Used in shovechars() by the socket event stuff. -Hinoserm       */
 void
