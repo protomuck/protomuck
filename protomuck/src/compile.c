@@ -1196,6 +1196,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	const char *token;
 	struct INTERMEDIATE *new_word;
 	int i;
+        int instrCount = 0;
 	COMPSTATE cstat;
 
 	/* set all compile state variables */
@@ -1294,20 +1295,22 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
             int passcount = 0;
             int optimcount = 0;
             int optcnt = 0;
+            instrCount = cstat.nowords;
             do {
                 optcnt = OptimizeIntermediate(&cstat);
                 optimcount += optcnt;
                 passcount++;
             } while (optcnt > 0 && --maxpasses > 0);
- 
-
 
             if (force_err_display && optimcount > 0) {
                 char buf[BUFFER_LEN];
 		char buf2[BUFFER_LEN];
+                double percent;
+                percent = ((double) ( optimcount ) 
+                          / (double) instrCount) * 100;
                 sprintf(buf2, "Program optimized by %d instructions "
-                              "in %d %s.", optimcount, passcount,
-                              passcount == 1 ? "pass" : "passes");
+                              "in %d %s. (%#.4lg%%)", optimcount, passcount,
+                              passcount == 1 ? "pass" : "passes", percent);
                 strcpy(buf, CGREEN);
 		strcat(buf, buf2);
                 anotify_nolisten(cstat.player, buf, 1);
