@@ -63,7 +63,7 @@ reslvd_open(void)
     }
 
     addr.sin_family = AF_INET;
-    if ((addr.sin_port = htons(atoi(p))) < 1 || addr.sin_port > 65535)
+    if (!(addr.sin_port = htons(atoi(p))))
         addr.sin_port = htons(RESOLVER_PORT);
 
     if ((reslvd_sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
