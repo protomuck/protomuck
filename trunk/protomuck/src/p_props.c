@@ -1016,63 +1016,56 @@ prim_islockedp(PRIM_PROTOTYPE)
 void
 prim_array_filter_prop(PRIM_PROTOTYPE)
 {
-	struct inst *in;
-	struct inst temp1;
-	stk_array *arr;
-	stk_array *nu;
-	char* pat;
-	char* prop;
-	const char* ptr;
-
-	CHECKOP(3);
-	oper3 = POP();				/* str     pattern */
-	oper2 = POP();				/* str     propname */
-	oper1 = POP();				/* refarr  Array */
-	if (oper1->type != PROG_ARRAY)
-		abort_interp("Argument not an array. (1)");
-	if (!array_is_homogenous(oper1->data.array, PROG_OBJECT))
-		abort_interp("Argument not an array of dbrefs. (1)");
-	if (oper2->type != PROG_STRING || !oper2->data.string)
-		abort_interp("Argument not a non-null string. (2)");
-	if (oper3->type != PROG_STRING)
-		abort_interp("Argument not a string pattern. (3)");
-
-	ptr = oper2->data.string->data;
-	while ((ptr = index(ptr, PROPDIR_DELIMITER)))
-		if (!(*(++ptr)))
-			abort_interp("Cannot access a propdir directly.");
-
-	nu = new_array_packed(0);
-	arr = oper1->data.array;
-	prop = (char *) DoNullInd(oper2->data.string);
-	pat = (char *) DoNullInd(oper3->data.string);
-	if (array_first(arr, &temp1)) {
-		do {
-			in = array_getitem(arr, &temp1);
-			ref = in->data.objref;
-			CHECKREMOTE(ref);
-			if (prop_read_perms(ProgUID, ref, prop, mlev)) {
-				ptr = get_property_class(ref, prop);
-				if (ptr) {
+    char buf[BUFFER_LEN], buf2[BUFFER_LEN];
+    struct inst *in;
+    struct inst temp1;
+    stk_array *arr;
+    stk_array *nu;
+    char* pat;
+    char* prop;
+    const char* ptr;
+    CHECKOP(3);
+    oper3 = POP();    /* str     pattern */
+    oper2 = POP();    /* str     propname */
+    oper1 = POP();    /* refarr  Array */
+    if (oper1->type != PROG_ARRAY)
+        abort_interp("Argument not an array. (1)");
+    if (!array_is_homogenous(oper1->data.array, PROG_OBJECT))
+        abort_interp("Argument not an array of dbrefs. (1)");
+    if (oper2->type != PROG_STRING || !oper2->data.string)
+        abort_interp("Argument not a non-null string. (2)");
+    if (oper3->type != PROG_STRING)
+        abort_interp("Argument not a string pattern. (3)");
+    ptr = oper2->data.string->data;
+    while ((ptr = index(ptr, PROPDIR_DELIMITER)))
+        if (!(*(++ptr)))
+            abort_interp("Cannot access a propdir directly.");
+    nu = new_array_packed(0);
+    arr = oper1->data.array;
+    prop = (char *) DoNullInd(oper2->data.string);
+    pat = (char *) DoNullInd(oper3->data.string);
+    strcpy(buf2, pat);
+    if (array_first(arr, &temp1)) {
+        do {
+            in = array_getitem(arr, &temp1);
+            ref = in->data.objref;
+            CHECKREMOTE(ref);
+            if (prop_read_perms(ProgUID, ref, prop, mlev)) {
+                ptr = get_property_class(ref, prop);
+                if (ptr) {
 #ifdef COMPRESS
-                                        uncompress(ptr);
-#endif
-					strcpy(buf, ptr);
-					if (equalstr(pat, buf)) {
-						array_appenditem(&nu, in);
-					}
-				}
-			}
-		} while (array_next(arr, &temp1));
-	}
-
-	CLEAR(oper3);
-	CLEAR(oper2);
-	CLEAR(oper1);
-
-	PushArrayRaw(nu);
+                    ptr = uncompress(ptr);
+#endif /* COMPRESS */
+                    strcpy(buf, ptr);
+                    if (equalstr(buf2, buf)) {
+                        array_appenditem(&nu, in);
+                    }
+                }
+            }
+        } while (array_next(arr, &temp1));
+    }
+    CLEAR(oper3);
+    CLEAR(oper2);
+    CLEAR(oper1);
+    PushArrayRaw(nu);
 }
-
-
-
-
