@@ -1771,7 +1771,6 @@ shovechars(void)
                     cnt = SSL_accept(newd->ssl_session);
                     newd->type = CT_SSL;
                     newd->flags += DF_SSL;
-                    log_status("SSL accept: %i\n", cnt);
                 }
             }
 #endif
@@ -2492,6 +2491,12 @@ shutdownsock(struct descriptor_data *d)
         update_desc_count_table();
     }
     clearstrings(d);
+
+#ifdef USE_SSL
+    if (d->ssl_session && SSL_shutdown(d->ssl_session) < 1)
+        SSL_shutdown(d->ssl_session);
+    SSL_free(d->ssl_session);
+#endif /* USE_SSL */
     shutdown(d->descriptor, 2);
     closesocket(d->descriptor);
     forget_descriptor(d);
