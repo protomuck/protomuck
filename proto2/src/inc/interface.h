@@ -186,6 +186,7 @@ extern char restart_message[BUFFER_LEN];
 extern char shutdown_message[BUFFER_LEN];
 extern bool db_conversion_flag;
 extern bool db_decompression_flag;
+extern bool db_md5_convert;
 extern bool wizonly_mode;
 extern bool verboseload;
 extern unsigned int bytesIn;

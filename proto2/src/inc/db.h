@@ -204,6 +204,7 @@ extern short dbcheck(const char *file, int line, dbref item);
 
 #define DB_PARMSINFO    0x0001
 #define DB_COMPRESSED   0x0002
+#define DB_MD5PASSES    0x0004
 
 #define TYPE_ROOM	    0x0
 #define TYPE_THING	    0x1
@@ -901,47 +902,29 @@ extern struct shared_string *alloc_prog_string(const char *);
 
 extern dbref new_object(void);	/* return a new object */
 extern dbref new_program(register dbref player, register const char *name); /* return a new MUF program type. */
-
 extern dbref getref(FILE *);	/* Read a database reference from a file. */
-
 extern void putref(FILE *, dbref);	/* Write one ref to the file */
-
 extern struct boolexp *getboolexp(FILE *);	/* get a boolexp */
 extern void putboolexp(FILE *, struct boolexp *);	/* put a boolexp */
-
 extern int db_write_object(FILE *, dbref);	/* write one object to file */
-
 extern dbref db_write(FILE * f);/* write db to file, return # of objects */
-
 extern dbref db_read(FILE * f);	/* read db from file, return # of objects */
 
  /* Warning: destroys existing db contents! */
-
 extern void db_free(void);
-
 extern dbref parse_dbref(const char *);	/* parse a dbref */
-
 extern int ifloat(const char *s);
-
-extern int  number(const char *s);
-
+extern int number(const char *s);
 extern void putproperties(FILE *f, int obj);
-
 extern void getproperties(FILE *f, int obj);
-
 extern void free_line(struct line *l);
-
 extern void db_free_object(dbref i);
-
 extern void db_clear_object(dbref i);
-
 extern void macrodump(struct macrotable *node, FILE *f);
-
 extern void macroload(FILE *f);
-
 extern int WLevel(dbref player);
-
 extern int db_load_format;
+extern bool db_md5_passwords;
 
 #define DOLIST(var, first) \
   for((var) = (first); (var) != NOTHING; (var) = DBFETCH(var)->next)

@@ -44,7 +44,7 @@ reslvd_open(void)
     struct hostent *he;
     char *p;
 
-    if (reslvd_connected)
+    if (reslvd_connected || !*tp_reslvd_address)
         return 0;
 
     strcpy(buf, tp_reslvd_address);
