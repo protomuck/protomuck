@@ -110,24 +110,6 @@
 /* The _/www:http://... links won't work on some clients without it. */
 #define HTTPDELAY
 
-/* Use this to choose a version of the parseprop prim that you want
- * want to use. 
-  #define OLDPARSE:
-      The permissions level of the MPI parsed by the parseprop prim
-      are set according to the permissions bit on the MUF program 
-      that contains the parseprop prim. I.e., a w-bitted program will
-      parse MPI at w-levels when using the parseprop prim.
- * OR
-  #undef OLDPARSE:
-      The permissions level of the MPI parsed by the parseprop prim
-      are set according to the permissions on the object itself that
-      the prop is located on. I.e., a non-wiz player's props would
-      be parsed at non-wiz levels, whereas the props on a wiz would
-      be parsed at wiz levels. 
- * This will be an @tuneable option in future versions.
- */
-#define OLDPARSE
-
 /* Define this for old, FB-style control checks (e.g. W2 and higher
  * control everything, instead of you-control-everything-with-a
  * Lower-level-than-you.
