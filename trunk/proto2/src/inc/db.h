@@ -129,7 +129,7 @@ typedef int dbref;		/* offset into db */
 #define POWER2DB(x) (db[x].power2)
 
 /* defines for possible data access mods. */
-#define GETMESG(x,y)   (get_property_class(x, y))
+#define GETMESG(x,y)   (get_uncompress(get_property_class(x, y)))
 #define GETDESC(x)  GETMESG(x, "_/de")
 #define GETANSIDESC(x)  GETMESG(x, "_/anside")
 #define GETHTMLDESC(x)  GETMESG(x, "_/htmlde")
