@@ -208,6 +208,13 @@ sig_reap_resolver(int i)
     int status = 0;
     int pid = waitpid(-1, &status, WNOHANG);
 
+#if defined(SPAWN_HOST_RESOLVER) && defined(RESTART_RESOLVER)
+    extern void spawn_resolver(void);
+    extern void log_status(char *format, ...);
+    spawn_resolver();
+    log_status("RES: Resolver restarted.");
+#endif
+
 /* #if defined(SPAWN_HOST_RESOLVER)
         extern void kill_resolver(void);
 	kill_resolver();
