@@ -4,8 +4,11 @@
 #define _CRT_MALLOC_H
 
 #include <sys/types.h>
+#ifdef APPLE
+#include <sys/malloc.h>
+#else
 #include <malloc.h>
-
+#endif
 extern void CrT_check(const char *, int);
 extern int CrT_check_everything(const char *, int);
 extern void *CrT_malloc(size_t size, const char *whatfile, int whatline);

@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+# ifdef APPLE
+# include <sys/malloc.h>
+# endif
 #else
 #include <malloc.h>
 #endif

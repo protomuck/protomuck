@@ -18,7 +18,7 @@
 #
 # Alynna -- prim_divide will now not support any optimizations
 # 03/20/2003 -- trying -O2 again.
-OPTIM= -O2 -fomit-frame-pointer
+OPTIM= -O2 -g
 
 #
 # Paths

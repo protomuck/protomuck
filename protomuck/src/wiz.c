@@ -10,7 +10,11 @@
 
 #ifndef MALLOC_PROFILING
 #  ifndef HAVE_MALLOC_H
-#    include <stdlib.h>
+#    ifdef APPLE
+#      include <sys/malloc.h>
+#    else
+#      include <stdlib.h>
+#    endif
 #  else
 #    include <malloc.h>
 #  endif
