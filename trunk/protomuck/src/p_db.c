@@ -2395,6 +2395,8 @@ prim_newprogram(PRIM_PROTOTYPE)
 		abort_interp("Expected string argument.");
 	if (!tp_building || tp_db_readonly)
 		abort_interp(NOBUILD_MESG);
+        if (!oper1->data.string)
+                abort_interp("An empty string was passed.(2)");
 	if (!ok_name(oper1->data.string->data))
 		abort_interp("Invalid name (2)");
 
@@ -2430,8 +2432,8 @@ prim_newprogram(PRIM_PROTOTYPE)
 	PUSH(newprog, DBFETCH(player)->contents);
 	DBDIRTY(newprog);
 	DBDIRTY(player);
+        CLEAR(oper1);
       PushObject(newprog);
-      CLEAR(oper1);
 }
 
 extern struct line *read_program(dbref prog);
