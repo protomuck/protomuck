@@ -745,9 +745,11 @@ prim_array_notify(PRIM_PROTOTYPE)
                         if (array_first(refarr, &temp1)) {
                                 do {
                                         oper3 = array_getitem(refarr, &temp1);
-
-                                        notify_listeners(fr->descr, player, program, oper3->data.objref,
-                                                                         getloc(oper3->data.objref), buf, 1);
+                                        if (valid_object(oper3))
+                                            notify_listeners(fr->descr, player,
+                                                   program, oper3->data.objref,
+                                                   getloc(oper3->data.objref), 
+                                                   buf, 1);
 
                                         oper3 = NULL;
                                 } while (array_next(refarr, &temp1));
@@ -801,9 +803,10 @@ prim_array_ansi_notify(PRIM_PROTOTYPE)
                         if (array_first(refarr, &temp1)) {
                                 do {
                                         oper3 = array_getitem(refarr, &temp1);
-
-                                        ansi_notify_listeners(fr->descr, player, program, oper3->data.objref,
-                                                                         getloc(oper3->data.objref), buf, 1);
+                                        if (valid_object(oper3))
+                                            ansi_notify_listeners(fr->descr, 
+                                            player, program, oper3->data.objref,
+                                            getloc(oper3->data.objref), buf, 1);
 
                                         oper3 = NULL;
                                 } while (array_next(refarr, &temp1));
