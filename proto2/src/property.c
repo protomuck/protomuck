@@ -9,10 +9,12 @@
 #include "externs.h"
 #include "interface.h"
 
-
 #ifdef COMPRESS
 extern const char *compress(const char *);
+
+#ifdef ARCHAIC_DATABASES
 extern const char *old_uncompress(const char *);
+#endif
 
 #define alloc_compressed(x) alloc_string(compress(x))
 #else /* !COMPRESS */
@@ -926,7 +928,7 @@ db_get_single_prop(FILE * f, dbref obj, int pos)
         case PROP_STRTYP:
             if (!do_diskbase_propvals || pos) {
                 pdat.flags &= ~PROP_ISUNLOADED;
-#ifdef COMPRESS
+#if defined(COMPRESS) && defined(ARCHAIC_DATABASES)
                 if (!(pdat.flags & PROP_COMPRESSED))
                     value = (char *) old_uncompress(value);
 #endif
