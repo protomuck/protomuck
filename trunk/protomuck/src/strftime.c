@@ -29,7 +29,6 @@ format_time(char *buf, int max_len, const char *fmt, struct tm * tmval)
     int     pos, ret;
     char    tmp[256];
     /* struct timezone tz; */
-
     pos = 0;
     max_len--;
     while ((*fmt) && (pos < max_len))
@@ -269,16 +268,18 @@ format_time(char *buf, int max_len, const char *fmt, struct tm * tmval)
 			int2str(tmp, tmval->tm_year + 1900, 4, '0');
 			break;
 		    case 'Z':
-#if defined(HAVE_TM_ZONE) && !defined(WIN32) && !defined(BRAINDEAD_OS)
-			strcpy(tmp, tmval->tm_zone);
-#else /* !HAVE_TM_ZONE */
-# ifdef HAVE_TZNAME
-#  ifdef WIN_VC
-			strcpy(tmp, _tzname[tmval->tm_isdst]);
-#  else
-			strcpy(tmp, tzname[tmval->tm_isdst]);
-#  endif
-# endif
+#ifdef HAVE_TM_ZONE
+/* If using cygwin and your timezone is not listed
+   you may add your case here */
+#ifdef CYGWIN
+                        strcpy(tmp, CYGWIN_TZX);
+#elif HAVE_TZNAME
+                        strcpy(tmp, tzname[tmval->tm_isdst]);
+#else
+                        strcpy(tmp, tmval->tm_zone);
+#endif /* CYGWIN */
+#else
+                        strcpy(tmp, "   ");
 #endif /* !HAVE_TM_ZONE */
 			break;
 		    case '%':
@@ -301,8 +302,6 @@ format_time(char *buf, int max_len, const char *fmt, struct tm * tmval)
 #endif                          /* USE_STRFTIME */
 }
 
-
-
 int
 get_tz_offset(void)
 {
@@ -311,28 +310,18 @@ get_tz_offset(void)
  * a structure. This makes it very hard (at best) to check for,
  * therefor I'm checking for tm_gmtoff. --WF
  */
-  #if defined(BRAINDEAD_OS)
+#if defined(BRAINDEAD_OS)
     return 0;
-  #else
-    #if defined(HAVE_TM_GMTOFF) || defined(HAVE_SYS_TM_GMTOFF)
-      time_t now;
-
-      time(&now);
-      return (int) (localtime(&now)->tm_gmtoff);
-    #else
-      /* extern int timezone; */
-  
-#ifdef WIN_VC
-	return (int) _timezone;
+#elif defined(HAVE_TM_GMTOFF) || defined(HAVE_SYS_TM_GMTOFF)
+    time_t now;
+    time(&now);
+    return (int) (localtime(&now)->tm_gmtoff);
+#elif defined(WIN_VC) || defined(WIN32)
+    return (int) _timezone;
+#elif defined(CYGWIN)
+/* Same problem as above.  Its much easier to SET the DEFINE. */
+    return CYGWIN_TZ;
 #else
-	return (int) timezone;
+    return (int) timezone;
 #endif
-    #endif
-  #endif
 }
-    
-
-
-
-
-

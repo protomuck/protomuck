@@ -322,6 +322,15 @@ main(int argc, char **argv)
     if (!sanity_interactive) {
 
 #ifdef DETACH
+#if defined(CYGWIN) || defined(WIN32) || defined(WIN_VC)
+# ifdef CYGWIN
+    fprintf(stdout,"ProtoMUCK-Cygwin %s now detaching from console.\n", PROTOBASE);
+# else
+    fprintf(stdout,"ProtoMUCK-Win32 %s now detaching from console.\n", PROTOBASE);
+# endif
+#else
+    fprintf(stdout,"ProtoMUCK %s now detaching from console.\n", PROTOBASE);
+#endif    
 	/* Go into the background unless improper mode to */
        if (!sanity_interactive && !db_conversion_flag) {
 	    fclose(stdin); fclose(stdout); fclose(stderr);
@@ -337,20 +346,22 @@ main(int argc, char **argv)
 	    fclose(ffd);
 	}
 
-	log_status("INIT: ProtoMUCK %s starting.\n", PROTOBASE);
-	#ifdef WIN32
-	   fprintf(stderr,"ProtoMUCK %s(%s-compat) - Windows Port\n", PROTOBASE, VERSION);
-	   fprintf(stderr,"----------------------------------------------\n");
-	   fprintf(stderr,"NOTE: The Windows port of Proto is considered\n");
+	log_status("INIT: ProtoMUCK %s starting as pid %d.\n", PROTOBASE, getpid());
+
+#ifdef WIN32
+	 fprintf(stderr,"ProtoMUCK-Win32 %s(%s-compat)\n", PROTOBASE, VERSION);
+	 fprintf(stderr,"----------------------------------------------\n");
+	 fprintf(stderr,"NOTE: The Windows port of Proto is considered\n");
          fprintf(stderr," to be EXPERIMENTAL.  I will try to provide as\n");
          fprintf(stderr," much support as I can for it, but recognize that\n");
          fprintf(stderr," ProtoMuck as a whole is a spare-time project.\n");
          fprintf(stderr,"   --Moose/Van (contikimoose@hotmail.com)\n");
          fprintf(stderr,"   --Akari     (Nakoruru08@hotmail.com)\n");
-	   fprintf(stderr,"----------------------------------------------\n");
-	#endif
+	 fprintf(stderr,"----------------------------------------------\n");
+#endif
 
 #ifdef DETACH
+//    fprintf(stdout,"Console messages to '%s', Error messages to '%s'.", LOG_FILE, LOG_ERR_FILE);
     if (!sanity_interactive && !db_conversion_flag) {
 	/* Detach from the TTY, log whatever output we have... */
 	freopen(LOG_ERR_FILE,"a",stderr);
@@ -358,27 +369,27 @@ main(int argc, char **argv)
 	freopen(LOG_FILE,"a",stdout);
 	setbuf(stdout, NULL);
 
-	/* Disassociate from Process Group */
-# ifdef SYS_POSIX
-	setsid();
-# else
-#  ifdef  SYSV
-	setpgrp(); /* System V's way */
-#  else
-	setpgrp(0, getpid()); /* BSDism */
-#  endif  /* SYSV */
+/* Disassociate from Process Group */
+	
+/* CYGWIN hack - Cygwin is SYS_POSIX but doesnt come as such. */
 
-#  ifdef  TIOCNOTTY  /* we can force this, POSIX / BSD */
-	if ( (fd = open("/dev/tty", O_RDWR)) >= 0)
-	{
-	    ioctl(fd, TIOCNOTTY, (char *)0); /* lose controll TTY */
-	    close(fd);
-	}
-#  endif /* TIOCNOTTY */
-# endif /* !SYS_POSIX */
-      }
+#if defined(CYGWIN) || defined(SYS_POSIX) || defined (USE_SID)
+         setsid();
+#elif defined(SYSV) || defined(USE_SYSVPGRP)
+         setpgrp(); /* System V's way */
+#elif defined(BSD) || defined(USE_BSDPGRP)
+         setpgrp(0, getpid()); /* BSDism */
+#else  /* anyone else, default to POSIX (WinNT, Linux) */
+         setsid();
+#endif
+# ifdef  TIOCNOTTY  /* we can force this, POSIX / BSD */
+        if ( (fd = open("/dev/tty", O_RDWR)) >= 0) {
+            ioctl(fd, TIOCNOTTY, (char *)0); /* lose controll TTY */
+            close(fd);
+            }
+# endif /* TIOCNOTTY */
+        }
 #endif /* DETACH */
-
     }
 
 	/* Initialize MCP and some packages. */

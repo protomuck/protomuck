@@ -663,6 +663,10 @@ power_description(dbref thing)
           strcat(buf, "TELEPORT ");
       if (POWERS(thing) & POW_SHUTDOWN)
           strcat(buf, "SHUTDOWN ");
+#ifdef STAFF_POWER
+      if (POWERS(thing) & POW_STAFF)
+          strcat(buf, "STAFF ");
+#endif
     return buf;
 }
 
@@ -1601,6 +1605,15 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
             else
 		    check->setpowers |= POW_ALL_MUF_PRIMS;
             break;
+#ifdef STAFF_POWER            
+            case 'w':
+                check->anypower = 0;
+                if (mode)
+                    check->clearpowers |= POW_STAFF;
+            else
+                    check->setpowers |= POW_STAFF;
+            break;
+#endif      
 	    case ' ':
 		if (mode)
 		    mode = 2;

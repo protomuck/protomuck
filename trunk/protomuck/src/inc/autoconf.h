@@ -2,7 +2,7 @@
 /* ../include/autoconf.h.in.  Generated automatically from configure.in by autoheader.  */
 
 /* uname -a output for certain local programs. */
-#define UNAME_VALUE "Linux tnt.2y.net 2.4.8-34.1mdk #1 Mon Nov 19 12:40:39 MST 2001 i686 unknown"
+#define UNAME_VALUE "Linux tnt.2y.net 2.4.18-xfs #1 Thu Mar 7 00:05:00 EST 2002 i686 unknown"
 
 /* Define to empty if the keyword does not work.  */
 /* #undef const */

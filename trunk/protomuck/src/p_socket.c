@@ -488,8 +488,8 @@ prim_sockaccept(PRIM_PROTOTYPE)
     newsock = accept(sockdescr, (struct sockaddr *) &remoteaddr, 
 		     (socklen_t *) &addr_len);
     if (newsock == -1) {//some kind of error
-#if defined(BRAINDEAD_OS) || defined(WIN32)
-        sprintf(myresult, "ERROR: %d", errornosocket);
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(CYGWIN)
+        sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
         strcpy(myresult, sys_errlist[errnosocket]);
 #endif

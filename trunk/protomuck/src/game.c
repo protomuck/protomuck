@@ -343,6 +343,10 @@ void fork_and_dump(void)
 
     last_monolithic_time = current_systime;
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
+#ifdef DUMP_PROPQUEUES                	
+	    propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
+#endif
+
 #ifdef DISKBASE
     dump_database_internal();
 #else
@@ -444,6 +448,7 @@ int
 init_game(const char *infile, const char *outfile)
 {
     FILE   *f;
+        log_status("init_game\n");
 
     if ((f = fopen(MACRO_FILE, "r")) == NULL)
 	log_status("INIT: Macro storage file %s is tweaked.\n", MACRO_FILE);
@@ -451,32 +456,39 @@ init_game(const char *infile, const char *outfile)
 	macroload(f);
 	fclose(f);
     }
-
+    log_status("init_game: macro file loaded\n");
     in_filename = (char *)string_dup(infile);
-    if ((input_file = fopen(infile, "r")) == NULL)
+    if ((input_file = fopen(infile, "r")) == NULL) {
+        log_status("DIE: input file not readable\n");
 	return -1;
-
+        }
 #ifdef DELTADUMPS
-    if ((delta_outfile = fopen(DELTAFILE_NAME, "w")) == NULL)
+    if ((delta_outfile = fopen(DELTAFILE_NAME, "w")) == NULL) {
+	log_status("DIE: delta outfile not writable\n");
 	return -1;
-
-    if ((delta_infile = fopen(DELTAFILE_NAME, "r")) == NULL)
+        }
+    if ((delta_infile = fopen(DELTAFILE_NAME, "r")) == NULL) {
+        log_status("DIE: delta infile not readable\n");
 	return -1;
+	}
 #endif
 
-    db_free();
-    init_primitives();                 /* init muf compiler */
+    db_free();           log_status("init_game/db_free\n");
+    init_primitives();   log_status("init_game/init_primitives: MUF initialized\n"); /* init muf compiler */
 #ifdef MPI
-    mesg_init();                       /* init mpi interpreter */
+    mesg_init();         log_status("init_game/mesg_init: MPI initialized\n");
+    /* init mpi interpreter */
 #endif /* MPI */
-    SRANDOM(getpid());                 /* init random number generator */
+    SRANDOM(getpid());   log_status("init_game: random number generator initialized\n"); /* init random number generator */
     tune_load_parmsfile(NOTHING);      /* load @tune parms from file */
-
+    log_status("init_game: loaded parmfile.cfg\n");
     /* ok, read the db in */
     log_status("LOAD: %s\n", infile);
     fprintf(stderr, "LOAD: %s\n", infile);
-    if (db_read(input_file) < 0)
+    if (db_read(input_file) < 0) {
+        log_status("DIE: database load error.  Damnit.\n");    
 	return -1;
+	}
     log_status("LOAD: %s (done)\n", infile);
     fprintf(stderr, "LOAD: %s (done)\n", infile);
 
@@ -1243,7 +1255,15 @@ process_command(int descr, dbref player, char *command)
 		    case 'v':
 		    case 'V':
 			Matched("@version");
+                        #if defined(WIN32) || defined(WIN_VC)
+			anotify_nolisten2(player, CRIMSON "WinProto " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+			#else
+			# ifdef CYGWIN
+			anotify_nolisten2(player, CRIMSON "ProtoMUCK-Cygwin " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+			# else
 			anotify_nolisten2(player, CRIMSON "ProtoMUCK " PROTOBASE PURPLE " (" RED VERSION WHITE " -- " AQUA NEONVER PURPLE ")" );
+			# endif
+			#endif			
 			break;
 		    case 'w':
 		    case 'W':

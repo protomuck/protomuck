@@ -40,7 +40,7 @@ extern short db_decompression_flag;
 int     number(const char *s);
 int     ifloat(const char *s);
 void    putproperties(FILE * f, int obj);
-void    getproperties(FILE * f, int obj);
+void getproperties(FILE * f, int obj);
 
 
 dbref
@@ -500,6 +500,11 @@ db_write_object(FILE * f, dbref i)
     o->propsfpos = tmppos;
     undirtyprops(i);
 
+
+
+
+
+
 #else		/* !DISKBASE */
     putproperties(f, i);
 #endif		/* DISKBASE */
@@ -569,6 +574,8 @@ db_write_list(FILE *f, int mode)
 		deltas_count++;
 	    }
 #endif
+
+
 	    FLAGS(i) &= ~OBJECT_CHANGED;  /* clear changed flag */
 	}
     }
@@ -816,10 +823,10 @@ ifloat (const char *s)
 was: PropPtr getproperties(FILE *f)
 now: void getproperties(FILE *f, dbref obj)
 ***/
-void 
+void
 getproperties(FILE * f, dbref obj)
 {
-    char    buf[BUFFER_LEN * 3], *p;
+    char    buf[BUFFER_LEN], *p;
     int datalen;
 
 #ifdef DISKBASE
@@ -1333,6 +1340,8 @@ db_read_object_foxen(FILE * f, struct object * o, dbref objno,
 
     FLAGS(objno) &= ~SAVED_DELTA;
 
+
+
     if (dtype != 3) {
 #ifdef VERBOSELOAD
 	fprintf(stderr, "time...");
@@ -1398,7 +1407,7 @@ db_read_object_foxen(FILE * f, struct object * o, dbref objno,
 	}
     }
 
-    /* o->password = getstring(f); */
+    // o->password = getstring(f);
     /* For downward compatibility with databases using the */
     /* obsolete ANTILOCK flag. */
     if (FLAGS(objno) & ANTILOCK) {
