@@ -555,7 +555,7 @@ prim_descr_setuser(PRIM_PROTOTYPE)
     }
     if (ref != NOTHING) {
         log_status("SUSR: %d %s(%d) to %s(%d)\n",
-                   oper1->data.number, player != -1 ? NAME(player) : "(Login)",
+                   oper1->data.number, OkObj(player) ? NAME(player) : "(Login)",
                    player, NAME(ref), ref);
     }
     tmp = oper1->data.number;
