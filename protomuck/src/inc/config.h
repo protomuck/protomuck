@@ -163,6 +163,9 @@
  */
 #define SPAWN_HOST_RESOLVER
 
+/* If this is defined, the resolver will try to restart itself if killed. */
+#define RESTART_RESOLVER 
+
 /* Debugging info for database loading */
 #undef VERBOSELOAD
 
