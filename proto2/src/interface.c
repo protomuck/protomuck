@@ -3606,12 +3606,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                     /****/
+        if (d->next)                                                                                         /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                 /****/
+        if (d->hostname)                                                                                     /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                 /****/
+        if (d->username)                                                                                     /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD
@@ -4215,7 +4215,7 @@ announce_puppets(dbref player, const char *msg, const char *prop)
                 if ((!Dark(where)) && (!Dark(player)) && (!Dark(what))) {
                     msg2 = msg;
                     if ((ptr = (char *) get_property_class(what, prop)) && *ptr)
-                        msg2 = ptr;
+                        msg2 = get_uncompress(ptr);
                     sprintf(buf, CMOVE "%.512s %.3000s", PNAME(what), msg2);
                     anotify_except(DBFETCH(where)->contents, what, buf, what);
                 }
@@ -5512,7 +5512,7 @@ init_ignore(dbref tgt)
     return;
 }
 
-char /* char, for when you only need a byte's worth. */
+char                            /* char, for when you only need a byte's worth. */
 ignorance(register dbref src, dbref tgt)
 {
     register struct object *tobj = DBFETCH(tgt);
