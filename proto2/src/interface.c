@@ -5509,6 +5509,7 @@ ignorance(dbref src, dbref tgt)
     /* if we got this far, lets check it out, get out ASAP, BTW. */
     while (count < MAX_IGNORES) {
      if ( tobj->sp.player.ignore[count] == src ) return 1;
+     if ( tobj->sp.player.ignore[count] == OWNER(src) ) return 1;
      if ( tobj->sp.player.ignore[count] == -1 ) return 0;
      count++;
     }
