@@ -511,6 +511,39 @@ notify_descriptor(int descr, const char *msg)
    }
 }
 
+void
+anotify_descriptor(int descr, const char *msg)
+{
+   /* Just like notify descriptor. But leaves ANSI in for 
+    * connections not connected to a player. (since no C flag
+    * can be checked.
+    */
+   char *ptr1;
+   const char *ptr2;
+   char buf[BUFFER_LEN + 2];
+   struct descriptor_data *d;
+
+   if (!msg || !*msg)
+      return;
+   for (d = descriptor_list; d && (d->descriptor != descr); d = d->next);
+   if (!d || d->descriptor != descr) return;
+
+    ptr2 = msg;
+    while (ptr2 && *ptr2) {
+        ptr1 = buf;
+        while ((ptr2) && (*ptr2) && (*ptr2 != '\r') && (*ptr2 != '\n'))
+            *(ptr1++) = *(ptr2++);
+        *(ptr1++) = '\r';
+        *(ptr1++) = '\n';
+        *(ptr1++) = '\0';
+      while ((*ptr2 == '\r') || (*ptr2 == '\n'))
+            ptr2++;
+      queue_login_ansi(d, buf);
+      process_output(d);
+   }
+}
+
+
 char *
 html_escape(const char *msg)
 {
@@ -764,6 +797,29 @@ queue_ansi(struct descriptor_data *d, const char *msg)
 	}
       mcp_frame_output_inband(&d->mcpframe, buf);
 	return strlen(buf);
+}
+
+int
+queue_login_ansi(struct descriptor_data *d, const char *msg)
+{
+      /* Just like queue_ansi, but leaves the ANSI in for
+       * descriptors not connected to a player.
+       */
+      char buf[BUFFER_LEN+5];
+
+      if (!msg || !*msg)
+         return 0;
+        if (d->connected) {
+                if ((FLAGS(d->player) & CHOWN_OK) && !(d->http_login)) {
+                        strip_bad_ansi(buf, msg);
+                } else {
+                        strip_ansi(buf, msg);
+                }
+        } else {
+                strip_bad_ansi(buf, msg);
+        }
+      mcp_frame_output_inband(&d->mcpframe, buf);
+        return strlen(buf);
 }
 
 int

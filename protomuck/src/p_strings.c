@@ -889,12 +889,38 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
     if (oper1->type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
     if (oper2->type != PROG_INTEGER)
-	abort_interp("Invalid object argument (1)");
+	abort_interp("Descriptor integer expected. (1)");
     if (!pdescrp(oper2->data.number))
        abort_interp("That is not a valid descriptor.");
     if (oper1->data.string) {
 	  strcpy(buf, oper1->data.string->data);
         notify_descriptor(oper2->data.number, buf);
+    }
+    CLEAR(oper1);
+    CLEAR(oper2);
+}
+
+void
+prim_ansi_notify_descriptor(PRIM_PROTOTYPE)
+{
+    /* Like notify_descriptor, but defaults to leaving ANSI in for
+     * unconnected connections. 
+     */
+    char buf[BUFFER_LEN*2];
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+    if (mlev < LMAGE)
+        abort_interp("Mage primitive.");
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (2)");
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Invalid descriptor arguement. (1)");
+    if (!pdescrp(oper2->data.number))
+        abort_interp("That is not a valid descriptor.");
+    if (oper1->data.string) {
+        strcpy(buf, oper1->data.string->data);
+        anotify_descriptor(oper2->data.number, buf);
     }
     CLEAR(oper1);
     CLEAR(oper2);
