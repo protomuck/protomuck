@@ -1926,17 +1926,6 @@ prim_array_join(PRIM_PROTOTYPE)
                 text = "<UNSUPPORTED>";
                 break;
         }
-        if (ptr != outbuf) {
-            tmplen = strlen(delim);
-            if (tmplen > BUFFER_LEN - (ptr - outbuf) - 1) {
-                strncpy(ptr, delim, BUFFER_LEN - (ptr - outbuf) - 1);
-                outbuf[BUFFER_LEN - 1] = '\0';
-                break;
-            } else {
-                strcpy(ptr, delim);
-                ptr += tmplen;
-            }
-        }
         tmplen = strlen(text);
         if (tmplen > BUFFER_LEN - (ptr - outbuf) - 1) {
             strncpy(ptr, text, BUFFER_LEN - (ptr - outbuf) - 1);
@@ -1947,6 +1936,17 @@ prim_array_join(PRIM_PROTOTYPE)
             ptr += tmplen;
         }
         done = !array_next(arr, &temp1);
+        if (!done) {
+            tmplen = strlen(delim);
+            if (tmplen > BUFFER_LEN - (ptr - outbuf) - 1) {
+                strncpy(ptr, delim, BUFFER_LEN - (ptr - outbuf) - 1);
+                outbuf[BUFFER_LEN - 1] = '\0';
+                break;
+            } else {
+                strcpy(ptr, delim);
+                ptr += tmplen;
+            }
+        }
     }
 
     CLEAR(oper2);
