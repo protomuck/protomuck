@@ -30,7 +30,6 @@ extern void prim_setown(PRIM_PROTOTYPE);
 extern void prim_newobject(PRIM_PROTOTYPE);
 extern void prim_newroom(PRIM_PROTOTYPE);
 extern void prim_newexit(PRIM_PROTOTYPE);
-extern void prim_lockedp(PRIM_PROTOTYPE);
 extern void prim_recycle(PRIM_PROTOTYPE);
 extern void prim_setlockstr(PRIM_PROTOTYPE);
 extern void prim_getlockstr(PRIM_PROTOTYPE);
@@ -68,7 +67,7 @@ extern void prim_find_array(PRIM_PROTOTYPE);
     prim_set, prim_mlevel, prim_flagp, prim_playerp, prim_thingp,        \
     prim_roomp, prim_programp, prim_exitp, prim_okp, prim_location,      \
     prim_owner, prim_getlink, prim_setlink, prim_setown, prim_newobject, \
-    prim_newroom, prim_newexit, prim_lockedp, prim_recycle,              \
+    prim_newroom, prim_newexit,  prim_recycle,              \
     prim_setlockstr, prim_getlockstr, prim_part_pmatch, prim_controls,   \
     prim_truename, prim_checkpassword, prim_pmatch, prim_newplayer,      \
     prim_copyplayer, prim_toadplayer, prim_objmem, prim_getlinks,        \
@@ -84,7 +83,7 @@ extern void prim_find_array(PRIM_PROTOTYPE);
     "SET", "MLEVEL", "FLAG?", "PLAYER?", "THING?",           \
     "ROOM?", "PROGRAM?", "EXIT?", "OK?", "LOCATION",         \
     "OWNER", "GETLINK", "SETLINK", "SETOWN", "NEWOBJECT",    \
-    "NEWROOM", "NEWEXIT", "LOCKED?", "RECYCLE",              \
+    "NEWROOM", "NEWEXIT",  "RECYCLE",              \
     "SETLOCKSTR", "GETLOCKSTR", "PART_PMATCH", "CONTROLS",   \
     "TRUENAME", "CHECKPASSWORD", "PMATCH", "NEWPLAYER",      \
     "COPYPLAYER", "TOADPLAYER", "OBJMEM", "GETLINKS",        \

@@ -247,7 +247,7 @@ extern int test_lock_false_default(int descr, dbref player, dbref thing, const c
 extern int can_link_to(dbref who, object_flag_type what_type, dbref where);
 extern int can_link(dbref who, dbref what);
 extern int could_doit(int descr, dbref player, dbref thing);
-extern int could_doit2(int descr, dbref player, dbref thing, char *prop);
+extern int could_doit2(int descr, dbref player, dbref thing, char *prop, int tryprog);
 extern int can_doit(int descr, dbref player, dbref thing, const char *default_fail_msg);
 extern int can_see(dbref player, dbref thing, int can_see_location);
 extern int controls(dbref who, dbref what);

@@ -1572,35 +1572,6 @@ prim_newexit(PRIM_PROTOTYPE)
     }
 }
 
-
-void 
-prim_lockedp(PRIM_PROTOTYPE)
-{
-    /* d d - i */
-    struct inst *oper1, *oper2;
-    CHECKOP(2);
-    oper1 = POP();		/* objdbref */
-    oper2 = POP();		/* player dbref */
-    if (fr->level > 8)
-	abort_interp("Interp call loops not allowed");
-    if (!valid_object(oper2))
-	abort_interp("invalid object (1)");
-    if (!valid_player(oper2) && Typeof(oper2->data.objref) != TYPE_THING)
-	abort_interp("Non-player argument (1)");
-    CHECKREMOTE(oper2->data.objref);
-    if (!valid_object(oper1))
-	abort_interp("invalid object (2)");
-    CHECKREMOTE(oper1->data.objref);
-    interp_set_depth(fr);
-    result = !could_doit(fr->descr, oper2->data.objref, oper1->data.objref);
-    fr->level--;
-    interp_set_depth(fr);
-    CLEAR(oper1);
-    CLEAR(oper2);
-    PushInt(result);
-}
-
-
 void 
 prim_recycle(PRIM_PROTOTYPE)
 {
