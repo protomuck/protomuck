@@ -695,8 +695,7 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
 
                         for (di = 0; di < dcount; di++) {
 			    d = descrdata_by_index(darr[di]);
-				    if (Html(OWNER(player)))
-                                     if (d)
+				    if (Html(OWNER(player)) && d)
                                        queue_ansi(d, html_escape(buf2)); else
                             if (d)
                                queue_ansi(d, buf2);
