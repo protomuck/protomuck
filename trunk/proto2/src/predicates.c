@@ -252,16 +252,19 @@ can_doit(int descr, register dbref player, register dbref thing,
     if ((loc = getloc(player)) == NOTHING)
         return 0;
 
-    if (OkObj(thing))
+    if (OkObj(thing)) {
+        dbref dest =
+            DBFETCH(thing)->sp.exit.ndest ? DBFETCH(thing)->sp.exit.
+            dest[0] : NOTHING;
+
         if (((FLAG2(player) & F2IMMOBILE) && !(FLAG2(thing) & F2IMMOBILE)) &&
-            (!(Typeof(DBFETCH(thing)->sp.exit.dest[0]) == TYPE_PROGRAM)
-             && !(DBFETCH(thing)->sp.exit.dest[0] == NIL))
+            (!OkObj(dest) || Typeof(dest) != TYPE_PROGRAM)
             ) {
             envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
                          thing, thing, NOTHING, "@immobile", "Immobile", 1, 1);
             return 0;
         }
-
+    }
     if (!TMage(OWNER(player)) && Typeof(player) == TYPE_THING &&
         (FLAGS(thing) & ZOMBIE)) {
         notify(player, "Sorry, but zombies can't do that.");
@@ -297,9 +300,9 @@ can_doit(int descr, register dbref player, register dbref thing,
 bool
 can_see(register dbref player, register dbref thing, register bool can_see_loc)
 {
-    if(!OkObj(player) || !OkObj(thing))
-	return 0;
-    
+    if (!OkObj(player) || !OkObj(thing))
+        return 0;
+
     if (player == thing || Typeof(thing) == TYPE_EXIT
         || Typeof(thing) == TYPE_ROOM)
         return 0;
