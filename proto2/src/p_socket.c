@@ -436,7 +436,6 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
 
     t_val.tv_sec = 0;
     t_val.tv_usec = 0;
-
     sockval = oper1->data.sock->socknum;
     *mystring = '\0';
     FD_ZERO(&reads);
@@ -495,6 +494,7 @@ prim_sockclose(PRIM_PROTOTYPE)
         log2filetime("logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program,
                      unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
     oper1->data.sock->connected = 0;
+    remove_socket_from_queue(oper1->data.sock);
     CLEAR(oper1);
     PushInt(myresult);
 }
@@ -535,9 +535,10 @@ prim_sockshutdown(PRIM_PROTOTYPE)
     if (tp_log_sockets)
         log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n", program,
                      unparse_object(PSafe, PSafe), oper1->data.sock->socknum);
-    if (how == 2)
-        oper1->data.sock->connected = 0; /* only say not-connected if 
-                                          * complete shutdown. */
+    if (how == 2) {
+        oper1->data.sock->connected = 0; /* only say not-connected if */
+        remove_socket_from_queue(oper1->data.sock); /* complete shutdown.  */
+    }
     CLEAR(oper1);
     CLEAR(oper2);
     PushInt(myresult);
