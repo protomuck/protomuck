@@ -1489,6 +1489,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("CONTROLS", p) || string_prefix("~", p)) {
         f2 = F2CONTROLS;
 #endif
+    } else if (string_prefix("IMMOBILE", p) || string_prefix("|", p)) {
+        f2 = F2IMMOBILE;
     } else if (string_prefix("JUMP_OK", p)) {
         f = JUMP_OK;
     } else if (string_prefix("HAVEN", p) || string_prefix("HARDUID", p)

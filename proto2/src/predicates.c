@@ -101,6 +101,17 @@ could_doit(int descr, register dbref player, register dbref thing)
                 return 0;
             }
         }
+/*
+    if (OkObj(thing)) if
+       ( ((FLAG2(player) & F2IMMOBILE) && !(FLAG2(thing) & F2IMMOBILE)) && 
+         (!(Typeof(dest) == TYPE_PROGRAM) && !(dest == NIL))
+       ) {
+          envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
+	              thing, thing, NOTHING, "@immobile", "Immobile", 1, 1);
+    	  return 0;
+         }
+
+*/
 /*        if( (dest != HOME) &&
             (Typeof(dest)==TYPE_ROOM) &&
             (FLAGS(player) & ZOMBIE) && (Typeof(player) == TYPE_THING) &&
@@ -130,6 +141,7 @@ could_doit(int descr, register dbref player, register dbref thing)
             }
         }
     }
+
 
     return (eval_boolexp(descr, player, GETLOCK(thing), thing));
 }
@@ -161,7 +173,16 @@ could_doit2(int descr, register dbref player, register dbref thing, char *prop,
                 return 0;
             }
         }
-
+/*
+    if (OkObj(thing)) if
+       ( ((FLAG2(player) & F2IMMOBILE) && !(FLAG2(thing) & F2IMMOBILE)) && 
+         (!(Typeof(dest) == TYPE_PROGRAM) && !(dest == NIL))
+       ) {
+          envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
+	              thing, thing, NOTHING, "@immobile", "Immobile", 1, 1);
+    	  return 0;
+         }
+*/
         if ((dest != HOME) && (Typeof(dest) == TYPE_ROOM) && Guest(player)
             && (tp_guest_needflag ? !(FLAG2(dest) & F2GUEST)
                 : (FLAG2(dest) & F2GUEST))) {
@@ -184,7 +205,10 @@ could_doit2(int descr, register dbref player, register dbref thing, char *prop,
                 }
             }
         }
+
+
     }
+
     if (tryprog)
         return (eval_boolexp(descr, player,
                              get_property_lock(thing, prop), thing));
@@ -227,6 +251,15 @@ can_doit(int descr, register dbref player, register dbref thing,
 
     if ((loc = getloc(player)) == NOTHING)
         return 0;
+
+    if (OkObj(thing)) if
+       ( ((FLAG2(player) & F2IMMOBILE) && !(FLAG2(thing) & F2IMMOBILE)) && 
+         (!(Typeof(DBFETCH(thing)->sp.exit.dest[0]) == TYPE_PROGRAM) && !(DBFETCH(thing)->sp.exit.dest[0] == NIL))
+       ) {
+          envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
+	              thing, thing, NOTHING, "@immobile", "Immobile", 1, 1);
+    	  return 0;
+         }
 
     if (!TMage(OWNER(player)) && Typeof(player) == TYPE_THING &&
         (FLAGS(thing) & ZOMBIE)) {
