@@ -469,3 +469,15 @@ has the permissions of the W4 level when this is tuned off. And
 finally, W1's will be treated as M3's, losing all of their mage 
 perks. NOTE: Once this is @tuned to 'no', only #1 can @tune it back 
 to 'yes'. Otherwise, it's a W4+ only @tuneable.
+~~~
+wiz_puppets
+By setting this to yes, only players of W1 or higher can set the
+Z flag on things. Puppets will still work as normal, all that is
+restricted is the actual setting of the Z flag.
+~~~~
+min_progbreak_lev
+Raising this above zero will make it so that only players of that
+M or W level can use the program break command, defaulted to '@Q'
+on most MUCKs. W2+ admin can always use the program break 
+command no matter what. It is recommended to leave this at zero
+unless you really have a good reason for raising it.
