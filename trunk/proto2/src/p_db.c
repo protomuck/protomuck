@@ -2795,8 +2795,8 @@ prim_getobjinfo(PRIM_PROTOTYPE)
             temp1.type = PROG_STRING;
             temp1.data.string = alloc_prog_string("PROFTIME");
             temp2.type = PROG_FLOAT;
-            sprintf(buf, "%ld.%06ld", DBFETCH(ref)->sp.program.proftime.tv_sec,
-                    DBFETCH(ref)->sp.program.proftime.tv_usec);
+            sprintf(buf, "%ld.%06ld", (long)DBFETCH(ref)->sp.program.proftime.tv_sec,
+                    (long)DBFETCH(ref)->sp.program.proftime.tv_usec);
             fresult = atof(buf);
             temp2.data.fnumber = fresult;
             array_setitem(&nw, &temp1, &temp2);

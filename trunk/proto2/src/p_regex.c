@@ -176,7 +176,7 @@ prim_regexp(PRIM_PROTOTYPE)
             stk_array *nu;
 
             if ((cm->rm_so >= 0) && (cm->rm_eo >= 0) && (cm->rm_so < len))
-                snprintf(buf, BUFFER_LEN, "%.*s", cm->rm_eo - cm->rm_so,
+                snprintf(buf, BUFFER_LEN, "%.*s", (int)(cm->rm_eo - cm->rm_so),
                          &text[cm->rm_so]);
             else
                 buf[0] = '\0';
