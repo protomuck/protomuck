@@ -88,6 +88,9 @@ disassemble(dbref player, dbref program)
           case PROG_SOCKET:
             sprintf(buf, "%d: (line %d) SOCKET",i, curr->line);
             break;
+          case PROG_MYSQL:
+            sprintf(buf, "%d: (line %d) MYSQL", i, curr->line);
+            break;
 	    case PROG_CLEARED:
 		sprintf(buf, "%d: (line ???) CLEARED INST AT %s:%d", i, (char *) curr->data.addr, curr->line);
           default:

@@ -14,6 +14,11 @@
 #  include <timebits.h>
 #endif
 
+#ifdef SQL_SUPPORT
+#include <mysql/mysql.h>
+#include <mysql/mysql_version.h>
+#endif
+
 /* max length of command argument to process_command */
 #define MAX_COMMAND_LEN 3072
 #define BUFFER_LEN ((MAX_COMMAND_LEN)*4)
@@ -392,7 +397,7 @@ struct line {
 #define PROG_JMP           15	/* JMP shortcut */
 #define PROG_ARRAY         16   /* Array @ = (r1)..(ri) (i) */
 #define PROG_DICTIONARY    17   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
-#define PROG_SOCKET        18   /* NeonMuck socket type */
+#define PROG_SOCKET        18   /* ProtoMUCK socket type */
 #define PROG_MARK          19   /* Stack markers -- not in yet */
 #define PROG_SVAR_AT       20   /* @ shortcut for scoped vars */
 #define PROG_SVAR_AT_CLEAR 21   /* @ for scoped vars with optimization on */
@@ -401,6 +406,7 @@ struct line {
 #define PROG_LVAR_AT       24   /* @ shortcut for lvars */
 #define PROG_LVAR_AT_CLEAR 25   /* @ for local vars with var clear optim */
 #define PROG_LVAR_BANG     26   /* ! shortcut for local vars */
+#define PROG_MYSQL         27   /* A MySQL database connection */
 
 #define MAX_VAR        104	/* maximum number of variables including the
 				 * basic ME and LOC                */
@@ -436,6 +442,14 @@ struct muf_socket {             /* struct for MUF socket data */
    char lastchar;
 };
 
+#ifdef SQL_SUPPORT
+struct muf_sql { /* struct for MUF SQL connections */
+    MYSQL *mysql_conn; /* The connection descriptor struct */
+    int connected;     /* Bool indicating if connected or not */
+    int timeout;       /* Timeout for this connection */
+    int links;         /* number of instances of this connection */
+};
+#endif
 
 struct muf_proc_data {
     char *procname;
@@ -448,16 +462,19 @@ struct inst {			/* instruction */
     short   type;
     short   line;
     union {
-	struct shared_string *string;  /* strings */
-	struct boolexp *lock;     /* boolean lock expression */
-	int     number;		  /* used for both primitives and integers */
-      float   fnumber;          /* used for float storage */
-	dbref   objref;		  /* object reference */
-      struct stk_array_t *array;/* FB6 style array */
-	struct inst *call;	  /* use in IF and JMPs */
-	struct prog_addr *addr;   /* the result of 'funcname */
-      struct muf_socket *sock;  /* a neonmuck socket */
-	struct muf_proc_data *mufproc; /* Data specific to each procedure */
+        struct shared_string *string;  /* strings */
+        struct boolexp *lock;     /* boolean lock expression */
+        int     number;		  /* used for both primitives and integers */
+        float   fnumber;          /* used for float storage */
+        dbref   objref;		  /* object reference */
+        struct stk_array_t *array;/* FB6 style array */
+        struct inst *call;	  /* use in IF and JMPs */
+        struct prog_addr *addr;   /* the result of 'funcname */
+        struct muf_socket *sock;  /* a ProtoMUCK socket */
+#ifdef SQL_SUPPORT
+	struct muf_sql *mysql;    /* A MySQL connection */
+#endif
+        struct muf_proc_data *mufproc; /* Data specific to each procedure */
     }       data;
 };
 
