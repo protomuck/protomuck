@@ -25,7 +25,7 @@
 
 
 /* number of hostnames cached in an LRU queue */
-#define HOST_CACHE_SIZE 256
+#define HOST_CACHE_SIZE 8192
 
 /* Time before retrying to resolve a previously unresolved IP address. */
 /* 1800 seconds == 30 minutes */
@@ -350,7 +350,7 @@ addrout(int a, int prt, int myprt)
     }
 
     a = ntohl(a);
-    sprintf(tmpbuf, "%d.%d.%d.%d",
+    sprintf(tmpbuf, "%ld.%ld.%ld.%ld",
             (a >> 24) & 0xff,
             (a >> 16) & 0xff,
             (a >> 8)  & 0xff,
@@ -435,6 +435,7 @@ main(int argc, char **argv)
 
     exit(0);
 }
+
 
 
 

@@ -55,6 +55,8 @@ disassemble(dbref player, dbref program)
 	    case PROG_ADD:
 		sprintf(buf, "%d: (line %d) ADDRESS: %d", i, curr->line, curr->data.addr->data - codestart);
 		break;
+	    case PROG_TRY:
+		sprintf(buf, "%d: (line %d) TRY: %d", i, curr->line, curr->data.call - codestart);
 	    case PROG_IF:
 		sprintf(buf, "%d: (line %d) IF: %d", i, curr->line, curr->data.call - codestart);
 		break;
@@ -94,4 +96,5 @@ disassemble(dbref player, dbref program)
 	notify(player, buf);
     }
 }
+
 

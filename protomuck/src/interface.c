@@ -457,11 +457,13 @@ main(int argc, char **argv)
 
           portlist[0] = '\0';
           for (i = 0; i < numsocks; i++) {
-             sprintf(numbuf, "%d", listener_port[i]);
-             if (*portlist) {
-                strcat(portlist, " ");
+             if ((listener_port[i] != tp_textport) && (listener_port[i] != tp_wwwport) && (listener_port[i] != tp_puebloport)) {
+                sprintf(numbuf, "%d", listener_port[i]);
+                if (*portlist) {
+                   strcat(portlist, " ");
+                }
+                strcat(portlist, numbuf);
              }
-             strcat(portlist, numbuf);
           }
 	    execl("restart", "restart", portlist, (char *)0);
 	}
@@ -528,16 +530,16 @@ notify_descriptor(int descr, const char *msg)
     ptr2 = msg;
     while (ptr2 && *ptr2) {
 	ptr1 = buf;
-	while (ptr2 && *ptr2 && *ptr2 != '\r')
+	while ((ptr2) && (*ptr2) && (*ptr2 != '\r') && (*ptr2 != '\n'))
 	    *(ptr1++) = *(ptr2++);
 	*(ptr1++) = '\r';
 	*(ptr1++) = '\n';
 	*(ptr1++) = '\0';
-	if (*ptr2 == '\r')
+      while ((*ptr2 == '\r') || (*ptr2 == '\n'))
 	    ptr2++;
+      queue_ansi(d, buf);
+      process_output(d);   
    }
-   queue_ansi(d, buf);
-   process_output(d);   
 }
 
 char *
@@ -641,12 +643,12 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
     ptr2 = msg;
     while (ptr2 && *ptr2) {
 	ptr1 = buf;
-	while (ptr2 && *ptr2 && *ptr2 != '\r')
+	while ((ptr2) && (*ptr2) && (*ptr2 != '\r') && (*ptr2 != '\r'))
 	    *(ptr1++) = *(ptr2++);
 	*(ptr1++) = '\r';
 	*(ptr1++) = '\n';
 	*(ptr1++) = '\0';
-	if (*ptr2 == '\r')
+      while ((*ptr2 == '\r') || (*ptr2 == '\n'))
 	    ptr2++;
 
 	darr = get_player_descrs(player, &dcount);
@@ -751,12 +753,13 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
     ptr2 = msg;
     while (ptr2 && *ptr2) {
 	ptr1 = buf;
-	while (ptr2 && *ptr2 && *ptr2 != '\r')
+	while ((ptr2) && (*ptr2) && (*ptr2 != '\r') && (*ptr2 != '\n'))
 	    *(ptr1++) = *(ptr2++);
-	if (*ptr2 == '\r')
+	if ((*ptr2 == '\r') || (*ptr2 == '\n'))
 	{
-	    ptr2++;
-	    *(ptr1++) = '\r';
+          while ((*ptr2 == '\r') || (*ptr2 == '\n'))
+	       ptr2++;
+   	    *(ptr1++) = '\r';
 	    *(ptr1++) = '\n';
 	}
 	*(ptr1++) = '\0';
@@ -1086,9 +1089,9 @@ shovechars(void)
 	for (d = descriptor_list; d; d = dnext) {
 	    dnext = d->next;
 	    if (d->booted) {
-            if (((d->type != CT_HTML) && (d->type != CT_MUF)) || (!descr_running_queue(d->descriptor))) {
+            if (((d->type != CT_HTML) && (d->type != CT_MUF)) || (!descr_running_queue(d->descriptor)) || (d->booted != 3)) {
 #ifdef HTTPDELAY
-		   if(d->httpdata) {
+		   if((d->httpdata) && (d->booted == 3)) {
 		       queue_ansi(d, d->httpdata);
 		       free((void *)d->httpdata);
 		       d->httpdata = NULL;
@@ -2204,43 +2207,59 @@ process_commands(void)
 	nprocessed = 0;
 	for (d = descriptor_list; d; d = dnext) {
 	    dnext = d->next;
-	    if (d->quota > 0 && (t = d->input.head)
-	       && (!(d->connected && DBFETCH(d->player)->sp.player.block))) {
-		d->quota--;
-		nprocessed++;
-		if (!do_command(d, t->start)) {
-               if (Typeof(tp_quit_prog) == TYPE_PROGRAM) {
-                  char *full_command, xbuf[BUFFER_LEN], buf[BUFFER_LEN], *msg, *command;
-                  struct frame *tmpfr;
+	    if (d->quota > 0 && (t = d->input.head)) {
+		if (d->connected && DBFETCH(d->player)->sp.player.block) {
+			char *tmp = t->start;
+			/* dequote MCP quoting. */
+			if (!strncmp(tmp, "#%\"", 3)) {
+				tmp += 3;
+			}
+			if (strncmp(t->start, WHO_COMMAND, sizeof(WHO_COMMAND) - 1) &&
+				strcmp(t->start, QUIT_COMMAND) &&
+				strncmp(t->start, PREFIX_COMMAND, sizeof(PREFIX_COMMAND) - 1) &&
+				strncmp(t->start, SUFFIX_COMMAND, sizeof(SUFFIX_COMMAND) - 1) &&
+				strncmp(t->start, "#$#", 3) /* MCP mesg. */ )
+			{
+				/* WORK: send player's foreground/preempt programs an exclusive READ mufevent */
+				read_event_notify(d->descriptor, d->player);
+			}
+		} else {
+			d->quota--;
+			nprocessed++;
+			if (!do_command(d, t->start)) {
+	               if (Typeof(tp_quit_prog) == TYPE_PROGRAM) {
+	                  char *full_command, xbuf[BUFFER_LEN], buf[BUFFER_LEN], *msg, *command;
+	                  struct frame *tmpfr;
 
-                  command = QUIT_COMMAND;
-                  strcpy(match_cmdname, QUIT_COMMAND);
-                  strcpy(buf, command + sizeof(QUIT_COMMAND) -1);
-                  msg = buf;
-                  full_command = strcpy(xbuf, msg);
-                  for (; *full_command && !isspace(*full_command); full_command++);
-                  if (*full_command)
-                     full_command++;
-                  strcpy(match_args, full_command);
-                  tmpfr = interp(d->descriptor, d->player, DBFETCH(d->player)->location,
-                                 tp_quit_prog, (dbref) -5, FOREGROUND, STD_REGUID);
-                  if (tmpfr) {
-                     interp_loop(d->player, tp_quit_prog, tmpfr, 0);
-                  }
-               } else {
-                  d->booted = 2;
-               }
-            }
-		/* start former else block */
-		d->input.head = t->nxt;
-		d->input.lines--;
-		if (!d->input.head) {
-		    d->input.tail = &d->input.head;
-		    d->input.lines = 0;
+      	            command = QUIT_COMMAND;
+	                  strcpy(match_cmdname, QUIT_COMMAND);
+	                  strcpy(buf, command + sizeof(QUIT_COMMAND) -1);
+	                  msg = buf;
+	                  full_command = strcpy(xbuf, msg);
+	                  for (; *full_command && !isspace(*full_command); full_command++);
+	                  if (*full_command)
+	                     full_command++;
+	                  strcpy(match_args, full_command);
+	                  tmpfr = interp(d->descriptor, d->player, DBFETCH(d->player)->location,
+	                                 tp_quit_prog, (dbref) -5, FOREGROUND, STD_REGUID);
+	                  if (tmpfr) {
+	                     interp_loop(d->player, tp_quit_prog, tmpfr, 0);
+	                  }
+	               } else {
+	                  d->booted = 2;
+	               }
+	            }
+			/* start former else block */
+			d->input.head = t->nxt;
+			d->input.lines--;
+			if (!d->input.head) {
+			    d->input.tail = &d->input.head;
+			    d->input.lines = 0;
+			}
+			free_text_block(t);
+			/* end former else block */
 		}
-		free_text_block(t);
-		/* end former else block */
-	    }
+          }
 	}
     } while (nprocessed > 0);
 }
@@ -2715,6 +2734,7 @@ httpd_get(struct descriptor_data *d, char *name, const char *http) {
 		strcpy(match_cmdname,"");
 		sprintf(buf, "<META NAME=\"server\" VALUE=\"ProtoMUCK %s -- Moose, Akari (Web support by Loki)\">", PROTOBASE);
             d->httpdata = string_dup(buf);
+            d->booted = 3;
 	      } else
 	      {
 
@@ -4697,6 +4717,7 @@ help_user(struct descriptor_data * d)
 	fclose(f);
     }
 }
+
 
 
 

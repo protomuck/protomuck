@@ -41,6 +41,7 @@ static int IN_FORITER;
 static int IN_FOREACH;
 static int IN_FORPOP;
 static int IN_FOR;
+static int IN_TRYPOP;
 
 
 static hash_tab primitive_list[COMP_HASH_SIZE];
@@ -92,6 +93,7 @@ typedef struct COMPILE_STATE_T {
 	struct INTERMEDIATE *curr_proc;	/* first word of curr. proc. */
 	struct publics *currpubs;
 	int nested_fors;
+      int nested_trys;
 
 	/* Address resolution data.  Used to relink addresses after compile. */
 	struct INTERMEDIATE **addrlist; /* list of addresses to resolve */
@@ -149,21 +151,19 @@ void do_directive(COMPSTATE *, char *direct);
 struct prog_addr *alloc_addr(COMPSTATE *, int, struct inst *);
 struct INTERMEDIATE *prealloc_inst(COMPSTATE * cstat);
 struct INTERMEDIATE *new_inst(COMPSTATE *);
-struct INTERMEDIATE *find_if(COMPSTATE *);
-struct INTERMEDIATE *find_else(COMPSTATE *);
-struct INTERMEDIATE *locate_begin(COMPSTATE *);
-struct INTERMEDIATE *locate_for(COMPSTATE *);
-struct INTERMEDIATE *find_begin(COMPSTATE *);
-struct INTERMEDIATE *find_while(COMPSTATE *);
 void cleanpubs(struct publics *mypub);
 void clean_mcpbinds(struct mcp_binding *mcpbinds);
 void cleanup(COMPSTATE *);
 void add_proc(COMPSTATE *, const char *, struct INTERMEDIATE *, int rettype);
-void addif(COMPSTATE *, struct INTERMEDIATE *);
-void addelse(COMPSTATE *, struct INTERMEDIATE *);
-void addbegin(COMPSTATE *, struct INTERMEDIATE *);
-void addfor(COMPSTATE *, struct INTERMEDIATE *);
-void addwhile(COMPSTATE *, struct INTERMEDIATE *);
+void add_control_structure(COMPSTATE *, int typ, struct INTERMEDIATE *);
+void add_loop_exit(COMPSTATE *, struct INTERMEDIATE *);
+int in_loop(COMPSTATE * cstat);
+int innermost_control_type(COMPSTATE * cstat);
+int count_trys_inside_loop(COMPSTATE* cstat);
+struct INTERMEDIATE *locate_control_structure(COMPSTATE* cstat, int type1, int type2);
+struct INTERMEDIATE *innermost_control_place(COMPSTATE * cstat, int type1);
+struct INTERMEDIATE *pop_control_structure(COMPSTATE * cstat, int type1, int type2);
+struct INTERMEDIATE *pop_loop_exit(COMPSTATE *);
 void resolve_loop_addrs(COMPSTATE *, int where);
 int add_variable(COMPSTATE *, const char *, int valtype);
 int add_localvar(COMPSTATE *, const char *, int valtype);
@@ -176,7 +176,6 @@ int string(const char *);
 int variable(COMPSTATE *, const char *);
 int localvar(COMPSTATE *, const char *);
 int scopedvar(COMPSTATE *, const char *);
-int get_primitive(const char *);
 void copy_program(COMPSTATE *);
 void set_start(COMPSTATE *);
 
@@ -229,6 +228,8 @@ do_abort_compile(COMPSTATE * cstat, const char *c)
       DBFETCH(cstat->program)->sp.program.pubs = NULL;
 	clean_mcpbinds(DBFETCH(cstat->program)->sp.program.mcpbinds);
 	DBFETCH(cstat->program)->sp.program.mcpbinds = NULL;
+      DBFETCH(cstat->program)->sp.program.proftime.tv_sec  = 0;
+      DBFETCH(cstat->program)->sp.program.proftime.tv_usec = 0;
 }
 
 /* abort compile macro */
@@ -299,6 +300,7 @@ fix_addresses(COMPSTATE* cstat)
 		switch (ptr->in.type) {
 		case PROG_ADD:
 		case PROG_IF:
+		case PROG_TRY:
 		case PROG_JMP:
 		case PROG_EXEC:
 			ptr->in.data.number = cstat->addrlist[ptr->in.data.number]->no +
@@ -455,6 +457,8 @@ init_defs(COMPSTATE * cstat)
         insert_intdef(cstat, "sorttype_nocase_ascend", SORTTYPE_NOCASE_ASCEND);
         insert_intdef(cstat, "sorttype_case_descend", SORTTYPE_CASE_DESCEND);
         insert_intdef(cstat, "sorttype_nocase_descend", SORTTYPE_NOCASE_DESCEND);
+	insert_intdef(cstat, "sorttype_shuffle", SORTTYPE_SHUFFLE);
+
 
 	/* Make defines for compatability to removed primitives */
 	insert_def(cstat, "desc", "\"_/de\" getpropstr");
@@ -501,11 +505,14 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "err_imaginary?", "2 is_set?");
 	insert_def(cstat, "err_fbounds?", "3 is_set?");
 	insert_def(cstat, "err_ibounds?", "4 is_set?");
+      insert_def(cstat, "event_wait", "0 array_make event_waitfor");
+/*      insert_def(cstat, "tread", "\"__tread\" timer_start { \"TIMER.__tread\" \"READ\" }list event_waitfor swap pop \"READ\" strcmp if \"\" 0 else read 1 \"__tread\" timer_stop then"); */
 
 	/* Array convenience defines */
 	insert_def(cstat, "}list", "} array_make");
 	insert_def(cstat, "}dict", "}  2 / array_make_dict");
 	insert_def(cstat, "[]", "array_getitem");
+	insert_def(cstat, "->[]", "array_setitem");
 	insert_def(cstat, "[..]", "array_getrange");
 	insert_def(cstat, "array_diff", "2 array_ndiff");
 	insert_def(cstat, "array_union", "2 array_nunion");
@@ -517,12 +524,15 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "d_helper", "\"helper\"");
 
 	/* GUI control types */
+	insert_def(cstat, "c_menu",      "\"menu\"");
 	insert_def(cstat, "c_datum", "\"datum\"");
 	insert_def(cstat, "c_label", "\"text\"");
+	insert_def(cstat, "c_image",     "\"image\"");
 	insert_def(cstat, "c_hrule", "\"hrule\"");
 	insert_def(cstat, "c_vrule", "\"vrule\"");
 	insert_def(cstat, "c_button", "\"button\"");
 	insert_def(cstat, "c_checkbox", "\"checkbox\"");
+	insert_def(cstat, "c_radiobtn",  "\"radio\"");
 	insert_def(cstat, "c_edit", "\"edit\"");
 	insert_def(cstat, "c_multiedit", "\"multiedit\"");
 	insert_def(cstat, "c_combobox", "\"combobox\"");
@@ -531,8 +541,6 @@ init_defs(COMPSTATE * cstat)
 	insert_def(cstat, "c_listbox", "\"listbox\"");
 	insert_def(cstat, "c_frame", "\"frame\"");
 	insert_def(cstat, "c_notebook", "\"notebook\"");
-	insert_def(cstat, "c_image",     "\"image\"");
-	insert_def(cstat, "c_radiobtn",  "\"radio\"");
 
 	/* Backwards compatibility for old GUI dialog creation prims */
 	insert_def(cstat, "gui_dlog_simple", "d_simple 0 array_make_dict");
@@ -557,6 +565,8 @@ uncompile_program(dbref i)
 	DBFETCH(i)->sp.program.pubs = NULL;
 	clean_mcpbinds(DBFETCH(i)->sp.program.mcpbinds);
 	DBFETCH(i)->sp.program.mcpbinds = NULL;
+      DBFETCH(i)->sp.program.proftime.tv_sec  = 0;
+      DBFETCH(i)->sp.program.proftime.tv_usec = 0;
 	DBFETCH(i)->sp.program.code = NULL;
 	DBFETCH(i)->sp.program.siz = 0;
 	DBFETCH(i)->sp.program.start = NULL;
@@ -651,7 +661,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	const char *token;
 	struct INTERMEDIATE *new_word;
 	int i;
-	COMPSTATE cstat, *cstat2;
+	COMPSTATE cstat;
 
 	/* set all compile state variables */
 	cstat.force_err_display = force_err_display;
@@ -663,6 +673,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	cstat.curr_proc = NULL;
 	cstat.currpubs = NULL;
 	cstat.nested_fors = 0;
+	cstat.nested_trys = 0;
 	for (i = 0; i < MAX_VAR; i++) {
 		cstat.variables[i] = NULL;
 		cstat.variabletypes[i] = 0;
@@ -702,11 +713,15 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	DBFETCH(cstat.program)->sp.program.pubs = NULL;
 	clean_mcpbinds(DBFETCH(cstat.program)->sp.program.mcpbinds);
 	DBFETCH(cstat.program)->sp.program.mcpbinds = NULL;
+	DBFETCH(cstat.program)->sp.program.proftime.tv_sec  = 0;
+	DBFETCH(cstat.program)->sp.program.proftime.tv_usec = 0;
+	DBFETCH(cstat.program)->sp.program.profstart = current_systime;
+	DBFETCH(cstat.program)->sp.program.profuses  = 0;
 
 	if (!cstat.curr_line)
 		v_abort_compile(&cstat, "Missing program text.");
 
-      token = "0"; cstat2 = &cstat;
+/*      token = "0"; cstat2 = &cstat;
       cstat.curr_word = cstat.first_word = number_word(cstat2, token);
       cstat.curr_word->next = number_word(cstat2, token);
       cstat.curr_word = cstat.curr_word->next;
@@ -714,7 +729,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
       cstat.curr_word->next->in.data.number = current_systime;
       cstat.curr_word = cstat.curr_word->next;
       cstat.curr_word->next = number_word(cstat2, token);
-      cstat.curr_word = cstat.curr_word->next;
+      cstat.curr_word = cstat.curr_word->next; */
 
 	/* do compilation */
 	while ((token = next_token(&cstat))) {
@@ -767,7 +782,6 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
 	cleanup(&cstat);
 
 	/* restart AUTOSTART program. */
-      time(&current_systime);
 	if ((FLAGS(cstat.program) & ABODE) && TMage(OWNER(cstat.program)))
 		add_muf_queue_event(-1, OWNER(cstat.program), NOTHING, NOTHING,
 							cstat.program, "Startup", "Queued Event.", 0);
@@ -1163,6 +1177,10 @@ do_string(COMPSTATE * cstat)
 			buf[i++] = '\r';
 			cstat->next_char++;
 			quoted = 0;
+		} else if (*cstat->next_char == 'n' && quoted) {
+			buf[i++] = '\n';
+			cstat->next_char++;
+			quoted = 0;
 		} else if (*cstat->next_char == '[' && quoted) {
 			buf[i++] = ESCAPE_CHAR;
 			cstat->next_char++;
@@ -1288,48 +1306,71 @@ process_special(COMPSTATE * cstat, const char *token)
 		nw->in.type = PROG_IF;
 		nw->in.line = cstat->lineno;
 		nw->in.data.call = 0;
-		addif(cstat, nw);
+		add_control_structure(cstat, CTYPE_IF, nw);
 		return nw;
 	} else if (!string_compare(token, "ELSE")) {
 		struct INTERMEDIATE *eef;
+		int ctrltype = innermost_control_type(cstat);
 
-		eef = find_if(cstat);
-		if (!eef) {
-                    eef = find_begin(cstat);
-                    if (eef) {
-                        abort_compile(cstat, "Unterminated Loop structure at ELSE.");
-                    } else {
-			abort_compile(cstat, "ELSE without IF.");
-                    }
-                }
+		switch (ctrltype) {
+			case CTYPE_IF:
+				break;
+			case CTYPE_TRY:
+				abort_compile(cstat, "Unterminated TRY-CATCH block at ELSE.");
+				break;
+			case CTYPE_CATCH:
+				abort_compile(cstat, "Unterminated CATCH-ENDCATCH block at ELSE.");
+				break;
+			case CTYPE_FOR:
+			case CTYPE_BEGIN:
+				abort_compile(cstat, "Unterminated Loop at ELSE.");
+				break;
+			default:
+				abort_compile(cstat, "ELSE without IF.");
+				break;
+		}
+
 		nw = new_inst(cstat);
 		nw->no = cstat->nowords++;
 		nw->in.type = PROG_JMP;
 		nw->in.line = cstat->lineno;
 		nw->in.data.call = 0;
-		addelse(cstat, nw);
 
+		eef = pop_control_structure(cstat, CTYPE_IF, 0);
+		add_control_structure(cstat, CTYPE_ELSE, nw);
 		eef->in.data.number = get_address(cstat, nw, 1);
 		return nw;
 	} else if (!string_compare(token, "THEN")) {
 		/* can't use 'if' because it's a reserved word */
 		struct INTERMEDIATE *eef;
+		int ctrltype = innermost_control_type(cstat);
 
-		eef = find_else(cstat);
-		if (!eef) {
-                    eef = find_begin(cstat);
-                    if (eef) {
-                        abort_compile(cstat, "Unterminated Loop structure at THEN.");
-                    } else {
-			abort_compile(cstat, "THEN without IF.");
-                    }
-                }
+		switch (ctrltype) {
+			case CTYPE_IF:
+			case CTYPE_ELSE:
+				break;
+			case CTYPE_TRY:
+				abort_compile(cstat, "Unterminated TRY-CATCH block at THEN.");
+				break;
+			case CTYPE_CATCH:
+				abort_compile(cstat, "Unterminated CATCH-ENDCATCH block at THEN.");
+				break;
+			case CTYPE_FOR:
+			case CTYPE_BEGIN:
+				abort_compile(cstat, "Unterminated Loop at THEN.");
+				break;
+			default:
+				abort_compile(cstat, "THEN without IF.");
+				break;
+		}
+
 		prealloc_inst(cstat);
+		eef = pop_control_structure(cstat, CTYPE_IF, CTYPE_ELSE);
 		eef->in.data.number = get_address(cstat, cstat->nextinst, 0);
 		return NULL;
 	} else if (!string_compare(token, "BEGIN")) {
 		prealloc_inst(cstat);
-		addbegin(cstat, cstat->nextinst);
+		add_control_structure(cstat, CTYPE_BEGIN, cstat->nextinst);
 		return NULL;
 	} else if (!string_compare(token, "FOR")) {
 		struct INTERMEDIATE *new2, *new3;
@@ -1350,7 +1391,8 @@ process_special(COMPSTATE * cstat, const char *token)
 		new3->in.type = PROG_IF;
 		new3->in.data.number = 0;
 
-		addfor(cstat, new2);
+		add_control_structure(cstat, CTYPE_FOR, new2);
+		cstat->nested_fors++;
 		return nw;
 	} else if (!string_compare(token, "FOREACH")) {
 		struct INTERMEDIATE *new2, *new3;
@@ -1371,32 +1413,46 @@ process_special(COMPSTATE * cstat, const char *token)
 		new3->in.type = PROG_IF;
 		new3->in.data.number = 0;
 
-		addfor(cstat, new2);
+		add_control_structure(cstat, CTYPE_FOR, new2);
+		cstat->nested_fors++;
 		return nw;
 	} else if (!string_compare(token, "UNTIL")) {
 		/* can't use 'if' because it's a reserved word */
 		struct INTERMEDIATE *eef;
 		struct INTERMEDIATE *curr;
+		int ctrltype = innermost_control_type(cstat);
+
+		switch (ctrltype) {
+			case CTYPE_FOR:
+				cstat->nested_fors--;
+			case CTYPE_BEGIN:
+				break;
+			case CTYPE_TRY:
+				abort_compile(cstat, "Unterminated TRY-CATCH block at UNTIL.");
+				break;
+			case CTYPE_CATCH:
+				abort_compile(cstat, "Unterminated CATCH-ENDCATCH block at UNTIL.");
+				break;
+			case CTYPE_IF:
+			case CTYPE_ELSE:
+				abort_compile(cstat, "Unterminated IF-THEN at UNTIL.");
+				break;
+			default:
+				abort_compile(cstat, "Loop start not found for UNTIL.");
+				break;
+		}
 
 		prealloc_inst(cstat);
 		resolve_loop_addrs(cstat, get_address(cstat, cstat->nextinst, 1));
+		eef = pop_control_structure(cstat, CTYPE_BEGIN, CTYPE_FOR);
 
-		curr = locate_for(cstat);
-		eef = find_begin(cstat);
-		if (!eef) {
-                    eef = find_else(cstat);
-                    if (eef) {
-                        abort_compile(cstat, "Untermined IF-THEN structure at UNTIL.");
-                    } else {
-			abort_compile(cstat, "UNTIL without BEGIN.");
-                    }
-                }
 		nw = new_inst(cstat);
 		nw->no = cstat->nowords++;
 		nw->in.type = PROG_IF;
 		nw->in.line = cstat->lineno;
 		nw->in.data.number = get_address(cstat, eef, 0);
-		if (curr) {
+
+		if (ctrltype == CTYPE_FOR) {
 			curr = (nw->next = new_inst(cstat));
 			curr->no = cstat->nowords++;
 			curr->in.type = PROG_PRIMITIVE;
@@ -1405,75 +1461,139 @@ process_special(COMPSTATE * cstat, const char *token)
 		}
 		return nw;
 	} else if (!string_compare(token, "WHILE")) {
-		/* can't use 'if' because it's a reserved word */
-		struct INTERMEDIATE *eef;
-
-		eef = locate_begin(cstat);
-		if (!eef)
+		struct INTERMEDIATE *curr;
+		int trycount;
+		if (!in_loop(cstat))
 			abort_compile(cstat, "Can't have a WHILE outside of a loop.");
-		nw = new_inst(cstat);
+
+		trycount = count_trys_inside_loop(cstat);
+		nw = curr = NULL;
+		while (trycount-->0) {
+			if (!nw) {
+				nw = curr = new_inst(cstat);
+			} else {
+				nw = (nw->next = new_inst(cstat));
+			}
+			nw->no = cstat->nowords++;
+			nw->in.type = PROG_PRIMITIVE;
+			nw->in.line = cstat->lineno;
+			nw->in.data.number = IN_TRYPOP;
+		}
+		if (nw) {
+			nw = (nw->next = new_inst(cstat));
+		} else {
+			curr = nw = new_inst(cstat);
+		}
 		nw->no = cstat->nowords++;
 		nw->in.type = PROG_IF;
 		nw->in.line = cstat->lineno;
 		nw->in.data.number = 0;
 
-		addwhile(cstat, nw);
-		return nw;
+		add_loop_exit(cstat, nw);
+		return curr;
 	} else if (!string_compare(token, "BREAK")) {
 		/* can't use 'if' because it's a reserved word */
-		struct INTERMEDIATE *eef;
-
-		eef = locate_begin(cstat);
-		if (!eef)
+		int trycount;
+		struct INTERMEDIATE *curr;
+		if (!in_loop(cstat))
 			abort_compile(cstat, "Can't have a BREAK outside of a loop.");
 
-		nw = new_inst(cstat);
+		trycount = count_trys_inside_loop(cstat);
+		nw = curr = NULL;
+		while (trycount-->0) {
+			if (!nw) {
+				nw = curr = new_inst(cstat);
+			} else {
+				nw = (nw->next = new_inst(cstat));
+			}
+			nw->no = cstat->nowords++;
+			nw->in.type = PROG_PRIMITIVE;
+			nw->in.line = cstat->lineno;
+			nw->in.data.number = IN_TRYPOP;
+		}
+		if (nw) {
+			nw = (nw->next = new_inst(cstat));
+		} else {
+			curr = nw = new_inst(cstat);
+		}
 		nw->no = cstat->nowords++;
 		nw->in.type = PROG_JMP;
 		nw->in.line = cstat->lineno;
 		nw->in.data.number = 0;
 
-		addwhile(cstat, nw);
-		return nw;
+		add_loop_exit(cstat, nw);
+		return curr;
 	} else if (!string_compare(token, "CONTINUE")) {
 		/* can't use 'if' because it's a reserved word */
 		struct INTERMEDIATE *beef;
+		struct INTERMEDIATE *curr;
+		int trycount;
 
-		beef = locate_begin(cstat);
-		if (!beef)
+		if (!in_loop(cstat))
 			abort_compile(cstat, "Can't CONTINUE outside of a loop.");
-		nw = new_inst(cstat);
+
+		beef = locate_control_structure(cstat, CTYPE_FOR, CTYPE_BEGIN);
+		trycount = count_trys_inside_loop(cstat);
+		nw = curr = NULL;
+		while (trycount-->0) {
+			if (!nw) {
+				nw = curr = new_inst(cstat);
+			} else {
+				nw = (nw->next = new_inst(cstat));
+			}
+			nw->no = cstat->nowords++;
+			nw->in.type = PROG_PRIMITIVE;
+			nw->in.line = cstat->lineno;
+			nw->in.data.number = IN_TRYPOP;
+		}
+		if (nw) {
+			nw = (nw->next = new_inst(cstat));
+		} else {
+			curr = nw = new_inst(cstat);
+		}
 		nw->no = cstat->nowords++;
 		nw->in.type = PROG_JMP;
 		nw->in.line = cstat->lineno;
 		nw->in.data.number = get_address(cstat, beef, 0);
 
-		return nw;
+		return curr;
 	} else if (!string_compare(token, "REPEAT")) {
 		/* can't use 'if' because it's a reserved word */
 		struct INTERMEDIATE *eef;
 		struct INTERMEDIATE *curr;
+		int ctrltype = innermost_control_type(cstat);
+
+		switch (ctrltype) {
+			case CTYPE_FOR:
+				cstat->nested_fors--;
+			case CTYPE_BEGIN:
+				break;
+			case CTYPE_TRY:
+				abort_compile(cstat, "Unterminated TRY-CATCH block at REPEAT.");
+				break;
+			case CTYPE_CATCH:
+				abort_compile(cstat, "Unterminated CATCH-ENDCATCH block at REPEAT.");
+				break;
+			case CTYPE_IF:
+			case CTYPE_ELSE:
+				abort_compile(cstat, "Unterminated IF-THEN at REPEAT.");
+				break;
+			default:
+				abort_compile(cstat, "Loop start not found for REPEAT.");
+				break;
+		}
 
 		prealloc_inst(cstat);
 		resolve_loop_addrs(cstat, get_address(cstat, cstat->nextinst, 1));
+		eef = pop_control_structure(cstat, CTYPE_BEGIN, CTYPE_FOR);
 
-		curr = locate_for(cstat);
-		eef = find_begin(cstat);
-		if (!eef) {
-                    eef = find_else(cstat);
-                    if (eef) {
-                        abort_compile(cstat, "Unterminated IF-THEN structure at REPEAT.");
-                    } else {
-			abort_compile(cstat, "REPEAT without BEGIN.");
-                    }
-                }
 		nw = new_inst(cstat);
 		nw->no = cstat->nowords++;
 		nw->in.type = PROG_JMP;
 		nw->in.line = cstat->lineno;
 		nw->in.data.number = get_address(cstat, eef, 0);
 
-		if (curr) {
+		if (ctrltype == CTYPE_FOR) {
 			curr = (nw->next = new_inst(cstat));
 			curr->no = cstat->nowords++;
 			curr->in.type = PROG_PRIMITIVE;
@@ -1482,6 +1602,91 @@ process_special(COMPSTATE * cstat, const char *token)
 		}
 
 		return nw;
+	} else if (!string_compare(token, "TRY")) {
+		nw = new_inst(cstat);
+		nw->no = cstat->nowords++;
+		nw->in.type = PROG_TRY;
+		nw->in.line = cstat->lineno;
+		nw->in.data.number = 0;
+
+		add_control_structure(cstat, CTYPE_TRY, nw);
+		cstat->nested_trys++;
+
+		return nw;
+	} else if (!string_compare(token, "CATCH")) {
+		/* can't use 'if' because it's a reserved word */
+		struct INTERMEDIATE *eef;
+		struct INTERMEDIATE *curr;
+		struct INTERMEDIATE *jump;
+		int ctrltype = innermost_control_type(cstat);
+
+		switch (ctrltype) {
+			case CTYPE_TRY:
+				break;
+			case CTYPE_FOR:
+			case CTYPE_BEGIN:
+				abort_compile(cstat, "Unterminated Loop at CATCH.");
+				break;
+			case CTYPE_IF:
+			case CTYPE_ELSE:
+				abort_compile(cstat, "Unterminated IF-THEN at CATCH.");
+				break;
+			case CTYPE_CATCH:
+			default:
+				abort_compile(cstat, "No TRY found for CATCH.");
+				break;
+		}
+
+		nw = new_inst(cstat);
+		nw->no = cstat->nowords++;
+		nw->in.type = PROG_PRIMITIVE;
+		nw->in.line = cstat->lineno;
+		nw->in.data.number = IN_TRYPOP;
+
+		jump = (nw->next = new_inst(cstat));
+		jump->no = cstat->nowords++;
+		jump->in.type = PROG_JMP;
+		jump->in.line = cstat->lineno;
+		jump->in.data.number = 0;
+
+		curr = (jump->next = new_inst(cstat));
+		curr->no = cstat->nowords++;
+		curr->in.type = PROG_PRIMITIVE;
+		curr->in.line = cstat->lineno;
+		curr->in.data.number = IN_CATCH;
+
+		eef = pop_control_structure(cstat, CTYPE_TRY, 0);
+		cstat->nested_trys--;
+		eef->in.data.number = get_address(cstat, curr, 0);
+		add_control_structure(cstat, CTYPE_CATCH, jump);
+
+		return nw;
+	} else if (!string_compare(token, "ENDCATCH")) {
+		/* can't use 'if' because it's a reserved word */
+		struct INTERMEDIATE *eef;
+		int ctrltype = innermost_control_type(cstat);
+
+		switch (ctrltype) {
+			case CTYPE_CATCH:
+				break;
+			case CTYPE_FOR:
+			case CTYPE_BEGIN:
+				abort_compile(cstat, "Unterminated Loop at ENDCATCH.");
+				break;
+			case CTYPE_IF:
+			case CTYPE_ELSE:
+				abort_compile(cstat, "Unterminated IF-THEN at ENDCATCH.");
+				break;
+			case CTYPE_TRY:
+			default:
+				abort_compile(cstat, "No CATCH found for ENDCATCH.");
+				break;
+		}
+
+		prealloc_inst(cstat);
+		eef = pop_control_structure(cstat, CTYPE_CATCH, 0);
+		eef->in.data.number = get_address(cstat, cstat->nextinst, 0);
+		return NULL;
 	} else if (!string_compare(token, "CALL")) {
 		nw = new_inst(cstat);
 		nw->no = cstat->nowords++;
@@ -1616,6 +1821,14 @@ primitive_word(COMPSTATE * cstat, const char *token)
 	pnum = get_primitive(token);
 	cur = nw = new_inst(cstat);
 	if (pnum == IN_RET || pnum == IN_JMP) {
+		for (loop = 0; loop < cstat->nested_trys; loop++) {
+			cur->no = cstat->nowords++;
+			cur->in.type = PROG_PRIMITIVE;
+			cur->in.line = cstat->lineno;
+			cur->in.data.number = IN_TRYPOP;
+			cur->next = new_inst(cstat);
+			cur = cur->next;
+		}
 		for (loop = 0; loop < cstat->nested_fors; loop++) {
 			cur->no = cstat->nowords++;
 			cur->in.type = PROG_PRIMITIVE;
@@ -1815,72 +2028,27 @@ add_proc(COMPSTATE * cstat, const char *proc_name, struct INTERMEDIATE *place, i
 	cstat->procs = nw;
 }
 
+
 /* add if to control stack */
 void
-addif(COMPSTATE * cstat, struct INTERMEDIATE *place)
+add_control_structure(COMPSTATE * cstat, int typ, struct INTERMEDIATE *place)
 {
-	struct CONTROL_STACK *nw;
+	struct CONTROL_STACK *nu;
 
-	nw = (struct CONTROL_STACK *) malloc(sizeof(struct CONTROL_STACK));
+	nu = (struct CONTROL_STACK *) malloc(sizeof(struct CONTROL_STACK));
 
-	nw->place = place;
-	nw->type = CTYPE_IF;
-	nw->next = cstat->control_stack;
-	nw->extra = 0;
-	cstat->control_stack = nw;
+	nu->place = place;
+	nu->type = typ;
+	nu->next = cstat->control_stack;
+	nu->extra = 0;
+	cstat->control_stack = nu;
 }
 
-/* add else to control stack */
+/* add while to current loop's list of exits remaining to be resolved. */
 void
-addelse(COMPSTATE * cstat, struct INTERMEDIATE *place)
+add_loop_exit(COMPSTATE * cstat, struct INTERMEDIATE *place)
 {
-	struct CONTROL_STACK *nw;
-
-	nw = (struct CONTROL_STACK *) malloc(sizeof(struct CONTROL_STACK));
-
-	nw->place = place;
-	nw->type = CTYPE_ELSE;
-	nw->next = cstat->control_stack;
-	nw->extra = 0;
-	cstat->control_stack = nw;
-}
-
-/* add begin to control stack */
-void
-addbegin(COMPSTATE * cstat, struct INTERMEDIATE *place)
-{
-	struct CONTROL_STACK *nw;
-
-	nw = (struct CONTROL_STACK *) malloc(sizeof(struct CONTROL_STACK));
-
-	nw->place = place;
-	nw->type = CTYPE_BEGIN;
-	nw->next = cstat->control_stack;
-	nw->extra = 0;
-	cstat->control_stack = nw;
-}
-
-/* add for to control stack */
-void
-addfor(COMPSTATE * cstat, struct INTERMEDIATE *place)
-{
-	struct CONTROL_STACK *nw;
-
-	nw = (struct CONTROL_STACK *) malloc(sizeof(struct CONTROL_STACK));
-
-	nw->place = place;
-	nw->type = CTYPE_FOR;
-	nw->next = cstat->control_stack;
-	nw->extra = 0;
-	cstat->control_stack = nw;
-	cstat->nested_fors++;
-}
-
-/* add while to control stack */
-void
-addwhile(COMPSTATE * cstat, struct INTERMEDIATE *place)
-{
-	struct CONTROL_STACK *nw;
+	struct CONTROL_STACK *nu;
 	struct CONTROL_STACK *loop;
 
 	loop = cstat->control_stack;
@@ -1889,67 +2057,76 @@ addwhile(COMPSTATE * cstat, struct INTERMEDIATE *place)
 		loop = loop->next;
 	}
 
-/* Should this abort? */
 	if (!loop)
 		return;
 
-	nw = (struct CONTROL_STACK *) malloc(sizeof(struct CONTROL_STACK));
+	nu = (struct CONTROL_STACK *) malloc(sizeof(struct CONTROL_STACK));
 
-	nw->place = place;
-	nw->type = CTYPE_WHILE;
-	nw->next = 0;
-	nw->extra = loop->extra;
-	loop->extra = nw;
+	nu->place = place;
+	nu->type = CTYPE_WHILE;
+	nu->next = 0;
+	nu->extra = loop->extra;
+	loop->extra = nu;
 }
 
-/* pops topmost if off the stack */
-struct INTERMEDIATE *
-find_if(COMPSTATE * cstat)
+/* Returns true if a loop start is in the control structure stack. */
+int
+in_loop(COMPSTATE * cstat)
 {
-	struct INTERMEDIATE *temp;
-	struct CONTROL_STACK *tofree;
+	struct CONTROL_STACK *loop;
 
-	if (!cstat->control_stack)
-		return 0;
-	if (cstat->control_stack->type != CTYPE_IF)
-		return 0;
-
-	temp = cstat->control_stack->place;
-	tofree = cstat->control_stack;
-	cstat->control_stack = cstat->control_stack->next;
-	free((void *) tofree);
-	return temp;
+	loop = cstat->control_stack;
+	while (loop && loop->type != CTYPE_BEGIN && loop->type != CTYPE_FOR) {
+		loop = loop->next;
+	}
+	return (loop != NULL);
 }
 
-/* pops topmost else or if off the stack */
-struct INTERMEDIATE *
-find_else(COMPSTATE * cstat)
+/* Returns the type of the innermost nested control structure. */
+int
+innermost_control_type(COMPSTATE * cstat)
 {
-	struct INTERMEDIATE *temp;
-	struct CONTROL_STACK *tofree;
+	struct CONTROL_STACK *ctrl;
 
-	if (!cstat->control_stack)
-		return 0;
-	if ((cstat->control_stack->type != CTYPE_IF) && (cstat->control_stack->type != CTYPE_ELSE))
+	ctrl = cstat->control_stack;
+	if (!ctrl)
 		return 0;
 
-	temp = cstat->control_stack->place;
-	tofree = cstat->control_stack;
-	cstat->control_stack = cstat->control_stack->next;
-	free((void *) tofree);
-	return temp;
+	return ctrl->type;
+}
+
+/* Returns number of TRYs before topmost Loop */
+int
+count_trys_inside_loop(COMPSTATE* cstat)
+{
+	struct CONTROL_STACK *loop;
+	int count = 0;
+
+	loop = cstat->control_stack;
+
+	while (loop) {
+		if (loop->type == CTYPE_FOR || loop->type == CTYPE_BEGIN) {
+			break;
+		}
+		if (loop->type == CTYPE_TRY) {
+			count++;
+		}
+		loop = loop->next;
+	}
+
+	return count;
 }
 
 /* returns topmost begin or for off the stack */
 struct INTERMEDIATE *
-locate_begin(COMPSTATE * cstat)
+locate_control_structure(COMPSTATE* cstat, int type1, int type2)
 {
 	struct CONTROL_STACK *loop;
 
 	loop = cstat->control_stack;
 
 	while (loop) {
-		if (loop->type == CTYPE_FOR || loop->type == CTYPE_BEGIN) {
+		if (loop->type == type1 || loop->type == type2) {
 			return loop->place;
 		}
 		loop = loop->next;
@@ -1960,40 +2137,42 @@ locate_begin(COMPSTATE * cstat)
 
 /* checks if topmost loop stack item is a for */
 struct INTERMEDIATE *
-locate_for(COMPSTATE * cstat)
+innermost_control_place(COMPSTATE * cstat, int type1)
 {
-    struct CONTROL_STACK *tempeef;
-    tempeef = cstat->control_stack;
-    if(!tempeef || tempeef->type != CTYPE_FOR )
-        return 0;
-    return tempeef->place;
-}
+	struct CONTROL_STACK *ctrl;
 
-/* pops topmost begin or for off the stack */
-struct INTERMEDIATE *
-find_begin(COMPSTATE * cstat)
-{
-	struct INTERMEDIATE *temp;
-	struct CONTROL_STACK *tofree;
-
-	if (!cstat->control_stack)
+	ctrl = cstat->control_stack;
+	if (!ctrl)
 		return 0;
-	if (cstat->control_stack->type != CTYPE_BEGIN && cstat->control_stack->type != CTYPE_FOR)
+	if (ctrl->type != type1)
 		return 0;
 
-	if (cstat->control_stack->type == CTYPE_FOR)
-		cstat->nested_fors--;
-
-	temp = cstat->control_stack->place;
-	tofree = cstat->control_stack;
-	cstat->control_stack = cstat->control_stack->next;
-	free((void *) tofree);
-	return temp;
+	return ctrl->place;
 }
 
-/* pops topmost while off the stack */
+/* Pops off the innermost control structure and returns the place. */
 struct INTERMEDIATE *
-find_while(COMPSTATE * cstat)
+pop_control_structure(COMPSTATE * cstat, int type1, int type2)
+{
+	struct CONTROL_STACK *ctrl;
+	struct INTERMEDIATE *place;
+
+	ctrl = cstat->control_stack;
+	if (!ctrl)
+		return NULL;
+	if (ctrl->type != type1 && ctrl->type != type2)
+		return NULL;
+
+	place = ctrl->place;
+	cstat->control_stack = ctrl->next;
+	free(ctrl);
+
+	return place;
+}
+
+/* pops first while off the innermost control structure, if it's a loop. */
+struct INTERMEDIATE *
+pop_loop_exit(COMPSTATE * cstat)
 {
 	struct INTERMEDIATE *temp;
 	struct CONTROL_STACK *tofree;
@@ -2022,9 +2201,10 @@ resolve_loop_addrs(COMPSTATE * cstat, int where)
 {
 	struct INTERMEDIATE *eef;
 
-	while ((eef = find_while(cstat)))
+	while ((eef = pop_loop_exit(cstat)))
 		eef->in.data.number = where;
-	if ((eef = locate_for(cstat))) {
+	eef = innermost_control_place(cstat, CTYPE_FOR);
+	if (eef) {
 		eef->next->in.data.number = where;
 	}
 }
@@ -2103,6 +2283,9 @@ special(const char *token)
 					   && string_compare(token, "BREAK")
 					   && string_compare(token, "CONTINUE")
 					   && string_compare(token, "REPEAT")
+					   && string_compare(token, "TRY")
+					   && string_compare(token, "CATCH")
+					   && string_compare(token, "ENDCATCH")
 					   && string_compare(token, "CALL")
 					   && string_compare(token, "PUBLIC")
 					   && string_compare(token, "MAGECALL")
@@ -2241,6 +2424,7 @@ clean_mcpbinds(struct mcp_binding *mypub)
 	}
 }
 
+
 void
 append_intermediate_chain(struct INTERMEDIATE *chain, struct INTERMEDIATE *add)
 {
@@ -2366,6 +2550,7 @@ copy_program(COMPSTATE * cstat)
 		case PROG_IF:
 		case PROG_JMP:
 		case PROG_EXEC:
+		case PROG_TRY:
 			code[i].data.call = code + curr->in.data.number;
 			break;
 		default:
@@ -2550,6 +2735,8 @@ init_primitives(void)
 	IN_FORITER = get_primitive(" FORITER");
 	IN_FOR = get_primitive(" FOR");
 	IN_FOREACH = get_primitive(" FOREACH");
+	IN_TRYPOP = get_primitive(" TRYPOP");
 }
+
 
 

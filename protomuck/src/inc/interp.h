@@ -50,9 +50,21 @@ extern void copyinst(struct inst *from, struct inst *to);
 #define abort_loop(S, C1, C2) \
 { \
   do_abort_loop(player, program, (S), fr, pc, atop, stop, (C1), (C2)); \
-  return 0; \
+  if (fr && fr->trys.top) \
+      break; \
+  else \
+      return 0; \
 }
   
+#define abort_loop_hard(S, C1, C2) \
+{ \
+	int tmp = 0; \
+	if (fr) { tmp = fr->trys.top; fr->trys.top = 0; } \
+	do_abort_loop(player, program, (S), fr, pc, atop, stop, (C1), (C2)); \
+	if (fr) fr->trys.top = tmp; \
+	return 0; \
+}
+
 extern void do_abort_loop(dbref player, dbref program, const char *msg,
                           struct frame *fr, struct inst *pc,
                           int atop, int stop, struct inst *clinst1,
@@ -76,7 +88,21 @@ extern int arith_type(struct inst *op1, struct inst *op2);
 
 extern void interp_set_depth(struct frame * fr);
   
-#define CHECKOP(N) { if ((*top) < (N)) { char* errbuf = (char*)malloc(128); interp_err(player, program, pc, arg, *top, fr->caller.st[1], insttotext(pc, errbuf, 128, 30, program), "Stack underflow."); free(errbuf); return; } nargs = (N); }
+/* #define CHECKOP(N) { if ((*top) < (N)) { char* errbuf = (char*)malloc(128); interp_err(player, program, pc, arg, *top, fr->caller.st[1], insttotext(pc, errbuf, 128, 30, program), "Stack underflow."); free(errbuf); return; } nargs = (N); } */
+
+#define CHECKOP_READONLY(N) \
+{ \
+	nargs = (N); \
+	if (*top < nargs) \
+		abort_interp("Stack underflow."); \
+}
+
+#define CHECKOP(N) \
+{ \
+	CHECKOP_READONLY(N); \
+	if (fr->trys.top && *top - fr->trys.st->depth < nargs) \
+		abort_interp("Stack protection fault."); \
+}
 
 #define POP() (arg + --(*top))
   
@@ -132,6 +158,7 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
 #define SORTTYPE_NOCASE_ASCEND  1
 #define SORTTYPE_CASE_DESCEND   2
 #define SORTTYPE_NOCASE_DESCEND 3
+#define SORTTYPE_SHUFFLE        4
 
 extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 
@@ -147,6 +174,7 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 #include "p_error.h"
 #include "p_file.h"
 #include "p_array.h"
+
 
 
 

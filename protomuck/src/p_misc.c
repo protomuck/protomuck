@@ -461,6 +461,40 @@ prim_ispidp(PRIM_PROTOTYPE)
 }
 
 
+void
+prim_getpids(PRIM_PROTOTYPE)
+{
+	stk_array *nw;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (mlev < LARCH)
+		abort_interp("Archwizard prim.");
+	if (oper1->type != PROG_OBJECT)
+		abort_interp("Non-object argument (1)");
+	nw = get_pids(oper1->data.objref);
+	CLEAR(oper1);
+	PushArrayRaw(nw);
+}
+
+
+void
+prim_getpidinfo(PRIM_PROTOTYPE)
+{
+	stk_array *nw;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (mlev < LARCH)
+		abort_interp("Archwizard prim.");
+	if (oper1->type != PROG_INTEGER)
+		abort_interp("Non-integer argument (1)");
+	nw = get_pidinfo(oper1->data.number);
+	CLEAR(oper1);
+	PushArrayRaw(nw);
+}
+
+
 void 
 prim_parselock(PRIM_PROTOTYPE)
 {
@@ -739,19 +773,27 @@ prim_event_send(PRIM_PROTOTYPE)
 		abort_interp("Expected an integer process id. (1)");
 	if (oper2->type != PROG_STRING)
 		abort_interp("Expected a string event id. (2)");
-
-      destfr = (struct frame*) timequeue_pid_frame(oper1->data.number);
+      if (fr->pid == oper1->data.number) {
+         destfr = fr;
+      } else {
+         destfr = timequeue_pid_frame(oper1->data.number);
+      }
 	if (destfr) {
 		arr = new_array_dictionary();
 		array_set_strkey(&arr, "data", oper3);
 		array_set_strkey_intval(&arr, "caller_pid", fr->pid);
+		array_set_strkey_intval(&arr, "descr", fr->descr);
 		array_set_strkey_refval(&arr, "caller_prog", program);
+		array_set_strkey_refval(&arr, "trigger", fr->trig);
+		array_set_strkey_refval(&arr, "prog_uid", ProgUID);
+		array_set_strkey_refval(&arr, "player", player); 
 
 		temp1.type = PROG_ARRAY;
 		temp1.data.array = arr; 
 
 		sprintf(buf, "USER.%.32s", DoNullInd(oper2->data.string));
-		muf_event_add(destfr, buf, oper3, 0);
+		muf_event_add(destfr, buf, &temp1, 0);
+            CLEAR(&temp1);
 	}
 
       CLEAR(oper1);
@@ -763,6 +805,7 @@ prim_event_send(PRIM_PROTOTYPE)
 void
 prim_pnameokp(PRIM_PROTOTYPE)
 {
+   CHECKOP(1);
    oper1 = POP();
    if (oper1->type != PROG_STRING)
       abort_interp("Player name string expected.");
@@ -770,12 +813,14 @@ prim_pnameokp(PRIM_PROTOTYPE)
       abort_interp("Cannot be an empty string.");
    result = ok_player_name(oper1->data.string->data);
    PushInt(result);
+   CLEAR(oper1);
 }
 
 
 void
 prim_nameokp(PRIM_PROTOTYPE)
 {
+   CHECKOP(1);
    oper1 = POP();
    if (oper1->type != PROG_STRING)
       abort_interp("Object name string expected.");
@@ -783,6 +828,7 @@ prim_nameokp(PRIM_PROTOTYPE)
       abort_interp("Cannot be an empty string.");
    result = ok_name(oper1->data.string->data);
    PushInt(result);
+   CLEAR(oper1);
 }
 
 
@@ -794,6 +840,64 @@ prim_force_level(PRIM_PROTOTYPE)
 
 
 
+
+
+
+void prim_watchpid(PRIM_PROTOTYPE)
+{
+	struct frame *frame;
+
+	CHECKOP(1);
+	oper1 = POP();
+
+	if (mlev < 3) {
+		abort_interp("Mucker level 3 required.");
+	}
+
+	if (oper1->type != PROG_INTEGER) {
+		abort_interp("Process PID expected.");
+	}
+
+/* Lets see if the batbat catches this one. */
+	if (oper1->data.number == fr->pid) {
+		abort_interp("Narcissistic processes not allowed.");
+	}
+
+	frame = timequeue_pid_frame (oper1->data.number);
+	if (frame) {
+		struct mufwatchpidlist **cur;
+		struct mufwatchpidlist *waitee;
+
+		for (cur = &frame->waiters; *cur; cur = &(*cur)->next) {
+			if ((*cur)->pid == oper1->data.number) {
+				break;
+			}
+		}
+
+		if (!*cur) {
+                        *cur = (struct mufwatchpidlist *) malloc (sizeof (**cur));
+			if (!*cur) {
+				abort_interp ("Internal memory error.\n");
+			}
+			(*cur)->next = 0;
+			(*cur)->pid = fr->pid;
+                        waitee = (struct mufwatchpidlist *) malloc (sizeof (*waitee));
+			if (!waitee) {
+				abort_interp ("Internal memory error.\n");
+			}
+			waitee->next = fr->waitees;
+			waitee->pid = oper1->data.number;
+			fr->waitees = waitee;
+		}
+	} else {
+		char buf[64];
+
+		sprintf (buf, "PROC.EXIT.%d", oper1->data.number);
+		muf_event_add(fr, buf, oper1, 0);
+	}
+
+	CLEAR (oper1);
+} 
 
 
 

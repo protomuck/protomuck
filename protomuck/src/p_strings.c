@@ -460,9 +460,11 @@ prim_split(PRIM_PROTOTYPE)
 	if (oper1->type != PROG_STRING)
 		abort_interp("Non-string argument. (2)");
 	if (!oper1->data.string)
-		abort_interp("Null split argument. (2)");
+		abort_interp("Null string split argument. (2)");
 	if (oper2->type != PROG_STRING)
 		abort_interp("Non-string argument. (1)");
+
+      *buf = '\0';
 	if (!oper2->data.string) {
 		result = 0;
 	} else {
@@ -511,9 +513,11 @@ prim_rsplit(PRIM_PROTOTYPE)
 	if (oper1->type != PROG_STRING)
 		abort_interp("Non-string argument. (2)");
 	if (!oper1->data.string)
-		abort_interp("Null split argument. (2)");
+		abort_interp("Null string split argument. (2)");
 	if (oper2->type != PROG_STRING)
 		abort_interp("Non-string argument. (1)");
+
+      *buf = '\0';
 	if (!oper2->data.string) {
 		result = 0;
 	} else {
@@ -588,7 +592,9 @@ prim_itoc(PRIM_PROTOTYPE)
 	oper1 = POP();
 	if ((oper1->type != PROG_INTEGER) || (oper1->data.number < 0))
 		abort_interp("Argument must be a positive integer. (1)");
-	if (oper1->data.number > 127 || (!isprint((char) oper1->data.number) &&
+	if (((oper1->data.number > 127) && (mlev < LARCH)) || (!isprint((char) oper1->data.number) &&
+									 (mlev < LARCH) &&
+									 ((char) oper1->data.number != '\n') &&
 									 ((char) oper1->data.number != '\r') &&
 									 ((char) oper1->data.number != ESCAPE_CHAR))) {
 		result = 0;
@@ -618,14 +624,22 @@ prim_stod(PRIM_PROTOTYPE)
 		ref = NOTHING;
 	} else {
 		const char *ptr = oper1->data.string->data;
+		const char *nptr = NULL;
 
 		while (isspace(*ptr)) ptr++;
 		if (*ptr == '#') ptr++;
-		if (number(ptr)) {
-			ref = (dbref) atoi(ptr);
+		if (*ptr == '+') ptr++;
+		nptr = ptr;
+		if (*nptr == '-') nptr++;
+		while (*nptr && !isspace(*nptr) &&
+		       (*nptr >= '0' || *nptr <= '9')) {
+		        nptr++;
+		} /* while */
+		if (*nptr && !isspace(*nptr)) {
+		        ref = NOTHING;
 		} else {
-			ref = NOTHING;
-		}
+		        ref = (dbref) atoi(ptr);
+		} /* if */
 	}
 	CLEAR(oper1);
 	PushObject(ref);
@@ -2349,6 +2363,7 @@ prim_textattr(PRIM_PROTOTYPE)
 	CLEAR(oper2);
 	PushString(buf);
 }
+
 
 
 

@@ -383,6 +383,7 @@ struct line {
 #define PROG_MARK        19   /* Stack markers -- not in yet */
 #define PROG_SVAR_AT     20   /* @ shortcut for scoped vars */
 #define PROG_SVAR_BANG   21   /* ! shortcut for scoped vars */
+#define PROG_TRY         22   /* TRY shortcut */
 
 #define MAX_VAR        104	/* maximum number of variables including the
 				 * basic ME and LOC                */
@@ -451,6 +452,14 @@ struct forvars {
 	struct forvars *next;
 };
 
+struct tryvars {
+	int depth;
+	int call_level;
+	int for_count;
+	struct inst *addr;
+	struct tryvars *next;
+};
+
 struct stack {
     int     top;
     struct inst st[STACK_SIZE];
@@ -476,6 +485,11 @@ struct localvars {
 struct forstack {
 	int top;
 	struct forvars *st;
+};
+
+struct trystack {
+	int top;
+	struct tryvars *st;
 };
 
 #define MAX_BREAKS 16
@@ -514,6 +528,11 @@ struct dlogidlist {
       char dlogid[32];
 };
 
+struct mufwatchpidlist {
+	struct mufwatchpidlist *next;
+	int pid;
+};
+
 #define STD_REGUID  0
 #define STD_SETUID  1
 #define STD_HARDUID 2
@@ -525,6 +544,7 @@ struct frame {
     struct stack argument;          /* argument stack */
     struct callstack caller;        /* caller prog stack */
     struct forstack fors;           /* for loop stack */
+    struct trystack trys;           /* try block stack */
     struct localvars* lvars;        /* local variables */
     vars    variables;              /* global variables */
     struct inst *pc;                /* next executing instruction */
@@ -542,6 +562,7 @@ struct frame {
     int     instcnt;                /* How many instructions have run. */
     int     timercount;             /* How many timers currently exist. */
     int     pid;                    /* what is the process id? */
+    char   *errorstr;               /* The error string thrown */
     int     descr;                  /* Descriptor of running player */
     void *rndbuf;                   /* buffer for seedable random */
     struct scopedvar_t *svars;      /* Variables with function scoping. */
@@ -550,6 +571,8 @@ struct frame {
     struct timeval proftime;        /* profiling timing code */
     struct timeval totaltime;       /* profiling timing code */
     struct dlogidlist *dlogids;     /* List of dlogids this frame uses. */
+    struct mufwatchpidlist *waiters;
+    struct mufwatchpidlist *waitees;
 	union {
 		struct {
 			unsigned int div_zero:1;	/* Divide by zero */
@@ -785,6 +808,7 @@ extern int WLevel(dbref player);
   invoked.
 */
 #endif				/* __DB_H */
+
 
 
 

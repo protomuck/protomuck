@@ -675,9 +675,9 @@ prim_setname(PRIM_PROTOTYPE)
 		    password++;
 	    }
 	    /* check for null password */
-	    if (!*password) {
+            /* The password just has to be 'yes' for players. */
+	    if (!*password){ 
 		abort_interp("Player namechange requires \"yes\" appended");
-	    /* } else if (strcmp(password, DoNull(DBFETCH(ref)->sp.player.password))) { */
 	    } else if (strcmp(password, "yes")) {
 		abort_interp("Incorrect password");
 	    } else if (string_compare(b, NAME(ref))
@@ -2681,6 +2681,106 @@ prim_findnext(PRIM_PROTOTYPE)
         PushObject(ref);
 }
 
+
+void
+prim_newprogram(PRIM_PROTOTYPE)
+{
+	dbref newprog;
+      char buf[BUFFER_LEN];
+      int jj;
+
+	CHECKOP(1);
+	oper1 = POP();
+
+	if (mlev < LBOY)
+		abort_interp("Program manipulation prims are BOY or higher only.");
+	if (oper1->type != PROG_STRING)
+		abort_interp("Expected string argument.");
+	if (!tp_building || tp_db_readonly)
+		abort_interp(NOBUILD_MESG);
+	if (!ok_name(oper1->data.string->data))
+		abort_interp("Invalid name (2)");
+
+	newprog = new_object();
+
+	NAME(newprog) = alloc_string(oper1->data.string->data);
+	sprintf(buf, "A scroll containing a spell called %s", oper1->data.string->data);
+	SETDESC(newprog, buf);
+	DBFETCH(newprog)->location = player;
+	FLAGS(newprog) = TYPE_PROGRAM;
+	jj = MLevel(player);
+	if (jj < 1)
+	    jj = 1;
+	if (jj > 3)
+	    jj = 3;
+	SetMLevel(newprog, jj);
+
+	OWNER(newprog) = OWNER(player);
+	DBFETCH(newprog)->sp.program.first = 0;
+	DBFETCH(newprog)->sp.program.curr_line = 0;
+	DBFETCH(newprog)->sp.program.siz = 0;
+	DBFETCH(newprog)->sp.program.code = 0;
+	DBFETCH(newprog)->sp.program.start = 0;
+	DBFETCH(newprog)->sp.program.pubs = 0;
+	DBFETCH(newprog)->sp.program.mcpbinds = 0;
+      DBFETCH(newprog)->sp.program.proftime.tv_sec = 0;
+      DBFETCH(newprog)->sp.program.proftime.tv_usec = 0;
+      DBFETCH(newprog)->sp.program.profstart = 0;
+      DBFETCH(newprog)->sp.program.profuses = 0;
+
+	DBFETCH(player)->sp.player.curr_prog = newprog;
+
+	PUSH(newprog, DBFETCH(player)->contents);
+	DBDIRTY(newprog);
+	DBDIRTY(player);
+      PushObject(newprog);
+}
+
+extern struct line *read_program(dbref prog);
+
+void
+prim_compile(PRIM_PROTOTYPE)
+{
+	dbref ref;
+	struct line *tmpline;
+
+	CHECKOP(2);
+	oper2 = POP();
+	oper1 = POP();
+	if (mlev < LBOY)
+		abort_interp("Program manipulation prims are BOY or higher only.");
+	if (!valid_object(oper1))
+		abort_interp("No program dbref given.");
+	ref = oper1->data.objref;
+	if (Typeof(ref) != TYPE_PROGRAM)
+		abort_interp("No program dbref given.");
+	if (oper2->type != PROG_INTEGER)
+		abort_interp("No boolean integer given.");
+	tmpline = DBFETCH(program)->sp.program.first;
+	DBFETCH(ref)->sp.program.first = read_program(ref);
+	do_compile(fr->descr, player, ref, oper2->data.number);
+	free_prog_text(DBFETCH(program)->sp.program.first);
+	DBSTORE(program, sp.program.first, tmpline);
+	PushInt(DBFETCH(ref)->sp.program.siz);
+}
+
+
+void
+prim_uncompile(PRIM_PROTOTYPE)
+{
+	dbref ref;
+
+	CHECKOP(1);
+	oper1 = POP();
+	if (mlev < LBOY)
+		abort_interp("Program manipulation prims are BOY or higher only.");
+	if (!valid_object(oper1))
+		abort_interp("No program dbref given.");
+	ref = oper1->data.objref;
+	if (Typeof(ref) != TYPE_PROGRAM)
+		abort_interp("No program dbref given.");
+	uncompile_program(ref);
+}
 
 
 
