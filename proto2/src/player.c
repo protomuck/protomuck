@@ -15,17 +15,28 @@ lookup_player(const char *name)
 {
     hash_data *hd;
 
-    if ((hd = find_hash(name, player_list, PLAYER_HASH_SIZE)) == NULL)
-        return NOTHING;
-    else
-        return (hd->dbval);
+    if (*name == '#') {
+        name++;
+        if (!OkObj(atoi(name)) || Typeof(atoi(name)) != TYPE_PLAYER)
+            return NOTHING;
+        else
+            return atoi(name);
+    } else {
+        if (*name == '*')
+            name++;
+
+        if ((hd = find_hash(name, player_list, PLAYER_HASH_SIZE)) == NULL)
+            return NOTHING;
+        else
+            return (hd->dbval);
+    }
 }
 
 dbref
 connect_player(const char *name, const char *password)
 {
     dbref player;
-    
+
     if (*name == NUMBER_TOKEN && number(name + 1) && atoi(name + 1)) {
         player = (dbref) atoi(name + 1);
         if ((player < 0) || (player >= db_top)
@@ -36,7 +47,7 @@ connect_player(const char *name, const char *password)
     }
     if (player == NOTHING)
         return NOTHING;
-    if (!check_password(player,password)) 
+    if (!check_password(player, password))
         return NOTHING;
 
     return player;
@@ -104,7 +115,7 @@ create_player(const char *name, const char *password)
 #endif /* IGNORE_SUPPORT */
 
     /* new set password */
-    set_password(player,password);
+    set_password(player, password);
 
     /* link him to tp_player_start */
     PUSH(player, DBFETCH(tp_player_start)->contents);
@@ -129,13 +140,13 @@ do_password(dbref player, const char *old, const char *newobj)
         return;
     }
 
-    if (!check_password(player,old)) {
+    if (!check_password(player, old)) {
         anotify_nolisten2(player,
                           CFAIL "Syntax: @password <oldpass>=<newpass>");
     } else if (!ok_password(newobj)) {
         anotify_nolisten2(player, CFAIL "Bad new password.");
     } else {
-        set_password(player,newobj);
+        set_password(player, newobj);
         anotify_nolisten2(player, CFAIL "Password changed.");
     }
 }
