@@ -216,7 +216,7 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
         return 0;
     if (flag == LISTENER)
         return 0;
-    if (flag == XFORCIBLE)
+    if (flag == XFORCIBLE && Typeof(ref) != TYPE_PROGRAM && mlev < LARCH)
         return 0;
     if (flag == QUELL && Typeof(ref) != TYPE_THING)
         return 0;
@@ -227,8 +227,6 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
                              || Typeof(ref) == TYPE_PLAYER)) && mlev < LARCH))
         return 0;
     if (flag == INTERACTIVE)
-        return 0;
-    if (flag == F2PROTECT )
         return 0;
 
     return 1;
