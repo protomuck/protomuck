@@ -25,6 +25,7 @@ void muf_event_process(void);
 int muf_event_exists(struct frame* fr, const char* eventid);
 int muf_event_list(dbref player, char *pat);
 stk_array * get_mufevent_pids(stk_array *nw, dbref ref);
+stk_array *get_mufevent_pidinfo(stk_array* nw, int pid);
 
 #endif /* MUF_EVENT_H */
 

@@ -239,7 +239,7 @@ stuff_dict_in_mesg(stk_array* arr, McpMesg* msg)
 						mcp_mesg_arg_append(msg, argname.data.string->data, buf);
 						break;
 					case PROG_FLOAT:
-						sprintf(buf, "%g", subval->data.fnumber);
+						sprintf(buf, "%.16lg", subval->data.fnumber);
 						mcp_mesg_arg_append(msg, argname.data.string->data, buf);
 						break;
 					default:
@@ -266,7 +266,7 @@ stuff_dict_in_mesg(stk_array* arr, McpMesg* msg)
 			mcp_mesg_arg_append(msg, argname.data.string->data, buf);
 			break;
 		case PROG_FLOAT:
-			sprintf(buf, "%g", argval->data.fnumber);
+			sprintf(buf, "%.16lg", argval->data.fnumber);
 			mcp_mesg_arg_remove(msg, argname.data.string->data);
 			mcp_mesg_arg_append(msg, argname.data.string->data, buf);
 			break;
@@ -376,7 +376,7 @@ prim_mcp_supports(PRIM_PROTOTYPE)
 	int descr;
 	McpVer ver;
 	McpFrame *mfr;
-	float fver;
+	double fver;
 
 	CHECKOP(2);
 	oper2 = POP();
@@ -669,7 +669,7 @@ void
 prim_gui_available(PRIM_PROTOTYPE)
 {
 	McpVer ver;
-	float fver;
+	double fver;
 
 	CHECKOP(1);
 	oper1 = POP();				/* descr */
@@ -1089,7 +1089,7 @@ prim_gui_value_set(PRIM_PROTOTYPE)
 				value = buf;
 				break;
 			case PROG_FLOAT:
-				sprintf(buf, "%g", temp2->data.fnumber);
+				sprintf(buf, "%.16lg", temp2->data.fnumber);
 				value = buf;
 				break;
 			default:

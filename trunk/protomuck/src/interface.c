@@ -2133,7 +2133,7 @@ shutdownsock(struct descriptor_data * d)
 		d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->commands, d->cport);
 	announce_disconnect(d);
-      } else {
+      } else if (d->type != CT_INBOUND) {
 	show_status("DISC: %2d %s(%s) %s, %d cmds P#%d (never connected)\n",
 		d->descriptor, d->hostname, d->username,
 		host_as_hex(d->hostaddr), d->commands, d->cport);

@@ -409,7 +409,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
 				case 'f':
 				case 'e':
 				case 'g':
-					strcat(sfmt, "h");
+					strcat(sfmt, "l");
 					sprintf(hold, "%c", sstr[scnt]);
 					strcat(sfmt, hold);
 					if (oper2->type != PROG_FLOAT)
@@ -920,7 +920,8 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
     if (oper2->type != PROG_INTEGER)
 	abort_interp("Descriptor integer expected. (1)");
     if (!pdescrp(oper2->data.number))
-       abort_interp("That is not a valid descriptor.");
+        return;
+        /* abort_interp("That is not a valid descriptor."); */
     if (oper1->data.string) {
 	  strcpy(buf, oper1->data.string->data);
         notify_descriptor(oper2->data.number, buf);
@@ -946,7 +947,8 @@ prim_ansi_notify_descriptor(PRIM_PROTOTYPE)
     if (oper2->type != PROG_INTEGER)
         abort_interp("Invalid descriptor arguement. (1)");
     if (!pdescrp(oper2->data.number))
-        abort_interp("That is not a valid descriptor.");
+        return;
+        /* abort_interp("That is not a valid descriptor."); */
     if (oper1->data.string) {
         strcpy(buf, oper1->data.string->data);
         anotify_descriptor(oper2->data.number, buf);
@@ -972,7 +974,8 @@ prim_notify_descriptor_char(PRIM_PROTOTYPE)
     if (oper1->type != PROG_INTEGER || oper2->type != PROG_INTEGER )
         abort_interp("Requires integer arguements.");
     if(!pdescrp(oper2->data.number))
-        abort_interp("Not a valid descriptor.");
+        return;
+        /* abort_interp("Not a valid descriptor."); */
     theChar = (char) oper1->data.number;
     
     notify_descriptor_char(oper2->data.number, theChar);
@@ -1449,7 +1452,7 @@ prim_intostr(PRIM_PROTOTYPE)
 	if (oper1->type == PROG_STRING)
 		abort_interp("Invalid argument.");
 	if (oper1->type == PROG_FLOAT) {
-		sprintf(buf, "%g", oper1->data.fnumber);
+		sprintf(buf, "%.16lg", oper1->data.fnumber);
 		ptr=buf;
 	} else {
 		val = oper1->data.number;
@@ -2894,7 +2897,7 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
                                                    case 'f': 
                                                    case 'e': 
                                                    case 'g': 
-                                                           strcat(sfmt, "h"); 
+                                                           strcat(sfmt, "l"); 
                                                            sprintf(hold, "%c", sstr[scnt]); 
                                                            strcat(sfmt, hold); 
                                                            if (oper3->type != PROG_FLOAT) 

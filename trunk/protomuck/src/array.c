@@ -58,23 +58,20 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
         char pad_char[] = "";
 	if (a->type != b->type) {
 		if (a->type == PROG_INTEGER && b->type == PROG_FLOAT) {
-                        if (((float)a->data.number - b->data.fnumber) 
-                            >= FLT_EPSILON) {
-				return 1;
-			} else if (a->data.number < b->data.fnumber) {
-				return -1;
-			} else {
+			if (fabs(((double)a->data.number - b->data.fnumber) / (double)a->data.number) < DBL_EPSILON) {
 				return 0;
+			} else if (a->data.number > b->data.fnumber) {
+				return 1;
+			} else {
+				return -1;
 			}
-		} else if (b->type == PROG_INTEGER && a->type == PROG_FLOAT) {
-                        if ((a->data.fnumber - (float)b->data.number) 
-                            >= FLT_EPSILON) {
-				return 1;
-                        } else if (((float)b->data.number - a->data.fnumber) 
-                                   >= FLT_EPSILON) {
-				return -1;
-			} else {
+		} else if (a->type == PROG_FLOAT && b->type == PROG_INTEGER) {
+			if (fabs((a->data.fnumber - b->data.number) / a->data.fnumber) < DBL_EPSILON) {
 				return 0;
+			} else if (a->data.fnumber > b->data.number) {
+				return 1;
+			} else {
+				return -1;
 			}
 		} else if (a->type == PROG_OBJECT && b->type == PROG_STRING
                            && objname && valid_obj(a->data.objref)) {
@@ -116,14 +113,14 @@ array_tree_compare(array_iter * a, array_iter * b, int case_sens, int objname)
             else return 0;
         }
 	if (a->type == PROG_FLOAT) {
-                if ((a->data.fnumber - b->data.fnumber) >= FLT_EPSILON) {
-			return 1;
-                } else if ((b->data.fnumber - a->data.fnumber) 
-                           >= FLT_EPSILON) {
-			return -1;
-		} else {
-			return 0;
-		}
+            if (fabs((a->data.fnumber - b->data.fnumber) / a->data.fnumber) <
+                DBL_EPSILON) {
+                return 0;
+            } else if (a->data.fnumber > b->data.fnumber) {
+                return 1;
+            } else {
+                return -1;
+            }
 	} else if (a->type == PROG_STRING) {
             char pad_char[] = "";
 	    char *astr = (a->data.string) ? a->data.string->data : pad_char;

@@ -27,7 +27,7 @@ extern const char *old_uncompress(const char *);
 
 char * fltostr(char * buf, float f)
 {
-    sprintf(buf, "%hg", f);
+    sprintf(buf, "%lg", f);
     return buf;
 }
 
@@ -98,6 +98,12 @@ set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
 		if (!PropDir(p))
 		    remove_property_nofetch(player, type);
 	    } else {
+              /*  char *cptr = (char *) value;
+                while (cptr) { 
+                    if (*cptr == '\n')
+                        *cptr = '\r';
+                    ++cptr;
+                } */
 		SetPDataStr(p, alloc_compressed((char *)value));
 #ifdef COMPRESS
 		SetPFlagsRaw(p, (flags | PROP_COMPRESSED));
@@ -114,7 +120,7 @@ set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
 	    break;
 	case PROP_FLTTYP:
 		SetPDataFVal(p, (float) atof(value));
-		if (((float) *value < SMALL_NUM) && ((float) *value > NSMALL_NUM)) {
+		if (((double) *value) == 0.0) {
 			SetPType(p, PROP_DIRTYP);
 			if (!PropDir(p)) {
 				remove_property_nofetch(player, type);
@@ -446,7 +452,7 @@ get_property_value(dbref player, const char *type)
 }
 
 /* return float value of a property */
-float
+double
 get_property_fvalue(dbref player, const char *pname)
 {
 	PropPtr p;
@@ -834,7 +840,7 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
 	    sprintf(buf, FOREST "int " GREEN "%s" RED ":" YELLOW "%d", mybuf, PropDataVal(p));
 	    break;
       case PROP_FLTTYP:
-          sprintf(buf, NAVY "flt " GREEN "%s" RED ":" BROWN "%hg", mybuf, PropDataFVal(p));
+          sprintf(buf, NAVY "flt " GREEN "%s" RED ":" BROWN "%.17lg", mybuf, PropDataFVal(p));
           break;
 	case PROP_LOKTYP:
 	    if (PropFlags(p) & PROP_ISUNLOADED) {
@@ -976,13 +982,11 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
                }
             } else {
                if (!strncmp(tpnt, "NAN", 3)) {
-                  fval = 0.0;
+                  fval = INF;
                }
-               fprintf(stderr, "PANIC: Float prop contained invalid value.\n");
-               abort();
             }
          } else {
-            sscanf(value, "%hg", (PTYPE) &fval);
+            sscanf(value, "%lg", (PTYPE) &fval);
          }
          set_property_nofetch(obj, name, flg, (PTYPE) fltostr(fbuf, fval));
          break;
@@ -1037,8 +1041,6 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
 	    break;
         case PROP_FLTTYP:
           if (!PropDataFVal(p)) return;
-//          sprintf(tbuf, "%hg", PropDataFVal(p));
-//          ptr2 = tbuf;
           ptr2 = fltostr(fbuf, PropDataFVal(p));
           break;
         case PROP_REFTYP:

@@ -1182,6 +1182,7 @@ extract_prop(FILE *f, const char *dir, PropPtr p)
 {
     char buf[BUFFER_LEN*2];
     char num[16];
+    char tbuf[50];
     char *ptr;
     const char *ptr2;
 
@@ -1201,6 +1202,12 @@ extract_prop(FILE *f, const char *dir, PropPtr p)
 	    if (!PropDataVal(p)) return;
 	    ptr2 = intostr(num, PropDataVal(p));
 	    break;
+        case PROP_FLTTYP:
+            if (PropDataFVal(p) == 0.0)
+                return;
+            snprintf(tbuf, sizeof(tbuf), "%.17lg", PropDataFVal(p));
+            ptr2 = tbuf;
+            break;
 	case PROP_REFTYP:
 	    if (PropDataRef(p) == NOTHING) return;
 	    ptr2 = intostr(num, (int)PropDataRef(p));

@@ -940,8 +940,7 @@ logical_false(struct inst * p)
   	    || (p->type == PROG_ARRAY && (!p->data.array || !p->data.array->items))
 	    || (p->type == PROG_LOCK && p->data.lock == TRUE_BOOLEXP)
 	    || (p->type == PROG_INTEGER && p->data.number == 0)
-          || (p->type == PROG_FLOAT &&
-             (p->data.fnumber < SMALL_NUM && p->data.fnumber > NSMALL_NUM))
+          || (p->type == PROG_FLOAT && p->data.fnumber == 0.0)
 	    || (p->type == PROG_OBJECT && p->data.objref == NOTHING));
 }
 
@@ -1151,7 +1150,10 @@ interp_loop(dbref player, dbref program, struct frame * fr, int rettyp)
 	DBSTORE(program, sp.program.first, tmpline);
 	pc = fr->pc = DBFETCH(program)->sp.program.start;
 	if (!pc) {
-	    abort_loop_hard("Program not compilable. Cannot run.", NULL, NULL);
+            char smallBuf[50];
+            sprintf(smallBuf, "Program %d not compilable. Cannot run.", 
+                    program);
+	    abort_loop_hard(smallBuf, NULL, NULL);
 	}
 	DBFETCH(program)->sp.program.profuses++;
         DBFETCH(program)->sp.program.instances++;
@@ -1958,7 +1960,9 @@ void
 push(struct inst *stack, int *top, int type, voidptr res)
 {
     stack[*top].type = type;
-    if (type < PROG_STRING)
+    if (type == PROG_FLOAT)
+        stack[*top].data.fnumber = *(double *) res;    
+    else if (type < PROG_STRING)
 	stack[*top].data.number = *(int *) res;
     else
 	stack[*top].data.string = (struct shared_string *) res;

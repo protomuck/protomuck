@@ -663,3 +663,131 @@ get_mufevent_pids(stk_array *nw, dbref ref)
 
     return nw;
 }
+
+stk_array *
+get_mufevent_pidinfo(stk_array* nw, int pid)
+{
+	struct inst temp1, temp2;
+	stk_array*  arr;
+	time_t      rtime = time(NULL);
+	time_t      etime = 0;
+	double      pcnt  = 0.0;
+	int         i;
+
+	struct mufevent_process *proc = mufevent_processes;
+	while (proc && (proc->fr->pid != pid)) {
+		proc = proc->next;
+	}
+	if (proc && (proc->fr->pid == pid)) {
+		if (proc->fr) {
+			etime = rtime - proc->fr->started;
+			if (etime > 0) {
+				pcnt = proc->fr->totaltime.tv_sec;
+				pcnt += proc->fr->totaltime.tv_usec / 1000000;
+				pcnt = pcnt * 100 / etime;
+				if (pcnt > 100.0) {
+					pcnt = 100.0;
+				}
+			} else {
+				pcnt = 0.0;
+			}
+		}
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("PID");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = proc->fr->pid;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("CALLED_PROG");
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = proc->prog;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("TRIG");
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = proc->fr->trig;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("PLAYER");
+		temp2.type = PROG_OBJECT;
+		temp2.data.objref = proc->player;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("CALLED_DATA");
+		temp2.type = PROG_STRING;
+		temp2.data.string = alloc_prog_string("EVENT_WAITFOR");
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("INSTCNT");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = proc->fr->instcnt;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("DESCR");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = proc->fr->descr;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("CPU");
+		temp2.type = PROG_FLOAT;
+		temp2.data.fnumber = pcnt;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("NEXTRUN");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = -1;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("STARTED");
+		temp2.type = PROG_INTEGER;
+		temp2.data.number = (int) proc->fr->started;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("TYPE");
+		temp2.type = PROG_STRING;
+		temp2.data.string = alloc_prog_string("MUFEVENT");
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("SUBTYPE");
+		temp2.type = PROG_STRING;
+		temp2.data.string = alloc_prog_string("");
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+		temp1.type = PROG_STRING;
+		temp1.data.string = alloc_prog_string("FILTERS");
+		arr = new_array_packed(0);
+		for (i = 0; i < proc->filtercount; i++) {
+			array_set_intkey_strval(&arr, i, proc->filters[i]);
+		}
+		temp2.type = PROG_ARRAY;
+		temp2.data.array = arr;
+		array_setitem(&nw, &temp1, &temp2);
+		CLEAR(&temp1);
+		CLEAR(&temp2);
+	}
+	return nw;
+}
+
