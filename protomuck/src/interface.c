@@ -1320,6 +1320,7 @@ shovechars(void)
     struct timeval sel_in, sel_out;
     int openfiles_max;
     int i;
+    int haveSockEvent = 0; 
 
     for (i = 0; i < numsocks; i++) {
         sock[i] = make_socket(listener_port[i]);
@@ -1340,7 +1341,7 @@ shovechars(void)
         process_commands(); /* Process player commands in game.c */
 #ifdef MUF_SOCKETS
         if (tp_socket_events) /* check MUF socket queue */
-            muf_socket_events(); /* in p_socket.c, checks for ready sockets */
+            haveSockEvent = muf_socket_events(); /* in p_socket.c */
 #endif /* MUF_SOCKETS */
         muf_event_process(); /* Process MUF events in mufevents.c */
 
@@ -1351,7 +1352,8 @@ shovechars(void)
                      (d->type == CT_HTML && !(d->http_login) 
                      && !descr_running_queue(d->descriptor)) ||
                      (d->type == CT_MUF && 
-		     !descr_running_queue(d->descriptor)) ) {
+		     !descr_running_queue(d->descriptor)) ||
+                     (d->type == CT_INBOUND && d->booted == 1) ) {
 #ifdef HTTPDELAY
                     if((d->httpdata) && (d->booted == 3)) {
                         queue_ansi(d, d->httpdata);
@@ -1402,6 +1404,10 @@ shovechars(void)
         tmptq = next_muckevent_time();
         if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
             timeout.tv_sec = tmptq + (tp_pause_min / 1000);
+            timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
+        }
+        if (haveSockEvent) { /* Don't pause in select if muf sockets */
+            timeout.tv_sec = tp_pause_min / 1000; 
             timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
         }
         gettimeofday(&sel_in,NULL);
@@ -1562,7 +1568,8 @@ shovechars(void)
                         if (curidle < 30)
                             curidle = 9999999;
                         if ((now - d->connected_at) > curidle && 
-                              !(descr_running_queue(d->descriptor)) ) {
+                              !(descr_running_queue(d->descriptor)) &&
+                              d->type != CT_INBOUND ) {
                             d->booted = 1; /* don't drop if running program */
                         }
                     }
@@ -2523,6 +2530,9 @@ process_input(struct descriptor_data * d)
     char    buf[MAX_COMMAND_LEN * 2];
     int     got;
     char   *p, *pend, *q, *qend;
+    
+    if ( d->type == CT_INBOUND )
+        return -1;
 
     got = readsocket(d->descriptor, buf, sizeof buf);
     if (got <= 0) {

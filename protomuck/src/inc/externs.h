@@ -491,4 +491,4 @@ extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
 
 /* from p_socket.c */
-extern void muf_socket_events(); 
+extern int muf_socket_events(); 

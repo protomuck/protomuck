@@ -114,6 +114,7 @@ extern void httpd(struct descriptor_data *d, const char *name, const char *http)
 extern void httpd_unknown(struct descriptor_data *d, const char *name);
 #endif
 
+void shutdownsock(struct descriptor_data *d);
 void check_maxd(struct descriptor_data *d);
 extern struct descriptor_data * initializesock(int s, const char *hostname, int port, int hostaddr, int ctyp, int cport, int welcome);
 extern struct descriptor_data* descrdata_by_index(int index);

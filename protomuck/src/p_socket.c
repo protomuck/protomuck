@@ -67,18 +67,18 @@ add_socket_to_queue(struct muf_socket *newSock, struct frame *fr)
 {
     struct muf_socket_queue *curr, *nw;
     curr = socket_list;
-
     /* make new node */
-    nw = (struct muf_socket_queue *) malloc(sizeof(struct muf_socket_queue *));
+    nw = (struct muf_socket_queue *) malloc(sizeof(struct muf_socket_queue ));
     nw->theSock = newSock;
     nw->fr = fr;
+    nw->pid = fr->pid;
     nw->next = NULL;
 
     if (!curr) { /* list is empty, point list to new */
         socket_list = nw;
     } else { /* list not empty, find end */
-        while(curr->next)
-            curr->next;
+        while(curr->next) 
+            curr = curr->next;
         curr->next = nw;
     }
 }
@@ -90,7 +90,6 @@ void
 remove_socket_from_queue(struct muf_socket *oldSock)
 {
     struct muf_socket_queue *curr, *next, *temp;
-    
     curr = socket_list;
     if (!curr)
         return; /* socket list is empty */
@@ -117,24 +116,37 @@ remove_socket_from_queue(struct muf_socket *oldSock)
     }
 }
 
+/* Reassigns the frame that events on that socket are to go to. */
 void
 update_socket_frame(struct muf_socket *mufSock, struct frame *newfr)
 {
     struct muf_socket_queue *curr = socket_list;
+    struct inst temp1;
+    char littleBuf[50];
 
     while (curr && curr->theSock != mufSock) 
         curr = curr->next; 
 
-    if (curr) /* socket found in queue, so update frame */
+    if (curr) { /* socket found in queue, so update frame */
         curr->fr = newfr;
-
+        curr->pid = newfr->pid;
+        if (curr->theSock->readWaiting) { /* need to send an event to new fr */
+            temp1.type = PROG_SOCKET;
+            temp1.data.sock = curr->theSock;
+            if (curr->theSock->listening)
+                strcpy(littleBuf, "SOCKET.LISTEN");
+            else
+                strcpy(littleBuf, "SOCKET.READ");
+            muf_event_add(curr->fr, littleBuf, &temp1, 1); /* 1 = exclusive */
+        }
+    }
 }
 
 /* checks all of the sockets in the queue to see if they
  * are in the 'readable' set. If so, passes an event
- * to that program frame.
+ * to that program frame. Returns true if an event was passed.
  */
-void 
+int
 muf_socket_events()
 {
     fd_set reads;
@@ -144,9 +156,12 @@ muf_socket_events()
     struct muf_socket_queue *curr = socket_list;
     struct inst temp1;
     int eventAdded = 0;
+    int isEvent = 0;
 
-    if (!curr)
-        return; /* no sockets to check */
+    if (!curr) 
+        return isEvent; /* no sockets to check */
+
+    isEvent = 1; /* Indicates there are MUF sockets */
 
     FD_ZERO(&reads);
     t_val.tv_sec  = 0;
@@ -162,7 +177,7 @@ muf_socket_events()
         curr = curr->next;
     } /* while(curr) */
     if (!eventAdded)
-        return; /* none need to be checked */
+        return isEvent; /* none need to be checked */
     
     /* now our &reads set is ready */
     select(maxDescr + 1, &reads, NULL, NULL, &t_val);
@@ -171,20 +186,20 @@ muf_socket_events()
     curr = socket_list;
     while (curr) {
         if (!(curr->theSock->readWaiting) && 
-            FD_ISSET(curr->theSock->socknum, &reads)) { /* event time */
+            FD_ISSET(curr->theSock->socknum, &reads) &&
+            curr->pid == curr->fr->pid) { /* event time */
             curr->theSock->readWaiting = 1;
             temp1.type = PROG_SOCKET;
             temp1.data.sock = curr->theSock;
-            curr->theSock->links += 1; /* manual pointer copy */
             if (curr->theSock->listening)
                 strcpy(littleBuf, "SOCKET.LISTEN");
             else
                 strcpy(littleBuf, "SOCKET.READ");
             muf_event_add(curr->fr, littleBuf, &temp1, 1); /* 1 = exclusive */ 
-            CLEAR(&temp1);
         } /* if */
         curr = curr->next;
     } /* while(curr) */ 
+    return isEvent;
 }
 
 void
@@ -709,6 +724,13 @@ prim_lsockopen(PRIM_PROTOTYPE)
         PushString(myresult);
         return;
     }   
+/* set non-blocking */
+#ifdef WIN_VC
+    ioctl(sockdescr, FIONBIO, &yes);
+#else
+    fcntl(sockdescr, F_SETFL, O_NONBLOCK);
+#endif
+
     /* No errors, make our listening socket */
     strcpy(myresult, "noerr"); 
     result = (struct inst *) malloc(sizeof(struct inst));
@@ -780,7 +802,6 @@ prim_sockaccept(PRIM_PROTOTYPE)
     sockdescr = oper1->data.sock->socknum;
     FD_ZERO(&reads);
     FD_SET(sockdescr, &reads);
-    
     select(sockdescr + 1, &reads, NULL, NULL, &t_val);
 
     if (!(FD_ISSET(sockdescr, &reads))) { //No connection waiting
@@ -840,7 +861,6 @@ prim_sockaccept(PRIM_PROTOTYPE)
     oper1->data.sock->readWaiting = 0;
 
     CLEAR(oper1);
-
     copyinst(result, &arg[(*top)++]);
     CLEAR(result);
 }    
@@ -891,6 +911,7 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     struct muf_socket *theSock;
     const char *password;
     struct descriptor_data *d;
+    int turnon = 1;
     
     /* (SOCKET) ref pass -- bool */
     CHECKOP(3);
@@ -906,6 +927,8 @@ prim_socket_setuser(PRIM_PROTOTYPE)
         abort_interp("Does not work with listening sockets. (1)");
     if (!oper1->data.sock->connected)
         abort_interp("This socket is not connected.");
+    if (oper1->data.sock->is_player)
+        abort_interp("This socket already connected to a player or descr.");
     theSock = oper1->data.sock;
     if (oper2->type != PROG_OBJECT || !valid_player(oper2))
         abort_interp("Expected player dbref. (2)");
@@ -930,18 +953,17 @@ prim_socket_setuser(PRIM_PROTOTYPE)
 #ifdef WIN_VC
     ioctl(theSock->socknum, FIONBIO, &turnon);
 #else
-   fcntl(theSock->socknum, F_SETFL, O_NONBLOCK);
+    fcntl(theSock->socknum, F_SETFL, O_NONBLOCK);
 #endif
     /* Now establish a normal telnet connection to the MUCK */
     d = initializesock(theSock->socknum, theSock->hostname, 
                        atoi(theSock->username), theSock->host, CT_MUCK, 
-                       theSock->port, 1);   
+                       theSock->port, 0);   
+    check_maxd(d);
 
     /* d is now in the descriptor list and properly initialized. 
      * Now connect it to a player. */
     result = plogin_user(d, ref);
-    if (result) /* update global max descr */
-        check_maxd(d);
 
     if( tp_log_connects && result)
         log2filetime(CONNECT_LOG, "SOCKET_SETUSER: %2d %s %s(%s) %s P#%d\n",
@@ -955,6 +977,54 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     CLEAR(oper2);
     CLEAR(oper3);
     PushInt(result);
+}
+
+void
+prim_socktodescr(PRIM_PROTOTYPE)
+{
+    struct muf_socket *theSock;
+    struct descriptor_data *d;
+    int turnon = 1;
+
+    /* (SOCKET) -- int:descr */
+    CHECKOP(1);
+    oper1 = POP(); /* socket */
+
+    if (mlev < LARCH)
+        abort_interp("Socket prims are W3.");
+    if (oper1->type != PROG_SOCKET)
+        abort_interp("Expected MUF socket. (1)");
+    theSock = oper1->data.sock;
+    if (theSock->listening)
+        abort_interp("Does not work with listening sockets. (1)");
+    if (!theSock->connected)
+        abort_interp("This socket is not connected. (1)");
+    if (theSock->is_player)
+        abort_interp("This socket already connected to player or descr.");
+
+    /* make sure socket is non-blocking */
+#ifdef WIN_VC
+    ioctl(theSock->socknum, FIONBIO, &turnon);
+#else
+    fcntl(theSock->socknum, F_SETFL, O_NONBLOCK);
+#endif
+    /* Now add the descriptor to the MUCK's descriptor list */
+    d = initializesock(theSock->socknum, theSock->hostname, 
+                       atoi(theSock->username), theSock->host,
+                       CT_INBOUND, theSock->port, 0);
+
+    /* now the descriptor is queued with the rest of the MUCK's d's */
+
+    check_maxd(d);
+
+    if (tp_log_sockets)
+        log2filetime("logs/sockets", 
+                 "#%d by %s SOCKTODESCR: %d", program, 
+                 unparse_object(player, (dbref) 1), theSock->socknum);
+    
+    theSock->is_player = -1;
+    CLEAR(oper1);
+    PushInt(d->descriptor);
 }
 
 void

@@ -800,29 +800,28 @@ descr_running_queue(int descr)
    return icount;
 }
 
+/* called by the getpids prim in p_misc.c */
 stk_array *
 get_pids(dbref ref)
 {
-	struct inst temp1, temp2;
-	stk_array  *nw;
-	int count = 0;
+    struct inst temp1;
+    stk_array  *nw;
 
-	timequeue ptr = tqhead;
-	nw = new_array_packed(0);
-	while (ptr) {
-		if ( ((ptr->typ != TQ_MPI_TYP) ? (ptr->called_prog == ref) : (ptr->trig == ref)) ||
-			(ptr->uid == ref) || (ref < NOTHING) ) {
-			temp2.type = PROG_INTEGER;
-			temp2.data.number = ptr->eventnum;
-			temp1.type = PROG_INTEGER;
-			temp1.data.number = count++;
-			array_setitem(&nw, &temp1, &temp2);
-			CLEAR(&temp1);
-			CLEAR(&temp2);
-		}
-		ptr = ptr->next;
-	}
-	return nw;
+    timequeue ptr = tqhead;
+    nw = new_array_packed(0);
+    while (ptr) {
+        if ( ((ptr->typ != TQ_MPI_TYP) ? (ptr->called_prog == ref) 
+                                       : (ptr->trig == ref)) ||
+              (ptr->uid == ref) || (ref < NOTHING) ) {
+            temp1.type = PROG_INTEGER;
+            temp1.data.number = ptr->eventnum;
+            array_appenditem(&nw, &temp1);
+            CLEAR(&temp1);
+        }
+        ptr = ptr->next;
+    }
+    nw = get_mufevent_pids(nw, ref);
+    return nw;
 }
 
 /* Used with the GETPIDINFO prim, this function packs a 
