@@ -594,6 +594,9 @@ msg_is_macro(dbref player, dbref what, dbref perms, const char *name)
     if (!*name)
         return 0;
 
+    if (name[0] == '@')
+        return 0;
+
     sprintf(buf2, "_msgmacs/%s", name);
     obj = what;
     ptr = get_mfunc(name);
@@ -607,7 +610,7 @@ msg_is_macro(dbref player, dbref what, dbref perms, const char *name)
     if (!ptr || !*ptr)
         ptr = safegetprop_strict(player, 0, perms, buf2);
 
-    return (ptr || *ptr);
+    return (ptr && *ptr);
 }
 
 void
