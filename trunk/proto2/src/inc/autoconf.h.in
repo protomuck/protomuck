@@ -133,3 +133,6 @@
 
 /* Define this to allow file primitive support as root. */
 #undef PROTO_AS_ROOT
+
+#undef HAVE_SETPROCTITLE
+

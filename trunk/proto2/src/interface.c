@@ -58,6 +58,26 @@ int total_loggedin_connects = 0;
 int resolver_sock[2];
 #endif
 
+#ifdef USE_PS
+
+#ifndef PS_CLOBBER_ARGV
+/* all but one options need a buffer to write their ps line in */
+static char ps_buffer[PS_BUFFER_SIZE];
+static const size_t ps_buffer_size = PS_BUFFER_SIZE;
+#else /* !PS_CLOBBER_ARGV */
+static char *ps_buffer;         /* will point to argv area */
+static size_t ps_buffer_size;   /* space determined at run time */
+#endif /* PS_CLOBBER_ARGV */
+
+static size_t ps_buffer_fixed_size; /* size of the constant prefix */
+
+/* save the original argv[] location here */
+static int save_argc;
+static char **save_argv;
+extern char **environ;
+
+#endif /* USE_PS */
+
 static const char *connect_fail = "Incorrect login.\r\n";
 static const char *flushed_message = "<Flushed>\r\n";
 
@@ -104,6 +124,7 @@ int do_command(struct descriptor_data *d, char *command);
 int remember_descriptor(struct descriptor_data *);
 int process_output(struct descriptor_data *d);
 int process_input(struct descriptor_data *d);
+int get_ctype(int port);
 int make_socket(int);
 
 #define MALLOC(result, type, number) do {   \
@@ -143,6 +164,110 @@ long sel_prof_idle_sec;
 long sel_prof_idle_usec;
 unsigned long sel_prof_idle_use;
 
+#ifdef USE_PS
+void
+save_ps_display_args(int argc, char *argv[])
+{
+    save_argc = argc;
+    save_argv = argv;
+
+#ifdef PS_CLOBBER_ARGV
+
+    /* If we're going to overwrite the argv area, count the available
+     * space.  Also move the environment to make additional room.  */
+    {
+        char *end_of_area = NULL;
+        char **new_environ;
+        int i;
+
+        /* check for contiguous argv strings */
+        for (i = 0; i < argc; i++) {
+            if (i == 0 || end_of_area + 1 == argv[i])
+                end_of_area = argv[i] + strlen(argv[i]);
+        }
+
+        if (end_of_area == NULL) { /* probably can't happen? */
+            ps_buffer = NULL;
+            ps_buffer_size = 0;
+            return;
+        }
+
+        /* check for contiguous environ strings following argv */
+        for (i = 0; environ[i] != NULL; i++) {
+            if (end_of_area + 1 == environ[i])
+                end_of_area = environ[i] + strlen(environ[i]);
+        }
+
+        ps_buffer = argv[0];
+        ps_buffer_size = end_of_area - argv[0];
+
+        /* move the environment out of the way */
+        new_environ = malloc(sizeof(char *) * (i + 1));
+        for (i = 0; environ[i] != NULL; i++)
+            new_environ[i] = strdup(environ[i]);
+        new_environ[i] = NULL;
+        environ = new_environ;
+    }
+#endif /* PS_USE_CLOBBER_ARGV */
+}
+
+/*
+ * Call this once during subprocess startup to set the identification
+ * values.	At this point, the original argv[] array may be overwritten.
+ */
+void
+init_ps_display(void)
+{
+#ifdef PS_CHANGE_ARGV
+    save_argv[0] = ps_buffer;
+    save_argv[1] = NULL;
+#endif /* PS_CHANGE_ARGV */
+
+#ifdef PS_CLOBBER_ARGV
+    {
+        int i;
+
+        /* make extra argv slots point at end_of_area (a NULL) */
+        for (i = 1; i < save_argc; i++)
+            save_argv[i] = ps_buffer + ps_buffer_size;
+    }
+#endif /* PS_CLOBBER_ARGV */
+
+    strncpy(ps_buffer, "protomuck " PROTOBASE ": ", ps_buffer_size);
+    ps_buffer_fixed_size = strlen(ps_buffer);
+}
+
+/*
+ * Call this to update the ps status display to a fixed prefix plus an
+ * indication of what you're currently doing passed in the argument.
+ */
+void
+set_ps_display(const char *status)
+{
+    /* Update ps_buffer to contain both fixed part and activity */
+    strncpy(ps_buffer + ps_buffer_fixed_size, status,
+            ps_buffer_size - ps_buffer_fixed_size);
+
+    /* Transmit new setting to kernel, if necessary */
+
+#ifdef HAVE_SETPROCTITLE
+    setproctitle("%s", ps_buffer);
+#endif
+
+#ifdef PS_CLOBBER_ARGV
+    {
+        int buflen;
+
+        /* pad unused memory */
+        buflen = strlen(ps_buffer);
+        memset(ps_buffer + buflen, PS_PADDING, ps_buffer_size - buflen);
+    }
+#endif /* PS_CLOBBER_ARGV */
+}
+
+#endif /* USE_PS */
+
+
 void
 show_program_usage(char *prog)
 {
@@ -155,7 +280,8 @@ show_program_usage(char *prog)
     fprintf(stderr,
             "       outfile           output db to save to. optional with -dbout.\n");
     fprintf(stderr,
-            "       portnum           port num to listen for conns on. (%d ports max)\n", MAX_LISTEN_SOCKS);
+            "       portnum           port num to listen for conns on. (%d ports max)\n",
+            MAX_LISTEN_SOCKS);
     fprintf(stderr, "   Options:\n");
     fprintf(stderr,
             "       -dbin INFILE      uses INFILE as the database to load at startup.\n");
@@ -245,6 +371,9 @@ main(int argc, char **argv)
     sanity_skip = 0;
     sanity_interactive = 0;
     sanity_autofix = 0;
+#ifdef USE_PS
+    save_ps_display_args(argc, argv);
+#endif /* USE_PS */
     for (i = 1; i < argc; i++) {
         if (!nomore_options && argv[i][0] == '-') {
             if (!strcmp(argv[i], "-convert")) {
@@ -297,8 +426,10 @@ main(int argc, char **argv)
             }
         } else {
             if (!infile_name) {
+                //strcpy(infile_name, argv[i]);
                 infile_name = argv[i];
             } else if (!outfile_name) {
+                //strcpy(outfile_name, argv[i]);
                 outfile_name = argv[i];
             } else {
                 val = atoi(argv[i]);
@@ -314,7 +445,7 @@ main(int argc, char **argv)
             }
         }
     }
-    if ((!infile_name) || (!outfile_name)) {
+    if (!infile_name || !outfile_name) {
         show_program_usage(*argv);
     }
 #ifdef DISKBASE
@@ -326,6 +457,7 @@ main(int argc, char **argv)
 
 
     if (!sanity_interactive) {
+
 
 #ifdef DETACH
 #if defined(CYGWIN) || defined(WIN32) || defined(WIN_VC)
@@ -423,6 +555,7 @@ main(int argc, char **argv)
         tp_textport = resolver_myport;
     if ((tp_textport > 1) && (tp_textport < 65536))
         listener_port[numsocks++] = tp_textport;
+
 //Only open a web port if support was #defined in config.h
 #ifdef NEWHTTPD                 /* hinoserm */
     if ((tp_wwwport > 1) && (tp_wwwport < 65536)) /* hinoserm */
@@ -439,6 +572,24 @@ main(int argc, char **argv)
 
     if (!numsocks)
         listener_port[numsocks++] = TINYPORT;
+
+#ifdef USE_PS
+    {
+        char buf[BUFFER_LEN];
+        char tbuf[8];
+
+        snprintf(buf, BUFFER_LEN, "%s: ", tp_muckname);
+        for (i = 0; i < numsocks; i++) {
+            if (get_ctype(listener_port[i]) == CT_MUCK) {
+                snprintf(tbuf, 8, "%d ", listener_port[i]);
+                strncat(buf, tbuf, BUFFER_LEN);
+            }
+        }
+
+        init_ps_display();
+        set_ps_display(buf);
+    }
+#endif /* USE_PS */
 
 #ifdef SPAWN_HOST_RESOLVER
     if (!db_conversion_flag) {
@@ -3483,12 +3634,12 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                             /****/
+        if (d->next)                                                                                                                                 /****/
             d->next->prev = d->prev;     /****/
-        if (d->hostname)                                                                                                                         /****/
+        if (d->hostname)                                                                                                                             /****/
             free((void *) d->hostname);
                                    /****/
-        if (d->username)                                                                                                                         /****/
+        if (d->username)                                                                                                                             /****/
             free((void *) d->username);
                                    /****/
 #ifdef NEWHTTPD

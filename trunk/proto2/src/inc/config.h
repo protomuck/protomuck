@@ -161,6 +161,14 @@
 
 #define DETACH
 
+/* Define this to enable renaming of the main ProtoMUCK process. If
+ * this is enabled, ProtoMUCK will attempt to change it's name so that
+ * it displays something like 'protomuck: MyMUCK: 9999' when you type
+ * 'ps' on your machine. This isn't supported by all platforms.  -Hinoserm
+ */
+
+#define USE_PS
+
 /* This is the section to turn on and off cutting edge features.
  */
 
@@ -506,6 +514,24 @@
 # include <unistd.h>
 #endif
 
+#ifdef USE_PS
+# ifndef HAVE_SETPROCTITLE
+#  if (defined(BSD) || defined(__bsdi__) || defined(__hurd__)) && !defined(__darwin__)
+#   define PS_CHANGE_ARGV
+#  elif defined(__linux__) || defined(_AIX) || defined(__sgi) || (defined(sun) && !defined(BSD)) || defined(ultrix) || defined(__ksr__) || defined(__osf__) || defined(__QNX__) || defined(__svr4__) || defined(__svr5__) || defined(__darwin__)
+#   define PS_CLOBBER_ARGV
+#   define PS_BUFFER_SIZE 256
+#  elif
+#   undef USE_PS
+#  endif
+# endif
+# if defined(_AIX) || defined(__linux__) || defined(__QNX__) || defined(__svr4__)
+#  define PS_PADDING '\0' /* Different systems want the buffer padded differently */
+# else
+#  define PS_PADDING ' '
+# endif
+#endif
+
 /*
  * Which set of memory commands do we have here...
  */
@@ -650,9 +676,5 @@
 /* Final line of defense for self configuration, systems we know  */
 /* need special treatment.                                        */ 
 /******************************************************************/
-
-
-
-
 
 #endif /* _CONFIG_H_ */
