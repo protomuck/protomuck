@@ -439,6 +439,8 @@ unparse_boolexp1(dbref player, struct boolexp * b,
 		buftop += strlen(buftop);
 		break;
 	    default:
+                fprintf(stderr, 
+                        "PANIC: Invalid Bool type. unparseboolexp1().\n");
 		abort();	/* bad type */
 		break;
 	}

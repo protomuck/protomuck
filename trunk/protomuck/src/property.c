@@ -882,7 +882,10 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
 	tpos = ftell(f);
     }
     name = fgets(getprop_buf, sizeof(getprop_buf), f);
-    if (!name) abort();
+    if (!name) {
+        fprintf(stderr, "PANIC: Error reading property in from db file.\n");
+        abort();
+    }
     if (*name == '*') {
 	if (!strcmp(name,"*End*\n")) {
 	    return 0;
@@ -890,17 +893,31 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
     }
 
     flags = index(name, PROP_DELIMITER);
-    if (!flags) abort();
+    if (!flags) { /* this usually means the db file has new lines in the
+                   * middle of properties. Something like this can be
+                   * salvaged by editing the props in question.
+                   */
+        fprintf(stderr, 
+                    "PANIC: Unable to find prop flags while loading props.\n");
+        abort();
+    }
     *flags++ = '\0';
 
     value = index(flags, PROP_DELIMITER);
-    if (!value) abort();
+    if (!value) {
+        fprintf(stderr, 
+                    "PANIC: Unable to fine prop value while loading props.\n");
+        abort();
+    }
     *value++ = '\0';
 
     p = index(value, '\n');
     if (p) *p = '\0';
 
-    if (!number(flags)) abort();
+    if (!number(flags)) {
+        fprintf(stderr, "PANIC: Prop flag was not a number. DB error.\n");
+        abort();
+    }
     flg = atoi(flags);
 
     switch (flg & PROP_TYPMASK) {
@@ -929,7 +946,10 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
 	    }
 	    break;
 	case PROP_INTTYP:
-	    if (!number(value)) abort();
+	    if (!number(value)) {
+                fprintf(stderr, "PANIC: INT prop had non-int value in db.\n");
+                abort();
+            }
 	    set_property_nofetch(obj, name, flg, (PTYPE)atoi(value));
 	    break;
 	case PROP_FLTTYP:
@@ -958,6 +978,7 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
                if (!strncmp(tpnt, "NAN", 3)) {
                   fval = 0.0;
                }
+               fprintf(stderr, "PANIC: Float prop contained invalid value.\n");
                abort();
             }
          } else {
@@ -966,7 +987,11 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
          set_property_nofetch(obj, name, flg, (PTYPE) fltostr(fbuf, fval));
          break;
 	case PROP_REFTYP:
-	    if (!number(value)) abort();
+	    if (!number(value)) {
+                fprintf(stderr, 
+                             "PANIC:Ref prop contained non-numeric value.\n");
+                abort();
+            }
 	    set_property_nofetch(obj, name, flg, (PTYPE)atoi(value));
 	    break;
 	case PROP_DIRTYP:
@@ -1042,6 +1067,7 @@ db_putprop(FILE *f, const char *dir, PropPtr p)
     *ptr++ = '\n';
     *ptr++ = '\0';
     if (fputs(buf, f) == EOF) {
+        fprintf(stderr, "PANIC: Unable to write to db to write prop.\n");
         abort();
     }
 }

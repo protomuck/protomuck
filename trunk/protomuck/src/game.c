@@ -570,8 +570,10 @@ process_command(int descr, dbref player, char *command)
     char    ybuf[BUFFER_LEN];
     int     isOverride = 0;
     struct frame *tmpfr;
-    if (command == 0)
+    if (command == 0) {
+        fprintf(stderr, "PANIC: Null command passed to process_command.\n");
 	abort();
+    }
 
     /* robustify player */
     if (player < 0 || player >= db_top ||

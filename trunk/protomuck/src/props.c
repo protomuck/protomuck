@@ -246,7 +246,10 @@ remove_propnode(char *key, PropPtr *root)
 	    avl = AVL_LF(avl);
 	} else {
 	    tmp = remove_propnode(PropName(getmax(AVL_LF(avl))), &AVL_LF(avl));
-	    if (!tmp) abort(); /* this shouldn't be possible. */
+	    if (!tmp) {
+                fprintf(stderr, "PANIC: Crit error removing propnode.\n");
+                abort(); /* this shouldn't be possible. */
+            }
 	    AVL_LF(tmp) = AVL_LF(avl);
 	    AVL_RT(tmp) = AVL_RT(avl);
 	    avl = tmp;

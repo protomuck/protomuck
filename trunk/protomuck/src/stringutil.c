@@ -304,6 +304,7 @@ alloc_string(const char *string)
 	return 0;
 
     if ((s = (char *) malloc(strlen(string) + 1)) == 0) {
+        fprintf(stderr, "PANIC: alloc_string() Out of Memory.\n");
 	abort();
     }
     strcpy(s, string);
@@ -321,8 +322,10 @@ alloc_prog_string(const char *s)
 
     length = strlen(s);
     if ((ss = (struct shared_string *)
-	 malloc(sizeof(struct shared_string) + length)) == NULL)
+	 malloc(sizeof(struct shared_string) + length)) == NULL) {
+        fprintf(stderr, "PANIC: alloc_prog_string() Out of Memory.\n");
 	abort();
+    }
     ss->links = 1;
     ss->length = length;
     bcopy(s, ss->data, ss->length + 1);
