@@ -1527,7 +1527,7 @@ process_command(int descr, dbref player, char *command)
                         do_sweep(descr, player, arg1);
                     } else {
                         Matched("score");
-                        do_score(player, 1);
+                        do_score(player);
                     }
                     break;
                 default:

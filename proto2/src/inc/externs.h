@@ -233,32 +233,33 @@ extern void do_info(dbref player, const char *topic, const char *seg);
 extern void do_sysparm(dbref player, const char *topic);
 
 /* From look.c */
-extern int size_object(dbref i, int load);
-extern void look_room(int descr, dbref player, dbref room, int verbose);
+extern int size_object(register dbref i, register int load);
+extern void look_room(int descr, dbref player, dbref room);
 
 /* extern void look_room_simple(dbref player, dbref room); */
-extern void do_look_around(int descr, dbref player);
-extern void do_look_at(int descr, dbref player, const char *name,
+extern const char *power_description(register dbref thing);
+extern void do_look_around(register int descr, register dbref player);
+extern void do_look_at(int descr, dbref player, register const char *name,
                        const char *detail);
 extern void do_examine(int descr, dbref player, const char *name,
                        const char *dir);
-extern void do_inventory(dbref player);
-extern void do_score(dbref player, int domud);
-extern void do_find(dbref player, const char *name, const char *flags);
-extern void do_owned(dbref player, const char *name, const char *flags);
+extern void do_inventory(register dbref player);
+extern void do_score(register dbref player);
+extern void do_find(register dbref player, register const char *name, const char *flags);
+extern void do_owned(register dbref player, const char *name, const char *flags);
 extern void do_sweep(int descr, dbref player, const char *name);
-extern void do_trace(int descr, dbref player, const char *name, int depth);
-extern void do_entrances(int descr, dbref player, const char *name,
+extern void do_trace(int descr, register dbref player, const char *name, register int depth);
+extern void do_entrances(int descr, register dbref player, const char *name,
                          const char *flags);
-extern void do_contents(int descr, dbref player, const char *name,
+extern void do_contents(int descr, register dbref player, const char *name,
                         const char *flags);
-extern void exec_or_notify(int descr, dbref player, dbref thing,
-                           const char *message, const char *whatcalled);
-extern void exec_or_html_notify(int descr, dbref player, dbref thing,
-                                const char *message, const char *whatcalled);
-extern int init_checkflags(dbref player, const char *flags,
+extern void exec_or_notify_2(int descr, dbref player, dbref thing,
+                           const char *message, const char *whatcalled, bool typ);
+#define exec_or_notify(A, B, C, D, E) (exec_or_notify_2(A, B, C, D, E, 1))
+#define exec_or_html_notify(A, B, C, D, E) (exec_or_notify_2(A, B, C, D, E, 0))
+extern char init_checkflags(dbref player, register const char *flags,
                            struct flgchkdat *check);
-extern int checkflags(dbref what, struct flgchkdat check);
+extern bool checkflags(register dbref what, struct flgchkdat check);
 
 /* From move.c */
 extern void moveto(dbref what, dbref where);
@@ -283,34 +284,33 @@ extern void delete_player(dbref who);
 extern void clear_players(void);
 
 /* From predicates.c */
-extern int ok_name(const char *name);
-extern int ok_password(const char *password);
-extern int ok_player_name(const char *name);
-extern int test_lock(int descr, dbref player, dbref thing,
-                     const char *lockprop);
-extern int test_lock_false_default(int descr, dbref player, dbref thing,
-                                   const char *lockprop);
-extern int can_link_to(dbref who, object_flag_type what_type, dbref where);
-extern int can_link(dbref who, dbref what);
-extern int could_doit(int descr, dbref player, dbref thing);
-extern int could_doit2(int descr, dbref player, dbref thing, char *prop,
-                       int tryprog);
-extern int can_doit(int descr, dbref player, dbref thing,
+extern bool ok_name(register const char *name);
+extern bool ok_password(register const char *password);
+extern bool ok_player_name(register const char *name);
+extern bool test_lock(register int descr, register dbref player, register dbref thing,
+                      register const char *lockprop);
+extern bool test_lock_false_default(register int descr, register dbref player, 
+                                  register dbref thing, register const char *lockprop);
+extern bool can_link_to(register dbref who, object_flag_type what_type, register dbref where);
+extern bool can_link(register dbref who, register dbref what);
+extern bool could_doit(int descr, register dbref player, register dbref thing);
+extern bool could_doit2(int descr, register dbref player, register dbref thing, char *prop,
+                       register bool tryprog);
+extern bool can_doit(int descr, register dbref player, register dbref thing,
                     const char *default_fail_msg);
-extern int can_see(dbref player, dbref thing, int can_see_location);
-extern int controls(dbref who, dbref what);
-extern int truecontrols(dbref who, dbref what);
-extern int newcontrols(dbref who, dbref what, int true_c);
-extern int controls_link(dbref who, dbref what);
-extern int restricted(dbref player, dbref thing, object_flag_type flag);
-extern int restricted2(dbref player, dbref thing, object_flag_type flag);
-extern int payfor(dbref who, int cost);
-extern int ok_name(const char *name);
+extern bool can_see(register dbref player, register dbref thing, register bool can_see_location);
+#define controls(W, H)     (newcontrols(W, H, 0)) 
+#define truecontrols(W, H) (newcontrols(W, H, 1)) 
+extern bool newcontrols(register dbref who, register dbref what, register bool true_c);
+extern bool restricted(register dbref player, register dbref thing, object_flag_type flag);
+extern bool restricted2(register dbref player, register dbref thing, object_flag_type flag);
+extern bool payfor(register dbref who, register int cost);
 
 /* From rob.c */
 extern void do_give(int descr, dbref player, const char *recipient, int amount);
 
 /* From set.c */
+extern int controls_link(dbref who, dbref what);
 extern void do_name(int descr, dbref player, const char *name, char *newname);
 extern void do_describe(int descr, dbref player, const char *name,
                         const char *description);
