@@ -150,6 +150,9 @@ could_doit2(int descr, register dbref player, register dbref thing, char *prop,
         source = DBFETCH(player)->location;
         dest = *(DBFETCH(thing)->sp.exit.dest);
 
+        if (dest == NIL) /* unless its locked, anyone can use #-4 */
+           return (eval_boolexp(descr, player, GETLOCK(thing), thing));
+
         if (Typeof(dest) == TYPE_PLAYER) {
             dbref destplayer = dest;
 
