@@ -8335,15 +8335,18 @@ TRY
 try ( i -- )
 ------------
 Level: M1 Apprentice
-i = integer representing number of stack objects to lock. 
+i = integer representing number of stack objects to leave available. 
 
 From FB6 comes exception handling in MUF. In order to initiate a section of
 code that will be able to handle exceptions, a TRY instruction is called.
 TRY takes an integer that represents the number of items on the stack to
-lock from use during the TRY-CATCH section of code. If any attempt to pop
-or change those locked stack items takes place between the TRY and CATCH
-prims, then an error will be thrown and the MUF program skips to the next
-CATCH prim. 
+to leave available for use during the TRY-CATCH section of code. For 
+example, if i = 0, then nothing on the stack at the start of the TRY
+block can be used or popped.  If i = 3, then only the top 3 items on the
+stack at the start of the TRY block can be changed, used, etc. 
+If any attempt to pop or change those locked stack items takes place 
+between the TRY and CATCH prims, then an error will be thrown and the MUF 
+program skips to the next CATCH prim. 
 
 See: CATCH, ENDCATCH, EXCEPTION HANDLING
 ~~~~
