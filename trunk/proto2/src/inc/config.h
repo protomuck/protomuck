@@ -531,8 +531,10 @@
 /*
  * Include some of the useful local headers here.
  */
+#ifndef NO_MALLOC_PROFILING
 #ifdef MALLOC_PROFILING
 #include "crt_malloc.h"
+#endif
 #endif
 
 /******************************************************************/
