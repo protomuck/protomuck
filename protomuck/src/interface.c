@@ -1330,7 +1330,7 @@ shovechars(void)
     for (i = 0; i < numsocks; i++) {
         sock[i] = make_socket(listener_port[i]);
         maxd = sock[i] +1;
-    } //fixes the socket blocking problem at startup.
+    } /* fixes the socket blocking problem at startup. */
     gettimeofday(&last_slice, (struct timezone *) 0);
 
     openfiles_max =  max_open_files();
@@ -1338,250 +1338,259 @@ shovechars(void)
 
     avail_descriptors = max_open_files() - 5;
 
-    while (shutdown_flag == 0) {
-    gettimeofday(&current_time, (struct timezone *) 0);
-	last_slice = update_quotas(last_slice, current_time);
+    while (shutdown_flag == 0) { /* Game Loop */
+        gettimeofday(&current_time, (struct timezone *) 0);
+        last_slice = update_quotas(last_slice, current_time);
 
-	next_muckevent();
-	process_commands();
+        next_muckevent(); /* Process things in event.c */
+        process_commands(); /* Process player commands in game.c */
 #ifdef MUF_SOCKETS
-        if (tp_socket_events)
+        if (tp_socket_events) /* check MUF socket queue */
             muf_socket_events(); /* in p_socket.c, checks for ready sockets */
 #endif /* MUF_SOCKETS */
-	muf_event_process();
+        muf_event_process(); /* Process MUF events in mufevents.c */
 
-	for (d = descriptor_list; d; d = dnext) {
-	    dnext = d->next;
-	    if (d->booted) {
-    if ( (d->booted != 3) || 
-         (d->type == CT_HTML && !(d->http_login) 
-           && !descr_running_queue(d->descriptor)) ||
-          (d->type == CT_MUF && !descr_running_queue(d->descriptor)) ) {
+        for (d = descriptor_list; d; d = dnext) {
+            dnext = d->next;
+            if (d->booted) { /* booted = 3 means immediate clean drop */
+                if ( (d->booted != 3) || 
+                     (d->type == CT_HTML && !(d->http_login) 
+                     && !descr_running_queue(d->descriptor)) ||
+                     (d->type == CT_MUF && 
+		     !descr_running_queue(d->descriptor)) ) {
 #ifdef HTTPDELAY
-		   if((d->httpdata) && (d->booted == 3)) {
-		       queue_ansi(d, d->httpdata);
-		       free((void *)d->httpdata);
-		       d->httpdata = NULL;
-		   }
+                    if((d->httpdata) && (d->booted == 3)) {
+                        queue_ansi(d, d->httpdata);
+                        free((void *)d->httpdata);
+                        d->httpdata = NULL;
+                    }
 #endif
-		   process_output(d);
-		   if (d->booted == 2) {
-		       goodbye_user(d);
-		   }
-		   d->booted = 0;
-		   process_output(d);
-               if (!d->connected)
-                   announce_disclogin(d);
-		   shutdownsock(d);
-		}
-	    }
-	}
-	purge_free_frames();
-	untouchprops_incremental(1);
+                    process_output(d); /* send the queued notifies */
+                    if (d->booted == 2) { /* booted == 2 means QUIT command */
+                        goodbye_user(d);
+                    }
+                    d->booted = 0;
+                    process_output(d); /* send QUIT related notifies */
+                    if (!d->connected) /* quit from login screen */
+                        announce_disclogin(d);
+                    shutdownsock(d);
+                } /* if d->booted != 3 */
+            } /* if (d->booted) */
+        } /* for (d) */
+        purge_free_frames();
+        untouchprops_incremental(1);
 
-	if (shutdown_flag)
-	    break;
-	timeout.tv_sec = 10;
-	timeout.tv_usec = 0;
-	next_slice = msec_add(last_slice, tp_command_time_msec);
-	slice_timeout = timeval_sub(next_slice, current_time);
+        if (shutdown_flag)
+            break; /* Get out of game loop */
+        timeout.tv_sec = 10;
+        timeout.tv_usec = 0;
+        next_slice = msec_add(last_slice, tp_command_time_msec);
+        slice_timeout = timeval_sub(next_slice, current_time);
 
-	FD_ZERO(&output_set);
-	FD_ZERO(&input_set);
-	if (ndescriptors < avail_descriptors) {
-         for (i = 0; i < numsocks; i++) {
-             FD_SET(sock[i], &input_set);
-         }
-	}
-	for (d = descriptor_list; d; d = d->next) {
-	    if (d->input.lines > 100)
-		timeout = slice_timeout;
-	    else
-		FD_SET(d->descriptor, &input_set);
-	    if (d->output.head)
-		FD_SET(d->descriptor, &output_set);
-	}
+        FD_ZERO(&output_set);
+        FD_ZERO(&input_set);
+        if (ndescriptors < avail_descriptors) { /* prepare read pool */
+            for (i = 0; i < numsocks; i++) {
+                FD_SET(sock[i], &input_set);
+            }
+        }
+        for (d = descriptor_list; d; d = d->next) {
+            if (d->input.lines > 100)
+                timeout = slice_timeout;
+            else
+                FD_SET(d->descriptor, &input_set);
+            if (d->output.head) /* Prepare write pool */
+                FD_SET(d->descriptor, &output_set);
+        }
 #ifdef SPAWN_HOST_RESOLVER
-	FD_SET(resolver_sock[1], &input_set);
+        FD_SET(resolver_sock[1], &input_set);
 #endif
-
-	tmptq = next_muckevent_time();
-	if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
-	    timeout.tv_sec = tmptq + (tp_pause_min / 1000);
-	    timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
-	}
-	gettimeofday(&sel_in,NULL);
-	if (select(maxd, &input_set, &output_set,
-		   (fd_set *) 0, &timeout) < 0) {
-	    if (errnosocket != EINTR) {
-		perror("select");
-		return;
-	    }
-	} else {
-	    time(&current_systime);
-	    gettimeofday(&sel_out,NULL);
-	    if (sel_out.tv_usec < sel_in.tv_usec) {
-	      sel_out.tv_usec += 1000000;
-	      sel_out.tv_sec -= 1;
-	    }
-	    sel_out.tv_usec -= sel_in.tv_usec;
-	    sel_out.tv_sec -= sel_in.tv_sec;
-	    sel_prof_idle_sec += sel_out.tv_sec;
-	    sel_prof_idle_usec += sel_out.tv_usec;
-	    if (sel_prof_idle_usec >= 1000000) {
-	      sel_prof_idle_usec -= 1000000;
-	      sel_prof_idle_sec += 1;
-	    }
-	    sel_prof_idle_use++;
-          now = current_systime;
-          for (i = 0; i < numsocks; i++) {
-	       if (FD_ISSET(sock[i], &input_set)) {
-		   if ((newd = new_connection(listener_port[i], sock[i])) <= 0) {
-		       if ((newd < 0) && errnosocket
+        tmptq = next_muckevent_time();
+        if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
+            timeout.tv_sec = tmptq + (tp_pause_min / 1000);
+            timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
+        }
+        gettimeofday(&sel_in,NULL);
+        if (select(maxd, &input_set, &output_set, 
+             (fd_set *) 0, &timeout) < 0) {
+            if (errnosocket != EINTR) { /* select() returned crit error */
+                perror("select");
+                return;
+            }
+        } else { /* select returned >= 0 */
+            time(&current_systime);
+            gettimeofday(&sel_out,NULL);
+            if (sel_out.tv_usec < sel_in.tv_usec) {
+                sel_out.tv_usec += 1000000;
+                sel_out.tv_sec -= 1;
+            }
+            sel_out.tv_usec -= sel_in.tv_usec;
+            sel_out.tv_sec -= sel_in.tv_sec;
+            sel_prof_idle_sec += sel_out.tv_sec;
+            sel_prof_idle_usec += sel_out.tv_usec;
+            if (sel_prof_idle_usec >= 1000000) {
+                sel_prof_idle_usec -= 1000000;
+                sel_prof_idle_sec += 1;
+            }
+            sel_prof_idle_use++;
+            now = current_systime;
+            for (i = 0; i < numsocks; i++) { /* check for new connects */
+                if (FD_ISSET(sock[i], &input_set)) { /* new connect */
+                    if ((newd = new_connection(listener_port[i], 
+                         sock[i])) <= 0) { /* connection error */
+                        if ((newd < 0) && errnosocket
 #if !defined(WIN32) && !defined(WIN_VC)
-			       && errno != EINTR
-			       && errno != EMFILE
-			       && errno != ENFILE
+                             && errno != EINTR
+                             && errno != EMFILE
+                             && errno != ENFILE
 #endif
-		       ) {
+                            ) {
 #if defined(WIN32) || defined(WIN_VC)
-			   log_status("new_connection: error #%d\n", errnosocket);
+                            log_status("new_connection: error #%d\n", 
+                                            errnosocket);
 #else
-	  	  	   log_status("new_connection: %s\n", sys_errlist[errnosocket]);
+                            log_status("new_connection: %s\n", 
+                                            sys_errlist[errnosocket]);
 #endif
-		       }
-		   } else {
-		       if (newd->descriptor >= maxd)
-			   maxd = newd->descriptor + 1;
-		   }
-	       }
-          }
+                        }
+                    } else { /* no error in new connection */
+                        if (newd->descriptor >= maxd)
+                            maxd = newd->descriptor + 1;
+                    }
+                } /* if FD_ISET... */ 
+            } /* for i < numsocks... */
 #ifdef SPAWN_HOST_RESOLVER
-	    if (FD_ISSET(resolver_sock[1], &input_set)) {
-	       resolve_hostnames();
-	    }
+            if (FD_ISSET(resolver_sock[1], &input_set)) {
+                resolve_hostnames();
+            } 
 #endif
-	    for (cnt = 0, d = descriptor_list; d; d = dnext) {
-		dnext = d->next;
-		if (FD_ISSET(d->descriptor, &input_set)) {
-		    /* d->last_time = now; */ /* removed to ignore KEEPALIVEs */
-		    if (!process_input(d)) {
-			d->booted = 1;
-		    } else {
-                   if (OkObj(d->player) ? Typeof(d->player) == TYPE_PLAYER : 0) {
-                      if (FLAG2(d->player) & F2TRUEIDLE)
-                         announce_unidle(d);
-                      if (FLAG2(d->player) & F2IDLE)
-                         FLAG2(d->player) &= ~F2IDLE;
-                      DBFETCH(d->player)->sp.player.last_descr = d->descriptor;
-                   } else {
-                      if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
-                         announce_unidle(d);
-                   }
-                   if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
-                      DR_RAW_REM_FLAGS(d, DF_TRUEIDLE);
-                   if (DR_RAW_FLAGS(d, DF_IDLE))
-                      DR_RAW_REM_FLAGS(d, DF_IDLE);
+            /* This is the loop that handles input */
+            for (cnt = 0, d = descriptor_list; d; d = dnext) {
+                dnext = d->next;
+                    if (FD_ISSET(d->descriptor, &input_set)) {
+                        if (!process_input(d)) { /* handle the input */
+                            d->booted = 1; /* read error */
+                        } else { /* There was input, manage idle stuff */
+                            if (OkObj(d->player) ? 
+                                    Typeof(d->player) == TYPE_PLAYER : 0) {
+                                if (FLAG2(d->player) & F2TRUEIDLE)
+                                    announce_unidle(d); /* really idle */
+                                if (FLAG2(d->player) & F2IDLE)
+                                    FLAG2(d->player) &= ~F2IDLE; /*remove idle*/
+                                DBFETCH(d->player)->sp.player.last_descr 
+                                         = d->descriptor; /* least idle */
+                            } else { /* not a player */
+                                if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
+                                    announce_unidle(d);
+                            }
+                            if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
+                                DR_RAW_REM_FLAGS(d, DF_TRUEIDLE);
+                            if (DR_RAW_FLAGS(d, DF_IDLE))
+                                DR_RAW_REM_FLAGS(d, DF_IDLE);
+                        } /* else */
+                    } /* if FD_ISSET... */
+                if (FD_ISSET(d->descriptor, &output_set)) {
+                    if (!process_output(d)) { /* send text */
+                        d->booted = 1; /* connection lost */
+                    }
                 }
-		}
-		if (FD_ISSET(d->descriptor, &output_set)) {
-		    if (!process_output(d)) {
-			d->booted = 1;
-		    }
-		}
-		if (d->connected) {
+                if (d->connected) { /* begin the idle FLAG/boots management */
                     int leastIdle = 0;
                     int dr_idletime = 0;
                     struct descriptor_data * tempd;
                     leastIdle = least_idle_player_descr(d->player);
                     tempd = get_descr(pdescr(leastIdle), NOTHING);
                     dr_idletime = now - tempd->last_time;
-		    cnt++;
-		    if (tp_idleboot && (dr_idletime > tp_maxidle) &&
-			    !TMage(d->player) && !(POWERS(d->player) & POW_IDLE)
-		    ) {
-			idleboot_user(d);
-		    }
-                if (FLAG2(d->player) & F2IDLE) {
-                   if (!(DR_RAW_FLAGS(d, DF_IDLE)))
-                      DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                    cnt++;
+                    /* Check idle boot */
+                    if (tp_idleboot && (dr_idletime > tp_maxidle) &&
+                         !TMage(d->player) && !(POWERS(d->player) & POW_IDLE)) {
+                        idleboot_user(d);
+                    }
+                    if (FLAG2(d->player) & F2IDLE) { /* update DF_IDLE flag */
+                        if (!(DR_RAW_FLAGS(d, DF_IDLE)))
+                            DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                    }
+                    if (DBFETCH(d->player)->sp.player.last_descr 
+                         == d->descriptor) { /* check for idling */
+                        int idx_idletime = get_property_value(d->player, 
+                            "/_Prefs/IdleTime") * 60;
+                        if (idx_idletime < 120)
+                            idx_idletime = tp_idletime;
+                        if (d->idletime_set != idx_idletime)
+                            pset_idletime(d->player, idx_idletime);
+                        if ((dr_idletime >= tp_idletime) 
+                             && !(FLAG2(d->player) & F2TRUEIDLE)) {
+                            announce_idle(d); /* _idle/ propqueues */
+                        }
+                    } else { /* update DF_TRUEIDLE flag */
+                        if (FLAG2(d->player) & F2TRUEIDLE) {
+                            if (!(DR_RAW_FLAGS(d, DF_TRUEIDLE)))
+                                DR_RAW_ADD_FLAGS(d, DF_TRUEIDLE);
+                        } else {
+                            if ((DR_RAW_FLAGS(d, DF_TRUEIDLE)))
+                                DR_RAW_REM_FLAGS(d, DF_TRUEIDLE);
+                        }
+                    }
+                    if (!(FLAG2(d->player) & F2IDLE)) { /* check to set IDLE */
+                        int idx_idletime = 0;
+                        if (!idx_idletime)
+                            idx_idletime = tp_idletime;
+                        if (dr_idletime >= d->idletime_set) {
+                            FLAG2(d->player) |= F2IDLE;
+                            if (!(DR_RAW_FLAGS(d, DF_IDLE)))
+                                DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                        } else {
+                            if ((DR_RAW_FLAGS(d, DF_IDLE)))
+                                DR_RAW_REM_FLAGS(d, DF_IDLE);
+                        }
+                    } else { /* check to set DF_IDLE */
+                        if (!(DR_RAW_FLAGS(d, DF_IDLE)))
+                            DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                    }
+                } else { /* !d->connected */
+                    int dr_idletime = (now - d->last_time);
+                    if ((dr_idletime >= tp_idletime)) {
+                        if (!(DR_RAW_FLAGS(d, DF_IDLE))) /* descriptor idle */
+                            DR_RAW_ADD_FLAGS(d, DF_IDLE);
+                        announce_idle(d); 
+                    }
+                    /* check connidle times for normal and pueblo login */
+                    if (!((d->type == CT_HTML) || (d->type == CT_MUF))) {
+                        int curidle;
+                        char buff[BUFFER_LEN];
+                        sprintf(buff, "@Ports/%d/Idle", d->cport);
+                        if (get_property((dbref) 0, buff)) {
+                            curidle = get_property_value((dbref) 0, buff);
+                        } else {
+                            curidle = tp_connidle;
+                        }
+                        if (curidle < 30)
+                            curidle = 9999999;
+                        if ((now - d->connected_at) > curidle && 
+                              !(descr_running_queue(d->descriptor)) ) {
+                            d->booted = 1; /* don't drop if running program */
+                        }
+                    }
+                } /* if d->connected... */
+            } /* for input processing */
+            if (cnt > con_players_max) {
+                add_property((dbref)0, "~sys/max_connects", NULL, cnt);
+                if (tp_allow_old_trigs) {
+                    add_property((dbref)0, "_sys/max_connects", NULL, cnt);
                 }
-                if (DBFETCH(d->player)->sp.player.last_descr == d->descriptor) {
-                   int idx_idletime = get_property_value(d->player, "/_Prefs/IdleTime") * 60;
-                   if (idx_idletime < 120)
-                      idx_idletime = tp_idletime;
-                   if (d->idletime_set != idx_idletime)
-                      pset_idletime(d->player, idx_idletime);
-                   if ((dr_idletime >= tp_idletime) && !(FLAG2(d->player) & F2TRUEIDLE)) {
-                      announce_idle(d);
-                   }
-                } else {
-                   if (FLAG2(d->player) & F2TRUEIDLE) {
-                      if (!(DR_RAW_FLAGS(d, DF_TRUEIDLE)))
-                         DR_RAW_ADD_FLAGS(d, DF_TRUEIDLE);
-                   } else {
-                      if ((DR_RAW_FLAGS(d, DF_TRUEIDLE)))
-                         DR_RAW_REM_FLAGS(d, DF_TRUEIDLE);
-                   }
-                }
-                if (!(FLAG2(d->player) & F2IDLE)) {
-                   int idx_idletime = 0;
-                   if (!idx_idletime)
-                      idx_idletime = tp_idletime;
-                   if (dr_idletime >= d->idletime_set) {
-                      FLAG2(d->player) |= F2IDLE;
-                      if (!(DR_RAW_FLAGS(d, DF_IDLE)))
-                         DR_RAW_ADD_FLAGS(d, DF_IDLE);
-                   } else {
-                      if ((DR_RAW_FLAGS(d, DF_IDLE)))
-                         DR_RAW_REM_FLAGS(d, DF_IDLE);
-                   }
-                } else {
-                   if (!(DR_RAW_FLAGS(d, DF_IDLE)))
-                      DR_RAW_ADD_FLAGS(d, DF_IDLE);
-                }
-		} else {
-                int dr_idletime = (now - d->last_time);
-                if ((dr_idletime >= tp_idletime)) {
-                   if (!(DR_RAW_FLAGS(d, DF_IDLE)))
-                      DR_RAW_ADD_FLAGS(d, DF_IDLE);
-                   announce_idle(d);
-                }
-                if (!((d->type == CT_HTML) || (d->type == CT_MUF))) {
-                   int curidle;
-                   char buff[BUFFER_LEN];
-                   sprintf(buff, "@Ports/%d/Idle", d->cport);
-                   if (get_property((dbref) 0, buff)) {
-                      curidle = get_property_value((dbref) 0, buff);
-                   } else {
-                      curidle = tp_connidle;
-                   }
-                   if (curidle < 30)
-                      curidle = 9999999;
-		       if ((now - d->connected_at) > curidle && 
-                           !(descr_running_queue(d->descriptor)) ) {
-			   d->booted = 1;
-		       }
-                }
-		}
-	    }
-	    if (cnt > con_players_max) {
-		add_property((dbref)0, "~sys/max_connects", NULL, cnt);
-		if (tp_allow_old_trigs) {
-			add_property((dbref)0, "_sys/max_connects", NULL, cnt);
-		}
-		con_players_max = cnt;
-	    }
-	    con_players_curr = cnt;
-	}
-    }
+                con_players_max = cnt;
+            }
+            con_players_curr = cnt;
+        } /* end of select returned > 0 */
+    } /* end of main game loop */
+    /* update dump props due to shutdown or restart */
     now = current_systime;
-
     add_property((dbref)0, "~sys/lastdumptime", NULL, (int)now);
     add_property((dbref)0, "~sys/shutdowntime", NULL, (int)now);
     if (tp_allow_old_trigs) {
-	    add_property((dbref)0, "_sys/lastdumptime", NULL, (int)now);
-	    add_property((dbref)0, "_sys/shutdowntime", NULL, (int)now);
+        add_property((dbref)0, "_sys/lastdumptime", NULL, (int)now);
+        add_property((dbref)0, "_sys/shutdowntime", NULL, (int)now);
     }
 }
 

@@ -355,7 +355,7 @@ RCLEAR(struct inst * oper, char *file, int line)
             break;
 #ifdef MUF_SOCKETS
         case PROG_SOCKET:
-            oper->data.sock->links = oper->data.sock->links - 1;
+            oper->data.sock->links -= 1;
             if (oper->data.sock && oper->data.sock->links == 0) {
                 if (oper->data.sock->host && !oper->data.sock->is_player) {
                     shutdown(oper->data.sock->socknum,2);

@@ -951,15 +951,9 @@ prim_set(PRIM_PROTOTYPE)
           ts_modifyobject(ref);
           FLAG2(ref) |= tmp2;
           DBDIRTY(ref);
-/*          if ((tmp2 == F2IDLE) && (Typeof(ref) == TYPE_PLAYER))
-             if (online(ref))
-                DR_CON_ADD_FLAGS(least_idle_player_descr(ref), DF_IDLE); */
        } else {
           ts_modifyobject(ref);
           FLAG2(ref) &= ~tmp2;
-/*          if ((tmp2 == F2IDLE) && (Typeof(ref) == TYPE_PLAYER))
-             if (online(ref))
-                DR_CON_REM_FLAGS(least_idle_player_descr(ref), DF_IDLE); */
           DBDIRTY(ref);
        }
     }

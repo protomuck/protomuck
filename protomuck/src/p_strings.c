@@ -990,13 +990,9 @@ prim_notify(PRIM_PROTOTYPE)
     oper1 = POP();
     oper2 = POP();
     if (oper1->type != PROG_STRING) {
-      CLEAR(oper1);
-      CLEAR(oper2);
 	abort_interp("Non-string argument (2)");
     }
     if (!valid_object(oper2)) {
-      CLEAR(oper1);
-      CLEAR(oper2);
 	abort_interp("Invalid object argument (1)");
     }
     CHECKREMOTE(oper2->data.objref);
