@@ -536,7 +536,6 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "err_imaginary?", "2 is_set?");
     insert_def(cstat, "err_fbounds?", "3 is_set?");
     insert_def(cstat, "err_ibounds?", "4 is_set?");
-    insert_def(cstat, "event_wait", "0 array_make event_waitfor");
 
     /* Array convenience defines */
     insert_def(cstat, "}array", "} array_make");
@@ -612,6 +611,9 @@ include_internal_defs(COMPSTATE *cstat)
     /* inserver str .. cat */
     insert_def(cstat, "}cat", "} array_make array_interpret");
 
+    /* Defs for compatibility with FB6 */
+    insert_def(cstat, "event_wait", "0 array_make event_waitfor");
+    insert_def(cstat, "descrsecure?", "descr_ssl?");
 
 /* $defs for specific MUF prim sets */
 #ifdef SQL_SUPPPORT
