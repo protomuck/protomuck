@@ -706,12 +706,12 @@ unparse_ansi( char *buf, const char *from )
     buf[0]='\0';
     to=buf;
     while(*from) {
-	if(*from == '^') {
+	if(*from == '^') { /* Found a ^ mark */
 	    from++;
-	    if(*from == '^')
+	    if(*from == '^') /* It's an escaped one, print 1 ^ */
 		*(to++) = (*(from++));
 	    else
-		while(*(from++)) if(*from == '^') { from++; break; }
+                while(isgraph(*(from++))) if(*from == '^') { from++; break; }
 	} else
 	    *(to++) = (*(from++));
     }
