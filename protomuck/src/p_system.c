@@ -201,7 +201,7 @@ prim_shutdown(PRIM_PROTOTYPE)
     shutdown_flag = 1;
     restart_flag = 0;
     if (oper1->data.string) {
-        strcat(shutdown_message, ANSIWHITE MARK ANSINORMAL);
+        strcat(shutdown_message, SYSWHITE MARK SYSNORMAL);
         strcat(shutdown_message, oper1->data.string->data);
         strcat(shutdown_message, "\r\n");
     }
@@ -225,7 +225,7 @@ prim_restart(PRIM_PROTOTYPE)
     restart_flag = 1;
 
     if (oper1->data.string) {
-        strcat(restart_message, ANSIWHITE MARK ANSINORMAL);
+        strcat(restart_message, SYSWHITE MARK SYSNORMAL);
         strcat(restart_message, oper1->data.string->data);
         strcat(restart_message, "\r\n");
     }
@@ -249,7 +249,7 @@ prim_armageddon(PRIM_PROTOTYPE)
 
     sprintf(buf, "\r\nImmediate shutdown by %s.\r\n", NAME(player));
     if (oper1->data.string) {
-         strcat(buf, ANSIWHITE MARK ANSINORMAL);
+         strcat(buf, SYSWHITE MARK SYSNORMAL);
          strcat(buf, oper1->data.string->data);
         strcat(buf, "\r\n");
     }

@@ -51,7 +51,7 @@ do_give(int descr, dbref player, const char *recipient, int amount)
 		    return;
 		} else if (DBFETCH(who)->sp.player.pennies + amount >
                            tp_max_pennies) {
-		    anotify_fmt(player, RED
+		    anotify_fmt(player, SYSRED
                                "That player doesn't need that many %s!",
                                tp_pennies);
 		    return;

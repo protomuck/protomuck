@@ -504,9 +504,9 @@ do_move(int descr, dbref player, const char *direction, int lev)
 	    anotify_except(DBFETCH(loc)->contents, player, buf, player);
 	}
 	/* give the player the messages */
-        anotify_nolisten2(player, RED "There's no place like home...");
-        anotify_nolisten2(player, WHITE "There's no place like home...");
-        anotify_nolisten2(player, BLUE "There's no place like home...");
+        anotify_nolisten2(player, SYSRED "There's no place like home...");
+        anotify_nolisten2(player, SYSWHITE "There's no place like home...");
+        anotify_nolisten2(player, SYSBLUE "There's no place like home...");
 	send_home(descr, player, 1);
     } else {
 	/* find the exit */
@@ -753,7 +753,8 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
 		parse_omessage(descr, player, loc, thing, GETODROP(thing),
 				PNAME(player), "(@Odrop)");
 	    } else {
-		sprintf(buf, BLUE "%s drops %s.", PNAME(player), PNAME(thing));
+		sprintf(buf, SYSBLUE "%s drops %s.", PNAME(player), 
+                        PNAME(thing));
 	    anotify_except(DBFETCH(loc)->contents, player, buf, player);
 	    }
 
@@ -815,7 +816,7 @@ do_recycle(int descr, dbref player, const char *name)
 			return;
 		    }
 		    if (thing == player) {
-			sprintf(buf, BLUE "%.512s's owner commands it to kill itself.  It blinks a few times in shock, and says, \"But.. but.. WHY?\"  It suddenly clutches it's heart, grimacing with pain..  Staggers a few steps before falling to it's knees, then plops down on it's face.  *thud*  It kicks it's legs a few times, with weakening force, as it suffers a seizure.  It's color slowly starts changing to purple, before it explodes with a fatal *POOF*!", PNAME(thing));
+			sprintf(buf, SYSBLUE "%.512s's owner commands it to kill itself.  It blinks a few times in shock, and says, \"But.. but.. WHY?\"  It suddenly clutches it's heart, grimacing with pain..  Staggers a few steps before falling to it's knees, then plops down on it's face.  *thud*  It kicks it's legs a few times, with weakening force, as it suffers a seizure.  It's color slowly starts changing to purple, before it explodes with a fatal *POOF*!", PNAME(thing));
 			anotify_except(DBFETCH(getloc(thing))->contents,
 				thing, buf, player);
 			anotify_nolisten2(OWNER(player), buf);

@@ -3668,7 +3668,7 @@ descr_flag_description(int descr)
 {
     static char dbuf[BUFFER_LEN];
     struct descriptor_data *d = descrdata_by_descr(descr);
-    strcpy(dbuf, GREEN "Descr Flags:" YELLOW);
+    strcpy(dbuf, SYSGREEN "Descr Flags:" SYSYELLOW);
     if (DR_RAW_FLAGS(d, DF_HTML))
         strcat(dbuf, " DF_HTML");
     if (DR_RAW_FLAGS(d, DF_PUEBLO))
@@ -3723,8 +3723,8 @@ do_dinfo(dbref player, const char *arg)
 		ctype = "unknown";
     }
 
-    anotify_fmt(player, "%s" AQUA " descr " YELLOW "%d" BLUE " (%s)",
-	d->connected ? ansi_unparse_object(player, d->player) : GREEN
+    anotify_fmt(player, "%s" SYSAQUA " descr " SYSYELLOW "%d" SYSBLUE " (%s)",
+	d->connected ? ansi_unparse_object(player, d->player) : SYSGREEN
 	"[Connecting]", d->descriptor, ctype
     );
 
@@ -3733,22 +3733,24 @@ do_dinfo(dbref player, const char *arg)
         anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
 
     if(Arch(player))
-	anotify_fmt(player, AQUA "Host: " CYAN "%s" BLUE "@" CYAN "%s",
+	anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
+                SYSCYAN "%s",
 		d->username, d->hostname);
     else
-	anotify_fmt(player, AQUA "Host: " CYAN "%s", d->hostname);
+	anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s", d->hostname);
 
-    anotify_fmt(player, AQUA "IP: " CYAN "%s" YELLOW "(%d) " NAVY "%X",
-	host_as_hex(d->hostaddr), d->port, d->hostaddr);
+    anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY 
+                "%X",
+	        host_as_hex(d->hostaddr), d->port, d->hostaddr);
 
-    anotify_fmt(player, VIOLET "Online: " PURPLE "%s  " BROWN "Idle: "
-	YELLOW "%s  " CRIMSON "Commands: " RED "%d",
+    anotify_fmt(player, SYSVIOLET "Online: " SYSPURPLE "%s  " SYSBROWN "Idle: "
+	SYSYELLOW "%s  " SYSCRIMSON "Commands: " SYSRED "%d",
 	time_format_1(now - d->connected_at),
 	time_format_2(now - d->last_time), d->commands
     );
 
     if (d->connected)
-	anotify_fmt(player, AQUA "Location: %s",
+	anotify_fmt(player, SYSAQUA "Location: %s",
 	    ansi_unparse_object(player, DBFETCH(d->player)->location));
 }
 
@@ -3913,7 +3915,7 @@ dump_users(struct descriptor_data *d, char *user)
 	}
 
 	if (!(OkObj(d->player) && d->connected) && tp_secure_who) {
-		queue_ansi(d, ANSIRED "Login and find out!");
+		queue_ansi(d, SYSRED "Login and find out!");
 		return;
 	}
 
@@ -3957,22 +3959,29 @@ dump_users(struct descriptor_data *d, char *user)
       switch (wizwho) {
 		case 0: {
 			if (tp_who_doing) {
-				sprintf(buf, "%s%s%sOn For %sIdle  %s%-.43s\r\n",
-					ANSIGREEN, plyrbuf, ANSIPURPLE, ANSIYELLOW, ANSICYAN, dobuf);
+				sprintf(buf,
+                                        "%s%s%sOn For %sIdle  %s%-.43s\r\n",
+					SYSGREEN , plyrbuf, SYSPURPLE, 
+                                        SYSYELLOW, SYSCYAN, dobuf);
 			} else {
 				sprintf(buf, "%s%s%sOn For %sIdle\r\n",
-					ANSIGREEN, plyrbuf, ANSIPURPLE, ANSIYELLOW);
+					SYSGREEN, plyrbuf, SYSPURPLE, 
+                                        SYSYELLOW);
 			}
 			break;
 		}
 		case 1: {
-			sprintf(buf, "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
-						ANSIRED, ANSIGREEN, plyrbuf, ANSICYAN, ANSIPURPLE, ANSIYELLOW, ANSIBLUE);
+			sprintf(buf, 
+                              "%sDS  %s%s%sPort    %sOn For %sIdle %sHost\r\n",
+                              SYSRED, SYSGREEN, plyrbuf, SYSCYAN, SYSPURPLE, 
+                              SYSYELLOW, SYSBLUE);
 			break;
 		}
 		case 2: {
-			sprintf(buf, "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
-						ANSIRED, ANSIGREEN, plyrbuf, ANSIWHITE, ANSIYELLOW, ANSICYAN, ANSIBLUE);
+			sprintf(buf, 
+                     "%sDS  %s%s%sOutput[k]  %sInput[k]  %sCommands %sType\r\n",
+			        SYSRED, SYSGREEN, plyrbuf, SYSWHITE, 
+                                SYSYELLOW, SYSCYAN, SYSBLUE);
 			break;
 		}
 	}
@@ -4064,12 +4073,13 @@ dump_users(struct descriptor_data *d, char *user)
 				case 0: {
 					if (tp_who_doing) {
 						sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
-							ANSIGREEN, plyrbuf, ANSIPURPLE, time_format_1(now - dlist->connected_at),
+				                SYSGREEN, plyrbuf, SYSPURPLE, 
+                                                time_format_1(now - dlist->connected_at),
 							(1 ?
 								((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ") : " "),
-							ANSIYELLOW, time_format_2(now - dlist->last_time),
+							SYSYELLOW, time_format_2(now - dlist->last_time),
 							((dlist->connected && OkObj(dlist->player)) ?
-								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), ANSICYAN,
+								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), SYSCYAN,
 							GETDOING(dlist->player) ?
 #ifdef COMPRESS
 							uncompress(GETDOING(dlist->player))
@@ -4079,10 +4089,10 @@ dump_users(struct descriptor_data *d, char *user)
 							: "");
 					} else {
 						sprintf(buf, "%s%s %s%10s %s%4s%s\r\n",
-							ANSIGREEN, plyrbuf, ANSIPURPLE, time_format_1(now - dlist->connected_at),
+							SYSGREEN, plyrbuf, SYSPURPLE, time_format_1(now - dlist->connected_at),
 							(1 ?
 								((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ") : " "),
-							ANSIYELLOW, time_format_2(now - dlist->last_time),
+							SYSYELLOW, time_format_2(now - dlist->last_time),
 							((dlist->connected && OkObj(dlist->player)) ?
 								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "));
 					}
@@ -4090,20 +4100,20 @@ dump_users(struct descriptor_data *d, char *user)
 				}
 				case 1: {
 					sprintf(buf, "%s%-3d %s%s%s%5d %s%9s%s%s%4s%s%s%s%s%s\r\n",
-						ANSIRED, dlist->descriptor, ANSIGREEN, plyrbuf, ANSICYAN, dlist->cport, ANSIPURPLE,
+						SYSRED, dlist->descriptor, SYSGREEN, plyrbuf, SYSCYAN, dlist->cport, SYSPURPLE,
 						time_format_1(now - dlist->connected_at),
 						(1 ?
-							((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ") : " "), ANSIYELLOW,
+							((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ") : " "), SYSYELLOW,
 						time_format_2(now - dlist->last_time),
 						((dlist->connected && OkObj(dlist->player)) ?
-							((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), ANSIBLUE,
+							((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), SYSBLUE,
 						ArchPerms ? dlist->username : "", ArchPerms ? "@" : "", dlist->hostname);
 					break;
 				}
 				case 2: {
 					sprintf(buf, "%s%-3d %s%s %s[%7d] %s[%7d] %s[%7d] %s%s\r\n",
-						ANSIRED, dlist->descriptor, ANSIGREEN, plyrbuf, ANSIWHITE, dlist->output_len / 1024,
-						ANSIYELLOW, dlist->input_len / 1024, ANSICYAN, dlist->commands, ANSIBLUE, typbuf);
+						SYSRED, dlist->descriptor, SYSGREEN, plyrbuf, SYSWHITE, dlist->output_len / 1024,
+						SYSYELLOW, dlist->input_len / 1024, SYSCYAN, dlist->commands, SYSBLUE, typbuf);
 					break;
 				}
 			}
@@ -4112,8 +4122,8 @@ dump_users(struct descriptor_data *d, char *user)
 		}
 	}
 	if (players > player_max) player_max = players;
-	sprintf(buf, "%s%d player%s connected.  %s(%d Active, %d Idle, Max was %d)\r\n", ANSIBLUE, players,
-			((players == 1) ? " is" : "s are"), ANSIYELLOW, (players - idleplyrs), idleplyrs, player_max);
+	sprintf(buf, "%s%d player%s connected.  %s(%d Active, %d Idle, Max was %d)\r\n", SYSBLUE, players,
+			((players == 1) ? " is" : "s are"), SYSYELLOW, (players - idleplyrs), idleplyrs, player_max);
 	queue_unhtml(d, buf);
 	return;
 }

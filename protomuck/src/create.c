@@ -1169,7 +1169,7 @@ do_action(int descr, dbref player, const char *action_name, const char *source_n
     if (((source = parse_source(descr, player, qname)) == NOTHING))
 	return;
     if (!payfor(player, tp_exit_cost)) {
-        anotify_fmt(player, RED
+        anotify_fmt(player, SYSRED
                    "You don't have enough %s to make an action.",
                    tp_pennies);
         return;

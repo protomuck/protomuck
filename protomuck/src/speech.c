@@ -67,25 +67,29 @@ do_whisper(int descr, dbref player, const char *arg1, const char *arg2)
 	    }
 
 	    if (buf2[0] == ':' || buf2[0] == ';') {
-		sprintf(buf, BLUE "%s whispers, \"" PURPLE "%s %s" BLUE "\"",
-					PNAME(player), PNAME(player), buf2+1);
+		sprintf(buf, SYSBLUE "%s whispers, \"" SYSPURPLE "%s %s" 
+                        SYSBLUE "\"",
+			PNAME(player), PNAME(player), buf2+1);
 		if (!anotify_from(player, who, buf)) {
-		    sprintf(buf, BLUE "%s is not connected.", PNAME(who));
+		    sprintf(buf, SYSBLUE "%s is not connected.", PNAME(who));
 		    anotify_nolisten2(player, buf);
 		    break;
 		}
-		sprintf(buf, BLUE "You whisper, \"" PURPLE "%s %s" BLUE "\" to %s.",
-					 PNAME(player), buf2+1, PNAME(who));
+		sprintf(buf, SYSBLUE "You whisper, \"" SYSPURPLE "%s %s" 
+                        SYSBLUE "\" to %s.",
+			PNAME(player), buf2+1, PNAME(who));
 		anotify(player, buf);
 		break;
 	    } else { 
-		sprintf(buf, BLUE "%s whispers, \"" PURPLE "%s" BLUE "\"", PNAME(player), buf2);
+		sprintf(buf, SYSBLUE "%s whispers, \"" SYSPURPLE "%s" SYSBLUE 
+                        "\"", PNAME(player), buf2);
 		if (!anotify_from(player, who, buf)) {
-		    sprintf(buf, BLUE "%s is not connected.", PNAME(who));
+		    sprintf(buf, SYSBLUE "%s is not connected.", PNAME(who));
 		    anotify_nolisten2(player, buf);
 		    break;
 		}
-		sprintf(buf, BLUE "You whisper, \"" PURPLE "%s" BLUE "\" to %s.", buf2, PNAME(who));
+		sprintf(buf, SYSBLUE "You whisper, \"" SYSPURPLE "%s" SYSBLUE 
+			"\" to %s.", buf2, PNAME(who));
 		anotify(player, buf);
 		break;
 	    }
@@ -206,10 +210,10 @@ do_page(int descr, dbref player, const char *arg1, const char *arg2)
 			PNAME(player), NAME(DBFETCH(player)->location));
     } else {
 	if(buf2[0] == ':' || buf2[0] == ';') {
-	    sprintf(buf, GREEN "%s pages \"" YELLOW "%s %s" GREEN "\"",
+	    sprintf(buf, SYSGREEN "%s pages \"" SYSYELLOW "%s %s" SYSGREEN "\"",
 			PNAME(player), PNAME(player), buf2);
 	} else {
-	    sprintf(buf, GREEN "%s pages \"" YELLOW "%s" GREEN "\"",
+	    sprintf(buf, SYSGREEN "%s pages \"" SYSYELLOW "%s" SYSGREEN "\"",
 			PNAME(player), buf2);
 	}
     }

@@ -190,7 +190,7 @@ index_file(dbref player, const char *onwhat, const char *file)
     }
 
     if ((f = fopen(file, "r")) == NULL) {
-	sprintf(buf, YELLOW
+	sprintf(buf, SYSYELLOW
 		"%s is missing.  Management has been notified.", file);
 	anotify_nolisten2(player, buf);
 	fprintf(stderr, "help: No file %s!\n", file);

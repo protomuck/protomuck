@@ -264,6 +264,7 @@ can_see(dbref player, dbref thing, int can_see_loc)
 int 
 controls(dbref who, dbref what)
 {
+    dbref index;
     /* No one controls invalid objects */
     if (what < 0 || what >= db_top)
 	return 0;
@@ -286,9 +287,21 @@ controls(dbref who, dbref what)
         return 1;
 
     /* Wizard controls (most) everything else */
-    if (Wiz(who) && (!(Protect(what) && MLevel(OWNER(what)) >= LBOY) || MLevel(who) >= LBOY))
-        if(tp_fb_controls ? (MLevel(who) >= LWIZ) : (MLevel(who) >= MLevel(OWNER(what))))
+    if (Wiz(who) && (!(Protect(what) && MLevel(OWNER(what)) >= LBOY) 
+        || MLevel(who) >= LBOY))
+        if(tp_fb_controls ? (MLevel(who) >= LWIZ) 
+                          : (MLevel(who) >= MLevel(OWNER(what))))
 	    return 1;
+
+    /* If realms control is enabled, the player will Control anything 
+     * contained in a parent room he owns with at W1 bit or higher on it.
+     * This gives him power to affect any object in his w-bitted parent room.
+     */
+    if (tp_realms_control) 
+        for (index = what; index != NOTHING; index = getloc(index)) 
+            if ((OWNER(index) == who) && (Typeof(index) == TYPE_ROOM 
+                && Mage(index)))
+                return 1;
 
     /* owners control their own stuff */
     return (who == OWNER(what));

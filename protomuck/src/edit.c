@@ -356,7 +356,7 @@ editor(int descr, dbref player, const char *command)
             case CANCEL_EDIT_COMMAND:
                 /* Just figured this was due. We'll see how it goes. -Akari */
                 do_cancel(player, program);
-                anotify_nolisten(player, BLUE "Changes cancelled.", 1);
+                anotify_nolisten(player, SYSBLUE "Changes cancelled.", 1);
                 break;
             case COMPILE_COMMAND: 
                 /* compile code belongs in compile.c, not in the editor */
@@ -634,17 +634,19 @@ do_list(dbref player, dbref program, int oarg[], int argc, int commentit)
                 }
                 if (count - arg[0] > 1) {
                     if(commentit) {
-                       sprintf(buf, BLUE "( %d lines displayed. )", count - arg[0]);
+                       sprintf(buf, SYSBLUE "( %d lines displayed. )", count - arg[0]);
                     } else {
-                       sprintf(buf, BLUE "%d lines displayed.", count - arg[0]);
+                       sprintf(buf, SYSBLUE "%d lines displayed.", count - arg[0]);
                     }
                     anotify_nolisten(player, buf, 1);
                 }
             } else {
                 if(commentit) {
-                   anotify_nolisten(player, BLUE "( Line not available for display. )", 1);
+                   anotify_nolisten(player, SYSBLUE 
+                                    "( Line not available for display. )", 1);
                 } else {
-                   anotify_nolisten(player, BLUE "Line not available for display.", 1);
+                   anotify_nolisten(player, SYSBLUE 
+                                    "Line not available for display.", 1);
                 }
             }
             break;

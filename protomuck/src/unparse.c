@@ -326,17 +326,17 @@ ansiname(dbref loc, char buf[BUFFER_LEN])
     *buf = '\0';
     switch(Typeof(loc)) {
 	case TYPE_PLAYER:
-	    strcpy( buf, GREEN ); break;
+	    strcpy( buf, SYSGREEN ); break;
 	case TYPE_THING:
-	    strcpy( buf, PURPLE ); break;
+	    strcpy( buf, SYSPURPLE ); break;
 	case TYPE_EXIT:
-	    strcpy( buf, BLUE ); break;
+	    strcpy( buf, SYSBLUE ); break;
 	case TYPE_PROGRAM:
-	    strcpy( buf, RED ); break;
+	    strcpy( buf, SYSRED ); break;
 	case TYPE_ROOM:
-	    strcpy( buf, CYAN ); break;
+	    strcpy( buf, SYSCYAN ); break;
 	default:
-	    strcpy( buf, NORMAL );
+	    strcpy( buf, SYSNORMAL );
     }
 
     strcat( buf, tct(NAME(loc),tbuf) );
@@ -352,14 +352,14 @@ ansi_unparse_object(dbref player, dbref loc)
 	player = OWNER(player);
     switch (loc) {
 	case NOTHING:
-	    return NORMAL "*NOTHING*";
+	    return SYSNORMAL "*NOTHING*";
 	case AMBIGUOUS:
-	    return PURPLE "*AMBIGUOUS*";
+	    return SYSPURPLE "*AMBIGUOUS*";
 	case HOME:
-	    return WHITE "*HOME*";
+	    return SYSWHITE "*HOME*";
 	default:
 	    if (loc < 0 || loc > db_top)
-		return RED "*INVALID*";
+		return SYSRED "*INVALID*";
 #ifndef SANITY
 	    if (!(FLAGS(player) & STICKY) &&
 		    (TMage(player) || POWERS(player) & POW_SEE_ALL ||
@@ -371,7 +371,7 @@ ansi_unparse_object(dbref player, dbref loc)
 		    )) {
 #endif
 		/* show everything */
-		sprintf(upb, "%s" YELLOW "(#%d%s)",
+		sprintf(upb, "%s" SYSYELLOW "(#%d%s)",
 		    ansiname(loc, tbuf), loc, unparse_flags(loc, tbuf2));
 		return upb;
 #ifndef SANITY
@@ -458,11 +458,4 @@ unparse_boolexp(dbref player, struct boolexp * b, int fullname)
 
     return boolexp_buf;
 }
-
-
-
-
-
-
-
 
