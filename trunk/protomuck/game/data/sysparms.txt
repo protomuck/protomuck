@@ -398,10 +398,6 @@ quiet_moves
 Setting this to yes turns off the '%N has arrived/left.' messages 
 when players enter or leave rooms.
 ~~
-expanded_debug
-Setting this to yes causes the MUF debugger to display the contents
-of MUF arrays.  It also expands the strings.
-~~
 proplist_int_counter
 Used to specify whether the system standard for proplist storage is
 to use integer or string props for the counter.
@@ -465,3 +461,11 @@ allow_old_trigs
 Setting this to no disables all _ prefixed propqueues. For example, 
 _connect, _disconnect, etc., will not work if this is set to no.
 Setting it to yes leaves all of those propqueues enabled.
+~~~
+multi_wizlevels
+By turning this parameter off, all wizards of W2, W3, and W4 have 
+permissions equivalent with Neon's W3 bit, or FB's W bit. Only #1 
+has the permissions of the W4 level when this is tuned off. And 
+finally, W1's will be treated as M3's, losing all of their mage 
+perks. NOTE: Once this is @tuned to 'no', only #1 can @tune it back 
+to 'yes'. Otherwise, it's a W4+ only @tuneable.

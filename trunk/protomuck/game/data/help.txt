@@ -99,6 +99,7 @@ on how to program, and manage and moniter running processes.
 @edit              @kill              @list               @program
 @ps                man                @mcpedit            @proginfo
 @mpitops           @muftops           @tops               mpi
+propqueues
 Type 'help <command>' to get more help on a command.
 ~
 Administrative Commands|index4|INDEX 4
@@ -134,16 +135,16 @@ the same flag, the aliases are listed as a group.
 Settable Flags:
 ABODE/AUTOSTART/ABATE   (A)     BUILDER/BOUND           (B)
 CHOWN_OK/COLOR_ON/ANSI  (C)     DARK/DEBUG              (D)
-GUEST                   (G)     HAVEN/HARDUID/HIDE      (H)  
-JUMP_OK                 (J)     ANTIPROTECT             (K)  
-LINK_OK                 (L)     NO_COMMAND              (N)  
-LIGHT                   (O)     QUELL                   (Q)  
-SILENT/SETUID/STICKY    (S)     VEHICLE/VIEWABLE        (V)  
-XFORCIBLE               (X)     EXAMINE_OK              (Y)
-ZOMBIE/PUPPET           (Z)     LOGWALL                 (!)     
-MUFCOUNT                (+)     PROTECT                 (*)     
-PARENT/PROG_DEBUG       (%)     HIDDEN                  (#)     
-MOBILE                  
+GUEST                   (G)     HAVEN/HARDUID/HIDE      (H) 
+IDLE                    (I)     JUMP_OK                 (J)     
+ANTIPROTECT             (K)     LINK_OK                 (L)     
+NO_COMMAND              (N)     LIGHT                   (O)     
+QUELL                   (Q)     SILENT/SETUID/STICKY    (S)     
+VEHICLE/VIEWABLE        (V)     XFORCIBLE               (X)     
+EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)     
+LOGWALL                 (!)     MUFCOUNT                (+)     
+PROTECT                 (*)     PARENT/PROG_DEBUG       (%)     
+HIDDEN                  (#)     MOBILE                  
 
 Type 'help <flag>' to get more help on a flag.
 
@@ -158,6 +159,7 @@ ROOM                    (R)     THING                   (T)
 UNLINKED                (U)     LISTENER                (N/A)
 COMMAND                 (N/A)   PUEBLO                  ($)
 HTML                    (&)     UNUSED/OLD              (@)
+TRUEIDLE           
 
 Permissions Bits:
 MEEPER                  (M)     MUCKER1                 (M1) 
@@ -1275,7 +1277,7 @@ be forced by anyone.  Wizards can force mortals.  Only the Man can force
 wizards. 
 @force can be used by non-wiz players to force things that they control if 
 certain conditions are met:
-The thing must be set = XFORCEIBLE.
+The thing must be set = XFORCIBLE.
 The player must be able to pass whatever the @flock on the thing is.
 The room that the thing is in cannot be set = ZOMBIE.
 The player cannot be set = ZOMBIE.
@@ -1546,7 +1548,7 @@ unless they have the NO_COMMAND prop set.
 
 See: NO_COMMAND, COMMAND PROPS
 ~~
-NO_COMMAND
+NO_COMMAND|N
 NO_COMMAND (N)
 --------------
 Setting this flag on something will prevent it from processing its
@@ -1554,7 +1556,7 @@ command prop directories, except for the @command propdir.
 
 See: COMMAND, COMMAND PROPS
 ~~
-GUEST
+GUEST|G
 GUEST (G)
 ---------
 If a player is set GUEST then this player has become a guest character and
@@ -1590,7 +1592,7 @@ but only affects the versions of these commands built into the MUCK.
 @find              @owned               gripe 
 @flock             @pecho               whisper
 ~~~~
-LOGWALL
+LOGWALL|!
 LOGWALL (!)
 -----------
 
@@ -1600,7 +1602,7 @@ not worry about any kind of security issues.  This flag is merely for
 the paranoid or cautious. Only ArchWizards or higher can set the
 LOGWALL flag.
 ~
-ABODE|AUTOSTART|ABATE
+ABODE|AUTOSTART|ABATE|A
 ABODE or AUTOSTART or ABATE (A)
 -------------------------------
 If a room is set ABODE, players can set their homes there, and can set the
@@ -1616,7 +1618,7 @@ set a program = AUTOSTART
 Exits set ABATE have a lower priority than 0. This means all other exits
 that have the same name in the environment will take priority.
 ~
-BUILDER|BUILDERS|BOUND
+BUILDER|BUILDERS|BOUND|B
 BUILDER or BOUND (B)
 --------------------
 Some mud restrict building commands to players whose builder flag is set.
@@ -1633,7 +1635,7 @@ the execution exits this program, the multitasking mode returns to what
 it was before the function was called.  This lets libraries of atomic
 functions be written.
 ~
-CHOWN_OK|COLOR_ANSI|COLOR_ON|COLOR_OK|COLOR|COLORS
+CHOWN_OK|COLOR_ANSI|COLOR_ON|COLOR_OK|COLOR|COLORS|C
 CHOWN_OK or COLOR_ANSI or COLOR_ON or COLOR_OK (C)
 --------------------------------------------------
 When set on a room, program, exit, or thing, it means that anyone
@@ -1646,7 +1648,7 @@ When set on a player, it enables ansi color on mucks that support it.
 
 See @CHOWN and MAN 
 ~
-DARK|DEBUG
+DARK|DEBUG|D
 DARK or DEBUG (D)
 -----------------
 If a room is DARK, then when people besides the owner 'look' there, the
@@ -1670,7 +1672,7 @@ the owner who are also not w-bitted) will not see debug output just
 because a program is in DEBUG mode. Anyone with control over a program
 can set DEBUG on it.
 ~
-HAVEN|HARDUID|HIDE
+HAVEN|HARDUID|HIDE|H
 HAVEN or HARDUID or HIDE (H)
 ----------------------------
 
@@ -1692,7 +1694,7 @@ owners perm level, though no higher than the owner's permission level.
 If a container object is set HAVEN it will be called HIDE and will not show
 the objects within itself.
 ~~~~
-MUFCOUNT
+MUFCOUNT|+
 MUFCOUNT (+)
 ------------
 If a MUF program is set MUFCOUNT, then when it is run, it will set the
@@ -1716,14 +1718,14 @@ There is currently no function for this flag. It has been left in the
 code as a BOGUS flag that can be used on MUCKs to do whatever they would
 like. It can be checked for in MUF via the flag? prim.
 ~
-EXAMINE_OK
+EXAMINE_OK|Y
 EXAMINE_OK (Y)
 --------------
 If any object-type is set EXAMINE_OK then it can be examined by any other
 player.  This is a useful flag for helpstaff that do not have any sort of
 a wizard flag set on themselves.
 ~
-JUMP_OK
+JUMP_OK|J
 JUMP_OK (J)
 -----------
 The Jump_OK flag is used in several ways.  Unprivileged programs cannot
@@ -1735,7 +1737,7 @@ SECURE_TELEPORTing is set up, you cannot use an action to leave a room,
 unless the action is either attached to that room, or the room is JUMP_OK.
 See 'man moveto' for details on the J flag's impact on teleport programs.
 ~
-PARENT|PROG_DEBUG
+PARENT|PROG_DEBUG|%
 PARENT|PROG_DEBUG (%)
 ---------------------
 
@@ -1756,7 +1758,7 @@ However, if set on a player then it is also called PROG_DEBUG,
 except this will allow normal players that do not own the program to
 see the debug spam.  
 ~
-LINK_OK|
+LINK_OK|L
 LINK_OK (L)
 -----------
 
@@ -1774,7 +1776,7 @@ from actions and propqueues not owned by the owner of the program.
 
 See @LINK.
 ~~~~
-LIGHT
+LIGHT|O
 LIGHT (O)
 ---------
 If a thing, player, or exit is set LINK_OK it is called LIGHT.  The flag
@@ -1790,7 +1792,7 @@ This is a system-set flag on objects that have listen propqueues. It
 cannot be @set or unset, but instead is maintained automatically by
 the server. Programs can check for it though via the 'flag?' prim.
 ~~
-HIDDEN
+HIDDEN|#
 HIDDEN (#)
 ----------
 A new DARK flag concept.  The HIDDEN flag will remove upon reconnect, but
@@ -1800,7 +1802,7 @@ ch <username> <password> will connect a wizard with the HIDDEN flag
 already in place. When the wizard connects the next time, the HIDDEN
 flag will be removed automatically upon connecting.
 ~
-STICKY|SETUID|SILENT
+STICKY|SETUID|SILENT|S
 STICKY or SILENT or SETUID (S)
 ------------------------------
 SILENT
@@ -1821,7 +1823,7 @@ run at SETUID by default anyway, so this purpose is obsolete.
 
 See HOMES and DROP-TO.
 ~
-vehicle|viewable
+vehicle|viewable|V
 VEHICLE or VEIWABLE (V)
 -----------------------
 
@@ -1847,7 +1849,7 @@ Programs set VIEWABLE can be @LISTed by any mucker, and when players examine
 the action linked to a VIEWABLE program, the dbref of the program will be
 given them.
 ~
-PROTECT
+PROTECT|*
 PROTECT (*)
 -----------
 
@@ -1871,7 +1873,7 @@ by this flag.
 
 See the ANTIPROTECT flag also.
 ~
-PUEBLO
+PUEBLO|$
 PUEBLO ($)
 ----------
 This flag cannot be set or unset. It is set on players that connect
@@ -1879,7 +1881,7 @@ on the Pueblo port of the MUCK, and removed when they connect via
 a non Pueblo port. Pueblo is a multimedia MU* client for which 
 support worked its way into NeonMUCK.
 ~
-HTML
+HTML|&
 HTML (&)
 --------
 The HTML flag signafies that someone has somewhat HTML capability, but
@@ -1887,7 +1889,7 @@ not on the level of what Pueblo has support for. It is set automatically
 on players that connect via the webserver port, and removed whenever 
 they connect via another port. It cannot be manually set or unset.
 ~
-ANTIPROTECT
+ANTIPROTECT|K
 ANTIPROTECT (K)
 ---------------
 The ANTIPROTECT flag is used on W3 admin so he or she may be able to make
@@ -1895,14 +1897,14 @@ MUF programs that will not be effected by the new PROTECT flag.  Set your
 coder admin ANTIPROTECT unless you are unsure you can trust this individual
 enough.
 ~~~
-UNLINKED
+UNLINKED|U
 UNLINKED (U)
 ------------
 This isn't a true flag, in that it can't be set or unset, nor is it set
 by the system for anything. However, when running commands such as @own,
 @find, etc., the U flag is used for looking up unlinked exits.
 ~~~
-OLD|UNUSED
+OLD|UNUSED|@
 UNUSED or OLD (@)
 -----------------
 This isn't a true flag, in that it can't be set or unset, nor checked for
@@ -1911,7 +1913,7 @@ such as @find, @owned, etc., @ can be used to only look up old and unused
 objects. 
 'Old' is defined according to @tune aging_time.
 ~~~
-QUELL
+QUELL|Q
 QUELL (Q)
 ---------
 A wizard set QUELL is effectively a normal player with no wizardly powers.
@@ -1925,15 +1927,34 @@ the program runs at the level of the bit on the object itself, instead of
 at the owner's permission level. It still can't be made to run higher than
 the owner's permission, however.
 ~~
-IDLE
+IDLE|I
 IDLE (I)
 --------
-This is a system set prop that cannot be set or unset. It gets automatically
-put on a character once they reach the amount of time idle that is indicated
-in @tune idletime. It can be checked for via the flag? prim. It will be taken
-off automatically once someone unidles or disconnects.
+Changed in Proto 1.6 and newer.
+This flag can now be set manually by the player, as well as automatically by
+the system. The player can do '@set me=IDLE' to indicate themselves as going
+idle, and the flag will be removed once they enter their next command. Or the
+flag will get set by the system once the player reaches the amount of time idle
+as determined by '@tune idletime'. It can be checked for via the flag? prim and
+is removed automatically once one disconnects.
+
+Also, if a player would like to have their IDLE flag set earlier than the time
+indicated by the @tune parameter, then they can set an integer prop on themself
+under '_prefs/idletime'. 
+
+See: TRUEIDLE
 ~~
-ZOMBIE|PUPPET
+TRUEIDLE
+This flag works like the IDLE flag, except that it cannot be @set either by the
+user or by programs. It is set only by the system when the player's idle time
+reaches that indicated by '@tune idletime'. This flag will always correspond to
+when the _idle/ propqueues are called, since it can only be set by the system.
+This can be checked for via the flag? prim, but does not show up in the unparsed
+names of players.
+
+See: IDLE
+~~
+ZOMBIE|PUPPET|Z
 ZOMBIE or PUPPET (Z)
 --------------------
 Things set ZOMBIE echo what they hear back to their owner. This is how
@@ -1950,12 +1971,17 @@ instruction by instruction through a muf program, setting breakpoints to
 stop at, and other nice things.  There is help available within the
 debugger, via the 'help' command.
 ~
-XFORCIBLE|XFORCEABLE|
+XFORCIBLE|XFORCEABLE|EXPANDED_DEBUG|X
 XFORCIBLE (X)
 -------------
 In order for an object to be able to be forced by some programs, it will
 need to have this flag set and the force lock key (see @flock) set to
 something passable. 
+
+If the XFORCIBLE flag is set on a program object, it becomes the 
+EXPANDED_DEBUG flag, which means that if the program is put into debug
+mode, it's debug output will show a lot more data than it does in its
+default setting.
 ~~~
 MEEPER|M
 MEEPER (M)
@@ -3324,10 +3350,22 @@ Note that this may or may not work depending on settings and preferences
 at various mucks, and there are better and more efficient ways to make
 puppets. This is just the down and dirty way of going about it.
 ~~~~~~
+PROPQUEUES|PROPQUEUE
 
-
-
-
-
-
-
+Propqueues
+----------
+Propqueues are a way of running a series of programs when a certain action
+is done. Below are the propqueues in ProtoMUCK. Type 'man propqueue' for
+more details on propqueues, or 'man <propqueue name>' for more details on
+a specific propqueue:
+listen     - Triggered by notification to the thing or room.
+alisten    - Same as listen, but keeps the ANSI codes.
+connect    - When a player connects.
+disconnect - When a player disconnects.
+arrive     - When a player arrives.
+depart     - When a player departs.
+idle       - When a player idles.
+unidle     - When a player unidles.
+look       - When something is looked at.
+login      - When a connection is made to the login screen.
+disclogin  - When a connection drops from the login screen.

@@ -137,7 +137,7 @@ Data Base Prims:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
-  GETOBJINFO 
+  GETOBJINFO    FIND_ARRAY
         
 System Prims:
   SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
@@ -165,7 +165,7 @@ Array Prims:
   ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
   ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
   ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
-  EXITS_ARRAY          GETOBJINFO           GETDESCRINFO
+  EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
@@ -311,7 +311,7 @@ The following prims are used to work with the MUCK database:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     EXITS_ARRAY    CONTENTS_ARRAY
-  GETOBJINFO
+  GETOBJINFO    FIND_ARRAY
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -1081,7 +1081,9 @@ As of Proto1.6 and newer, the TRUENAME prim behaves as follows:
 If the dbref is a thing or player, it returns the %n alias of that
 object. If it is an exit, it will return the name of that exit up to
 the first ';' mark. Any other object will just return that object's
-full name.
+full name. Also, if the alias matches to the name of an existing 
+player on the MUCK, the normal name of the player or puppet is 
+returned instead of the alias.
 
 See: NAME
 ~
@@ -3544,7 +3546,7 @@ PROG_DEBUG (%) = This is the same as the PARENT flag. Programs set both
 
 See: FLAGS2
 ~
-FLAGS2|FLAG2|AUTOSTART|ABODE|BOUND|BUILDER
+FLAGS2|FLAG2|AUTOSTART|ABODE|BOUND|BUILDER|EXPANDED_DEBUG|XFORCIBLE
 
 AUTOSTART (A) = On dbload, if a program is set AUTOSTART *AND* is
             owned by a wizard, then it will be placed in the timequeue
@@ -3555,6 +3557,13 @@ AUTOSTART (A) = On dbload, if a program is set AUTOSTART *AND* is
 BOUND (B) = Programs set BOUND run in preempt mode, regardless of the 
             mode the program would normally run in, ignoring all attempts
             to change the mode during the run of the program.
+
+EXPANDED_DEBUG (X) = Programs set with EXPANDED_DEBUG will display much
+            longer string data, and will also display the contents of 
+            MUF arrays, up to the size allowed by the buffer. Removing
+            this flag makes it so that debug output is sent in the 
+            traditional manner of shorter strings and no contents of the
+            arrays being seen.
 
 See: FLAGS3
 ~~~
@@ -3674,7 +3683,7 @@ make the MPI public as opposed to private to just the player.
 
 See: PROPQUEUES2 for types of queues.
 ~
-PROPQUEUE2|PROPQUEUES2|LISTEN|CONNECT|DISCONNECT
+PROPQUEUE2|PROPQUEUES2|LISTEN|CONNECT|DISCONNECT|ALISTEN
 
 _listen/ = Listen props are limited to a certain level of 
        permissions, depending on an @tuned setting. Typically M3
@@ -3684,6 +3693,9 @@ _listen/ = Listen props are limited to a certain level of
        a NOTIFY directly to the object. The contents of the stack
        is whatever string was heard that triggered the program. The
        command @ for listen-prop called programs is "(_Listen)"
+
+_alisten/ = Exactly like the _listen/ propqueue, except that strings
+       retain their Neon ANSI tags.
 
 _connect/ = Connect props are called when a player connects.
        They can be on the room the player connects in, or on the 
@@ -5355,7 +5367,7 @@ ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
 ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
 ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
 ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
-EXITS_ARRAY          GETOBJINFO           GETDESCRINFO
+EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
 
 See: Individual entries for more information.
 ~~~~~~
@@ -8158,4 +8170,20 @@ PLAYER        (d) - The character's dbref that descr belongs to.
 PORT          (i) - The IP port that player connects from.
 TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port.
 USERNAME      (s) - The user name for that descr's IP address.
+~~~~
+FIND_ARRAY|
+
+find_array ( d1 d2 s1 s2 -- arr )
+------------------------------
+Level: M2 Journeyman
+d1 = dbref to start from.
+d2 = Owner to search for.
+s1 = Name smatch pattern.
+s2 = string containing a flag list.
+arr = An array containing all the matches according to the parameters.
+
+This prim works exactly like the FINDNEXT prim, except that it returns
+all matches to the stack in a list array all at once.
+
+See: FINDNEXT, ARRAY PRIMS
 ~~~~
