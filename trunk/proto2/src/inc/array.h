@@ -19,7 +19,7 @@ typedef struct array_tree_t {
 } array_tree;
 
 typedef struct stk_array_t {
-	unsigned short links;       /* number of pointers  to array */
+	int links;       /* number of pointers  to array */
 	int items;                  /* number of items in array */
 	short type;                 /* type of array */
 	union {
