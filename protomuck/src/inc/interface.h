@@ -39,6 +39,7 @@ struct descriptor_data {
     struct text_queue        input;
     char                    *raw_input;
     char                    *raw_input_at;
+    int                      inIAC;         /* Used for telnet negotiation */
     time_t                   last_time;
     time_t                   connected_at;
     int                      hostaddr;      /* HEX host address */

@@ -1458,7 +1458,7 @@ shovechars(void)
 	    for (cnt = 0, d = descriptor_list; d; d = dnext) {
 		dnext = d->next;
 		if (FD_ISSET(d->descriptor, &input_set)) {
-		    d->last_time = now;
+		    /* d->last_time = now; */ /* removed to ignore KEEPALIVEs */
 		    if (!process_input(d)) {
 			d->booted = 1;
 		    } else {
@@ -2222,6 +2222,7 @@ initializesock(int s, const char *hostname, int port, int hostaddr, int ctype, i
     d->input.tail = &d->input.head;
     d->raw_input = 0;
     d->raw_input_at = 0;
+    d->inIAC = 0;
     d->quota = tp_command_burst_size;
     d->commands = 0;
     d->last_time = d->connected_at;
@@ -2517,57 +2518,128 @@ process_input(struct descriptor_data * d)
     got = readsocket(d->descriptor, buf, sizeof buf);
     if (got <= 0) {
 #ifdef DEBUGPROCESS
-	fprintf(stderr, "process_input: read failed errno %d %s\n", errno,
-		sys_errlist[errno]);
+        fprintf(stderr, "process_input: read failed errno %d %s\n", errno,
+                sys_errlist[errno]);
 #endif
-	return 0;
+        return 0;
     }
     d->input_len += got;
     if (!d->raw_input) {
-	MALLOC(d->raw_input, char, MAX_COMMAND_LEN);
-	d->raw_input_at = d->raw_input;
+        MALLOC(d->raw_input, char, MAX_COMMAND_LEN);
+        d->raw_input_at = d->raw_input;
     }
     p = d->raw_input_at;
     pend = d->raw_input + MAX_COMMAND_LEN - 1;
     for (q = buf, qend = buf + got; q < qend; q++) {
-	if (*q == '\n') {
-	    *p = '\0';
-	    if (p > d->raw_input) {
-		save_command(d, d->raw_input);
-	    } else {
-		/* BARE NEWLINE! */
-		if((d->type == CT_HTML) && (d->http_login == 0)) {
+        if (*q == '\n') {
+            d->last_time = time(NULL);
+            *p = '\0';
+            if (p > d->raw_input) {
+                save_command(d, d->raw_input);
+            } else {
+            /* BARE NEWLINE! */
+                if((d->type == CT_HTML) && (d->http_login == 0)) {
 #ifdef HTTPDELAY
-		    if(d->httpdata) {
-			queue_ansi(d, d->httpdata);
-			free((void *)d->httpdata);
-			d->httpdata = NULL;
-		    }
+                    if(d->httpdata) {
+                        queue_ansi(d, d->httpdata);
+                        free((void *)d->httpdata);
+                        d->httpdata = NULL;
+                    }
 #endif
-		    d->booted = 1;
-		} else if ( p == d->raw_input)
-                  /* Blank lines get sent on to be caught by MUF */
-                    save_command(d, d->raw_input);
-	    }
-	    p = d->raw_input;
-	} else if (p < pend && (isascii(*q) || !((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML)))) {
-	    if (isprint(*q) || !((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
-		*p++ = *q;
-	    } else if ((*q == '\t') && ((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
-		*p++ = ' ';
-	    } else if ((*q == 8 || *q == 127) && ((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
-		/* if BS or DEL, delete last character */
-		if (p > d->raw_input) p--;
-	    }
-	}
+                d->booted = 1;
+                } else if ( p == d->raw_input) {
+                /* Blank lines get sent on to be caught by MUF */
+                   save_command(d, d->raw_input);
+                }
+            }
+            p = d->raw_input;
+        } else if (d->inIAC == 1) {
+            switch(*q) {
+                case '\361': /* NOP */
+                    d->inIAC = 0;
+                    break;
+                case '\363': /* Break */
+                case '\364': /* Interrupt Processes */
+                    save_command(d, BREAK_COMMAND);
+                    d->inIAC = 0;
+                    break;
+                case '\365': /* Abort output */
+                    d->inIAC = 0;
+                    break;
+                case '\367': /* Erase character */
+                    if (p > d->raw_input)
+                        --p;
+                    d->inIAC = 0;
+                    break;
+                case '\370': /* Erase line */
+                    p = d->raw_input;
+                    d->inIAC = 0;
+                    break;
+                case '\372': /* Go ahead. Treat as NOP */
+                    d->inIAC = 0;
+                    break;
+                case '\373': /* Will option offer */
+                case '\374': /* WON'T option offer */
+                    d->inIAC = 2;
+                    break;
+                case '\375': /* DO option request */
+                case '\376': /* DONT option request */
+                    d->inIAC = 3;
+                    break;
+                case '\377': /* IAC a second time */
+#if 0
+                /* for future 8 bit clean code, perhaps */
+                    *p++ = *q;
+#endif
+                    d->inIAC = 0;
+                    break;
+            }
+        } else if (d->inIAC == 2) {
+            /* send back DONT option in all cases */
+            char sendbuf[4];
+            sendbuf[0] = '\377';
+            sendbuf[1] = '\376';
+            sendbuf[2] = *q;
+            sendbuf[3] = '\0';
+            writesocket(d->descriptor, sendbuf, 3);
+            d->inIAC = 0;
+        } else if (d->inIAC == 3) {
+            /* Send back WONT in all cases */
+            char sendbuf[4];
+            sendbuf[0] = '\377';
+            sendbuf[1] = '\374';
+            sendbuf[2] = *q;
+            sendbuf[3] = '\0';
+            writesocket(d->descriptor, sendbuf, 3);
+            d->inIAC = 0;
+        } else if (*q == '\377') {
+            /* Got TELNET IAC, store for next byte */
+            d->inIAC = 1;                 
+        } else if (p < pend && (isascii(*q) || 
+                   !((d->type == CT_MUCK) || 
+                   (d->type == CT_PUEBLO) || 
+                   (d->type == CT_HTML)))) {
+            if (isprint(*q) || !((d->type == CT_MUCK) || 
+                    (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
+                *p++ = *q;
+            } else if ((*q == '\t') && ((d->type == CT_MUCK) || 
+                          (d->type == CT_PUEBLO) || (d->type == CT_HTML))) {
+                *p++ = ' ';
+            } else if ((*q == 8 || *q == 127) &&       
+                         ((d->type == CT_MUCK) || (d->type == CT_PUEBLO) || 
+                         (d->type == CT_HTML))) {
+                         /* if BS or DEL, delete last character */
+                if (p > d->raw_input) p--;
+            }
+        }
     }
     if (p > d->raw_input) {
-	d->raw_input_at = p;
+        d->raw_input_at = p;
     } else {
-	FREE(d->raw_input);
-	d->raw_input = 0;
-	d->raw_input_at = 0;
-    }
+        FREE(d->raw_input);
+        d->raw_input = 0;
+        d->raw_input_at = 0;
+    } 
     return 1;
 }
 

@@ -1091,6 +1091,7 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
         PropPtr propadr, pptr;
         PropPtr prptr;
         int count = 0;
+        int len = 0;
 
         /* dbref strPropDir -- array */
         CHECKOP(2);
@@ -1111,6 +1112,10 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
         CLEAR(oper2);
         if (!*dir)
                 strcpy(dir, "/");
+
+        len = strlen(dir) - 1;
+        if (len > 0 && dir[len] == PROPDIR_DELIMITER)
+            dir[len] = '\0';
 
         nw = new_array_packed(0);
         propadr = first_prop(ref, dir, &pptr, propname);

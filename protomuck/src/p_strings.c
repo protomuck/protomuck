@@ -1869,6 +1869,7 @@ prim_tokensplit(PRIM_PROTOTYPE)
 {								/* string delims escapechar -- prestr poststr charstr */
 	char *ptr, *delim, *out;
 	char esc;
+        char escisdel;
 	char outbuf[BUFFER_LEN];
 
 	CHECKOP(3);
@@ -1888,11 +1889,12 @@ prim_tokensplit(PRIM_PROTOTYPE)
 	} else {
 		esc = '\0';
 	}
+        escisdel = index(oper2->data.string->data, esc) != 0;
 	strcpy(buf, DoNullInd(oper1->data.string));
 	ptr = buf;
 	out = outbuf;
 	while (*ptr) {
-		if (*ptr == esc) {
+		if (*ptr == esc && (!escisdel | (ptr[1] == esc))) {
 			ptr++;
 			if (!*ptr)
 				break;
