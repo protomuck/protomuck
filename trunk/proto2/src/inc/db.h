@@ -121,18 +121,18 @@ extern short dbcheck(const char *file, int line, dbref item);
 #endif
 
 #define DBSTORE(x, y, z)    {DBFETCH(x)->y = z; DBDIRTY(x);}
-#define NAME(x)     (db[x].name)
-#define PNAME(x)    (db[x].name)
-#define RNAME(x)    (db[x].name)
-#define OWNER(x)    (db[x].owner)
-#define FLAGS(x)    (db[x].flags)
-#define FLAG2(x)    (db[x].flag2)
-#define FLAG3(x)    (db[x].flag3)
-#define FLAG4(x)    (db[x].flag4)
-#define POWERS(x)   (db[OWNER(x)].powers)
-#define POWERSDB(x) (db[x].powers)
-#define POWER2(x)   (db[OWNER(x)].power2)
-#define POWER2DB(x) (db[x].power2)
+#define NAME(x)     (DBFETCH(x)->name)
+#define PNAME(x)    (DBFETCH(x)->name)
+#define RNAME(x)    (DBFETCH(x)->name)
+#define OWNER(x)    (DBFETCH(x)->owner)
+#define FLAGS(x)    (DBFETCH(x)->flags)
+#define FLAG2(x)    (DBFETCH(x)->flag2)
+#define FLAG3(x)    (DBFETCH(x)->flag3)
+#define FLAG4(x)    (DBFETCH(x)->flag4)
+#define POWERS(x)   (DBFETCH(OWNER(x))->powers)
+#define POWERSDB(x) (DBFETCH(x)->powers)
+#define POWER2(x)   (DBFETCH(OWNER(x))->power2)
+#define POWER2DB(x) (DBFETCH(x)->power2)
 
 /* defines for possible data access mods. */
 #define GETMESG(x,y)   (get_uncompress(get_property_class(x, y)))
