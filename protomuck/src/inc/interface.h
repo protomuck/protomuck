@@ -118,6 +118,7 @@ extern struct descriptor_data* descrdata_by_descr(int i);
 extern int notify(dbref player, const char *msg);
 extern int notify_nolisten(dbref player, const char *msg, int ispriv);
 extern void notify_descriptor(int c, const char *msg);
+extern void notify_descriptor_char(int d, char c);
 extern int anotify(dbref player, const char *msg);
 extern int notify_html(dbref player, const char *msg);
 extern int queue_string(struct descriptor_data *d, const char *s);

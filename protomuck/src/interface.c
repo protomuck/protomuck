@@ -527,6 +527,23 @@ notify_descriptor(int descr, const char *msg)
    }
 }
 
+/* To go with the descriptor_notify_char prim, this has a singular
+ * purpose in an effort to write binary pass through support into
+ * a MUF based webserver. It will probably come into play down
+ * the line if we write an in-server version of the MUF one in 
+ * progress.
+ */
+void
+notify_descriptor_char(int descr, char c)
+{
+    struct descriptor_data *d;
+    char cbuf[1];
+    for (d = descriptor_list; d && (d->descriptor != descr); d = d->next);
+    if (!d || d->descriptor != descr) return;
+    cbuf[0] = c;
+    queue_write(d, cbuf, 1);
+}
+
 void
 anotify_descriptor(int descr, const char *msg)
 {
