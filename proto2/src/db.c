@@ -569,9 +569,14 @@ db_write_object(FILE * f, dbref i)
     putref(f, o->contents);
     putref(f, o->next);
     /* write non-internal flags */
-    putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK),
-            (FLAG3(i) & ~DUM3_MASK), (FLAG4(i) & ~DUM4_MASK),
-            (POWERS(i) & ~POWERS_DUMP_MASK), (POWER2(i) & ~POWER2_DUMP_MASK));
+    if (Typeof(i) != TYPE_GARBAGE)
+        putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK),
+                (FLAG3(i) & ~DUM3_MASK), (FLAG4(i) & ~DUM4_MASK),
+                (POWERS(i) & ~POWERS_DUMP_MASK),
+                (POWER2(i) & ~POWER2_DUMP_MASK));
+    else
+        putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK),
+                (FLAG3(i) & ~DUM3_MASK), (FLAG4(i) & ~DUM4_MASK), 0, 0);
 
     putref(f, o->ts.created);
     putref(f, o->ts.lastused);

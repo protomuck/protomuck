@@ -125,7 +125,7 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
                 break;
         }
     }
-    if (POWERS(thing) && (Typeof(thing) == TYPE_PLAYER)) {
+    if ((Typeof(thing) == TYPE_PLAYER) && POWERS(thing)) {
         *p++ = ':';
         if (POWERS(thing) & POW_ANNOUNCE)
             *p++ = 'a';
