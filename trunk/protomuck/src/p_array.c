@@ -163,7 +163,7 @@ void
 prim_array_keys(PRIM_PROTOTYPE)
 {
         stk_array *arr;
-
+        struct inst temp1;
         CHECKOP(1);
         oper1 = POP();     /* array */
         if (oper1->type != PROG_ARRAY)
