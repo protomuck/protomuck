@@ -1005,3 +1005,60 @@ prim_itoh(PRIM_PROTOTYPE)
     CLEAR(oper1);
     PushString(buf);
 }
+
+void
+prim_onevent(PRIM_PROTOTYPE)
+{
+    struct muf_interrupt *e;
+
+    CHECKOP(2)
+        oper1 = POP();          /* function addr */
+    oper2 = POP();              /* interrupt id */
+    oper3 = POP();              /* event id */
+
+    if (oper1->type != PROG_ADD)
+        abort_interp("Expected a function address. (1)");
+    if (oper2->type != PROG_STRING)
+        abort_interp("String argument expected. (2)");
+    if (!oper2->data.string)
+        abort_interp("Interrupt ID cannot be null. (2)");
+    if (oper3->type != PROG_STRING)
+        abort_interp("String argument expected. (3)");
+    if (!oper3->data.string)
+        abort_interp("Event ID cannot be null. (3)");
+
+    if (!OkObj(oper1->data.addr->progref)
+        || (Typeof(oper1->data.addr->progref) != TYPE_PROGRAM))
+        abort_interp("Internal error.  Invalid address. (1)");
+    if (program != oper1->data.addr->progref)
+        abort_interp("Destination address outside current program. (1)");
+
+    if ((e = muf_interrupt_find(fr, oper2->data.string->data))) {
+        e->addr = oper1->data.addr->data;
+        free((void *) e->event);
+        e->event = alloc_string(oper3->data.string->data);
+    } else {
+        e = (struct muf_interrupt *) malloc(sizeof(struct muf_interrupt));
+        e->event = alloc_string(oper3->data.string->data);
+        e->id = alloc_string(oper2->data.string->data);
+        e->addr = oper1->data.addr->data;
+        e->prev = NULL;
+        e->next = fr->interrupts;
+        if (fr->interrupts)
+            fr->interrupts->prev = e;
+        fr->interrupts = e;
+    }
+
+    fr->use_interrupts = 1;
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+    CLEAR(oper3);
+}
+
+void
+prim_interrupt_level(PRIM_PROTOTYPE)
+{
+    CHECKOFLOW(1);
+    PushInt(fr->interrupted);
+}

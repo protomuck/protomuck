@@ -4,7 +4,7 @@
 struct hostinfo { /* linked-list struct for the new host cacher */
     time_t           wupd;      /* time of last update */
     int              a;         /* ip */
-    char             name[129]; /* hostname */
+    char             *name;     /* hostname */
     unsigned short   links;     /* number of links to this hostname */
     unsigned short   uses;      /* times used */
     struct hostinfo *next;
@@ -14,7 +14,7 @@ struct hostinfo { /* linked-list struct for the new host cacher */
 struct husrinfo { /* linked-list struct for usernames (userports) */
     int              a;         /* ip address */
     unsigned short   uport;     /* the userport number */
-    char             user[32];  /* username */
+    char            *user;      /* username */
     struct husrinfo *next;
     struct husrinfo *prev;
 };
@@ -54,4 +54,6 @@ extern void host_shutdown(void);
 extern void host_free(struct hostinfo *h);
 extern void host_check_cache(void);
 extern void do_hostcache(dbref player, const char *args);
+extern unsigned long host_hostdb_size(void);
+extern unsigned long host_userdb_size(void);
 #endif /* __NEWRESOLV_H */

@@ -1316,3 +1316,60 @@ prim_descrbufsize(PRIM_PROTOTYPE)
     CLEAR(oper1);
     PushInt(result);
 }
+
+void
+prim_descr_sendfile(PRIM_PROTOTYPE)
+{
+#if !defined(FILE_PRIMS) || !defined(DESCRFILE_SUPPORT)
+    abort_interp("This primitive not compiled in.");
+#else /* FILE_PRIMS && DESCRFILE_SUPPORT */
+    struct descriptor_data *d;
+    char *filename;
+
+    CHECKOP(4);
+    oper1 = POP();              /* (s) file  */
+    oper2 = POP();              /* (i) end   */
+    oper3 = POP();              /* (i) start */
+    oper4 = POP();              /* (i) descr */
+
+    if (oper1->type != PROG_STRING)
+        abort_interp("String expected. (4)");
+    if (!oper1->data.string)
+        abort_interp("Empty string argument (4)");
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Integer argument expected. (3)");
+    if (oper3->type != PROG_INTEGER)
+        abort_interp("Integer argument expected. (2)");
+    if (oper4->type != PROG_INTEGER)
+        abort_interp("Descriptor integer expected. (1)");
+    if (mlev < LBOY)
+        abort_interp("W4 prim.");
+    if (!(d = descrdata_by_descr(oper4->data.number)))
+        abort_interp("Invalid descriptor.");
+
+    filename = oper1->data.string->data;
+
+#ifdef SECURE_FILE_PRIMS
+    /* These functions are in p_file.c.  */
+    /* Maybe I'll eventually make my own more graceful versions. */
+    if (!(valid_name(filename)))
+        abort_interp("Invalid file name.");
+    if (strchr(filename, '$') == NULL)
+        filename = set_directory(filename);
+    else
+        filename = parse_token(filename);
+    if (filename == NULL)
+        abort_interp("Invalid shortcut used.");
+#endif
+
+    result =
+        descr_sendfile(d, oper3->data.number, oper2->data.number, filename,
+                       fr->pid);
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+    CLEAR(oper3);
+    CLEAR(oper4);
+    PushInt(result);
+#endif /* FILE_PRIMS && DESCRFILE_SUPPORT */
+}

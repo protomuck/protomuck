@@ -299,9 +299,9 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                         destination = DBFETCH(destination)->sp.room.dropto;
                     moveto(victim, destination);
                     sprintf(buf, CSUCC "%s teleported to %s.",
-                            unparse_object(player, victim), 
+                            unparse_object(player, victim),
                             (destination == -3 ? "HOME" : NAME(destination))
-                           );
+                        );
                     anotify_nolisten2(player, buf);
                     break;
                 case TYPE_ROOM:
@@ -611,7 +611,8 @@ do_stats(dbref player, const char *name)
                 (tocnt == 1) ? "" : "s", (tocnt == 1) ? "is" : "are", tosize);
     anotify_fmt(player, SYSYELLOW
                 "%7ld cached host %s using %ld bytes of RAM.",
-                hostdb_count, (hostdb_count == 1L) ? "entry is" : "entries are", hostdb_count * sizeof(struct hostinfo));
+                hostdb_count, (hostdb_count == 1L) ? "entry is" : "entries are",
+                host_hostdb_size() + host_userdb_size());
     /* Bandwidth Usage Stats */
     if (Mage(OWNER(player))) {
         memtemp = bytesIn / 1000;
