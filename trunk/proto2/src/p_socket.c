@@ -760,7 +760,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
     sockdescr = socket(AF_INET, SOCK_STREAM, 0); /* get the socket descr */
     my_addr.sin_family = AF_INET;
     my_addr.sin_port = (int) htons(oper1->data.number); /* set bind port # */
-    my_addr.sin_addr.s_addr = INADDR_ANY; /* get my own IP address */
+    my_addr.sin_addr.s_addr = bind_to; /* what am I bound to? */
     memset(&(my_addr.sin_zero), '\0', 8); /* zero rest of struct */
     /* Make sure is able to reuse the port */
     setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, (char *) &yes, sizeof(int));

@@ -23,7 +23,6 @@
 #define SSL_CERT_FILE "data/server.pem"
 #define SSL_KEY_FILE "data/server.pem"
 
-
 /* structures */
 
 struct text_block {
@@ -306,6 +305,10 @@ extern void panic(const char *);
 extern SSL_CTX *ssl_ctx;
 extern SSL_CTX *ssl_ctx_client;
 #endif
+
+/* binding support */
+extern int str2ip(const char *ipstr);
+extern int bind_to;
 
 /* Ansi Colors */
 #define ANSINORMAL      "\033[0m"
