@@ -595,7 +595,7 @@ mfn_pronouns(MFUNARGS)
 	if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	    ABORT_MPI("PRONOUNS","Match failed.");
 	if (obj == PERMDENIED)
-	    ABORT_MPI("PRONOUNS",NOPERM_MESG);
+	    ABORT_MPI("PRONOUNS",tp_noperm_mesg);
     }
     return pronoun_substitute(descr, obj, argv[0]);
 }
@@ -609,9 +609,9 @@ mfn_ontime(MFUNARGS)
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	return "-1";
     if (obj == PERMDENIED)
-	ABORT_MPI("ONTIME",NOPERM_MESG);
+	ABORT_MPI("ONTIME", tp_noperm_mesg);
     if (Typeof(obj) != TYPE_PLAYER) obj = OWNER(obj);
-    conn = pfirstconn(obj);
+    conn = least_idle_player_descr(obj);
     if (!conn) return "-1";
     sprintf(buf, "%d", pontime(conn));
     return buf;
@@ -624,11 +624,11 @@ mfn_idle(MFUNARGS)
     dbref obj = mesg_dbref_raw(descr, player, what, perms, argv[0]);
     int conn;
     if (obj == PERMDENIED)
-	ABORT_MPI("IDLE",NOPERM_MESG);
+	ABORT_MPI("IDLE",tp_noperm_mesg);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
 	return "-1";
     if (Typeof(obj) != TYPE_PLAYER) obj = OWNER(obj);
-    conn = pfirstconn(obj);
+    conn = least_idle_player_descr(obj);
     if (!conn) return "-1";
     sprintf(buf, "%d", pidle(conn));
     return buf;
@@ -643,7 +643,7 @@ mfn_online(MFUNARGS)
     char buf2[BUFFER_LEN];
 
     if (!Wizperms(what))
-        ABORT_MPI("ONLINE",NOPERM_MESG);
+        ABORT_MPI("ONLINE",tp_noperm_mesg);
     *buf = '\0';
     while (count && list_limit--) {
         if (*buf) strcat(buf, "\r");
@@ -679,12 +679,12 @@ mfn_contains(MFUNARGS)
     if (obj2 == UNKNOWN || obj2 == AMBIGUOUS || obj2 == NOTHING || obj2 == HOME)
 	ABORT_MPI("CONTAINS","Match failed (1).");
     if (obj2 == PERMDENIED)
-	ABORT_MPI("CONTAINS","Permission Denied (1).");
+	ABORT_MPI("CONTAINS",tp_noperm_mesg);
 
     if (obj1 == UNKNOWN || obj1 == AMBIGUOUS || obj1 == NOTHING || obj1 == HOME)
 	ABORT_MPI("CONTAINS","Match failed (2).");
     if (obj1 == PERMDENIED)
-	ABORT_MPI("CONTAINS","Permission Denied (2).");
+	ABORT_MPI("CONTAINS",tp_noperm_mesg);
 
     while (obj2 != NOTHING && obj2 != obj1) obj2 = getloc(obj2);
     if (obj1 == obj2) {
@@ -706,12 +706,12 @@ mfn_holds(MFUNARGS)
     if (obj1 == UNKNOWN || obj1 == AMBIGUOUS || obj1 == NOTHING || obj1 == HOME)
 	ABORT_MPI("HOLDS","Match failed (1).");
     if (obj1 == PERMDENIED)
-	ABORT_MPI("HOLDS","Permission Denied (1).");
+	ABORT_MPI("HOLDS",tp_noperm_mesg);
 
     if (obj2 == UNKNOWN || obj2 == AMBIGUOUS || obj2 == NOTHING || obj2 == HOME)
 	ABORT_MPI("HOLDS","Match failed (2).");
     if (obj2 == PERMDENIED)
-	ABORT_MPI("HOLDS","Permission Denied (2).");
+	ABORT_MPI("HOLDS",tp_noperm_mesg);
 
     if (obj2 == getloc(obj1)) {
         return "1";
@@ -1923,6 +1923,7 @@ mfn_center(MFUNARGS)
 }
 
 #endif /* MPI */
+
 
 
 

@@ -350,29 +350,22 @@ prim_descriptors(PRIM_PROTOTYPE)
     CHECKOP(0);
 
     if (ref == NOTHING) {
-        for (result = pcount(); result; result--) {
-            CHECKOFLOW(1);
+        result = pcount();
+		CHECKOFLOW(result + 1);
+        while (result) {
             mydescr = pdescr(result);
             PushInt(mydescr);
             mycount++;
+			result--;
         }
     } else {
-        if (Typeof(ref) == TYPE_PLAYER) {
-            darr   = DBFETCH(ref)->sp.player.descrs;
-            dcount = DBFETCH(ref)->sp.player.descr_count;
-            if (!darr)
-                dcount = 0;
-        } else {
-            darr = NULL;
-            dcount = 0;
-        }
+		darr = get_player_descrs(ref, &dcount);
+		CHECKOFLOW(dcount + 1);
         for (di = 0; di < dcount; di++) {
-            CHECKOFLOW(1);
             PushInt(darr[di]);
             mycount++;
         }
     }
-    CHECKOFLOW(1);
     PushInt(mycount);
 }
 
@@ -380,6 +373,8 @@ void
 prim_descr_array(PRIM_PROTOTYPE)
 {
 	stk_array *newarr;
+	int* darr;
+	int di, dcount;
 	int i;
 
 	CHECKOP(1);
@@ -395,7 +390,6 @@ prim_descr_array(PRIM_PROTOTYPE)
 		abort_interp("Non-player argument.");
 
 	CLEAR(oper1);
-	CHECKOFLOW(1);
 
 	result = pcount();
 	temp1.type = PROG_INTEGER;
@@ -403,15 +397,23 @@ prim_descr_array(PRIM_PROTOTYPE)
 	temp1.line = 0;
 	temp2.line = 0;
 	newarr = new_array_packed(result);
-	for (i = 0; i < result; i++) {
-		if (ref == NOTHING || pdbref(i + 1) == ref) {
+    if (ref == NOTHING) {
+		for (i = 0; i < result; i++) {
 			temp1.data.number = i;
 			temp2.data.number = pdescr(i + 1);
 			array_setitem(&newarr, &temp1, &temp2);
-		}
+        }
+	} else {
+		darr = get_player_descrs(ref, &dcount);
+        for (di = 0; di < dcount; di++) {
+			temp1.data.number = di;
+			temp2.data.number = darr[di];
+			array_setitem(&newarr, &temp1, &temp2);
+        }
 	}
 	PushArrayRaw(newarr);
 }
+
 
 void
 prim_descr_setuser(PRIM_PROTOTYPE)
