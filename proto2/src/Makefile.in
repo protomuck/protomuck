@@ -117,11 +117,12 @@ protomuck:        ${P} ${COBJ} interface.o mkversion.sh
 	sh mkversion.sh
 	${PRE} ${CC} ${CFLAGS} -c version.c
 	${MV} protomuck protomuck~
-	if grep "^#define CYGWIN" inc/config.h > /dev/null; then \
-	 ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
-	else \
-	 ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
-	fi
+	${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}
+#	if grep "^#define CYGWIN" inc/config.h > /dev/null; then \
+#	 ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
+#	else \
+#	 ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
+#	fi
 
 resolver:	resolver.o
 	${PRE} ${CC} ${CFLAGS} -o resolver resolver.o ${LIBR}
