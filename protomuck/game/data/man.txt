@@ -86,7 +86,7 @@ Notifying Prims (I/O):
   NOTIFY_HTML_NOCR    NOTIFY_HTML_EXCLUDE_NOCR    HTML_NOCR_EXCEPT
   NOTIFY_DESCRIPTOR   ARRAY_NOTIFY                DESCRFLUSH
   STOPMIDI            PLAYMIDI                    COMMANDTEXT
-  ANSI_ARRAY_NOTIFY   ARRAY_NOTIFY_HTML
+  ARRAY_ANSI_NOTIFY   ARRAY_NOTIFY_HTML
 
 See: PRIMS4
 ~~~~~
@@ -158,7 +158,7 @@ Array Prims:
   ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
   ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
   ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
-  ANSI_ARRAY_NOTIFY    NOTIFY_ARRAY_HTML
+  ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR
@@ -4913,7 +4913,7 @@ DIST3D
 dist3D ( nx ny nz -- f )
 ------------------------
 nx ny nz = 3 numbers representing a 3d coordinate.
-f = float representing those coordinate's distance from the origen.
+f = float representing those coordinate's distance from the origin.
 
 Returns the distance of the XYZ coordinate (fx,fy,fz) from the origin.
 
@@ -5173,7 +5173,7 @@ ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS
 ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
 ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
 ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
-ANSI_NOTIFY_ARRAY    ARRAY_NOTIFY_HTML
+NOTIFY_ANSI_ARRAY    ARRAY_NOTIFY_HTML
 
 See: Individual entries for more information.
 ~~~~~~
@@ -5576,10 +5576,12 @@ previous difference from the top of the stack down.
 See: ARRAY PRIMS, STACKRANGE, ARRAY_NUNION, ARRAY_NINTERSECT
      ARRAY_DIFF
 ~
-ARRAY_NOTIFY
+ARRAY_NOTIFY|ARRAY_ANSI_NOTIFY|ARRAY_NOTIFY_HTML
 
 array_notify( a1 a2 -- )
-------------------------
+array_ansi_notify( a1 a2 -- )
+array_notify_html( a1 a2 -- )
+-----------------------------
 Level: M1 Apprentice
 a1 = An array of all strings.
 a2 = An array of all dbref numbers.
@@ -5588,7 +5590,8 @@ Notifies all of the dbref objects in a2 the entire contents of
 a1. Will notify to rooms and players, and can be picked up by
 listen props. However, ZOMBIE objects do not seem to get notified.
 Will still name append messages for M1 if the @tune is set to 
-require that.
+require that. The ANSI and HTML versions work just the same, except
+for handling ANSI and HTML sending as well.
 
 See: ARRAY PRIMS
 ~
@@ -6912,8 +6915,8 @@ be returning there. For example:
 
 This would declare 2 variables, strVar and intVar, and place the top two
 stack items in them as their initial values. According to the type names
-on each variable, the top stack item should be an int, and the 2nd item a
-str, but this is not actually checked when the program is run. 
+on each variable, the top stack item should be a string, and the 2nd item an
+int, but this is not actually checked when the program is run. 
 arrVar is not declared in the function header, as it comes after the '--', 
 indicating that this function is intended to return an array.
 The type names that should be used for the sake of consistency are:
@@ -7349,3 +7352,52 @@ This gets the current value of the given GUI control, and returns it
 as a string list array. 
 
 See: MCP PRIMS
+~~~~~
+PARSE_NEON
+
+parse_neon ( d s1 s2 -- s4 )
+----------------------------
+Level: M1 Apprentice
+d  = Any valid dbref.
+s2 = String of text that may contain the ANSI tags.
+s3 = The default color to insert into the tags where there is no preference.
+s4 = The string returned with the Neon ansi tags replaced with standard ANSI.
+
+This prim is designed to go along with the new color customization support
+in ProtoMUCK. It takes a string with Neon style ANSI tags (See 'man neon ansi')
+and converts them to standard ANSI format. However, it bases the conversion on
+the preferences set on the dbref object, d, that is passed as well. First object
+d is checked for color preference props. 
+If none are found, #0 is checked for global color preferences. If none are found 
+there either, then the default colors are used for normal color tags, or the 
+color passed in s2 is used, if the tag wasn't a normal color tag. I.e., if s1 
+contains a ^GREEN^ tag, and no preference is found on object d, nor on #0, then 
+the color GREEN will be put in at that spot. But if the tag in s1 was something
+like ^WHISPER^, and there is no pref for that on object d nor on #0, then 
+the color indicated by string s2 will be inserted at that point. 
+It is important to note that string s2 needs to contain a color formatted in
+STANDARD ANSI (see 'man standard ansi'), -not- a normal Neon ANSI color tag.
+
+See: COLORS for details on how Proto custom color props operate.
+~~~~~
+COLORS|CUSTOM COLORS|PARSE_NEON2
+Color preferences are found under the _/colors/ directory on objects. 
+For example, if the ANSI tag in s1 is ^GREEN^, and player d has a prop:
+_/colors/green:forest
+then instead of seeing GREEN when they get ansi_notified, they will see FOREST
+instead. Or if the ANSI tag in s1 is ^PAGE^, and the player has a prop:
+_/colors/page:yellow
+then s1 will get returned as s4 with the standard ANSI code for 'yellow'
+in place of the ^PAGE^ tags. This color customization supports sub-directories
+as well. For example, if the ANSI tag is ^SAY/POSE^, and the player has a prop:
+_/colors/say/text:cyan
+then the occurances of ^SAY/POSE^ will be replaced with the standard ANSI for
+cyan.
+This color customization does not loop. For example if a player had:
+_/colors/green:red        
+and
+_/colors/red:blue
+^GREEN^ tags would be turned into the color red, not blue.
+
+Note that the preferences on object d always take priority over the global
+preferences on #0. 
