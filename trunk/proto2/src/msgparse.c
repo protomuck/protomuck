@@ -827,13 +827,13 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
         return NULL;
     }
 
-    if (Typeof(player) == TYPE_GARBAGE) {
+    if (OkObj(player) && Typeof(player) == TYPE_GARBAGE) {
         mesg_rec_cnt--;
         outbuf[0] = '\0';
         return NULL;
     }
 
-    if (Typeof(what) == TYPE_GARBAGE) {
+    if (!OkObj(what) || Typeof(what) == TYPE_GARBAGE) {
         smnotify(descr, player, "MPI Error: Garbage trigger.");
         mesg_rec_cnt--;
         outbuf[0] = '\0';
@@ -979,11 +979,7 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
                                             MFUN_LEADCHAR,
                                             (varflag ? cmdbuf : mfun_list[s].
                                              name), MFUN_ARGEND, i + 1);
-                                    if (player < 1) {
-                                        notify_descriptor(descr, dbuf);
-                                    } else {
-                                        notify_nolisten(player, dbuf, 1);
-                                    }
+                                    smnotify(descr, player, dbuf);
                                     return NULL;
                                 }
                             }
