@@ -1410,7 +1410,7 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
                             temp1.data.number);
                     break;
                 case PROG_FLOAT:
-                    sprintf(propname, "%s%c%.15lg", dir, PROPDIR_DELIMITER,
+                    sprintf(propname, "%s%c%.15g", dir, PROPDIR_DELIMITER,
                             temp1.data.fnumber);
                     break;
                 default:
@@ -1434,7 +1434,7 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
                     break;
                 case PROG_FLOAT:
                     protoflags = PROP_FLTTYP;
-                    sprintf(buf, "%.15lg", oper4->data.fnumber);
+                    sprintf(buf, "%.15g", oper4->data.fnumber);
                     pval = buf;
                     set_property(ref, propname, protoflags, pval);
                     break;
@@ -1562,7 +1562,7 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                     break;
                 case PROG_FLOAT:
                     protoflags = PROP_FLTTYP;
-                    sprintf(buf, "%lg", oper4->data.fnumber);
+                    sprintf(buf, "%g", oper4->data.fnumber);
                     break;
                 case PROG_OBJECT:
                     protoflags = PROP_REFTYP;
@@ -1911,7 +1911,7 @@ prim_array_join(PRIM_PROTOTYPE)
                 text = buf;
                 break;
             case PROG_FLOAT:
-                sprintf(buf, "%.15lg", in->data.fnumber);
+                sprintf(buf, "%.15g", in->data.fnumber);
                 text = buf;
                 break;
             case PROG_LOCK:
@@ -2000,7 +2000,7 @@ prim_array_interpret(PRIM_PROTOTYPE)
                 text = buf;
                 break;
             case PROG_FLOAT:
-                sprintf(buf, "%.15lg", in->data.fnumber);
+                sprintf(buf, "%.15g", in->data.fnumber);
                 text = buf;
                 break;
             case PROG_LOCK:

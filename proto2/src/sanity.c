@@ -1255,7 +1255,7 @@ extract_prop(FILE * f, const char *dir, PropPtr p)
         case PROP_FLTTYP:
             if (PropDataFVal(p) == 0.0)
                 return;
-            snprintf(tbuf, sizeof(tbuf), "%.15lg", PropDataFVal(p));
+            snprintf(tbuf, sizeof(tbuf), "%.15g", PropDataFVal(p));
             ptr2 = tbuf;
             break;
         case PROP_REFTYP:

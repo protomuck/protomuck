@@ -144,7 +144,7 @@ insttotext(struct frame *fr, int lev, struct inst *theinst, char *buffer,
             sprintf(buffer, "%d", theinst->data.number);
             break;
         case PROG_FLOAT:
-            sprintf(buffer, "%#.15lg", theinst->data.fnumber);
+            sprintf(buffer, "%#.15g", theinst->data.fnumber);
             break;
         case PROG_ADD:
             if (theinst->data.addr->data->type == PROG_FUNCTION &&

@@ -717,7 +717,7 @@ prim_ftostr(PRIM_PROTOTYPE)
     }
     if (oper1->type != PROG_FLOAT)
         abort_interp("Non-float argument. (1)");
-    sprintf(buf, "%#.15lg", oper1->data.fnumber);
+    sprintf(buf, "%#.15g", oper1->data.fnumber);
     CLEAR(oper1);
     PushString(buf);
 }
@@ -733,7 +733,7 @@ prim_ftostrc(PRIM_PROTOTYPE)
     }
     if (oper1->type != PROG_FLOAT)
         abort_interp("Non-float argument. (1)");
-    sprintf(buf, "%.15lg", oper1->data.fnumber);
+    sprintf(buf, "%.15g", oper1->data.fnumber);
     CLEAR(oper1);
     PushString(buf);
 }
