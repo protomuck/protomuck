@@ -169,7 +169,8 @@ muf_socket_events()
     t_val.tv_usec = 0;
 
     while(curr) { /* add sockets to check to set */
-        if (!curr->theSock->readWaiting) { /* add it */
+        if (!curr->theSock->readWaiting && curr->theSock->connected) { 
+            /* add it */
             FD_SET(curr->theSock->socknum, &reads);
             if (curr->theSock->socknum >= maxDescr)
                 maxDescr = curr->theSock->socknum;
