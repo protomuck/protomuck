@@ -28,6 +28,10 @@
 /* smallest possible numbers to use before a float is considered to be '0' or
    'false'. */
 /* Defining INF as infinite.  This is HUGE_VAL on IEEE754 systems. */
+#ifdef CYGWIN
+# define INF  (HUGE_VAL)
+# define NINF (-HUGE_VAL)
+#else
 #ifdef WIN32
 #include <limits>
 using namespace std;
@@ -37,10 +41,10 @@ using namespace std;
 # define INF (HUGE_VAL)
 # define NINF (-HUGE_VAL)
 #else
-# define INF (9.9E999)
-# define NINF (-9.9E999)
+# define INF (1E999)
+# define NINF (-1E999)
 #endif
-
+#endif
 /* Defining Pi, Half Pi, and Quarter Pi.  */
 #ifdef M_PI
 # define F_PI M_PI

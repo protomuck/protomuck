@@ -554,7 +554,7 @@ prim_fabs(PRIM_PROTOTYPE)
     if (!no_good(oper1->data.fnumber)) {
         fresult = fabs(oper1->data.fnumber);
     } else {
-        fresult = INF;
+        fresult = oper1->data.fnumber;
         fr->error.error_flags.f_bounds = 1;
     }
     CLEAR(oper1);
