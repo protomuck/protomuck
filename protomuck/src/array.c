@@ -179,7 +179,7 @@ array_tree_find(array_tree *avl, array_iter *key)
     return avl;
 }
 
-static short
+static int
 array_tree_height_of(array_tree *node)
 {
     if (node != NULL)
@@ -208,7 +208,7 @@ static void
 array_tree_fixup_height(array_tree *node)
 {
     if (node)
-        node->height = (short) 1 +
+        node->height = (int) 1 +
             max(array_tree_height_of(AVL_LF(node)),
                 array_tree_height_of(AVL_RT(node)));
 }
@@ -549,7 +549,7 @@ new_array_packed(int size)
     }
 
     new2 = new_array();
-    new2->items = (short int) size;
+    new2->items = size;
     new2->type = ARRAY_PACKED;
     if (size < 1)
         size = 1;

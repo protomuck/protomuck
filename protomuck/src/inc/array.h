@@ -15,12 +15,12 @@ typedef struct array_tree_t {
 	struct array_tree_t *right;
 	array_iter key;
 	array_data data;
-	short height;
+	int height;
 } array_tree;
 
 typedef struct stk_array_t {
 	int links;     				/* number of pointers  to array */
-	short items;    				/* number of items in array */
+	int items;    				/* number of items in array */
 	short type;     				/* type of array */
 	union {
 		array_data *packed;		/* pointer to packed array */
