@@ -317,6 +317,8 @@ int tp_allow_old_trigs		     = 1;
 int tp_multi_wizlevels             = 1;
 int tp_auto_archive                = 0;
 int tp_optimize_muf                = OPTIMIZE_MUF;
+int tp_enable_sockqueue            = 0;
+
 struct tune_bool_entry {
     const char *group;
     const char *name;
@@ -391,6 +393,7 @@ struct tune_bool_entry tune_bool_list[] =
     {"System",   "multi_wizlevels",     &tp_multi_wizlevels,     LBOY,  LMUF },
     {"Database", "auto_archive",        &tp_auto_archive,        LBOY,  LMAGE},
     {"MUF",      "optimize_muf",        &tp_optimize_muf,        LBOY,  LMAGE},
+    {"MUF",      "enable_sockqueue",    &tp_enable_sockqueue,    LARCH, LMUF },
     {NULL, NULL, NULL, 0, 0}
 };
 

@@ -43,7 +43,8 @@ do_autoarchive(int descr, dbref player)
     }
     if (auto_archive_now()){
         sprintf(timebuf, "%d minutes", ARCHIVE_DELAY / 60);
-        anotify_fmt(player, CINFO "Need to wait at least %s between @autoarchives.",
+        anotify_fmt(player, 
+                    CINFO "Need to wait at least %s between @autoarchives.",
                     timebuf);
         return;
     }
