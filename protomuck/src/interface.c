@@ -2505,7 +2505,11 @@ strsave(const char *s)
     return p;
 }
 
-void 
+/* Returns -1 if the @tune UNIDLE word is used. */
+/* At the moment, the UNIDLE word won't get queued in the input 
+ * queue, though this might change in the future.
+ * Returns 1 if the input is anything other than the unidle word. */
+int
 save_command(struct descriptor_data * d, const char *command)
 {
     if (d->connected && 
@@ -2518,16 +2522,22 @@ save_command(struct descriptor_data * d, const char *command)
         if (d->player == NOTHING )
             d->block = 0;
 	if (!(FLAGS(d->player) & INTERACTIVE))
-	    return;
+	    return 1;
     }
     if (d->connected && (DBFETCH(d->player)->sp.player.block)) {
                 char cmdbuf[BUFFER_LEN];
                 if (!mcp_frame_process_input(&d->mcpframe, command, 
                      cmdbuf, sizeof(cmdbuf))) {
-                        return;
+                        return 1;
                 }
     }
+    if (tp_allow_unidle) { /* check for unidle word */
+       if (!string_compare((char *) command, tp_unidle_command))
+           return -1;
+    } 
+
     add_to_queue(&d->input, command, strlen(command) + 1);
+    return 1;
 }
 
 int 
@@ -2557,10 +2567,10 @@ process_input(struct descriptor_data * d)
     pend = d->raw_input + MAX_COMMAND_LEN - 1;
     for (q = buf, qend = buf + got; q < qend; q++) {
         if (*q == '\n') {
-            d->last_time = time(NULL);
             *p = '\0';
             if (p > d->raw_input) {
-                save_command(d, d->raw_input);
+                if (save_command(d, d->raw_input) != -1)
+                    d->last_time = time(NULL);
             } else {
             /* BARE NEWLINE! */
                 if((d->type == CT_HTML) && (d->http_login == 0)) {
