@@ -1666,7 +1666,7 @@ prim_array_findval(PRIM_PROTOTYPE)
                         }
                         //CLEAR(in);
                 } while (!found && array_next(arr, &temp1));
-                CLEAR(&temp1);
+                //CLEAR(&temp1);
         }
         
         CLEAR(oper2);
