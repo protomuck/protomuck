@@ -3762,7 +3762,7 @@ dump_users(struct descriptor_data *d, char *user)
 						sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
 							ANSIGREEN, plyrbuf, ANSIPURPLE, time_format_1(now - dlist->connected_at),
 							(1 ?
-								((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ") : " "),
+								((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ") : " "),
 							ANSIYELLOW, time_format_2(now - dlist->last_time),
 							((dlist->connected && OkObj(dlist->player)) ?
 								((FLAGS(dlist->player) & INTERACTIVE) ? "*" : " ") : " "), ANSICYAN,

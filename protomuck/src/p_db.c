@@ -617,39 +617,41 @@ prim_truename(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
-    if (oper2->type != PROG_OBJECT)
-        abort_interp("Arguement (2) is not a dbref.");
     if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
-	abort_interp("Invalid argument type");
+        abort_interp("Invalid argument type");
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-	ts_lastuseobject(ref);
+        ts_lastuseobject(ref);
     if ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_THING)) {
-	if (GETMESG(ref, "%n")) {
-		msg = GETMESG(ref, "%n");
+        if (GETMESG(ref, "%n")) {
+                msg = GETMESG(ref, "%n");
 #ifdef COMPRESS
-		strcpy(buf, uncompress(msg));
+                strcpy(buf, uncompress(msg));
 #else
-		strcpy(buf, msg);
+                strcpy(buf, msg);
 #endif
-		CLEAR(oper1);
-		PushString(buf);
-		return;
-	}
+                CLEAR(oper1);
+            strcpy(buf2, buf);
+                if (lookup_player(buf2) != NOTHING) {
+                        strcpy(buf, NAME(ref));
+                }
+                PushString(buf);
+                return;
+        }
     }
     if (NAME(ref)) {
-	strcpy(buf, NAME(ref));
+        strcpy(buf, NAME(ref));
     } else {
-	buf[0] = '\0';
+        buf[0] = '\0';
     }
     if (Typeof(ref) == TYPE_EXIT) {
-	msg2 = strcpy(buf2, buf);
-	tempstr = buf;
-	while (*msg2 && (*msg2 != ';')) {
-		*(tempstr++) = *(msg2++);
-	}
-	*tempstr = '\0';
+        msg2 = strcpy(buf2, buf);
+        tempstr = buf;
+        while (*msg2 && (*msg2 != ';')) {
+                *(tempstr++) = *(msg2++);
+        }
+        *tempstr = '\0';
     }
     CLEAR(oper1);
     PushString(buf);
@@ -2813,10 +2815,51 @@ prim_getobjinfo(PRIM_PROTOTYPE)
 	PushArrayRaw(nw);
 }
 
+void
+prim_find_array(PRIM_PROTOTYPE)
+{
+        struct flgchkdat  check;
+        dbref             ref, who;
+        const char       *name;
+        stk_array        *nw;
 
+        CHECKOP(3);
+        oper3 = POP(); /* str:flags */
+        oper2 = POP(); /* str:namepattern */
+        oper1 = POP(); /* ref:owner */
 
+        if (oper3->type != PROG_STRING)
+                abort_interp("Expected string argument. (3)");
+        if (oper2->type != PROG_STRING)
+                abort_interp("Expected string argument. (2)");
+        if (oper1->type != PROG_OBJECT)
+                abort_interp("Expected dbref argument. (1)");
+        if (oper1->data.objref < NOTHING || oper1->data.objref >= db_top)
+                abort_interp("Bad object. (1)");
 
+        who = oper1->data.objref;
+        name = DoNullInd(oper2->data.string);
 
+        if (mlev < LMAGE)
+                abort_interp("MAGE prim.");
 
+        strcpy(buf, name);
+        init_checkflags(player, DoNullInd(oper3->data.string), &check);
+        nw = new_array_packed(0);
 
-
+        for (ref = (dbref) 0; ref < db_top; ref++) {
+                if ( ( (who == NOTHING) ? 1 : (OWNER(ref) == who) ) &&
+                     checkflags(ref, check) && NAME(ref) &&
+                 ( !*name || equalstr(buf, (char *) NAME(ref)) ) )
+                {
+                        temp1.type = PROG_OBJECT;
+                        temp1.data.objref = ref;
+                        result = array_appenditem(&nw, &temp1);
+                        CLEAR(&temp1);
+                }
+        }
+        CLEAR(oper1);
+        CLEAR(oper2);
+        CLEAR(oper3);
+        PushArrayRaw(nw);
+}

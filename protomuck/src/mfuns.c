@@ -1578,14 +1578,24 @@ mfn_money(MFUNARGS)
 const char *
 mfn_flags(MFUNARGS)
 {
+    char *tempstr;
+    char *bufflags;
+    char buf2[BUFFER_LEN], buf3[BUFFER_LEN];
     dbref obj = mesg_dbref_mage(descr, player, what, perms, argv[0]);
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         ABORT_MPI("FLAGS","Match failed.");
     if (obj == PERMDENIED)
         ABORT_MPI("FLAGS",tp_noperm_mesg);
-    return unparse_flags(obj, buf);
+    strcpy(buf2, unparse_flags(obj, buf3));
+    bufflags = buf2;
+    buf[0] = '\0';
+    tempstr = buf;
+    while (*bufflags && (*bufflags != ':')) {
+       *(tempstr++) = *(bufflags++);
+    }
+    *tempstr = '\0';
+    return buf;
 }
-
 
 const char *
 mfn_ansi(MFUNARGS)

@@ -1874,35 +1874,41 @@ prim_array_matchkey(PRIM_PROTOTYPE)
 void
 prim_array_matchval(PRIM_PROTOTYPE)
 {
-	struct inst *in;
-	stk_array *arr;
-	stk_array *nw;
+        struct inst *in;
+        stk_array *arr;
+        stk_array *nw;
 
-	CHECKOP(2);
-	oper2 = POP();				/* str  pattern */
-	oper1 = POP();				/* arr  Array */
-	if (oper1->type != PROG_ARRAY)
-		abort_interp("Argument not an array. (1)");
-	if (oper2->type != PROG_STRING)
-		abort_interp("Argument not a string pattern. (2)");
+        CHECKOP(2);
+        oper2 = POP();                          /* str  pattern */
+        oper1 = POP();                          /* arr  Array */
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array. (1)");
+        if (oper2->type != PROG_STRING)
+                abort_interp("Argument not a string pattern. (2)");
 
-	nw = new_array_dictionary();
-	arr = oper1->data.array;
-	if (array_first(arr, &temp1)) {
-		do {
-			in = array_getitem(arr, &temp1);
-			if (in->type == PROG_STRING) {
-				if (equalstr((char *) DoNullInd(oper2->data.string), (char *) DoNullInd(in->data.string))) {
-					array_setitem(&nw, &temp1, in);
-				}
-			}
-		} while (array_next(arr, &temp1));
-	}
+        nw = new_array_dictionary();
+        arr = oper1->data.array;
+        if (array_first(arr, &temp1)) {
+                do {
+                        in = array_getitem(arr, &temp1);
+                        if (in->type == PROG_STRING) {
+                                if (equalstr((char *) DoNullInd(oper2->data.string), 
+                                    (char *) DoNullInd(in->data.string))) {
+                                        array_setitem(&nw, &temp1, in);
+                                }
+                        } else if (in->type == PROG_OBJECT) {
+                                if (equalstr((char *) DoNullInd(oper2->data.string), 
+                                    (char *) NAME(in->data.objref))) {
+                                        array_setitem(&nw, &temp1, in);
+                                }
+                  }
+                } while (array_next(arr, &temp1));
+        }
 
-	CLEAR(oper2);
-	CLEAR(oper1);
+        CLEAR(oper2);
+        CLEAR(oper1);
 
-	PushArrayRaw(nw);
+        PushArrayRaw(nw);
 }
 
 void
