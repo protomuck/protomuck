@@ -556,7 +556,7 @@ process_command(int descr, dbref player, char *command)
 
     /* if player is a wizard, and uses overide token to start line...*/
     /* ... then do NOT run actions, but run the command they specify. */
-    if (!strcmp(command, WHO_COMMAND)) {
+    if (!strncmp(command, WHO_COMMAND, sizeof(WHO_COMMAND) - 1)) {
        char xxbuf[BUFFER_LEN];
 
        strcpy(xxbuf, "@");

@@ -225,14 +225,13 @@ int
 notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 		 dbref room, const char *msg, int isprivate)
 {
-    char buf[BUFFER_LEN], buf2[BUFFER_LEN], *buf3, *noamsg;
+    char buf[BUFFER_LEN], buf2[BUFFER_LEN], buf3[BUFFER_LEN], *noamsg;
     dbref ref;
 
     if (obj == NOTHING)
 	return 0;
 
-    buf3 = strcpy(buf2, msg);
-    buf2[0] = '\0';
+    strcpy(buf2, msg);
     noamsg = tct(buf2, buf3);
 
     if (tp_listeners && (tp_listeners_obj || Typeof(obj) == TYPE_ROOM)) {

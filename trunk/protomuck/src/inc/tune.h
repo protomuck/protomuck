@@ -151,7 +151,6 @@ extern int tp_enable_idle_msgs;
 extern int tp_user_idle_propqueue;
 extern int tp_quiet_moves;
 extern int tp_quiet_connects;
-extern int tp_expanded_debug;
 extern int tp_proplist_int_counter;
 extern int tp_enable_mcp;
 extern int tp_enable_commandprops;

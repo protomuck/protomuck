@@ -575,7 +575,7 @@ flag_description(dbref thing)
 	if (FLAGS(thing) & VEHICLE)
 	    strcat(buf, (Typeof(thing) != TYPE_PROGRAM) ? " VEHICLE" : " VIEWABLE");
 	if (FLAGS(thing) & XFORCIBLE)
-	    strcat(buf, " XFORCIBLE");
+	    strcat(buf, (Typeof(thing) != TYPE_PROGRAM) ? " XFORCIBLE": " EXPANDED_DEBUG");
 	if (FLAGS(thing) & ZOMBIE)
 	    strcat(buf, " ZOMBIE");
 	if (FLAGS(thing) & HAVEN)
