@@ -309,11 +309,22 @@ look_room(int descr, dbref player, dbref loc, int verbose)
 	      exec_or_notify(descr, player, loc, GETDESC(loc), "(@Desc)");
           }
        }
-/*	if (GETDESC(loc)) {
-	    exec_or_notify(descr, player, loc, GETDESC(loc), "(@Desc)");
-	} */
-	/* tell him the appropriate messages if he has the key */
-	can_doit(descr, player, loc, 0);
+       /* tell him the appropriate messages if he has the key */
+       if (can_doit(descr, player, loc, 0)) {
+/* These 2 used to be handled in can_doit, but I had moved them to
+ * trigger() to account for the success messages sometimes getting
+ * displayed even when the action could not be done. (zombie blocks, 
+ * for example). All this stuff for checking permissions in predicates.c
+ * needs to be rewritten to make a lot more sense. TODO
+ */
+           if(GETSUCC(loc)) {
+                exec_or_notify(descr, player, loc, GETSUCC(loc), "(@Succ)");
+            }
+            if (GETOSUCC(loc) && !Dark(player)) {
+                parse_omessage(descr, player, loc, loc, GETOSUCC(loc),
+                            NAME(player), "(@Osucc)");
+            }
+       }
     } else {
        if ( Html(player) && GETIHTMLDESC(loc) ) {
           exec_or_html_notify(descr, player, loc, GETIHTMLDESC(loc), "(@Idesc)");
@@ -322,9 +333,6 @@ look_room(int descr, dbref player, dbref loc, int verbose)
 	      exec_or_notify(descr, player, loc, GETDESC(loc), "(@IDesc)");
           }
        }
-/*	if (GETIDESC(loc)) {
-	    exec_or_notify(descr, player, loc, GETIDESC(loc), "(@Idesc)");
-	} */
     }
     ts_useobject(loc);
 
