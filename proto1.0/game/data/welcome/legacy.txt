@@ -1,8 +1,0 @@
-Welcome to LOST STARS!
-
-* connect (user) (pass) to log in as an existing player.
-* request (user) (e-mail) (Your Real Name) to request a character.
-* QUIT to disconnect
-
-See http://adobe.chaco.com:10001 for more information.
-
