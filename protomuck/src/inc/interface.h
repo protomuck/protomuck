@@ -20,42 +20,76 @@ struct text_queue {
 };
 
 struct descriptor_data {
-    int     descriptor;
-    int     connected;
-    int     con_number;
-    int     booted;
-    int	    fails;
-    dbref   player;
-    char   *output_prefix;
-    char   *output_suffix;
-    int	input_len;
-    int     output_len;
-    int     output_size;
-    struct text_queue output;
-    struct text_queue input;
-    char   *raw_input;
-    char   *raw_input_at;
-    time_t  last_time;
-    time_t  connected_at;
-    int hostaddr;
-    int	port;
-    const char *hostname;
-    const char *username;
-    int     quota;
-    int	    commands;
-    int     linelen;
-    int     type;
-    int     cport;
-    int     http_login;
-    char    *identify;
-    char    *lastmidi;
+    int                      descriptor;    /* Descriptor number */
+    int                      connected;     /* Connected as a player? */
+    int                      con_number;    /* Connection number */
+    int                      booted;        /* 1 = Booted, 2 = Boot with message, 3 = WEB boot */
+    int                      fails;         /* Number of fail connection attempts */
+    int                      block;         /* Is this descriptor blocked of output? -- UNIMPLEMENTED */
+    dbref                   *prog;          /* Which programs are blocking the output? -- UNIMPLEMENTED */
+    dbref                    player;        /* Player dbref number connected to */
+    int                      interactive;   /* 0 = not, 1 = @program/@edit/@mcpedit, 2 = READ primitive -- UNIMPLEMENTED */
+    char                    *output_prefix; /* Prefix for all output */
+    char                    *output_suffix; /* Suffix for all output */
+    int                      input_len; 
+    int                      output_len;
+    int                      output_size;
+    struct text_queue        output;
+    struct text_queue        input;
+    char                    *raw_input;
+    char                    *raw_input_at;
+    time_t                   last_time;
+    time_t                   connected_at;
+    int                      hostaddr;      /* HEX host address */
+    int	                 port;          /* Port number */
+    const char              *hostname;      /* String host name */
+    const char              *username;      /* Descriptor user name */
+    int                      quota;
+    int	                 commands;      /* Number of commands done */
+    int                      linelen;
+    int                      type;          /* Connection type */
+    int                      cport;         /* Connected on this port if inbound, text, pueblo, web, etc. */
+    int                      http_login;    /* Logged in to the MUCK through the web port? */
+    int                      idletime_set;  /* Time [in minutes] until the IDLE flag must be set */
+    object_flag_type         flags;         /* The descriptor flags */
+    dbref                    mufprog;       /* If it is one of the MUF-type ports, then this points to the program. -- UNIMPLEMENTED */
+    char                    *identify;
+    char                    *lastmidi;
 #ifdef HTTPDELAY
-    const char *httpdata;
+    const char              *httpdata;
 #endif
-    struct descriptor_data *next;
-    struct descriptor_data **prev;
-    McpFrame mcpframe;
+    struct descriptor_data  *next;          /* Next descriptor information */
+    struct descriptor_data **prev;          /* Previous descriptor information */
+    McpFrame                 mcpframe;      /* Muck-To-Client protocal information */
 };
+
+/*
+ TODO: Move the dbref-blocking to the descriptors and have READ, etc. run off the descriptors instead.
+ */
+
+#define DF_HTML          0x1 /* Connected to the internal WEB server. -- UNIMPLEMENTED */
+#define DF_PUEBLO        0x2 /* Allows for HTML/Pueblo extentions on a connected port. -- UNIMPLEMENTED */
+#define DF_MUF           0x4 /* Connected onto a MUF or MUF-Listening port. -- UNIMPLEMENTED */
+#define DF_IDLE          0x8 /* This is set if the descriptor is idle. */
+#define DF_TRUEIDLE     0x10 /* Set if the descriptor goes past the @tune idletime. Also triggers the propqueues if connected. */
+#define DF_INTERACTIVE  0x20 /* If the player is in the MUF editor or the READ prim is used, etc. -- UNIMPLEMENTED */
+
+/*
+ TODO: Finish adding the rest of the flags and create the following primitives:
+     dr_flag?[ int:descr -- int:bolhastheflag? ]
+ */
+
+#define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
+#define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
+#define DR_RAW_FLAGS(x,y)     ((x)->flags & y)
+
+#define DR_ADD_FLAGS(x,y)     ((descrdata_by_descr(x))->flags |= y)
+#define DR_CON_ADD_FLAGS(x,y) ((descrdata_by_index(x))->flags |= y)
+#define DR_RAW_ADD_FLAGS(x,y) ((x)->flags |= y)
+
+#define DR_REM_FLAGS(x,y)     ((descrdata_by_descr(x))->flags &= ~y)
+#define DR_CON_REM_FLAGS(x,y) ((descrdata_by_index(x))->flags &= ~y)
+#define DR_RAW_REM_FLAGS(x,y) ((x)->flags &= ~y)
 
 #define CT_MUCK		0
 #define CT_HTML		1
@@ -75,7 +109,7 @@ extern void httpd(struct descriptor_data *d, const char *name, const char *http)
 extern void httpd_unknown(struct descriptor_data *d, const char *name);
 #endif
 
-extern struct  descriptor_data* descrdata_by_index(int index);
+extern struct descriptor_data* descrdata_by_index(int index);
 extern struct descriptor_data* descrdata_by_descr(int i);
 extern int notify(dbref player, const char *msg);
 extern int notify_nolisten(dbref player, const char *msg, int ispriv);
@@ -121,6 +155,7 @@ extern char *pport(int c);
 extern void pboot(int c);
 extern void pdboot(int c);
 extern void pnotify(int c, char *outstr);
+extern int pset_idletime(dbref player, int idle_time);
 extern int pdescr(int c);
 extern int pdescrcount(void);
 extern int pfirstdescr(void);
@@ -284,6 +319,7 @@ extern void panic(const char *);
 #define ANSI_BG_BLUE	"\033[44m"
 #define ANSI_BG_MAGENTA	"\033[45m"
 #define ANSI_BG_WHITE	"\033[47m"
+
 
 
 

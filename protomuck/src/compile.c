@@ -461,6 +461,20 @@ init_defs(COMPSTATE * cstat)
 
 
 	/* Make defines for compatability to removed primitives */
+      insert_def(cstat, "nextthing", "#-1 \"\" \"T\" findnext");
+      insert_def(cstat, "nextplayer", "#-1 \"\" \"P\" findnext");
+      insert_def(cstat, "nextprogram", "#-1 \"\" \"F\" findnext");
+      insert_def(cstat, "nextexit", "#-1 \"\" \"E\" findnext");
+      insert_def(cstat, "nextroom", "#-1 \"\" \"R\" findnext");
+      insert_def(cstat, "next_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop findnext");
+      insert_def(cstat, "nextthing_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"T\" swap strcat findnext");
+      insert_def(cstat, "nextplayer_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"P\" swap strcat findnext");
+      insert_def(cstat, "nextprogram_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"F\" swap strcat findnext");
+      insert_def(cstat, "nextexit_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"E\" swap strcat findnext");
+      insert_def(cstat, "nextroom_flag", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"R\" swap strcat findnext");
+      insert_def(cstat, "nextowned", "dup player? if #-1 swap else dup owner then \"\" \"\" findnext");
+      insert_def(cstat, "nextowned_flag", "swap dup player? if #-1 swap else dup owner then \"\" 4 rotate dup \"!\" instr 1 = if 2 else 1 then strcut pop findnext");
+      insert_def(cstat, "nextplayer_power", "#-1 \"\" rot dup \"!\" instr 1 = if 2 else 1 then strcut pop \"P:\" swap strcat findnext");
 	insert_def(cstat, "desc", "\"_/de\" getpropstr");
 	insert_def(cstat, "idesc", "\"_/ide\" getpropstr");
 	insert_def(cstat, "ansidesc", "\"_/anside\" getpropstr");
@@ -2762,6 +2776,7 @@ init_primitives(void)
 	IN_FOREACH = get_primitive(" FOREACH");
 	IN_TRYPOP = get_primitive(" TRYPOP");
 }
+
 
 
 

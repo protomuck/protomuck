@@ -212,7 +212,7 @@ prim_pick(PRIM_PROTOTYPE)
     temp1 = *(oper1 = POP());
     if (temp1.type != PROG_INTEGER || temp1.data.number <= 0)
 	abort_interp("Operand not a positive integer");
-    CHECKOP(temp1.data.number);
+    CHECKOP_READONLY(temp1.data.number);
     copyinst(&arg[*top - temp1.data.number], &arg[*top]);
     (*top)++;
 }
@@ -1164,6 +1164,7 @@ prim_forpop(PRIM_PROTOTYPE)
 	fr->fors.top--;
 	fr->fors.st = pop_for(fr->fors.st);
 }
+
 
 
 
