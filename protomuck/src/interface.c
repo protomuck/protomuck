@@ -1257,7 +1257,7 @@ shovechars(void)
 	for (d = descriptor_list; d; d = dnext) {
 	    dnext = d->next;
 	    if (d->booted) {
-		if (!(((d->type == CT_HTML) && !(d->http_login)) ||	(d->type == CT_MUF)) ||
+		if (!(((d->type == CT_HTML) && !(d->http_login)) ||	(d->type == CT_MUF)) && 
 			(!descr_running_queue(d->descriptor)) || (d->booted != 3)) {
 #ifdef HTTPDELAY
 		   if((d->httpdata) && (d->booted == 3)) {
@@ -1335,8 +1335,11 @@ shovechars(void)
 	    }
 	    sel_prof_idle_use++;
           now = current_systime;
+    fprintf(stderr, "Checking for connections.\n");
           for (i = 0; i < numsocks; i++) {
+    fprintf(stderr, "Checking %d\n", sock[i]);
 	       if (FD_ISSET(sock[i], &input_set)) {
+    fprintf(stderr, "Checking 2nd %d\n", sock[i]);
 		   if ((newd = new_connection(listener_port[i], sock[i])) <= 0) {
 		       if ((newd < 0) && errnosocket
 #ifndef WIN32
@@ -1762,6 +1765,7 @@ new_connection(int port, int sock)
     int     addr_len;
     int     ctype;
     char    hostname[128];
+    fprintf(stderr, "Connecting port: %d\n", port);
 
     addr_len = sizeof(addr);
     newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
@@ -2456,11 +2460,31 @@ process_commands(void)
     int     nprocessed;
     struct descriptor_data *d, *dnext;
     struct text_block *t;
+    char buf[BUFFER_LEN];
+    dbref mufprog;
 
     do {
 	nprocessed = 0;
 	for (d = descriptor_list; d; d = dnext) {
 	    dnext = d->next;
+            if (d->type == CT_MUF) {
+                sprintf(buf, "@Ports/%d/MUF", d->cport);
+                mufprog = get_property_dbref((dbref) 0, buf);
+                if (OkObj(mufprog) && (!descr_running_queue(d->descriptor)) ) {
+                    struct frame *tmpfr;
+                    strcpy(match_args, "MUF");
+                    strcpy(match_cmdname, "Queued Event.");
+                    tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
+                                  (dbref) 0, FOREGROUND, STD_HARDUID);
+                    if (tmpfr) {
+                        interp_loop(tp_www_surfer, mufprog, tmpfr, 1);
+                    }
+                    d->booted = 3;
+                    continue;
+                } else {
+                    d->type = CT_MUCK;
+                }
+            } 
 	    if (d->quota > 0 && (t = d->input.head)) {
 		if (d->connected && DBFETCH(d->player)->sp.player.block) {
 			char *tmp = t->start;
@@ -3101,25 +3125,6 @@ check_connect(struct descriptor_data * d, const char *msg)
       return;
    } else if (d->type == CT_HTML && (index(msg,':'))) { /* Ignore */ }
 #endif
-   if (d->type == CT_MUF) {
-      sprintf(buf, "@Ports/%d/MUF", d->cport);
-      mufprog = get_property_dbref((dbref) 0, buf);
-      if (OkObj(mufprog)) {
-         struct frame *tmpfr;
-
-         strcpy(match_args, "MUF");
-         strcpy(match_cmdname, "Queued Event.");
-         tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
-                        (dbref) 0, FOREGROUND, STD_HARDUID);
-         if (tmpfr) {
-            interp_loop(tp_www_surfer, mufprog, tmpfr, 1);
-         }
-         d->booted = 3;
-         return;
-      } else {
-         d->type = CT_MUCK;
-      }
-   }
 	   if (( string_prefix("connect", command) && !string_prefix("c", command) ) || !string_compare(command, "ch")) {
 	player = connect_player(user, password);
 	if (player == NOTHING) {
