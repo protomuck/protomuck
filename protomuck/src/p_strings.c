@@ -610,32 +610,21 @@ prim_stod(PRIM_PROTOTYPE)
 {
 	CHECKOP(1);
 	oper1 = POP();
+
 	if (oper1->type != PROG_STRING)
 		abort_interp("Non-string argument. (1)");
+
 	if (!oper1->data.string) {
 		ref = NOTHING;
 	} else {
-		tmp = 0;
-		while (oper1->data.string->data[tmp] == ' ')
-			tmp++;
-		if (oper1->data.string->data[tmp] == '#') {
-			if (isdigit(oper1->data.string->data[tmp + 1])) {
-				result = atoi(&oper1->data.string->data[tmp + 1]);
-				if ((!result) && (oper1->data.string->data[tmp + 1] != '0')) {
-					ref = NOTHING;
-				} else {
-					ref = (dbref) result;
-				}
-			} else {
-				ref = NOTHING;
-			}
+		const char *ptr = oper1->data.string->data;
+
+		while (isspace(*ptr)) ptr++;
+		if (*ptr == '#') ptr++;
+		if (number(ptr)) {
+			ref = (dbref) atoi(ptr);
 		} else {
-			result = atoi(&oper1->data.string->data[tmp]);
-			if ((!result) && (oper1->data.string->data[tmp] != '0')) {
-				ref = NOTHING;
-			} else {
-				ref = (dbref) result;
-			}
+			ref = NOTHING;
 		}
 	}
 	CLEAR(oper1);
