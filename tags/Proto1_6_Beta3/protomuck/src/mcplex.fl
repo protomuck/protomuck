@@ -1,0 +1,169 @@
+%{
+/*
+ * MCP parser by Joseph Traub and Jeremy Blackman
+ * Copyright(C) 1996, Joseph L. Traub and Jeremy Blackman, All rights reserved
+ *
+ * This module is part of the NeonMuck distribution and is usable under the
+ * terms and conditions of the license attendant with that software.
+ *
+ * MCP is a C-like language that is translated into the MUF language native
+ * to the MUCK mud server.
+ *
+ * This code is very loosely based on the ideas and concepts of the MUV
+ * grammer written by Russ Smith and Marcus Ranum.
+ *
+ * This file contains the code for the lexigraphical analyzer (lexer) which
+ * takes the text of the input and translates it into lexemes consumed by the
+ * parser.
+ */
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <math.h>
+#include <string.h>
+
+#include "mcpstruct.h"
+#include "mcpparse.h"
+#include "copyright.h"
+
+extern int yylinenum;
+extern int yyerror(char *);
+extern char *savestr(char *);
+
+static char strbuf[2048];
+
+%}
+
+%s com
+
+%option nounput
+%option noyywrap
+
+num		[[:digit:]]+
+object		\$([[:alnum:]\-_]+\/)*[[:alnum:]\-_]+
+ident		"\\"?[[:alnum:]_.]+"?"?
+
+%%
+<<EOF>>			{ yyterminate(); }
+\n			{ yylinenum++; }
+[\t ]+			{ }
+"//".*$			{ yylval.string = savestr(yytext); return COMMENT; }
+"/*"			{ BEGIN(com); }
+<com>[^\n]*"*/"\n	{ yylinenum++; yylval.string = savestr(yytext);
+			  BEGIN(INITIAL); return COMMENT; }
+<com>[^\n]*\n		{ yylinenum++; yylval.string = savestr(yytext);
+                          return COMMENT; }
+#-?{num}		{ yylval.string = savestr(yytext); return OBJ; }
+{object}		{ yylval.string=savestr(yytext); return OBJ; }
+{num}			{ yylval.val = atoi(yytext); return NUM; }
+else			{ return ELSE; }
+func			{ return FUNC; }
+if			{ return IF; }
+do			{ return DO; }
+for			{ return FOR; }
+push			{ return PUSH; }
+return			{ return RETURN; }
+break			{ return BREAK; }
+continue		{ return CONTINUE; }
+top			{ return TOP; }
+switch			{ return SWITCH; }
+switchall		{ return SWITCHALL; }
+case			{ return CASE; }
+default			{ return DEFAULT; }
+while			{ return WHILE; }
+public			{ return PUBLIC; }
+newarray		{ return MAKEARRAY; }
+var			{ return VAR; }
+{ident}			{ yylval.string = savestr(yytext); return IDENT; }
+^#include		{ return INCLUDE; }
+^#define		{ return DEFINE; }
+^#else$			{ return ELSEDEF; }
+^#undef			{ return UNDEF; }
+^#endif$		{ return ENDIF; }
+^"#echo "		{ int i = 0, c = input();
+                          strcpy(strbuf, "");
+			  while(c != '\n') {
+			      if(i < 2047)
+				  strbuf[i++] = c;
+			      c = input();
+			  }
+			  strbuf[i] = '\0';
+			  yylval.string = savestr(strbuf);
+			  return ECHODEF;
+			}
+^"#ifdef "		{ int i = 0, c = input();
+                          strcpy(strbuf, "");
+			  while(c != '\n') {
+			      if(i < 2047)
+				  strbuf[i++] = c;
+			      c = input();
+			  }
+			  strbuf[i] = '\0';
+			  yylval.string = savestr(strbuf);
+			  return IFDEF;
+			}
+^"#ifndef "		{ int i = 0, c = input();
+                          strcpy(strbuf, "");
+			  while(c != '\n') {
+			      if(i < 2047)
+				  strbuf[i++] = c;
+			      c = input();
+			  }
+			  strbuf[i] = '\0';
+			  yylval.string = savestr(strbuf);
+			  return IFNDEF;
+			}
+"[]"			{ return BLANK; }
+"::"			{ return CALL; }
+"++"			{ return INCR; }
+"--"			{ return DECR; }
+">>"			{ return SHIFTR; }
+"<<"			{ return SHIFTL; }
+"=="			{ return EQ; }
+">="			{ return GTE; }
+"<="			{ return LTE; }
+"!="			{ return NE; }
+"&&"			{ return AND; }
+"||"			{ return OR; }
+"<"			{ return LT; }
+">"			{ return GT; }
+"!"			{ return NOT; }
+"&"			{ return BITAND; }
+"|"			{ return BITOR; }
+"^"			{ return BITXOR; }
+"%"			{ return MOD; }
+"/"			{ return DIV; }
+"*"			{ return MUL; }
+"-"			{ return SUB; }
+"+"			{ return ADD; }
+"("			{ return OPAREN; }
+")"			{ return CPAREN; }
+";"			{ return SEMICOLON; }
+":"			{ return COLON; }
+"{"			{ return OBRACE; }
+"}"			{ return CBRACE; }
+","			{ return COMMA; }
+"="			{ return ASGN; }
+"["			{ return OBRACK; }
+"]"			{ return CBRACK; }
+\"			{ int i = 1, c = input();
+			  strcpy(strbuf, "\"");
+			  while(i < 2047) {
+			      if(c == '\\') {
+				  strbuf[i++] = c;
+				  strbuf[i++] = input();
+			      } else if (c == '\"') {
+				  strbuf[i++] = c;
+				  strbuf[i] = '\0';
+			          yylval.string=savestr(strbuf);
+				  return STR;
+			      } else if (c == '\n') {
+				  yyerror("missing \"");
+				  break;
+			      } else strbuf[i++] = c;
+			      c = input();
+			  }
+		          if(i == 2046)
+			      yyerror("string to long");
+			}
+.			{ yyerror("Illegal input character"); }
