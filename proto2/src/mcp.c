@@ -831,7 +831,11 @@ mcp_frame_output_mesg(McpFrame *mfr, McpMesg *msg)
         strcat(out, MCP_ARG_DELIMITER);
         strcat(out, MCP_SEPARATOR);
         out += strlen(out);
+#ifdef __CYGWIN__
+        sprintf(datatag, "%.8X", random() ^ random());
+#else
         sprintf(datatag, "%.8lX", random() ^ random());
+#endif
         strcat(out, datatag);
     }
 
@@ -1320,7 +1324,11 @@ mcp_basic_handler(McpFrame *mfr, McpMesg *mesg, void *dummy)
             mcp_mesg_init(&reply, MCP_INIT_PKG, "");
             mcp_mesg_arg_append(&reply, "version", "2.1");
             mcp_mesg_arg_append(&reply, "to", "2.1");
-            sprintf(authval, "%.8lX", random() ^ random());
+#ifdef __CYGWIN__
+            sprintf(authval, "%.8X", random() ^ random());
+#else
+	    sprintf(authval, "%.8lX", random() ^ random());
+#endif
             mcp_mesg_arg_append(&reply, "authentication-key", authval);
             mfr->authkey = (char *) malloc(strlen(authval) + 1);
             strcpy(mfr->authkey, authval);
