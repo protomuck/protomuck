@@ -122,7 +122,7 @@ do_password(dbref player, const char *old, const char *newobj)
     }
 
     if (!DBFETCH(player)->sp.player.password || strcmp(old, DBFETCH(player)->sp.player.password)) {
-	anotify_nolisten2(player, CFAIL "Sorry.");
+	anotify_nolisten2(player, CFAIL "Syntax: @password <oldpass>=<newpass>");
     } else if (!ok_password(newobj)) {
 	anotify_nolisten2(player, CFAIL "Bad new password.");
     } else {

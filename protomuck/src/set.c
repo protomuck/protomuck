@@ -773,19 +773,21 @@ void
 do_unlink(int descr, dbref player, const char *name)
 {
     dbref   exit;
+    char destin[BUFFER_LEN];
     struct match_data md;
-
+   
     if(tp_db_readonly) return;
 
     if(Guest(player)) {
 	anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
 	return;
     }
-
+    strcpy(destin, "*NOTHING*");
     init_match(descr, player, name, TYPE_EXIT, &md);
     match_all_exits(&md);
     match_registered(&md);
     match_here(&md);
+    match_neighbor(&md);
     match_absolute(&md);
     match_player(&md);
     switch (exit = match_result(&md)) {
@@ -808,10 +810,12 @@ do_unlink(int descr, dbref player, const char *name)
 			ts_modifyobject(exit);
 			DBSTORE(exit, sp.exit.ndest, 0);
 			if (DBFETCH(exit)->sp.exit.dest) {
+                            strcpy(destin, unparse_object(player, DBFETCH(exit)->sp.exit.dest[0]));
 			    free((void *) DBFETCH(exit)->sp.exit.dest);
 			    DBSTORE(exit, sp.exit.dest, NULL);
 			}
-			anotify_nolisten2(player, CSUCC "Unlinked.");
+			anotify_fmt(player, CSUCC "%s unlinked from %s.", 
+                            unparse_object(player, exit), destin);
 			if (MLevel(exit)) {
 			    SetMLevel(exit, 0);
 			    anotify_nolisten2(player, CINFO "Action priority Level reset to 0.");
@@ -820,17 +824,20 @@ do_unlink(int descr, dbref player, const char *name)
 		    case TYPE_ROOM:
 			ts_modifyobject(exit);
 			DBSTORE(exit, sp.room.dropto, NOTHING);
-			anotify_nolisten2(player, CSUCC "Dropto removed.");
+			anotify_fmt(player, CSUCC "Dropto removed from %s.", 
+                                    unparse_object(player, exit));
 			break;
 		    case TYPE_THING:
 			ts_modifyobject(exit);
 			DBSTORE(exit, sp.thing.home, OWNER(exit));
-			anotify_nolisten2(player, CSUCC "Thing's home reset to owner.");
+			anotify_fmt(player, CSUCC "%s's home reset to owner.",
+                                            NAME(exit));
 			break;
 		    case TYPE_PLAYER:
 			ts_modifyobject(exit);
 			DBSTORE(exit, sp.player.home, tp_player_start);
-			anotify_nolisten2(player, CSUCC "Player's home reset to default player start room.");
+			anotify_fmt(player, CSUCC "%s's home reset to default player start room.", 
+                                    NAME(exit));
 			break;
 		    default:
 			anotify_nolisten2(player, CFAIL "You can't unlink that!");

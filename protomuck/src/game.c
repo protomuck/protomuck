@@ -578,12 +578,6 @@ process_command(int descr, dbref player, char *command)
 	    *match_cmdname = 0; 
 	    return;
 	}
-      if (prop_command(descr, player, command, full_command, "@command", 1))
-         return;
-      if (prop_command(descr, player, command, full_command, "~command", 1))
-         return;
-      if (prop_command(descr, player, command, full_command, "_command", 1))
-         return;
     }
 
 	if (*command == OVERIDE_TOKEN && TMage(player))
@@ -623,7 +617,14 @@ process_command(int descr, dbref player, char *command)
 
 	strcpy(match_cmdname, command);
 	strcpy(match_args, full_command);
-
+        if (!( *command == OVERIDE_TOKEN && TMage(player) )) {
+           if (prop_command(descr, player, command, full_command, "@command", 1))
+               return;
+           if (prop_command(descr, player, command, full_command, "~command", 1))
+               return;
+           if (prop_command(descr, player, command, full_command, "_command", 1))
+               return;
+        }
 	switch (command[0]) {
 	    case '@':
 		switch (command[1]) {
@@ -1440,8 +1441,9 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
    dbref where = player;
    char propName[BUFFER_LEN];
    char *workBuf;
-   sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);        
-            
+   sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER);
+   strcpy(match_cmdname, command);
+   strcpy(match_args, arg);            
    ptr = envprop_cmds(&where, propName, 0);
    if (!ptr) return 0;
 #ifdef DISKBASE
@@ -1458,8 +1460,6 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
            return 0;
            break;
    }
-   strcpy(match_cmdname, command);
-   strcpy(match_args, arg);
 
    if (workBuf && *workBuf){
       if (*workBuf == '&')
@@ -1471,8 +1471,10 @@ int prop_command(int descr, dbref player, char *command, char *arg, char *type, 
       else {
          if (player < 1)
             notify_descriptor(descr, workBuf);
-         else
+         else {
             notify(player, workBuf);
+            notify(player, "eh");
+         }
          return 1;
       }
    }

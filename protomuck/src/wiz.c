@@ -816,6 +816,7 @@ do_pcreate(dbref player, const char *user, const char *password)
     newguy = create_player(user, password);
     if (newguy == NOTHING) {
 	anotify_nolisten2(player, CFAIL "Create failed.");
+        anotify_nolisten2(player, BOLD "Syntax: @pcreate <name>=<password>");
     } else {
 	log_status("PCRE: %s(%d) by %s(%d)\n",
 		   NAME(newguy), (int) newguy, NAME(player), (int) player);
