@@ -939,9 +939,187 @@ mush_tct( const char *in, char out[BUFFER_LEN] )
     return out;
 }
 
+char *
+parse_tilde_ansi( char *buf, char *from )
+{
+    char *to, color, *ansi;
+    int isbold = 0;
+    to = buf;
+    while(*from) {
+        if ( (*(from) == '~') && (*(from+1) == '&') ) {
+            from += 2;
+            if (!*from) break;
+        
+            if ( (*(from) == '~') && (*(from+1) == '&') ) {
+                /* Escape ~&~& into ~& */ 
+                ansi = "~&";
+                if ( ((to - buf) + strlen(ansi)) < BUFFER_LEN )
+                    while (*ansi) *(to++) = (*(ansi++));
+                from += 2;
+                if (!*from) break;
+            } else if (TildeAnsiDigit(*from)) {
+                char attr;
 
+                /* ~&### pattern */
+                if ( (!from[1]) || (!from[2]) ||
+                   (!TildeAnsiDigit(from[1])) || (!TildeAnsiDigit(from[2])) ) 
+                    continue;
 
+                /* Check for bold or not in first digit. */
+                attr = *from;
+                isbold = (attr == '1')? 1 : 0;
+                from++;
+                if(!*from) break; /* Just double checking */
 
+                /* second position, foreground color */
+                ansi = NULL;
+                switch(*from) { 
+                    case '0': ansi = isbold ? ANSIGLOOM  : ANSIBLACK  ; break;
+                    case '1': ansi = isbold ? ANSIRED    : ANSICRIMSON; break;
+                    case '2': ansi = isbold ? ANSIGREEN  : ANSIFOREST ; break;
+                    case '3': ansi = isbold ? ANSIYELLOW : ANSIBROWN  ; break;
+                    case '4': ansi = isbold ? ANSIBLUE   : ANSINAVY   ; break;
+                    case '5': ansi = isbold ? ANSIPURPLE : ANSIVIOLET ; break;
+                    case '6': ansi = isbold ? ANSICYAN   : ANSIAQUA   ; break;
+                    case '7': ansi = isbold ? ANSIWHITE  : ANSIGRAY   ; break;
+                    case '-':                                           break;
+                }
+                if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN) ) 
+                    while (*ansi) 
+                        *(to++) = (*(ansi++));
 
+                /* Take care of other first position attribute possibiliies. */
+                ansi = NULL;
+                switch(attr) {
+                    case '2': /* Need both to set invert, like old lib-ansi.muf */
+                    case '8':
+                        ansi = ANSIINVERT; break;            
+                    case '5': /* set for blinking foreground */
+                        ansi = ANSIFLASH; break;
 
+                    case '-': /* leave alone */
+                        break;
+                }
+                if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN) ) 
+                    while (*ansi) 
+                        *(to++) = (*(ansi++));
+                from++;
+                if (!*from) break;
+            
+                /* third and last position, background color */
+                ansi = NULL;
+                switch (*from) {
+                    case '0': ansi = ANSIBBLACK  ;  break;
+                    case '1': ansi = ANSIBRED    ;  break;
+                    case '2': ansi = ANSIBGREEN  ;  break;
+                    case '3': ansi = ANSIBBROWN  ;  break;
+                    case '4': ansi = ANSIBBLUE   ;  break;
+                    case '5': ansi = ANSIBPURPLE ;  break;
+                    case '6': ansi = ANSIBCYAN   ;  break;
+                    case '7': ansi = ANSIBGRAY   ;  break;
+                    case '-':                       break;
+                }
+                if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN) ) 
+                    while (*ansi) 
+                        *(to++) = (*(ansi++));
+                from++;
+                if (!*from) break;
 
+            } else {
+                /* The single letter attributes */
+                ansi = NULL;
+                switch(*from) {
+                    case 'r': /* RESET to normal colors. */
+                    case 'R':
+                        ansi = ANSINORMAL; break;
+                    case 'c': /* this used to clear the screen, its retained */
+                    case 'C': /* for parsing only, doesnt actually do it.    */
+                        ansi = "CLS"; break;
+                    case 'b': /* this is for BELL.. or CTRL-G */
+                    case 'B':
+                        ansi = "BEEP"; break;
+                }
+                if (ansi && (((to - buf) + strlen(ansi)) < BUFFER_LEN) ) 
+                    while (*ansi) 
+                        *(to++) = (*(ansi++));
+                from++;
+                if (!*from) break;
+            } 
+        } else *(to++) = (*(from++));
+    }
+    *to ='\0';
+
+    if ((to - buf) + strlen(ANSINORMAL) < BUFFER_LEN)
+        strcat(to, ANSINORMAL);
+    return buf;
+}
+       
+int
+tilde_striplen( const char *word)
+{
+    const char *from;
+    
+    from = word;
+    /* Technically, this test should never even have to be done. */
+    if ( (*(from+0) == '~') && (*(from+1) == '&') &&
+         (*(from+3) == '~') && (*(from+4) == '&') )
+        return 4;
+    else if ( (*(from+0) == '~') && (*(from+1) == '&') ) {
+        from += 2;
+        if (*from) {
+            if (TildeAnsiDigit(*from)) { /* Eat 3 digit pattern */
+                if (from[1] && from[2] &&
+                    TildeAnsiDigit(from[1]) &&
+                    TildeAnsiDigit(from[2]) )
+                    from += 3;
+            } else from++; /* Eat 1 character pattern */
+        }
+    }
+    return from - word; /* Return the length of the ansi word. */
+}
+
+char *
+unparse_tilde_ansi ( char *buf, char *from ) 
+{
+    /* If escaped tilde ansi, take off first pair of ~& */
+    /* Otherwise remove # of characters according to tilde_striplen*/
+    int count;
+    char *to;
+    
+    to = buf;
+    while (*from) {
+        if ( (*(from+0) == '~') && (*(from+1) == '&') &&
+             (*(from+2) == '~') && (*(from+3) == '&') ) {
+            from += 2;
+            *(to++) = (*(from++));
+            *(to++) = (*(from++));
+        } else if ( (*from == '~') && (*(from+1) == '&') ) {
+            count = tilde_striplen(from);
+            if ((count > 0) && (count <= strlen(from)) ) 
+                from += count;
+            else 
+                break;
+        } else *(to++) = (*(from++));
+    }
+    *to = '\0';
+    return buf;
+}
+        
+char *
+tilde_tct( const char *in, char out[BUFFER_LEN])
+{
+    char *p = out;
+    if (!(in) || !(out)) {
+        return out;
+    }
+  
+    if (in && (*in))
+        while ( *in && (p - out < (BUFFER_LEN - 3)) )
+            if ( ((*(p++) = (*(in++)) ) == '~') &&
+                 ((*(p++) = (*(in++)) ) == '&') ) {
+                *(p++) = '~';
+                *(p++) = '&';
+            }
+    *p = '\0';
+    return out;
+}
