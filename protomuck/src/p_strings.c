@@ -33,6 +33,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
 	int slen, scnt, tstop, tlen, tnum, i;
 	int slrj, spad1, spad2, slen1, slen2, temp;
 	char sstr[BUFFER_LEN], sfmt[255], hold[256], tbuf[BUFFER_LEN];
+	char *ptr, *begptr;
 
 	CHECKOP(1);
 	oper1 = POP();
@@ -97,7 +98,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
 						slen1 = oper2->data.number;
 						CLEAR(oper2);
 					} else {
-						slen1 = -1;
+						slen1 = 0;
 					}
 				}
 				if (sstr[scnt] == '.') {
@@ -113,6 +114,8 @@ prim_fmtstring(PRIM_PROTOTYPE)
 							oper2 = POP();
 							if (oper2->type != PROG_INTEGER)
 								abort_interp("Format specified integer argument not found.");
+								if (oper2->data.number < 0)
+								    abort_interp("Dynamic precision value must be a positive integer.");
 							slen2 = oper2->data.number;
 							CLEAR(oper2);
 						} else {
@@ -122,7 +125,34 @@ prim_fmtstring(PRIM_PROTOTYPE)
 				} else {
 					slen2 = -1;
 				}
-				if ((slen1 > 0) && ((slen1 + result) > BUFFER_LEN))
+				/* ANSI handling */
+				CHECKOP(1);
+				oper2 = POP();
+				if(('s' == sstr[scnt]) && (PROG_STRING == oper2->type) && (oper2->data.string)) {
+				ptr = oper2->data.string->data;
+
+				i = 0;
+				while ((-1 == slen2 || i < slen2) && *ptr) {
+				    begptr = ptr;
+				    if (*ptr++ == ESCAPE_CHAR) {
+				        if (*ptr == '\0') {;
+					} else if (*ptr != '[') {
+					    ptr++;
+				        } else {
+					    ptr++;
+					    while(isdigit(*ptr) || *ptr == ';')
+					        ptr++;
+				            if(*ptr == 'm')
+					        ptr++;
+				        }
+					i += (int)(ptr - begptr);
+					slen1 += (int)(ptr - begptr);
+					if(-1 != slen2) 
+					    slen2 +=(int) (ptr - begptr);
+		                   } else {++i;};
+				}
+				}
+				if ((slen1 > 0) && ((abs(slen1) + result) > BUFFER_LEN))
 					abort_interp("Specified format field width too large.");
 				sfmt[0] = '%';
 				sfmt[1] = '\0';
@@ -136,7 +166,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
 				}
 				if (spad2)
 					strcat(sfmt, "0");
-				if (slen1 != -1) {
+				if (slen1 != 0) {
 					sprintf(tbuf, "%d", slen1);
 					strcat(sfmt, tbuf);
 				}
@@ -144,8 +174,6 @@ prim_fmtstring(PRIM_PROTOTYPE)
 					sprintf(tbuf, ".%d", slen2);
 					strcat(sfmt, tbuf);
 				}
-				CHECKOP(1);
-				oper2 = POP();
 				if (sstr[scnt] == '~') {
 					switch (oper2->type) {
 					case PROG_OBJECT:
@@ -194,6 +222,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
 					result += tlen;
 					CLEAR(oper2);
 					break;
+		                case 'S':
 				case 's':
 					strcat(sfmt, "s");
 					if (oper2->type != PROG_STRING)
@@ -2495,12 +2524,13 @@ prim_power_2char(PRIM_PROTOTYPE)
 	PushString(buf);
 }
 
-  void 
-   prim_array_fmtstrings(PRIM_PROTOTYPE) 
-   { 
+void 
+prim_array_fmtstrings(PRIM_PROTOTYPE) 
+{ 
            int slen, scnt, tstop, tlen, tnum, i; 
            int slrj, spad1, spad2, slen1, slen2, temp; 
            char sstr[BUFFER_LEN], sfmt[255], hold[256], tbuf[BUFFER_LEN]; 
+	   char *ptr, *begptr;
            char fieldbuf[BUFFER_LEN]; 
            char *fieldname = fieldbuf; 
            char *fmtstr = NULL; 
@@ -2582,8 +2612,6 @@ prim_power_2char(PRIM_PROTOTYPE)
                                                    } else { 
                                                            slen2 = -1; 
                                                    } 
-                                                   if ((slen1 > 0) && ((slen1 + result) > BUFFER_LEN)) 
-                                                           abort_interp("Specified format field width too large."); 
     
                                                    if (sstr[scnt] == '[') { 
                                                            scnt++; 
@@ -2615,10 +2643,36 @@ prim_power_2char(PRIM_PROTOTYPE)
                                                                    temp3.type = PROG_STRING; 
                                                                    temp3.data.string = NULL; 
                                                                    oper3 = &temp3; 
+								   nargs = 3;
                                                            } 
                                                    } else { 
                                                            abort_interp("Specified format field didn't have an array index."); 
-                                                   } 
+                                                   } /*ANSI HANDLING CODE */
+                                			CHECKOP(1);
+                                			oper2 = POP();
+                                			if(('s' == sstr[scnt]) && (PROG_STRING == oper2->type) && (oper2->data.string)) {
+                                				ptr = oper2->data.string->data;
+								i = 0;
+                                				while ((-1 == slen2 || i < slen2) && *ptr) {
+                                    				begptr = ptr;
+                                    				if (*ptr++ == ESCAPE_CHAR) {
+                                        			if (*ptr == '\0') {;
+                                        			} else if (*ptr != '[') {
+                                            				ptr++;
+                                        			} else {
+                                            				ptr++;
+                                            				while(isdigit(*ptr) || *ptr == ';')
+                                                			ptr++;
+                                            				if(*ptr == 'm')
+                                                				ptr++;
+                                        			}
+                                        			i += (int)(ptr - begptr);
+                                        			slen1 += (int)(ptr - begptr);
+                                        			if(-1 != slen2)
+                                            			slen2 +=(int) (ptr - begptr);
+                                   				} else {++i;};
+                               				 }  
+                                		}
                                                    sfmt[0] = '%'; 
                                                    sfmt[1] = '\0'; 
                                                    if (slrj == 1) 
@@ -2691,7 +2745,7 @@ prim_power_2char(PRIM_PROTOTYPE)
                                                            if (oper3->type != PROG_STRING) 
                                                                    abort_interp("Format specified string argument not found."); 
                                                            sprintf(tbuf, sfmt, 
-                                                                           ((oper3->data.string) ? oper3->data.string->data : "")); 
+							           DoNullInd(oper3->data.string));
                                                            tlen = strlen(tbuf); 
                                                            if (slrj == 2) { 
                                                                    tnum = 0; 
@@ -2806,7 +2860,6 @@ prim_power_2char(PRIM_PROTOTYPE)
                                                            buf[result] = '\0'; 
                                                            strcat(buf, tbuf); 
                                                            result += strlen(tbuf); 
-                                                           CLEAR(oper3); 
                                                            break; 
                                                    case 'D': 
                                                            strcat(sfmt, "s"); 
@@ -2840,7 +2893,6 @@ prim_power_2char(PRIM_PROTOTYPE)
                                                            buf[result] = '\0'; 
                                                            strcat(buf, tbuf); 
                                                            result += strlen(tbuf); 
-                                                           CLEAR(oper3); 
                                                            break; 
                                                    case 'l': 
                                                            strcat(sfmt, "s"); 
@@ -2899,6 +2951,7 @@ prim_power_2char(PRIM_PROTOTYPE)
                                                            abort_interp("Invalid format string."); 
                                                            break; 
                                                    } 
+						   nargs = 2;
                                                    scnt++; 
                                                    tstop += strlen(tbuf); 
                                            } 
@@ -2935,8 +2988,11 @@ prim_power_2char(PRIM_PROTOTYPE)
                            temp2.type = PROG_STRING; 
                            temp2.data.string = alloc_prog_string(buf); 
                            array_appenditem(&nu, &temp2); 
+			   CLEAR(&temp2);
                    } while (array_next(arr, &temp1)); 
            } 
+	   CLEAR(oper1);
+	   CLEAR(oper2);
     
            PushArrayRaw(nu); 
    } 

@@ -437,6 +437,7 @@ struct muf_proc_data {
     char *procname;
 	int vars;
 	int args;
+	const char **varnames;
 };
 
 struct inst {			/* instruction */
@@ -514,6 +515,7 @@ struct debuggerdata {
     unsigned bypass:1;      /* if set, bypass breakpoint on starting instr */
     unsigned isread:1;      /* if set, the prog is trying to do a read */
     unsigned showstack:1;   /* if set, show stack debug line, each inst. */
+    unsigned dosyspop:1;    /* if set, fix system stack before returning */
     int lastlisted;         /* last listed line */
     char *lastcmd;          /* last executed debugger command */
     short breaknum;         /* the breakpoint that was just caught on */
@@ -535,6 +537,7 @@ struct debuggerdata {
 
 struct scopedvar_t {
       int count;
+      const char** varnames;
       struct scopedvar_t *next;
       struct inst vars[1];
 };

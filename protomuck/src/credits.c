@@ -64,10 +64,8 @@ const char *infotext[] =
     CCYAN "Feel free to check ProtoMUCK's webpage at the following address:",
     CAQUA "http://protomuck.sourceforge.net/",
     " ",
-    CBLUE "The Pueblo multimedia protocol is (C)Chaco Communications.",
-    CBLUE "http://www.chaco.com/pueblo for more information.",
     CBLUE "The recommended client by us for any mu* server is BeipMU*.",
-    CBLUE "http://beipmu.twu.net/ for more information.",
+    CBLUE "http://beipmu.nefastis.net for more information.",
     0,
 };
 

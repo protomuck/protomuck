@@ -1227,53 +1227,53 @@ prim_getlink(PRIM_PROTOTYPE)
 void
 prim_getlinks(PRIM_PROTOTYPE)
 {
-	int i, count;
-      dbref ref2;
+    int i, count;
+    dbref ref2;
 
-	CHECKOP(1);
-	oper1 = POP();
-	if (!valid_object(oper1))
-		abort_interp("Invalid object.");
-	CHECKREMOTE(oper1->data.objref);
-	if (Typeof(oper1->data.objref) == TYPE_PROGRAM)
-		abort_interp("Illegal object referenced.");
-      ref2 = oper1->data.objref;
-	CLEAR(oper1);
-	switch (Typeof(ref2)) {
-	case TYPE_EXIT:
-		count = DBFETCH(ref2)->sp.exit.ndest;
-		for (i = 0; i < count; i++) {
-			PushObject((DBFETCH(ref2)->sp.exit.dest)[i]);
-		}
-		PushInt(count);
-		break;
+    CHECKOP(1);
+    oper1 = POP();
+    if (!valid_object(oper1))
+        abort_interp("Invalid object.");
+    CHECKREMOTE(oper1->data.objref);
+    if (Typeof(oper1->data.objref) == TYPE_PROGRAM)
+        abort_interp("Illegal object referenced.");
+    ref2 = oper1->data.objref;
+    CLEAR(oper1);
+    switch (Typeof(ref2)) {
+        case TYPE_EXIT:
+            count = DBFETCH(ref2)->sp.exit.ndest;
+            for (i = 0; i < count; i++) {
+                PushObject((DBFETCH(ref2)->sp.exit.dest)[i]);
+            }
+            PushInt(count);
+             break;
 	case TYPE_PLAYER:
- 	      ref = DBFETCH(ref2)->sp.player.home;
-		count = 1;
-		PushObject(ref);
-		PushInt(count);
-		break;
+ 	    ref = DBFETCH(ref2)->sp.player.home;
+            count = 1;
+	    PushObject(ref);
+	    PushInt(count);
+	    break;
 	case TYPE_THING:
-	      ref = DBFETCH(ref2)->sp.thing.home;
-		count = 1;
-		PushObject(ref);
-		PushInt(count);
-		break;
+	    ref = DBFETCH(ref2)->sp.thing.home;
+	    count = 1;
+            PushObject(ref);
+            PushInt(count);
+            break;
 	case TYPE_ROOM:
-		ref = DBFETCH(ref2)->sp.room.dropto;
-		if (ref != NOTHING) {
-			count = 0;
-			PushInt(count);
-		} else {
-			count = 1;
-			PushObject(ref);
-			PushInt(count);
-		}
-		break;
+            ref = DBFETCH(ref2)->sp.room.dropto;
+            if (ref != NOTHING) {
+                count = 0;
+	        PushInt(count);
+            } else {
+                count = 1;
+                PushObject(ref);
+                PushInt(count);
+            }
+            break;
 	default:
-		count = 0;
-		PushInt(count);
-		break;
+            count = 0;
+            PushInt(count);
+            break;
 	}
 }
 

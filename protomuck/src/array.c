@@ -527,7 +527,7 @@ new_array_packed(int size)
 	}
 
 	new2 = new_array();
-	new2->items = size;
+	new2->items = (short int)size;
 	new2->type = ARRAY_PACKED;
 	if (size < 1)
 		size = 1;

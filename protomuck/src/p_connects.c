@@ -1264,3 +1264,22 @@ prim_bandwidth(PRIM_PROTOTYPE)
     PushInt(bytesOut);
     PushInt(commandTotal);
 }
+
+void
+prim_descrbufsize(PRIM_PROTOTYPE)
+{
+    /* int -- int */
+    CHECKOP(1);
+    oper1 = POP();
+    if (mlev < 3)
+        abort_interp("Mucker level 3 prim.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Argument not an integer (1).");
+
+    result = pdescrbufsize(oper1->data.number);
+    if (result < 0)
+        abort_interp("Invalid descriptor number (1).");
+
+    CLEAR(oper1);
+    PushInt(result);
+}

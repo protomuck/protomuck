@@ -522,6 +522,8 @@ include_internal_defs(COMPSTATE * cstat)
 	insert_def(cstat, "}list", "} array_make");
 	insert_def(cstat, "}dict", "}  2 / array_make_dict");
         insert_def(cstat, "}join", "} array_make \"\" array_join");
+        insert_def(cstat, "}tell", 
+                          "} array_make me @ 1 array_make array_notify");
 	insert_def(cstat, "[]", "array_getitem");
 	insert_def(cstat, "->[]", "array_setitem");
 	insert_def(cstat, "[..]", "array_getrange");
@@ -1889,6 +1891,8 @@ process_special(COMPSTATE * cstat, const char *token)
 		nw->in.data.mufproc->procname = string_dup(proc_name);
 		nw->in.data.mufproc->vars = 0;
 		nw->in.data.mufproc->args = 0;
+                nw->in.data.mufproc->varnames = NULL;
+                nw->in.data.mufproc->varnames = NULL;
 
 		cstat->curr_proc = nw;
 
@@ -1901,7 +1905,7 @@ process_special(COMPSTATE * cstat, const char *token)
 			do {
 				varspec = next_token(cstat);
 				if (!varspec)
-					abort_compile(cstat, "Unexpected end of file within procedure.");
+					abort_compile(cstat, "Unexpected end of file within procedure arguments declaration.");
 
 				if (!strcmp(varspec, "]")) {
 					argsdone = 1;
@@ -1914,11 +1918,15 @@ process_special(COMPSTATE * cstat, const char *token)
 					} else {
 						varname = varspec;
 					}
-					if (add_scopedvar(cstat, varname, PROG_UNTYPED) < 0)
-						abort_compile(cstat, "Variable limit exceeded.");
+					if (*varname) {
+					    if (add_scopedvar(cstat, varname, 
+					              PROG_UNTYPED) < 0)
+						abort_compile(cstat, 
+                                                   "Variable limit exceeded.");
 
-					nw->in.data.mufproc->vars++;
-					nw->in.data.mufproc->args++;
+					    nw->in.data.mufproc->vars++;
+					    nw->in.data.mufproc->args++;
+                                        }
 				}
                                 if (varspec)
                                     free((void *) varspec);
@@ -1929,22 +1937,26 @@ process_special(COMPSTATE * cstat, const char *token)
 
 		return nw;
 	} else if (!string_compare(token, ";")) {
-		int i;
+		int i, varcnt;
 
 		if (cstat->control_stack)
 			abort_compile(cstat, "Unexpected end of procedure definition.");
 		if (!cstat->curr_proc)
 			abort_compile(cstat, "Procedure end without body.");
-		cstat->curr_proc = 0;
 		nw = new_inst(cstat);
 		nw->no = cstat->nowords++;
 		nw->in.type = PROG_PRIMITIVE;
 		nw->in.line = cstat->lineno;
 		nw->in.data.number = IN_RET;
-		for (i = 0; i < MAX_VAR && cstat->scopedvars[i]; i++) {
-			free((void *) cstat->scopedvars[i]);
+		varcnt = cstat->curr_proc->in.data.mufproc->vars;
+		cstat->curr_proc->in.data.mufproc->varnames =
+		             (const char**)calloc(varcnt, sizeof(char*));
+		for (i = 0; i < varcnt; ++i) {
+	                  cstat->curr_proc->in.data.mufproc->varnames[i] =
+			        cstat->scopedvars[i];
 			cstat->scopedvars[i] = 0;
 		}
+		cstat->curr_proc = 0;
 		return nw;
 	} else if (!string_compare(token, "IF")) {
 		nw = new_inst(cstat);
@@ -3083,6 +3095,7 @@ append_intermediate_chain(struct INTERMEDIATE *chain, struct INTERMEDIATE *add)
 void
 free_intermediate_chain(struct INTERMEDIATE *wd)
 {
+        int varcnt, j;
 	struct INTERMEDIATE* tempword;
 	while (wd) {
 		tempword = wd->next;
@@ -3092,6 +3105,12 @@ free_intermediate_chain(struct INTERMEDIATE *wd)
 		}
 		if (wd->in.type == PROG_FUNCTION) {
 			free((void*)wd->in.data.mufproc->procname);
+			varcnt = wd->in.data.mufproc->vars;
+                        if (wd->in.data.mufproc->varnames) { 
+			    for (j = 0; j < varcnt; ++j)
+			        free((void*)wd->in.data.mufproc->varnames[j]);
+			    free((void*)wd->in.data.mufproc->varnames);
+                        }
 			free((void*)wd->in.data.mufproc);
 		}
 		free((void *) wd);
@@ -3153,7 +3172,7 @@ copy_program(COMPSTATE * cstat)
 	 */
 	struct INTERMEDIATE *curr;
 	struct inst *code;
-	int i;
+	int i, j, varcnt;
 
 	if (!cstat->first_word)
 		v_abort_compile(cstat, "Nothing to compile.");
@@ -3182,10 +3201,24 @@ copy_program(COMPSTATE * cstat)
 					alloc_prog_string(curr->in.data.string->data) : 0;
 			break;
 		case PROG_FUNCTION:
-			code[i].data.mufproc = (struct muf_proc_data*)malloc(sizeof(struct muf_proc_data));
-			code[i].data.mufproc->procname = string_dup(curr->in.data.mufproc->procname);
-			code[i].data.mufproc->vars = curr->in.data.mufproc->vars;
-			code[i].data.mufproc->args = curr->in.data.mufproc->args;
+			code[i].data.mufproc = (struct muf_proc_data*)malloc(
+			                        sizeof(struct muf_proc_data));
+			code[i].data.mufproc->procname = string_dup(
+                                             curr->in.data.mufproc->procname);
+			code[i].data.mufproc->vars = varcnt =  
+                                                  curr->in.data.mufproc->vars;
+			code[i].data.mufproc->args = 
+                                                  curr->in.data.mufproc->args;
+                        if (curr->in.data.mufproc->varnames) {
+                            code[i].data.mufproc->varnames = 
+                                      (const char**)calloc(varcnt, 
+                                                            sizeof(char*));
+                            for (j = 0; j < varcnt; ++j)
+                                code[i].data.mufproc->varnames[j] = string_dup(
+                                    curr->in.data.mufproc->varnames[j]);
+                        } else { 
+                            code[i].data.mufproc->varnames = NULL;
+                        }
 			break;
 		case PROG_OBJECT:
 			code[i].data.objref = curr->in.data.objref;
@@ -3328,7 +3361,7 @@ long
 size_prog(dbref prog)
 {
 	struct inst *c;
-	long i, siz, byts = 0;
+	long i, j, varcnt, siz, byts = 0;
 
 	c = DBFETCH(prog)->sp.program.code;
 	if (!c)
@@ -3338,6 +3371,13 @@ size_prog(dbref prog)
 		byts += sizeof(*c);
 		if (c[i].type == PROG_FUNCTION) {
 			byts += strlen(c[i].data.mufproc->procname) + 1;
+                        varcnt = c[i].data.mufproc->vars;
+                        if (c[i].data.mufproc->varnames) {
+                            for (j = 0; j < varcnt; ++j)
+                                byts += strlen(c[i].data.mufproc->varnames[j]) 
+                                        +1;
+                            byts += sizeof(char**) * varcnt;
+                        }
 			byts += sizeof(struct muf_proc_data);
 		} else if (c[i].type == PROG_STRING && c[i].data.string) {
 			byts += strlen(c[i].data.string->data) + 1;
