@@ -644,21 +644,29 @@ prim_socksecure(PRIM_PROTOTYPE)
         abort_interp("SOCKET arguement expected.");
     if (oper1->data.sock->listening)
         abort_interp("SOCKET must not be a listening socket.");
-
     if (oper1->data.sock->connected) {
-        oper1->data.sock->ssl_session = SSL_new(ssl_ctx_client);
-        SSL_set_fd(oper1->data.sock->ssl_session, oper1->data.sock->socknum);
-        ssl_error = SSL_connect(oper1->data.sock->ssl_session);
-        if (ssl_error <= 0) {
-            ssl_error = SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
-            result = (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) 
-                     ? ssl_error : 0;
+        if (oper1->data.sock->ssl_session) {
+	    ssl_error = SSL_renegotiate(oper1->data.sock->ssl_session);
+	    if (ssl_error <= 0) {
+	        ssl_error = SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
+	        result = (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) 
+	                 ? ssl_error : 0;
+            } else
+		result = 0;
         } else {
-    	    result = 0;
-        }
+	    oper1->data.sock->ssl_session = SSL_new(ssl_ctx_client);
+	    SSL_set_fd(oper1->data.sock->ssl_session, oper1->data.sock->socknum);
+	    ssl_error = SSL_connect(oper1->data.sock->ssl_session);
+	    if (ssl_error <= 0) {
+	        ssl_error = SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
+	        result = (ssl_error != SSL_ERROR_WANT_READ && ssl_error != SSL_ERROR_WANT_WRITE) 
+	                 ? ssl_error : 0;
+	    } else
+		result = 0;
+	}
     } else
-	result = -1;
-
+        result = -1;
+   
     CLEAR(oper1);
     PushInt(result);
 #endif /* SSL_SOCKETS && USE_SSL */
@@ -680,14 +688,14 @@ prim_sockunsecure(PRIM_PROTOTYPE)
         abort_interp("SOCKET arguement expected.");
     if (oper1->data.sock->listening)
         abort_interp("SOCKET must not be a listening socket.");
-
+ 
     if (oper1->data.sock->connected) {
         if (oper1->data.sock->ssl_session) {
 	    if (SSL_shutdown(oper1->data.sock->ssl_session) < 1)
                 SSL_shutdown(oper1->data.sock->ssl_session);
-	    SSL_free(oper1->data.sock->ssl_session);
-        }
+        SSL_free(oper1->data.sock->ssl_session);
 	oper1->data.sock->ssl_session = NULL;
+        }
     }
     CLEAR(oper1);
 #endif /* SSL_SOCKETS && USE_SSL */

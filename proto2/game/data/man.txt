@@ -9739,3 +9739,45 @@ If MAX_IGNORES is 0, ignore support isnt compiled in, setting @/ignore will
 do nothing, and none of the ignore prims but this one will work.
 
 See: HELP IGNORE
+~~~
+SOCKSECURE
+
+socksecure ( socket -- i )
+----------
+Level: W4 boy
+socket = A socket connected to an SSL supported connection
+     i = 0 if connected, -1 if disconnected, >0 for other SSL errors
+
+Attempts to secure a connection using SSL.  The remote end must support SSL
+or SSL negotiation.  If successful, this returns 0.
+
+See: SOCKUNSECURE
+~~~
+SOCKUNSECURE
+
+sockunsecure ( socket -- )
+------------
+Level: W4 boy
+socket = A socket.
+
+Attempts to unsecure a connection with an SSL session open.  Does not and 
+cannot return a result.  Will do nothing on an insecure connection, on an
+SSL connection, it shuts down the SSL session, which, if the connection 
+supports it, can continue unsecured.
+
+See: SOCKSECURE
+~~~
+SSL_SOCKACCEPT
+
+ssl_sockaccept ( lsocket -- socket or 0 or errorstring )
+--------------
+Level: W4 Boy
+lsocket = A listening socket as created by lsockopen
+socket = A traditional send/recieve MUF socket.
+
+Works just like sockaccept, except it will immediately try to negotiate
+SSL with the client connecting.
+
+A socket is returned if an SSL session can be established.
+0 is returned if theres no connections in the queue.
+A string 'SSLerr: #' is returned if SSL couldnt be negotiated.
