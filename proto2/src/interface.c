@@ -159,6 +159,9 @@ bool db_decompression_flag = 0;
 bool wizonly_mode = 0;
 bool verboseload = 0;
 
+/* binding support */
+int bind_to;
+
 time_t sel_prof_start_time;
 long sel_prof_idle_sec;
 long sel_prof_idle_usec;
@@ -293,6 +296,8 @@ show_program_usage(char *prog)
     fprintf(stderr,
             "       -port NUMBER      sets the port number to listen for connections on.\n");
     fprintf(stderr,
+            "       -bind IP          bind ProtoMUCK to a specific IP\n");
+    fprintf(stderr,
             "       -gamedir PATH     changes directory to PATH before starting up.\n");
     fprintf(stderr,
             "       -convert          load db, save in current format, and quit.\n");
@@ -374,6 +379,7 @@ main(int argc, char **argv)
     sanity_skip = 0;
     sanity_interactive = 0;
     sanity_autofix = 0;
+    bind_to = INADDR_ANY;
 #ifdef USE_PS
     save_ps_display_args(argc, argv);
 #endif /* USE_PS */
@@ -414,6 +420,16 @@ main(int argc, char **argv)
                     show_program_usage(*argv);
                 }
                 resolver_myport = atoi(argv[++i]);
+            } else if (!strcmp(argv[i], "-bind")) {
+                if (i + 1 >= argc) {
+                    show_program_usage(*argv);
+                }
+                bind_to = str2ip(argv[++i]);
+		if (bind_to == -1) {
+                    bind_to = INADDR_ANY;
+                } else {
+                    bind_to = ntohl(bind_to);
+                }
             } else if (!strcmp(argv[i], "-gamedir")) {
                 if (i + 1 >= argc) {
                     show_program_usage(*argv);
@@ -2705,7 +2721,7 @@ make_socket(int port)
         exit(1);
     }
     server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
+    server.sin_addr.s_addr = bind_to;
     server.sin_port = (int) htons(port);
     if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
         perror("binding stream socket");
