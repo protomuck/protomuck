@@ -48,25 +48,30 @@ extern void prim_array_cut(PRIM_PROTOTYPE);
 extern void prim_array_compare(PRIM_PROTOTYPE);
 extern void prim_array_interpret(PRIM_PROTOTYPE);
 
+extern void prim_array_nested_get(PRIM_PROTOTYPE);
+extern void prim_array_nested_set(PRIM_PROTOTYPE);
+extern void prim_array_nested_del(PRIM_PROTOTYPE);
+
 extern void prim_array_filter_flags(PRIM_PROTOTYPE);
 
-#define PRIMS_ARRAY_FUNCS prim_array_make, prim_array_make_dict,             \
-        prim_array_explode, prim_array_vals, prim_array_keys,                \
-        prim_array_first, prim_array_last, prim_array_next, prim_array_prev, \
-        prim_array_count, prim_array_getitem, prim_array_setitem,            \
-        prim_array_insertitem, prim_array_getrange, prim_array_setrange,     \
-        prim_array_insertrange, prim_array_delitem, prim_array_delrange,     \
-        prim_array_n_union, prim_array_n_intersection,                       \
-        prim_array_n_difference, prim_array_notify, prim_array_reverse,      \
-        prim_array_get_propvals, prim_array_get_propdirs,                    \
-        prim_array_get_proplist, prim_array_put_propvals,                    \
-        prim_array_put_proplist, prim_array_get_reflist,                     \
-        prim_array_put_reflist, prim_array_appenditem, prim_array_findval,   \
-        prim_array_excludeval, prim_explode_array, prim_array_sort,          \
-        prim_array_ansi_notify, prim_array_notify_html, prim_array_join,     \
-        prim_array_matchkey, prim_array_matchval, prim_array_extract,        \
-        prim_array_cut, prim_array_compare, prim_array_sort_indexed,         \
-        prim_array_interpret, prim_array_filter_flags
+#define PRIMS_ARRAY_FUNCS prim_array_make, prim_array_make_dict,              \
+        prim_array_explode, prim_array_vals, prim_array_keys,                 \
+        prim_array_first, prim_array_last, prim_array_next, prim_array_prev,  \
+        prim_array_count, prim_array_getitem, prim_array_setitem,             \
+        prim_array_insertitem, prim_array_getrange, prim_array_setrange,      \
+        prim_array_insertrange, prim_array_delitem, prim_array_delrange,      \
+        prim_array_n_union, prim_array_n_intersection,                        \
+        prim_array_n_difference, prim_array_notify, prim_array_reverse,       \
+        prim_array_get_propvals, prim_array_get_propdirs,                     \
+        prim_array_get_proplist, prim_array_put_propvals,                     \
+        prim_array_put_proplist, prim_array_get_reflist,                      \
+        prim_array_put_reflist, prim_array_appenditem, prim_array_findval,    \
+        prim_array_excludeval, prim_explode_array, prim_array_sort,           \
+        prim_array_ansi_notify, prim_array_notify_html, prim_array_join,      \
+        prim_array_matchkey, prim_array_matchval, prim_array_extract,         \
+        prim_array_cut, prim_array_compare, prim_array_sort_indexed,          \
+        prim_array_interpret, prim_array_filter_flags, prim_array_nested_get, \
+	prim_array_nested_set, prim_array_nested_del
 
 #define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT",        \
         "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS",              \
@@ -84,7 +89,8 @@ extern void prim_array_filter_flags(PRIM_PROTOTYPE);
         "ARRAY_ANSI_NOTIFY", "ARRAY_NOTIFY_HTML", "ARRAY_JOIN",   \
         "ARRAY_MATCHKEY", "ARRAY_MATCHVAL", "ARRAY_EXTRACT",      \
         "ARRAY_CUT", "ARRAY_COMPARE", "ARRAY_SORT_INDEXED",       \
-        "ARRAY_INTERPRET", "ARRAY_FILTER_FLAGS"
+        "ARRAY_INTERPRET", "ARRAY_FILTER_FLAGS",                  \
+	"ARRAY_NESTED_GET", "ARRAY_NESTED_SET",                   \
+	"ARRAY_NESTED_DEL"
 
-#define PRIMS_ARRAY_CNT 46
-
+#define PRIMS_ARRAY_CNT 49

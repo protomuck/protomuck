@@ -9682,11 +9682,12 @@ be sent over a connection that is not 8 bit clean.
 Base64Encode converts binary to Base64 ASCII ...
 Base64Decode converts it back to binary
 ~~~
-SQUELCH
+IGNORE_ADD
 
-SQUELCH ( d1 d2 -- )
--------
+IGNORE_ADD ( d1 d2 -- )
+----------
 Level: W3 Archwizard
+
 d1 = playing wanting to ignore someone
 d2 = player to be ignored
 
@@ -9694,11 +9695,12 @@ Adds d2 to d1's ignore list.
 
 See: HELP IGNORE
 ~~~
-UNSQUELCH
+IGNORE_DEL
 
-unsquelch ( d1 d2 -- )
----------
+IGNORE_DEL ( d1 d2 -- )
+----------
 Level: W3 Archwizard
+
 d1 = player wanting to remove the ignore
 d2 = player to be removed from ignore
 
@@ -9708,9 +9710,10 @@ See: HELP IGNORE
 ~~~
 IGNORING?
 
-squelched? ( d1 d2 -- )
-----------
+ignoring? ( d1 d2 -- )
+---------
 Level: W3 Archwizard
+
 d1 = player to be tested
 d2 = player being checked
 
@@ -9719,11 +9722,12 @@ The returned value corresponds to its exact position in the string.
 
 See: HELP IGNORE
 ~~~
-IGNORE_ARRAY 
+ARRAY_GET_IGNORELIST
 
-squelch_array ( d -- a )
--------------
+array_get_ignorelist ( d -- a )
+--------------------
 Level: W3 Archwizard
+
 d = player to get the ignore array from
 a = array of players on the list
 
@@ -9738,6 +9742,7 @@ MAX_IGNORES
 max_ignores ( -- i )
 -----------
 Level: M1 Apprentice
+
 i = number of ignores compiled into the MUCK, or 0 if not compiled on
 
 Returns the maximum number of ignores that have been compiled in.
@@ -9790,3 +9795,98 @@ SSL with the client connecting.
 A socket is returned if an SSL session can be established.
 0 is returned if theres no connections in the queue.
 A string 'SSLerr: #' is returned if SSL couldnt be negotiated.
+~~~
+ARRAY_NESTED_GET
+
+array_nested_get ( a1 a2 -- ? )
+----------------
+Level: M1 Apprentice
+
+Takes a nested array a1, and a list of array indexes a2, and recursively
+fetches nested sub-array values.  Returns 0 if the item doesn't exist.
+Example:
+    arr1 @ { "foo" 2 "bar" }list array_nested_get
+
+is roughly equivalent to:
+    arr1 @ "foo" [] dup if
+        2 [] dup if
+            "bar" []
+        then
+    then
+~~~
+ARRAY_NESTED_SET
+
+array_nested_set ( ? a a2 -- a' )
+----------------
+Level: M1 Apprentice
+
+  Sets the nested array entry in a, specified by the list of array indexes
+in a2, to the given value, creating new sub-arrays if needed.
+
+Example:
+    { }dict
+    "qux" swap { "foo" "bar" "baz" }list array_nested_set
+    4 swap { "foo" 2 "clam" }list array_nested_set
+
+would return the same array as:
+    {
+        "foo" {
+            "bar" {
+                "baz" "qux"
+            }dict
+            2 {
+                "clam" 4
+            }dict
+        }dict
+    }dict
+~~~
+ARRAY_NESTED_DEL
+
+array_nested_del ( a a2 -- a' )
+----------------
+Level: M1 Apprentice
+
+Deletes the nested array entry in a, specified by the list of array
+indexes in a2.  
+
+Example:
+    {
+        "foo" {
+            "bar" {
+                "baz" "qux"
+            }dict
+            2 {
+                "clam" 4
+            }dict
+        }dict
+    }dict
+    { "foo" 2 }list array_nested_del
+
+would return the same array as:
+    {
+        "foo" {
+            "bar" {
+                "baz" "qux"
+            }dict
+        }dict
+    }dict
+~~~
+CATCH_DETAILED
+
+catch_detailed ( -- dict )
+--------------
+Level: M1 Apprentice
+
+Used in place of catch, it returns a dictionary of values relating to the 
+error that occured in the MUF code.
+
+  The CATCH_DETAILED statement can be used in place of the CATCH statement.
+It behaves identically to CATCH, except it pushes a dictionary onto the
+stack, instead of a string.  This dictionary holds much more detailed
+information about the thrown exception.  The following dictionary entries
+are currently supported:
+
+    "error"    The error message string, like what CATCH returns.
+    "instr"    The name string of the instruction which threw the error.
+    "line"     The integer program line number where the error was thrown.
+    "program"  The dbref of the program in which the error was thrown.

@@ -68,7 +68,7 @@
  *  the resolver daemon itself as well.
  */
 /* You can also control this using configure --enable-reslvd */
-#undef USE_RESLVD
+#define USE_RESLVD
 #define RESOLVER_HOST "127.0.0.1" /* I suggest using only an IP here. */
 #define RESOLVER_PORT 12111
 

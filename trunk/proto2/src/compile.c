@@ -551,10 +551,10 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "array_intersect", "2 array_nintersect");
 #ifdef IGNORE_SUPPORT
     insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
-    insert_def(cstat, "SQUELCH", "\"/@/ignore\" swap reflist_add");
-    insert_def(cstat, "UNSQUELCH", "\"/@/ignore\" swap reflist_del");
-    insert_def(cstat, "SQUELCHED?", "\"/@/ignore\" swap reflist_find");
-    insert_def(cstat, "SQUELCH_ARRAY", "\"/@/ignore\" array_get_reflist");
+    insert_def(cstat, "IGNORE_ADD", "\"/@/ignore\" swap reflist_add");
+    insert_def(cstat, "IGNORE_DEL", "\"/@/ignore\" swap reflist_del");
+    insert_def(cstat, "IGNORING?", "\"/@/ignore\" swap reflist_find");
+    insert_def(cstat, "ARRAY_GET_IGNORELIST", "\"/@/ignore\" array_get_reflist");
 #else
     insert_def(cstat, "MAX_IGNORES", "0");
 #endif
@@ -635,6 +635,7 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "HAVE_MUF_EDIT_PRIMS", "1");
 #endif
 
+/*
 #ifdef IGNORE_SUPPORT
     insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
     insert_def(cstat, "SQUELCH", "\"/@/ignore\" swap reflist_add");
@@ -644,7 +645,7 @@ include_internal_defs(COMPSTATE *cstat)
 #else
     insert_def(cstat, "MAX_IGNORES", "0");
 #endif
-
+*/
 #ifdef SSL_SOCKETS
     insert_def(cstat, "SSL_SOCKETS", "1");
     insert_def(cstat, "SSL_SOCKOPEN", "SSL_NBSOCKOPEN");
@@ -2977,7 +2978,7 @@ process_special(COMPSTATE *cstat, const char *token)
         cstat->nested_trys++;
 
         return nw;
-    } else if (!string_compare(token, "CATCH")) {
+    } else if (!string_compare(token, "CATCH")  || !string_compare(token, "CATCH_DETAILED")) {
         /* can't use 'if' because it's a reserved word */
         struct INTERMEDIATE *eef;
         struct INTERMEDIATE *curr;
@@ -3018,6 +3019,9 @@ process_special(COMPSTATE *cstat, const char *token)
         curr->in.type = PROG_PRIMITIVE;
         curr->in.line = cstat->lineno;
         curr->in.data.number = IN_CATCH;
+        if (!string_compare(token, "CATCH_DETAILED")) {
+            curr->in.data.number = IN_CATCH_DETAILED;
+        }
 
         eef = pop_control_structure(cstat, CTYPE_TRY, 0);
         cstat->nested_trys--;
@@ -3646,6 +3650,7 @@ special(const char *token)
                        && string_compare(token, "REPEAT")
                        && string_compare(token, "TRY")
                        && string_compare(token, "CATCH")
+                       && string_compare(token, "CATCH_DETAILED")
                        && string_compare(token, "ENDCATCH")
                        && string_compare(token, "CALL")
                        && string_compare(token, "PUBLIC")

@@ -2291,3 +2291,199 @@ prim_array_filter_flags(PRIM_PROTOTYPE)
     CLEAR(oper2);
     PushArrayRaw(nw);
 }
+
+void
+prim_array_nested_get(PRIM_PROTOTYPE)
+{
+        struct inst *idx;
+        struct inst *dat;
+        struct inst temp;
+        stk_array *idxarr;
+        int i, idxcnt;
+
+        idx = NULL;
+        CHECKOP(2);
+        oper1 = POP();                          /* arr  IndexList */
+        oper2 = POP();                          /* arr  Array */
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array of indexes. (2)");
+        if (!oper1->data.array || oper1->data.array->type == ARRAY_DICTIONARY)
+                abort_interp("Argument not an array of indexes. (2)");
+        if (oper2->type != PROG_ARRAY)
+                abort_interp("Argument not an array. (1)");
+
+        idxarr = oper1->data.array;
+        idxcnt = array_count(idxarr);
+        dat = oper2;
+        for (i = 0; dat && i < idxcnt; i++) {
+                temp1.type = PROG_INTEGER;
+                temp1.data.number = i;
+                idx = array_getitem(idxarr, &temp1);
+                if (idx->type != PROG_INTEGER && idx->type != PROG_STRING)
+                        abort_interp("Argument not an array of indexes. (2)");
+                if (dat->type != PROG_ARRAY)
+                        abort_interp("Mid-level nested item was not an array. (1)");
+                dat = array_getitem(dat->data.array, idx);
+        }
+
+        /* copy data to a temp inst before clearing the containing array */
+        if (dat) {
+                copyinst(dat, &temp);
+        } else {
+                temp.type = PROG_INTEGER;
+                temp.data.number = 0;
+        }
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+
+        /* copy data to stack, then clear temp inst */
+        copyinst(&temp, &arg[(*top)++]);
+        CLEAR(&temp);
+}
+
+void
+prim_array_nested_set(PRIM_PROTOTYPE)
+{
+        struct inst nest[16];
+        struct inst *idx;
+        struct inst *dat;
+        struct inst temp;
+        stk_array *arr;
+        stk_array *idxarr;
+        int i, idxcnt;
+
+        idx = NULL;
+        CHECKOP(3);
+        oper1 = POP();                          /* arr  IndexList */
+        oper2 = POP();                          /* arr  Array */
+        oper3 = POP();                          /* ???  Value */
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array of indexes. (3)");
+        if (!oper1->data.array || oper1->data.array->type == ARRAY_DICTIONARY)
+                abort_interp("Argument not an array of indexes. (3)");
+        if (oper2->type != PROG_ARRAY)
+                abort_interp("Argument not an array. (2)");
+
+        idxarr = oper1->data.array;
+        idxcnt = array_count(idxarr);
+        if (idxcnt > sizeof(nest) / sizeof(struct inst))
+                abort_interp("Nesting would be too deep. (3)");
+
+        if (idxcnt == 0) {
+                copyinst(oper2, &nest[0]);
+        } else {
+                dat = oper2;
+                for (i = 0; i < idxcnt; i++) {
+                        copyinst(dat, &nest[i]);
+                        temp.type = PROG_INTEGER;
+                        temp.data.number = i;
+                        idx = array_getitem(idxarr, &temp);
+                        if (idx->type != PROG_INTEGER && idx->type != PROG_STRING)
+                                abort_interp("Argument not an array of indexes. (3)");
+                        if (i < idxcnt - 1) {
+                                dat = array_getitem(nest[i].data.array, idx);
+                                if (dat) {
+                                        if (dat->type != PROG_ARRAY)
+                                                abort_interp("Mid-level nested item was not an array. (2)");
+                                } else {
+                                        if (idx->type == PROG_INTEGER && idx->data.number == 0) {
+                                                arr = new_array_packed(1);
+                                        } else {
+                                                arr = new_array_dictionary();
+                                        }
+                                        arr->links = 0;
+                                        temp.type = PROG_ARRAY;
+                                        temp.data.array = arr;
+                                        dat = &temp;
+                                }
+                        }
+                }
+
+                array_setitem(&nest[idxcnt-1].data.array, idx, oper3);
+                for (i = idxcnt - 1; i--> 0;) {
+                        temp.type = PROG_INTEGER;
+                        temp.data.number = i;
+                        idx = array_getitem(idxarr, &temp);
+                        array_setitem(&nest[i].data.array, idx, &nest[i+1]);
+                        CLEAR(&nest[i+1]);
+                }
+        }
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+        CLEAR(oper3);
+
+        /* copy data to stack, then clear temp inst */
+        copyinst(&nest[0], &arg[(*top)++]);
+        CLEAR(&nest[0]);
+}
+
+void
+prim_array_nested_del(PRIM_PROTOTYPE)
+{
+        struct inst nest[32];
+        struct inst *idx;
+        struct inst *dat;
+        struct inst temp;
+        stk_array *idxarr;
+        int i, idxcnt;
+
+        idx = NULL;
+        CHECKOP(2);
+        oper1 = POP();                          /* arr  IndexList */
+        oper2 = POP();                          /* arr  Array */
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array of indexes. (2)");
+        if (!oper1->data.array || oper1->data.array->type == ARRAY_DICTIONARY)
+                abort_interp("Argument not an array of indexes. (2)");
+        if (oper2->type != PROG_ARRAY)
+                abort_interp("Argument not an array. (1)");
+
+        idxarr = oper1->data.array;
+        idxcnt = array_count(idxarr);
+        if (idxcnt > sizeof(nest) / sizeof(struct inst))
+                abort_interp("Nesting would be too deep. (2)");
+
+        if (idxcnt == 0) {
+                copyinst(oper2, &nest[0]);
+        } else {
+                int doneearly = 0;
+                dat = oper2;
+                for (i = 0; i < idxcnt; i++) {
+                        copyinst(dat, &nest[i]);
+                        temp.type = PROG_INTEGER;
+                        temp.data.number = i;
+                        idx = array_getitem(idxarr, &temp);
+                        if (idx->type != PROG_INTEGER && idx->type != PROG_STRING)
+                                abort_interp("Argument not an array of indexes. (2)");
+                        if (i < idxcnt - 1) {
+                                dat = array_getitem(nest[i].data.array, idx);
+                                if (dat) {
+                                        if (dat->type != PROG_ARRAY)
+                                                abort_interp("Mid-level nested item was not an array. (1)");
+                                } else {
+                                        doneearly = 1;
+                                        break;
+                                }
+                        }
+                }
+                if (!doneearly) {
+                        array_delitem(&nest[idxcnt-1].data.array, idx);
+                        for (i = idxcnt - 1; i--> 0;) {
+                                temp.type = PROG_INTEGER;
+                                temp.data.number = i;
+                                idx = array_getitem(idxarr, &temp);
+                                array_setitem(&nest[i].data.array, idx, &nest[i+1]);
+                                CLEAR(&nest[i+1]);
+                        }
+                }
+        }
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+
+        /* copy data to stack, then clear temp inst */
+        copyinst(&nest[0], &arg[(*top)++]);
+        CLEAR(&nest[0]);
+}
