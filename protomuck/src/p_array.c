@@ -908,29 +908,38 @@ prim_array_reverse(PRIM_PROTOTYPE)
         PushArrayRaw(nw);
 }
 
-int
-sortcomp_case_ascend(const void* x, const void* y)
-{
-     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 1, 1));
-}
+static int sortflag_caseinsens = 0;
+static int sortflag_descending = 0;
+static struct inst* sortflag_index = NULL;
 
 int
-sortcomp_nocase_ascend(const void* x, const void* y)
+sortcomp_generic(const void* x, const void* y)
 {
-     return (array_idxcmp_case(*(struct inst**)x, *(struct inst**)y, 0, 1));
+        struct inst* a;
+        struct inst* b;
+
+        if (!sortflag_descending) {
+                a = *(struct inst**)x;
+                b = *(struct inst**)y;
+        } else {
+                a = *(struct inst**)y;
+                b = *(struct inst**)x;
+        }
+        if (sortflag_index) {
+                /* This should only be set if comparators are all arrays. */
+                a = array_getitem(a->data.array, sortflag_index);
+                b = array_getitem(b->data.array, sortflag_index);
+                if (!a && !b) {
+                        return 0;
+                } else if (!a) {
+                        return -1;
+                } else if (!b) {
+                        return 1;
+                }
+        }
+        return (array_idxcmp_case(a, b, (sortflag_caseinsens? 0 : 1), 1));
 }
- 
-int
-sortcomp_case_descend(const void* x, const void* y)
-{
-     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 1, 1));
-}
- 
-int
-sortcomp_nocase_descend(const void* x, const void* y)
-{
-     return (array_idxcmp_case(*(struct inst**)y, *(struct inst**)x, 0, 1));
-}
+
 
 int
 sortcomp_shuffle(const void* x, const void* y)
@@ -949,65 +958,129 @@ sortcomp_shuffle(const void* x, const void* y)
 void
 prim_array_sort(PRIM_PROTOTYPE)
 {
-     stk_array *arr;
-     stk_array *nw;
-     int count, i;
-     int (*comparator)(const void*, const void*);
-     struct inst** tmparr = NULL;
- 
-     CHECKOP(2);
-     oper2 = POP();                                /* int  sort_type   */
-     oper1 = POP();                                /* arr  Array   */
-     if (oper1->type != PROG_ARRAY)
-             abort_interp("Argument not an array. (1)");
-     arr = oper1->data.array;
-     if (arr->type != ARRAY_PACKED)
-             abort_interp("Argument must be a list type array. (1)");
-       if (oper2->type != PROG_INTEGER)
-             abort_interp("Expected integer argument to specify sort type. (2)");
-       switch (oper2->data.number) {
-             case SORTTYPE_CASE_ASCEND:
-                     comparator = sortcomp_case_ascend;
-                     break;
-             case SORTTYPE_NOCASE_ASCEND:
-                     comparator = sortcomp_nocase_ascend;
-                     break;
-             case SORTTYPE_CASE_DESCEND:
-                     comparator = sortcomp_case_descend;
-                     break;
-             case SORTTYPE_NOCASE_DESCEND:
-                     comparator = sortcomp_nocase_descend;
-                     break;
-             case SORTTYPE_SHUFFLE:
-                     comparator = sortcomp_shuffle;
-                     break;
-             default:
-                     abort_interp("Sort type argument contained an unexpected value. (2)");
-     }
- 
-     temp1.type = PROG_INTEGER;
-     count = array_count(arr);
-     nw = new_array_packed(count);
-     tmparr = (struct inst**)malloc(count * sizeof(struct inst*));
- 
-     for (i = 0; i < count; i++) {
-             temp1.data.number = i;
-             tmparr[i] = array_getitem(arr, &temp1);
-     }
- 
-     qsort(tmparr, count, sizeof(struct inst*), comparator);
+        stk_array *arr;
+        stk_array *nu;
+        int count, i;
+        int (*comparator)(const void*, const void*);
+        struct inst** tmparr = NULL;
 
-     for (i = 0; i < count; i++) {
-             temp1.data.number = i;
-             array_setitem(&nw, &temp1, tmparr[i]);
-     }
-     free(tmparr); 
-     CLEAR(oper1);
-     CLEAR(oper2);
-     PushArrayRaw(nw);
+        CHECKOP(2);
+        oper2 = POP();                          /* int  sort_type   */
+        oper1 = POP();                          /* arr  Array   */
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array. (1)");
+        arr = oper1->data.array;
+        if (arr->type != ARRAY_PACKED)
+                abort_interp("Argument must be a list type array. (1)");
+
+        if (oper2->type != PROG_INTEGER)
+                abort_interp("Expected integer argument for sort type. (2)");
+
+        temp1.type = PROG_INTEGER;
+        count = array_count(arr);
+        nu = new_array_packed(count);
+        tmparr = (struct inst**)malloc(count * sizeof(struct inst*));
+
+        for (i = 0; i < count; i++) {
+                temp1.data.number = i;
+                tmparr[i] = array_getitem(arr, &temp1);
+        }
+
+        sortflag_caseinsens = (oper2->data.number & SORTTYPE_CASEINSENS)?1:0;
+        sortflag_descending = (oper2->data.number & SORTTYPE_DESCENDING)?1:0;
+
+        sortflag_index = NULL;
+
+        if ((oper2->data.number & SORTTYPE_SHUFFLE)) {
+                comparator = sortcomp_shuffle;
+        } else {
+                comparator = sortcomp_generic;
+        }
+
+        qsort(tmparr, count, sizeof(struct inst*), comparator);
+        /* WORK: if we go multithreaded, the mutex should be released here. */
+        /*       Share this mutex with ARRAY_SORT_INDEXED. */
+
+        for (i = 0; i < count; i++) {
+                temp1.data.number = i;
+                array_setitem(&nu, &temp1, tmparr[i]);
+        }
+        free(tmparr);
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+        PushArrayRaw(nu);
 }
 
+/* Sort types:
+ ** 1: case, ascending
+ ** 2: nocase, ascending
+ ** 3: case, descending
+ ** 4: nocase, descending
+ ** 5: randomize
+ **/
+void
+prim_array_sort_indexed(PRIM_PROTOTYPE)
+{
+        stk_array *arr;
+        stk_array *nu;
+        int count, i;
+        int (*comparator)(const void*, const void*);
+        struct inst** tmparr = NULL;
 
+        CHECKOP(3);
+        oper3 = POP();                          /* idx  index_key   */
+        oper2 = POP();                          /* int  sort_type   */
+        oper1 = POP();                          /* arr  Array   */
+        if (oper1->type != PROG_ARRAY)
+                abort_interp("Argument not an array. (1)");
+        arr = oper1->data.array;
+        if (arr->type != ARRAY_PACKED)
+                abort_interp("Argument must be a list type array. (1)");
+        if (!array_is_homogenous(arr, PROG_ARRAY))
+                abort_interp("Argument must be a list array of arrays. (1)");
+
+        if (oper2->type != PROG_INTEGER)
+                abort_interp("Expected integer argument for sort type. (2)");
+
+        if (oper3->type != PROG_INTEGER && oper3->type != PROG_STRING)
+                abort_interp("Index argument not an integer or string. (3)");
+
+        temp1.type = PROG_INTEGER;
+        count = array_count(arr);
+        nu = new_array_packed(count);
+        tmparr = (struct inst**)malloc(count * sizeof(struct inst*));
+
+        for (i = 0; i < count; i++) {
+                temp1.data.number = i;
+                tmparr[i] = array_getitem(arr, &temp1);
+        }
+
+        sortflag_caseinsens = (oper2->data.number & SORTTYPE_CASEINSENS)?1:0;
+        sortflag_descending = (oper2->data.number & SORTTYPE_DESCENDING)?1:0;
+        sortflag_index = oper3;
+
+        if ((oper2->data.number & SORTTYPE_SHUFFLE)) {
+                comparator = sortcomp_shuffle;
+        } else {
+                comparator = sortcomp_generic;
+        }
+
+        qsort(tmparr, count, sizeof(struct inst*), comparator);
+        /* WORK: if we go multithreaded, the mutex should be released here. */
+        /*       Share this mutex with ARRAY_SORT. */
+
+        for (i = 0; i < count; i++) {
+                temp1.data.number = i;
+                array_setitem(&nu, &temp1, tmparr[i]);
+        }
+        free(tmparr);
+
+        CLEAR(oper1);
+        CLEAR(oper2);
+        CLEAR(oper3);
+        PushArrayRaw(nu);
+}
 
 void
 prim_array_get_propdirs(PRIM_PROTOTYPE)

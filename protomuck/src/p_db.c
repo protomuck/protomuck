@@ -482,6 +482,9 @@ prim_moveto(PRIM_PROTOTYPE)
 		if (victim == GLOBAL_ENVIRONMENT)
 		    abort_interp(tp_noperm_mesg);
 		if (dest == HOME) {
+                    if ((mlev < 3) && (!permissions(mlev, ProgUID,victim) 
+                         && !permissions(mlev, ProgUID,getloc(victim)))) 
+                         abort_interp("Permission denied."); 
 		    dest = GLOBAL_ENVIRONMENT;
 		} else {
 		    if (!permissions(mlev, ProgUID, victim)
