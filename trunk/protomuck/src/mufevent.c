@@ -638,3 +638,24 @@ muf_event_process(void)
     }
 }
 
+/* called from get_pids() in timequeue.c for use in 
+ * the GETPIDS prim. */
+stk_array *
+get_mufevent_pids(stk_array *nw, dbref ref)
+{
+    struct inst temp1;
+    
+    struct mufevent_process *proc = mufevent_processes;
+    while (proc) {
+        if (proc->player == ref || proc->prog == ref || proc->fr->trig == ref
+            || ref < 0 ) {
+            temp1.type = PROG_INTEGER;
+            temp1.data.number = proc->fr->pid;
+            array_appenditem(&nw, &temp1);
+            CLEAR(&temp1);
+        }
+        proc = proc->next;
+    }
+
+    return nw;
+}

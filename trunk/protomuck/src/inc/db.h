@@ -455,6 +455,7 @@ struct muf_socket {             /* struct for MUF socket data */
 };
 
 struct muf_socket_queue {
+    int pid;                        /* to keep track of the correct frame */
     struct muf_socket *theSock;     /* points to the MUF socket item */
     struct frame *fr;               /* the frame the socket belongs to */
     struct muf_socket_queue *next;

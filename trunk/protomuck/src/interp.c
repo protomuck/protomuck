@@ -178,33 +178,38 @@ scopedvar_addlevel(struct frame *fr, struct inst *pc, int count)
 void
 scopedvar_dupall(struct frame *fr, struct frame *oldfr)
 {
-	struct scopedvar_t *cur;
-	struct scopedvar_t *newsv;
-	struct scopedvar_t **prev;
-	int siz, count;
+    struct scopedvar_t *cur;
+    struct scopedvar_t *newsv;
+    struct scopedvar_t *prev;
+    int siz, count;
 
-	prev = &fr->svars;
-	*prev = NULL;
-	for (cur = oldfr->svars; cur; cur = cur->next) {
-		count = cur->count;
-		siz = sizeof(struct scopedvar_t) + (sizeof(struct inst) * (count - 1));
+    fr->svars = NULL;
+    prev = fr->svars;
+    for (cur = oldfr->svars; cur; cur = cur->next) {
+        count = cur->count;
+        siz = sizeof(struct scopedvar_t) + (sizeof(struct inst) * (count - 1));
 
-		newsv = (struct scopedvar_t *) malloc(siz);
-		newsv->count = count;
-		newsv->varnames = cur->varnames;
-		newsv->next = NULL;
-		while (count-- > 0) {
-			copyinst(&cur->vars[count], &newsv->vars[count]);
-		}
-		*prev = newsv;
-	}
+        newsv = (struct scopedvar_t *) malloc(siz);
+        newsv->count = count;
+        newsv->varnames = cur->varnames;
+        newsv->next = NULL;
+        while (count-- > 0) {
+            copyinst(&cur->vars[count], &newsv->vars[count]);
+        }
+        if (prev == NULL) {
+            fr->svars = newsv;
+            prev = newsv;
+        } else {
+            prev->next = newsv;
+            prev = newsv;
+        }
+    }
 }
 
 int
 scopedvar_poplevel(struct frame *fr)
 {
 	struct scopedvar_t *tmp;
-
 	if (!fr->svars) {
 		return 0;
 	}
@@ -357,9 +362,19 @@ RCLEAR(struct inst * oper, char *file, int line)
         case PROG_SOCKET:
             oper->data.sock->links -= 1;
             if (oper->data.sock && oper->data.sock->links == 0) {
-                if (oper->data.sock->host && !oper->data.sock->is_player) {
-                    shutdown(oper->data.sock->socknum,2);
-                    close(oper->data.sock->socknum);
+                /* is_player ==  1 - MUF socket was connected to a player 
+                 * is_player ==  0 - MUF socket normal
+                 * is_player == -1 - MUF socket made into a descriptor */
+                if (oper->data.sock->host && oper->data.sock->is_player < 1) {
+                    if (oper->data.sock->is_player == 0) { 
+                        shutdown(oper->data.sock->socknum,2);
+                        close(oper->data.sock->socknum);
+                    } else if (oper->data.sock->is_player == -1) {
+                        struct descriptor_data *d;
+                        d = get_descr(oper->data.sock->socknum, NOTHING);
+                        if (d) 
+                            shutdownsock(d);
+                    }
                 }
                 if (tp_socket_events)
                     remove_socket_from_queue(oper->data.sock);
@@ -809,7 +824,6 @@ prog_clean(struct frame * fr)
 		unparse_object(fr->player, fr->prog), (now - fr->started)
 	);
     }
-
     if (FLAG2(fr->prog)&F2MUFCOUNT) {
 	add_property(fr->prog, "~muf/count", NULL, fr->instcnt);
 	add_property(fr->prog, "~muf/start", NULL, fr->started);
@@ -843,8 +857,8 @@ prog_clean(struct frame * fr)
     for (i = 0; i < MAX_VAR; i++)
 	CLEAR(&fr->variables[i]);
 
-	localvar_freeall(fr);
-	scopedvar_freeall(fr);
+    localvar_freeall(fr);
+    scopedvar_freeall(fr);
 
     if (fr->fors.st) {
 	struct forvars **loop = &(fr->fors.st);
@@ -893,8 +907,8 @@ prog_clean(struct frame * fr)
     muf_dlog_purge(fr);
 
     dequeue_timers(fr->pid, NULL);
-
     muf_event_purge(fr);
+    fr->pid = 0; /* cleared to keep socket events from hitting it again */
     fr->next = free_frames_list;
     free_frames_list = fr;
     err = 0;
