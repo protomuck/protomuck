@@ -127,8 +127,8 @@ prim_round(PRIM_PROTOTYPE)
         abort_interp("Non-integer argument. (2)");
     if (oper2->type != PROG_FLOAT)
         abort_interp("Non-float argument. (1)");
-    if (oper1->type < 0)
-        abort_interp("Precision argument must be a positive integer. (2)");
+    if (oper1->data.number < 0)
+        abort_interp("Argument must be a positive integer. (2)");
     if (!no_good(oper2->data.fnumber)) {
         temp = pow(10.0, oper1->data.number);
         tshift = temp * (oper2->data.fnumber);

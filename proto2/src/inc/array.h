@@ -19,12 +19,12 @@ typedef struct array_tree_t {
 } array_tree;
 
 typedef struct stk_array_t {
-	int links;     				/* number of pointers  to array */
-	int items;    				/* number of items in array */
-	short type;     				/* type of array */
+	unsigned short links;       /* number of pointers  to array */
+	int items;                  /* number of items in array */
+	short type;                 /* type of array */
 	union {
-		array_data *packed;		/* pointer to packed array */
-		array_tree *dict;		/* pointer to dictionary AVL tree */
+		array_data *packed;     /* pointer to packed array */
+		array_tree *dict;       /* pointer to dictionary AVL tree */
 	} data;
 } stk_array;
 

@@ -415,7 +415,7 @@ struct boolexp {
     boolexp_type type;
     struct boolexp *sub1;
     struct boolexp *sub2;
-    dbref   thing;
+    dbref  thing;
     struct plist *prop_check;
 };
 
@@ -444,100 +444,99 @@ struct line {
 
 /* stack and object declarations */
 /* Integer types go here */
-#define PROG_VARIES      255    /* MUV flag denoting variable number of args */
-#define PROG_VOID        254    /* MUV void return type */
-#define PROG_UNTYPED     253    /* MUV unknown var type */
-
 #define PROG_CLEARED       0
-#define PROG_PRIMITIVE     1	/* forth prims and hard-coded C routines */
-#define PROG_INTEGER       2	/* integer types */
-#define PROG_FLOAT         3    /* Floating point numbers */
-#define PROG_OBJECT        4	/* database objects */
-#define PROG_VAR           5	/* variables */
-#define PROG_LVAR          6	/* variables */
-#define PROG_SVAR          7    /* variables */
+#define PROG_PRIMITIVE     1        /* forth prims and hard-coded C routines */
+#define PROG_INTEGER       2        /* integer types */
+#define PROG_FLOAT         3        /* floating point numbers */
+#define PROG_OBJECT        4        /* database objects */
+#define PROG_VAR           5        /* variables */
+#define PROG_LVAR          6        /* variables */
+#define PROG_SVAR          7        /* variables */
 /* Pointer types go here, numbered *AFTER* PROG_STRING */
-#define PROG_STRING        9	/* string types */
-#define PROG_FUNCTION      10   /* function names for debugging. */
-#define PROG_LOCK          11	/* boolean expression */
-#define PROG_ADD           12	/* program address - used in calls&jmps */
-#define PROG_IF            13	/* A low level IF statement */
-#define PROG_EXEC          14	/* EXECUTE shortcut */
-#define PROG_JMP           15	/* JMP shortcut */
-#define PROG_ARRAY         16   /* Array @ = (r1)..(ri) (i) */
-#define PROG_DICTIONARY    17   /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
-#define PROG_SOCKET        18   /* ProtoMUCK socket type */
-#define PROG_MARK          19   /* Stack markers */
-#define PROG_SVAR_AT       20   /* @ shortcut for scoped vars */
-#define PROG_SVAR_AT_CLEAR 21   /* @ for scoped vars with optimization on */
-#define PROG_SVAR_BANG     22   /* ! shortcut for scoped vars */
-#define PROG_TRY           23   /* TRY shortcut */
-#define PROG_LVAR_AT       24   /* @ shortcut for lvars */
-#define PROG_LVAR_AT_CLEAR 25   /* @ for local vars with var clear optim */
-#define PROG_LVAR_BANG     26   /* ! shortcut for local vars */
-#define PROG_MYSQL         27   /* A MySQL database connection */
+#define PROG_STRING        9        /* string types */
+#define PROG_FUNCTION      10       /* function names for debugging. */
+#define PROG_LOCK          11       /* boolean expression */
+#define PROG_ADD           12       /* program address - used in calls&jmps */
+#define PROG_IF            13       /* A low level IF statement */
+#define PROG_EXEC          14       /* EXECUTE shortcut */
+#define PROG_JMP           15       /* JMP shortcut */
+#define PROG_ARRAY         16       /* Array @ = (r1)..(ri) (i) */
+#define PROG_DICTIONARY    17       /* Dictionary array @ = (k1) (r1)..(ki) (ri) (i) */
+#define PROG_SOCKET        18       /* ProtoMUCK socket type */
+#define PROG_MARK          19       /* Stack markers */
+#define PROG_SVAR_AT       20       /* @ shortcut for scoped vars */
+#define PROG_SVAR_AT_CLEAR 21       /* @ for scoped vars with optimization on */
+#define PROG_SVAR_BANG     22       /* ! shortcut for scoped vars */
+#define PROG_TRY           23       /* TRY shortcut */
+#define PROG_LVAR_AT       24       /* @ shortcut for lvars */
+#define PROG_LVAR_AT_CLEAR 25       /* @ for local vars with var clear optim */
+#define PROG_LVAR_BANG     26       /* ! shortcut for local vars */
+#define PROG_MYSQL         27       /* A MySQL database connection */
+/* MUV junk goes here */
+#define PROG_UNTYPED      253       /* MUV unknown var type */
+#define PROG_VOID         254       /* MUV void return type */
+#define PROG_VARIES       255       /* MUV flag denoting variable number of args */
+/* CAREFUL! The 'type' type is unsigned char. */
 
-#define MAX_VAR        104	/* maximum number of variables including the
-				 * basic ME and LOC                */
-#define RES_VAR          4	/* no of reserved variables */
+#define MAX_VAR           104       /* max number of variables including ME and LOC */
+#define RES_VAR             4       /* no of reserved variables */
 
-#define STACK_SIZE      1024	/* maximum size of stack */
+#define STACK_SIZE       1024       /* maximum size of stack */
 
-struct shared_string {		/* for sharing strings in programs */
-    int     links;		/* number of pointers to this struct */
-    int     length;		/* length of string data */
-    char    data[1];		/* shared string data */
+struct shared_string {              /* for sharing strings in programs */
+    unsigned short links;           /* number of pointers to this struct */
+    unsigned short length;          /* length of string data */
+    char    data[1];                /* shared string data */
 };
 
-struct prog_addr {              /* for 'addres references */
-    int     links;              /* number of pointers */
-    dbref   progref;            /* program dbref */
-    struct inst *data;          /* pointer to the code */
+struct prog_addr {                  /* for 'address references */
+    unsigned short links;           /* number of pointers */
+    dbref  progref;                 /* program dbref */
+    struct inst *data;              /* pointer to the code */
 };
 
-struct stack_addr {             /* for the system calstack */
-    dbref   progref;            /* program call was made from */
-    struct inst *offset;        /* the address of the call */
+struct stack_addr {                 /* for the system callstack                     */
+    dbref  progref;                 /* program call was made from                   */
+    struct inst *offset;            /* the address of the call                      */
 };
 
-struct stk_array_t;
-
-struct muf_socket {             /* struct for MUF socket data */
-   int socknum;                 /* The descriptor number for the socket */
-   int connected;               /* Set to 1 if ever connected */
-   int listening;               /* Set to 1 if successfully opened listening */
-   int links;                   /* Number of instances of the socket. */
-   int host;                    /* the host address integer */
-   char *raw_input;             /* recieve queue for telnet connections. */
-   char *raw_input_at;          /* for use in handling the recieve queue */
-   int  inIAC;                  /* For correct telnet negotiations. */
-   int connected_at;            /* Systime connection was made. */
-   int last_time;               /* last time command recieved. */
-   const char *hostname;        /* string host name for incoming cons */
-   const char *username;        /* string user name for incoming cons */
-   int commands;                /* number of commands entered. */
-   int port;                    /* port number that LSOCKET is listening on */
-   int usequeue;                /* toggles recieve buffer behavior */
-   int usesmartqueue;          /* makes the socket completely telnet savy */
-   int is_player;               /* means to not close the socket when clearing*/
-   int readWaiting;             /* to support socket events */
+struct muf_socket {                 /* struct for MUF socket data                   */
+    int socknum;                     /* The descriptor number for the socket         */
+    bool connected;                  /* Set to 1 if ever connected                   */
+    bool listening;                  /* Set to 1 if successfully opened listening    */
+    int error;                       /* used for SOCKERROR prim, unimplemented       */
+    unsigned short links;            /* number of instances of the socket.           */
+    int host;                        /* the host address integer                     */
+    char *raw_input;                 /* recieve queue for telnet connections.        */
+    char *raw_input_at;              /* for use in handling the recieve queue        */
+    int inIAC;                       /* For correct telnet negotiations.             */
+    int connected_at;                /* systime connection was made.                 */
+    int last_time;                   /* last time command recieved.                  */
+    const char *hostname;            /* string host name for incoming cons           */
+    const char *username;            /* string user name for incoming cons           */
+    int commands;                    /* number of commands entered.                  */
+    unsigned short port;             /* port number that LSOCKET is listening on     */
+    bool usequeue;                   /* toggles recieve buffer behavior              */
+    bool usesmartqueue;              /* makes the socket completely telnet savy      */
+    signed char is_player;           /* means to not close the socket when clearing  */
+    bool readWaiting;                /* to support socket events                     */
 };
 
-struct muf_socket_queue {
-    int pid;                        /* to keep track of the correct frame */
-    struct muf_socket *theSock;     /* points to the MUF socket item */
-    struct frame *fr;               /* the frame the socket belongs to */
-    struct muf_socket_queue *next;
+struct muf_socket_queue {           /* struct for socket events queue linked-list   */
+    int pid;                        /* to keep track of the correct frame           */
+    struct muf_socket *theSock;     /* points to the MUF socket item                */
+    struct frame *fr;               /* the frame the socket belongs to              */
+    struct muf_socket_queue *next;  /* next item in the linked-list                 */
 };
 
 #ifdef SQL_SUPPORT
-struct muf_sql { /* struct for MUF SQL connections */
-    MYSQL *mysql_conn; /* The connection descriptor struct */
-    int connected;     /* Bool indicating if connected or not */
-    int timeout;       /* Timeout for this connection */
-    int links;         /* number of instances of this connection */
+struct muf_sql {                    /* struct for MUF SQL connections               */
+    MYSQL *mysql_conn;              /* the connection descriptor struct             */
+    bool connected;                 /* bool indicating if connected or not          */
+    int timeout;                    /* timeout for this connection                  */
+    unsigned short links;           /* number of instances of this connection       */
 };
-#endif
+#endif /* SQL_SUPPORT */
 
 struct muf_proc_data {
     char *procname;
@@ -546,24 +545,26 @@ struct muf_proc_data {
 	const char **varnames;
 };
 
-struct inst {			/* instruction */
-    short   type;
-    short   line;
-    union {
-        struct shared_string *string;  /* strings */
-        struct boolexp *lock;     /* boolean lock expression */
-        int     number;		  /* used for both primitives and integers */
-        double  fnumber;          /* used for float storage */
-        dbref   objref;		  /* object reference */
-        struct stk_array_t *array;/* FB6 style array */
-        struct inst *call;	  /* use in IF and JMPs */
-        struct prog_addr *addr;   /* the result of 'funcname */
-        struct muf_socket *sock;  /* a ProtoMUCK socket */
+struct stk_array_t;
+
+struct inst {                           /* instruction */
+    unsigned char type;                 /* type of instruction */
+    short         line;                 /* line number location of instruction */
+    union {                             /* unionificationizer! */
+        struct shared_string *string;   /* strings */
+        struct boolexp *lock;           /* boolean lock expression */
+        int    number;                  /* used for both primitives and integers */
+        double fnumber;                 /* used for float storage */
+        dbref  objref;                  /* object reference */
+        struct stk_array_t *array;      /* FB6 style array */
+        struct inst *call;              /* use in IF and JMPs */
+        struct prog_addr *addr;         /* the result of 'funcname */
+        struct muf_socket *sock;        /* a ProtoMUCK socket */
 #ifdef SQL_SUPPORT
-	struct muf_sql *mysql;    /* A MySQL connection */
+        struct muf_sql *mysql;          /* A MySQL connection */
 #endif
-        struct muf_proc_data *mufproc; /* Data specific to each procedure */
-    }       data;
+        struct muf_proc_data *mufproc;  /* Data specific to each procedure */
+    } data;
 };
 
 #include "array.h"
