@@ -16,7 +16,9 @@
 #include "interp.h"
 #include <ctype.h>
 #include <time.h>
+#ifndef APPLE
 #include "nan.h"
+#endif
 #include <math.h>
 
 /* This file contains code for doing "byte-compilation" of
