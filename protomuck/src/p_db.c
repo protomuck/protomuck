@@ -617,6 +617,8 @@ prim_truename(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
+    if (oper2->type != PROG_OBJECT)
+        abort_interp("Arguement (2) is not a dbref.");
     if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
 	abort_interp("Invalid argument type");
     ref = oper1->data.objref;
@@ -658,6 +660,8 @@ prim_name(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
     oper1 = POP();
+    if (oper1->type != PROG_OBJECT)
+        abort_interp("Arguement (1) is not a dbref.");
     if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
 	abort_interp("Invalid argument type");
     ref = oper1->data.objref;
@@ -1550,6 +1554,7 @@ void
 prim_lockedp(PRIM_PROTOTYPE)
 {
     /* d d - i */
+    struct inst *oper1, *oper2;
     CHECKOP(2);
     oper1 = POP();		/* objdbref */
     oper2 = POP();		/* player dbref */
@@ -1994,6 +1999,8 @@ prim_toadplayer(PRIM_PROTOTYPE) {
     dbref   recipient;
     dbref   stuff;
     char    buf[BUFFER_LEN];
+    struct inst *oper1;
+    struct inst *oper2;
 
     CHECKOP(2);
     oper1 = POP();
