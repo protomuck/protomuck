@@ -1336,3 +1336,112 @@ prim_parsepropex(PRIM_PROTOTYPE)
     PushArrayRaw(vars);
     PushString(str);
 }
+
+/* copyprops():
+ * Copy a property (sub)tree from one object to another. This is used by
+ * the COPYPROPS primitive. Based muchly on FB6's copy_props function used
+ * by @CLONE, with slight modifications to work with ProtoMUCK.  -Foxsteve
+ */
+int 
+copy_props(dbref source, dbref destination, const char *sourcedir, const char *destdir, int recurse) 
+{ 
+    char propname[BUFFER_LEN]; 
+    char buf[BUFFER_LEN];
+    char buf2[BUFFER_LEN];
+    char tbuf[BUFFER_LEN];
+    PropPtr propadr, pptr, currprop;
+    PTYPE str;
+    int propcount = 0;
+
+    /* loop through all properties in the current propdir */ 
+    propadr = first_prop(source, (char *)sourcedir, &pptr, propname); 
+    while (propadr) { 
+        /* generate name for current property */
+        snprintf(buf, sizeof(buf), "%s%c%s", sourcedir, PROPDIR_DELIMITER, propname);
+        snprintf(buf2, sizeof(buf2), "%s%c%s", destdir, PROPDIR_DELIMITER, propname);
+
+        /* read property from source object */
+        currprop = get_property(source, buf); 
+
+#ifdef DISKBASE 
+        propfetch(source, currprop); 
+#endif
+        if(currprop) {
+            switch(PropType(currprop)) { 
+                case PROP_STRTYP:
+                    str = PropDataStr(currprop);
+                    set_property(destination, buf2, PROP_STRTYP, str);
+                    break;
+                case PROP_INTTYP:
+                    set_property(destination, buf2, PROP_INTTYP, (char *)PropDataVal(currprop));
+                    break;
+                case PROP_FLTTYP:
+                    sprintf(tbuf, "%hg", PropDataFVal(currprop));
+                    str = tbuf;
+                    set_property(destination, buf2, PROP_FLTTYP, str);
+                    break;
+                case PROP_REFTYP: 
+                    set_property(destination, buf2, PROP_REFTYP, (char *)PropDataRef(currprop));
+                    break;
+                case PROP_LOKTYP: 
+                    str = (PTYPE) copy_bool(PropDataLok(currprop));
+                    set_property(destination, buf2, PROP_LOKTYP, str);
+                    break;
+                case PROP_DIRTYP:
+                    if (recurse) propcount += copy_props(source, destination, buf, buf2, recurse); 
+                    break; 
+            }
+            propcount++;
+        }
+
+        /* find next property in current dir */ 
+        propadr = next_prop(pptr, propadr, propname);
+    } 
+
+    return propcount; 
+} 
+
+void
+prim_copyprops(PRIM_PROTOTYPE)
+{
+    struct inst *oper5;
+
+    CHECKOP(5);
+    oper1 = POP(); /* Recurse          (INT) */
+    oper2 = POP(); /* Dest Prop(dir)   (STR) */
+    oper3 = POP(); /* Dest Object      (REF) */
+    oper4 = POP(); /* Source Prop(dir) (STR) */
+    oper5 = POP(); /* Source Object    (REF) */ 
+
+    if (mlev < LARCH)
+        abort_interp("Arch prim");
+
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument (5)");
+
+    if (oper2->type != PROG_STRING)
+        abort_interp("Non-string argument (4)");
+    if (!oper2->data.string)
+        abort_interp("Empty string argument (4)");
+
+    if (!(valid_object(oper3)))
+        abort_interp("Invalid object argument (3)");
+
+    if (oper4->type != PROG_STRING)
+        abort_interp("Non-string argument (2)");
+    if (!oper4->data.string)
+        abort_interp("Empty string argument (2)");
+
+    if (!(valid_object(oper5)))
+        abort_interp("Invalid object argument (1)");
+
+    result = copy_props(oper5->data.objref, oper3->data.objref, oper4->data.string->data, oper2->data.string->data, oper1->data.number); 
+
+    CLEAR(oper1); CLEAR(oper2);
+    CLEAR(oper3); CLEAR(oper4);
+    CLEAR(oper5);
+
+    CHECKOFLOW(1);
+    PushInt(result);
+}
+
