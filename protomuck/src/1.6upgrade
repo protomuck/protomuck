@@ -1,5 +1,11 @@
 #!/bin/csh -f
 #
+# Just check to make sure that the proto1.6/src/inc/config.h
+# file is set to your preferences, then run this script to
+# upgrade your previous version of ProtoMUCK. Shutting down
+# your existing MUCK is not necessary, though you may do so
+# if you prefer before running this script.
+#
 # NOTE: This script is from upgrading from an older version of
 # ProtoMUCK to Proto1.6. If you are not doing an upgrade, or
 # do not even know what this is refering to, do not run this script.
