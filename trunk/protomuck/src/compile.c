@@ -1797,18 +1797,18 @@ do_directive(COMPSTATE * cstat, char *direct)
 		advance_line(cstat);
 
 	} else if (!string_compare(temp, "ifdef") || !string_compare(temp, "ifndef")) {
-		int dofalse = 0;
+                char temp2[BUFFER_LEN];
 		tmpname = (char *) next_token_raw(cstat);
 		if (!tmpname)
 			abort_compile(cstat, "Unexpected end of file looking for $ifdef condition.");
-		strcpy(temp, tmpname);
+		strcpy(temp2, tmpname);
 		free(tmpname);
-		for (i = 1; temp[i] && (temp[i] != '=') && (temp[i] != '>') && (temp[i] != '<'); i++) ;
-		tmpname = &(temp[i]);
-		i = (temp[i] == '>') ? 1 : ((temp[i] == '=') ? 0 : ((temp[i] == '<') ? -1 : -2));
+		for (i = 1; temp2[i] && (temp2[i] != '=') && (temp2[i] != '>') && (temp2[i] != '<'); i++) ;
+		tmpname = &(temp2[i]);
+		i = (temp2[i] == '>') ? 1 : ((temp2[i] == '=') ? 0 : ((temp2[i] == '<') ? -1 : -2));
 		*tmpname = '\0';
 		tmpname++;
-		tmpptr = (char *) expand_def(cstat, temp);
+		tmpptr = (char *) expand_def(cstat, temp2);
 		if (i == -2) {
 			j = (!tmpptr);
 			if (tmpptr)
@@ -1823,8 +1823,8 @@ do_directive(COMPSTATE * cstat, char *direct)
 			}
 		}
 		if (!string_compare(temp, "ifndef"))
-			dofalse = 1;
-		if (dofalse ? !j : j) {
+                        j = !j;
+		if (j) {
 			i = 0;
 			while ((tmpptr = (char *) next_token_raw(cstat)) &&
 				   (i || ((string_compare(tmpptr, "$else"))
