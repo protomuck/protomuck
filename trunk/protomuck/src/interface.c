@@ -3217,7 +3217,7 @@ check_connect(struct descriptor_data * d, const char *msg)
         while (*msg && (isprint(*msg)))
             *p++ = *msg++;
         *p = '\0';
-        handle_read_event(d->descriptor, NOTHING, buf);
+        handle_read_event(d->descriptor, NOTHING, buf, NULL);
         return;
     }
 
