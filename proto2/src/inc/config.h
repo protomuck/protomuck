@@ -40,7 +40,7 @@
  * reads: #limit stacksize 16384 to
  *         limit stacksize 16384
  */
-#undef APPLE
+//#undef APPLE
   
 /* Alynna - If you defined CYGWIN, set these to your timezone offset in 
  * hours.  -8 = PST, -5 = EST, 0 = GMT 
