@@ -371,8 +371,8 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->dlogids = NULL;
 
     fr->argument.top = 0;
-    fr->pc = DBFETCH(program)->sp.program.start;
-    fr->writeonly = ((source == -1) || (Typeof(source) == TYPE_ROOM) ||
+    fr->pc = DBFETCH(program)->sp.program.start;//TYPEROOM taken out for command props.
+    fr->writeonly = ((source == -1) || /* (Typeof(source) == TYPE_ROOM)  || */
 		     ((Typeof(source) == TYPE_PLAYER) && (!online(source))) ||
 		     (FLAGS(player) & READMODE));
     fr->level = 0;

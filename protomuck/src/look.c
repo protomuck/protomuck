@@ -1481,7 +1481,7 @@ init_checkflags(dbref player, const char *flags, struct flgchkdat *check)
 		else
 		    check->setflag2 |= F2NO_COMMAND;
 		break;
-	    case '&':
+	    case 'Y':
 		if (mode)
 		    check->clearflag2 |= F2EXAMINE_OK;
 		else

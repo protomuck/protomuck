@@ -64,7 +64,7 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
       if (FLAG2(thing) & F2ANTIPROTECT)
           *p++ = 'K';
       if (FLAG2(thing) & F2EXAMINE_OK)
-          *p++ = '&';
+          *p++ = 'Y';
       if (FLAG2(thing) & F2NO_COMMAND)
           *p++ = 'N';
       if (FLAG2(thing) & F2HIDDEN)

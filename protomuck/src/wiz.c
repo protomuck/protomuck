@@ -1525,7 +1525,7 @@ do_fixw(dbref player, const char *msg)
     int i;
 
     if (force_level) {
-        anotify_nolisten2(player, CFAIL "Can't @force @fixwizbits.");
+        anotify_nolisten2(player, CFAIL "Can't @force an @force.");
         return;
     }
     if( !Man(player) ) {

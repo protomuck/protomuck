@@ -1255,7 +1255,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 	f2 = F2PROTECT;
     } else if (string_prefix("ANTIPROTECT", p) || !string_compare("K", p)) {
 	f2 = F2ANTIPROTECT;
-    } else if (string_prefix("EXAMINE_OK", p) || !string_compare("&", p)) {
+    } else if (string_prefix("EXAMINE_OK", p) || !string_compare("Y", p)) {
 	f2 = F2EXAMINE_OK;
     } else if (string_prefix("NO_COMMAND", p)) {
 	f2 = F2NO_COMMAND;
