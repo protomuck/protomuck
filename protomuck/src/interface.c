@@ -4157,30 +4157,31 @@ announce_disconnect(struct descriptor_data *d)
     }
 
     /* trigger local disconnect action */
+    /* queue up all _connect programs referred to by properties */
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, 
+                player, NOTHING, "@disconnect", "Disconnect", 1, 1);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, 
+                player, NOTHING, "@odisconnect", "Odisconnect", 1, 0);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, 
+                player, NOTHING, "~disconnect", "Disconnect", 1, 1);
+    envpropqueue(d->descriptor, player, getloc(player), NOTHING, 
+                player, NOTHING, "~odisconnect", "Odisconnect", 1, 0);
+    if (tp_allow_old_trigs) {
+		envpropqueue(d->descriptor, player, getloc(player), 
+                             NOTHING, player, NOTHING, "_disconnect", 
+                             "Disconnect", 1, 1);
+                envpropqueue(d->descriptor, player, getloc(player), 
+                             NOTHING, player, NOTHING,
+			     "_odisconnect", "Odisconnect", 1, 0);
+    }
     if (!online(player)) {
-	/* queue up all _connect programs referred to by properties */
-	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-		"@disconnect", "Disconnect", 1, 1);
-	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-		"@odisconnect", "Odisconnect", 1, 0);
-	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-		"~disconnect", "Disconnect", 1, 1);
-	envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-		"~odisconnect", "Odisconnect", 1, 0);
-	if (tp_allow_old_trigs) {
-		envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-			"_disconnect", "Disconnect", 1, 1);
-		envpropqueue(d->descriptor, player, getloc(player), NOTHING, player, NOTHING,
-			"_odisconnect", "Odisconnect", 1, 0);
-	}
-	if (can_move(d->descriptor, player, "disconnect", 1)) {
+        if (can_move(d->descriptor, player, "disconnect", 1)) {
 	    do_move(d->descriptor, player, "disconnect", 1);
 	}
 	gui_dlog_closeall_descr(d->descriptor);
-
-      if (!Hidden(player)) {
- 	   announce_puppets(player, "falls asleep.", "_/pdcon");
-      }
+        if (!Hidden(player)) {
+ 	    announce_puppets(player, "falls asleep.", "_/pdcon");
+        }
     }
     ts_lastuseobject(player);
     DBDIRTY(player);

@@ -1739,7 +1739,7 @@ prim_smatch(PRIM_PROTOTYPE)
 	abort_interp("Non-string argument.");
     
     strcpy(buf, DoNullInd(oper1->data.string));
-    strcpy(xbuf, oper2->data.string);
+    strcpy(xbuf, DoNullInd(oper2->data.string));
     result = equalstr(buf, xbuf);
     CLEAR(oper1);
     CLEAR(oper2);
