@@ -942,10 +942,7 @@ db_free_object(dbref i)
     struct object *o;
 
     o = DBFETCH(i);
-    /* Removed the TYPE_GARBAGE check as FB6 indicated 
-     * this caused a memory leak.
-     */
-    if (NAME(i))
+    if (NAME(i) && Typeof(i) != TYPE_GARBAGE)
 	free((void *) NAME(i));
 
 #ifdef DISKBASE
