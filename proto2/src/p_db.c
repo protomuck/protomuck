@@ -23,10 +23,6 @@ extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
 
-#ifdef COMPRESS
-extern const char *uncompress(const char *);
-#endif /* COMPRESS */
-
 void
 copyobj(dbref player, dbref old, dbref nw)
 {
@@ -685,9 +681,8 @@ prim_truename(PRIM_PROTOTYPE)
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
         ts_lastuseobject(ref);
     if ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_THING)) {
-        if (GETMESG(ref, "%n")) {
-            msg = GETMESG(ref, "%n");
-            strcpy(buf, get_uncompress(msg));
+        if ((msg = GETMESG(ref, "%n"))) {
+            strcpy(buf, msg);
             CLEAR(oper1);
             strcpy(buf2, buf);
             if (lookup_player(buf2) != NOTHING) {

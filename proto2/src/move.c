@@ -356,8 +356,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                                           CFAIL "Guests can't go in there.");
                         break;
                     }
-                    if (Guest(player) && (0 ?
-                                          !(FLAG2(exit) & F2GUEST)
+                    if (Guest(player) && (0 ? !(FLAG2(exit) & F2GUEST)
                                           : (FLAG2(exit) & F2GUEST))) {
                         anotify_nolisten2(player,
                                           CFAIL "Guests can't do that.");
@@ -1101,10 +1100,10 @@ recycle(int descr, dbref player, dbref thing)
     db_free_object(thing);
     db_clear_object(thing);
 
-
     NAME(thing) = "<garbage>";
     SETDESC(thing, "<recyclable>");
     FLAGS(thing) = TYPE_GARBAGE;
+    OWNER(thing) = NOTHING;
 
     DBFETCH(thing)->next = recyclable;
     recyclable = thing;

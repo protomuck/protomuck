@@ -554,7 +554,6 @@ void
 do_conlock(int descr, dbref player, const char *name, const char *keyname)
 {
     dbref thing;
-    struct boolexp *key;
     struct match_data md;
 
     if (tp_db_readonly)
@@ -596,16 +595,23 @@ do_conlock(int descr, dbref player, const char *name, const char *keyname)
     }
 
     if (!*keyname) {
-        set_property(thing, "_/clk", PROP_LOKTYP, (PTYPE) TRUE_BOOLEXP);
+        PData pdat;
+
+        pdat.flags = PROP_LOKTYP;
+        pdat.data.lok = TRUE_BOOLEXP;
+        set_property(thing, "_/clk", &pdat);
         ts_modifyobject(thing);
         anotify_nolisten2(player, CSUCC "Container lock cleared.");
     } else {
-        key = parse_boolexp(descr, player, keyname, 0);
-        if (key == TRUE_BOOLEXP) {
+        PData pdat;
+
+        pdat.data.lok = parse_boolexp(descr, player, keyname, 0);
+        if (pdat.data.lok == TRUE_BOOLEXP) {
             anotify_nolisten2(player, CINFO "I don't understand that key.");
         } else {
             /* everything ok, do it */
-            set_property(thing, "_/clk", PROP_LOKTYP, (PTYPE) key);
+            pdat.flags = PROP_LOKTYP;
+            set_property(thing, "_/clk", &pdat);
             ts_modifyobject(thing);
             anotify_nolisten2(player, CSUCC "Container lock set.");
         }
@@ -616,7 +622,6 @@ void
 do_flock(int descr, dbref player, const char *name, const char *keyname)
 {
     dbref thing;
-    struct boolexp *key;
     struct match_data md;
 
     if (tp_db_readonly)
@@ -647,16 +652,23 @@ do_flock(int descr, dbref player, const char *name, const char *keyname)
     }
 
     if (!*keyname) {
-        set_property(thing, "@/flk", PROP_LOKTYP, (PTYPE) TRUE_BOOLEXP);
+        PData pdat;
+
+        pdat.flags = PROP_LOKTYP;
+        pdat.data.lok = TRUE_BOOLEXP;
+        set_property(thing, "@/flk", &pdat);
         ts_modifyobject(thing);
         anotify_nolisten2(player, CSUCC "Force lock cleared.");
     } else {
-        key = parse_boolexp(descr, player, keyname, 0);
-        if (key == TRUE_BOOLEXP) {
+        PData pdat;
+
+        pdat.data.lok = parse_boolexp(descr, player, keyname, 0);
+        if (pdat.data.lok == TRUE_BOOLEXP) {
             anotify_nolisten2(player, CINFO "I don't understand that key.");
         } else {
             /* everything ok, do it */
-            set_property(thing, "@/flk", PROP_LOKTYP, (PTYPE) key);
+            pdat.flags = PROP_LOKTYP;
+            set_property(thing, "@/flk", &pdat);
             ts_modifyobject(thing);
             anotify_nolisten2(player, CSUCC "Force lock set.");
         }
@@ -667,7 +679,6 @@ void
 do_chlock(int descr, dbref player, const char *name, const char *keyname)
 {
     dbref thing;
-    struct boolexp *key;
     struct match_data md;
 
     if (tp_db_readonly)
@@ -699,16 +710,23 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
     }
 
     if (!*keyname) {
-        set_property(thing, "_/chlk", PROP_LOKTYP, (PTYPE) TRUE_BOOLEXP);
+        PData pdat;
+
+        pdat.flags = PROP_LOKTYP;
+        pdat.data.lok = TRUE_BOOLEXP;
+        set_property(thing, "_/chlk", &pdat);
         ts_modifyobject(thing);
         anotify_nolisten2(player, CSUCC "Chown lock cleared.");
     } else {
-        key = parse_boolexp(descr, player, keyname, 0);
-        if (key == TRUE_BOOLEXP) {
+        PData pdat;
+
+        pdat.data.lok = parse_boolexp(descr, player, keyname, 0);
+        if (pdat.data.lok == TRUE_BOOLEXP) {
             anotify_nolisten2(player, CINFO "I don't understand that key.");
         } else {
             /* everything ok, do it */
-            set_property(thing, "_/chlk", PROP_LOKTYP, (PTYPE) key);
+            pdat.flags = PROP_LOKTYP;
+            set_property(thing, "_/chlk", &pdat);
             ts_modifyobject(thing);
             anotify_nolisten2(player, CSUCC "Chown lock set.");
         }
@@ -1560,12 +1578,12 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 void
 do_propset(int descr, dbref player, const char *name, const char *prop)
 {
-    dbref thing, ref;
+    dbref thing;
     char *p, *q;
     char buf[BUFFER_LEN];
     char *type, *pname, *value;
     struct match_data md;
-    struct boolexp *lok;
+    PData pdat;
 
     if (tp_db_readonly)
         return;
@@ -1648,21 +1666,25 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
             notify(player, "That's not a floating point number!");
             return;
         }
-        set_property(thing, pname, PROP_FLTTYP, (PTYPE) value);
+        pdat.flags = PROP_FLTTYP;
+        pdat.data.fval = strtod(value, NULL);
+        set_property(thing, pname, &pdat);
     } else if (string_prefix("dbref", type)) {
         init_match(descr, player, value, NOTYPE, &md);
         match_absolute(&md);
         match_everything(&md);
-        if ((ref = noisy_match_result(&md)) == NOTHING)
+        if ((pdat.data.ref = noisy_match_result(&md)) == NOTHING)
             return;
-        set_property(thing, pname, PROP_REFTYP, (PTYPE) ref);
+        pdat.flags = PROP_REFTYP;
+        set_property(thing, pname, &pdat);
     } else if (string_prefix("lock", type)) {
-        lok = parse_boolexp(descr, player, value, 0);
-        if (lok == TRUE_BOOLEXP) {
+        pdat.data.lok = parse_boolexp(descr, player, value, 0);
+        if (pdat.data.lok == TRUE_BOOLEXP) {
             anotify_nolisten2(player, CINFO "I don't understand that lock.");
             return;
         }
-        set_property(thing, pname, PROP_LOKTYP, (PTYPE) lok);
+        pdat.flags = PROP_LOKTYP;
+        set_property(thing, pname, &pdat);
     } else if (string_prefix("erase", type)) {
         if (*value) {
             anotify_nolisten2(player,

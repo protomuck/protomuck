@@ -1,3 +1,5 @@
+
+#define NO_MALLOC_PROFILING
 #include "copyright.h"
 #include "config.h"
 

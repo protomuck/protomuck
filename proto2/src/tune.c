@@ -1003,7 +1003,7 @@ tune_get_parmstring(const char *name, int mlev)
 
 /* Added in beta5 to help with shutdown memory profiling. From fb6 */
 void
-tune_freeparms()
+tune_freeparms(void)
 {
     struct tune_str_entry *tstr = tune_str_list;
 

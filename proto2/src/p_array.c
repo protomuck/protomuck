@@ -1209,8 +1209,7 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
                     case PROP_STRTYP:
                         temp2.type = PROG_STRING;
                         temp2.data.string =
-                            alloc_prog_string(get_uncompress
-                                              (PropDataStr(prptr)));
+                            alloc_prog_string(PropDataUNCStr(prptr));
                         break;
                     case PROP_LOKTYP:
                         temp2.type = PROG_LOCK;
@@ -1286,20 +1285,20 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
     sprintf(propname, "%s#", dir);
     if (!(lines = get_property_value(ref, propname))) {
         if ((m = get_property_class(ref, propname)))
-            lines = atoi(get_uncompress(m));
+            lines = atoi(m);
 
         if (!lines) {
             sprintf(propname, "%s", dir);
             if (!(lines = get_property_value(ref, propname)))
                 if ((m = get_property_class(ref, propname)))
-                    lines = atoi(get_uncompress(m));
+                    lines = atoi(m);
 
         }
         if (!lines) {
             sprintf(propname, "%s%c#", dir, PROPDIR_DELIMITER);
             if (!(lines = get_property_value(ref, propname)))
                 if ((m = get_property_class(ref, propname)))
-                    lines = atoi(get_uncompress(m));
+                    lines = atoi(m);
         }
 
     }
@@ -1329,8 +1328,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                         case PROP_STRTYP:
                             temp2.type = PROG_STRING;
                             temp2.data.string =
-                                alloc_prog_string(get_uncompress
-                                                  (PropDataStr(prptr)));
+                                alloc_prog_string(PropDataUNCStr(prptr));
                             break;
                         case PROP_LOKTYP:
                             temp2.type = PROG_LOCK;
@@ -1371,19 +1369,16 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
 void
 prim_array_put_propvals(PRIM_PROTOTYPE)
 {
-    stk_array *arr;
     char propname[BUFFER_LEN];
-    char dir[BUFFER_LEN];
-    int protoflags;
-    PTYPE pval;
-    dbref obj;
-    int result;
+    stk_array *arr;
+    PData pdat;
 
     /* dbref strPropDir array -- */
     CHECKOP(3);
     oper3 = POP();
     oper2 = POP();
     oper1 = POP();
+
     if (oper1->type != PROG_OBJECT)
         abort_interp("Dbref required. (1)");
     if (!valid_object(oper1))
@@ -1394,7 +1389,6 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
         abort_interp("Array required. (3)");
 
     ref = oper1->data.objref;
-    strcpy(dir, DoNullInd(oper2->data.string));
     arr = oper3->data.array;
 
     if (array_first(arr, &temp1)) {
@@ -1402,15 +1396,16 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
             oper4 = array_getitem(arr, &temp1);
             switch (temp1.type) {
                 case PROG_STRING:
-                    sprintf(propname, "%s%c%s", dir, PROPDIR_DELIMITER,
-                            DoNullInd(temp1.data.string));
+                    sprintf(propname, "%s%c%s", DoNullInd(oper2->data.string),
+                            PROPDIR_DELIMITER, DoNullInd(temp1.data.string));
                     break;
                 case PROG_INTEGER:
-                    sprintf(propname, "%s%c%d", dir, PROPDIR_DELIMITER,
-                            temp1.data.number);
+                    sprintf(propname, "%s%c%d", DoNullInd(oper2->data.string),
+                            PROPDIR_DELIMITER, temp1.data.number);
                     break;
                 case PROG_FLOAT:
-                    sprintf(propname, "%s%c%.15g", dir, PROPDIR_DELIMITER,
+                    sprintf(propname, "%s%c%.15g",
+                            DoNullInd(oper2->data.string), PROPDIR_DELIMITER,
                             temp1.data.fnumber);
                     break;
                 default:
@@ -1423,34 +1418,28 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
 
             switch (oper4->type) {
                 case PROG_STRING:
-                    protoflags = PROP_STRTYP;
-                    pval = (oper4->data.string ? oper4->data.string->data : 0);
-                    set_property(ref, propname, protoflags, pval);
+                    pdat.flags = PROP_STRTYP;
+                    pdat.data.str =
+                        oper4->data.string ? oper4->data.string->data : NULL;
                     break;
                 case PROG_INTEGER:
-                    protoflags = PROP_INTTYP;
-                    result = oper4->data.number;
-                    set_property(ref, propname, protoflags, (char *) result);
+                    pdat.flags = PROP_INTTYP;
+                    pdat.data.val = oper4->data.number;
                     break;
                 case PROG_FLOAT:
-                    protoflags = PROP_FLTTYP;
-                    sprintf(buf, "%.15g", oper4->data.fnumber);
-                    pval = buf;
-                    set_property(ref, propname, protoflags, pval);
+                    pdat.flags = PROP_FLTTYP;
+                    pdat.data.fval = oper4->data.fnumber;
                     break;
                 case PROG_OBJECT:
-                    protoflags = PROP_REFTYP;
-                    obj = oper4->data.objref;
-                    set_property(ref, propname, protoflags, (char *) obj);
+                    pdat.flags = PROP_REFTYP;
+                    pdat.data.ref = oper4->data.objref;
                     break;
                 case PROG_LOCK:
-                    protoflags = PROP_LOKTYP;
-                    pval = (PTYPE) copy_bool(oper4->data.lock);
-                    set_property(ref, propname, protoflags, pval);
+                    pdat.flags = PROP_LOKTYP;
+                    pdat.data.lok = copy_bool(oper4->data.lock);
                     break;
-                default:
-                    *propname = '\0';
             }
+            set_property(ref, propname, &pdat);
         } while (array_next(arr, &temp1));
     }
 
@@ -1470,7 +1459,8 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
     char *fmtout;
     int dirlen;
     int count;
-    int protoflags;
+    PData pdat;
+
 
     /* dbref strPropDir array -- */
     CHECKOP(3);
@@ -1505,25 +1495,23 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
         fmtin++;
     }
     *fmtout++ = '\0';
+
     if (!prop_write_perms(ProgUID, ref, propname, mlev))
         abort_interp
             ("Permission denied while trying to set protected property.");
 
     if (tp_proplist_int_counter) {
         /* Alynna - Fix a bug where it wont set the proper value if you try to write an int directly.. */
-        memset(buf, 0, sizeof(buf));
-        /*    sprintf(buf, "%d", array_count(arr));
-           protoflags = PROP_STRTYP;
-           set_property(ref, propname, protoflags, (char *) buf); */
-        protoflags = PROP_INTTYP;
-        set_property_nofetch(ref, propname, protoflags,
-                             (char *) array_count(arr));
+        pdat.flags = PROP_INTTYP;
+        pdat.data.val = array_count(arr);
+        set_property(ref, propname, &pdat);
     } else {
-        memset(buf, 0, sizeof(buf));
         sprintf(buf, "%d", array_count(arr));
-        protoflags = PROP_STRTYP;
-        set_property(ref, propname, protoflags, buf);
+        pdat.flags = PROP_STRTYP;
+        pdat.data.str = buf;
+        set_property(ref, propname, &pdat);
     }
+
     if (array_first(arr, &temp1)) {
         do {
             oper4 = array_getitem(arr, &temp1);
@@ -1546,39 +1534,36 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
                 fmtin++;
             }
             *fmtout++ = '\0';
+
             if (!prop_write_perms(ProgUID, ref, propname, mlev))
                 abort_interp
                     ("Permission denied while trying to set protected property.");
+
             switch (oper4->type) {
                 case PROG_STRING:
-                    protoflags = PROP_STRTYP;
-                    sprintf(buf, "%s",
-                            oper4->data.string ? oper4->data.string->
-                            data : "0");
+                    pdat.flags = PROP_STRTYP;
+                    pdat.data.str =
+                        oper4->data.string ? oper4->data.string->data : NULL;
                     break;
                 case PROG_INTEGER:
-                    protoflags = PROP_INTTYP;
-                    sprintf(buf, "%d", oper4->data.number);
+                    pdat.flags = PROP_INTTYP;
+                    pdat.data.val = oper4->data.number;
                     break;
                 case PROG_FLOAT:
-                    protoflags = PROP_FLTTYP;
-                    sprintf(buf, "%g", oper4->data.fnumber);
+                    pdat.flags = PROP_FLTTYP;
+                    pdat.data.fval = oper4->data.fnumber;
                     break;
                 case PROG_OBJECT:
-                    protoflags = PROP_REFTYP;
-                    sprintf(buf, "%d", oper4->data.objref);
+                    pdat.flags = PROP_REFTYP;
+                    pdat.data.ref = oper4->data.objref;
                     break;
                 case PROG_LOCK:
-                    protoflags = PROP_LOKTYP;
-                    sprintf(buf, "%s",
-                            unparse_boolexp(PSafe, copy_bool(oper4->data.lock),
-                                            1));
+                    pdat.flags = PROP_LOKTYP;
+                    pdat.data.lok = copy_bool(oper4->data.lock);
                     break;
-                default:
-                    protoflags = PROP_INTTYP;
-                    sprintf(buf, "%d", 0);
             }
-            set_property(ref, propname, protoflags, buf);
+            set_property(ref, propname, &pdat);
+
         } while (array_next(arr, &temp1));
     }
     count = temp1.data.number;
@@ -1646,7 +1631,6 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
 
     nw = new_array_packed(0);
     rawstr = get_property_class(ref, dir);
-    rawstr = get_uncompress(rawstr);
 
     if (rawstr) {
         while (isspace(*rawstr))
@@ -1688,7 +1672,7 @@ prim_array_put_reflist(PRIM_PROTOTYPE)
     char dir[BUFFER_LEN];
     char *out;
     int len;
-    int protoflags;
+    PData pdat;
 
     /* dbref strPropDir array -- */
     CHECKOP(3);
@@ -1737,8 +1721,9 @@ prim_array_put_reflist(PRIM_PROTOTYPE)
         } while (array_next(arr, &temp1));
     }
 
-    protoflags = PROP_STRTYP;
-    set_property(ref, dir, protoflags, buf);
+    pdat.flags = PROP_STRTYP;
+    pdat.data.str = buf;
+    set_property(ref, dir, &pdat);
 
     CLEAR(oper1);
     CLEAR(oper2);

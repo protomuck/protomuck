@@ -87,8 +87,7 @@ copy_bool(struct boolexp *old)
             SetPFlagsRaw(o->prop_check, PropFlagsRaw(old->prop_check));
             switch (PropType(old->prop_check)) {
                 case PROP_STRTYP:
-                    SetPDataStr(o->prop_check,
-                                alloc_string(PropDataStr(old->prop_check)));
+                    SetPDataStr(o->prop_check, alloc_string(PropDataStr(old->prop_check))); /* this is supposed to use PropDataStr. -hinoserm */
                     break;
                 default:
                     SetPDataVal(o->prop_check, PropDataVal(old->prop_check));
@@ -134,14 +133,26 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
                         Typeof(player) == TYPE_THING) {
                         struct inst *rv;
                         struct frame *tmpfr;
+                        dbref real_player;
+
+                        if (Typeof(player) == TYPE_PLAYER
+                            || Typeof(player) == TYPE_THING)
+                            real_player = player;
+                        else
+                            real_player = OWNER(player);
 
                         tmpfr =
-                            interp(descr, player, DBFETCH(player)->location,
-                                   b->thing, thing, PREEMPT, STD_HARDUID, 0);
+                            interp(descr, real_player,
+                                   DBFETCH(player)->location, b->thing, thing,
+                                   PREEMPT, STD_HARDUID, 0);
+
                         if (!tmpfr)
-                            return (0);
-                        rv = interp_loop(player, b->thing, tmpfr, 0);
+                            return 0;
+
+                        rv = interp_loop(real_player, b->thing, tmpfr, 0);
+
                         return (rv != NULL);
+
                     }
                 }
                 return (b->thing == player || b->thing == OWNER(player)
@@ -154,11 +165,11 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
                 if (PropType(b->prop_check) == PROP_STRTYP) {
                     if (has_property_strict(descr, player, thing,
                                             PropName(b->prop_check),
-                                            PropDataStr(b->prop_check), 0))
+                                            PropDataUNCStr(b->prop_check), 0))
                         return 1;
                     if (has_property(descr, player, player,
                                      PropName(b->prop_check),
-                                     PropDataStr(b->prop_check), 0))
+                                     PropDataUNCStr(b->prop_check), 0))
                         return 1;
                 }
                 return 0;
@@ -456,8 +467,8 @@ size_boolexp(struct boolexp *b)
             case BOOLEXP_PROP:
                 result += sizeof(*b->prop_check);
                 result += strlen(PropName(b->prop_check)) + 1;
-                if (PropDataStr(b->prop_check))
-                    result += strlen(PropDataStr(b->prop_check)) + 1;
+                if (PropDataStr(b->prop_check)) /* this is supposed to use PropDataStr. -hinoserm */
+                    result += strlen(PropDataStr(b->prop_check)) + 1; /* this too. -hinoserm */
                 break;
             default:
                 log_status("ERROR: Unknown type of bool.\n");

@@ -22,8 +22,6 @@ struct line *read_program(dbref i);
  * on failure.
  */
 
-#define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
-
 static dbref
 parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
 {
@@ -194,11 +192,15 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 
     if (*rname && (exit != NOTHING)) {
         char buf[BUFFER_LEN];
+        PData pdat;
 
         sprintf(buf, CSUCC "Registered as $%s", rname);
         anotify_nolisten2(player, buf);
-        sprintf(buf, "_reg/%s", rname);
-        set_property(player, buf, PROP_REFTYP, (PTYPE) exit);
+        snprintf(buf, sizeof(buf), "_reg/%s", rname);
+        pdat.flags = PROP_REFTYP;
+        pdat.data.ref = exit;
+        set_property(player, buf, &pdat);
+
     }
 }
 
@@ -585,8 +587,12 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     }
 
     if (*rname) {
+        PData pdat;
+
         sprintf(buf, "_reg/%s", rname);
-        set_property(player, buf, PROP_REFTYP, (PTYPE) room);
+        pdat.flags = PROP_REFTYP;
+        pdat.data.ref = room;
+        set_property(player, buf, &pdat);
         sprintf(buf, CINFO "Room registered as $%s", rname);
         anotify_nolisten2(player, buf);
     }
@@ -929,10 +935,15 @@ do_create(dbref player, char *name, char *acost)
         DBDIRTY(thing);
     }
     if (*rname) {
+        PData pdat;
+
         sprintf(buf, CINFO "Registered as $%s", rname);
         anotify_nolisten2(player, buf);
         sprintf(buf, "_reg/%s", rname);
-        set_property(player, buf, PROP_REFTYP, (PTYPE) thing);
+        pdat.flags = PROP_REFTYP;
+        pdat.data.ref = thing;
+        set_property(player, buf, &pdat);
+
     }
 }
 
@@ -1115,10 +1126,14 @@ do_action(int descr, dbref player, const char *action_name,
     DBDIRTY(action);
 
     if (*rname) {
+        PData pdat;
+
         sprintf(buf, CINFO "Registered as $%s", rname);
         anotify_nolisten2(player, buf);
         sprintf(buf, "_reg/%s", rname);
-        set_property(player, buf, PROP_REFTYP, (PTYPE) action);
+        pdat.flags = PROP_REFTYP;
+        pdat.data.ref = action;
+        set_property(player, buf, &pdat);
     }
 }
 

@@ -1266,7 +1266,7 @@ extract_prop(FILE * f, const char *dir, PropPtr p)
         case PROP_STRTYP:
             if (!*PropDataStr(p))
                 return;
-            ptr2 = uncompress(PropDataStr(p));
+            ptr2 = PropDataUNCStr(p);
             break;
         case PROP_LOKTYP:
             if (PropFlags(p) & PROP_ISUNLOADED)

@@ -366,7 +366,7 @@ copy_proplist(dbref obj, PropPtr *new2, PropPtr old)
         SetPFlagsRaw(p, PropFlagsRaw(old));
         switch (PropType(old)) {
             case PROP_STRTYP:
-                SetPDataStr(p, alloc_string(PropDataStr(old)));
+                SetPDataStr(p, alloc_string(PropDataStr(old))); /* this is supposed to use PropDataStr. -hinoserm */
                 break;
             case PROP_LOKTYP:
                 if (PropFlags(old) & PROP_ISUNLOADED) {
@@ -392,21 +392,20 @@ copy_proplist(dbref obj, PropPtr *new2, PropPtr old)
     }
 }
 
-
-
 int
 size_proplist(PropPtr avl)
 {
-    int bytes = 0;
+    register int bytes = 0;
 
     if (!avl)
         return 0;
+
     bytes += sizeof(struct plist);
     bytes += strlen(PropName(avl));
     if (!(PropFlags(avl) & PROP_ISUNLOADED)) {
         switch (PropType(avl)) {
             case PROP_STRTYP:
-                bytes += strlen(PropDataStr(avl)) + 1;
+                bytes += strlen(PropDataStr(avl)) + 1; /* this is supposed to use PropDataStr. -hinoserm */
                 break;
             case PROP_LOKTYP:
                 bytes += size_boolexp(PropDataLok(avl));
@@ -415,13 +414,12 @@ size_proplist(PropPtr avl)
                 break;
         }
     }
+
     bytes += size_proplist(AVL_LF(avl));
     bytes += size_proplist(AVL_RT(avl));
     bytes += size_proplist(PropDir(avl));
     return bytes;
 }
-
-
 
 int
 Prop_Check(const char *name, const char what)

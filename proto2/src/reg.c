@@ -201,10 +201,6 @@ reg_user_is_suspended(int user)
         return NULL;
 
     m = get_property_class(user, "@/lockout-msg");
-#ifdef COMPRESS
-    if (m)
-        m = uncompress(m);
-#endif
     if (m)
         return m;
 
@@ -216,10 +212,7 @@ reg_user_is_suspended(int user)
 
     /* Player is suspended.  Is there a suspend msg? */
     m = get_property_class(user, "@/suspend-msg");
-#ifdef COMPRESS
-    if (m)
-        m = uncompress(m);
-#endif
+
     if (m)
         return m;
     else
@@ -563,10 +556,7 @@ reg_site_welcome(int site)
                 strcat(key, "/");
                 strcat(key, buf);
                 m = get_property_class(REG_OBJ, key);
-#ifdef COMPRESS
-                if (m && *m)
-                    m = uncompress(m);
-#endif
+
                 return m;
             }
         }

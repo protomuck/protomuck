@@ -13,10 +13,6 @@
 #include "match.h"
 #include "externs.h"
 
-#ifdef COMPRESS
-extern const char *uncompress(const char *);
-#endif /* COMPRESS */
-
 #define UPCASE(x) (toupper(x))
 #define DOWNCASE(x) (tolower(x))
 
@@ -58,10 +54,10 @@ void
 exec_or_notify_2(int descr, dbref player, dbref thing,
                  const char *message, const char *whatcalled, register bool typ)
 {
-    register char *p;
+    register const char *p;
     char buf[BUFFER_LEN];
 
-    p = (char *) get_uncompress((char *) message);
+    p = message;
 
     if (*p == EXEC_SIGNAL) {
         char tmpcmd[BUFFER_LEN];
@@ -423,8 +419,8 @@ do_look_at(int descr, dbref player, register const char *name,
 #ifdef DISKBASE
                 propfetch(thing, lastmatch); /* DISKBASE PROPVALS */
 #endif
-                exec_or_notify(descr, player, thing,
-                               PropDataStr(lastmatch), "(@detail)");
+                exec_or_notify(descr, player, thing, PropDataUNCStr(lastmatch),
+                               "(@detail)");
             } else if ((int) lastmatch == AMBIGUOUS) {
                 anotify_nolisten(player, CINFO AMBIGUOUS_MESSAGE, 1);
 

@@ -542,7 +542,7 @@ init_game(const char *infile, const char *outfile)
 }
 
 void
-cleanup_game()
+cleanup_game(void)
 {
     if (dumpfile)
         free((void *) dumpfile);
@@ -1625,7 +1625,7 @@ prop_command(int descr, dbref player, char *command, char *arg, char *type,
 #endif
     switch (PropType(ptr)) {
         case PROP_STRTYP:
-            workBuf = get_uncompress(PropDataStr(ptr));
+            workBuf = PropDataUNCStr(ptr);
             break;
         case PROP_REFTYP:
             progRef = PropDataRef(ptr);

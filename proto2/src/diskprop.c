@@ -13,11 +13,9 @@
 extern FILE *input_file;
 extern FILE *delta_infile;
 extern FILE *delta_outfile;
-extern void getproperties(FILE * f, dbref obj);
 
-
-int propcache_hits = 0L;
-int propcache_misses = 0L;
+long propcache_hits = 0L;
+long propcache_misses = 0L;
 
 struct pload_Q {
     dbref obj;
@@ -29,7 +27,6 @@ struct pload_Q propchanged_Q = { NOTHING, 0, PROPS_CHANGED };
 struct pload_Q proploaded_Q = { NOTHING, 0, PROPS_LOADED };
 struct pload_Q proppri_Q = { NOTHING, 0, PROPS_PRIORITY };
 
-
 void
 removeobj_ringqueue(dbref obj)
 {
@@ -38,7 +35,7 @@ removeobj_ringqueue(dbref obj)
     switch (DBFETCH(obj)->propsmode) {
         case PROPS_UNLOADED:
             return;
-            break;
+            break;              /* never gets here */
         case PROPS_LOADED:
             ref = &proploaded_Q;
             break;
@@ -137,13 +134,12 @@ static int fetchstats[FETCHSTATS_SLOTS];
 static int lastfetchslot = -1;
 
 void
-update_fetchstats()
+update_fetchstats(void)
 {
-    time_t now;
-    int slot, i;
+    register int slot =
+        ((current_systime / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
+    register int i;
 
-    now = current_systime;
-    slot = ((now / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
     if (slot != lastfetchslot) {
         if (lastfetchslot == -1) {
             for (i = 0; i < FETCHSTATS_SLOTS; i++) {
@@ -160,24 +156,19 @@ update_fetchstats()
 
 
 void
-report_fetchstats(dbref player)
+report_fetchstats(register dbref player)
 {
-    int i, count, slot;
-    double sum, minv, maxv;
-    char buf[BUFFER_LEN];
-    time_t now;
+    register int i =
+        ((current_systime / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
+    register int count = 0;
+    double sum = 0.0, maxv = 0.0, minv;
 
-    now = current_systime;
-    i = slot = ((now / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
-
-    while (lastfetchslot != slot) {
+    while (lastfetchslot != i) {
         lastfetchslot = ((lastfetchslot + 1) % FETCHSTATS_SLOTS);
         fetchstats[lastfetchslot] = 0;
     }
 
-    sum = maxv = 0.0;
     minv = fetchstats[i];
-    count = 0;
 
     for (; count < (FETCHSTATS_INTERVAL1 / FETCHSTATS_SLOT_TIME); count++) {
         if (fetchstats[i] == -1)
@@ -189,13 +180,12 @@ report_fetchstats(dbref player)
             maxv = fetchstats[i];
         i = ((i + FETCHSTATS_SLOTS - 1) % FETCHSTATS_SLOTS);
     }
-    sprintf(buf, "Disk Fetches %2g minute min/ave/max: %.2f/%.2f/%.2f",
-            (FETCHSTATS_INTERVAL1 / 60.0),
-            (minv * 60.0 / FETCHSTATS_SLOT_TIME),
-            (sum * 60.0 / (FETCHSTATS_SLOT_TIME * count)),
-            (maxv * 60.0 / FETCHSTATS_SLOT_TIME));
-    notify(player, buf);
 
+    notify_fmt(player, "Disk Fetches %2g minute min/ave/max: %.2f/%.2f/%.2f",
+               (FETCHSTATS_INTERVAL1 / 60.0),
+               (minv * 60.0 / FETCHSTATS_SLOT_TIME),
+               (sum * 60.0 / (FETCHSTATS_SLOT_TIME * count)),
+               (maxv * 60.0 / FETCHSTATS_SLOT_TIME));
 
     for (; count < (FETCHSTATS_INTERVAL2 / FETCHSTATS_SLOT_TIME); count++) {
         if (fetchstats[i] == -1)
@@ -207,13 +197,12 @@ report_fetchstats(dbref player)
             maxv = fetchstats[i];
         i = ((i + FETCHSTATS_SLOTS - 1) % FETCHSTATS_SLOTS);
     }
-    sprintf(buf, "Disk Fetches %2g minute min/ave/max: %.2f/%.2f/%.2f",
-            (FETCHSTATS_INTERVAL2 / 60.0),
-            (minv * 60.0 / FETCHSTATS_SLOT_TIME),
-            (sum * 60.0 / (FETCHSTATS_SLOT_TIME * count)),
-            (maxv * 60.0 / FETCHSTATS_SLOT_TIME));
-    notify(player, buf);
 
+    notify_fmt(player, "Disk Fetches %2g minute min/ave/max: %.2f/%.2f/%.2f",
+               (FETCHSTATS_INTERVAL2 / 60.0),
+               (minv * 60.0 / FETCHSTATS_SLOT_TIME),
+               (sum * 60.0 / (FETCHSTATS_SLOT_TIME * count)),
+               (maxv * 60.0 / FETCHSTATS_SLOT_TIME));
 
     for (; count < (FETCHSTATS_INTERVAL3 / FETCHSTATS_SLOT_TIME); count++) {
         if (fetchstats[i] == -1)
@@ -225,51 +214,47 @@ report_fetchstats(dbref player)
             maxv = fetchstats[i];
         i = ((i + FETCHSTATS_SLOTS - 1) % FETCHSTATS_SLOTS);
     }
-    sprintf(buf, "Disk Fetches %2g minute min/ave/max: %.2f/%.2f/%.2f",
-            (FETCHSTATS_INTERVAL3 / 60.0),
-            (minv * 60.0 / FETCHSTATS_SLOT_TIME),
-            (sum * 60.0 / (FETCHSTATS_SLOT_TIME * count)),
-            (maxv * 60.0 / FETCHSTATS_SLOT_TIME));
-    notify(player, buf);
-}
 
+    notify_fmt(player, "Disk Fetches %2g minute min/ave/max: %.2f/%.2f/%.2f",
+               (FETCHSTATS_INTERVAL3 / 60.0),
+               (minv * 60.0 / FETCHSTATS_SLOT_TIME),
+               (sum * 60.0 / (FETCHSTATS_SLOT_TIME * count)),
+               (maxv * 60.0 / FETCHSTATS_SLOT_TIME));
+}
 
 void
 report_cachestats(dbref player)
 {
     dbref obj;
-    int count, total, checked, gap, ipct;
+    register int count, checked = 0, ipct;
+    register bool gap = 0;
     time_t when, now;
-    double pct;
-    char buf[BUFFER_LEN];
 
     notify(player, "LRU proploaded cache time distribution graph.");
 
-    total = proploaded_Q.count;
-    checked = 0;
-    gap = 0;
-    when = now = current_systime;
+    when = now = time(NULL);
     notify(player, "Mins  Objs (%of db) Graph of #objs vs. age.");
-    for (; checked < total; when -= 60) {
+
+    for (; checked < proploaded_Q.count; when -= 60) {
         count = 0;
         obj = first_ringqueue_obj(&proploaded_Q);
         while (obj != NOTHING) {
-            if (DBFETCH(obj)->propstime > (when - 60) &&
-                DBFETCH(obj)->propstime <= when)
+            if (DBFETCH(obj)->propstime > (when - 60)
+                && DBFETCH(obj)->propstime <= when)
                 count++;
             obj = next_ringqueue_obj(&proploaded_Q, obj);
         }
         checked += count;
-        pct = count * 100.0 / total;
-        ipct = count * 100 / total;
+        ipct = count * 100 / proploaded_Q.count;
         if (ipct > 50)
             ipct = 50;
+
         if (count) {
             if (gap)
                 notify(player, "[gap]");
-            sprintf(buf, "%3ld:%6d (%5.2f%%) %*s",
-                    ((now - when) / 60), count, pct, ipct, "*");
-            notify(player, buf);
+
+            notify_fmt(player, "%3ld:%6d (%5.2f%%) %*s", ((now - when) / 60),
+                       count, (count * 100.0 / proploaded_Q.count), ipct, "*");
             gap = 0;
         } else {
             gap = 1;
@@ -277,23 +262,19 @@ report_cachestats(dbref player)
     }
 }
 
-
 void
-diskbase_debug(dbref player)
+diskbase_debug(register dbref player)
 {
-    char buf[BUFFER_LEN];
-    double ph, pm;
+    notify_fmt(player, "Propcache hit ratio: %.3f%% (%ld hits / %ld fetches)",
+               (100.0 * propcache_hits / (propcache_hits + propcache_misses)),
+               propcache_hits, propcache_misses);
 
-    ph = propcache_hits;
-    pm = propcache_misses;
-    sprintf(buf, "Propcache hit ratio: %.3f%% (%d hits / %d fetches)",
-            (100.0 * ph / (ph + pm)), propcache_hits, propcache_misses);
-    notify(player, buf);
     report_fetchstats(player);
 
     notify_fmt(player, "PropLoaded count: %d", proploaded_Q.count);
     notify_fmt(player, "PropPriority count: %d", proppri_Q.count);
     notify_fmt(player, "PropChanged count: %d", propchanged_Q.count);
+
     report_cachestats(player);
 }
 

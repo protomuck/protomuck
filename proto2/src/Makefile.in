@@ -18,7 +18,7 @@
 #
 # ProtoMUCK will now compile 99.8% warning free with -Wall turned on.
 #   -Hinoserm, 7-31-2003. 
-OPTIM=-Wall -O2 -g
+OPTIM=-Wall -Wstrict-prototypes -O2 -g
 
 #
 # Paths
@@ -102,7 +102,7 @@ EOBJ= oldcompress.o diskprop.o property.o propdirs.o props.o stringutil.o \
 	unparse.o utils.o predicates.o db.o boolexp.o log.o
 
 OBJ= ${COBJ} ${ROBJ} ${MOBJ}
-TARGETS= protomuck resolver olddecompress topwords
+TARGETS= protomuck resolver
 
 .SUFFIXES: .c .o
 

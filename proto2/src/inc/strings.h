@@ -34,6 +34,5 @@ char	*index();
 char	*rindex();
 */
 
-const char*	strencrypt(const char *, const char *);
-const char*	strdecrypt(const char *, const char *);
-
+extern const char *strencrypt(const char *data, const char *key);
+extern const char *strdecrypt(const char *data, const char *key);

@@ -70,7 +70,7 @@ extern void delta_dump_now(void);
 extern time_t next_cron_time(void);
 extern void check_cron_time(void);
 extern time_t next_archive_time(void);
-extern void check_archive_time();
+extern void check_archive_time(void);
 extern int auto_archive_now(void);
 
 /* from timequeue.c */
@@ -124,7 +124,7 @@ extern void listenqueue(int descr, dbref player, dbref where, dbref trigger,
 extern void next_timequeue_event(void);
 extern int dequeue_prog_descr(int descr, int sleeponly);
 extern int in_timequeue(int pid);
-extern void purge_timenode_free_pool();
+extern void purge_timenode_free_pool(void);
 extern struct frame *timequeue_pid_frame(int pid);
 extern time_t next_event_time(void);
 extern void list_events(dbref program);
@@ -196,7 +196,7 @@ extern void do_dump(dbref player, const char *newfile);
 extern void do_shutdown(dbref player, const char *muckname, const char *msg);
 extern void do_restart(dbref player, const char *muckname, const char *msg);
 extern void fork_and_dump(void);
-extern void archive_site();
+extern void archive_site(void);
 extern void dump_database(void);
 extern int prop_command(int descr, dbref player, char *command, char *arg,
                         char *type, int mt);
@@ -413,6 +413,7 @@ extern void prefix_message(char *, const char *, const char *, int, int);
 extern int is_prop_prefix(const char *, const char *);
 extern int has_suffix(const char *, const char *);
 extern int has_suffix_char(const char *, char);
+extern bool isascii_str(register const char *str);
 
 #if !defined(MALLOC_PROFILING)
 extern char *string_dup(const char *s);
@@ -605,4 +606,4 @@ extern long sel_prof_idle_usec;
 extern unsigned long sel_prof_idle_use;
 
 /* from p_socket.c */
-extern int muf_socket_events();
+

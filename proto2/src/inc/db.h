@@ -136,7 +136,7 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define POWER2DB(x) (DBFETCH(x)->power2)
 
 /* defines for possible data access mods. */
-#define GETMESG(x,y)   (get_uncompress(get_property_class(x, y)))
+#define GETMESG(x,y)   (get_property_class(x, y))
 #define GETDESC(x)  GETMESG(x, "_/de")
 #define GETANSIDESC(x)  GETMESG(x, "_/anside")
 #define GETHTMLDESC(x)  GETMESG(x, "_/htmlde")
@@ -184,10 +184,10 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define LOADOFAIL(x,y)  LOADMESG(x,"_/ofl",y)
 #define LOADODROP(x,y)  LOADMESG(x,"_/odr",y)
 
-#define SETLOCK(x,y) {set_property(x, "_/lok", PROP_LOKTYP, (PTYPE)y);}
-#define LOADLOCK(x,y) {set_property_nofetch(x, "_/lok", PROP_LOKTYP, (PTYPE)y); DBDIRTY(x);}
-#define CLEARLOCK(x) {set_property(x, "_/lok", PROP_LOKTYP, (PTYPE)TRUE_BOOLEXP);}
-#define GETLOCK(x) (get_property_lock(x, "_/lok"))
+#define GETLOCK(x)    (get_property_lock(x, "_/lok"))
+#define SETLOCK(x,y)  {PData pdat; pdat.flags = PROP_LOKTYP; pdat.data.lok = y; set_property(x, "_/lok", &pdat);}
+#define LOADLOCK(x,y) {PData pdat; pdat.flags = PROP_LOKTYP; pdat.data.lok = y; set_property_nofetch(x, "_/lok", &pdat, 0); DBDIRTY(x);}
+#define CLEARLOCK(x)  {PData pdat; pdat.flags = PROP_LOKTYP; pdat.data.lok = TRUE_BOOLEXP; set_property(x, "_/lok", &pdat); DBDIRTY(x);}
 
 #define DB_PARMSINFO    0x0001
 #define DB_COMPRESSED   0x0002
