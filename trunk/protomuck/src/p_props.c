@@ -19,7 +19,7 @@
 #include "interp.h"
 #include "msgparse.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4;
+extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
@@ -1510,8 +1510,6 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
 void
 prim_copyprops(PRIM_PROTOTYPE)
 {
-    struct inst *oper5;
-
     CHECKOP(5);
     oper1 = POP(); /* Recurse          (INT) */
     oper2 = POP(); /* Dest Prop(dir)   (STR) */

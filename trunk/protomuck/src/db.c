@@ -42,7 +42,6 @@ int     ifloat(const char *s);
 void    putproperties(FILE * f, int obj);
 void getproperties(FILE * f, int obj);
 
-
 dbref
 getparent(dbref obj)
 {
@@ -56,6 +55,8 @@ getparent(dbref obj)
 	    obj = getloc(obj);
 	}
     } while (obj != NOTHING && Typeof(obj) == TYPE_THING);
+    if (!limit)
+        return GLOBAL_ENVIRONMENT;
     return obj;
 }
 

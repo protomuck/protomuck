@@ -18,7 +18,7 @@
 
 /* We'll put the external temp vars here */
 
-struct inst *oper1, *oper2, *oper3, *oper4;
+struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 struct inst temp1, temp2, temp3;
 struct inst arrayvar;
 int result, tmp;

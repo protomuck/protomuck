@@ -2081,7 +2081,8 @@ void
 do_abort_interp(dbref player, const char *msg, struct inst * pc,
 		struct inst * arg, int atop, struct frame *fr,
 		struct inst * oper1, struct inst * oper2,
-		struct inst * oper3, struct inst * oper4, int nargs,
+		struct inst * oper3, struct inst * oper4, 
+                struct inst * oper5, struct inst * oper6, int nargs,
 		dbref program, char *file, int line)
 {
     char buffer[128];
@@ -2102,6 +2103,10 @@ do_abort_interp(dbref player, const char *msg, struct inst * pc,
 	          muf_backtrace(OWNER(program), program, STACK_SIZE, fr);
 	}
     switch (nargs) {
+        case 6:
+            if (oper6)  RCLEAR(oper6, file, line);
+        case 5:
+            if (oper5)  RCLEAR(oper5, file, line);
 	case 4:
 	    if (oper4)  RCLEAR(oper4, file, line);
 	case 3:

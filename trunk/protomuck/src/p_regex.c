@@ -20,7 +20,7 @@
 
 #define MUF_RE_CACHE_ITEMS 64
 
-static struct inst *oper1, *oper2, *oper3, *oper4;
+static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 static char buf[BUFFER_LEN];
 
 typedef struct

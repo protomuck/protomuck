@@ -18,7 +18,7 @@
 #include "interp.h"
 #include "props.h"
 
-static struct inst *oper1, *oper2, *oper3, *oper4;
+static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 static struct inst temp1, temp2, temp3;
 static int result;
 static dbref ref;

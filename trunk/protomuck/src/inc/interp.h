@@ -112,13 +112,14 @@ extern void interp_set_depth(struct frame * fr);
 #define abort_interp(C) \
 { \
   do_abort_interp(player, (C), pc, arg, *top, fr, oper1, oper2, oper3, oper4, \
-                  nargs, program, __FILE__, __LINE__); \
+                  oper5, oper6, nargs, program, __FILE__, __LINE__); \
   return; \
 }
 extern void do_abort_interp(dbref player, const char *msg, struct inst *pc,
      struct inst *arg, int atop, struct frame *fr,
      struct inst *oper1, struct inst *oper2, struct inst *oper3,
-     struct inst *oper4, int nargs, dbref program, char *file, int line);
+     struct inst *oper4, struct inst *oper5, struct inst *oper6, 
+     int nargs, dbref program, char *file, int line);
 
 
 
