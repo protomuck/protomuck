@@ -179,6 +179,8 @@ struct descriptor_data {
 
 /* these symbols must be defined by the interface */
 
+#define check_maxd(x) { if (x >= maxd) maxd = x + 1; }
+
 extern int maxd;
 extern char restart_message[BUFFER_LEN];
 extern char shutdown_message[BUFFER_LEN];
@@ -190,7 +192,6 @@ extern unsigned int bytesIn;
 extern unsigned int bytesOut;
 extern unsigned int commandTotal;
 extern void shutdownsock(struct descriptor_data *d);
-extern void check_maxd(struct descriptor_data *d);
 extern struct descriptor_data * initializesock(int s, struct huinfo *hu, int ctyp, int cport, int welcome);
 extern struct descriptor_data* descrdata_by_index(int index);
 extern struct descriptor_data* descrdata_by_descr(int i);

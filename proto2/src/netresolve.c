@@ -76,9 +76,7 @@ reslvd_open(void)
     }
 
     make_nonblocking(reslvd_sock);
-
-    if (reslvd_sock >= maxd)
-        maxd = reslvd_sock + 1;
+    check_maxd(reslvd_sock);
 
     reslvd_connected = 1;
     return 1;
@@ -255,6 +253,10 @@ spawn_resolver(void)
         perror("resolver execlp");
         _exit(1);
     }
+
+    check_maxd(resolver_sock[0]);
+    check_maxd(resolver_sock[1]);
+
     fprintf(stderr, "INIT: external host resolver started\n");
 }
 

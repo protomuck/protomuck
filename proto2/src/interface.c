@@ -89,7 +89,7 @@ static int sock[MAX_LISTEN_SOCKS];
 static int ndescriptors = 0;
 static int numsocks = 0;
 
-int maxd = 0;            /* Moved from shovechars since needed in p_socket.c */
+int maxd = 0;                   /* Moved from shovechars since needed in p_socket.c */
 
 void parse_connect(const char *msg, char *command, char *user, char *pass);
 void check_connect(struct descriptor_data *d, const char *msg);
@@ -334,6 +334,7 @@ extern void purge_all_free_frames(void);
 extern void purge_mfns(void);
 extern void cleanup_game(void);
 extern void tune_freeparms(void);
+
 #ifdef COMPRESS
 extern void free_compress_dictionary(void);
 #endif /* COMPRESS */
@@ -615,12 +616,12 @@ main(int argc, char **argv)
 #endif
 
 #if defined(USE_RESLVD) && defined(SPAWN_HOST_RESOLVER)
-    if (reslvd_open() != 1)
-        spawn_resolver();
+        if (reslvd_open() != 1)
+            spawn_resolver();
 #elif defined(USE_RESLVD)
-    reslvd_open();
+        reslvd_open();
 #elif defined(SPAWN_HOST_RESOLVER)
-    spawn_resolver();
+        spawn_resolver();
 #endif
 
 #ifdef MUD_ID
@@ -663,7 +664,7 @@ main(int argc, char **argv)
         kill_resolver();
 #endif
 #ifdef USE_RESLVD
-    reslvd_close();
+        reslvd_close();
 #endif
 
 #ifdef WIN_VC
@@ -1547,13 +1548,6 @@ idleboot_user(struct descriptor_data *d)
     d->booted = 1;
 }
 
-void
-check_maxd(struct descriptor_data *d)
-{                               /* needed by p_socket.c's socket_setuer prim */
-    if (d->descriptor >= maxd)
-        maxd = d->descriptor + 1;
-}
-
 static int con_players_max = 0; /* one of Cynbe's good ideas. */
 static int con_players_curr = 0; /* for playermax checks. */
 extern void purge_free_frames(void);
@@ -1616,18 +1610,16 @@ shovechars(void)
 
     if (ssl_status_ok) {
         ssl_sock = make_socket(tp_sslport);
-        maxd = ssl_sock + 1;
         log_status("SSLX: SSL initialized OK\n");
-        ssl_numsocks = 1;
+        ssl_numsocks++;
     } else {
         ssl_numsocks = 0;
     }
 #endif
 
-    for (i = 0; i < numsocks; i++) {
-        sock[i] = make_socket(listener_port[i]);
-        maxd = sock[i] + 1;
-    }                           /* fixes the socket blocking problem at startup. */
+    for (i = 0; i < numsocks; i++)
+        sock[i] = make_socket(listener_port[i]); /* fixes the socket blocking problem at startup. */
+
     gettimeofday(&last_slice, (struct timezone *) 0);
 
     openfiles_max = max_open_files();
@@ -1643,12 +1635,26 @@ shovechars(void)
         process_commands();     /* Process player commands in game.c */
         muf_event_process();    /* Process MUF events in mufevents.c */
 
+        purge_free_frames();
+        untouchprops_incremental(1);
+
+        if (shutdown_flag)
+            break;              /* Get out of game loop */
+
+        timeout.tv_sec = 10;
+        timeout.tv_usec = 0;
+        next_slice = msec_add(last_slice, tp_command_time_msec);
+        slice_timeout = timeval_sub(next_slice, current_time);
+
+        FD_ZERO(&output_set);
+        FD_ZERO(&input_set);
+
         for (d = descriptor_list; d; d = dnext) {
             dnext = d->next;
-#ifdef NEWHTTPD                 /* hinoserm */
-            if (d->http.file.fp) /* hinoserm */
-                http_sendfileblock(d); /* hinoserm */
-#endif  /* NEWHTTPD */               /* hinoserm */
+#ifdef NEWHTTPD
+            if (d->http.file.fp)
+                http_sendfileblock(d);
+#endif /* NEWHTTPD */
             /* booted = 3 means immediate clean drop */
             /* booted = 4 means safeboot -hinoserm */
             if (d->booted) {
@@ -1660,66 +1666,45 @@ shovechars(void)
                                                              lines))))
                     || (d->type == CT_MUF
                         && !descr_running_queue(d->descriptor))
-                    || (d->type == CT_INBOUND && d->booted == 1)) { /* hinoserm */
+                    || (d->type == CT_INBOUND && d->booted == 1)) {
 #ifdef NEWHTTPD
-                    if (!(d->flags & DF_HALFCLOSE)) { /* hinoserm */
+                    if (!(d->flags & DF_HALFCLOSE)) {
 #endif /* NEWHTTPD */
                         process_output(d); /* send the queued notifies */
                         if (d->booted == 2) /* booted == 2 means QUIT command */
                             goodbye_user(d);
                         process_output(d); /* send QUIT related notifies */
 #ifdef NEWHTTPD
-                    }           /* hinoserm */
+                    }
 #endif /* NEWHTTPD */
                     d->booted = 0;
-#ifdef NEWHTTPD                 /* hinoserm */
-                    if (d->type == CT_HTTP) { /* hinoserm */
-                        struct frame *tmpfr; /* hinoserm */
+#ifdef NEWHTTPD
+                    if (d->type == CT_HTTP) {
+                        struct frame *tmpfr;
 
-                        if ((tmpfr = timequeue_pid_frame(d->http.pid)) /* hinoserm */
-                            &&tmpfr->descr == d->descriptor) /* hinoserm */
-                            dequeue_process(d->http.pid); /* hinoserm */
-                        dequeue_prog_descr(d->descriptor, 2); /* hinoserm */
-                    }           /* hinoserm */
+                        if ((tmpfr = timequeue_pid_frame(d->http.pid))
+                            && tmpfr->descr == d->descriptor)
+                            dequeue_process(d->http.pid);
+                        dequeue_prog_descr(d->descriptor, 2);
+                    }
                     if (!d->connected && (d->type != CT_HTTP)) /* quit from login screen (hinoserm changed) */
 #else /* !NEWHTTPD */
                     if (!d->connected)
 #endif /* NEWHTTPD */
                         announce_disclogin(d);
 #ifdef NEWHTTPD
-                    if ((d->type == CT_HTTP) && !(d->flags & DF_HALFCLOSE)) { /* hinoserm */
-                        d->flags |= DF_HALFCLOSE; /* hinoserm */
-                        shutdown(d->descriptor, 1); /* hinoserm */
+                    if ((d->type == CT_HTTP) && !(d->flags & DF_HALFCLOSE)) {
+                        d->flags |= DF_HALFCLOSE;
+                        shutdown(d->descriptor, 1);
                     } else
 #endif /* NEWHTTP */
-                    if (d->type != CT_INBOUND) /* Don't touch MUF sockets */
+                    if (d->type != CT_INBOUND) { /* Don't touch MUF sockets */
                         shutdownsock(d);
+                        continue; /* this is important, it keeps the FD_SET() code below from breaking. */
+                    }
                 }               /* if d->booted != 3 */
-            }                   /* if (d->booted) */
-        }                       /* for (d) */
-        purge_free_frames();
-        untouchprops_incremental(1);
-
-        if (shutdown_flag)
-            break;              /* Get out of game loop */
-        timeout.tv_sec = 10;
-        timeout.tv_usec = 0;
-        next_slice = msec_add(last_slice, tp_command_time_msec);
-        slice_timeout = timeval_sub(next_slice, current_time);
-
-        FD_ZERO(&output_set);
-        FD_ZERO(&input_set);
-        if (ndescriptors < avail_descriptors) { /* prepare read pool */
-            for (i = 0; i < numsocks; i++) {
-                FD_SET(sock[i], &input_set);
             }
-        }
-#ifdef USE_SSL
-        if (ssl_numsocks > 0)
-            FD_SET(ssl_sock, &input_set);
-#endif
-
-        for (d = descriptor_list; d; d = d->next) {
+            /* if (d->booted) */
             if (d->input.lines > 100)
                 timeout = slice_timeout;
             else
@@ -1730,23 +1715,29 @@ shovechars(void)
             if (d->ssl_session) {
                 /* SSL may want to write even if the output queue is empty */
                 if (!SSL_is_init_finished(d->ssl_session)) {
-                    /* log_status("SSLX: Init not finished.\n", "version"); */
                     FD_CLR(d->descriptor, &output_set);
                     FD_SET(d->descriptor, &input_set);
                 }
-                if (SSL_want_write(d->ssl_session)) {
-                    /* log_status("SSLX: Need write.\n", "version"); */
+                if (SSL_want_write(d->ssl_session))
                     FD_SET(d->descriptor, &output_set);
-                }
             }
 #endif
-        }
+        }                       /* for (d) */
 
+        if (ndescriptors < avail_descriptors) /* prepare read pool */
+            for (i = 0; i < numsocks; i++)
+                FD_SET(sock[i], &input_set);
+
+#ifdef USE_SSL
+        if (ssl_numsocks > 0)
+            FD_SET(ssl_sock, &input_set);
+#endif
 
 #ifdef SPAWN_HOST_RESOLVER
         if (resolverpid)
             FD_SET(resolver_sock[1], &input_set);
 #endif
+
 #ifdef USE_RESLVD
         if (reslvd_connected)
             FD_SET(reslvd_sock, &input_set);
@@ -1754,17 +1745,13 @@ shovechars(void)
 
 #ifdef MUF_SOCKETS
         for (curr = socket_list; curr; curr = curr->next) {
-            if (!curr->theSock->readWaiting && curr->theSock->connected == 1) {
+            if (!curr->theSock->readWaiting && curr->theSock->connected == 1)
                 FD_SET(curr->theSock->socknum, &input_set);
-                if (curr->theSock->socknum >= maxd)
-                    maxd = curr->theSock->socknum + 1;
-            } else if (!curr->theSock->connected) {
+            else if (!curr->theSock->connected)
                 FD_SET(curr->theSock->socknum, &output_set);
-                if (curr->theSock->socknum >= maxd)
-                    maxd = curr->theSock->socknum + 1;
-            }
         }
 #endif
+
         tmptq = next_muckevent_time();
         if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
             timeout.tv_sec = tmptq + (tp_pause_min / 1000);
@@ -1793,6 +1780,7 @@ shovechars(void)
             }
             sel_prof_idle_use++;
             now = current_systime;
+
             for (i = 0; i < numsocks; i++) { /* check for new connects */
                 if (FD_ISSET(sock[i], &input_set)) { /* new connect */
                     if (!(newd = new_connection(listener_port[i], sock[i]))) { /* connection error */
@@ -1810,19 +1798,15 @@ shovechars(void)
                                        sys_errlist[errnosocket]);
 #endif
                         }
-                    } else {    /* no error in new connection */
-                        if (newd->descriptor >= maxd)
-                            maxd = newd->descriptor + 1;
-#ifdef USE_SSL
-                        newd->ssl_session = NULL;
-#endif
                     }
                 }               /* if FD_ISET... */
             }                   /* for i < numsocks... */
+
 #ifdef SPAWN_HOST_RESOLVER
             if (resolverpid && FD_ISSET(resolver_sock[1], &input_set))
                 resolve_hostnames();
 #endif
+
 #ifdef USE_RESLVD
             if (reslvd_connected && FD_ISSET(reslvd_sock, &input_set))
                 reslvd_input();
@@ -1846,8 +1830,6 @@ shovechars(void)
                     }
 #endif
                 } else {
-                    if (newd->descriptor >= maxd)
-                        maxd = newd->descriptor + 1;
                     newd->ssl_session = SSL_new(ssl_ctx);
                     SSL_set_fd(newd->ssl_session, newd->descriptor);
                     cnt = SSL_accept(newd->ssl_session);
@@ -1856,7 +1838,6 @@ shovechars(void)
                 }
             }
 #endif
-
 
 #ifdef MUF_SOCKETS
             for (curr = socket_list; curr; curr = curr->next) {
@@ -1867,6 +1848,7 @@ shovechars(void)
                 }
             }
 #endif
+
             /* This is the loop that handles input */
             for (cnt = 0, d = descriptor_list; d; d = dnext) {
                 dnext = d->next;
@@ -1892,14 +1874,13 @@ shovechars(void)
                     }           /* else */
                 }
 #ifdef NEWHTTPD
-                else if (d->flags & DF_HALFCLOSE) { /* hinoserm */
-                    d->booted = 1; /* hinoserm */
-                }               /* hinoserm */
+                else if (d->flags & DF_HALFCLOSE) {
+                    d->booted = 1;
+                }
 #endif /* NEWHTTPD */
                 if (FD_ISSET(d->descriptor, &output_set)) {
-                    if (!process_output(d)) { /* send text */
+                    if (!process_output(d)) /* send text */
                         d->booted = 1; /* connection lost */
-                    }
                 }
                 if (d->connected && OkObj(d->player)) { /* begin the idle FLAG/boots management */
                     int leastIdle = 0;
@@ -2271,7 +2252,6 @@ new_connection(int port, int sock)
 
     addr_len = sizeof(addr);
     newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
-
     ctype = get_ctype(port);
     if (newsock < 0) {
         return 0;
@@ -2331,6 +2311,7 @@ new_connection(int port, int sock)
         add_property((dbref) 0, "~sys/concount", NULL, result);
         if (tp_allow_old_trigs)
             add_property((dbref) 0, "_sys/concount", NULL, result);
+        check_maxd(newsock);
         return initializesock(newsock, hu, ctype, port, 1);
     }
 }
@@ -2528,18 +2509,21 @@ make_socket(int port)
     struct sockaddr_in server;
     int opt;
 
-    log_status("Opening port: %d\n", port); /* changed from fprintf */ 
+    log_status("Opening port: %d\n", port); /* changed from fprintf */
     s = socket(AF_INET, SOCK_STREAM, 0);
-    log_status("        Sock: %d\n", s);    /* changed from fprintf */
+    log_status("        Sock: %d\n", s); /* changed from fprintf */
+
     if (s < 0) {
         perror("creating stream socket");
         exit(3);
     }
+
     opt = 1;
     if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0) {
         perror("setsockopt");
         exit(1);
     }
+
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = bind_to;
     server.sin_port = (int) htons(port);
@@ -2548,6 +2532,8 @@ make_socket(int port)
         closesocket(s);
         exit(4);
     }
+
+    check_maxd(s);
     listen(s, 5);
     return s;
 }
@@ -3472,7 +3458,7 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                                         /****/
+        if (d->next)                                                                                                                                             /****/
             d->next->prev = d->prev;     /****/
         host_delete(d->hu);
                                    /****/

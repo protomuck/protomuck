@@ -574,6 +574,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         bcopy((char *) myhost->h_addr, (char *) &name.sin_addr,
               myhost->h_length);
         mysock = socket(AF_INET, SOCK_STREAM, 6); /* Open a TCP socket */
+
         make_nonblocking(mysock);
         if (connect(mysock, (struct sockaddr *) &name, sizeof(name)) == -1)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
@@ -583,6 +584,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 #endif
         else
             strcpy(myresult, "noerr");
+
+        check_maxd(mysock);
         /* Socket was made, now initialize the muf_socket struct */
         result = (struct inst *) malloc(sizeof(struct inst));
         result->type = PROG_SOCKET;
@@ -804,6 +807,8 @@ prim_lsockopen(PRIM_PROTOTYPE)
     /* set non-blocking */
     make_nonblocking(sockdescr);
     /* No errors, make our listening socket */
+
+    check_maxd(sockdescr);
     strcpy(myresult, "noerr");
     result = (struct inst *) malloc(sizeof(struct inst));
     result->type = PROG_SOCKET;
@@ -895,6 +900,7 @@ prim_sockaccept(PRIM_PROTOTYPE)
     }
 
     make_nonblocking(newsock);
+    check_maxd(newsock);
 
     /* We have the new socket, now initialize muf_socket struct */
     oper1->data.sock->commands += 1;
@@ -1001,7 +1007,7 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     }
 
     make_nonblocking(newsock);
-
+    check_maxd(newsock);
     ssl_session = SSL_new(ssl_ctx);
     SSL_set_fd(ssl_session, newsock);
 
@@ -1107,7 +1113,6 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     char *ptr;
     char pad_char[] = "";
     struct muf_socket *theSock;
-    const char *password;
     struct descriptor_data *d;
 
     /* (SOCKET) ref pass -- bool */
@@ -1132,16 +1137,13 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     if (oper3->type != PROG_STRING)
         abort_interp("Expected string for password. (3)");
     ptr = oper3->data.string ? oper3->data.string->data : pad_char;
-    password = DBFETCH(ref)->sp.player.password;
-    if (password) {             /* check pass since character has one */
-        if (strcmp(ptr, password)) { /* incorrect password */
-            CLEAR(oper1);
-            CLEAR(oper2);
-            CLEAR(oper3);
-            result = 0;
-            PushInt(result);
-            return;
-        }
+    if (!check_password(ref, ptr)) { /* incorrect password */
+        CLEAR(oper1);
+        CLEAR(oper2);
+        CLEAR(oper3);
+        result = 0;
+        PushInt(result);
+        return;
     }
     /* passed password check. Now to connect. */
     /* first make sure that the socket is non-blocking */
@@ -1159,8 +1161,6 @@ prim_socket_setuser(PRIM_PROTOTYPE)
                            host_getinfo(htonl(theSock->host), theSock->port,
                                         htons(atoi(theSock->username))),
                            CT_MUCK, theSock->port, 0);
-
-    check_maxd(d);
     /* d is now in the descriptor list and properly initialized. 
      * Now connect it to a player. */
     result = plogin_user(d, ref);
@@ -1206,7 +1206,6 @@ prim_socktodescr(PRIM_PROTOTYPE)
                                     htons(atoi(theSock->username))), CT_INBOUND,
                        theSock->port, 0);
     /* now the descriptor is queued with the rest of the MUCK's d's */
-    check_maxd(d);
     if (tp_log_sockets)
         log2filetime("logs/sockets",
                      "#%d by %s SOCKTODESCR: %d", program,
