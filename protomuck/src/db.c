@@ -1348,9 +1348,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     POWERSDB(objno) = 0;
     POWER2DB(objno) = 0;
 
-#ifdef VERBOSELOAD
-    fprintf(stderr, "#%d: obj...", objno);
-#endif
+    if (verboseload) fprintf(stderr, "#%d [object_info] ", objno);
 
     NAME(objno) = getstring(f);
     if (dtype <= 3) {
@@ -1363,9 +1361,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         LOADLOCK(objno, getboolexp(f));
     }
     if (dtype == 3) {
-#ifdef VERBOSELOAD
-        fprintf(stderr, "time...");
-#endif
+
+        if (verboseload) fprintf(stderr, "[timestamps v3] ");
         /* Mage timestamps */
         o->ts.created = getref(f);
         o->ts.modified = getref(f);
@@ -1381,9 +1378,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         LOADOSUCC(objno, getstring_oldcomp_noalloc(f));
         LOADODROP(objno, getstring_oldcomp_noalloc(f));
     }
-#ifdef VERBOSELOAD
-    fprintf(stderr, "flags...");
-#endif
+    if (verboseload) fprintf(stderr, "[flags] ");
 
     tmp = getfref(f, &f2, &f3, &f4, &p1, &p2);
     if (dtype >= 4) {
@@ -1406,9 +1401,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
 
 
     if (dtype != 3) {
-#ifdef VERBOSELOAD
-        fprintf(stderr, "time...");
-#endif
+        if (verboseload) fprintf(stderr, "[timestamps v4] ");
         /* Foxen and WhiteFire timestamps */
         o->ts.created = getref(f);
         o->ts.lastused = getref(f);
@@ -1417,9 +1410,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     }
     c = getc(f);
     if (c == '*') {
-#ifdef VERBOSELOAD
-        fprintf(stderr, "props...");
-#endif
+        if (verboseload) fprintf(stderr, "[properties] ");
 #ifdef DISKBASE
         o->propsfpos = ftell(f);
         if (o->propsmode == PROPS_CHANGED) {
@@ -1479,26 +1470,20 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     }
     switch (FLAGS(objno) & TYPE_MASK) {
         case TYPE_THING:
-#ifdef VERBOSELOAD
-            fprintf(stderr, "thing...");
-#endif
+            if (verboseload) fprintf(stderr, "[type: THING] ");
             o->sp.thing.home = prop_flag ? getref(f) : j;
             o->exits = getref(f);
             OWNER(objno) = getref(f);
             o->sp.thing.value = getref(f);
             break;
         case TYPE_ROOM:
-#ifdef VERBOSELOAD
-            fprintf(stderr, "room...");
-#endif
+            if (verboseload) fprintf(stderr, "[type: ROOM] ");
             o->sp.room.dropto = prop_flag ? getref(f) : j;
             o->exits = getref(f);
             OWNER(objno) = getref(f);
             break;
         case TYPE_EXIT:
-#ifdef VERBOSELOAD
-            fprintf(stderr, "exit...");
-#endif
+            if (verboseload) fprintf(stderr, "[type: EXIT] ");
             o->sp.exit.ndest = prop_flag ? getref(f) : j;
             if (o->sp.exit.ndest) /* only allocate space for linked exits */
                 o->sp.exit.dest =
@@ -1509,9 +1494,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             OWNER(objno) = getref(f);
             break;
         case TYPE_PLAYER:
-#ifdef VERBOSELOAD
-            fprintf(stderr, "player...");
-#endif
+            if (verboseload) fprintf(stderr, "[type: PLAYER] ");
             o->sp.player.home = prop_flag ? getref(f) : j;
             o->exits = getref(f);
             o->sp.player.pennies = getref(f);
@@ -1522,9 +1505,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             o->sp.player.descr_count = 0;
             break;
         case TYPE_PROGRAM:
-#ifdef VERBOSELOAD
-            fprintf(stderr, "program...");
-#endif
+            if (verboseload) fprintf(stderr, "[type: PROGRAM] ");
             OWNER(objno) = getref(f);
             FLAGS(objno) &= ~INTERNAL;
             o->sp.program.curr_line = 0;
@@ -1545,14 +1526,10 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
 
             break;
         case TYPE_GARBAGE:
-#ifdef VERBOSELOAD
-            fprintf(stderr, "garbage...");
-#endif
+            if (verboseload) fprintf(stderr, "[type: GARBAGE] ");
             break;
     }
-#ifdef VERBOSELOAD
-    fprintf(stderr, "done.\n");
-#endif
+    if (verboseload) fprintf(stderr, "OK\n");
 }
 
 void
