@@ -1964,7 +1964,7 @@ prim_newplayer(PRIM_PROTOTYPE)
         SetMLevel(newplayer, LM3);
     log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
                NAME(newplayer), (int) newplayer,
-               player != -1 ? NAME(player) : "(Login)", (int) player);
+               OkObj(player) ? NAME(player) : "(Login)", (int) player);
 
     CLEAR(oper1);
     CLEAR(oper2);
@@ -2057,7 +2057,7 @@ prim_copyplayer(PRIM_PROTOTYPE)
         SetMLevel(newplayer, LM3);
     log_status("PCRE[MUF]: %s(%d) by %s(%d)\n",
                NAME(newplayer), (int) newplayer,
-               player != -1 ? NAME(player) : "(Login)", (int) player);
+               OkObj(player) ? NAME(player) : "(Login)", (int) player);
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -2133,7 +2133,7 @@ prim_toadplayer(PRIM_PROTOTYPE)
     dequeue_prog(victim, 0);    /* dequeue progs that player's running */
 
     log_status("FROB[MUF]: %s(%d) by %s(%d)\n", NAME(victim),
-               victim, player != -1 ? NAME(player) : "(Login)", player);
+               victim, OkObj(player) ? NAME(player) : "(Login)", player);
 
     boot_player_off(victim);
 
