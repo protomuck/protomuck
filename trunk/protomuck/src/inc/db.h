@@ -532,6 +532,7 @@ struct trystack {
 #define MAX_BREAKS 16
 struct debuggerdata {
     unsigned debugging:1;   /* if set, this frame is being debugged */
+    unsigned force_debugging:1; /* if set, debugger active even without Z */
     unsigned bypass:1;      /* if set, bypass breakpoint on starting instr */
     unsigned isread:1;      /* if set, the prog is trying to do a read */
     unsigned showstack:1;   /* if set, show stack debug line, each inst. */
