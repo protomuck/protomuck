@@ -1286,9 +1286,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
     sprintf(propname, "%s#", dir);
     if (!(lines = get_property_value(ref, propname))) {
         if ((m = get_property_class(ref, propname))) {
-#ifdef COMPRESS
-            m = uncompress(m);
-#endif
+            m = get_uncompress(m);
             if (number(m))
                 lines = atoi(m);
         }
@@ -1296,9 +1294,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
             sprintf(propname, "%s%c#", dir, PROPDIR_DELIMITER);
             if (!(lines = get_property_value(ref, propname))) {
                 if (m = get_property_class(ref, propname)) {
-#ifdef COMPRESS
-                    m = uncompress(m);
-#endif
+                    m = get_uncompress(m);
                     if (number(m))
                         lines = atoi(m);
                 }
@@ -1309,7 +1305,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
     nw = new_array_packed(0);
 
     if (lines) {
-        for (i = 0; i <= lines; i++) {
+        for (i = 1; i <= lines; i++) {
             sprintf(propname, "%s#%c%d", dir, PROPDIR_DELIMITER, i);
             if (!(prptr = get_property(ref, propname))) {
                 sprintf(propname, "%s%c%d", dir, PROPDIR_DELIMITER, i);
@@ -1330,13 +1326,8 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
                     switch (PropType(prptr)) {
                     case PROP_STRTYP:
                         temp2.type = PROG_STRING;
-#ifdef COMPRESS
                         temp2.data.string =
-                            alloc_prog_string(uncompress(PropDataStr(prptr)));
-#else
-                        temp2.data.string =
-                            alloc_prog_string(PropDataStr(prptr));
-#endif
+                            alloc_prog_string(get_uncompress(PropDataStr(prptr)));
                         break;
                     case PROP_LOKTYP:
                         temp2.type = PROG_LOCK;
