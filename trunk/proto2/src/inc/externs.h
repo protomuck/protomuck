@@ -52,6 +52,7 @@ extern char match_cmdname[];
 extern short verboseload;
 #ifdef USE_SSL
 extern SSL_CTX *ssl_ctx;
+extern SSL_CTX *ssl_ctx_client;
 #endif
 
 /* From debugger.c */

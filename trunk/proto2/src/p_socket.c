@@ -681,7 +681,7 @@ prim_ssl_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->usesmartqueue = 0;
         result->data.sock->readWaiting = 0;
 #ifdef SSL_SOCKETS
-        result->data.sock->ssl_session = SSL_new(ssl_ctx);
+        result->data.sock->ssl_session = SSL_new(ssl_ctx_client);
         SSL_set_fd(result->data.sock->ssl_session, result->data.sock->socknum);
         ssl_error = SSL_connect(result->data.sock->ssl_session);
         if (ssl_error == 0) {
@@ -690,6 +690,8 @@ prim_ssl_nbsockopen(PRIM_PROTOTYPE)
                     SSL_get_error(result->data.sock->ssl_session, ssl_error),
                     ERR_reason_error_string(SSL_get_error(result->data.sock->ssl_session, ssl_error))
                     );
+            if (SSL_shutdown(result->data.sock->ssl_session) < 1)
+                SSL_shutdown(result->data.sock->ssl_session);
         }
 #endif
         add_socket_to_queue(result->data.sock, fr);
@@ -924,6 +926,9 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
+#ifdef SSL_SOCKETS
+    result->data.sock->ssl_session = NULL;
+#endif
     add_socket_to_queue(result->data.sock, fr);
     if (tp_log_sockets)
         log2filetime("logs/sockets",
