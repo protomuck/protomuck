@@ -1,7 +1,5 @@
 #include "config.h"
 
-#ifdef MPI
-
 #include <math.h>
 #include <ctype.h>
 #include "params.h"
@@ -1899,7 +1897,6 @@ mfn_parse_ansi(MFUNARGS)
     return buf;
 }
 
-#endif /* MPI */
 
 
 

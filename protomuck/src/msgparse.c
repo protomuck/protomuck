@@ -5,8 +5,6 @@
 #include "db.h"
 #include "tune.h"
 
-#ifdef MPI
-
 #include "mpi.h"
 #include "externs.h"
 #include "props.h"
@@ -1132,12 +1130,10 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms, const char *in
     return outbuf;
 }
 
-#endif /* MPI */
 
 char *
 do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf, const char *abuf, char *outbuf, int mesgtyp)
 {
-#ifdef MPI
     if (tp_do_mpi_parsing && (tp_mpi_needflag ? Meeper(what) : 1)) {
       char *tmp = NULL;
 	struct timeval st, et;
@@ -1162,7 +1158,6 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf, const char
 	}
 	return(tmp);
     } else
-#endif /* MPI */
 	strcpy(outbuf, inbuf);
     return outbuf;
 }

@@ -142,7 +142,7 @@
 #define SPAWN_HOST_RESOLVER
 
 /* Debugging info for database loading */
-#undef VERBOSELOAD
+#define VERBOSELOAD
 
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
@@ -152,14 +152,7 @@
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
 /* all @tune options as before. */
-
 #undef W4_TUNEABLES
-
-/* Define to compile in RWHO support */
-#undef RWHO
-
-/* Define to compile in MPI support */
-#define MPI
 
 /* Define to compile in HTTPD server WWW page support */
 #define HTTPD
@@ -360,11 +353,6 @@
  */
 #define TRUE  1
 #define FALSE 0
-
-/*
- * Default #defs
- */
-#define GOD_PRIV
 
 /*
  * Memory/malloc stuff.

@@ -25,14 +25,11 @@ extern const char *old_uncompress(const char *);
 
 /* Completely rewritten by darkfox and Foxen, for propdirs and other things */
 
-char * fltostr(char * buf, float f)
+char * fltostr(char * buf, double f)
 {
-    sprintf(buf, "%lg", f);
+    sprintf(buf, "%.16lg", f);
     return buf;
 }
-
-
-
 
 void
 set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
@@ -119,8 +116,8 @@ set_property_nofetch(dbref player, const char *type, int flags, PTYPE value)
 	    }
 	    break;
 	case PROP_FLTTYP:
-		SetPDataFVal(p, (float) atof(value));
-		if (((double) *value) == 0.0) {
+		SetPDataFVal(p, strtod(value, NULL));
+		if (strtod(value, NULL) == 0) {
 			SetPType(p, PROP_DIRTYP);
 			if (!PropDir(p)) {
 				remove_property_nofetch(player, type);
@@ -840,7 +837,7 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
 	    sprintf(buf, FOREST "int " GREEN "%s" RED ":" YELLOW "%d", mybuf, PropDataVal(p));
 	    break;
       case PROP_FLTTYP:
-          sprintf(buf, NAVY "flt " GREEN "%s" RED ":" BROWN "%.17lg", mybuf, PropDataFVal(p));
+          sprintf(buf, NAVY "flt " GREEN "%s" RED ":" BROWN "%.16lg", mybuf, PropDataFVal(p));
           break;
 	case PROP_LOKTYP:
 	    if (PropFlags(p) & PROP_ISUNLOADED) {
@@ -872,7 +869,7 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
     char *name, *flags, *value, *p;
     int flg;
     int tpos = 0;
-    float fval;
+    double fval;
     struct boolexp *lok;
     short do_diskbase_propvals;
 
@@ -984,6 +981,8 @@ db_get_single_prop(FILE *f, dbref obj, int pos)
                if (!strncmp(tpnt, "NAN", 3)) {
                   fval = INF;
                }
+               fprintf(stderr, "PANIC:Float prop contained invalid value.\n");
+               abort();
             }
          } else {
             sscanf(value, "%lg", (PTYPE) &fval);
