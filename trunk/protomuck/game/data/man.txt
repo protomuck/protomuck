@@ -5,7 +5,7 @@ Written and edited by Akari ( Nakoruru08@hotmail.com ) to reflect
 the additions to MUF made in ProtoMUCK.
 See CREDITS.
 
-To get manual information on a topic, type MAN <topic>. 
+To get manual information on a topic, type MAN . 
 There are several topics on working with MUF. See: MAN TOPIC LIST
 
 To view lists of prims for different prim categories:
@@ -141,7 +141,7 @@ Data Base Prims:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
-  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR
+  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    STAFF?
         
 System Prims:
   SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
@@ -319,7 +319,7 @@ The following prims are used to work with the MUCK database:
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     EXITS_ARRAY    CONTENTS_ARRAY
-  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR
+  GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    STAFF?
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -431,7 +431,7 @@ These prims are used to make changes in the MUCK system:
 
 SYSPARM       SETSYSPARM     LOGSTATUS     VERSION     FORCE
 FORCE_LEVEL   MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
-
+DUMP          DELTA          SHUTDOWN      RESTART     ARMAGEDDON
 ~~~~~
 MULTITASKING PRIMS
 
@@ -534,7 +534,7 @@ formats.
 Example: ~&110 turns the text red.
 If you want to leave one of the attributes as it was, use a '-'.
 Example: ~&1-- changes the text to bold without changing the color.
-Syntax: ~&<Attribute><Foreground Color><Background Color>
+Syntax: ~&
 
 Attributes: 
         0 = Normal        5 = Blinking
@@ -627,7 +627,7 @@ performed where n1 is a variable type.  This is mainly useful in
 calculating an offset for a variable array. + and - may also be
 performed on dbrefs.
 ~
-LOGICAL OPERATORS|<|>|<=|>=|=|LESS THAN|GREATER THAN|EQUALS
+LOGICAL OPERATORS||<=|>=|=|LESS THAN|GREATER THAN|EQUALS
 
 < > = <= >= ( n1 n2 -- i )
 --------------------------
@@ -799,7 +799,7 @@ s = Contents of the appropriate prop.
 
 Takes object d and returns the contents of the appropriate
 description field. It is an inserver definition for:
-"<prop>" getpropstr
+"" getpropstr
 desc      = The description to be shown non-Pueblo users for an object.
 ansidesc  = The description to be shown with color support.
 htmldesc  = The description to be shown to Pueblo users, supports 
@@ -940,7 +940,7 @@ MUCKER2                 (M2)    MUCKER3                 (M3)
 WIZARD1/MAGE            (W1)    WIZARD2/WIZARD          (W2)
 WIZARD3/ARCHWIZARD      (W3)    WIZARD4/BOY             (W4)
 WIZARD5/MAN             (W5)
-Type 'help <flag>' to get more help on a flag.
+Type 'help ' to get more help on a flag.
 
 ~
 GETLINK
@@ -1032,14 +1032,14 @@ IF2|ELSE2|THEN2
 IF - THEN: Executes everything between the IF and the THEN if the
            top of the stack is true, otherwise skips to what comes
            after the THEN.
-  <anything on the stack> IF <code> THEN
+   IF  THEN
 
 IF - ELSE - THEN: Executes everything between the IF and the ELSE
                   if the top of the stack is true. If the top of 
                   the stack is false, it executes everything 
                   between the ELSE and the THEN, skipping what
                   comes between the IF and the ELSE.
-  <anything on the stack> IF <code> ELSE <code> THEN
+   IF  ELSE  THEN
 ~
 CASES|CASE|WHEN|END|DEFAULT|ENDCASE
 
@@ -1055,12 +1055,12 @@ default = pop 1 if
 endcase = pop pop 1 until 
 
 These definitions make it possible to create CASE structures in MUF:
-<data> case
-  <test> when <effect> end
-  <test> when <effect> end
-  <test> when <effect> end
-  <test> when <effect> end
-  default <otherwise>  end
+ case
+   when  end
+   when  end
+   when  end
+   when  end
+  default   end
 endcase
 
 See: CASE2 for an example in MUF.
@@ -1208,7 +1208,7 @@ s = string containing the name.
 
 Given any valid dbref number, it will return the name of that object
 as a string. If the dbref is of a recycled object, the name returned
-will be '<garbage>'.
+will be ''.
 
 See: SETNAME
 ~
@@ -1792,7 +1792,7 @@ s = The contents of the appropriate prop.
 
 Takes object d and returns the contents of the appropriate message
 prop. It is an inserver definition of: 
-"<prop>" getpropstr
+"" getpropstr
 See: SETSUCC, etc.
 ~
 SWAP
@@ -1831,7 +1831,7 @@ then hours.
 ~
 VAR
 
-var <name>
+var 
 ----------
 Level: M1 Apprentice
 
@@ -2100,7 +2100,7 @@ things, programs, players, and garbage. This functions much as the
 ~
 PUBLIC
 
-PUBLIC <functionname>
+PUBLIC 
 ---------------------
 Level: M1 Apprentice
 
@@ -2115,7 +2115,7 @@ For example:
 ~
 LVAR
 
-LVAR <varname>
+LVAR 
 --------------
 Level: M1 Apprentice
 
@@ -3210,6 +3210,8 @@ getpidinfo          ( i -- dict )
 getdescrinfo        ( i -- dict )
 descrboot           ( i -- )
 descr_set           ( i s -- )
+dump                ( -- )
+delta               ( -- )
 
 See: W3, MUCKER LEVELS, individual prim entries for details
 ~
@@ -3240,6 +3242,9 @@ compile             ( d i -- i )
 uncompile           ( d -- )
 lsockopen           ( i i -- lsocket s )
 sockaccept          ( lsocket -- socket )
+armageddon          ( s -- )
+shutdown            ( s -- )
+restart             ( s -- )
 
 See: W4, MUCKER LEVELS, individual prim entries for more details.
 ~
@@ -3285,18 +3290,18 @@ See also FOREGROUND, BACKGROUND, PREEMPT, FORK, QUEUE, KILL, and SLEEP.
 ~
 DIRECTIVES|DIR|$DEFINE|DEFINE|$DEF|DEF|$UNDEF|UNDEF|$ECHO|ECHO
 
-$define <defname> <definition> $enddef
-  Basically the same as C's #define <defname> <definition>. Used to create
+$define   $enddef
+  Basically the same as C's #define  . Used to create
   definitions that can be used later in the program.
 
-$def <defname> <definition>
+$def  
   This is the same as $define, except that the definition stops at the end
   of the program line, without using an ending $enddef.
 
-$undef <defname>
-  About the same as C's #undef <defname>
+$undef 
+  About the same as C's #undef 
 
-$echo <string>
+$echo 
   Echos the given string to the screen of the person compiling the program.
   Runs at compile-time.
 
@@ -3320,12 +3325,12 @@ __muckname
   A pre$defined macro that contains the name of the MUCK as 
   set in the @tune table.
 
-$ifdef <condition> <compile this if true> $else <compile if false> $endif
+$ifdef   $else  $endif
 
-$ifndef <condition> <compile this if true> $else <compile if false> $endif
+$ifndef   $else  $endif
 
-Where <condition> is either a $defined name, or a test that consists of
-a $defined name, a comparator (=, <, or >) and a test value, all in one
+Where  is either a $defined name, or a test that consists of
+a $defined name, a comparator (=, ) and a test value, all in one
 word without space.  The $else clause is optional.  Compiler directives
 are nestable also.  Some examples:
 
@@ -3336,7 +3341,7 @@ Type 'man dir3' for more directives and 'man dir list' for a listing.
 ~
 DIR3|DIRECTIVES3|DIRECTIVE3|$INCLUDE|INCLUDE
 
-$include <dbref|progreg|integer>
+$include 
 
 Sets a bunch of $defines from the properties in the /_defs/ propdir.
 For example, if object #345 had the following properties:
@@ -3362,42 +3367,42 @@ Note that for non-wizards, #0 _defs/ are always loaded no matter what.
 Type 'man dir4' for more directives and 'man dir list' for a listing.
 ~~~~
 DIR4|DIRECTIVES4|DIRECTIVE4|$BETA|$ALPHA|$VERSION|$LIB-VERSION|
-$beta <integer>
+$beta 
     Sets an integer prop on the program under a _Beta prop. Note that
     the _Beta prop is cleared at compile time, so if this directive is
     not in the code, that prop will not have a value.
 
-$alpha <integer>
+$alpha 
     Sets an integer prop on the program under a _Alpha prop. The _Alpha
     prop is cleared at compile time, so without this directive, there
     will be no value under the prop.
 
-$version <float>
+$version 
     Sets a string prop on the program under a _Version prop.
 
-$lib-version <float>
+$lib-version 
     Sets a string prop on the program under _Lib-Version.
 
 See 'man dir5' for more directives and 'man dir list' for a listing.
 ~~~~~
 DIR5|DIRECTIVES5|$AUTHOR|$NOTE|$ANSI|$ABORT|$LOG_STATUS|$SHOW_STATUS
-$author <string>
+$author 
     Sets a string prop on the program under _Author.
 
-$note <string>
+$note 
     Sets a string (up to the end of the line in the code) under a
     _note prop.
 
-$ansi <message>
+$ansi 
     Same as $echo, except that it accepts Neon ANSI tags (^RED^).
 
-$abort [<message>]
+$abort []
     Aborts compiling and prints out the error message.
 
-$log_status <message>
+$log_status 
     Adds a line to the status log. Also gets shown to LOGWALL W3s.
 
-$show_status <message>
+$show_status 
     Walls the message to LOGWALL W3s without logging it to the status log.
 
 See 'man dir6' for more directives and 'man dir list' for a listing.
@@ -3407,9 +3412,9 @@ $pubdef
     By using this directive, the _defs/ directory on a MUF program can
     be set at compile time. 
     $pubdef :   == Removes the _defs/ directory on the program object.
-    $pubdef <def name> = Removes only that _def/ from program object.
-    $pubdef <def name> <definition> = Sets that public _def/
-    $pubdef \<def name> <definition> = Only sets _def/ if not already set.
+    $pubdef  = Removes only that _def/ from program object.
+    $pubdef   = Sets that public _def/
+    $pubdef \  = Only sets _def/ if not already set.
     E.g.: $pubdef tell me @ swap notify
        would put a _defs/tell:me @ swap notify prop on the program object.
     Def names cannot have ':' nor '/' in them.
@@ -3425,16 +3430,16 @@ $cleardefs [ALL]
 See 'man dir7' for more directives and 'man dir list' for a listing.
 ~~~~~
 |DIR7|DIRECTIVES7|$ifbeta|$ifalpha|$ifver|$iflibver|$ifauthor|$iflib|$ifcancall
-Note: In all cases, you can replace <library/prog dbref> with the word: this
+Note: In all cases, you can replace  with the word: this
       to indicate the program being compiled. These are all $if $else $endif
       constructions. Refer to $ifdef $else $endif for details on usage.
-$ifbeta    <library/dbref> <integer>   $ifnbeta    <library/dbref> <integer>
-$ifalpha   <library/dbref> <integer>   $ifnalpha   <library/dbref> <integer>
-$ifver     <library/dbref> <float>     $ifnver     <library/dbref> <integer>
-$iflibver  <library/dbref> <float>     $ifnlibver  <library/dbref> <float>
-$ifauthor  <library/dbref> <smatch>    $ifnauthor  <library/dbref> <smatch>
-$iflib     <library to check for>      $ifnlib     <library to check for>
-$ifcancall <library/dbref> <function>  $ifncancall <library/dbref> <function>
+$ifbeta        $ifnbeta     
+$ifalpha       $ifnalpha    
+$ifver           $ifnver      
+$iflibver        $ifnlibver   
+$ifauthor       $ifnauthor   
+$iflib           $ifnlib     
+$ifcancall    $ifncancall  
 
 See 'man dir8' for more information on directives.
 
@@ -3480,10 +3485,10 @@ LIBRARIES|LIBS|LIB1|LIBS1|LIBRARIES1
 
 How to use a library:
     1) Use "@register lib" to list what libraries exist.
-    2) Use "@view $lib/<libraryname>" to list the docs on that library.
+    2) Use "@view $lib/" to list the docs on that library.
     3) When you've found the library and the function you want, then all
         you have to do in your program is, at the beginning of it,
-          $include $lib/<libraryname>
+          $include $lib/
         then just use the function name to invoke it later in your program
         and it will run as if it were a function in your program.
 
@@ -3494,17 +3499,17 @@ LIB2|LIBS2|LIBRARIES2|LIBRARY2
 How to make a library:
     1) create a program with several useful generic subroutines.
     2) DOCUMENT those subroutines in a commented out header in the prog.
-    3) @set <program>=_docs:<command to list those DOCS you made>
+    3) @set =_docs:
     4) make sure that all the functions are declared PUBLIC.
     5) Make sure the program is set LINK_OK.
     6) Globally register the program with the @register command with a
         prefix of "lib/".  ie: @reg lib-strings=lib/strings
     7) Set up the interface for each function on the program. To do this,
         you will need to set properties on the program in the form
-          _defs/<callname>:"$<libname>" match "<funcname>" call
-        where <callname> is the name that you want to have people use to
-        invoke it in their programs, <libname> is the registered name you
-        gave it (ie: lib/strings), and <funcname> is the actual name of
+          _defs/:"$" match "" call
+        where  is the name that you want to have people use to
+        invoke it in their programs,  is the registered name you
+        gave it (ie: lib/strings), and  is the actual name of
         the function in the program.  Example:
           @set lib-strings=_defs/.split:"$lib/strings" match "split" call
     8) You're done!
@@ -3896,15 +3901,23 @@ _look/  = This propqueue tends to be handled by MUF look front ends, and
 
 See: PROPQUEUES5 for additional propqueues.
 ~~~~
-PROPQUEUES5|PROPQUEUE5|LOGIN
+PROPQUEUES5|PROPQUEUE5|LOGIN|DISCLOGIN|DUMPWARN|@DUMPWARN|DUMP|@DUMP
 
-_login/ = Called when a connection is made to the login screen. The initial
+@login = Called when a connection is made to the login screen. The initial
         argument is 'Login', command @ is 'Queued event.', trig is #0, 
         me @ is #0, loc @ is #0. This propqueue can only be set on #0.
 
-_disclogin = Called when a connection is dropped from the login screen.
+@disclogin = Called when a connection is dropped from the login screen.
         The initial conditions are the same as _login/, except that the initial
         arguement is 'Disclogin'.
+
+@dumpwarn = Called right before the periodic Save warning message would be
+        shown. The trigger is #-1, the player triggering is #1, the loc @ 
+        is #0. This propqueue can only be set on #0.
+
+@dump = Called right before a data base save. Trigger is #-1, player 
+        triggering is #1, the loc @ is #0. This propqueue can only be
+        set on #0.
 
 ~~~~~
 PUT
@@ -4152,7 +4165,7 @@ See: EXECUTE, ADDRESS
 ADDRESS
 
 Function names can be placed on the stack and treated just like 
-any other data type by entering them in the code as '<function_name>.
+any other data type by entering them in the code as '.
 The function name can then be manipulated around the stack just
 like any other data object in MUF. It can be called by the
 EXECUTE prim. Other than functions such as DUP, ROT, etc, that handle
@@ -6577,7 +6590,7 @@ returns the values:
 ~~
 MAGECALL|WIZCALL|ARCHCALL|BOYCALL
 
-magecall wizcall archcall boycall <funcname>
+magecall wizcall archcall boycall 
 --------------------------------------------
 Level: M1 Apprentice
 funcname = The name of any function in the program.
@@ -7322,15 +7335,15 @@ or 'lvar'.
 ~~~~~
 VAR!
 
-var! ( x var! <name> -- )
+var! ( x var!  -- )
 -------------------------
 Level: M1 Apprentice
 x = Any data tyle
-<name> = Name of the variable to declare.
+ = Name of the variable to declare.
 
 This is a short cut to declare a variable and initialize it with something
 from the top of the stack all in one step. It is a $def for:
-var <name> <name> !
+var   !
 ~~~~~
 ISPOWER?
 
@@ -8662,3 +8675,16 @@ Level: W3 ArchWizard
 These primitives can be used to force the MUCK to dump a standard
  or delta database save.
 ~~~~
+STAFF?|
+
+staff? ( d -- i )
+-----------------
+Level: M1 Apprentice
+d - dbref of player to check
+i - integer to represent true or false.
+
+Returns true if that player has either a W1 bit or higher, or
+has the STAFF @power set on them. 
+
+Inserver define for:
+dup player? if dup "W" flag? swap "STAFF" power? or else pop 0 then
