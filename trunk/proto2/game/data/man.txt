@@ -148,7 +148,7 @@ Data Base Prims:
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
   GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
-  ANSI_NAME     ANSI_UNPARSEOBJ
+  ANSI_NAME     REFSTAMPS   TOUCH        USE            ANSI_UNPARSEOBJ
       
 System Prims:
   SYSPARM         SETSYSPARM     LOGSTATUS     VERSION     FORCE
@@ -2071,6 +2071,39 @@ modified (i2), the time last used (i3), and the number of uses(i4) for
 any object. For players, the number of uses represents the number of times
 they have connected to the MUCK.
 ~
+REFSTAMPS
+
+refstamps ( d -- d1 d2 d3 )
+------------------------------
+Level: M2 Journeyman
+d  = Any valid dbref.
+d1 = Creator of object.
+d2 = Last object that edited this object.
+d3 = Last object that used or touched the object.
+
+Returns the following for a program, the object creator (d1), the last modifying
+object (d2), and the last user of an object (d3).
+~
+TOUCH
+
+touch ( d -- )
+--------------
+Level: M3 Master
+d  = A valid dbref.
+
+Updates the 'last used' timestamp and refstamp on the object (d).
+~
+USE
+
+use ( d -- )
+--------------
+Level: W2 wizard
+d  = A valid dbref.
+
+Updates the 'last used' timestamp and refstamp on the object (d), and
+also increments the usecount on the object.
+~
+
 INT?
 
 int? ( x -- i )

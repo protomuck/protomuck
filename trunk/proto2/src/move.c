@@ -523,7 +523,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                     }
                     break;
                 case TYPE_EXIT: /* It's a meta-link(tm)! */
-                    ts_useobject(dest);
+                    ts_useobject(player, dest);
                     trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0);
                     if (GETSUCC(exit))
                         succ = 1;
@@ -645,7 +645,7 @@ do_move(int descr, dbref player, const char *direction, int lev)
             default:
                 /* we got one */
                 /* check to see if we got through */
-                ts_useobject(exit);
+                ts_useobject(player, exit);
                 loc = DBFETCH(player)->location;
                 if (can_doit(descr, player, exit, "You can't go that way.")) {
                     trigger(descr, player, exit, 1);
@@ -765,7 +765,7 @@ do_get(int descr, dbref player, const char *what, const char *obj)
         }
         switch (Typeof(thing)) {
             case TYPE_THING:
-                ts_useobject(thing);
+                ts_useobject(player, thing);
             case TYPE_PROGRAM:
                 if (obj && *obj) {
                     cando = could_doit(descr, player, thing);
@@ -831,7 +831,7 @@ do_drop(int descr, dbref player, const char *name, const char *obj)
     }
     switch (Typeof(thing)) {
         case TYPE_THING:
-            ts_useobject(thing);
+            ts_useobject(player, thing);
         case TYPE_PROGRAM:
             if (DBFETCH(thing)->location != player) {
                 /* Shouldn't ever happen. */
@@ -1180,7 +1180,7 @@ recycle(int descr, dbref player, dbref thing)
     depth--;
 
     db_free_object(thing);
-    db_clear_object(thing);
+    db_clear_object(player, thing);
 
     NAME(thing) = "<garbage>";
     SETDESC(thing, "<recyclable>");

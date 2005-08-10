@@ -260,6 +260,10 @@ log_guests
 Log all actions done by characters that have the G flag set out to
 the command log file. 
 ~~
+log_suspects
+Log all actions done by characters that have the SUSPECT flag set 
+out to the command log file. 
+~~
 log_files
 Log the use of the file prims. Keeps track of the names of the files
 affected by the file prims, but does not log the actual text written to
@@ -618,3 +622,9 @@ to NIL(#-4).  This is generally safer and more convenient than
 having them be created unlinked, and allows MPI to be loaded into
 the @succ of the action and used right away without special 
 treatment.
+~~~
+use_self_on_command
+When this is tuned on (the default), every command a player
+executes triggers an update of ones lastused timestamp.  When off
+this is disabled, and only a few other events, notably connection,
+disconnection, and the TOUCH/USE prims, will update this timestamp.

@@ -367,7 +367,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         CHECKREMOTE(ref);
                         if ((Typeof(ref) != TYPE_PLAYER)
                             && (Typeof(ref) != TYPE_PROGRAM))
-                            ts_lastuseobject(ref);
+                            ts_lastuseobject(program, ref);
                         if (NAME(ref)) {
                             strcpy(hold, PNAME(ref));
                         } else {
@@ -3070,7 +3070,7 @@ prim_ansi_name(PRIM_PROTOTYPE)
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-        ts_lastuseobject(ref);
+        ts_lastuseobject(program, ref);
     if (NAME(ref)) {
         ansiname(ref, buf);
     } else {
@@ -3092,7 +3092,7 @@ prim_unparse_flags(PRIM_PROTOTYPE)
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-        ts_lastuseobject(ref);
+        ts_lastuseobject(program, ref);
 
     unparse_flags(ref, buf);
 

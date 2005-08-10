@@ -130,7 +130,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
             delete_player(thing);
             if (NAME(thing))
                 free((void *) NAME(thing));
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             NAME(thing) = alloc_string(newname);
             add_player(thing);
             anotify_fmt(player,
@@ -150,7 +150,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
         if (NAME(thing)) {
             free((void *) NAME(thing));
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         NAME(thing) = alloc_string(newname);
         anotify_fmt(player,
                     CSUCC "Name changed from %s to %s.", oldName, nName);
@@ -181,7 +181,7 @@ do_describe(int descr, dbref player, const char *name, const char *description)
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETDESC(thing, description);
         if (*description)
             anotify_nolisten2(player, CSUCC "Description set.");
@@ -208,7 +208,7 @@ do_idescribe(int descr, dbref player, const char *name, const char *description)
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETIDESC(thing, description);
         if (*description)
             anotify_nolisten2(player, CSUCC "IDescription set.");
@@ -237,7 +237,7 @@ do_ansidescribe(int descr, dbref player, const char *name,
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETANSIDESC(thing, description);
         if (*description)
             anotify_nolisten2(player, CSUCC "ANSIDescription set.");
@@ -265,7 +265,7 @@ do_iansidescribe(int descr, dbref player, const char *name,
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETIANSIDESC(thing, description);
         if (*description)
             anotify_nolisten2(player, CSUCC "IANSIDescription set.");
@@ -294,7 +294,7 @@ do_htmldescribe(int descr, dbref player, const char *name,
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETHTMLDESC(thing, description);
         if (*description)
             anotify_nolisten2(player, CSUCC "HTMLDescription set.");
@@ -322,7 +322,7 @@ do_ihtmldescribe(int descr, dbref player, const char *name,
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETIHTMLDESC(thing, description);
         if (*description)
             anotify_nolisten2(player, CSUCC "IHTMLDescription set.");
@@ -355,7 +355,7 @@ do_doing(int descr, dbref player, const char *name, const char *mesg)
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
         }
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETDOING(thing, mesg);
         if (*mesg)
             anotify_nolisten2(player, CSUCC "Doing set.");
@@ -378,7 +378,7 @@ do_fail(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETFAIL(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -398,7 +398,7 @@ do_success(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETSUCC(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -419,7 +419,7 @@ do_drop_message(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETDROP(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -439,7 +439,7 @@ do_osuccess(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETOSUCC(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -459,7 +459,7 @@ do_ofail(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETOFAIL(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -479,7 +479,7 @@ do_odrop(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETODROP(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -499,7 +499,7 @@ do_oecho(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETOECHO(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -519,7 +519,7 @@ do_pecho(int descr, dbref player, const char *name, const char *message)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         SETPECHO(thing, message);
         anotify_nolisten2(player, CSUCC "Message set.");
     }
@@ -539,12 +539,12 @@ setlockstr(int descr, dbref player, dbref thing, const char *keyname)
             return 0;
         } else {
             /* everything ok, do it */
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             SETLOCK(thing, key);
             return 1;
         }
     } else {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         CLEARLOCK(thing);
         return 1;
     }
@@ -600,7 +600,7 @@ do_conlock(int descr, dbref player, const char *name, const char *keyname)
         pdat.flags = PROP_LOKTYP;
         pdat.data.lok = TRUE_BOOLEXP;
         set_property(thing, "_/clk", &pdat);
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         anotify_nolisten2(player, CSUCC "Container lock cleared.");
     } else {
         PData pdat;
@@ -612,7 +612,7 @@ do_conlock(int descr, dbref player, const char *name, const char *keyname)
             /* everything ok, do it */
             pdat.flags = PROP_LOKTYP;
             set_property(thing, "_/clk", &pdat);
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             anotify_nolisten2(player, CSUCC "Container lock set.");
         }
     }
@@ -657,7 +657,7 @@ do_flock(int descr, dbref player, const char *name, const char *keyname)
         pdat.flags = PROP_LOKTYP;
         pdat.data.lok = TRUE_BOOLEXP;
         set_property(thing, "@/flk", &pdat);
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         anotify_nolisten2(player, CSUCC "Force lock cleared.");
     } else {
         PData pdat;
@@ -669,7 +669,7 @@ do_flock(int descr, dbref player, const char *name, const char *keyname)
             /* everything ok, do it */
             pdat.flags = PROP_LOKTYP;
             set_property(thing, "@/flk", &pdat);
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             anotify_nolisten2(player, CSUCC "Force lock set.");
         }
     }
@@ -715,7 +715,7 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
         pdat.flags = PROP_LOKTYP;
         pdat.data.lok = TRUE_BOOLEXP;
         set_property(thing, "_/chlk", &pdat);
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         anotify_nolisten2(player, CSUCC "Chown lock cleared.");
     } else {
         PData pdat;
@@ -727,7 +727,7 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
             /* everything ok, do it */
             pdat.flags = PROP_LOKTYP;
             set_property(thing, "_/chlk", &pdat);
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             anotify_nolisten2(player, CSUCC "Chown lock set.");
         }
     }
@@ -773,7 +773,7 @@ do_lock(int descr, dbref player, const char *name, const char *keyname)
         } else {
             /* everything ok, do it */
             SETLOCK(thing, key);
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             anotify_nolisten2(player, CSUCC "Locked.");
         }
     } else
@@ -794,7 +794,7 @@ do_unlock(int descr, dbref player, const char *name)
     }
 
     if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         CLEARLOCK(thing);
         anotify_nolisten2(player, CSUCC "Unlocked.");
     }
@@ -885,7 +885,7 @@ _do_unlink(int descr, dbref player, const char *name, int quiet)
                                 tp_link_cost;
                             DBDIRTY(OWNER(exit));
                         }
-                        ts_modifyobject(exit);
+                        ts_modifyobject(player, exit);
                         DBSTORE(exit, sp.exit.ndest, 0);
                         if (DBFETCH(exit)->sp.exit.dest) {
                             strcpy(destin,
@@ -907,14 +907,14 @@ _do_unlink(int descr, dbref player, const char *name, int quiet)
                         }
                         break;
                     case TYPE_ROOM:
-                        ts_modifyobject(exit);
+                        ts_modifyobject(player, exit);
                         DBSTORE(exit, sp.room.dropto, NOTHING);
                         if (!quiet)
                             anotify_fmt(player, CSUCC "Dropto removed from %s.",
                                         unparse_object(player, exit));
                         break;
                     case TYPE_THING:
-                        ts_modifyobject(exit);
+                        ts_modifyobject(player, exit);
                         DBSTORE(exit, sp.thing.home, OWNER(exit));
                         if (!quiet)
                             anotify_fmt(player,
@@ -922,7 +922,7 @@ _do_unlink(int descr, dbref player, const char *name, int quiet)
                                         NAME(exit));
                         break;
                     case TYPE_PLAYER:
-                        ts_modifyobject(exit);
+                        ts_modifyobject(player, exit);
                         DBSTORE(exit, sp.player.home, tp_player_start);
                         if (!quiet)
                             anotify_fmt(player,
@@ -1125,7 +1125,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
                 anotify_nolisten2(player, CINFO "You can only chown \"here\".");
                 return;
             }
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             OWNER(thing) = OWNER(owner);
             break;
         case TYPE_THING:
@@ -1133,7 +1133,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
                 anotify_nolisten2(player, CINFO "You aren't carrying that.");
                 return;
             }
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             OWNER(thing) = OWNER(owner);
             break;
         case TYPE_PLAYER:
@@ -1141,7 +1141,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
             return;
         case TYPE_EXIT:
         case TYPE_PROGRAM:
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             OWNER(thing) = OWNER(owner);
             break;
         case TYPE_GARBAGE:
@@ -1277,11 +1277,11 @@ do_mush_set(int descr, dbref player, char *name, char *setting, char *command)
     }
 
     if (!(*setting)) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         remove_property(thing, prop);
         anotify_nolisten2(player, CSUCC "Property removed.");
     } else {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         add_property(thing, prop, setting, 0);
         anotify_nolisten2(player, CSUCC "Property set.");
     }
@@ -1346,7 +1346,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
                 return;
             }
             remove_property_list(thing, Arch(OWNER(player)));
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             anotify_nolisten2(player,
                               CSUCC "All user-owned properties removed.");
             free((void *) x);
@@ -1380,11 +1380,11 @@ do_set(int descr, dbref player, const char *name, const char *flag)
             return;
         }
         if (!(*pclass)) {
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             remove_property(thing, type);
             anotify_nolisten2(player, CSUCC "Property removed.");
         } else {
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             if (ival) {
                 add_property(thing, type, NULL, ival);
             } else {
@@ -1519,6 +1519,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         f2 = F2HIDDEN;
     } else if (string_prefix("IDLE", p) || !string_compare("I", p)) {
         f2 = F2IDLE;
+    } else if (string_prefix("SUSPECT", p) || !string_compare("_", p)) {
+        f2 = F2SUSPECT;
     } else if (string_prefix("MOBILE", p) || string_prefix("OFFER", p) ||
                string_prefix("?", p) || (*tp_userflag_name
                                          && string_prefix(tp_userflag_name,
@@ -1542,7 +1544,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         /* else everything is ok, do the set */
         if (*flag == NOT_TOKEN) {
             /* reset the flag */
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             FLAG2(thing) &= ~f2;
             DBDIRTY(thing);
 /*	if ((f2 == F2IDLE) && (Typeof(thing) == TYPE_PLAYER))
@@ -1551,7 +1553,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
             anotify_nolisten2(player, CSUCC "Flag reset.");
         } else {
             /* set the flag */
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             FLAG2(thing) |= f2;
             DBDIRTY(thing);
 /*	if ((f2 == F2IDLE) && (Typeof(thing) == TYPE_PLAYER))
@@ -1568,13 +1570,13 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         /* else everything is ok, do the set */
         if (*flag == NOT_TOKEN) {
             /* reset the flag */
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             FLAGS(thing) &= ~f;
             DBDIRTY(thing);
             anotify_nolisten2(player, CSUCC "Flag reset.");
         } else {
             /* set the flag */
-            ts_modifyobject(thing);
+            ts_modifyobject(player, thing);
             FLAGS(thing) |= f;
             DBDIRTY(thing);
             anotify_nolisten2(player, CSUCC "Flag set.");

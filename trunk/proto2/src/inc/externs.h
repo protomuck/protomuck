@@ -554,10 +554,10 @@ extern int format_time(char *buf, int max_len, const char *fmt,
                        struct tm *tmval);
 
 /* From timestamp.c */
-extern void ts_newobject(struct object *thing);
-extern void ts_useobject(dbref thing);
-extern void ts_lastuseobject(dbref thing);
-extern void ts_modifyobject(dbref thing);
+extern void ts_newobject(dbref player, struct object *thing);
+extern void ts_useobject(dbref player, dbref thing);
+extern void ts_lastuseobject(dbref player, dbref thing);
+extern void ts_modifyobject(dbref player, dbref thing);
 
 /* From smatch.c */
 extern int equalstr(char *s, char *t);

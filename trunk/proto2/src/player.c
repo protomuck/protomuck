@@ -109,7 +109,7 @@ connect_player(const char *name, const char *password)
 }
 
 dbref
-create_player(const char *name, const char *password)
+create_player(dbref creator, const char *name, const char *password)
 {
     char buf[PLAYER_NAME_LIMIT + 16];
     register struct object *newp;
@@ -119,7 +119,7 @@ create_player(const char *name, const char *password)
         return NOTHING;
 
     /* else he doesn't already exist, create him */
-    player = new_object();
+    player = new_object(creator);
     newp = DBFETCH(player);
 
     /* initialize everything */

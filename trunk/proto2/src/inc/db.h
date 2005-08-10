@@ -280,6 +280,26 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define F2CONTROLS      0x20000     /* CONTROLS support for multiple owners */
 #endif
 #define F2IMMOBILE	0x40000	    /* Immobile support */
+#define F2SUSPECT       0x80000     /* SUSPECT support */
+
+/* F4 flags */
+#define UFLAG0	0x10000
+#define UFLAG1	0x20000
+#define UFLAG2	0x40000
+#define UFLAG3	0x80000
+#define UFLAG4	0x100000
+#define UFLAG5	0x200000
+#define UFLAG6	0x400000
+#define UFLAG7	0x800000
+#define UFLAG8	0x1000000
+#define UFLAG9	0x2000000
+#define UFLAGA	0x4000000
+#define UFLAGB	0x8000000
+#define UFLAGC	0x10000000
+#define UFLAGD	0x20000000
+#define UFLAGE	0x40000000
+#define UFLAGF	0x80000000
+
 
 /* Proto @Powers */
 #define POW_ANNOUNCE          0x1   /* [a] Can use @wall and dwall commands */
@@ -852,6 +872,9 @@ struct timestamps {
     time_t modified;
     time_t lastused;
     int    usecount;
+    dbref  dcreated;
+    dbref  dmodified;
+    dbref  dlastused;
 };
 
 
@@ -938,7 +961,7 @@ extern void log_program_text(struct line * first, dbref player, dbref i);
 extern struct shared_string *alloc_prog_string(const char *);
 #endif
 
-extern dbref new_object(void);	/* return a new object */
+extern dbref new_object(dbref player);	/* return a new object */
 extern dbref new_program(register dbref player, register const char *name); /* return a new MUF program type. */
 extern dbref getref(FILE *);	/* Read a database reference from a file. */
 extern void putref(FILE *, dbref);	/* Write one ref to the file */
@@ -957,7 +980,7 @@ extern void putproperties(FILE *f, int obj);
 extern void getproperties(FILE *f, int obj);
 extern void free_line(struct line *l);
 extern void db_free_object(dbref i);
-extern void db_clear_object(dbref i);
+extern void db_clear_object(dbref player, dbref i);
 extern void macrodump(struct macrotable *node, FILE *f);
 extern void macroload(FILE *f);
 extern int WLevel(dbref player);

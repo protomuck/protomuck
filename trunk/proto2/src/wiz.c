@@ -929,7 +929,7 @@ do_pcreate(dbref player, const char *user, const char *password)
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
-    newguy = create_player(user, password);
+    newguy = create_player(player, user, password);
     if (newguy == NOTHING) {
         anotify_nolisten2(player, CFAIL "Create failed.");
         anotify_nolisten2(player, BOLD "Syntax: @pcreate <name>=<password>");
@@ -1081,12 +1081,12 @@ do_powers(int descr, dbref player, const char *name, const char *power)
     }
 
     if (*power == NOT_TOKEN) {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         POWERS(thing) &= ~pow;
         DBDIRTY(thing);
         anotify_nolisten2(player, CSUCC "Power removed.");
     } else {
-        ts_modifyobject(thing);
+        ts_modifyobject(player, thing);
         POWERS(thing) |= pow;
         DBDIRTY(thing);
         anotify_nolisten2(player, CSUCC "Power given.");

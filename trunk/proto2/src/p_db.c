@@ -48,8 +48,10 @@ copyobj(dbref player, dbref old, dbref nw)
     newp->ts.created = current_systime;
     newp->ts.modified = current_systime;
     newp->ts.lastused = current_systime;
+    newp->ts.dcreated = player;
+    newp->ts.dmodified = player;
+    newp->ts.dlastused = player;
     newp->ts.usecount = 0;
-
 
     DBDIRTY(nw);
 }
@@ -126,6 +128,8 @@ check_flag2(char *flag, int *nbol)
         return F2IMMOBILE;
     if (string_prefix("hidden", flag) || string_prefix("#", flag))
         return F2HIDDEN;
+    if (string_prefix("suspect", flag))
+        return F2SUSPECT;
     if (string_prefix("command", flag))
         return F2COMMAND;
     if (string_prefix("no_command", flag))
@@ -207,6 +211,8 @@ flag_check_perms2(dbref ref, int flag, int mlev)
         return 0;
     if (flag == F2LOGWALL && mlev < LWIZ)
         return 0;
+    if (flag == F2SUSPECT && mlev < LMAGE)
+        return 0;
 
     return 1;
 }
@@ -255,6 +261,8 @@ flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
     if (flag == F2HTML && mlev < LMAGE)
         return 0;
     if (flag == F2PROTECT && mlev < LBOY)
+        return 0;
+    if (flag == F2SUSPECT && mlev < LWIZ)
         return 0;
 #ifdef CONTROLS_SUPPORT
     if (flag == F2CONTROLS
@@ -518,7 +526,7 @@ prim_moveto(PRIM_PROTOTYPE)
                 if (mlev < LM3 && (FLAGS(victim) & ZOMBIE) &&
                     (FLAGS(dest) & ZOMBIE) && Typeof(dest) != TYPE_THING)
                     abort_interp("Destination doesn't accept zombies");
-                ts_lastuseobject(victim);
+                ts_lastuseobject(program, victim);
             case TYPE_PROGRAM:
             {
                 dbref matchroom = NOTHING;
@@ -577,7 +585,7 @@ prim_moveto(PRIM_PROTOTYPE)
                         abort_interp("Parent room would create a loop");
                     }
                 }
-                ts_lastuseobject(victim);
+                ts_lastuseobject(program, victim);
                 moveto(victim, dest);
                 break;
             default:
@@ -651,7 +659,7 @@ prim_contents(PRIM_PROTOTYPE)
         ref = DBFETCH(ref)->next;
     if (Typeof(oper1->data.objref) != TYPE_PLAYER &&
         Typeof(oper1->data.objref) != TYPE_PROGRAM)
-        ts_lastuseobject(oper1->data.objref);
+        ts_lastuseobject(program, oper1->data.objref);
     CLEAR(oper1);
     PushObject(ref);
 }
@@ -670,7 +678,7 @@ prim_exits(PRIM_PROTOTYPE)
     switch (Typeof(ref)) {
         case TYPE_ROOM:
         case TYPE_THING:
-            ts_lastuseobject(ref);
+            ts_lastuseobject(program, ref);
         case TYPE_PLAYER:
             ref = DBFETCH(ref)->exits;
             break;
@@ -713,7 +721,7 @@ prim_truename(PRIM_PROTOTYPE)
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-        ts_lastuseobject(ref);
+        ts_lastuseobject(program, ref);
     if ((Typeof(ref) == TYPE_PLAYER) || (Typeof(ref) == TYPE_THING)) {
         if ((msg = GETMESG(ref, "%n"))) {
             strcpy(buf, msg);
@@ -755,7 +763,7 @@ prim_name(PRIM_PROTOTYPE)
     ref = oper1->data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
-        ts_lastuseobject(ref);
+        ts_lastuseobject(program, ref);
     if (NAME(ref)) {
         strcpy(buf, PNAME(ref));
     } else {
@@ -812,7 +820,7 @@ prim_setname(PRIM_PROTOTYPE)
             delete_player(ref);
             if (NAME(ref))
                 free((void *) NAME(ref));
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             NAME(ref) = alloc_string(b);
             add_player(ref);
         } else {
@@ -821,7 +829,7 @@ prim_setname(PRIM_PROTOTYPE)
             if (NAME(ref))
                 free((void *) NAME(ref));
             NAME(ref) = alloc_string(b);
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             if (MLevel(ref))
                 SetMLevel(ref, 0);
         }
@@ -931,7 +939,7 @@ prim_copyobj(PRIM_PROTOTYPE)
     {
         dbref newobj;
 
-        newobj = new_object();
+        newobj = new_object(ProgUID);
         *DBFETCH(newobj) = *DBFETCH(ref);
         copyobj(PSafe, ref, newobj);
         CLEAR(oper1);
@@ -1022,11 +1030,11 @@ prim_set(PRIM_PROTOTYPE)
         if (!flag_set_perms(ref, tmp, mlev, ProgUID))
             abort_interp(tp_noperm_mesg);
         if (!result) {
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             SetMLevel(ref, LMPI);
             DBDIRTY(ref);
         } else {
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             SetMLevel(ref, 0);
             DBDIRTY(ref);
         }
@@ -1034,11 +1042,11 @@ prim_set(PRIM_PROTOTYPE)
         if (!flag_set_perms(ref, tmp, mlev, ProgUID))
             abort_interp(tp_noperm_mesg);
         if (!result) {
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             FLAGS(ref) |= tmp;
             DBDIRTY(ref);
         } else {
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             FLAGS(ref) &= ~tmp;
             DBDIRTY(ref);
         }
@@ -1046,11 +1054,11 @@ prim_set(PRIM_PROTOTYPE)
         if (!flag_set_perms2(ref, tmp2, mlev, ProgUID))
             abort_interp(tp_noperm_mesg);
         if (!result) {
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             FLAG2(ref) |= tmp2;
             DBDIRTY(ref);
         } else {
-            ts_modifyobject(ref);
+            ts_modifyobject(program, ref);
             FLAG2(ref) &= ~tmp2;
             DBDIRTY(ref);
         }
@@ -1573,7 +1581,7 @@ prim_newobject(PRIM_PROTOTYPE)
         if (!ok_name(b))
             abort_interp("Invalid name (2)");
 
-        ref = new_object();
+        ref = new_object(ProgUID);
 
         /* initialize everything */
         NAME(ref) = alloc_string(b);
@@ -1624,7 +1632,7 @@ prim_newroom(PRIM_PROTOTYPE)
         if (!ok_name(b))
             abort_interp("Invalid name (2)");
 
-        ref = new_object();
+        ref = new_object(ProgUID);
 
         /* Initialize everything */
         NAME(ref) = alloc_string(b);
@@ -1670,7 +1678,7 @@ prim_newexit(PRIM_PROTOTYPE)
         if (!ok_name(b))
             abort_interp("Invalid name (2)");
 
-        ref = new_object();
+        ref = new_object(ProgUID);
 
         /* initialize everything */
         NAME(ref) = alloc_string(oper1->data.string->data);
@@ -1959,7 +1967,7 @@ prim_newplayer(PRIM_PROTOTYPE)
     if (tp_db_readonly)
         abort_interp("The MUCK is read only.");
 
-    ref = create_player(oper2->data.string->data, oper1->data.string->data);
+    ref = create_player(ProgUID, oper2->data.string->data, oper1->data.string->data);
     if (ref != NOTHING)
         log_status("PCRE[MUF]: %s(%d) by %s(%d)\n", NAME(ref), (int) ref,
                    OkObj(player) ? NAME(player) : "(Login)", player);
@@ -2005,7 +2013,7 @@ prim_copyplayer(PRIM_PROTOTYPE)
         abort_interp("The MUCK is read only.");
 
     /* else he doesn't already exist, create him */
-    newplayer = new_object();
+    newplayer = new_object(ProgUID);
     newp = DBFETCH(newplayer);
 
     /* initialize everything */

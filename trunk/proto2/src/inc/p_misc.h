@@ -7,6 +7,7 @@ extern void prim_timefmt(PRIM_PROTOTYPE);
 extern void prim_queue(PRIM_PROTOTYPE);
 extern void prim_kill(PRIM_PROTOTYPE);
 extern void prim_timestamps(PRIM_PROTOTYPE);
+extern void prim_refstamps(PRIM_PROTOTYPE);
 extern void prim_fork(PRIM_PROTOTYPE);
 extern void prim_pid(PRIM_PROTOTYPE);
 extern void prim_stats(PRIM_PROTOTYPE);
@@ -36,6 +37,8 @@ extern void prim_htoi(PRIM_PROTOTYPE);
 extern void prim_itoh(PRIM_PROTOTYPE);
 extern void prim_onevent(PRIM_PROTOTYPE);
 extern void prim_interrupt_level(PRIM_PROTOTYPE);
+extern void prim_touch(PRIM_PROTOTYPE);
+extern void prim_use(PRIM_PROTOTYPE);
 
 /* From p_html.c */
 extern void prim_commandtext(PRIM_PROTOTYPE);
@@ -54,7 +57,8 @@ extern void prim_escape_url(PRIM_PROTOTYPE);
     prim_getpids, prim_getpidinfo, prim_read_wants_blanks,                \
     prim_debugger_break, prim_debug_on, prim_debug_off, prim_debug_line,  \
     prim_systime_precise, prim_htoi, prim_itoh, prim_unescape_url,        \
-    prim_escape_url, prim_onevent, prim_interrupt_level
+    prim_escape_url, prim_onevent, prim_interrupt_level, prim_refstamps,  \
+    prim_touch, prim_use
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET", "SYSTIME",          \
     "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL", "TIMESTAMPS", "FORK", "PID", \
@@ -64,6 +68,7 @@ extern void prim_escape_url(PRIM_PROTOTYPE);
     "EVENT_EXISTS", "WATCHPID", "GETPIDS", "GETPIDINFO",                  \
     "READ_WANTS_BLANKS", "DEBUGGER_BREAK", "DEBUG_ON", "DEBUG_OFF",       \
     "DEBUG_LINE", "SYSTIME_PRECISE", "HTOI", "ITOH", "UNESCAPE_URL",      \
-    "ESCAPE_URL", "ONEVENT", "INTERRUPT_LEVEL"
+    "ESCAPE_URL", "ONEVENT", "INTERRUPT_LEVEL", "REFSTAMPS",              \
+    "TOUCH", "USE"
 
-#define PRIMS_MISC_CNT 43
+#define PRIMS_MISC_CNT 46
