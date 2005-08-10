@@ -305,7 +305,7 @@ extern long descr_sendfile(struct descriptor_data *d, int start, int stop, const
 
 extern void process_command(int descr, dbref player, char *command);
 
-extern dbref create_player(const char *name, const char *password);
+extern dbref create_player(dbref creator, const char *name, const char *password);
 extern dbref connect_player(const char *name, const char *password);
 extern void do_look_around(int descr, dbref player);
 

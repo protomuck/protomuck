@@ -258,7 +258,7 @@ look_room(register int descr, register dbref player, register dbref loc)
         else if (GETIDESC(loc))
             exec_or_notify(descr, player, loc, GETIDESC(loc), "(@Idesc)");
     }
-    ts_useobject(loc);
+    ts_useobject(player, loc);
 
     /* tell him the contents */
 
@@ -346,7 +346,7 @@ do_look_at(int descr, dbref player, register const char *name,
                         look_simple(descr, player, thing, name);
                         if (!(FLAGS(thing) & HAVEN)) {
                             look_contents(player, thing, SYSBLUE "Contains:");
-                            ts_useobject(thing);
+                            ts_useobject(player, thing);
                         }
                         if (tp_look_propqueues) {
                             sprintf(obj_num, "#%d", thing);
@@ -358,7 +358,7 @@ do_look_at(int descr, dbref player, register const char *name,
                 default:
                     look_simple(descr, player, thing, name);
                     if (Typeof(thing) != TYPE_PROGRAM)
-                        ts_useobject(thing);
+                        ts_useobject(player, thing);
                     if (tp_look_propqueues) {
                         sprintf(obj_num, "#%d", thing);
                         envpropqueue(descr, player, thing, player, thing,
@@ -581,6 +581,8 @@ flag_description(register dbref thing)
             strcat(buf, " PUEBLO");
         if (FLAG2(thing) & F2HTML)
             strcat(buf, " HTML");
+        if (FLAG2(thing) & F2SUSPECT)
+            strcat(buf, " SUSPECT");
         if (FLAG2(thing) & F2MOBILE) {
             if (!*tp_userflag_name) {
                 strcat(buf,
@@ -723,6 +725,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
     register int i, cnt;
     dbref content;
     dbref exit;
+    dbref ref_tm;
 
     struct tm *time_tm;         /* used for timestamps */
 
@@ -917,19 +920,25 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
     /* ex: time_tm = localtime((time_t *)(&(DBFETCH(thing)->ts.created))); */
 
     time_tm = localtime((&(DBFETCH(thing)->ts.created)));
+    ref_tm = (DBFETCH(thing)->ts.dcreated);
     (void) format_time(buf, BUFFER_LEN,
                        (char *) SYSFOREST "Created:" SYSGREEN
-                       "  %a %b %e %T %Z %Y\0", time_tm);
+                       "  %a %b %e %T %Z %Y", time_tm);
+    sprintf(buf, "%s by %s", buf, ref_tm < 0 ? "*NOTHING*" : ansi_unparse_object(OWNER(player), ref_tm));
     anotify_nolisten(player, buf, 1);
     time_tm = localtime((&(DBFETCH(thing)->ts.modified)));
+    ref_tm = (DBFETCH(thing)->ts.dmodified);
     (void) format_time(buf, BUFFER_LEN,
                        (char *) SYSFOREST "Modified:" SYSGREEN
-                       " %a %b %e %T %Z %Y\0", time_tm);
+                       " %a %b %e %T %Z %Y", time_tm);
+    sprintf(buf, "%s by %s", buf, ref_tm < 0 ? "*NOTHING*" : ansi_unparse_object(OWNER(player), ref_tm));
     anotify_nolisten(player, buf, 1);
     time_tm = localtime((&(DBFETCH(thing)->ts.lastused)));
+    ref_tm = (DBFETCH(thing)->ts.dlastused);
     (void) format_time(buf, BUFFER_LEN,
                        (char *) SYSFOREST "Lastused:" SYSGREEN
-                       " %a %b %e %T %Z %Y\0", time_tm);
+                       " %a %b %e %T %Z %Y", time_tm);
+    sprintf(buf, "%s by %s", buf, ref_tm < 0 ? "*NOTHING*" : ansi_unparse_object(OWNER(player), ref_tm));
     anotify_nolisten(player, buf, 1);
     if (Typeof(thing) == TYPE_PROGRAM) {
         sprintf(buf, SYSFOREST "Usecount:" SYSGREEN " %d     "

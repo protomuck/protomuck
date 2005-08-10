@@ -225,6 +225,63 @@ prim_timestamps(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
+void
+prim_refstamps(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (mlev < LM2)
+        abort_interp("M2 prim");
+    if (oper1->type != PROG_OBJECT)
+        abort_interp("Non-object argument (1)");
+    ref = oper1->data.objref;
+    if (ref >= db_top || ref <= NOTHING)
+        abort_interp("Dbref is not an object nor garbage.");
+    CHECKREMOTE(ref);
+    CHECKOFLOW(3);
+    CLEAR(oper1);
+    result = DBFETCH(ref)->ts.dcreated;
+    PushObject(result);
+    result = DBFETCH(ref)->ts.dmodified;
+    PushObject(result);
+    result = DBFETCH(ref)->ts.dlastused;
+    PushObject(result);
+}
+
+void
+prim_touch(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (mlev < LM3)
+        abort_interp("M3 prim");
+    if (oper1->type != PROG_OBJECT)
+        abort_interp("Non-object argument (1)");
+    ref = oper1->data.objref;
+    if (ref >= db_top || ref <= NOTHING)
+        abort_interp("Dbref is not an object nor garbage.");
+    CHECKREMOTE(ref);
+    ts_useobject(program, ref);
+    CLEAR(oper1);
+}
+
+void
+prim_use(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (mlev < LWIZ)
+        abort_interp("W2 prim");
+    if (oper1->type != PROG_OBJECT)
+        abort_interp("Non-object argument (1)");
+    ref = oper1->data.objref;
+    if (ref >= db_top || ref <= NOTHING)
+        abort_interp("Dbref is not an object nor garbage.");
+    CHECKREMOTE(ref);
+    ts_lastuseobject(program, ref);
+    CLEAR(oper1);
+}
+
 extern int top_pid;
 struct forvars *copy_fors(struct forvars *);
 struct tryvars *copy_trys(struct tryvars *);

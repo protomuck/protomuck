@@ -1246,7 +1246,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         DBFETCH(program)->sp.program.profuses++;
         DBFETCH(program)->sp.program.instances++;
     }
-    ts_useobject(program);
+    ts_useobject(player, program);
     err = 0;
 
     instr_count = 0;
@@ -1772,7 +1772,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                             mlev = ProgMLevel(program);
                         }
                         DBFETCH(program)->sp.program.profuses++;
-                        ts_useobject(program);
+                        ts_useobject(player, program);
                         CLEAR(temp1);
                         if (temp2)
                             CLEAR(temp2);

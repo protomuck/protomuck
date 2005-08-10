@@ -89,7 +89,7 @@
  */
 
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#undef IGNORE_SUPPORT
+#define IGNORE_SUPPORT
 #define MAX_IGNORES 16
 #define MUF_MAX_IGNORES "16"
 
@@ -154,7 +154,7 @@
  */
 
 #define MUF_SOCKETS
-#undef  SSL_SOCKETS
+#define SSL_SOCKETS
 
 /* Define MUF_EDIT_PRIMS to compile in a set of prims that have
  * the ability to edit MUF code or the MUF macros. This can be
@@ -166,7 +166,7 @@
 
 /* Define this to enable support for MCP (MUD Client Protocol). */
 
-#define MCP_SUPPORT
+#undef MCP_SUPPORT
 
 /* Define this to enable support for pre-Foxen5 (FB5) database
  * formats or if you need to build the "olddecompress" utility. 

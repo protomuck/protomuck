@@ -349,7 +349,7 @@ prim_remove_prop(PRIM_PROTOTYPE)
 		 program, pc->line, oper1->data.objref, buf);
 #endif
 
-	ts_modifyobject(oper2->data.objref);
+	ts_modifyobject(program, oper2->data.objref);
     
     CLEAR(oper1);
     CLEAR(oper2);
@@ -592,7 +592,7 @@ prim_setprop(PRIM_PROTOTYPE)
 		 program, pc->line, oper3->data.objref, tname);
 #endif
 
-	ts_modifyobject(oper3->data.objref);
+	ts_modifyobject(program, oper3->data.objref);
     }
     CLEAR(oper1);
     CLEAR(oper2);
@@ -656,7 +656,7 @@ prim_addprop(PRIM_PROTOTYPE)
 		     oper1->data.number);
 #endif
 
-	    ts_modifyobject(oper4->data.objref);
+	    ts_modifyobject(program, oper4->data.objref);
 	}
     }
     CLEAR(oper1);

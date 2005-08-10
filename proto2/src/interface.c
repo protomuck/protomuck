@@ -3268,10 +3268,11 @@ do_command(struct descriptor_data *d, char *command)
 #else
     strcpy(cmdbuf, command);
 #endif
-    command = cmdbuf;
-    if (d->connected)
-        ts_lastuseobject(d->player);
-
+    command = cmdbuf; 
+    
+    if (tp_use_self_on_command && d->connected)
+        ts_lastuseobject(d->player, d->player);
+	
     if (!string_compare(command, BREAK_COMMAND)) {
         if (!d->connected || !OkObj(d->player)) {
             return 0; /* don't bother dealing with #-1 READ programs, just QUIT */
@@ -4374,7 +4375,7 @@ announce_connect(int descr, dbref player)
         }
     }
 
-    ts_useobject(player);
+    ts_useobject(player, player);
     return;
 }
 
@@ -4447,7 +4448,7 @@ announce_disconnect(struct descriptor_data *d)
             announce_puppets(player, "falls asleep.", "_/pdcon");
         }
     }
-    ts_lastuseobject(player);
+    ts_lastuseobject(player, player);
     DBDIRTY(player);
 }
 

@@ -164,13 +164,13 @@ db_grow(dbref newtop)
 #endif /* DB_DOUBLING */
 
 void
-db_clear_object(dbref i)
+db_clear_object(dbref player, dbref i)
 {
     struct object *o = DBFETCH(i);
 
     bzero(o, sizeof(struct object));
     NAME(i) = 0;
-    ts_newobject(o);
+    ts_newobject(player, o);
     o->location = NOTHING;
     o->contents = NOTHING;
     o->exits = NOTHING;
@@ -191,7 +191,7 @@ db_clear_object(dbref i)
 }
 
 dbref
-new_object(void)
+new_object(dbref player)
 {
     dbref newobj;
 
@@ -205,7 +205,7 @@ new_object(void)
     }
 
     /* clear it out */
-    db_clear_object(newobj);
+    db_clear_object(player, newobj);
     DBDIRTY(newobj);
     return newobj;
 }
@@ -218,7 +218,7 @@ new_program(register dbref player, register const char *name)
     register dbref newprog;
     char buf[BUFFER_LEN];
 
-    newprog = new_object();
+    newprog = new_object(player);
     player = OWNER(player);
 
     NAME(newprog) = alloc_string(name);
@@ -276,6 +276,17 @@ putfref(FILE * f, dbref ref, dbref ref2, dbref ref3, dbref ref4, dbref pow1,
         abort();
     }
 }
+
+void
+puttimestampEx(FILE * f, dbref ref, dbref ref2)
+{
+    if (fprintf(f, "%d %d\n", ref, ref2) ==
+        EOF) {
+        fprintf(stderr, "PANIC: Unable write to db file.\n");
+        abort();
+    }
+}
+
 
 static void
 putstring(FILE * f, const char *s)
@@ -573,10 +584,10 @@ db_write_object(FILE * f, dbref i)
         putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK),
                 (FLAG3(i) & ~DUM3_MASK), (FLAG4(i) & ~DUM4_MASK), 0, 0);
 
-    putref(f, o->ts.created);
-    putref(f, o->ts.lastused);
+    puttimestampEx(f, o->ts.created, o->ts.dcreated);
+    puttimestampEx(f, o->ts.lastused, o->ts.dlastused);
     putref(f, o->ts.usecount);
-    putref(f, o->ts.modified);
+    puttimestampEx(f, o->ts.modified, o->ts.dmodified);
 
 
 #ifdef DISKBASE
@@ -786,6 +797,29 @@ getfref(FILE * f, dbref *f2, dbref *f3, dbref *f4, dbref *p1, dbref *p2)
         (*f3) = 0;
     if (got < 2)
         (*f2) = 0;
+    if (got < 1) {
+        fprintf(stderr, "getfref: scanf failed\n");
+        return 0;
+    }
+    return (f1);
+}
+
+dbref
+gettimestampEx(FILE * f, dbref *f2)
+{
+    char buf[BUFFER_LEN];
+    dbref f1;
+    int got, peekch;
+
+    if ((peekch = do_peek(f)) == NUMBER_TOKEN || peekch == LOOKUP_TOKEN) {
+        return (0);
+    }
+    fgets(buf, sizeof(buf), f);
+
+    got = sscanf(buf, "%d %d", &f1, f2);
+
+    if (got < 2)
+        (*f2) = -1;
     if (got < 1) {
         fprintf(stderr, "getfref: scanf failed\n");
         return 0;
@@ -1170,7 +1204,7 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
     int pennies;
     const char *password;
 
-    db_clear_object(objno);
+    db_clear_object(-1, objno);
     FLAGS(objno) = 0;
     FLAG2(objno) = 0;
     FLAG3(objno) = 0;
@@ -1196,6 +1230,10 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
     o->ts.lastused = current_systime;
     o->ts.usecount = 0;
     o->ts.modified = current_systime;
+    o->ts.dcreated = -1;
+    o->ts.dlastused = -1;
+    o->ts.dmodified = -1;
+    
 
     FLAGS(objno) |= getfref(f, &f2, &f3, &f4, &p1, &p2);
     FLAG2(objno) |= f2;
@@ -1291,7 +1329,7 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
     dbref f2, f3, f4, p1, p2;
     int j;
 
-    db_clear_object(objno);
+    db_clear_object(-1, objno);
     FLAGS(objno) = 0;
     FLAG2(objno) = 0;
     FLAG3(objno) = 0;
@@ -1314,6 +1352,9 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
     o->ts.lastused = current_systime;
     o->ts.usecount = 0;
     o->ts.modified = current_systime;
+    o->ts.dcreated = -1;
+    o->ts.dlastused = -1;
+    o->ts.dmodified = -1;
 
     /* OWNER(objno) = getref(f); */
     /* o->pennies = getref(f); */
@@ -1406,7 +1447,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     if (read_before) {
         db_free_object(objno);
     }
-    db_clear_object(objno);
+    db_clear_object(-1, objno);
 
     FLAGS(objno) = 0;
     FLAG2(objno) = 0;
@@ -1480,10 +1521,13 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         if (verboseload)
             fprintf(stderr, "[timestamps v4] ");
         /* Foxen and WhiteFire timestamps */
-        o->ts.created = getref(f);
-        o->ts.lastused = getref(f);
+        o->ts.created = gettimestampEx(f, &f2);
+	o->ts.dcreated = f2;
+        o->ts.lastused = gettimestampEx(f, &f2);
+	o->ts.dlastused = f2;	
         o->ts.usecount = getref(f);
-        o->ts.modified = getref(f);
+        o->ts.modified = gettimestampEx(f, &f2);
+	o->ts.dmodified = f2;
     }
 
     c = getc(f);

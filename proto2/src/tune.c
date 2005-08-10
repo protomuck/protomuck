@@ -281,6 +281,7 @@ int tp_log_connects = LOG_CONNECTS;
 int tp_log_failed_commands = LOG_FAILED_COMMANDS;
 int tp_log_programs = LOG_PROGRAMS;
 int tp_log_guests = LOG_GUESTS;
+int tp_log_suspects = LOG_SUSPECTS;
 int tp_log_files = LOG_FILES;
 int tp_log_sockets = LOG_SOCKETS;
 int tp_log_failedhelp = LOG_FAILEDHELP;
@@ -321,6 +322,7 @@ int tp_pcreate_copy_props = 0;
 int tp_enable_home = 1;
 int tp_enable_idle_msgs = 0;
 int tp_user_idle_propqueue = 0;
+int tp_use_self_on_command = 1;
 int tp_quiet_moves = 0;
 int tp_quiet_connects = 0;
 int tp_proplist_int_counter = 0;
@@ -374,6 +376,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Logs", "log_failed_commands", &tp_log_failed_commands, WBOY, LWIZ},
     {"Logs", "log_programs", &tp_log_programs, WBOY, LWIZ},
     {"Logs", "log_guests", &tp_log_guests, WBOY, LWIZ},
+    {"Logs", "log_suspects", &tp_log_suspects, WBOY, LWIZ},
     {"Logs", "log_files", &tp_log_files, WBOY, LWIZ},
     {"Logs", "log_sockets", &tp_log_sockets, WBOY, LWIZ},
     {"Logs", "log_failedhelp", &tp_log_failedhelp, WBOY, LWIZ},
@@ -418,6 +421,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Commands", "allow_home", &tp_enable_home, LARCH, LMUF},
     {"Idletime", "enable_idle_msgs", &tp_enable_idle_msgs, LARCH, LMUF},
     {"Idletime", "user_idle_propqueue", &tp_user_idle_propqueue, LARCH, LMUF},
+    {"Commands", "use_self_on_command", &tp_use_self_on_command, LARCH, LMUF},
     {"Commands", "quiet_moves", &tp_quiet_moves, LARCH, LMUF},
     {"Commands", "quiet_connects", &tp_quiet_connects, LARCH, LMUF},
     {"Props", "proplist_int_counter", &tp_proplist_int_counter, LARCH, LMUF},
