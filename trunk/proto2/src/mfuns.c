@@ -1888,7 +1888,7 @@ mfn_otell(MFUNARGS)
         thing = DBFETCH(obj)->contents;
         while (thing != NOTHING) {
             if (thing != eobj)
-                notify_from_echo(player, thing, buf, 1);
+                notify_from_echo(player, thing, buf, 0);
             thing = DBFETCH(thing)->next;
         }
     }
@@ -1934,7 +1934,7 @@ mfn_oansi(MFUNARGS)
         thing = DBFETCH(obj)->contents;
         while (thing != NOTHING) {
             if (thing != eobj)
-                anotify_from_echo(player, thing, buf, 1);
+                anotify_from_echo(player, thing, buf, 0);
             thing = DBFETCH(thing)->next;
         }
     }
@@ -1980,9 +1980,9 @@ mfn_ohtml(MFUNARGS)
         thing = DBFETCH(obj)->contents;
         while (thing != NOTHING) {
             if (thing != eobj) {
-                notify_html_from_echo(player, thing, buf, 1);
+                notify_html_from_echo(player, thing, buf, 0);
                 if (NHtml(OWNER(thing)))
-                    notify_html_from_echo(player, thing, "<BR>", 1);
+                    notify_html_from_echo(player, thing, "<BR>", 0);
             }
             thing = DBFETCH(thing)->next;
         }
