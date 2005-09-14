@@ -275,7 +275,7 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
     }
 
     if (tp_zombies && (Typeof(obj) == TYPE_THING) && !isprivate
-        && !(FLAGS(obj) & QUELL)) {
+            && !(FLAGS(obj) & QUELL)) {
         if (FLAGS(obj) & VEHICLE) {
             if (getloc(who) == getloc(obj)) {
                 char pbuf[BUFFER_LEN];
@@ -306,7 +306,13 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
 #ifdef IGNORE_SUPPORT
         if (ignorance(who, obj))
             return 0;
+	if ( !isprivate &&
+	     Typeof(obj) == TYPE_THING &&
+	     FLAGS(obj) & ZOMBIE && 
+	     LOCATION(obj) == LOCATION(OWNER(obj))
+	   ) return 0;
 #endif /* IGNORE_SUPPORT */
+        /* Hack to reduce spam from zombies in the same room as you */
         return notify_nolisten(obj, msg, isprivate);
     } else {
         return 0;
@@ -386,6 +392,11 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
         if (ignorance(who, obj))
             return 0;
 #endif /* IGNORE_SUPPORT */
+	if ( !isprivate && 
+	     Typeof(obj) == TYPE_THING &&
+	     FLAGS(obj) & ZOMBIE && 
+	     LOCATION(obj) == LOCATION(OWNER(obj))
+	   ) return 0;
         return anotify_nolisten(obj, msg, isprivate);
     } else {
         return 0;
@@ -443,8 +454,7 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
                 if (prefix && *prefix) {
                     prefix = do_parse_mesg(-1, who, obj, prefix,
                                            "(@Oecho)", pbuf, MPI_ISPRIVATE);
-                }
-                if (!prefix || !*prefix)
+                }                if (!prefix || !*prefix)
                     prefix = "Outside>";
                 sprintf(buf, "%s %.*s", prefix,
                         (int) (BUFFER_LEN - 2 - strlen(prefix)), msg);
@@ -465,6 +475,12 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
         if (ignorance(who, obj))
             return 0;
 #endif
+	if ( !isprivate && 
+	     Typeof(obj) == TYPE_THING &&
+	     FLAGS(obj) & ZOMBIE && 
+	     LOCATION(obj) == LOCATION(OWNER(obj))
+	   ) return 0;
+
         return notify_html_nolisten(obj, msg, isprivate);
     } else {
         return 0;
