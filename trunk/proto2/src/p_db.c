@@ -1105,6 +1105,7 @@ prim_flagp(PRIM_PROTOTYPE)
             result = 0;         /* Return 0 on unknown flags per old behavior. */
         if (result == -2)
             abort_interp("Permission denied");
+	result = result ? 1 : 0;
     }
     CLEAR(oper1);
     CLEAR(oper2);
