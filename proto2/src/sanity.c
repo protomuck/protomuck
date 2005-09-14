@@ -16,14 +16,6 @@
 #include "props.h"
 
 
-
-#define TYPEOF(i)   (DBFETCH((i))->flags & TYPE_MASK)
-#define LOCATION(x) (DBFETCH((x))->location)
-
-#define CONTENTS(x) (DBFETCH((x))->contents)
-#define EXITS(x)    (DBFETCH((x))->exits)
-#define NEXTOBJ(x)  (DBFETCH((x))->next)
-
 #define unparse(x) ( (char*)unparse_object(MAN, (x)) )
 #undef valid_obj
 int sanity_violated = 0;

@@ -147,6 +147,11 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define POWERSDB(x) (DBFETCH(x)->powers)
 #define POWER2(x)   (DBFETCH(OWNER(x))->power2)
 #define POWER2DB(x) (DBFETCH(x)->power2)
+#define TYPEOF(i)   (DBFETCH((i))->flags & TYPE_MASK)
+#define LOCATION(x) (DBFETCH((x))->location)
+#define CONTENTS(x) (DBFETCH((x))->contents)
+#define EXITS(x)    (DBFETCH((x))->exits)
+#define NEXTOBJ(x)  (DBFETCH((x))->next)
 
 /* defines for possible data access mods. */
 #define GETMESG(x,y)   (get_property_class(x, y))
