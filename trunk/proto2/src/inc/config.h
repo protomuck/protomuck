@@ -90,8 +90,8 @@
 
 /* Be aware, this is slightly resource intensive. -Hinoserm */
 #define IGNORE_SUPPORT
-#define MAX_IGNORES 16
-#define MUF_MAX_IGNORES "16"
+#define MAX_IGNORES 64
+#define MUF_MAX_IGNORES "64"
 
 /* Define this to disable the colors used in many of the in-server
  * commands. Leave it undefined for traditional in-server ANSI 
