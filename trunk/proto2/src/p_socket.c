@@ -1325,8 +1325,8 @@ prim_udpopen(PRIM_PROTOTYPE)
   abort_interp("Socket prims are W3.");
  if (oper1->type != PROG_INTEGER)
   abort_interp("Integer expected (1)");
- if ((oper1->data.number < 1) || (oper1->data.number > 65535))
-  abort_interp("Port number must be between 1 and 65535.");
+ if ((oper1->data.number < 1024) || (oper1->data.number > 65535))
+  abort_interp("Port number must be between 1024 and 65535.");
 
  /* leave with FALSE if port in use */
  if (muf_udp_portinuse(oper1->data.number)) {
