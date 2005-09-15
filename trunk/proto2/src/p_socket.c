@@ -1332,6 +1332,7 @@ prim_udpopen(PRIM_PROTOTYPE)
  if (muf_udp_portinuse(oper1->data.number)) {
   CLEAR(oper1);
   result=0; PushInt(result);
+  return;
  } else {
 
  /* Ready to open */
@@ -1339,11 +1340,12 @@ prim_udpopen(PRIM_PROTOTYPE)
  make_nonblocking(tmp);
  sa.sin_family = AF_INET;
  sa.sin_port = htons(oper1->data.number);
- sa.sin_addr.s_addr = htonl(bind_to);
+ sa.sin_addr.s_addr = bind_to;
  if (bind(tmp, (struct sockaddr *)&sa, sizeof(sa)) == -1) {
   /* The only real possible error here is 'port in use', so return zero if there was an error */
   CLEAR(oper1);
   result=0; PushInt(result); 
+  return;
  }
  
  /* add it to the recvto mainloop */
@@ -1353,7 +1355,6 @@ prim_udpopen(PRIM_PROTOTYPE)
  udp_sockets[udp_count].portnum = oper1->data.number;
  if (tp_log_sockets) log2filetime("logs/sockets", "UDPOPEN: entry %d, port %d, descr %d\n", udp_count, udp_sockets[udp_count].portnum, udp_sockets[udp_count].socket);
  udp_count++;
- 
  CLEAR(oper1);
  result=1; PushInt(result);
  }
@@ -1379,10 +1380,8 @@ prim_udpclose(PRIM_PROTOTYPE)
   CLEAR(oper1);
   result=0; PushInt(result);
  } else {
-
  /* Ready to close */
- muf_udp_clean_byport(oper1->data.number);
- 
+ muf_udp_clean_byport(oper1->data.number); 
  CLEAR(oper1);
  result=1; PushInt(result);
  }
