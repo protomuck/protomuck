@@ -2,7 +2,7 @@
 
 . ./muck.config
 cp $MUCKOUT $MUCKOUT.bak
-gzip $MUCKOUT.bak
+gzip -f $MUCKOUT.bak
 cp $MUCKOUT $MUCKDB
 echo -n "($MUCKNAME on port $MAINPORT from $MUCKDB): "
 ./protomuck $MUCKDB $MUCKOUT $MAINPORT $MOREPORTS
