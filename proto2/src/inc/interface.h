@@ -329,7 +329,7 @@ struct udp_frame {
  unsigned int socket;
 };
 
-extern struct udp_frame udp_sockets[65];
+extern struct udp_frame udp_sockets[34];
 extern int udp_count;
 #endif
 

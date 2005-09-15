@@ -100,7 +100,7 @@ static int numsocks = 0;
 int maxd = 0;                   /* Moved from shovechars since needed in p_socket.c */
 
 #ifdef UDP_SOCKETS
-struct udp_frame udp_sockets[65];
+struct udp_frame udp_sockets[34];
 int udp_count;
 #endif
 
@@ -1910,8 +1910,8 @@ shovechars(void)
 	    stk_array *nw = new_array_dictionary();
 	    strncpy(buf2, inet_ntoa(tmpaddr.sin_addr), 16);
 	    if (tp_log_sockets) log2filetime("logs/sockets",
-	    "UDP.event: pid %d, from %s, port %d, data '%s'\n'",
-	    udp_sockets[i].fr->pid, buf2, udp_sockets[i].portnum, buf);
+	    "UDP.event: pid %d, from %s, port %d\n'",
+	    udp_sockets[i].fr->pid, buf2, udp_sockets[i].portnum);
 	    array_set_strkey_intval(&nw, "pid", udp_sockets[i].fr->pid);
 	    array_set_strkey_strval(&nw, "from", buf2);
 	    array_set_strkey_intval(&nw, "port", udp_sockets[i].portnum);

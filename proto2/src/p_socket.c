@@ -1269,14 +1269,14 @@ prim_set_sockopt(PRIM_PROTOTYPE)
 #ifdef UDP_SOCKETS
 void muf_udp_clean_byport(int portnum)
 {
- int i, j;
- i=0;
- while (i<=63) 
+ int i, j, x;
+ i=0; x=udp_count+1;
+ while (i<=x) 
   if (udp_sockets[i].portnum == portnum) {
    if (tp_log_sockets) log2filetime("logs/sockets", "UDPCLOSE: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
    close(udp_sockets[i].socket);
    udp_count--;
-   j=i; while (j<=63) {
+   j=i; while (j<=x) {
     udp_sockets[j] = udp_sockets[j+1];
     j++;
    } 
@@ -1286,15 +1286,15 @@ void muf_udp_clean_byport(int portnum)
 
 void udp_socket_clean(struct frame *fr)
 {
- int i, j;
- i=0;
- while (i<=63) 
+ int i, j, x;
+ i=0; x=udp_count+1;
+ while (i<=x) 
   if (udp_sockets[i].fr == fr) {
    if (tp_log_sockets) log2filetime("logs/sockets", "UDP.socket_clean: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
    udp_count--;
    close(udp_sockets[i].socket);
    j=i; 
-   while (j<=63) {
+   while (j<=x) {
     udp_sockets[j] = udp_sockets[j+1];
     j++;
    } 
@@ -1306,7 +1306,7 @@ void udp_socket_clean(struct frame *fr)
 int muf_udp_portinuse(int portnum)
 {
  int i;
- for(i=0; i<=63; ++i) 
+ for(i=0; i<=udp_count+1; ++i) 
   if (udp_sockets[i].portnum == portnum) return 1;
  return 0;
 }
@@ -1327,6 +1327,8 @@ prim_udpopen(PRIM_PROTOTYPE)
   abort_interp("Integer expected (1)");
  if ((oper1->data.number < 1024) || (oper1->data.number > 65535))
   abort_interp("Port number must be between 1024 and 65535.");
+ if (udp_count>31)
+  abort_interp("Out of UDP ports! (32)");
 
  /* leave with FALSE if port in use */
  if (muf_udp_portinuse(oper1->data.number)) {
@@ -1372,8 +1374,10 @@ prim_udpclose(PRIM_PROTOTYPE)
   abort_interp("Socket prims are W3.");
  if (oper1->type != PROG_INTEGER)
   abort_interp("Integer expected (1)");
- if ((oper1->data.number < 1) || (oper1->data.number > 65535))
-  abort_interp("Port number must be between 1 and 65535.");
+ if ((oper1->data.number < 1024) || (oper1->data.number > 65535))
+  abort_interp("Port number must be between 1024 and 65535.");
+ if (udp_count<0)
+  abort_interp("Insanity!  UDP socket count is negative!");
 
  /* leave with FALSE if port not in use */
  if (!muf_udp_portinuse(oper1->data.number)) {
@@ -1432,7 +1436,7 @@ prim_udpsend(PRIM_PROTOTYPE)
  
  /* ship it out, shut it down. */
  sendto(tmp, oper1->data.string->data, oper1->data.string->length, 0, (struct sockaddr *)&sa, sizeof(sa)); 
- if (tp_log_sockets) log2filetime("logs/sockets", "UDPSEND: host %s, port %d, data '%s'\n", myhost->h_name, htons(sa.sin_port), oper1->data.string->data);
+ if (tp_log_sockets) log2filetime("logs/sockets", "UDPSEND: host %s, port %d\n", myhost->h_name, htons(sa.sin_port));
  close(tmp);
  
  /* Yay! Return TRUE */    
