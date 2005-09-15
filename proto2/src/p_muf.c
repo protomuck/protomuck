@@ -131,15 +131,16 @@ prim_program_linecount(PRIM_PROTOTYPE)
     if (mlev < LWIZ && (!controls(player, ref) && !Viewable(ref)))
         abort_interp("Permission denied.");
 
-    if (!(FLAGS(ref) | INTERNAL)) /* no one's editing it */
+    if (!(FLAGS(ref) & INTERNAL)) /* no one's editing it */
         DBSTORE(ref, sp.program.first, read_program(ref));
 
     curr = DBFETCH(ref)->sp.program.first;
-    if (curr)
-        for (result = 0; curr; curr = curr->next)
-            ++result;
-    else
-        result = 0;
+    result = 0;
+
+    while (curr) {
+        result++;
+        curr = curr->next;
+    }
 
     if (!(FLAGS(ref) & INTERNAL))
         free_prog_text(DBFETCH(ref)->sp.program.first);

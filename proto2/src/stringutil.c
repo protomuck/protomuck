@@ -1092,7 +1092,7 @@ parse_mush_ansi(char *buf, char *from)
 
     to = buf;
     while (*from) {
-        if (*from == '%') {
+        if (*from == '%' && (*(from+1) != '\0')) {
             (void) *from++;
             color = (*(from++));
             if (color == 'c') {

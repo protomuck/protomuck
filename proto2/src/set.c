@@ -58,7 +58,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
 
     if (thing != NOTHING && !(controls(player, thing)
                               || (Typeof(thing) == TYPE_PLAYER
-                                  && POWERS(player) & POW_PLAYER_CREATE))) {
+                                  && (POWERS(player) & POW_PLAYER_CREATE)))) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
@@ -78,7 +78,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
         /* check for renaming a player */
         if (Typeof(thing) == TYPE_PLAYER) {
             if (tp_wiz_name && (!Mage(player)
-                                && (!POWERS(player) & POW_PLAYER_CREATE))) {
+                                && !(POWERS(player) & POW_PLAYER_CREATE))) {
                 anotify_nolisten2(player,
                                   CINFO
                                   "Only wizards can change player names.");
