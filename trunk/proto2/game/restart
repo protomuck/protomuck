@@ -1,5 +1,6 @@
 #!/bin/bash
 
+ulimit -c unlimited
 . ./muck.config
 cp $MUCKOUT $MUCKOUT.bak
 gzip -f $MUCKOUT.bak

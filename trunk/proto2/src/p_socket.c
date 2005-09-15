@@ -34,6 +34,7 @@
 # include <sys/errno.h>
 # include <sys/errno.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # include <netdb.h>
 # include <unistd.h>
 #endif
@@ -1264,5 +1265,225 @@ prim_set_sockopt(PRIM_PROTOTYPE)
     CLEAR(oper2);
     PushInt(result);
 }
+
+#ifdef UDP_SOCKETS
+void muf_udp_clean_byport(int portnum)
+{
+ int i, j;
+ i=0;
+ while (i<=63) 
+  if (udp_sockets[i].portnum == portnum) {
+   if (tp_log_sockets) log2filetime("logs/sockets", "UDPCLOSE: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
+   close(udp_sockets[i].socket);
+   udp_count--;
+   j=i; while (j<=63) {
+    udp_sockets[j] = udp_sockets[j+1];
+    j++;
+   } 
+  } 
+ else i++;
+}
+
+void udp_socket_clean(struct frame *fr)
+{
+ int i, j;
+ i=0;
+ while (i<=63) 
+  if (udp_sockets[i].fr == fr) {
+   if (tp_log_sockets) log2filetime("logs/sockets", "UDP.socket_clean: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
+   udp_count--;
+   close(udp_sockets[i].socket);
+   j=i; 
+   while (j<=63) {
+    udp_sockets[j] = udp_sockets[j+1];
+    j++;
+   } 
+  } 
+ else i++;
+}
+
+
+int muf_udp_portinuse(int portnum)
+{
+ int i;
+ for(i=0; i<=63; ++i) 
+  if (udp_sockets[i].portnum == portnum) return 1;
+ return 0;
+}
+
+void
+prim_udpopen(PRIM_PROTOTYPE)
+{
+ struct sockaddr_in sa;
+ unsigned int tmp; 
+
+ CHECKOP(1);
+ oper1 = POP(); /* What port to listen for UDP events on? */
+
+ /* Some standard checks */
+ if (mlev < LARCH) 
+  abort_interp("Socket prims are W3.");
+ if (oper1->type != PROG_INTEGER)
+  abort_interp("Integer expected (1)");
+ if ((oper1->data.number < 1) || (oper1->data.number > 65535))
+  abort_interp("Port number must be between 1 and 65535.");
+
+ /* leave with FALSE if port in use */
+ if (muf_udp_portinuse(oper1->data.number)) {
+  CLEAR(oper1);
+  result=0; PushInt(result);
+ } else {
+
+ /* Ready to open */
+ tmp = socket(AF_INET, SOCK_DGRAM, 0);
+ make_nonblocking(tmp);
+ sa.sin_family = AF_INET;
+ sa.sin_port = htons(oper1->data.number);
+ sa.sin_addr.s_addr = htonl(bind_to);
+ if (bind(tmp, (struct sockaddr *)&sa, sizeof(sa)) == -1) {
+  /* The only real possible error here is 'port in use', so return zero if there was an error */
+  CLEAR(oper1);
+  result=0; PushInt(result); 
+ }
+ 
+ /* add it to the recvto mainloop */
+ check_maxd(tmp);
+ udp_sockets[udp_count].socket = tmp;
+ udp_sockets[udp_count].fr = fr;
+ udp_sockets[udp_count].portnum = oper1->data.number;
+ if (tp_log_sockets) log2filetime("logs/sockets", "UDPOPEN: entry %d, port %d, descr %d\n", udp_count, udp_sockets[udp_count].portnum, udp_sockets[udp_count].socket);
+ udp_count++;
+ 
+ CLEAR(oper1);
+ result=1; PushInt(result);
+ }
+}
+
+void
+prim_udpclose(PRIM_PROTOTYPE)
+{
+
+ CHECKOP(1);
+ oper1 = POP(); /* What port to unlisten for UDP events on? */
+
+ /* Some standard checks */
+ if (mlev < LARCH) 
+  abort_interp("Socket prims are W3.");
+ if (oper1->type != PROG_INTEGER)
+  abort_interp("Integer expected (1)");
+ if ((oper1->data.number < 1) || (oper1->data.number > 65535))
+  abort_interp("Port number must be between 1 and 65535.");
+
+ /* leave with FALSE if port not in use */
+ if (!muf_udp_portinuse(oper1->data.number)) {
+  CLEAR(oper1);
+  result=0; PushInt(result);
+ } else {
+
+ /* Ready to close */
+ muf_udp_clean_byport(oper1->data.number);
+ 
+ CLEAR(oper1);
+ result=1; PushInt(result);
+ }
+}
+
+void
+prim_udpsend(PRIM_PROTOTYPE)
+{
+
+ struct hostent *myhost;
+ struct sockaddr_in sa;
+ unsigned int tmp; 
+ 
+ CHECKOP(3);
+ oper3 = POP(); /* port number */
+ oper2 = POP(); /* IP address */
+ oper1 = POP(); /* UDP data packet */
+ 
+ /* A bunch of sanity checks */
+ if (mlev < LARCH)
+    abort_interp("Socket prims are W3");
+ if (oper3->type != PROG_INTEGER)
+    abort_interp("Integer argument expected.");
+ if ((oper3->data.number < 1) || (oper3->data.number > 65535))
+    abort_interp("Invalid port number.");
+ if (oper2->type != PROG_STRING)
+    abort_interp("String argument expected. (1)");
+ if (!oper2->data.string)
+    abort_interp("Host cannot be an empty string.");
+ if (oper1->type != PROG_STRING)
+    abort_interp("UDP data to be sent must be a string. (3)");
+
+ /* make some sense of the hostname, or return FALSE */
+ myhost = gethostbyname(oper2->data.string->data);
+ if (!myhost) {
+    CLEAR(oper3);
+    CLEAR(oper2);
+    CLEAR(oper1);
+    result=0; PushInt(result);
+    return;
+ }
+ /* Make the socket */
+ tmp = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+ sa.sin_family = AF_INET;
+ sa.sin_port = htons(oper3->data.number);
+ sa.sin_addr.s_addr = *myhost->h_addr;
+ bcopy((char *) myhost->h_addr, (char *) &sa.sin_addr, myhost->h_length);
+ 
+ /* ship it out, shut it down. */
+ sendto(tmp, oper1->data.string->data, oper1->data.string->length, 0, (struct sockaddr *)&sa, sizeof(sa)); 
+ if (tp_log_sockets) log2filetime("logs/sockets", "UDPSEND: host %s, port %d, data '%s'\n", myhost->h_name, htons(sa.sin_port), oper1->data.string->data);
+ close(tmp);
+ 
+ /* Yay! Return TRUE */    
+ CLEAR(oper3);
+ CLEAR(oper2);
+ CLEAR(oper1);
+ result = 1; PushInt(result); 
+
+};
+#endif // UDP sockets //
+
+void
+prim_dns(PRIM_PROTOTYPE)
+{
+
+ struct hostent *myhost;
+ char bufip[16], bufname[256];
+ struct in_addr sa;
+  
+ CHECKOP(1);
+ oper1 = POP(); /* hostname */
+ 
+ /* A bunch of sanity checks */
+ if (mlev < LARCH)
+    abort_interp("Socket prims are W3");
+ if (oper1->type != PROG_STRING)
+    abort_interp("String argument expected. (1)");
+ if (!oper1->data.string)
+    abort_interp("Host cannot be an empty string.");
+ memset(bufip,0,16);
+ memset(bufname,0,256);
+ memset(buf,0,16);
+
+ /* make some sense of the hostname, or return FALSE */
+ myhost = gethostbyname(oper1->data.string->data);
+ if (!myhost) {
+    CLEAR(oper1);
+    bufip[0] = '\0';
+    bufname[0] = '\0';
+    PushString(bufname);
+    PushString(bufip);
+    return;
+ } else {
+    bcopy((char *)myhost->h_name,bufname,strlen(myhost->h_name));
+    bcopy((char *)myhost->h_addr,(char *)&sa,myhost->h_length);
+    bcopy(inet_ntoa(sa),bufip,16);
+    CLEAR(oper1);
+    PushString(bufname); 
+    PushString(bufip); 
+ }
+};
 
 #endif /* MUF_SOCKETS */
