@@ -860,8 +860,12 @@ watchpid_process(struct frame *fr)
     }
 }
 
+
 #ifdef MUF_SOCKETS
 extern void muf_socket_clean(struct frame *fr); /* in p_socket.c */
+#ifdef UDP_SOCKETS
+extern void udp_socket_clean(struct frame *fr);
+#endif
 #endif /* MUF_SOCKETS */
 
 /* clean up the stack. */
@@ -892,6 +896,9 @@ prog_clean(struct frame *fr)
     }
 #ifdef MUF_SOCKETS
     muf_socket_clean(fr);
+#ifdef UDP_SOCKETS
+    udp_socket_clean(fr);
+#endif
 #endif /* MUF_SOCKETS */
 
     for (ptr = free_frames_list; ptr; ptr = ptr->next) {

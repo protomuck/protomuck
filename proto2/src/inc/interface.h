@@ -189,6 +189,8 @@ struct descriptor_data {
 
 #define check_maxd(x) { if (x >= maxd) maxd = x + 1; }
 
+
+
 extern int maxd;
 extern char restart_message[BUFFER_LEN];
 extern char shutdown_message[BUFFER_LEN];
@@ -319,6 +321,17 @@ extern SSL_CTX *ssl_ctx_client;
 
 /* binding support */
 extern int bind_to;
+
+#ifdef UDP_SOCKETS
+struct udp_frame {
+ struct frame *fr;
+ unsigned int portnum;
+ unsigned int socket;
+};
+
+extern struct udp_frame udp_sockets[65];
+extern int udp_count;
+#endif
 
 /* Ansi Colors */
 #define ANSINORMAL      "\033[0m"

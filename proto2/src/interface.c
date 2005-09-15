@@ -14,6 +14,7 @@
 # include <sys/wait.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>
 # include <netdb.h>
 #endif
 
@@ -97,6 +98,11 @@ static int ndescriptors = 0;
 static int numsocks = 0;
 
 int maxd = 0;                   /* Moved from shovechars since needed in p_socket.c */
+
+#ifdef UDP_SOCKETS
+struct udp_frame udp_sockets[65];
+int udp_count;
+#endif
 
 void parse_connect(const char *msg, char *command, char *user, char *pass);
 void check_connect(struct descriptor_data *d, const char *msg);
@@ -578,6 +584,13 @@ main(int argc, char **argv)
     mcp_initialize();
     gui_initialize();
 #endif
+
+    /* initialize udp sockets */
+#ifdef UDP_SOCKETS
+    udp_count = 0;
+    memset(udp_sockets,0,sizeof(udp_sockets));
+#endif
+
 
     sel_prof_start_time = current_systime; /* Set useful starting time */
     sel_prof_idle_sec = 0;
@@ -1588,7 +1601,9 @@ shovechars(void)
     int avail_descriptors;
     struct timeval sel_in, sel_out;
     int openfiles_max;
-    int i;
+    int e, i, tmp;
+    char buf[2048], buf2[256];
+    struct sockaddr_in tmpaddr;
 
 #ifdef USE_SSL
     int ssl_status_ok = 1;
@@ -1668,6 +1683,7 @@ shovechars(void)
 
         FD_ZERO(&output_set);
         FD_ZERO(&input_set);
+
 
         for (d = descriptor_list; d; d = dnext) {
             dnext = d->next;
@@ -1772,6 +1788,13 @@ shovechars(void)
         }
 #endif
 
+#ifdef UDP_SOCKETS
+	/* Add UDP sockets to the input set */
+	if (udp_count) for(i=0; i<udp_count; i++) FD_SET(udp_sockets[i].socket, &input_set);
+#endif
+
+
+
         tmptq = next_muckevent_time();
         if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
             timeout.tv_sec = tmptq + (tp_pause_min / 1000);
@@ -1867,6 +1890,38 @@ shovechars(void)
                     muf_socket_sendevent(curr);
                 }
             }
+#endif
+
+
+#ifdef UDP_SOCKETS
+        /* Alynna:
+	   Process all packets on UDP ports, and make events from anything
+	   that actually came in.
+	 */
+	/* And which ones have input? */
+	for (i=0; i<udp_count; i++) if (FD_ISSET(udp_sockets[i].socket, &input_set)) {
+	    // Get the data waiting
+	    tmp = sizeof(tmpaddr);
+	    memset(buf,0,sizeof(buf));
+	    e = recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0, 
+	        (struct sockaddr *)&tmpaddr, &tmp);
+	    // And dispatch the UDP event
+	    struct inst tmpi;
+	    stk_array *nw = new_array_dictionary();
+	    strncpy(buf2, inet_ntoa(tmpaddr.sin_addr), 16);
+	    if (tp_log_sockets) log2filetime("logs/sockets",
+	    "UDP.event: pid %d, from %s, port %d, data '%s'\n'",
+	    udp_sockets[i].fr->pid, buf2, udp_sockets[i].portnum, buf);
+	    array_set_strkey_intval(&nw, "pid", udp_sockets[i].fr->pid);
+	    array_set_strkey_strval(&nw, "from", buf2);
+	    array_set_strkey_intval(&nw, "port", udp_sockets[i].portnum);
+	    array_set_strkey_strval(&nw, "data", buf);
+	    tmpi.type = PROG_ARRAY;
+	    tmpi.data.array = nw;
+	    sprintf(buf2, "UDP.%d", udp_sockets[i].portnum);
+	    muf_event_add(udp_sockets[i].fr, buf2, &tmpi, 0);
+	    CLEAR(&tmpi);    
+	}
 #endif
 
             /* This is the loop that handles input */

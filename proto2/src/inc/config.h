@@ -155,6 +155,7 @@
 
 #define MUF_SOCKETS
 #define SSL_SOCKETS
+#define UDP_SOCKETS
 
 /* Define MUF_EDIT_PRIMS to compile in a set of prims that have
  * the ability to edit MUF code or the MUF macros. This can be

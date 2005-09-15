@@ -10141,3 +10141,100 @@ Returns the number of interrupts the program has serviced without returning
  itself to normal execution.  The maximum is 32 before the program errors out.
 
 See: INTERRUPTS, ONEVENT
+~~~
+UDPOPEN
+
+udpopen ( i1 -- i2 )
+------------------
+Level: W3 Archwizard
+i1 = Port to listen on
+i2 = 1 if successful, 0 if the port is in use.
+
+Opens a UDP listening port.  Your MUF program will receive events called 
+UDP.<port> whenever something is received in the port.
+
+See: UDP
+~~~
+UDPCLOSE
+
+udpclose ( i1 -- i2 )
+------------------
+Level: W3 Archwizard
+i1 = Port to stop listening on
+i2 = 1 if successful, 0 if the port was not open.
+
+Closes a UDP listening port.  Events on the port will stop coming.
+
+See: UDP
+~~~
+UDPSEND
+
+udpsend ( s1 s2 i1 -- i2 )
+------------------
+Level: W3 Archwizard
+s1 = UDP data to send
+s2 = Hostname or IP to send to
+i1 = Port to send to
+i2 = 1 if successful, 0 if the hostname couldnt be resolved.
+
+Attempts to send a UDP packet to a remote host, on the port specified.
+The packet size is limited to 1500 characters.  There is no way to know
+if the remote host gets the data, since it is a datagram.  If the host
+cannot be resolved, 0 is returned.  If sending is successful, 1 is returned.
+
+See: UDP
+~~~
+UDP|UDP SOCKETS|DATAGRAM|DATAGRAMS|UDP EVENT|UDP EVENTS
+
+UDP support in Proto
+--------------------
+As of Proto 2.0b7.32, UDP support has been introduced into ProtoMUCK.  This
+allows you to send and receive datagrams to remote hosts.  Receiving datagrams
+is done entirely through events, and can be received without making your 
+MUF program a daemon.
+
+A UDP event comes in as "UDP.<portnumber>" with an dictionary as its data.
+The dictionary contains the following data:
+
+PID             The PID of the program receiving it
+PORT            The port number it came in from
+FROM            The IP of the sender
+DATA            A string containing the UDP payload
+
+The following prims are related to using the UDP support:
+
+UDPOPEN ( i:port -- i ) 
+ Start listening on the given port
+
+UDPCLOSE ( i:port -- i )
+ Stop listening on the given port
+
+UDPSEND ( s:payload s:hostname i:port -- i ) 
+ Send a UDP packet to a remote port
+ 
+And a quick example of its use.  This will listen for packets on port 8472 and
+echo them to you with the IP that they came from:
+
+: main
+background 8472 udpopen
+begin 
+ { "udp.*" }array event_waitfor pop var! data
+ me @ { data @ "from" [] ": " data @ "data" [] }cat ansi_notify
+repeat
+;
+
+And to send data to this:
+: main "127.0.0.1" 8472 udpsend ;
+~~~
+DNS
+
+dns ( s1 -- s2 s3 )
+-------------------
+Level: W3 Archwizard
+s1 = Name of host to look up
+s2 = Canonical name of host (its reverse DNS)
+s3 = IP of the host given
+
+Looks up the IP of a host by its name.  It returns the real name of the host
+and the IP of the host on the stack.  If the host cannot be found, it returns
+a pair of null strings.
