@@ -588,7 +588,7 @@ main(int argc, char **argv)
     /* initialize udp sockets */
 #ifdef UDP_SOCKETS
     udp_count = 0;
-    memset(udp_sockets,0,sizeof(udp_sockets));
+    memset(udp_sockets, 0, sizeof(udp_sockets));
 #endif
 
 
@@ -1789,8 +1789,10 @@ shovechars(void)
 #endif
 
 #ifdef UDP_SOCKETS
-	/* Add UDP sockets to the input set */
-	if (udp_count) for(i=0; i<udp_count; i++) FD_SET(udp_sockets[i].socket, &input_set);
+        /* Add UDP sockets to the input set */
+        if (udp_count)
+            for (i = 0; i < udp_count; i++)
+                FD_SET(udp_sockets[i].socket, &input_set);
 #endif
 
 
@@ -1894,34 +1896,40 @@ shovechars(void)
 
 
 #ifdef UDP_SOCKETS
-        /* Alynna:
-	   Process all packets on UDP ports, and make events from anything
-	   that actually came in.
-	 */
-	/* And which ones have input? */
-	for (i=0; i<udp_count; i++) if (FD_ISSET(udp_sockets[i].socket, &input_set)) {
-	    // Get the data waiting
-	    tmp = sizeof(tmpaddr);
-	    memset(buf,0,sizeof(buf));
-	    e = recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0, 
-	        (struct sockaddr *)&tmpaddr, &tmp);
-	    // And dispatch the UDP event
-	    struct inst tmpi;
-	    stk_array *nw = new_array_dictionary();
-	    strncpy(buf2, inet_ntoa(tmpaddr.sin_addr), 16);
-	    if (tp_log_sockets) log2filetime("logs/sockets",
-	    "UDP.event: pid %d, from %s, port %d\n'",
-	    udp_sockets[i].fr->pid, buf2, udp_sockets[i].portnum);
-	    array_set_strkey_intval(&nw, "pid", udp_sockets[i].fr->pid);
-	    array_set_strkey_strval(&nw, "from", buf2);
-	    array_set_strkey_intval(&nw, "port", udp_sockets[i].portnum);
-	    array_set_strkey_strval(&nw, "data", buf);
-	    tmpi.type = PROG_ARRAY;
-	    tmpi.data.array = nw;
-	    sprintf(buf2, "UDP.%d", udp_sockets[i].portnum);
-	    muf_event_add(udp_sockets[i].fr, buf2, &tmpi, 0);
-	    CLEAR(&tmpi);    
-	}
+            /* Alynna:
+               Process all packets on UDP ports, and make events from anything
+               that actually came in.
+             */
+            /* And which ones have input? */
+            for (i = 0; i < udp_count; i++) {
+                if (FD_ISSET(udp_sockets[i].socket, &input_set)) {
+                    struct inst tmpi;
+                    stk_array *nw = new_array_dictionary();
+
+                    // Get the data waiting
+                    tmp = sizeof(tmpaddr);
+                    memset(buf, 0, sizeof(buf));
+                    e = recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0,
+                                 (struct sockaddr *) &tmpaddr, &tmp);
+                    // And dispatch the UDP event
+                    strncpy(buf2, inet_ntoa(tmpaddr.sin_addr), 16);
+                    if (tp_log_sockets)
+                        log2filetime("logs/sockets",
+                                     "UDP.event: pid %d, from %s, port %d\n'",
+                                     udp_sockets[i].fr->pid, buf2,
+                                     udp_sockets[i].portnum);
+                    array_set_strkey_intval(&nw, "pid", udp_sockets[i].fr->pid);
+                    array_set_strkey_strval(&nw, "from", buf2);
+                    array_set_strkey_intval(&nw, "port",
+                                            udp_sockets[i].portnum);
+                    array_set_strkey_strval(&nw, "data", buf);
+                    tmpi.type = PROG_ARRAY;
+                    tmpi.data.array = nw;
+                    sprintf(buf2, "UDP.%d", udp_sockets[i].portnum);
+                    muf_event_add(udp_sockets[i].fr, buf2, &tmpi, 0);
+                    CLEAR(&tmpi);
+                }
+            }
 #endif
 
             /* This is the loop that handles input */
@@ -3032,10 +3040,10 @@ process_input(struct descriptor_data *d)
             if (p > d->raw_input) {
 #ifdef NEWHTTPD
                 if (d->type == CT_HTTP) { /* hinoserm */
-                    /* There's a reason why I don't do this with  *//* hinoserm */
-                    /* the pre-existing queuing stuff. If I did,  *//* hinoserm */
-                    /* the content data stuff wouldn't work. This *//* hinoserm */
-                    /* might change if it becomes a problem.      *//* hinoserm */
+/* There's a reason why I don't do this with  *//* hinoserm */
+/* the pre-existing queuing stuff. If I did,  *//* hinoserm */
+/* the content data stuff wouldn't work. This *//* hinoserm */
+/* might change if it becomes a problem.      *//* hinoserm */
                     http_process_input(d, d->raw_input); /* hinoserm */
                 } else
 #endif /* NEWHTTPD */
@@ -3323,14 +3331,14 @@ do_command(struct descriptor_data *d, char *command)
 #else
     strcpy(cmdbuf, command);
 #endif
-    command = cmdbuf; 
-    
+    command = cmdbuf;
+
     if (tp_use_self_on_command && d->connected)
         ts_lastuseobject(d->player, d->player);
-	
+
     if (!string_compare(command, BREAK_COMMAND)) {
         if (!d->connected || !OkObj(d->player)) {
-            return 0; /* don't bother dealing with #-1 READ programs, just QUIT */
+            return 0;           /* don't bother dealing with #-1 READ programs, just QUIT */
         } else if (Wiz(d->player) || MLevel(d->player) >= tp_min_progbreak_lev) {
             if (dequeue_prog(d->player, 2)) {
                 if (d->output_prefix) {
@@ -3726,7 +3734,7 @@ close_sockets(const char *msg)
         closesocket(d->descriptor);
         freeqs(d);                       /****/
         *d->prev = d->next;              /****/
-        if (d->next)                                                                                                                                                             /****/
+        if (d->next)                                                                                                                                                                     /****/
             d->next->prev = d->prev;     /****/
                                    /****/
 #ifdef NEWHTTPD
