@@ -1486,9 +1486,10 @@ prim_intostr(PRIM_PROTOTYPE)
 
     CHECKOP(1);
     oper1 = POP();
-    if (oper1->type == PROG_STRING)
-        abort_interp("Invalid argument.");
-    if (oper1->type == PROG_FLOAT) {
+    if (oper1->type == PROG_STRING) {
+        strcpy(buf, DoNullInd(oper1->data.string));
+        ptr = buf;
+    } else if (oper1->type == PROG_FLOAT) {
         sprintf(buf, "%.15g", oper1->data.fnumber);
         ptr = buf;
     } else {
