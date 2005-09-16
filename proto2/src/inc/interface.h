@@ -325,8 +325,8 @@ extern int bind_to;
 #ifdef UDP_SOCKETS
 struct udp_frame {
  struct frame *fr;
- unsigned int portnum;
- unsigned int socket;
+ unsigned short portnum;
+ int socket;
 };
 
 extern struct udp_frame udp_sockets[34];
