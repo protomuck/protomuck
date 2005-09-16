@@ -1601,9 +1601,8 @@ shovechars(void)
     int avail_descriptors;
     struct timeval sel_in, sel_out;
     int openfiles_max;
-    int e, i, tmp;
+    int e, i;
     char buf[2048], buf2[256];
-    struct sockaddr_in tmpaddr;
 
 #ifdef USE_SSL
     int ssl_status_ok = 1;
@@ -1905,12 +1904,14 @@ shovechars(void)
                 if (FD_ISSET(udp_sockets[i].socket, &input_set)) {
                     struct inst tmpi;
                     stk_array *nw = new_array_dictionary();
+                    struct sockaddr_in tmpaddr;
+                    socklen_t tmpsz = sizeof(tmpaddr);
+
 
                     // Get the data waiting
-                    tmp = sizeof(tmpaddr);
                     memset(buf, 0, sizeof(buf));
                     e = recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0,
-                                 (struct sockaddr *) &tmpaddr, &tmp);
+                                 (struct sockaddr *) &tmpaddr, &tmpsz);
                     // And dispatch the UDP event
                     strncpy(buf2, inet_ntoa(tmpaddr.sin_addr), 16);
                     if (tp_log_sockets)

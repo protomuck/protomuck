@@ -43,7 +43,7 @@ static int c_index, repeats;
 static int lastmatch, completematch, maxmatch;
 static unsigned char *to = NULL;
 
-static const char copyright[] = "Copyright 1995 by Dragon's Eye Productions.";
+/* static const char copyright[] = "Copyright 1995 by Dragon's Eye Productions."; */
 
 
 int
