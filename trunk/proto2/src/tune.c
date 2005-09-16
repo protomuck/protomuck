@@ -282,6 +282,7 @@ int tp_log_failed_commands = LOG_FAILED_COMMANDS;
 int tp_log_programs = LOG_PROGRAMS;
 int tp_log_guests = LOG_GUESTS;
 int tp_log_suspects = LOG_SUSPECTS;
+int tp_log_wizards = LOG_WIZARDS;
 int tp_log_files = LOG_FILES;
 int tp_log_sockets = LOG_SOCKETS;
 int tp_log_failedhelp = LOG_FAILEDHELP;
@@ -377,6 +378,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Logs", "log_programs", &tp_log_programs, WBOY, LWIZ},
     {"Logs", "log_guests", &tp_log_guests, WBOY, LWIZ},
     {"Logs", "log_suspects", &tp_log_suspects, WBOY, LWIZ},
+    {"Logs", "log_wizards", &tp_log_wizards, WBOY, LWIZ},
     {"Logs", "log_files", &tp_log_files, WBOY, LWIZ},
     {"Logs", "log_sockets", &tp_log_sockets, WBOY, LWIZ},
     {"Logs", "log_failedhelp", &tp_log_failedhelp, WBOY, LWIZ},
