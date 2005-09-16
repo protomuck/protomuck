@@ -628,3 +628,7 @@ When this is tuned on (the default), every command a player
 executes triggers an update of ones lastused timestamp.  When off
 this is disabled, and only a few other events, notably connection,
 disconnection, and the TOUCH/USE prims, will update this timestamp.
+~~~
+log_wizards
+When this tune is enabled, wizards commands W1-W5 is always sent to
+the commands log despite the value of the log_commands tune.
