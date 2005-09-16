@@ -374,6 +374,7 @@ prim_fork(PRIM_PROTOTYPE)
     tmpfr->totaltime.tv_usec = 0;
 
 
+    tmpfr->prog = program;
     tmpfr->pid = top_pid++;
     tmpfr->multitask = BACKGROUND;
     tmpfr->been_background = 1;
