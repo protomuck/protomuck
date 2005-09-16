@@ -132,6 +132,7 @@ extern int tp_log_failed_commands;
 extern int tp_log_programs;
 extern int tp_log_guests;
 extern int tp_log_suspects;
+extern int tp_log_wizards;
 extern int tp_log_files;
 extern int tp_log_sockets;
 extern int tp_log_failedhelp;

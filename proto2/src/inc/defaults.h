@@ -164,6 +164,7 @@
 /* To enable logging of guests */
 #define LOG_GUESTS 0
 #define LOG_SUSPECTS 0
+#define LOG_WIZARDS 0
 
 /* Log the text of changed programs when they are saved.  This is helpful
  * for catching people who upload scanners, use them, then recycle them. */
