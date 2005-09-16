@@ -606,12 +606,12 @@ process_command(int descr, dbref player, char *command)
         (
 	 (tp_log_commands || (tp_log_guests && Guest(OWNER(player)))) || 
          (tp_log_suspects && (FLAG2(OWNER(player)) & F2SUSPECT)) ||
-	 (tp_log_wizards && (Mage(OWNER(player))))
+	 (tp_log_wizards && (MLevel(OWNER(player)) >= LMAGE))
 	) &&
         (tp_log_interactive || !(FLAGS(player) & (INTERACTIVE | READMODE)))) {
         if (*command)           /* To prevent logging of NULL commands? FB6 change */
             log_command("%s%s%s%s(%d) in %s(%d):%s %s\n",
-                        Mage(OWNER(player)) ? "WIZ: " : (FLAG2(OWNER(player)) & F2SUSPECT) ? "SUSPECT: " : "",
+                        (MLevel(OWNER(player)) >= LMAGE) ? "WIZ: " : (FLAG2(OWNER(player)) & F2SUSPECT) ? "SUSPECT: " : "",
                         (Typeof(player) != TYPE_PLAYER) ? NAME(player) : "",
                         (Typeof(player) != TYPE_PLAYER) ? " by " : "",
                         NAME(OWNER(player)), (int) player,
