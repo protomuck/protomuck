@@ -134,8 +134,8 @@ could_doit(int descr, register dbref player, register dbref thing)
                 return 0;
 
             if (tp_secure_teleport && Typeof(dest) == TYPE_ROOM) {
-                if ((dest != HOME) && (!controls(owner, source))
-                    && ((FLAGS(source) & JUMP_OK) == 0)) {
+                if ((dest != HOME) && (!controls(owner, dest))
+                    && ((FLAGS(dest) & JUMP_OK) == 0)) {
                     return 0;
                 }
             }
@@ -199,8 +199,8 @@ could_doit2(int descr, register dbref player, register dbref thing, char *prop,
                 return 0;
 
             if (tp_secure_teleport && Typeof(dest) == TYPE_ROOM) {
-                if ((dest != HOME) && (!controls(owner, source))
-                    && ((FLAGS(source) & JUMP_OK) == 0)) {
+                if ((dest != HOME) && (!controls(owner, dest))
+                    && ((FLAGS(dest) & JUMP_OK) == 0)) {
                     return 0;
                 }
             }
