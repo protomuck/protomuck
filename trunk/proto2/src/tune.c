@@ -1139,6 +1139,10 @@ tune_setparm(const dbref player, const char *parmname, const char *val)
                 return 2;
             if (obj != -1 && tref->typ != NOTYPE && Typeof(obj) != tref->typ)
                 return 3;
+	    if ((!string_compare(parmname, "player_start") ||
+	         !string_compare(parmname, "default_parent")) &&
+		 obj == -1)
+		obj = 0;
             *tref->ref = obj;
             return 0;
         }
