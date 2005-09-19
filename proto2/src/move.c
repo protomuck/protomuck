@@ -47,6 +47,7 @@ moveto(dbref what, dbref where)
                     where = OWNER(what);
                     break;
             }
+	    break;
         case NIL:
             switch (Typeof(what)) {
                 case TYPE_PLAYER:
@@ -62,6 +63,7 @@ moveto(dbref what, dbref where)
                     where = OWNER(what);
                     break;
             }
+	    break;
     }
 
     /* now put what in where */
