@@ -3136,7 +3136,11 @@ process_input(struct descriptor_data *d)
                 && (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = ' ';
             } else if ((*q == 8 || *q == 127)
-                       && (d->type == CT_MUCK || d->type == CT_PUEBLO || d->type == CT_SSL)) {
+                       && (d->type == CT_MUCK || d->type == CT_PUEBLO
+#ifdef USE_SSL
+                                              || d->type == CT_SSL
+#endif
+            )) {
                 /* if BS or DEL, delete last character */
                 if (p > d->raw_input)
                     p--;
