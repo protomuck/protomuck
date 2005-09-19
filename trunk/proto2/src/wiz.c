@@ -182,6 +182,8 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
             anotify_nolisten2(player, CINFO "I don't know where you mean!");
             break;
         case HOME:
+	case NIL:
+	    if (destination == HOME) {
             switch (Typeof(victim)) {
                 case TYPE_PLAYER:
                     destination = DBFETCH(victim)->sp.player.home;
@@ -208,7 +210,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                                                     * switch anyway */
                     break;
             }
-        case NIL:
+	    } else {
             switch (Typeof(victim)) {
                 case TYPE_PLAYER:
                     destination = tp_player_start;
@@ -222,8 +224,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                 case TYPE_PROGRAM:
                     destination = OWNER(victim);
                     break;
-            }
-
+            } }
         default:
             switch (Typeof(victim)) {
                 case TYPE_PLAYER:
