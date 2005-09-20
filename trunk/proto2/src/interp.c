@@ -1283,7 +1283,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
             arg[atop++].data.string = alloc_prog_string(a->interrupt->id);
             //log_status("muf_interrupt_interp():  %p\n", fr->ainttop); /* For debugging. */
         }
-
+	if (fr->level >= 64)
+	    abort_loop("Maximum interp depth exceeded. (64)", NULL, NULL);
         if (fr->preemptlimit)
             if (fr->instcnt > fr->preemptlimit)
                 abort_loop("Program specific instruction limit exceeded.", NULL,

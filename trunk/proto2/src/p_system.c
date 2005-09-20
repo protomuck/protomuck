@@ -136,6 +136,7 @@ prim_force(PRIM_PROTOTYPE)
     nargs -= 2;
 
     force_level++;
+    fr->level++;
     interp_set_depth(fr);
     process_command(dbref_first_descr(ref), ref, buf);
     fr->level--;

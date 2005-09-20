@@ -923,12 +923,13 @@ prim_interp(PRIM_PROTOTYPE)
         abort_interp("Need string arguement. (3)");
     if (!permissions(mlev, ProgUID, oper2->data.objref))
         abort_interp(tp_noperm_mesg);
-    if (fr->level > 8)
-        abort_interp("Interp call loops not allowed.");
+    if (fr->level > 64)
+        abort_interp("Maximum interp loop recursion exceeded. (64)");
     CHECKREMOTE(oper2->data.objref);
 
     strcpy(buf, match_args);
     strcpy(match_args, oper3->data.string ? oper3->data.string->data : "");
+    fr->level++;
     interp_set_depth(fr);
     tmpfr = interp(fr->descr, player, DBFETCH(player)->location,
                    oper1->data.objref, oper2->data.objref, PREEMPT,
@@ -936,6 +937,8 @@ prim_interp(PRIM_PROTOTYPE)
     if (tmpfr) {
         rv = interp_loop(player, oper1->data.objref, tmpfr, 1);
     }
+    fr->level--;
+    interp_set_depth(fr);
     strcpy(match_args, buf);
 
     CLEAR(oper3);
