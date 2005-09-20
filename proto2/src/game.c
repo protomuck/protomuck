@@ -595,6 +595,11 @@ process_command(int descr, dbref player, char *command)
         abort();
     }
 
+    if (force_level >= 32) {
+        anotify_fmt(player, CFAIL "I'm sorry, %s, I'm afraid I cannot do that.  Maximum force recursion depth exceeded.", NAME(player));
+	return;
+    }
+    
     /* robustify player */
     if (player < 0 || player >= db_top ||
         (Typeof(player) != TYPE_PLAYER && Typeof(player) != TYPE_THING)) {
