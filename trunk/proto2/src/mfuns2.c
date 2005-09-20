@@ -55,8 +55,10 @@ mfn_pmatch(MFUNARGS)
     dbref ref;
     int result;
 
-    if (!string_compare(argv[0], "me")) {
-        ref = player;
+    if (!*argv[0]) {
+	ref = -1; 
+    } else if (!string_compare(argv[0], "me")) {
+        ref = player;	
     } else {
         ref = lookup_player(argv[0]);
         if (ref == NOTHING) {
