@@ -5617,8 +5617,6 @@ init_ignore(dbref tgt)
     register short i = 0;
 
     if ((rawstr = get_property_class(tgt, "/@/ignore"))) {
-        fprintf(stderr, "1: %s\n", rawstr);
-
         for (; *rawstr && isspace(*rawstr); rawstr++) ;
 
         /* extract dbrefs from the prop */
