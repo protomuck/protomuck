@@ -664,10 +664,10 @@ next_prop_name(dbref player, char *outbuf, char *name)
         }
         strcat(strcpy(outbuf, name), PropName(p));
     } else {
-        if (!(get_property(player,name))) {
-	   *outbuf = '\0';
-	   return NULL;
-	}
+//        if (!(get_property(player,name))) {
+//	   *outbuf = '\0';
+//	   return NULL;
+//	}
         l = DBFETCH(player)->properties;
         p = propdir_next_elem(l, buf);
         if (!p) {
