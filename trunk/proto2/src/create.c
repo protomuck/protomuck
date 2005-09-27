@@ -89,11 +89,15 @@ exit_loop_check(register dbref source, register dbref dest)
         if ((DBFETCH(dest)->sp.exit.dest)[i] == source) {
             return 1;           /* Found a loop! */
         }
-        if (Typeof((DBFETCH(dest)->sp.exit.dest)[i]) == TYPE_EXIT) {
-            if (exit_loop_check(source, (DBFETCH(dest)->sp.exit.dest)[i])) {
-                return 1;       /* Found one recursively */
-            }
-        }
+	if (OkObj((DBFETCH(dest)->sp.exit.dest)[i])) {
+    	    if (Typeof((DBFETCH(dest)->sp.exit.dest)[i]) == TYPE_EXIT) {
+        	if (exit_loop_check(source, (DBFETCH(dest)->sp.exit.dest)[i])) {
+            	    return 1;       /* Found one recursively */
+        	}
+    	    }
+	} else {
+	    return 0;
+	}
     }
 
     return 0;                   /* No loops found */
