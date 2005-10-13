@@ -2135,7 +2135,9 @@ exit_matches_name(dbref exit, const char *name)
 {
     char buf[BUFFER_LEN];
     register char *ptr, *ptr2;
-
+    
+    if (!OkObj(exit)) return 0;
+    
     strcpy(buf, NAME(exit));
     for (ptr2 = ptr = buf; *ptr; ptr = ptr2) {
         while (*ptr2 && *ptr2 != ';')
