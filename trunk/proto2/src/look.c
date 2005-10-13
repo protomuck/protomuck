@@ -2137,6 +2137,7 @@ exit_matches_name(dbref exit, const char *name)
     register char *ptr, *ptr2;
     
     if (!OkObj(exit)) return 0;
+    if (!DBFETCH(exit)->sp.exit.ndest) return 0;
     if (!OkObj((DBFETCH(exit)->sp.exit.dest)[0])) return 0;
     
     strcpy(buf, NAME(exit));
