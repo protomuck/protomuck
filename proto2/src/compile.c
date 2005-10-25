@@ -3150,12 +3150,14 @@ process_special(COMPSTATE *cstat, const char *token)
         return nw;
     } else if (!string_compare(token, "WIZCALL")
                || !string_compare(token, "PUBLIC")
+               || !string_compare(token, "SELFCALL")
                || !string_compare(token, "ARCHCALL")
                || !string_compare(token, "MAGECALL")
                || !string_compare(token, "BOYCALL")) {
         struct PROC_LIST *p;
         struct publics *pub;
         int wizflag = 0;
+	int selfflag = 0;
         int wizlevel = LMAGE;
 
         if (!string_compare(token, "MAGECALL")) {
@@ -3170,10 +3172,12 @@ process_special(COMPSTATE *cstat, const char *token)
         } else if (!string_compare(token, "BOYCALL")) {
             wizflag = 1;
             wizlevel = LBOY;
-        }
+        } else if (!string_compare(token, "SELFCALL")) {
+	    selfflag = 1;
+	}
         if (cstat->curr_proc)
             abort_compile(cstat,
-                          "PUBLIC  or WIZCALL declaration within procedure.");
+                          "PUBLIC or WIZCALL declaration within procedure.");
         tok = next_token(cstat);
         if ((!tok) || !call(cstat, tok))
             abort_compile(cstat,
@@ -3193,6 +3197,7 @@ process_special(COMPSTATE *cstat, const char *token)
                 free((void *) tok);
             cstat->currpubs->addr.no = get_address(cstat, p->code, 0);
             cstat->currpubs->mlev = wizflag ? wizlevel : 1;
+            cstat->currpubs->self = selfflag;
             return 0;
         }
         for (pub = cstat->currpubs; pub;) {
@@ -3212,6 +3217,7 @@ process_special(COMPSTATE *cstat, const char *token)
                         free((void *) tok);
                     pub->addr.no = get_address(cstat, p->code, 0);
                     pub->mlev = wizflag ? wizlevel : 1;
+		    pub->self = selfflag;
                     pub = NULL;
                 }
             }
@@ -3848,6 +3854,7 @@ special(const char *token)
                        && string_compare(token, "WIZCALL")
                        && string_compare(token, "ARCHCALL")
                        && string_compare(token, "BOYCALL")
+                       && string_compare(token, "SELFCALL")
                        && string_compare(token, "LVAR")
                        && string_compare(token, "VAR!")
                        && string_compare(token, "VAR")));
