@@ -752,8 +752,9 @@ prim_cancallp(PRIM_PROTOTYPE)
                 break;
             pbs = pbs->next;
         }
-        if (pbs && mlev >= pbs->mlev)
-            result = 1;
+        if (pbs) 
+	    if ((!pbs->self && (mlev >= pbs->mlev)) || (pbs->self && (oper1->data.objref == program)))
+        	result = 1;
     }
     CHECKOFLOW(1);
     CLEAR(oper1);
