@@ -804,6 +804,7 @@ struct frame {
 struct publics {
     char   *subname;
     int mlev;
+    int self;
     union {
 	struct inst *ptr;
 	int     no;

@@ -1769,6 +1769,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                 abort_loop
                                     ("Insufficient permissions to call WIZCALL-type function. (2)",
                                      temp2, temp2);
+			    if (pbs->self && (temp1->data.objref != program))
+				abort_loop
+				    ("SELFCALL Violation: Function called from outside containing program. (2)",
+				     temp2, temp2);
                             pc = pbs->addr.ptr;
                         }
                         if (temp1->data.objref != program) {
