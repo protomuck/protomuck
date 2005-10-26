@@ -3151,6 +3151,7 @@ process_special(COMPSTATE *cstat, const char *token)
     } else if (!string_compare(token, "WIZCALL")
                || !string_compare(token, "PUBLIC")
                || !string_compare(token, "SELFCALL")
+               || !string_compare(token, "SAFECALL")
                || !string_compare(token, "ARCHCALL")
                || !string_compare(token, "MAGECALL")
                || !string_compare(token, "BOYCALL")) {
@@ -3172,7 +3173,7 @@ process_special(COMPSTATE *cstat, const char *token)
         } else if (!string_compare(token, "BOYCALL")) {
             wizflag = 1;
             wizlevel = LBOY;
-        } else if (!string_compare(token, "SELFCALL")) {
+        } else if (!string_compare(token, "SELFCALL") || !string_compare(token, "SAFECALL")) {
 	    selfflag = 1;
 	}
         if (cstat->curr_proc)
@@ -3855,6 +3856,7 @@ special(const char *token)
                        && string_compare(token, "ARCHCALL")
                        && string_compare(token, "BOYCALL")
                        && string_compare(token, "SELFCALL")
+                       && string_compare(token, "SAFECALL")
                        && string_compare(token, "LVAR")
                        && string_compare(token, "VAR!")
                        && string_compare(token, "VAR")));
