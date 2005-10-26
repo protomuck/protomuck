@@ -63,7 +63,7 @@ Control Structures:
   COMPILED?    TREAD      FOREACH     FOR         PROPQUEUE   ENVPROPQUEUE         
   INSTANCES    MAGECALL   WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
   GETPIDS      TRY        CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
-  PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE              DEBUGGER_BREAK
+  PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE  SELFCALL    DEBUGGER_BREAK
 
 Property Prims:
   ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
@@ -6804,6 +6804,24 @@ funcname = The name of any function in the program.
 can only be called by programs running under the permissioned equal to the level
 of the call. An ARCHCALL function, for example, is like a PUBLIC function, except 
 it can only be called by programs running at W3 or higher in permissions.
+
+See: PUBLIC
+~~
+SELFCALL|SAFECALL
+
+selfcall <funcname>              safecall
+-------------------
+Level: M1 Apprentice
+funcname = The name of a function in the program.
+
+  Specifies that the given function should be able to be called by the program
+that it is in.   This allows you to use a function in a program via the 
+  prog "funcname" call
+convention, without having to explicitly make the function callable by outside
+programs using PUBLIC or one of the WIZCALL related functions.  This permits
+you to call a function by string at runtime.
+
+SAFECALL is equivalient to SELFCALL, and means essentially the same thing.
 
 See: PUBLIC
 ~~~
