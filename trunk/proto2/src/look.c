@@ -1096,7 +1096,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
                         "%d instructions", DBFETCH(thing)->sp.program.siz);
                 anotify_nolisten(player, buf, 1);
                 sprintf(buf, SYSVIOLET "Cumulative runtime: " SYSPURPLE
-                        "%ld.%06ld seconds", tv.tv_sec, tv.tv_usec);
+                        "%ld.%06ld seconds", tv.tv_sec, (long int)tv.tv_usec);
                 anotify_nolisten(player, buf, 1);
             } else {
                 anotify_nolisten(player, SYSVIOLET "Program not compiled.", 1);
