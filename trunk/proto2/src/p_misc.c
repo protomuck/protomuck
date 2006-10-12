@@ -1066,6 +1066,27 @@ prim_itoh(PRIM_PROTOTYPE)
 }
 
 void
+prim_MD5hash(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();;
+    char output[16];
+    char hexout[32];
+    unsigned char i;
+    int j;
+
+    MD5hash((char *)output, oper1->data.string->data, oper1->data.string->length);
+        
+    for (j=0; j<=15; ++j) {
+	i = (unsigned char)output[j];
+        sprintf((char *)hexout+(j*2), "%.2X", (unsigned char)i);
+    }
+
+    CLEAR(oper1);
+    PushString(hexout); 
+}
+
+void
 prim_onevent(PRIM_PROTOTYPE)
 {
     struct muf_interrupt *e;
