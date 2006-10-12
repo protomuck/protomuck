@@ -36,3 +36,4 @@ char	*rindex();
 
 extern const char *strencrypt(const char *data, const char *key);
 extern const char *strdecrypt(const char *data, const char *key);
+extern void MD5hash(void *dest, const void *orig, int len);
