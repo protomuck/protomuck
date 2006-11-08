@@ -1068,12 +1068,13 @@ prim_itoh(PRIM_PROTOTYPE)
 void
 prim_MD5hash(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    oper1 = POP();
     char output[16];
     char hexout[32];
     unsigned char i;
     int j;
+
+    CHECKOP(1);
+    oper1 = POP();
 
     MD5hash((char *)output, oper1->data.string->data, oper1->data.string->length);
         
