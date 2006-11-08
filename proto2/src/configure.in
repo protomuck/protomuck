@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl TinyMUCK fb5.x auto-config script writen by: Peter "WhiteFire" Torkelson
 dnl
-AC_REVISION($Revision: 1.13 $)dnl
+AC_REVISION($Revision: 1.14 $)dnl
 AC_INIT(game.c)
 AC_CONFIG_HEADER(inc/autoconf.h)
 echo " "
@@ -98,7 +98,7 @@ AC_SUBST(SSLTOP)
 AC_ARG_WITH(mysql,
 [  --with-mysql[=mysqltop_path]   use MySQL database support],
 [
-if test "$withval" = ""; then
+if test "$withval" = yes; then
     MYSQLTOP=
 else
     MYSQLTOP=$withval
