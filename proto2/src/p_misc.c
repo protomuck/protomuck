@@ -1069,7 +1069,7 @@ void
 prim_MD5hash(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
-    oper1 = POP();;
+    oper1 = POP();
     char output[16];
     char hexout[32];
     unsigned char i;
