@@ -4024,7 +4024,7 @@ fi;
 if test "${with_mysql+set}" = set; then
   withval="$with_mysql"
 
-if test "$withval" = ""; then
+if test "$withval" = yes; then
     MYSQLTOP=
 else
     MYSQLTOP=$withval
