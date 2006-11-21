@@ -34,7 +34,7 @@
 #endif
 
 /* max length of command argument to process_command */
-#define MAX_COMMAND_LEN 3072
+#define MAX_COMMAND_LEN 4096
 #define BUFFER_LEN ((MAX_COMMAND_LEN)*4)
 #define FILE_BUFSIZ ((BUFSIZ)*8)
 
