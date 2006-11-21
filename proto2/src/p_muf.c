@@ -264,7 +264,7 @@ prim_program_deletelines(PRIM_PROTOTYPE)
     if (FLAGS(theprog) & INTERNAL)
         abort_interp("That program is currently being edited.");
 
-    DBSTORE(theprog, sp.program.first, read_program(ref));
+    DBSTORE(theprog, sp.program.first, read_program(theprog));
 
     i = start - 1;              /* array offset for first line to delete */
     for (curr = DBFETCH(theprog)->sp.program.first; curr && i; --i)

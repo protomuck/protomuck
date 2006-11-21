@@ -1404,7 +1404,7 @@ mfn_delay(MFUNARGS)
     char *argchr, *cmdchr;
     int i = atoi(argv[0]);
 
-    if (i < 1)
+    if (i < 1 || i > 31557600) /* 10 years */
         i = 1;
 #ifdef WIZZED_DELAY
     if (!Wizperms(perms))
