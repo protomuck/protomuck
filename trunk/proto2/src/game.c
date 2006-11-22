@@ -68,12 +68,17 @@ void
 do_dump(dbref player, const char *newfile)
 {
     char buf[BUFFER_LEN];
+    char *yerf = NULL;
 
     if (Wiz(player)) {
-        if (*newfile && Man(player)) {
-            if (dumpfile)
-                free((void *) dumpfile);
-            dumpfile = alloc_string(newfile);
+        if (*newfile && Boy(player)) {
+            if (*dumpfile) {
+		yerf = (char *)dumpfile;
+		dumpfile = newfile;
+	    } else {
+            	dumpfile = alloc_string(newfile);
+		yerf = (char *)dumpfile;
+            }
             sprintf(buf, CINFO "Dumping to file %s...", dumpfile);
         } else {
             sprintf(buf, CINFO "Dumping to file %s...", dumpfile);
@@ -81,6 +86,8 @@ do_dump(dbref player, const char *newfile)
         anotify_nolisten2(player, buf);
         dump_db_now();
         anotify_nolisten2(player, CINFO "Done.");
+	if (*newfile)
+		dumpfile = (char *)yerf;
     } else {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
     }
@@ -157,6 +164,7 @@ dump_database_internal(void)
     char tmpfile[2048];
     FILE *f;
     int copies;
+    char buf[BUFFER_LEN];
 
     tune_save_parmsfile();
 
@@ -190,9 +198,11 @@ dump_database_internal(void)
                 perror(dumpfile);
 #endif
         }
-        if (rename(tmpfile, dumpfile) < 0)
+        if (rename(tmpfile, dumpfile) < 0) {
             perror(tmpfile);
-
+            sprintf(buf,SYSRED "[WARNING] Error renaming the DB from %s to %s.  The DB got saved to %s.", tmpfile, dumpfile, tmpfile);
+            ansi_wall_wizards(buf);
+	}
 #ifdef DISKBASE
 
         fclose(input_file);
@@ -215,6 +225,8 @@ dump_database_internal(void)
 
     } else {
         perror(tmpfile);
+	sprintf(buf,SYSRED "[DANGER] Error opening the db file %s for writing!  The DB did not save! :(", tmpfile);
+        ansi_wall_wizards(buf);
     }
 
     /* Write out the macros */
@@ -232,6 +244,8 @@ dump_database_internal(void)
             perror(tmpfile);
     } else {
         perror(tmpfile);
+	sprintf(buf,SYSRED "[WARN] Error opening the MUF macros file %s for writing.", tmpfile);
+        ansi_wall_wizards(buf);
     }
 
 #ifdef DISKBASE
@@ -588,6 +602,7 @@ process_command(int descr, dbref player, char *command)
     char xbuf[BUFFER_LEN];
     char ybuf[BUFFER_LEN];
     char zbuf[BUFFER_LEN];
+    /* char cbuf[BUFFER_LEN]; char *c; int csharp; */
     int isOverride = 0;
 
     if (command == 0) {
@@ -672,6 +687,14 @@ process_command(int descr, dbref player, char *command)
         }
         return;
     }
+
+    /* Alynna: fix to process truly only argc from the command line .. 
+    memset(cbuf, 0, sizeof(cbuf)); c = command;
+    for(csharp = 0; !isspace(*(c+csharp)); csharp++) {
+	cbuf[csharp] = *(c+csharp);
+    }
+    cbuf[csharp+1] = '\0';
+    */
     if (!(*command == OVERIDE_TOKEN && TMage(player))) {
         switch (can_move2(descr, player, command, 0)) {
             case 1:

@@ -71,6 +71,10 @@ choose_thing(int descr, dbref thing1, dbref thing2, struct match_data *md)
             return thing2;
         }
     }
+    /* Alynna: prefer anything else over exits */
+    if (Typeof(thing1) == TYPE_EXIT && !(Typeof(thing2) == TYPE_EXIT)) return thing2;
+    if (Typeof(thing2) == TYPE_EXIT && !(Typeof(thing1) == TYPE_EXIT)) return thing1;
+
     if (md->check_keys) {
         has1 = could_doit(descr, md->match_who, thing1);
         has2 = could_doit(descr, md->match_who, thing2);
@@ -342,7 +346,7 @@ match_exits(dbref first, struct match_data *md)
                  *p && DOWNCASE(*p) == DOWNCASE(*exitname)
                  && *exitname != EXIT_DELIMITER; p++, exitname++) ;
             /* did we get a match on this alias? */
-            if (*p == '\0' || (*p == ' ' && exitprog)) {
+            if (*p == '\0' || *p == ' ') {
                 /* make sure there's nothing afterwards */
                 while (isspace(*exitname))
                     exitname++;
