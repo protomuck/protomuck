@@ -161,11 +161,13 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
                 if (PropType(b->prop_check) == PROP_STRTYP) {
                     if (has_property_strict(descr, player, thing,
                                             PropName(b->prop_check),
-                                            PropDataUNCStr(b->prop_check), 0))
+                                            PropDataUNCStr(b->prop_check),
+                                            atoi(PropDataUNCStr(b->prop_check))))
                         return 1;
                     if (has_property(descr, player, player,
                                      PropName(b->prop_check),
-                                     PropDataUNCStr(b->prop_check), 0))
+                                     PropDataUNCStr(b->prop_check),
+                                     atoi(PropDataUNCStr(b->prop_check))))
                         return 1;
                 }
                 return 0;

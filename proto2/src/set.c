@@ -587,13 +587,6 @@ do_conlock(int descr, dbref player, const char *name, const char *keyname)
             break;
     }
 
-    if (force_level) {
-        anotify_nolisten2(player,
-                          CFAIL
-                          "You can't use @flock from an @force or {force}.");
-        return;
-    }
-
     if (!*keyname) {
         PData pdat;
 
@@ -649,6 +642,13 @@ do_flock(int descr, dbref player, const char *name, const char *keyname)
                 return;
             }
             break;
+    }
+
+    if (force_level) {
+        anotify_nolisten2(player,
+                          CFAIL
+                          "You can't use @flock from an @force or {force}.");
+        return;
     }
 
     if (!*keyname) {

@@ -866,9 +866,10 @@ prim_curid(PRIM_PROTOTYPE)
 {
     int curuid = getuid();
     int curgid = getgid();
-
+#ifndef PROTO_AS_ROOT
     if (getuid() == 0)
         abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
     if (mlev < LBOY)
         abort_interp("BOY primitive only.");
     if (tp_log_files)
