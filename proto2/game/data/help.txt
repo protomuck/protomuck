@@ -137,17 +137,17 @@ the same flag, the aliases are listed as a group.
 Settable Flags:
 ABODE/AUTOSTART/ABATE   (A)     BUILDER/BOUND           (B)
 CHOWN_OK/COLOR_ON/ANSI  (C)     DARK/DEBUG              (D)
-GUEST                   (G)     HAVEN/HARDUID/HIDE      (H) 
-IDLE                    (I)     JUMP_OK                 (J)     
-ANTIPROTECT             (K)     LINK_OK                 (L)     
-NO_COMMAND              (N)     LIGHT                   (O)     
-QUELL                   (Q)     SILENT/SETUID/STICKY    (S)     
-VEHICLE/VIEWABLE        (V)     XFORCIBLE               (X)     
-EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)     
-LOGWALL                 (!)     MUFCOUNT                (+)     
-PROTECT                 (*)     PARENT/PROG_DEBUG       (%)     
-HIDDEN                  (#)     MOBILE                  (?)               
-CONTROLS                (~)
+GUEST                   (G)     HAVEN/HARDUID/HIDE      (H)
+IDLE                    (I)     JUMP_OK                 (J)
+ANTIPROTECT             (K)     LINK_OK                 (L)
+NO_COMMAND              (N)     LIGHT                   (O)
+QUELL                   (Q)     SILENT/SETUID/STICKY    (S)
+VEHICLE/VIEWABLE        (V)     XFORCIBLE               (X)
+EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)
+LOGWALL                 (!)     MUFCOUNT                (+)
+PROTECT                 (*)     PARENT/PROG_DEBUG       (%)
+HIDDEN                  (#)     MOBILE                  (?)
+CONTROLS                (~)     IMMOBILE                (|)
 
 Type 'help <flag>' to get more help on a flag.
 
@@ -157,12 +157,12 @@ FLAGS2|FLAG2
 
 Non-Settable Flags:
 EXIT                    (E)     FORTH PROGRAM           (F)
-IDLE                    (I)     PLAYER                  (P)
+TRUEIDLE                        PLAYER                  (P)
 ROOM                    (R)     THING                   (T)
-UNLINKED                (U)     LISTENER                (N/A)
+UNLINKED                (U)     LISTENER
 COMMAND                 (N/A)   PUEBLO                  ($)
 HTML                    (&)     UNUSED/OLD              (@)
-TRUEIDLE           
+INTERNAL
 
 Permissions Bits:
 MEEPER                  (M)     MUCKER1                 (M1) 
@@ -2020,6 +2020,26 @@ the owner's permission, however.
 Putting the QUELL flag on THINGS set PUPPET or VEHICLE will make it so that
 they do not echo back to the player. This allows one to turn off the echoing,
 while not disabling puppet or vehicle dependent functions for that THING.
+~~
+IMMOBILE||
+IMMOBILE (|)
+--------
+Permissions: W2 and above
+
+**** NOTE: This flag's behavior is currently broken.
+
+This flag locks an object, room, action, or player in place, so all attempts
+to move the object will fail, unless the player or program doing the moving is
+W2 or above.
+
+Attempts to use exits or @teleport by or on IMMOBILE players, objects, actions
+or rooms will fail and emit a tunable message. MUF MOVETO will abort the
+current program with the error 'Object can't be moved, movement IMMOBILE
+restricted' unless protected with a try/catch block.
+
+The permission level can be tuned with the (nonexistent) 'immobile_perms'
+@tune, and the message emitted can be customized with the (likewise
+nonexistent) 'immobile_message'.
 ~~
 IDLE|I
 IDLE (I)
