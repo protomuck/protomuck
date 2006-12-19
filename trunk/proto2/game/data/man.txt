@@ -400,7 +400,7 @@ POWER_2CHAR   UNESCAPE_URL ESCAPE_URL
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
 NOTIFY will work with standard ANSI format, such as FB6 uses. To
-use MUSH or TIDLE style ANSI, run the string with MUSH or TILDE ANSI
+use MUSH or TILDE style ANSI, run the string with MUSH or TILDE ANSI
 tags through PARSE_ANSI and it will convert the tags to standard 
 ANSI which are then compatible with NOTIFY. 
 See STANDARD ANSI, MUSH ANSI, NEON ANSI.
@@ -978,24 +978,26 @@ See: FLAGLIST for a list of the flags that can be checked for.
 FLAGLIST
 Names and aliases of flags:
 
+Settable Flags:
 ABODE/AUTOSTART/ABATE   (A)     BUILDER/BOUND           (B)
 CHOWN_OK/COLOR_ON/ANSI  (C)     DARK/DEBUG              (D)
 GUEST                   (G)     HAVEN/HARDUID/HIDE      (H)
-IDLE                    (I)     JUMP_OK                 (J)     
-ANTIPROTECT             (K)     LINK_OK                 (L)     
-NO_COMMAND              (N)     LIGHT                   (O)     
-QUELL                   (Q)     SILENT/SETUID/STICKY    (S)     
-VEHICLE/VIEWABLE        (V)     XFORCIBLE               (X)     
-EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)     
-LOGWALL                 (!)     MUFCOUNT                (+)     
-PROTECT                 (*)     PARENT/PROG_DEBUG       (%)     
+IDLE                    (I)     JUMP_OK                 (J)
+ANTIPROTECT             (K)     LINK_OK                 (L)
+NO_COMMAND              (N)     LIGHT                   (O)
+QUELL                   (Q)     SILENT/SETUID/STICKY    (S)
+VEHICLE/VIEWABLE        (V)     XFORCIBLE               (X)
+EXAMINE_OK              (Y)     ZOMBIE/PUPPET           (Z)
+LOGWALL                 (!)     MUFCOUNT                (+)
+PROTECT                 (*)     PARENT/PROG_DEBUG       (%)
 HIDDEN                  (#)     MOBILE                  (?)
+CONTROLS                (~)     IMMOBILE                (|)
 
 Non-Settable Flags:
 EXIT                    (E)     FORTH PROGRAM           (F)
 TRUEIDLE                        PLAYER                  (P)
 ROOM                    (R)     THING                   (T)
-UNLINKED                (U)     LISTENER                (N/A)
+UNLINKED                (U)     LISTENER
 COMMAND                 (N/A)   PUEBLO                  ($)
 HTML                    (&)     UNUSED/OLD              (@)
 INTERNAL                
@@ -1006,6 +1008,7 @@ MUCKER2                 (M2)    MUCKER3                 (M3)
 WIZARD1/MAGE            (W1)    WIZARD2/WIZARD          (W2)
 WIZARD3/ARCHWIZARD      (W3)    WIZARD4/BOY             (W4)
 WIZARD5/MAN             (W5)
+
 Type 'help <flag>' to get more help on a flag.
 
 ~
