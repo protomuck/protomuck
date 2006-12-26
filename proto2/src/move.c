@@ -602,8 +602,6 @@ trigger(int descr, dbref player, dbref exit, int pflag)
     }
     if (sobjact)
         send_home(descr, DBFETCH(exit)->location, 0);
-    if (!succ && pflag)
-        anotify_nolisten2(player, CINFO "Done.");
 }
 
 void

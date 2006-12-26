@@ -18,7 +18,12 @@
 #
 # ProtoMUCK will now compile 99.8% warning free with -Wall turned on.
 #   -Hinoserm, 7-31-2003. 
-OPTIM=-Wall -Wstrict-prototypes -O2 -g
+
+# Newer compilers don't like what we do to time_t and warns about it, so we
+# use no-strict-aliasing because the fix is uglier.
+#   -Alynna 12-25-2006.
+
+OPTIM=-Wall -Wstrict-prototypes -fno-strict-aliasing -O2 -g
 
 #
 # Paths
