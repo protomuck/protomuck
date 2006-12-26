@@ -1141,11 +1141,6 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
                 propfetch(ref, prptr);
 #endif
                 if (PropDir(prptr)) {
-                    if (count >= 511) {
-                        array_free(nw);
-                        abort_interp("Too many propdirs to put in an array!");
-                    }
-
                     temp2.type = PROG_STRING;
                     temp2.data.string = alloc_prog_string(propname);
                     temp1.type = PROG_INTEGER;
@@ -1171,7 +1166,6 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
     char dir[BUFFER_LEN];
     PropPtr propadr, pptr;
     PropPtr prptr;
-    int count = 0;
 
     /* dbref strPropDir -- array */
     CHECKOP(2);
@@ -1237,10 +1231,6 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
                 }
 
                 if (goodflag) {
-                    if (count++ >= 511) {
-                        array_free(nw);
-                        abort_interp("Too many properties to put in an array!");
-                    }
                     temp1.type = PROG_STRING;
                     temp1.data.string = alloc_prog_string(propname);
                     array_setitem(&nw, &temp1, &temp2);
