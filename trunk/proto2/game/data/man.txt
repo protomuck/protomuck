@@ -4586,6 +4586,24 @@ as if QUIT was used for the original player, and the second player then
 connected. It returns 1 if the descriptor was found and reassigned, 
 or 0 in case of password failure.
 ~
+DESCR_SETUSER_NOPASS
+
+descr_setuser_nopass ( i1 d -- i2 )
+-------------------------------------
+Level: W4 BOY
+i1 = integer representing a descriptor number.
+d  = dbref of a player.
+i2 = Returns 1 if successful, 0 if unsuccessful.
+
+Given descriptor i1, a player's dbref d, that player will be connected 
+to that descriptor number, without dropping the connection to the MUCK.
+From the MUCK's perspective, it first disconnects that descriptor from 
+the old dbref, then connects the new one, as if QUIT was used for the 
+original player, and the second player then connected. It returns 1 if 
+the descriptor was found and reassigned, or 0 in case of failure.
+
+This primitive is usable only by W4's and requires no password to use.
+~
 INTERP
 
 interp ( d1 d2 s -- ? )
