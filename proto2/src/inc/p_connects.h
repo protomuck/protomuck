@@ -17,6 +17,7 @@ extern void prim_nextdescr(PRIM_PROTOTYPE);
 extern void prim_descr_array(PRIM_PROTOTYPE);
 extern void prim_descriptors(PRIM_PROTOTYPE);
 extern void prim_descr_setuser(PRIM_PROTOTYPE);
+extern void prim_descr_setuser_nopass(PRIM_PROTOTYPE);
 extern void prim_descrflush(PRIM_PROTOTYPE);
 extern void prim_descr(PRIM_PROTOTYPE);
 extern void prim_descr_htmlp(PRIM_PROTOTYPE);
@@ -49,7 +50,7 @@ extern void prim_descr_sendfile(PRIM_PROTOTYPE);
 #define PRIMS_CONNECTS_FUNCS prim_awakep, prim_online, prim_concount,       \
     prim_condbref, prim_conidle, prim_contime, prim_conhost, prim_conuser,  \
     prim_conboot, prim_connotify, prim_condescr, prim_descrcon,             \
-    prim_nextdescr, prim_descriptors, prim_descr_setuser,                   \
+    prim_nextdescr, prim_descriptors, prim_descr_setuser, prim_descr_setuser_nopass, \
     prim_conipnum, prim_conport, prim_online_array, prim_descr_array,       \
     prim_descrflush, prim_descr, prim_descr_htmlp, prim_descr_pueblop,      \
     prim_welcome_user, prim_descrp, prim_motd_notify,                       \
@@ -63,7 +64,7 @@ extern void prim_descr_sendfile(PRIM_PROTOTYPE);
 #define PRIMS_CONNECTS_NAMES "AWAKE?", "ONLINE", "CONCOUNT",  \
     "CONDBREF", "CONIDLE", "CONTIME", "CONHOST", "CONUSER",   \
     "CONBOOT", "CONNOTIFY", "CONDESCR", "DESCRCON",           \
-    "NEXTDESCR", "DESCRIPTORS", "DESCR_SETUSER",	        \
+    "NEXTDESCR", "DESCRIPTORS", "DESCR_SETUSER", "DESCR_SETUSER_NOPASS", \
     "CONIPNUM", "CONPORT", "ONLINE_ARRAY", "DESCR_ARRAY",     \
     "DESCRFLUSH", "DESCR", "DESCR_HTML?", "DESCR_PUEBLO?",    \
     "DESCR_WELCOME_USER", "DESCR?", "MOTD_NOTIFY",            \
@@ -74,5 +75,5 @@ extern void prim_descr_sendfile(PRIM_PROTOTYPE);
     "GETDESCRINFO", "DESCR_SET", "DESCR_FLAG?", "BANDWIDTH",  \
     "DESCRBUFSIZE", "DESCR_SSL?", "DESCR_SENDFILE"
 
-#define PRIMS_CONNECTS_CNT 47
+#define PRIMS_CONNECTS_CNT 48
 

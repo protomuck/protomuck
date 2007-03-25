@@ -575,6 +575,40 @@ prim_descr_setuser(PRIM_PROTOTYPE)
 }
 
 void
+prim_descr_setuser_nopass(PRIM_PROTOTYPE)
+{
+
+    CHECKOP(2);
+    oper2 = POP();
+    oper1 = POP();
+
+    if (mlev < LBOY)
+        abort_interp("W4 permissions required.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Integer descriptor number expected (1)");
+    if (oper2->type != PROG_OBJECT)
+        abort_interp("Player dbref expected (2)");
+    ref = oper2->data.objref;
+    if (ref != NOTHING && !valid_player(oper2))
+        abort_interp("Player dbref expected (2)");
+    if (!pdescrp(oper1->data.number))
+        abort_interp("That is not a valid descriptor.");
+    if (ref != NOTHING) {
+        log_status("SUSR: %d %s(%d) to %s(%d)\n",
+                   oper1->data.number, OkObj(player) ? NAME(player) : "(Login)",
+                   player, NAME(ref), ref);
+    }
+    tmp = oper1->data.number;
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+
+    result = pset_user2(tmp, ref);
+
+    PushInt(result);
+}
+
+void
 prim_descr(PRIM_PROTOTYPE)
 {
     /* -- int */
