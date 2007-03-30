@@ -122,6 +122,7 @@ prim_sqlquery(PRIM_PROTOTYPE)
     MYSQL *tempsql = NULL;
     MYSQL_RES *res = NULL;
     MYSQL_ROW row = NULL;
+    char tmp[BUFFER_LEN];
     MYSQL_FIELD *fields = NULL;
     int num_rows, num_fields, counter, all_rows;
     char query[BUFFER_LEN];
@@ -163,6 +164,7 @@ prim_sqlquery(PRIM_PROTOTYPE)
     CLEAR(oper2);
     num_rows = 0;
     if (res) {                  /* there IS a result */
+        //tmp = malloc(BUFFER_LEN);
         all_rows = mysql_num_rows(res);
         num_rows = all_rows > tp_mysql_result_limit ?
             tp_mysql_result_limit : all_rows;
@@ -177,19 +179,24 @@ prim_sqlquery(PRIM_PROTOTYPE)
             nw = new_array_dictionary();
             if (counter++ < num_rows) {
                 for (i = 0; i < num_fields; ++i) {
-                    if (row[i])
-                        array_set_strkey_strval(&nw, fields[i].name, row[i]);
-
+                    // Alynna: To make this safe, we must normalize the string to
+                    // 16383 characters and a terminating \0
+                    if (row[i]) {                        
+                        strncpy(tmp, row[i], 16380);
+			tmp[16380]='\0';
+                        array_set_strkey_strval(&nw, fields[i].name, tmp);
+		    }
                 }
                 PushArrayRaw(nw);
             } else
                 break;          /* The limit has been reached, exit the while loop */
         }
+        //free(tmp);
         mysql_free_result(res);
     } else {                    /* no result */
         num_rows = 0;
         fieldsList = new_array_packed(0);
-    }
+     }
     PushInt(num_rows);
     PushArrayRaw(fieldsList);
     return;
