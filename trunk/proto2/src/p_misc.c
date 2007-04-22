@@ -27,6 +27,7 @@ struct tm *time_tm;
 extern struct line *read_program(dbref i);
 extern int tune_setparm(const dbref player, const char *parmname,
                         const char *val);
+extern struct frame* aForceFrameStack[9];
 
 void
 prim_time(PRIM_PROTOTYPE)
@@ -485,6 +486,7 @@ prim_abort(PRIM_PROTOTYPE)
 void
 prim_ispidp(PRIM_PROTOTYPE)
 {
+    int nCurFr = 0; 
     /* i -- i */
     CHECKOP(1);
     oper1 = POP();
@@ -492,6 +494,18 @@ prim_ispidp(PRIM_PROTOTYPE)
         abort_interp("Non-integer argument (1)");
     if (oper1->data.number == fr->pid) {
         result = 1;
+    } else if ( force_level > 0 ) {
+        /* if this was called from a FORCE   
+         * search the global force processes stack
+         * to see if our PID is in there instead 
+         */
+        for ( ; nCurFr < 9; ++nCurFr ) {
+            if ( aForceFrameStack[nCurFr]) {
+                if ( aForceFrameStack[nCurFr]->pid == oper1->data.number ) {
+                    result = 1;
+                }
+            }
+        }
     } else {
         result = in_timequeue(oper1->data.number);
     }

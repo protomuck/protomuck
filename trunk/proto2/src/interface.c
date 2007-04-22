@@ -78,7 +78,7 @@ static size_t ps_buffer_fixed_size; /* size of the constant prefix */
 static int save_argc;
 static char **save_argv;
 extern char **environ;
-
+extern struct frame* aForceFrameStack[9];
 #endif /* USE_PS */
 
 static const char *connect_fail = "Incorrect login.\r\n";
@@ -377,6 +377,7 @@ main(int argc, char **argv)
     int val;
     int initsock = 0;
     int resolver_myport = 0;
+    int nCurPtr = 0;
 
 #ifdef DETACH
 #ifndef __CYGWIN__
@@ -577,6 +578,13 @@ main(int argc, char **argv)
 # endif /* TIOCNOTTY */
         }
 #endif /* DETACH */
+    }
+
+    /* Initialize the array of pointers used for tracking
+     * PIDs during FORCE recursion */
+    for ( ; nCurPtr < 9; ++nCurPtr )
+    {
+        aForceFrameStack[nCurPtr] = NULL;
     }
 
     /* Initialize MCP and some packages. */

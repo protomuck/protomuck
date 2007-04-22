@@ -26,6 +26,7 @@ extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
 struct tm *time_tm;
+extern struct frame* aForceFrameStack[9];
 
 extern struct line *read_program(dbref i);
 extern int tune_setparm(const dbref player, const char *parmname,
@@ -106,6 +107,8 @@ prim_version(PRIM_PROTOTYPE)
 void
 prim_force(PRIM_PROTOTYPE)
 {
+    int nFrameIndex = -1; /* -1 means it hasn't been set */
+    int nCurFr = 0; /* Loop iterator */ 
     /* d s -- */
     CHECKOP(2);
     oper1 = POP();              /* string to @force */
@@ -136,12 +139,32 @@ prim_force(PRIM_PROTOTYPE)
     nargs -= 2;
 
     force_level++;
+    /* Okay, we need to store a pointer to the fr in the global stack of
+     * frame pointers we need to enable ispid? and getpidinfo to be able
+     * to search. */
+    for ( ; nCurFr < 9; ++nCurFr )
+    {
+        if ( !aForceFrameStack[nCurFr] )
+        {
+            aForceFrameStack[nCurFr] = fr;
+            nFrameIndex = nCurFr;
+        }
+    }
+    
+    if ( nFrameIndex == -1 )
+    {
+        abort_interp( "Internal error trying to cache frame pointer." );
+    }
+
     fr->level++;
     interp_set_depth(fr);
     process_command(dbref_first_descr(ref), ref, buf);
     fr->level--;
     interp_set_depth(fr);
     force_level--;
+
+    /* Now remove our pointer from the end of the array */
+    aForceFrameStack[nFrameIndex] = NULL; 
 }
 
 void

@@ -591,6 +591,8 @@ do_restrict(dbref player, const char *arg)
 
 int force_level = 0;
 
+struct frame* aForceFrameStack[9];
+
 void
 process_command(int descr, dbref player, char *command)
 {
