@@ -148,6 +148,7 @@ prim_force(PRIM_PROTOTYPE)
         {
             aForceFrameStack[nCurFr] = fr;
             nFrameIndex = nCurFr;
+            break;
         }
     }
     
