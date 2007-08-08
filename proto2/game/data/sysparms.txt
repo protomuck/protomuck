@@ -597,8 +597,7 @@ userflag_mlev
 This is the minimum mlevel a player must be or a program must be
 running at to change the userflag (MOBILE).  Change this if your
 MUCK uses the userflags for its own purposes, and you dont want
-unpriveleged players changing it.  Also see the tune 
-'username_flag'.
+unpriveleged players changing it.
 ~~~
 reslvd_address
 This is a string that describes the host and port of the reslvd
