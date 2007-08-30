@@ -505,6 +505,9 @@ void
 match_room_exits(dbref loc, struct match_data *md)
 {
     dbref obj;
+    
+    if (obj == NIL || obj == NOTHING)
+	return;
 
     switch (Typeof(loc)) {
         case TYPE_PLAYER:
