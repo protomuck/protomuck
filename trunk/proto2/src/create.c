@@ -370,7 +370,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             /* we're ok, check the usual stuff */
             if (DBFETCH(thing)->sp.exit.ndest != 0) {
                 if (controls(player, thing)) {
-                    if ((DBFETCH(thing)->sp.exit.dest)[0] != -4) {
+                    if ((DBFETCH(thing)->sp.exit.dest)[0] != NIL) {
                         anotify_nolisten2(player,
                                           CINFO "That exit is already linked.");
                         return;
@@ -446,6 +446,10 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
                 match_possession(&md);
             if ((dest = noisy_match_result(&md)) == NOTHING)
                 return;
+	    if (Typeof(thing) == TYPE_THING && dest == NIL) {
+                anotify_fmt(player, CFAIL "%s", "You cannot HOME a THING to NIL.");
+                return;		
+	    }
             if (!controls(player, thing)
                 || !can_link_to(player, Typeof(thing), dest)) {
                 anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);

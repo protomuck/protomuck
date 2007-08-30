@@ -1466,10 +1466,8 @@ prim_setlink(PRIM_PROTOTYPE)
         if (!valid_object(oper1) && oper1->data.objref != HOME
             && oper1->data.objref != NIL)
             abort_interp("Invalid object (2)");
-        if (!
-            (Typeof(ref) == TYPE_THING || Typeof(ref) == TYPE_PLAYER
-             || Typeof(ref) == TYPE_EXIT))
-            abort_interp("Programs and rooms cannot be linked to NIL (1)");
+        if (!(Typeof(ref) == TYPE_PLAYER || Typeof(ref) == TYPE_EXIT))
+            abort_interp("Only players and exits can be linked to NIL (1)");
         if (Typeof(ref) == TYPE_PROGRAM)
             abort_interp("Program objects are not linkable (1)");
         if (!prog_can_link_to(mlev, ProgUID, Typeof(ref), oper1->data.objref))
