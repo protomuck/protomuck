@@ -61,10 +61,11 @@ dbref
 getparent(dbref obj)
 {
     int limit = 88;
-
+    if (!OkObj(obj)) return GLOBAL_ENVIRONMENT;
     do {
         if (Typeof(obj) == TYPE_THING && (FLAGS(obj) & VEHICLE) && limit-- > 0) {
             obj = DBFETCH(obj)->sp.thing.home;
+            if (obj == NIL) obj = GLOBAL_ENVIRONMENT;
             if (obj != NOTHING && Typeof(obj) == TYPE_PLAYER)
                 obj = DBFETCH(obj)->sp.player.home;
         } else {

@@ -505,9 +505,8 @@ void
 match_room_exits(dbref loc, struct match_data *md)
 {
     dbref obj;
-    
-    if (obj == NIL || obj == NOTHING)
-	return;
+
+    if (loc < 0) return;    
 
     switch (Typeof(loc)) {
         case TYPE_PLAYER:
@@ -519,7 +518,7 @@ match_room_exits(dbref loc, struct match_data *md)
             obj = NOTHING;
             break;
     }
-    if (obj == NOTHING)
+    if (obj == NIL || obj == NOTHING)
         return;
     match_exits(obj, md);
 }
@@ -563,6 +562,8 @@ match_all_exits(struct match_data *md)
         loc = DBFETCH(loc)->sp.thing.home;
         if (loc == NOTHING)
             return;
+	if (loc == NIL)
+	    loc = tp_default_parent;
         if (md->exact_match != NOTHING)
             md->block_equals = 1;
         match_room_exits(loc, md);
