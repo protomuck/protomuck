@@ -1463,10 +1463,9 @@ prim_setlink(PRIM_PROTOTYPE)
                 abort_interp("Invalid object (1)");
         }
     } else {
-        if (!valid_object(oper1) && oper1->data.objref != HOME
-            && oper1->data.objref != NIL)
+        if (!valid_object(oper1) && oper1->data.objref != HOME && oper1->data.objref != NIL)
             abort_interp("Invalid object (2)");
-        if (!(Typeof(ref) == TYPE_PLAYER || Typeof(ref) == TYPE_EXIT))
+        if ((!(Typeof(ref) == TYPE_PLAYER || Typeof(ref) == TYPE_EXIT)) && oper1->data.objref == NIL)
             abort_interp("Only players and exits can be linked to NIL (1)");
         if (Typeof(ref) == TYPE_PROGRAM)
             abort_interp("Program objects are not linkable (1)");
