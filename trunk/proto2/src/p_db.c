@@ -2151,11 +2151,11 @@ prim_toadplayer(PRIM_PROTOTYPE)
     FLAG4(victim) = 0;
     POWERSDB(victim) = 0;
     POWER2DB(victim) = 0;
-    OWNER(victim) = PSafe;      /* you get it */
+    OWNER(victim) = recipient; 
     DBFETCH(victim)->sp.thing.value = 1;
 
     if (tp_recycle_frobs)
-        recycle(fr->descr, PSafe, victim);
+        recycle(fr->descr, recipient, victim);
     CLEAR(oper1);
     CLEAR(oper2);
 }
