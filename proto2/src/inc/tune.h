@@ -14,6 +14,7 @@ extern const char *tp_noguest_mesg;
 
 extern const char *tp_idleboot_msg;
 extern const char *tp_unidle_command;
+extern const char *tp_unidle_command_msg;
 extern const char *tp_penny;
 extern const char *tp_pennies;
 extern const char *tp_cpenny;
