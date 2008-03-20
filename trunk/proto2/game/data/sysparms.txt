@@ -562,6 +562,13 @@ is, it does not get processed as input by the player, so do not
 use anything that is already a command players can use. The
 allow_unidle @tune option must be set to yes.
 ~~~
+unidle_command_msg
+This is a message that will be printed out to players when
+they enter the unidle_command string.  This is to further
+assist with connections that constantly drop if a player
+sits idle for too long.  You may disable the printing of a
+message by setting this to '-' without the quotation marks.
+~~~
 allow_unidle
 Allows players to use whatever the unidle_command is set to
 without making their character unidle. See the information under

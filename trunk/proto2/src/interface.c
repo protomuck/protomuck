@@ -2976,8 +2976,11 @@ save_command(struct descriptor_data *d, const char *command)
 #endif
 */
     if (tp_allow_unidle) {      /* check for unidle word */
-        if (!string_compare((char *) command, tp_unidle_command))
+        if (!string_compare((char *) command, tp_unidle_command)) {
+            if (strlen(tp_unidle_command_msg) > 0)
+                notify(d->player, tp_unidle_command_msg);
             return -1;
+        }
     }
 
     add_to_queue(&d->input, command, strlen(command) + 1);

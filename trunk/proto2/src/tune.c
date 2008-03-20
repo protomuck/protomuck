@@ -46,6 +46,7 @@ const char *tp_reg_email = "admin@your.host.here";
 const char *tp_proplist_counter_fmt = "P#";
 const char *tp_proplist_entry_fmt = "P#/N";
 const char *tp_unidle_command = "";
+const char *tp_unidle_command_msg = "";
 const char *tp_ssl_keyfile_passwd = "";
 const char *tp_reslvd_address = "127.0.0.1:12111";
 
@@ -83,6 +84,7 @@ struct tune_str_entry tune_str_list[] = {
     {"Props", "proplist_counter_fmt", &tp_proplist_counter_fmt, LARCH, LMUF, 1},
     {"Props", "proplist_entry_fmt", &tp_proplist_entry_fmt, LARCH, LMUF, 1},
     {"IdleTime", "unidle_command", &tp_unidle_command, LARCH, LMUF, 1},
+    {"IdleTime", "unidle_command_msg", &tp_unidle_command_msg, LARCH, LMUF, 1},
     {"SSL", "ssl_keyfile_passwd", &tp_ssl_keyfile_passwd, WBOY, LBOY, 1},
     {"System", "reslvd_address", &tp_reslvd_address, WBOY, LWIZ, 1},
     {NULL, NULL, NULL, 0, 0, 0}
