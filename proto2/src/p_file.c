@@ -1084,8 +1084,8 @@ prim_freadto(PRIM_PROTOTYPE)
         i++;
         tempBuf[i] = '\0';
         fclose(fh);
-/*        if (tempBuf[0] != EOF) */
-/*            result = 1; */
+        if (tempBuf[0] != EOF) 
+            result = 1; 
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s FREADN: %s \n", program,
                          unparse_object(PSafe, PSafe),
