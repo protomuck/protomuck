@@ -518,7 +518,7 @@ struct line {
 #define PROG_MYSQL         27   /* A MySQL database connection */
 #define PROG_LABEL         28   /* An MUF label */
 
-#define MAX_VAR        104	    /* maximum number of variables including the  */
+#define MAX_VAR        204	    /* maximum number of variables including the  */
 				                /* basic ME and LOC                           */
 #define RES_VAR          4	    /* no of reserved variables */
 
