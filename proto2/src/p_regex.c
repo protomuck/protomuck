@@ -131,7 +131,7 @@ prim_regexp(PRIM_PROTOTYPE)
     if ((re = muf_re_get(oper2->data.string, flags, &err)) == NULL)
         abort_interp(muf_re_error(err));
 
-    text = DoNullInd(oper1->data.string);
+    text = (char *)DoNullInd(oper1->data.string);
     len = strlen(text);
     nosubs = re->re.re_nsub + 1;
 
@@ -277,7 +277,7 @@ prim_regsub(PRIM_PROTOTYPE)
     if ((re = muf_re_get(oper2->data.string, flags, &err)) == NULL)
         abort_interp(muf_re_error(err));
 
-    text = DoNullInd(oper1->data.string);
+    text = (char *)DoNullInd(oper1->data.string);
     nosubs = re->re.re_nsub + 1;
 
     if ((matches = (regmatch_t *) malloc(sizeof(regmatch_t) * nosubs)) == NULL)
@@ -300,7 +300,7 @@ prim_regsub(PRIM_PROTOTYPE)
             break;
         } else {
             regmatch_t *cm = &matches[0];
-            char *read_ptr = DoNullInd(oper3->data.string);
+            char *read_ptr = (char *)DoNullInd(oper3->data.string);
             int soff = cm->rm_so;
             int count;
 

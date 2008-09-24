@@ -1277,28 +1277,28 @@ parse_tilde_ansi(char *buf, char *from)
                 ansi = NULL;
                 switch (*from) {
                     case '0':
-                        ansi = isbold ? ANSIGLOOM : ANSIBLACK;
+                        ansi = (char *)(isbold ? ANSIGLOOM : ANSIBLACK);
                         break;
                     case '1':
-                        ansi = isbold ? ANSIRED : ANSICRIMSON;
+                        ansi = (char *)(isbold ? ANSIRED : ANSICRIMSON);
                         break;
                     case '2':
-                        ansi = isbold ? ANSIGREEN : ANSIFOREST;
+                        ansi = (char *)(isbold ? ANSIGREEN : ANSIFOREST);
                         break;
                     case '3':
-                        ansi = isbold ? ANSIYELLOW : ANSIBROWN;
+                        ansi = (char *)(isbold ? ANSIYELLOW : ANSIBROWN);
                         break;
                     case '4':
-                        ansi = isbold ? ANSIBLUE : ANSINAVY;
+                        ansi = (char *)(isbold ? ANSIBLUE : ANSINAVY);
                         break;
                     case '5':
-                        ansi = isbold ? ANSIPURPLE : ANSIVIOLET;
+                        ansi = (char *)(isbold ? ANSIPURPLE : ANSIVIOLET);
                         break;
                     case '6':
-                        ansi = isbold ? ANSICYAN : ANSIAQUA;
+                        ansi = (char *)(isbold ? ANSICYAN : ANSIAQUA);
                         break;
                     case '7':
-                        ansi = isbold ? ANSIWHITE : ANSIGRAY;
+                        ansi = (char *)(isbold ? ANSIWHITE : ANSIGRAY);
                         break;
                     case '-':
                         break;

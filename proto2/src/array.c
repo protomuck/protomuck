@@ -1664,7 +1664,7 @@ array_set_strkey_refval(stk_array **harr, const char *key, dbref val)
 
 
 
-char *
+const char *
 array_get_intkey_strval(stk_array *arr, int key)
 {
     struct inst ikey;

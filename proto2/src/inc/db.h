@@ -367,7 +367,7 @@ typedef int object_power_type;
                                 ( ((FLAGS(x) & W2)?1:0)<<1 ) + \
                                 ( ((FLAGS(x) & W1)?1:0)    )    )
 
-extern int RawMWLevel(dbref thing, char *file, int line);
+extern int RawMWLevel(dbref thing, const char *file, int line);
 
 #define RawMLevel(x)    ( Man(x) ? LMAN : RawMWLevel(x, __FILE__, __LINE__ ))
 

@@ -33,6 +33,178 @@ unsigned long hostdb_flushed = 0; /* number of entries purged during last flush 
 time_t hostdb_flushtime = 0;    /* time of last hostcache flush */
 dbref hostdb_flushplyr = NOTHING; /* ref of player if last flush was from #flush */
 
+#if defined(HAVE_PTHREAD_H)
+
+/* Beginnings of very basic threaded resolver. */
+
+struct tres_data {
+    struct hostinfo * h;
+    //struct husrinfo * u;
+    unsigned short lport;
+    unsigned short prt;
+};
+
+const char *
+get_username(int a, int prt, int myprt)
+{
+    int fd, len, result;
+    struct sockaddr_in addr;
+    char *ptr, *ptr2;
+    static char buf[1024];
+    int lasterr;
+    int timeout = 30;
+
+    if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("resolver ident socket");
+        return (0);
+    }
+
+    make_nonblocking(fd);
+
+    len = sizeof(addr);
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = a;
+    addr.sin_port = htons((short) 113);
+
+    do {
+        result = connect(fd, (struct sockaddr *) &addr, len);
+        lasterr = errno;
+        if (result < 0) {
+            if (!timeout--)
+                break;
+            sleep(1);
+        }
+    } while (result < 0 && lasterr == EINPROGRESS);
+    if (result < 0 && lasterr != EISCONN) {
+        goto bad;
+    }
+
+    sprintf(buf, "%d,%d\n", prt, myprt);
+    do {
+        result = write(fd, buf, strlen(buf));
+        lasterr = errno;
+        if (result < 0) {
+            if (!timeout--)
+                break;
+            sleep(1);
+        }
+    } while (result < 0 && lasterr == EAGAIN);
+    if (result < 0)
+        goto bad2;
+
+    do {
+        result = read(fd, buf, sizeof(buf));
+        lasterr = errno;
+        if (result < 0) {
+            if (!timeout--)
+                break;
+            sleep(1);
+        }
+    } while (result < 0 && lasterr == EAGAIN);
+    if (result < 0)
+        goto bad2;
+
+    ptr = index(buf, ':');
+    if (!ptr)
+        goto bad2;
+    ptr++;
+    if (*ptr)
+        ptr++;
+    if (strncmp(ptr, "USERID", 6))
+        goto bad2;
+
+    ptr = index(ptr, ':');
+    if (!ptr)
+        goto bad2;
+    ptr = index(ptr + 1, ':');
+    if (!ptr)
+        goto bad2;
+    ptr++;
+    shutdown(fd, 2);
+    close(fd);
+    if ((ptr2 = index(ptr, '\r')))
+        *ptr2 = '\0';
+    if (!*ptr)
+        return (0);
+    return ptr;
+
+  bad2:
+    shutdown(fd, 2);
+
+  bad:
+    close(fd);
+    return (0);
+}
+
+void *
+threaded_resolver_go(void *ptr)
+{
+    struct in_addr addr;
+    struct tres_data *tr;
+    char *old_ptr;
+
+    tr = (struct tres_data *)ptr;
+
+    addr.s_addr = htonl(tr->h->a);
+
+    struct hostent *he = gethostbyaddr(((char *) &addr), sizeof(addr), AF_INET);
+
+    if (he) {
+        char buf[MAX_COMMAND_LEN];
+        char *j;
+        const char *c;
+        struct husrinfo *u;
+
+
+        if (tr->h->wupd && strcmp(tr->h->name, he->h_name))
+            log_status("*RES: %s to %s\n", tr->h->name, he->h_name);
+        
+        old_ptr = tr->h->name;
+        tr->h->name = alloc_string(he->h_name);
+        free((void *) old_ptr);
+        tr->h->wupd = current_systime;
+
+        if ((c = get_username(htonl(tr->h->a), tr->prt, tr->lport))) {
+            strcpy(buf, c);
+            for (j = buf; isspace(*j); ++j) ; /* strip occasional leading spaces */
+            for (u = userdb; u; u = u->next) {
+                if (u->uport == tr->prt && u->a == tr->h->a) {
+                    old_ptr = u->user;
+                    u->user = alloc_string(j);
+                    free((void *) old_ptr);
+                    //break;
+                }
+            }
+        }
+    }
+
+    free((void *) tr);
+    return NULL;
+}
+
+bool
+host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
+{
+    pthread_t thread1;
+    struct tres_data *tr;
+
+    tr = (struct tres_data *) malloc(sizeof(struct tres_data));
+
+    tr->h = h;
+    //tr->u = u;
+    tr->lport = lport;
+    tr->prt = prt;
+    
+    if (pthread_create(&thread1, NULL, threaded_resolver_go, (void*) tr))
+        return 0;
+    else
+        return 1;
+}
+
+#endif
+
+
+
 #ifdef USE_RESLVD
 
 char *reslvd_buf = NULL;
@@ -439,13 +611,19 @@ host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
     log_status("HOST: Request: %X (%s)\n", h->a, host_as_hex(h->a));
 #endif /* HOSTCACHE_DEBUG */
 
+
 #ifdef USE_RESLVD
-    if (!host_get_reslvd(h, lport, prt))
+    if (host_get_reslvd(h, lport, prt))
 #endif
 #ifdef SPAWN_HOST_RESOLVER
         if (!host_get_oldres(h, lport, prt))
 #endif
+#if defined(HAVE_PTHREAD_H)
+            if (!host_get_resthrd(h, lport, prt))
+#endif
             host_get_oldstyle(h);
+
+    
 }
 
 struct huinfo *

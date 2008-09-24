@@ -1813,7 +1813,7 @@ prim_explode_array(PRIM_PROTOTYPE)
 
         nu = new_array_packed(0);
         if (!temp2.data.string) {
-            lastPtr = "";
+            lastPtr = (char *)"";
         } else {
             strcpy(buf, temp2.data.string->data);
             tempPtr = lastPtr = buf;

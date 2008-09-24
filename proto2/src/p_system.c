@@ -25,7 +25,6 @@ extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
-struct tm *time_tm;
 extern struct frame* aForceFrameStack[9];
 
 extern struct line *read_program(dbref i);

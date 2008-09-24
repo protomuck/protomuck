@@ -23,7 +23,7 @@
 # use no-strict-aliasing because the fix is uglier.
 #   -Alynna 12-25-2006.
 
-OPTIM=-Wall -Wstrict-prototypes -fno-strict-aliasing -O2 -g
+OPTIM=-Wall -fno-strict-aliasing -O2 -g
 
 #
 # Paths
@@ -42,6 +42,7 @@ DEST=${ROOT}/game
 # 		Variables set by the configure script.
 # #######################################################################
 CC=@CC@
+CXX=@CXX@
 DEFS=@DEFS@
 LIBR=@LIBS@
 
@@ -53,6 +54,7 @@ LIBR=@LIBS@
 # Include path, Cflags...
 #
 CFLAGS=${OPTIM} ${DEFS} -I${INCLUDE}
+CXXFLAGS=${OPTIM} ${DEFS} -I${INCLUDE}
 
 #
 # for saving old copies.
@@ -125,7 +127,7 @@ protomuck:        ${P} ${COBJ} interface.o mkversion.sh
 	@echo "`bash -c set | grep OSTYPE`"
 	@if [ "`bash -c set | grep OSTYPE`" = "OSTYPE=cygwin" ]; then \
          echo ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
-	 ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
+	 ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${XXCFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
 	else \
          echo ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
 	 ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \

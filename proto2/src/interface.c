@@ -222,7 +222,7 @@ save_ps_display_args(int argc, char *argv[])
         ps_buffer_size = end_of_area - argv[0];
 
         /* move the environment out of the way */
-        new_environ = malloc(sizeof(char *) * (i + 1));
+        new_environ = (char **)malloc(sizeof(char *) * (i + 1));
         for (i = 0; environ[i] != NULL; i++)
             new_environ[i] = strdup(environ[i]);
         new_environ[i] = NULL;

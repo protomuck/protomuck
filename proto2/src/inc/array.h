@@ -70,7 +70,7 @@ int array_set_strkey_refval(stk_array ** harr, const char *key, dbref val);
 int array_set_intkey(stk_array ** harr, int key, struct inst *val);
 int array_set_intkey_strval(stk_array ** harr, int key, const char *val);
 	  
-char* array_get_intkey_strval(stk_array * arr, int key); 
+const char* array_get_intkey_strval(stk_array * arr, int key); 
 
 int array_appendref(stk_array **arr, dbref ref);
 

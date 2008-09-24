@@ -22,7 +22,6 @@ extern struct inst temp1, temp2, temp3;
 extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
-struct tm *time_tm;
 
 extern struct line *read_program(dbref i);
 extern int tune_setparm(const dbref player, const char *parmname,
@@ -32,6 +31,8 @@ extern struct frame* aForceFrameStack[9];
 void
 prim_time(PRIM_PROTOTYPE)
 {
+    struct tm *time_tm;
+
     CHECKOP(0);
     CHECKOFLOW(3);
     {
@@ -52,6 +53,8 @@ prim_time(PRIM_PROTOTYPE)
 void
 prim_date(PRIM_PROTOTYPE)
 {
+    struct tm *time_tm;
+
     CHECKOP(0);
     CHECKOFLOW(3);
     {
@@ -90,6 +93,8 @@ prim_systime(PRIM_PROTOTYPE)
 void
 prim_timesplit(PRIM_PROTOTYPE)
 {
+    struct tm *time_tm;
+
     CHECKOP(1);
     oper1 = POP();              /* integer: time */
     if (oper1->type != PROG_INTEGER)
@@ -119,6 +124,8 @@ prim_timesplit(PRIM_PROTOTYPE)
 void
 prim_timefmt(PRIM_PROTOTYPE)
 {
+    struct tm *time_tm;
+
     CHECKOP(2);
     oper2 = POP();              /* integer: time */
     oper1 = POP();              /* string: format */

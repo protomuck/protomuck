@@ -683,7 +683,7 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
                     anotify_nolisten(player, buf2, 1);
                 }
                 if (recurse)
-                    ptr = "**";
+                    ptr = (char *)"**";
                 cnt += listprops_wildcard(player, thing, buf, ptr);
             }
         }

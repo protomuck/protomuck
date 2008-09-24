@@ -20,7 +20,7 @@ typedef void * voidptr;
   
 extern void do_abort_silent(void);
 
-extern void RCLEAR(struct inst *oper, char *file, int line);
+extern void RCLEAR(struct inst *oper, const char *file, int line);
 
 #define PSafe (OkObj(player) ? player : OWNER(program))
 
@@ -117,7 +117,7 @@ extern void do_abort_interp(dbref player, const char *msg, struct inst *pc,
      struct inst *arg, int atop, struct frame *fr,
      struct inst *oper1, struct inst *oper2, struct inst *oper3,
      struct inst *oper4, struct inst *oper5, struct inst *oper6, 
-     int nargs, dbref program, char *file, int line);
+     int nargs, dbref program, const char *file, int line);
 
 
 
