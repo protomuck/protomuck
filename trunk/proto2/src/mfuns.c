@@ -1265,7 +1265,7 @@ mfn_default(MFUNARGS)
     CHECKRETURN(ptr, "IF", "arg 1");
     if (ptr && truestr(buf)) {
         if (!ptr)
-            ptr = "";
+            ptr = (char *)"";
     } else {
         ptr = MesgParse(argv[1], buf);
         CHECKRETURN(ptr, "IF", "arg 2");
@@ -1282,7 +1282,7 @@ mfn_if(MFUNARGS)
     if (argc == 3) {
         fbr = argv[2];
     } else {
-        fbr = "";
+        fbr = (char *)"";
     }
     ptr = MesgParse(argv[0], buf);
     CHECKRETURN(ptr, "IF", "arg 1");
@@ -1294,7 +1294,7 @@ mfn_if(MFUNARGS)
         CHECKRETURN(ptr, "IF", "arg 3");
     } else {
         *buf = '\0';
-        ptr = "";
+        ptr = (char *)"";
     }
     return ptr;
 }

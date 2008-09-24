@@ -169,7 +169,7 @@ unparse_sysreturn(dbref *program, struct inst *pc)
     if (ptr->type == PROG_FUNCTION) {
         fname = ptr->data.mufproc->procname;
     } else {
-        fname = "???";
+        fname = (char *)"???";
     }
     sprintf(buf, "line %d, in function %s", pc->line, fname);
     return buf;
@@ -487,7 +487,7 @@ int primitive(const char *token);
 
 struct inst primset[3];
 static struct muf_proc_data temp_muf_proc_data = {
-    "__Temp_Debugger_Proc",
+    (char *)"__Temp_Debugger_Proc",
     0,
     0,
     NULL
@@ -812,7 +812,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text,
         i = atoi(arg);
         if (!i)
             i = STACK_SIZE;
-        ptr = "";
+        ptr = (char *)"";
         ref = program;
         for (j = fr->argument.top; j > 0 && i-- > 0;) {
             cnt = 0;
@@ -839,7 +839,7 @@ muf_debugger(int descr, dbref player, dbref program, const char *text,
         if ((ptr2 = (char *) index(arg, ','))) {
             *ptr2++ = '\0';
         } else {
-            ptr2 = "";
+            ptr2 = (char *)"";
         }
         if (!*arg) {
             if (fr->brkpt.lastlisted) {

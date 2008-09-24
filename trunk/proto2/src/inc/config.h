@@ -68,9 +68,21 @@
  *  the resolver daemon itself as well.
  */
 /* You can also control this using configure --enable-reslvd */
-#define USE_RESLVD
+#undef USE_RESLVD
 #define RESOLVER_HOST "127.0.0.1" /* I suggest using only an IP here. */
 #define RESOLVER_PORT 12111
+
+/*
+ * Some systems can hang for up to 30 seconds while trying to resolve
+ * hostnames.  Define this to use a non-blocking second process to resolve
+ * hostnames for you.  NOTE:  You need to compile the 'resolver' program
+ * (make resolver) and put it in the directory that the protomuck program is
+ * run from.
+ */
+#undef SPAWN_HOST_RESOLVER
+
+/* If this is defined, the resolver will try to restart itself if killed. */
+#define RESTART_RESOLVER
 
 /* Enable extensive hostname cache debugging */
 #undef HOSTCACHE_DEBUG
@@ -249,18 +261,6 @@
 
 #define TINYPORT      4567    /* Port that tinymuck uses for playing */
 
-/*
- * Some systems can hang for up to 30 seconds while trying to resolve
- * hostnames.  Define this to use a non-blocking second process to resolve
- * hostnames for you.  NOTE:  You need to compile the 'resolver' program
- * (make resolver) and put it in the directory that the protomuck program is
- * run from.
- */
-#define SPAWN_HOST_RESOLVER
-
-/* If this is defined, the resolver will try to restart itself if killed. */
-#define RESTART_RESOLVER 
-
 /* Debugging info for database loading */
 /* Alynna - Obsoleted, use -verboseload command line option */
 /* #undef VERBOSELOAD */
@@ -268,7 +268,7 @@
 /* More intensive database debugging. At the moment, this enables */
 /*  a valid_object check on every access to database objects.     */
 /*   -Hinoserm                                                    */
-#define DBDEBUG
+#undef DBDEBUG
 
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
@@ -530,6 +530,12 @@
 # define  errnosocket    errno
 #endif
 
+/* Obviously, if threading is available, we want to use the (much better)
+ *  threaded resolver instead of the seperate ones.  You can change this
+ *  if you want to try to use the globally-cached RESLVD first.  -Hinoserm
+ */
+
+
 #ifdef STDC_HEADERS
 # include <stdlib.h>
 #endif
@@ -619,6 +625,10 @@
 #endif
 #endif
 
+#if defined(HAVE_PTHREAD_H)
+# include <pthread.h>
+#endif
+
 /******************************************************************/
 /* System configuration stuff... Figure out who and what we are.  */
 /******************************************************************/
@@ -697,6 +707,13 @@
 
 #ifndef SYS_TYPE
 # define SYS_TYPE "UNKNOWN"
+#endif
+
+
+// This doesn't work as expected.  At all.  Ever.  -Hinoserm
+#if defined(HAVE_PTHREAD_H)
+# undef SPAWN_HOST_RESOLVER
+# undef USE_RESLVD
 #endif
 
 /******************************************************************/

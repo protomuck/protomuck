@@ -217,12 +217,16 @@ sig_reap_resolver(int i)
     if (resolverpid && resolverpid == pid && WIFSIGNALED(status)) {
         spawn_resolver();
         log_status("RES: Resolver restarted. (signal %d)\n", WTERMSIG(status));
+        
+#if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN_VC)
+        return 0;
+#endif
     }
 #endif
 #ifndef DISKBASE
     /* Alynna - make the parent process any save done messages */
     /* but only if ProtoMUCK is using forked dumps. -hinoserm */
-    else if (tp_dbdump_warning && dumper_pid && dumper_pid == pid) {
+    if (tp_dbdump_warning && dumper_pid && dumper_pid == pid) {
         if (WIFSIGNALED(status)) {
             log_status("WARNING!!! Forked dump process terminated with abnormal"
                        " signal %d! This usually means the dumper process"
@@ -241,4 +245,6 @@ sig_reap_resolver(int i)
 #if !defined(SYSV) && !defined(_POSIX_VERSION) && !defined(ULTRIX) && !defined(WIN_VC)
     return 0;
 #endif
+
+
 }

@@ -214,8 +214,8 @@ extern void do_restart(dbref player, const char *muckname, const char *msg);
 extern void fork_and_dump(register bool dofork);
 extern void archive_site(void);
 extern void dump_database(register bool dofork);
-extern int prop_command(int descr, dbref player, char *command, char *arg,
-                        char *type, int mt);
+extern int prop_command(int descr, dbref player, const char *command, const char *arg,
+                        const char *type, int mt);
 extern void dump_warning(void);
 extern char dump_done;
 extern int dumper_pid;
@@ -531,19 +531,19 @@ extern struct frame *interp(int descr, dbref player, dbref location,
 extern void prog_clean(struct frame *fr);
 
 /* From log.c */
-extern void log2file(char *myfilename, char *format, ...);
-extern void log2filetime(char *myfilename, char *format, ...);
-extern void log_command(char *format, ...);
-extern void log_error(char *format, ...);
-extern void log_gripe(char *format, ...);
-extern void log_muf(char *format, ...);
-extern void log_conc(char *format, ...);
-extern void log_status_nowall(char *format, ...);
-extern void log_status(char *format, ...);
-extern void show_status(char *format, ...);
-extern void log_other(char *format, ...);
-extern void notify_fmt(dbref player, char *format, ...);
-extern void anotify_fmt(dbref player, char *format, ...);
+extern void log2file(const char *myfilename, const char *format, ...);
+extern void log2filetime(const char *myfilename, const char *format, ...);
+extern void log_command(const char *format, ...);
+extern void log_error(const char *format, ...);
+extern void log_gripe(const char *format, ...);
+extern void log_muf(const char *format, ...);
+extern void log_conc(const char *format, ...);
+extern void log_status_nowall(const char *format, ...);
+extern void log_status(const char *format, ...);
+extern void show_status(const char *format, ...);
+extern void log_other(const char *format, ...);
+extern void notify_fmt(dbref player, const char *format, ...);
+extern void anotify_fmt(dbref player, const char *format, ...);
 extern void log_program_text(struct line *first, dbref player, dbref i);
 
 /* From signal.c */

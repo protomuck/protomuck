@@ -1936,7 +1936,7 @@ db_read(FILE * f)
 }                               /* db_read */
 
 int
-RawMWLevel(dbref thing, char *file, int line)
+RawMWLevel(dbref thing, const char *file, int line)
 {
     if (!OkObj(thing))
         return 0;

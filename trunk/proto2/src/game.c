@@ -1665,7 +1665,7 @@ process_command(int descr, dbref player, char *command)
  */
 
 int
-prop_command(int descr, dbref player, char *command, char *arg, char *type,
+prop_command(int descr, dbref player, const char *command, const char *arg, const char *type,
              int mt)
 {
     PropPtr ptr;

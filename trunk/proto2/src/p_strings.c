@@ -2476,7 +2476,7 @@ prim_flag_2char(PRIM_PROTOTYPE)
         abort_interp("Top argument must be a string. (1)");
     if (!oper1->data.string)
         abort_interp("Empty string given. (1)");
-    flag_str = malloc(strlen(oper1->data.string->data) + 1);
+    flag_str = (char *)malloc(strlen(oper1->data.string->data) + 1);
     strcpy(flag_str, oper1->data.string->data);
     while (*flag_str == '!') {
         n = !n;
@@ -2508,7 +2508,7 @@ prim_power_2char(PRIM_PROTOTYPE)
         abort_interp("Top argument must be a string. (1)");
     if (!oper1->data.string)
         abort_interp("Empty string given. (1)");
-    power_str = malloc(strlen(oper1->data.string->data) + 1);
+    power_str = (char *)malloc(strlen(oper1->data.string->data) + 1);
     strcpy(power_str, oper1->data.string->data);
     while (*power_str == '!') {
         n = !n;
@@ -2552,7 +2552,7 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
 
     if (oper2->type != PROG_STRING)
         abort_interp("Expected string argument. (2)");
-    fmtstr = DoNullInd(oper2->data.string);
+    fmtstr = (char *)DoNullInd(oper2->data.string);
     slen = strlen(fmtstr);
 
     nu = new_array_packed(0);

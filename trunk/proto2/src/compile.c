@@ -2055,7 +2055,7 @@ do_directive(COMPSTATE *cstat, char *direct)
                           "I don't understand what object you want to check with $ifauthor.");
         tmpptr = (char *) get_property_class(i, "_Author");
         if (!tmpptr || !*tmpptr) {
-            tmpptr = malloc(8);
+            tmpptr = (char *)malloc(8);
             strcpy(tmpptr, "Unknown");
             needFree = 1;
         }
@@ -2130,7 +2130,7 @@ do_directive(COMPSTATE *cstat, char *direct)
             tmpptr = (char *) get_property_class(i, "_Lib-Version");
         }
         if (!tmpptr || !*tmpptr) {
-            tmpptr = malloc(4);
+            tmpptr = (char *)malloc(4);
             strcpy(tmpptr, "0.0");
             needFree = 1;
         }

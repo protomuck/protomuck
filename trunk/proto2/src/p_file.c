@@ -33,7 +33,7 @@ extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
 char *tempc = NULL;
-char *directory = "$";
+char *directory = (char *)"$";
 
 char *
 set_directory(char *filename)
@@ -63,23 +63,23 @@ parse_token(char *filename)
     char *temp;
 
     if (strstr(filename, "$WELCOME.TXT") != NULL)
-        return "data/welcome.txt";
+        return (char *)"data/welcome.txt";
     if (strstr(filename, "$WELCOME.HTML") != NULL)
-        return "data/welcome.html";
+        return (char *)"data/welcome.html";
     if (strstr(filename, "$NEWS.TXT") != NULL)
-        return "data/news.txt";
+        return (char *)"data/news.txt";
     if (strstr(filename, "$MOTD.TXT") != NULL)
-        return "data/motd.txt";
+        return (char *)"data/motd.txt";
     if (strstr(filename, "$CONNECT.TXT") != NULL)
-        return "data/connect.txt";
+        return (char *)"data/connect.txt";
     if (strstr(filename, "$HELP.TXT") != NULL)
-        return "data/help.txt";
+        return (char *)"data/help.txt";
     if (strstr(filename, "$MAN.TXT") != NULL)
-        return "data/man.txt";
+        return (char *)"data/man.txt";
     if (strstr(filename, "$SYSPARMS.TXT") != NULL)
-        return "data/sysparms.txt";
+        return (char *)"data/sysparms.txt";
     if (strstr(filename, "$MPIHELP.TXT") != NULL)
-        return "data/mpihelp.txt";
+        return (char *)"data/mpihelp.txt";
     if ((temp = strstr(filename, "$NEWS/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
         char tempBuf2[BUFFER_LEN] = "data/news/";

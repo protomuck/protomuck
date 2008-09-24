@@ -321,7 +321,7 @@ scopedvar_getnum(struct frame *fr, int level, const char *varname)
  * MUF sockets if they are not closed elsewhere. 
  */
 void
-RCLEAR(struct inst *oper, char *file, int line)
+RCLEAR(struct inst *oper, const char *file, int line)
 {
     int varcnt, j;
 
@@ -675,7 +675,7 @@ copy_fors(struct forvars *forstack)
 
     for (in = forstack; in; in = in->next) {
         if (!for_pool) {
-            nu = malloc(sizeof(struct forvars));
+            nu = (struct forvars *)malloc(sizeof(struct forvars));
         } else {
             nu = for_pool;
             if (*last_for == for_pool->next) {
@@ -743,7 +743,7 @@ copy_trys(struct tryvars *trystack)
 
     for (in = trystack; in; in = in->next) {
         if (!try_pool) {
-            nu = malloc(sizeof(struct tryvars));
+            nu = (struct tryvars *)malloc(sizeof(struct tryvars));
         } else {
             nu = try_pool;
             if (*last_try == try_pool->next) {
@@ -1941,9 +1941,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                 (char **) malloc(count * sizeof(char **));
 
                             for (outcount = i = 0; i < count; i++) {
-                                char *val =
-                                    array_get_intkey_strval(temp1->data.array,
-                                                            i);
+                                char *val = (char *)
+                                    array_get_intkey_strval(temp1->data.array, i);
 
                                 if (val != NULL) {
                                     int found = 0;
@@ -2433,7 +2432,7 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
                 struct inst *oper1, struct inst *oper2,
                 struct inst *oper3, struct inst *oper4,
                 struct inst *oper5, struct inst *oper6, int nargs,
-                dbref program, char *file, int line)
+                dbref program, const char *file, int line)
 {
     char buffer[128];
 
