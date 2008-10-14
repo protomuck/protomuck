@@ -344,7 +344,7 @@ can_move2(int descr, dbref player, const char *direction, int lev)
         if ((FLAG2(player) & F2IMMOBILE) && !(FLAG2(matched) & F2IMMOBILE) &&
             (!OkObj(dest) || Typeof(dest) != TYPE_PROGRAM)) {
             envpropqueue(descr, player, OkObj(player) ? getloc(player) : -1,
-                         player, player, NOTHING, "@immobile", "Immobile", 1,
+                         matched, player, NOTHING, "@immobile", "Immobile", 1,
                          1);
             return 2;
         }

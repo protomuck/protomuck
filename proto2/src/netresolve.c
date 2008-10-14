@@ -179,14 +179,16 @@ threaded_resolver_go(void *ptr)
     }
 
     free((void *) tr);
-    return NULL;
+    pthread_exit(NULL);
 }
+
 
 bool
 host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
 {
     pthread_t thread1;
     struct tres_data *tr;
+    pthread_attr_t attr;
 
     tr = (struct tres_data *) malloc(sizeof(struct tres_data));
 
@@ -194,15 +196,21 @@ host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
     //tr->u = u;
     tr->lport = lport;
     tr->prt = prt;
+   
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     
-    if (pthread_create(&thread1, NULL, threaded_resolver_go, (void*) tr))
+    thread1 = pthread_create(&thread1, &attr, threaded_resolver_go, (void*) tr);
+ 
+    pthread_attr_destroy(&attr); 
+ 
+    if (thread1)
         return 0;
     else
         return 1;
 }
 
 #endif
-
 
 
 #ifdef USE_RESLVD
