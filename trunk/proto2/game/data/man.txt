@@ -8487,7 +8487,7 @@ all of the items from the stack that were not locked by the TRY prim, then
 unlocks the stack. It returns a string that represents the error that caused
 the code to skip to the CATCH-ENDCATCH block.
 
-See: TRY, ENDCATCH, EXCEPTION HANDLING
+See: TRY, ENDCATCH, CATCH_DETAILED, EXCEPTION HANDLING
 ~~~~~
 ENDCATCH
 
@@ -8499,7 +8499,7 @@ This prim represents the end of a CATCH-ENDCATCH section of code. If there
 are no errors thrown in the TRY-CATCH portion of the code, then none of the
 code between CATCH and ENDCATCH will be run. 
 
-See: TRY, CATCH, EXCEPTION HANDLING
+See: TRY, CATCH, CATCH_DETAILED, EXCEPTION HANDLING
 ~~~~
 EXCEPTION HANDLING|EXCEPTIONS|ERROR THROWING|ERROR CATCHING|EXCEPTION CATCHING
 
@@ -8511,7 +8511,8 @@ the code.
 TRY      denotes the start of a section of code that can catch errors, and 
          locks off the top so many items of the stack from being used. 
 CATCH    denotes where the code should skip to if an error is thrown after the
-         TRY call.
+         TRY call. CATCH_DETAILED has the same functionality, but returns more
+         information when an exception is thrown.
 ENDCATCH denotes the end of the CATCH block of code. If no error is thrown in 
          the TRY-CATCH segment, then the code between CATCH and ENDCATCH is
          never run. 
@@ -8529,7 +8530,7 @@ An example of it in use:
   ENDCATCH
 ;
 
-See: TRY, CATCH, ENDCATCH
+See: TRY, CATCH, ENDCATCH, CATCH_DETAILED
 ~~~~
 ENTRANCES_ARRAY
 
