@@ -1,7 +1,237 @@
 #!/bin/bash
+#
+# All of the parameters in this file override $GAMEDIR/muck.config. Make sure
+# you know what you're doing before proceeding.
+#
+# GAMEDIR should be the directory containig the 'data' amd 'muf' directories.
+# You can leave GAMEDIR alone if the restart script is located in the game
+# folder, the script will use it as a default. You should only need to change
+# GAMEDIR if your restart script is not located in the same folder as the game
+# that you're intending to restart.
+#
+#GAMEDIR=$HOME/proto/game
 
-. ./muck.config
-cp $MUCKOUT $MUCKOUT.bak
-cp $MUCKOUT $MUCKDB
-echo -n "($MUCKNAME on port $MAINPORT from $MUCKDB): "
+# This sets the GAMEDIR to be the same folder as this restart script, only if
+# you didn't already define it above. You can leave this alone, it reuses the
+# the value above if you set it yourself.
+GAMEDIR=${GAMEDIR:-${0%/*}}
+
+# This calls muck.config if it's present. Probably best to leave this alone.
+. "$GAMEDIR/muck.config" > /dev/null 2>&1
+
+# Once upon a time, the MAINPORT defined in this file was used by Proto. Now
+# it's just a way for the script to be able to see if the game is already
+# running. You only need to set this if you're running multiple games as the
+# same user and this script is complaining at you.
+#MAINPORT=8881
+
+
+# MOREPORTS specifies additional ports to listen on, for legacy purposes.
+# If you don't know what this is, you probably don't need it. This parameter
+# is ignored unless MAINPORT was also defined.
+#
+# To list multiple ports, separate them with spaces.  ie:
+# PORTS="8801 8802 8803"
+# Note: These ports do not override the ports in @tune.
+#MOREPORTS=""
+
+# The following are the paths to the db files to load, save to, and archive to.
+# MUCKOLD is the path and filename of the the previous database archive.
+# MUCKDB is the path and filename of the database to read in.
+# MUCKOUT is the path and filename of the database that the muck should save to.
+#
+# On a successful restart, MUCKDB is moved to MUCKOLD, and MUCKOUT is moved to
+# MUCKDB, then the server is started.  The server will save it's db to MUCKOUT.
+#
+#MUCKOLD=data/proto.old
+#MUCKDB=data/proto.db
+#MUCKOUT=data/proto.new
+
+
+# It's doubtful you will want to change this, unless you compile a different
+# path and filename into the server.  This is the file that deltadumps are
+# saved to.  After a successful restart, these deltas will be appended to the
+# end of the MUCKDB file.
+#
+#DELTAS=data/deltas-file
+
+###############################################################################
+#
+# You probably won't need to edit anything after this line.
+#
+###############################################################################
+
+#limit stacksize 16384
+#limit coredumpsize 50000
+ulimit -c 50000
+#limit memoryuse 16000
+ulimit -m 128000
+
+# If the user didn't override the GAMEDIR manually, assume that the restart
+# script itself is in the game directory and use that for our path. This has
+# the benefit of making this script reliably callable from any folder.
+GAMEDIR=${GAMEDIR:-${0%/*}}
+
+# ...And then actually make sure it exists before proceeding.
+if [ ! -d $GAMEDIR ]
+then
+	echo "GAMEDIR does not appear to exist:"
+	echo "  $GAMEDIR"
+	echo "Restart attempt aborted."
+	exit 1
+fi
+
+# Use default values unless the user overrode them in this file or muck.config.
+# MAINPORT has no default value, we leave that decision to the server itself.
+MUCKOLD=${MUCKOLD:-"data/proto.old"}
+MUCKDB=${MUCKDB:-"data/proto.db"}
+MUCKOUT=${MUCKOUT:-"data/proto.new"}
+DELTAS=${DELTAS:-"data/deltas-file"}
+
+cd $GAMEDIR
+
+#This is just so you get a new line if started by proto with a &.
+echo 
+
+if [ ! -x protomuck ]
+then
+	echo "You need to compile the protomuck server before you can run it."
+	echo "Read proto/INSTALL to see what to do."
+	exit 1
+fi
+
+echo "Restarting at: `date`"
+
+umask 077
+
+# If the MAINPORT is defined, we can make the running instance detection much
+# more specific. Great for running multiple sites under the same user.
+if [ "$MAINPORT" ]
+then
+	muck=`ps x | grep protomuck | grep ": $MAINPORT" | wc -l`
+else
+	muck=`ps x | grep protomuck | wc -l`
+fi
+
+datestamp=`date +%m%d%y%H%M`
+if [ "$muck" -gt 1 ]
+then
+	echo "A protomuck is already running under this user:"
+	echo  `ps x | grep protomuck | grep -v grep`
+	if [ -z "$MAINPORT" ]
+	then
+  		echo "(Define MAINPORT if you run multiple games under the same user)"
+       	fi
+	exit 1
+fi
+
+# Save any corefile:
+timestamp="`date +'%y.%m.%d.%H.%M'`"
+if [ -r $GAMEDIR/core ]
+then
+    mv $GAMEDIR/core $GAMEDIR/core.$timestamp
+fi
+
+# Use @autoarchive if you want to rotate logs, there's not much point in having
+# the status log archived in two separate locations.
+
+# Rename+compress "status" and "programs" logs too:
+#if [ -r $GAMEDIR/logs/status ]
+#then
+#    mv $GAMEDIR/logs/status $GAMEDIR/logs/oldlogs/status.$timestamp
+#    gzip -2 $GAMEDIR/logs/oldlogs/status.$timestamp
+#fi
+
+#if [ -r $GAMEDIR/logs/programs ]
+#then
+#    mv $GAMEDIR/logs/programs $GAMEDIR/logs/oldlogs/programs.$timestamp
+#    gzip -2 $GAMEDIR/logs/oldlogs/programs.$timestamp
+#fi
+
+touch logs/restarts
+echo "`date` - `who am i`" >> logs/restarts
+
+if [ -r $MUCKOUT.PANIC ]
+then
+	set end = "`tail -1 $MUCKOUT.PANIC`"
+	if ("$end" == "***END OF DUMP***" )
+	then
+		mv $MUCKOUT.PANIC $MUCKOUT
+		rm -f $DELTAS
+	else
+		rm $MUCKOUT.PANIC
+		echo "Warning: PANIC dump failed on "`date` | mail `whoami`
+	fi
+fi
+
+#
+# Fix the next lines to save all old dbs with datestamps if desired.
+#
+
+rm -f $MUCKOLD $MUCKOLD.gz
+if [ -r $MUCKOUT ]
+then
+	( ./protomuck -convert -decompress $MUCKDB $MUCKOLD ; gzip -8 $MUCKOLD ) &
+#	mv $MUCKOLD $MUCKOLD.$datestamp
+#	nice -20 gzip -9 $MUCKOLD.$datestamp &
+        # Only overwrite MUCKDB with MUCKOUT if MUCKOUT is newer.
+	find $MUCKOUT -newer $MUCKDB -exec mv -f $MUCKOUT $MUCKDB \;
+fi
+
+if [ ! -r $MUCKDB ]
+then
+	echo "Hey\!  You gotta have a "$MUCKDB" file to restart the server\!"
+	echo "Restart attempt aborted."
+	exit 1
+fi
+
+end="`tail -1 $MUCKDB`"
+if [ "$end" != '***END OF DUMP***' ]
+then
+	echo "WARNING\!  The "$MUCKDB" file is incomplete and therefore corrupt\!"
+	echo "Restart attempt aborted."
+	exit 1
+fi
+
+if [ -r $DELTAS ]
+then
+	echo "Restoring from delta."
+	end="`tail -1 $DELTAS`"
+	if [ "$end" == "***END OF DUMP***" ]
+	then
+		cat $DELTAS >> $MUCKDB
+	else
+		echo "Last delta is incomplete.  Truncating to previous dump."
+		grep -n '^***END OF DUMP***' $DELTAS|tail -1 >! .ftmp$$
+		llinum="`cut -d: -f1 < .ftmp$$`"
+		llcnt="`wc -l < .ftmp$$`"
+		if [ $llcnt > 0 ]
+		then
+			head -$llinum $DELTAS >> $MUCKDB
+		else
+			echo "Hmm.  No previous delta dump."
+		fi
+		rm .ftmp$$
+	fi
+	rm -f $DELTAS
+fi
+
+dbsiz=`ls -1s $MUCKDB | awk '{print $1}'`
+diskfree=`df -k . | tail -1 | awk '{print $4}'`
+
+diskneeded=$(($dbsiz * 3))
+spacediff=$(($diskneeded - $diskfree))
+
+if [ $diskfree -lt $diskneeded ]
+then
+    echo "WARNING: you have insufficient disk space."
+    echo "The server is starting anyway, but you should immediately clear out old log"
+    echo "files, etc. to free up approximately $spacediff more K of disk space."
+fi
+
+# echo "Server started at: `date`"
+#( ./protomuck $MUCKDB $MUCKOUT $PORTS >& logs/ttyerr.log ) &
+echo -n "(${MUCKNAME:-ProtoMUCK} on port ${MAINPORT:-(default)} from $MUCKDB): "
 ./protomuck $MUCKDB $MUCKOUT $MAINPORT $MOREPORTS
+# echo "Server stopped at: `date`"
+
