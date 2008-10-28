@@ -3790,8 +3790,6 @@ REMOVE_DUMPS = 1
 CLEAR_HOSTCACHE = 1
 ARCHIVE_MUF = 2 
 And remove the *.o files in the source directory after having compiled your MUCK.
-If you chose to archive logs, make sure to clean out the oldlogs/ directory now
-and then, since those can really build up over time. 
 
 See: @AUTOARCHIVE2 for more information.
 ~~~~~~~~~~~~
