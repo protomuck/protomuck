@@ -642,6 +642,9 @@ prim_itoc(PRIM_PROTOTYPE)
     oper1 = POP();
     if ((oper1->type != PROG_INTEGER) || (oper1->data.number < 0))
         abort_interp("Argument must be a positive integer. (1)");
+    /* This protection makes no sense, given the fact that almost
+       all of these codes are generatable other ways at M1. 
+       It also stops regular users from generating unicode. -- Alynna 
     if (((oper1->data.number > 127) && (mlev < LARCH))
         || (!isprint((char) oper1->data.number) && (mlev < LARCH)
             && ((char) oper1->data.number != '\n')
@@ -658,7 +661,10 @@ prim_itoc(PRIM_PROTOTYPE)
         PushString(buf);
     } else {
         PushNullStr;
-    }
+    } */
+    buf[0] = (char) oper1->data.number;
+    buf[1] = '\0';
+    PushString(buf);
 }
 
 void
