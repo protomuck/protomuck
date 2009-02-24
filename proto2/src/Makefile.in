@@ -23,7 +23,7 @@
 # use no-strict-aliasing because the fix is uglier.
 #   -Alynna 12-25-2006.
 
-OPTIM=-Wall -fno-strict-aliasing -O2 -g
+OPTIM=-Wall -fno-strict-aliasing -O2 -g -U_FORTIFY_SOURCE
 
 #
 # Paths

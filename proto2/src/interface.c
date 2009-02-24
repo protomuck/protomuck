@@ -1122,7 +1122,7 @@ queue_html(struct descriptor_data *d, char *msg)
 
     if ((d->connected
          && OkObj(d->player)) ? (Html(d->player)) : (d->type == CT_PUEBLO)) {
-        strcpy(buf, msg);
+        strncpy(buf, msg, BUFFER_LEN);
         return queue_ansi(d, buf);
     } else {
 /*		strcpy(buf, parse_html(msg)); */
@@ -1138,7 +1138,7 @@ queue_unhtml(struct descriptor_data *d, char *msg)
     if ((d->connected
          && OkObj(d->player)) ? (Html(d->player)) : (d->type == CT_PUEBLO)) {
 /*		if(strlen(msg) >= (BUFFER_LEN/6)) { */
-        strcpy(buf, html_escape2(msg, 0));
+        strncpy(buf, html_escape2(msg, 0), BUFFER_LEN);
 /*		} else {
 			strcpy(buf, html_escape(msg));
 			if (d->type == CT_HTTP) {
@@ -1147,7 +1147,7 @@ queue_unhtml(struct descriptor_data *d, char *msg)
 			strcpy(buf, html_escape2(msg, 0));
 		} */
     } else {
-        strcpy(buf, msg);
+        strncpy(buf, msg, BUFFER_LEN);
     }
     return queue_ansi(d, buf);
 }
