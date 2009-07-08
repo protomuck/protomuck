@@ -38,7 +38,7 @@ prim_time(PRIM_PROTOTYPE)
     {
         time_t lt;
 
-        lt = time((time_t *) 0);
+        lt = time(NULL);
         time_tm = localtime(&lt);
         result = time_tm->tm_sec;
         PushInt(result);
@@ -60,7 +60,7 @@ prim_date(PRIM_PROTOTYPE)
     {
         time_t lt;
 
-        lt = time((time_t *) 0);
+        lt = time(NULL);
         time_tm = localtime(&lt);
         result = time_tm->tm_mday;
         PushInt(result);
@@ -94,12 +94,14 @@ void
 prim_timesplit(PRIM_PROTOTYPE)
 {
     struct tm *time_tm;
+    time_t tt;
 
     CHECKOP(1);
     oper1 = POP();              /* integer: time */
     if (oper1->type != PROG_INTEGER)
         abort_interp("Invalid argument");
-    time_tm = localtime((time_t *) (&(oper1->data.number)));
+    tt = (time_t)oper1->data.number;
+    time_tm = localtime(&tt);
     CHECKOFLOW(8);
     CLEAR(oper1);
     result = time_tm->tm_sec;
@@ -125,6 +127,7 @@ void
 prim_timefmt(PRIM_PROTOTYPE)
 {
     struct tm *time_tm;
+    time_t tt;
 
     CHECKOP(2);
     oper2 = POP();              /* integer: time */
@@ -135,7 +138,8 @@ prim_timefmt(PRIM_PROTOTYPE)
         abort_interp("Illegal NULL string (1)");
     if (oper2->type != PROG_INTEGER)
         abort_interp("Invalid argument (2)");
-    time_tm = localtime((time_t *) (&(oper2->data.number)));
+    tt = (time_t)oper2->data.number;
+    time_tm = localtime(&tt);
     if (!format_time(buf, BUFFER_LEN, oper1->data.string->data, time_tm))
         abort_interp("Operation would result in overflow");
     CHECKOFLOW(1);
