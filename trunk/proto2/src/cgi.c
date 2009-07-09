@@ -42,6 +42,7 @@ unescape_url(char *url)
     for (i = 0, j = 0; url[j]; ++i, ++j) {
         if ((url[i] = url[j]) == '%') {
             url[i] = x2c(&url[j + 1]);
+            if (!url[j+1] || !url[j+2]) break;
             j += 2;
         }
     }
