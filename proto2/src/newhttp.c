@@ -635,7 +635,7 @@ http_formarray(const char *data)
             array_set_strkey_arrval(&nw, buf, nw2);
         }
         strcpy(buf, p);
-    } while (*p);
+    } while (*buf);
 
     free((void *) buf);
 
