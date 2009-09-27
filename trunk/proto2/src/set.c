@@ -38,6 +38,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
 {
     dbref thing;
     char *password;
+    char *placeholder = NULL; 
     char oldName[BUFFER_LEN];
     char nName[BUFFER_LEN];
     struct match_data md;
@@ -84,24 +85,55 @@ do_name(int descr, dbref player, const char *name, char *newname)
                                   "Only wizards can change player names.");
                 return;
             }
-
+            
             /* split off password */
-            for (password = newname;
-                 *password && !isspace(*password); password++) ;
-            /* eat whitespace */
-            if (*password) {
-                *password++ = '\0'; /* terminate name */
+            /* Akari - 09/27/09 - @name for players now requires a
+             * = sign to seperate off the password. */
+            password = newname;
+            while (1)
+            {
+                /* Pass over the name. Find potential end */
+                for (;*password && !isspace(*password) && *password != '='; password++) ;
+                /* If we're out of string, break out of the loop */
+                if (!(*password))
+                    break;
+ 
+                /* Mark this as a possible end of the entered name */
+                if (*password)
+                    placeholder = password;  
+                
+                /* See if we encountered a =. If so, terminate the string, advance
+                   1 character, and break the loop. */
+                if ( *password == '=' ) {
+                    *placeholder = '\0';
+                    password++;
+                    break;
+                }
+ 
+                /* Scan ahead to find if a = comes next */
                 while (*password && isspace(*password))
                     password++;
-            }
 
+                /* Now see if we stumbled across a = or more characters */
+                if ( *password && *password == '=' ) {
+                    /* Mark the end of the name */
+                    *placeholder = '\0';
+                    password++; 
+                    break; /* Get out of the loop */
+                }
+            }
+                  
+            /* eat whitespace */
+            while (*password && isspace(*password))
+                password++;
+            
             /* check for null password */
             if (!*password) {
                 anotify_nolisten2(player,
                                   CINFO
                                   "You must specify a password to change a player name.");
                 anotify_nolisten2(player,
-                                  CNOTE "E.g.: name player = newname password");
+                                  CNOTE "E.g.: name player=newname=password");
                 if (Wiz(OWNER(player)) || POWERS(player) & POW_PLAYER_CREATE)
                     anotify_nolisten2(player,
                                       SYSYELLOW
