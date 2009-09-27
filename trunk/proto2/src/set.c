@@ -42,6 +42,7 @@ do_name(int descr, dbref player, const char *name, char *newname)
     char oldName[BUFFER_LEN];
     char nName[BUFFER_LEN];
     struct match_data md;
+    int failsafe = 0; 
 
     if (tp_db_readonly)
         return;
@@ -92,6 +93,10 @@ do_name(int descr, dbref player, const char *name, char *newname)
             password = newname;
             while (1)
             {
+                /* Infinite loop failsafe check */
+                if ( failsafe++ > 100 )
+                    break; /* More than 10 spaces would just be egregious, right? */
+
                 /* Pass over the name. Find potential end */
                 for (;*password && !isspace(*password) && *password != '='; password++) ;
                 /* If we're out of string, break out of the loop */
