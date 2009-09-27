@@ -1264,4 +1264,43 @@ prim_mkdir(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
+void
+prim_rmdir(PRIM_PROTOTYPE)
+{
+    char *directoryName;
+    
+    CHECKOP(1);
+    oper1 = POP();
+
+#ifndef PROTO_AS_ROOT
+    if (getuid() == 0 )
+        abort_interp("Muck is running under root privs, file prims disabled.");
+#endif
+    
+    if (mlev < LBOY)
+        abort_interp("BOY primitive only.");
+    if (oper1->type != PROG_STRING)
+        abort_interp("Argument 1 is not a string.");
+    if (!oper1->data.string)
+        abort_interp("Argument 1 is a null string.");
+    directoryName = oper1->data.string->data;
+
+#ifdef SECURE_FILE_PRIMS
+    if (!(valid_name(directoryName)))
+        abort_interp("Invalid file name.");
+    if (strchr(directoryName, '$') == NULL)
+        directoryName = set_directory(directoryName);
+    else
+        directoryName = parse_token(directoryName);
+    if (directoryName == NULL)
+        abort_interp("Invalid shortcut used.");
+#endif
+    result = rmdir(directoryName);
+    if (tp_log_files)
+        log2filetime("logs/files", "#%d by %s RMDIR: %s \n", program,
+                     unparse_object(PSafe, PSafe),
+                     oper1->data.string->data);
+    CLEAR(oper1);
+    PushInt(result);
+}
 #endif /* FILE_PRIMS */
