@@ -246,7 +246,7 @@ object's @ofail field.
 See: KEYS, @OFAIL, @FAIL
 ~~~~~~
 @name
-@name <object>=<name> [<password>]
+@name <object>=<name>[=<password>]
 ----------------------------------
 Permissions: !GUEST  - To use on items
              W1 Mage - @name players if @tune wiz_name = yes
@@ -254,7 +254,8 @@ Permissions: !GUEST  - To use on items
 Sets the name field of <object> to <name>.  <name> cannot be empty, a null
 name is illegal.  
 If the object is a player, the <password> must be supplied.
-Wizards can rename any player by typing '@name <player>=<newname> yes'
+Wizards can rename any player by typing '@name <player>=<newname>=yes'
+Everyone else must rename themselves by typing
 
 By setting @tune wiz_name=yes, players will be unable to change their
 own names, and must request name changes from a mage or higher.
