@@ -3658,8 +3658,9 @@ check_connect(struct descriptor_data *d, const char *msg)
 void
 parse_connect(const char *msg, char *command, char *user, char *pass)
 {
-    int cnt;
-    char *p;
+    int cnt = 0;
+    char *p = NULL;
+    int bInQuotes = 0;
 
     while (*msg && isascii(*msg) && isspace(*msg)) /* space */
         msg++;
@@ -3671,11 +3672,36 @@ parse_connect(const char *msg, char *command, char *user, char *pass)
     cnt = 0;
     while (*msg && isascii(*msg) && isspace(*msg)) /* space */
         msg++;
-    p = user;
-    cnt = 0;
-    while (*msg && isascii(*msg) && !isspace(*msg) && (++cnt < BUFFER_LEN))
-        *p++ = *msg++;
-    *p = '\0';
+    if ( tp_spaces_in_playernames ) {
+        p = user;
+        cnt = 0;
+        /* Determine if this is a quoted name */
+        if ( *msg && ++cnt < 80 && ( *msg == '\'' || *msg == '\"' ) ){
+            bInQuotes = 1;
+            msg++; /* Move past the quote */
+        }
+        
+        if ( bInQuotes ){
+            while (*msg && isascii(*msg) && ++cnt < BUFFER_LEN && 
+                   !(*msg == '\'' || *msg == '\"' )) 
+                *p++ = *msg++;
+            msg++; /* Move past the ending quote */
+            *p = '\0';  
+        }
+        else {
+            /* Unquoted name, just treat as normal */
+            while (*msg && isascii(*msg) && !isspace(*msg))
+                *p++ = *msg++;
+            *p = '\0';
+        }
+    }
+    else {
+        p = user;
+        cnt = 0;
+        while (*msg && isascii(*msg) && !isspace(*msg) && (++cnt < BUFFER_LEN))
+            *p++ = *msg++;
+        *p = '\0';
+    }
     while (*msg && isascii(*msg) && isspace(*msg)) /* space */
         msg++;
     p = pass;
@@ -3684,7 +3710,6 @@ parse_connect(const char *msg, char *command, char *user, char *pass)
         *p++ = *msg++;
     *p = '\0';
 }
-
 
 int
 boot_off(dbref player)
