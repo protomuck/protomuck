@@ -190,6 +190,7 @@ File Prims:
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
   BWRITE    BREAD    BAPPEND   FRM        FREN     MKDIR
   FPUBLISH  FSINFO   FSTATS    CURID      FSIZE    GETDIR
+  RMDIR
 
 MCP Prims:
   MCP_REGISTER    MCP_REGISTER EVENT   MCP_SUPPORTS       MCP_BIND
@@ -3409,6 +3410,7 @@ frm                 ( s -- i )
 fren                ( s1 s2 -- i )
 getdir              ( s -- arr )
 mkdir               ( s -- i )
+rmdir               ( s -- i )
 newprogram          ( s -- d )
 compile             ( d i -- i )
 uncompile           ( d -- )
@@ -5069,7 +5071,7 @@ FWRITE, FREAD, FREADN, FREADTO, FAPPEND, FCR - For use with characters.
 BWRITE, BREAD, BAPPEND - For use with integer values for ASCII.
 FPUBLISH, FSINFO, FSTATS, CURID, FSIZE, FNAME-OK? - Getting file/host information.
 FRM, FREN - For moving/removing files.
-GETDIR, MKDIR - For working with directories.
+GETDIR, MKDIR, RMDIR - For working with directories.
 See: SHORTCUTS
 ~~~~~~
 SHORTCUTS|FILE SHORTCUTS|FILESHORTCUTS|SHORTCUT|FILE SHORTCUT
@@ -9718,6 +9720,21 @@ and requires the file token shortcuts. If the directory is made,
 directory.
 
 See: FILE PRIMS, SHORTCUTS
+~~~~
+RMDIR
+
+rmdir ( s -- i )
+----------------
+Level: W4 Boy
+s = name and path of the directory to delete
+i = Success in removing the directory
+
+Given a string, attempts to delete a directory by that name and
+all of that directory's contents. Respects and requires file
+token shortcuts. If the directory is deleted, 1 is returned.
+0 is returned if the prim was unable to delete the directory.
+
+See: FILE PRIMS, SHORTCUTS, MKDIR
 ~~~~
 DEBUGGER_BREAK
 
