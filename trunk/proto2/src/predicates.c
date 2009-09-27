@@ -603,8 +603,15 @@ ok_player_name(register const char *name)
         return 0;
 
     for (scan = name; *scan; scan++) {
-        if (!(isprint(*scan) && !isspace(*scan))) /* was isgraph(*scan) */
-            return 0;
+        if ( tp_spaces_in_playernames ) {
+            if ( !isprint(*scan)) {
+                return 0;
+            }         
+        }
+        else {
+            if ( !(isprint(*scan) && !isspace(*scan)) ) /* was isgraph(*scan) */
+                return 0;
+        }
     }
 
     if (name_is_bad(name))
