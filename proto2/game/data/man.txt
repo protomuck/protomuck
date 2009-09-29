@@ -64,6 +64,7 @@ Control Structures:
   INSTANCES    MAGECALL   WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
   GETPIDS      TRY        CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
   PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE  SELFCALL    DEBUGGER_BREAK
+  ENQUEUE
 
 Property Prims:
   ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
@@ -2646,6 +2647,25 @@ Takes a time in seconds, a program's dbref, and a parameter string.  It
 will execute the given program with the given string as the only string on
 the stack, after a delay of the given number of second.  Returns  the pid
 of the queued process, or 0 if the timequeue was full.
+~
+ENQUEUE
+
+enqueue (d1 i1 d2 s -- i2)
+--------------------------
+Level: W3 Archwizard
+d1 = dbref of a player or thing.
+i1 = integer representing a time in seconds.
+d2 = dbref of a program.
+s  = string representing the initial arguement to be given to the program.
+i2 = int representing either the pid of new program, or 0.
+
+Takes a player or thing's dbref to be the target of the queued program,
+a time in seconds, a program's dbref, and a parameter string.  It
+will execute the given program with the given string as the only string on
+the stack, after a delay of the given number of second.  Returns  the pid
+of the queued process, or 0 if the timequeue was full.
+
+See also: QUEUE.
 ~
 FORK
 

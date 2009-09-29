@@ -1351,29 +1351,27 @@ process_command(int descr, dbref player, char *command)
                 case 'v':
                 case 'V':
                     Matched("@version");
+                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK " PROTOBASE 
+                                               SYSPURPLE " (" SYSRED VERSION SYSPURPLE ")" 
+                                               SYSNORMAL " on " SYSCYAN
 #if defined(WIN32) || defined(WIN_VC)
-                    anotify_nolisten2(player, SYSCRIMSON "WinProto "
-                                      PROTOBASE
-                                      SYSPURPLE " (" SYSRED VERSION SYSPURPLE
-                                      ")");
+                    "Windows (native)"
 #else
 # ifdef CYGWIN
-                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK-Cygwin "
-                                      PROTOBASE SYSPURPLE " (" SYSRED
-                                      VERSION SYSPURPLE ")");
+                    "Windows (cygwin)"
 # else
 #  if defined(__APPLE__)
-                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK OS-X "
-                                      PROTOBASE SYSPURPLE " (" SYSRED
-                                      VERSION SYSPURPLE ")");
+                    "Mac OS X"
 #  else
-                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK "
-                                      PROTOBASE
-                                      SYSPURPLE " (" SYSRED VERSION
-                                      SYSPURPLE ")");
+#   if defined(__linux__)
+                    "GNU/Linux"
+#   else
+                    "Unix"
+#   endif
 #  endif
 # endif
 #endif
+		    SYSNORMAL ": " SYSGREEN UNAME_VALUE SYSNORMAL);
                     break;
                 case 'w':
                 case 'W':
