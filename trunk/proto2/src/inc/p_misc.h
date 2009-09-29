@@ -5,6 +5,7 @@ extern void prim_systime(PRIM_PROTOTYPE);
 extern void prim_timesplit(PRIM_PROTOTYPE);
 extern void prim_timefmt(PRIM_PROTOTYPE);
 extern void prim_queue(PRIM_PROTOTYPE);
+extern void prim_enqueue(PRIM_PROTOTYPE);
 extern void prim_kill(PRIM_PROTOTYPE);
 extern void prim_timestamps(PRIM_PROTOTYPE);
 extern void prim_refstamps(PRIM_PROTOTYPE);
@@ -59,7 +60,7 @@ extern void prim_escape_url(PRIM_PROTOTYPE);
     prim_debugger_break, prim_debug_on, prim_debug_off, prim_debug_line,  \
     prim_systime_precise, prim_htoi, prim_itoh, prim_unescape_url,        \
     prim_escape_url, prim_onevent, prim_interrupt_level, prim_refstamps,  \
-    prim_touch, prim_use, prim_MD5hash
+    prim_touch, prim_use, prim_MD5hash, prim_enqueue
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET", "SYSTIME",          \
     "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL", "TIMESTAMPS", "FORK", "PID", \
@@ -70,6 +71,6 @@ extern void prim_escape_url(PRIM_PROTOTYPE);
     "READ_WANTS_BLANKS", "DEBUGGER_BREAK", "DEBUG_ON", "DEBUG_OFF",       \
     "DEBUG_LINE", "SYSTIME_PRECISE", "HTOI", "ITOH", "UNESCAPE_URL",      \
     "ESCAPE_URL", "ONEVENT", "INTERRUPT_LEVEL", "REFSTAMPS",              \
-    "TOUCH", "USE", "MD5HASH"
+    "TOUCH", "USE", "MD5HASH", "ENQUEUE"
 
-#define PRIMS_MISC_CNT 47
+#define PRIMS_MISC_CNT 48

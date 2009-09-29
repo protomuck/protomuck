@@ -188,6 +188,49 @@ prim_queue(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
+void
+prim_enqueue(PRIM_PROTOTYPE)
+{
+    dbref temproom;
+
+    /* int dbref string -- */
+    CHECKOP(4);
+    oper1 = POP();
+    oper2 = POP();
+    oper3 = POP();
+    oper4 = POP();
+    if (mlev < LARCH)
+        abort_interp("W3 prim");
+    if (oper3->type != PROG_INTEGER)
+        abort_interp("Non-integer argument (1)");
+    if (oper2->type != PROG_OBJECT)
+        abort_interp("Argument must be a dbref (2)");
+    if (!valid_object(oper2))
+        abort_interp("Invalid dbref (2)");
+    if (Typeof(oper2->data.objref) != TYPE_PROGRAM)
+        abort_interp("Object must be a program (2)");
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument (3)");
+    if (Typeof(oper4->data.objref) != TYPE_PLAYER && Typeof(oper4->data.objref) != TYPE_THING)
+        abort_interp("Object must be a player or thing. (4)");
+
+    if ((oper5 = fr->variables + 1)->type != PROG_OBJECT)
+        temproom = DBFETCH(PSafe)->location;
+    else
+        temproom = oper5->data.objref;
+
+    result =
+        add_muf_delayq_event(oper3->data.number, dbref_first_descr(oper4->data.objref), oper4->data.objref, temproom,
+                             NOTHING, oper2->data.objref,
+                             DoNullInd(oper1->data.string), "Queued Event.", 0);
+
+    CLEAR(oper1);
+    CLEAR(oper2);
+    CLEAR(oper3);
+    CLEAR(oper4);
+    PushInt(result);
+}
+
 
 void
 prim_kill(PRIM_PROTOTYPE)
