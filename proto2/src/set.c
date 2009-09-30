@@ -1335,7 +1335,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     dbref thing;
     const char *p;
     object_flag_type f = 0, f2 = 0, f4 = 0;
-    int i;
+    int i=0;
 
     if (tp_db_readonly)
         return;
