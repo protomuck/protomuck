@@ -2571,8 +2571,7 @@ prim_array_string_fragment(PRIM_PROTOTYPE)
     while ( nCount + nChunkSize < nStrLen ) {
         strncpy(buf, tempPtr, nChunkSize );        
         *(buf+nChunkSize) = '\0';        
-        notify(3166, "loop:");
-        notify(3166, buf);
+    
         temp3.type = PROG_STRING;
         temp3.data.string = alloc_prog_string(buf);
         array_appenditem(&nu, &temp3);
@@ -2586,8 +2585,7 @@ prim_array_string_fragment(PRIM_PROTOTYPE)
         /* One last bit of string to process */
         strncpy(buf, tempPtr, nStrLen - nCount);
         *(buf+(nStrLen-nCount)) = '\0';
-        notify(3166, "if:");
-        notify(3166, buf);
+ 
         temp3.type = PROG_STRING;
         temp3.data.string = alloc_prog_string(buf);
         array_appenditem(&nu, &temp3);
