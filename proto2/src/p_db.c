@@ -2992,3 +2992,10 @@ prim_entrances_array(PRIM_PROTOTYPE)
     CLEAR(oper1);
     PushArrayRaw(nw);
 }
+
+void
+prim_lflags_update(PRIM_PROTOTYPE)
+{
+    lflags_update();
+}
+

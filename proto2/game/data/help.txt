@@ -117,7 +117,7 @@ Server and Data Base tools:
 @armageddon        @restart           @shutdown           @restrict    
 @sanity            @sanchange         @sanfix             @examine
 @uncompile         @fixwizbits        @tune               @dbginfo
-@ports suppport    MUF Ports          @autoarchive
+@ports suppport    MUF Ports          @autoarchive        @flags
 
 'Player Relations' Tools:
 @boot              @frob              dboot               @toad
@@ -172,8 +172,37 @@ WIZARD3/ARCHWIZARD      (W3)    WIZARD4/BOY             (W4)
 WIZARD5/MAN             (W5)
 
 Type 'help <flag>' to get more help on a flag.
-~
-~
+~~~
+@FLAGS|USERFLAGS|LOCALFLAGS
+
+@flags #list              List the local flags namespace
+@flags #update            Update the namespace after the @flags props on #0 has changed
+@flags <#> <name> <mlev>  Modify and update the local flags namespace
+
+Proto 2 beta 9 provides a full namespace of 32 flags, an entire bitfield, for local game
+usage.   Not only are flags much faster to set and test than properties, they are also
+easily accessible to users via @set and examine.
+
+Instead of spamming @tunes to accomodate the new flags, they are stored in the @flags
+propdir on #0.  However this is only their storage space, not their operating space.
+The local flags namespace is loaded into the db at startup, and then whenever the @flags
+command is used with either #update, or a flag is changed via @flags.
+
+The properties of the flags are as follows:
+ #0:@flags/<flagnum>/name:<name of the flag> (ALWAYS set to a string)
+ #0:@flags/<flagnum>/mlev:<mlevel needed to set/reset the flag> (ALWAYS set to an integer)
+
+Also you can use the @flags command to set up and update a local flag:
+ @flags 30 Faerie 5 
+ -- Names local flag 30 to "Faerie" and makes it require mlevel 5 (W1) to set it.
+
+Userflags are always readable, however the mlevel required to change them can be set by
+either the prop or the @flags command interface.  Use 'man mlevel' to decide which level
+to set it at.
+
+To change Userflags in MUF, set the appropriate properties using setprop, then issue the
+prim 'lflags_update' which basically just does what @flags #update does.
+~~~
 MUCK TOPICS|TOPICS|INDEX6|INDEX 6
 Topics:
 -------

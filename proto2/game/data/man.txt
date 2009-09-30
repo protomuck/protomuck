@@ -150,12 +150,13 @@ Data Base Prims:
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
   GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
   ANSI_NAME     REFSTAMPS   TOUCH        USE            ANSI_UNPARSEOBJ
+  ISFLAG?
       
 System Prims:
   SYSPARM         SETSYSPARM     LOGSTATUS     VERSION     FORCE
   FORCE_LEVEL     MOTD_NOTIFY    COMPILE       UNCOMPILE   BANDWIDTH
   DUMP            DELTA          SHUTDOWN      RESTART     ARMAGEDDON
-  SYSPARM_ARRAY
+  SYSPARM_ARRAY   SUID
 
 Socket Prims:
   SOCKOPEN        SOCKCLOSE      SOCKSEND      SOCKRECV       NBSOCKOPEN
@@ -2650,11 +2651,12 @@ of the queued process, or 0 if the timequeue was full.
 ~
 ENQUEUE
 
-enqueue (d1 i1 d2 s -- i2)
+enqueue (d1 i1/s1 d2 s -- i2)
 --------------------------
 Level: W3 Archwizard
 d1 = dbref of a player or thing.
-i1 = integer representing a time in seconds.
+i1 = integer representing a time in seconds. OR
+s1 = string indicating an argument for command @
 d2 = dbref of a program.
 s  = string representing the initial arguement to be given to the program.
 i2 = int representing either the pid of new program, or 0.
@@ -2664,6 +2666,11 @@ a time in seconds, a program's dbref, and a parameter string.  It
 will execute the given program with the given string as the only string on
 the stack, after a delay of the given number of second.  Returns  the pid
 of the queued process, or 0 if the timequeue was full.
+
+If a string is given instead of a delay integer at that particular argument,
+the delay is assumed to be 0, and instead, the string you give here will
+replace "Queued event." as the command @ argument passed to the MUF program
+that gets queued.
 
 See also: QUEUE.
 ~
@@ -10376,3 +10383,33 @@ The "flag" argument may be 0, or a combination of the following:
   
     $def REG_ICASE    1   (Case insensitive match)
     $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
+~~~
+SUID
+
+suid ( i:mode/descr d:target -- b:success )
+-------------------------------------------
+Level: W4 Boy
+i = mode or descriptor to give to the target
+d = target to receive the process and/or descriptor
+
+The SUID prim is useful for assigning players to MUF or HTTP descriptors, or
+for handing off a running MUF to another player.   The first argument takes
+the target of the handoff.   The second argument specifies either a mode or
+descriptor.  Here's what happens with different values for mode:
+
+-1: The process only is handed off to the target, the descriptor remains with
+    the trigger player.   This causes output to fork, anything notified to the
+    descriptor using a notify_descriptor class prim will go to the original
+    trigger, while anything notified to me @ will go to the target, as well as
+    any other output related to the program.
+ 0: The current descriptor of the running program, as well as the program itself
+    is handed off to the target.  If the descriptor is connected to a MUCK
+    connection like CT_MUCK or CT_SSL, when the program exits, the descriptor
+    will still be logged into the player.  In all instances, the descriptor is
+    handed to the target player and they are brought into an online state.  This
+    is mostly useful for assigning web and MUF connections to a particular 
+    player and for other 'alternative client' uses.
+>0: Same as above, except usable for any other descriptors as well.  Provide
+    the name 
+
+There was a reason why this is a W4 prim.  Tread Carefully.
