@@ -184,7 +184,7 @@ Array Prims:
   ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
   EXITS_ARRAY          ENTRANCES_ARRAY      GETOBJINFO         GETDESCRINFO
   FIND_ARRAY           ARRAY_CUT            ARRAY_COMPARE      ARRAY_INTERPRET
-  ARRAY_SORT_INDEXED   ARRAY_SUM
+  ARRAY_SORT_INDEXED   ARRAY_SUM            ARRAY_STRING_FRAGMENT
   }ARRAY     }LIST     }DICT     }JOIN      }CAT
 
 File Prims: 
@@ -5781,6 +5781,7 @@ ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
 ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
 EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
 ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED
+ARRAY_SUM            ARRAY_STRING_FRAGMENT
 
 See: Individual entries for more information.
 ~~~~~~
@@ -10059,6 +10060,25 @@ in the array, the result will be float, even if the result is not
 fractional.
 
 If any other datatypes are in the array, it will abort in an error.
+~~~~~
+ARRAY_STRING_FRAGMENT
+
+array_string_fragment ( s i -- a )
+Level: m1 Apprentice
+
+s = A string to break up
+i = The size of fragments to break it into 
+
+Takes string s and breaks it into fragments of size i and returns
+them in array a.
+ 
+For example:
+"Greetings" 3 array_string_fragment would return an array with
+"Gre" "eti" "ngs" as the 3 values. 
+Using a value of 1 for i will break the string into individual
+characters. i must be greater than 0. 
+
+See: ARRAYS2
 ~~~~~
 LABELS|MUF LABELS|LABEL|MUFLABELS|LABELS1|LABEL1
 
