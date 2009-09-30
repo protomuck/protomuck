@@ -2564,34 +2564,41 @@ prim_array_string_fragment(PRIM_PROTOTYPE)
     nChunkSize = temp1.data.number;
     
     nu = new_array_packed(0);
-    nStrLen = temp2.data.string->length;
-   
-    tempPtr = temp2.data.string->data; 
-
-    while ( nCount + nChunkSize < nStrLen ) {
-        strncpy(buf, tempPtr, nChunkSize );        
-        *(buf+nChunkSize) = '\0';        
     
-        temp3.type = PROG_STRING;
-        temp3.data.string = alloc_prog_string(buf);
-        array_appenditem(&nu, &temp3);
-        CLEAR(&temp3);
+    if ( temp2.data.string ) {
+        nStrLen = temp2.data.string->length;
+        tempPtr = temp2.data.string->data;
+
+        while ( nCount + nChunkSize < nStrLen ) {
+            strncpy(buf, tempPtr, nChunkSize );        
+            *(buf+nChunkSize) = '\0';        
+    
+            temp3.type = PROG_STRING;
+            temp3.data.string = alloc_prog_string(buf);
+            array_appenditem(&nu, &temp3);
+            CLEAR(&temp3);
         
-        nCount += nChunkSize;
-        tempPtr += nChunkSize;
+            nCount += nChunkSize;
+            tempPtr += nChunkSize;
+        }
+ 
+        if ( nCount != nStrLen ){
+            /* One last bit of string to process */
+            strncpy(buf, tempPtr, nStrLen - nCount);
+            *(buf+(nStrLen-nCount)) = '\0';
+ 
+            temp3.type = PROG_STRING;
+            temp3.data.string = alloc_prog_string(buf);
+            array_appenditem(&nu, &temp3);
+            CLEAR(&temp3);
+        }
     }
- 
-    if ( nCount != nStrLen ){
-        /* One last bit of string to process */
-        strncpy(buf, tempPtr, nStrLen - nCount);
-        *(buf+(nStrLen-nCount)) = '\0';
- 
+    else {
         temp3.type = PROG_STRING;
-        temp3.data.string = alloc_prog_string(buf);
+        temp3.data.string = alloc_prog_string("");
         array_appenditem(&nu, &temp3);
         CLEAR(&temp3);
     }
- 
     CLEAR(&temp1);
     CLEAR(&temp2);
    
