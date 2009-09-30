@@ -446,6 +446,7 @@ static const char *
 flag_description(register dbref thing)
 {
     static char buf[1024];
+    static char buf2[32];
 
     strcpy(buf, SYSGREEN "Type: " SYSYELLOW);
     switch (Typeof(thing)) {
@@ -592,6 +593,14 @@ flag_description(register dbref thing)
                 strcat(buf, tp_userflag_name);
             }
         }
+	int i,j;
+	for (i=0; i<32; i++)
+	    if (LFLAG(thing) & LFLAGx(i)) {
+		strncpy(buf2, lflag_name[i], 32);
+		for (j=0; j<32; j++) buf2[j]=UPCASE(buf2[j]);
+                strcat(buf, " ");
+		strcat(buf, buf2);
+	    }
     }
     return buf;
 }

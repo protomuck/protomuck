@@ -50,6 +50,7 @@ extern void prim_compiledp(PRIM_PROTOTYPE);
 extern void prim_setpassword(PRIM_PROTOTYPE);
 extern void prim_newpassword(PRIM_PROTOTYPE);
 extern void prim_nextentrance(PRIM_PROTOTYPE);
+extern void prim_isflagp(PRIM_PROTOTYPE);
 extern void prim_ispowerp(PRIM_PROTOTYPE);
 extern void prim_powerp(PRIM_PROTOTYPE);
 extern void prim_newprogram(PRIM_PROTOTYPE);
@@ -77,7 +78,7 @@ extern void prim_entrances_array(PRIM_PROTOTYPE);
     prim_newpassword, prim_nextentrance, prim_ispowerp, prim_powerp,     \
     prim_newprogram, prim_compile, prim_uncompile, prim_contents_array,  \
     prim_exits_array, prim_getlinks_array, prim_getobjinfo, prim_findnext,\
-    prim_find_array, prim_entrances_array
+    prim_find_array, prim_entrances_array, prim_isflagp
 
 #define PRIMS_DB_NAMES "ADDPENNIES", "MOVETO", "PENNIES",    \
     "DBCMP", "DBREF", "CONTENTS", "EXITS", "NEXT",           \
@@ -93,6 +94,6 @@ extern void prim_entrances_array(PRIM_PROTOTYPE);
     "NEWPASSWORD", "NEXTENTRANCE", "ISPOWER?", "POWER?",     \
     "NEWPROGRAM", "COMPILE", "UNCOMPILE", "CONTENTS_ARRAY",  \
     "EXITS_ARRAY", "GETLINKS_ARRAY", "GETOBJINFO", "FINDNEXT",\
-    "FIND_ARRAY", "ENTRANCES_ARRAY"
+    "FIND_ARRAY", "ENTRANCES_ARRAY", "ISFLAG?"
 
-#define PRIMS_DB_CNT 62
+#define PRIMS_DB_CNT 63

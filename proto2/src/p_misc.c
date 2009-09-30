@@ -201,8 +201,8 @@ prim_enqueue(PRIM_PROTOTYPE)
     oper4 = POP();
     if (mlev < LARCH)
         abort_interp("W3 prim");
-    if (oper3->type != PROG_INTEGER)
-        abort_interp("Non-integer argument (1)");
+    if (oper3->type != PROG_INTEGER && oper3->type != PROG_STRING)
+        abort_interp("Argument must be integer or string (1)");
     if (oper2->type != PROG_OBJECT)
         abort_interp("Argument must be a dbref (2)");
     if (!valid_object(oper2))
@@ -219,11 +219,17 @@ prim_enqueue(PRIM_PROTOTYPE)
     else
         temproom = oper5->data.objref;
 
+    if (oper3->type == PROG_INTEGER) {
     result =
         add_muf_delayq_event(oper3->data.number, dbref_first_descr(oper4->data.objref), oper4->data.objref, temproom,
                              NOTHING, oper2->data.objref,
                              DoNullInd(oper1->data.string), "Queued Event.", 0);
-
+    } else {
+    result =
+        add_muf_delayq_event(0, dbref_first_descr(oper4->data.objref), oper4->data.objref, temproom,
+                             NOTHING, oper2->data.objref,
+                             DoNullInd(oper1->data.string), DoNullInd(oper3->data.string), 0);
+    }
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);

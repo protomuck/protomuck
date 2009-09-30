@@ -551,7 +551,8 @@ init_game(const char *infile, const char *outfile)
             add_property((dbref) 0, "_sys/max_connects", NULL, 0);
         }
     }
-
+    // Load the local flags into memory.
+    lflags_update();
     return 0;
 }
 
@@ -969,8 +970,13 @@ process_command(int descr, dbref player, char *command)
                             break;
                         case 'l':
                         case 'L':
-                            Matched("@flock");
-                            do_flock(descr, player, arg1, arg2);
+			    if (command[3] == 'a' || command[3] == 'A') {
+                        	Matched("@flags");
+                    		do_flags(descr, player, full_command);
+			    } else if (command[3] == 'o' || command[3] == 'O') {
+                        	Matched("@flock");
+                    		do_flock(descr, player, arg1, arg2);
+			    }
                             break;
                         case 'o':
                         case 'O':

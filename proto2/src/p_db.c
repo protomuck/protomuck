@@ -176,14 +176,11 @@ check_mlev(char *flag, int *truewiz)
 
     if (string_prefix("meeper", flag) || string_prefix("mpi", flag))
         return LMPI;
-    if (string_prefix("mucker", flag) || string_prefix("mucker1", flag)
-        || string_prefix("m1", flag))
+    if (string_prefix("mucker", flag) || string_prefix("mucker1", flag) || string_prefix("m1", flag))
         return LMUF;
-    if (string_prefix("nucker", flag) || string_prefix("mucker2", flag)
-        || string_prefix("m2", flag))
+    if (string_prefix("nucker", flag) || string_prefix("mucker2", flag) || string_prefix("m2", flag))
         return LM2;
-    if (string_prefix("sucker", flag) || string_prefix("mucker3", flag)
-        || string_prefix("m3", flag))
+    if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) || string_prefix("m3", flag))
         return LM3;
     if (string_prefix("mage", flag) || string_prefix("W1", flag))
         return (tp_multi_wizlevels ? LMAGE : LM3);
@@ -199,10 +196,33 @@ check_mlev(char *flag, int *truewiz)
 }
 
 int
+check_flag4(char *flag)
+{
+    char buf[32];
+    strncpy(buf,flag,32);
+
+    int i=0;
+    while(*(buf+i)) {
+	*(buf+i)=UPCASE(*(buf+i));
+	i++;
+    }
+
+    if (sscanf(buf, "LFLAG%d", &i) == 1 && i>=0 && i<=31)
+	return LFLAGx(i);
+
+    i=0; while (i<32 && string_compare(lflag_name[i],buf)) i++;
+    if (i < 32) 
+	return LFLAGx(i);
+
+    return 0;
+}
+
+int
 flag_check_perms(dbref ref, int flag, int mlev)
 {
     return 1;
 }
+
 
 int
 flag_check_perms2(dbref ref, int flag, int mlev)
@@ -288,52 +308,51 @@ flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
 int
 has_flagp(dbref ref, char *flag, int mlev)
 {
-    int truwiz = 0, tmp1 = 0, tmp2 = 0, lev = 0, tmp3 = 0, rslt = 0;
-    int result = 0;
+    int truwiz = 0, tmp1 = 0, tmp2 = 0, lev = 0, tmp5 = 0, tmp4 = 0, rslt = 0, result = 0;
 
-    tmp = 0;
     while (*flag == '!') {
         flag++;
         rslt = (!rslt);
     }
     if (!*flag)
         return -2;
+
     tmp1 = check_flag1(flag);
-    if (tmp1) {
+    tmp2 = check_flag2(flag, &tmp5);
+    tmp4 = check_flag4(flag);
+    lev = check_mlev(flag, &truwiz);
+    if (!tmp1 && !tmp2 && !tmp4 && !lev) return -1;
+    lev = check_mlev(flag, &truwiz);
+    if (lev) {
+        if (truwiz)
+            result = (MLevel(ref) >= lev);
+        else
+            result = (QLevel(ref) >= lev);
+    }    
+    if (!result && tmp1) {
         if (!flag_check_perms(ref, tmp1, mlev))
             return -2;
         if (tmp1 == DARK)
             result = ((FLAGS(ref) & DARK) || (FLAG2(ref) & F2HIDDEN));
         else
             result = (FLAGS(ref) & tmp1);
-    } else {
-        lev = check_mlev(flag, &truwiz);
-        if (lev) {
-            if (truwiz)
-                result = (MLevel(ref) >= lev);
-            else
-                result = (QLevel(ref) >= lev);
-        } else {
-            tmp2 = check_flag2(flag, &tmp3);
-            if (!tmp2)
-                return -1;
-            if (!flag_check_perms2(ref, tmp2, mlev))
-                return -2;
-            if (tmp3)
-                result = ((FLAG2(ref) & tmp2) && (FLAG2(ref) & tmp3));
-            else if (tmp2 == F2COMMAND)
-                result = ((FLAG2(ref) & tmp2) && !(FLAG2(ref) & F2NO_COMMAND));
-            else if (tmp2 == F2NO_COMMAND)
-                result = ((FLAG2(ref) & tmp2) || !(FLAG2(ref) & F2COMMAND));
-            else
-                result = (FLAG2(ref) & tmp2);
-        }
     }
-    if (rslt) {
-        return (!(result));
-    } else {
-        return (result);
+    if (!result && tmp2) {
+        if (!flag_check_perms2(ref, tmp2, mlev))
+            return -2;
+        if (tmp5)
+            result = ((FLAG2(ref) & tmp2) && (FLAG2(ref) & tmp5));
+        else if (tmp2 == F2COMMAND)
+            result = ((FLAG2(ref) & tmp2) && !(FLAG2(ref) & F2NO_COMMAND));
+        else if (tmp2 == F2NO_COMMAND)
+            result = ((FLAG2(ref) & tmp2) || !(FLAG2(ref) & F2COMMAND));
+        else
+            result = (FLAG2(ref) & tmp2);
     }
+    if (!result && tmp4) {
+        result = (FLAG4(ref) & tmp4);
+    }
+    return (rslt ? !result : result);
 }
 
 int
@@ -949,12 +968,14 @@ prim_copyobj(PRIM_PROTOTYPE)
 void
 prim_isflagp(PRIM_PROTOTYPE)
 {
+    int tmp;
     oper1 = POP();
     if (oper1->type != PROG_STRING)
         abort_interp("String expected.");
     result = (check_flag1(oper1->data.string->data)
-              || check_flag2(oper1->data.string->data, NULL)
-              || check_mlev(oper1->data.string->data, NULL));
+	      || check_flag4(oper1->data.string->data)
+              || check_flag2(oper1->data.string->data, &tmp)
+              || check_mlev(oper1->data.string->data, &tmp));
     CLEAR(oper1);
     PushInt(result);
 }
@@ -964,8 +985,10 @@ prim_set(PRIM_PROTOTYPE)
 /* SET */
 {
     int tmp2 = 0;
+    int tmp4 = 0;
     char *flag;
     int tWiz = 0;
+    int i;
 
     result = 0;
     CHECKOP(2);
@@ -1014,17 +1037,13 @@ prim_set(PRIM_PROTOTYPE)
         }
     }
     tmp = check_flag1(flag);
+    tmp2 = check_flag2(flag, &tWiz);
+    tmp4 = check_flag4(flag);
     if (!tmp) {
         tmp = check_mlev(flag, &tWiz);
         if (tmp > LMPI || (tmp == LMPI && mlev < LWIZ)) {
-
             abort_interp(tp_noperm_mesg);
-        } else if (tmp != LMPI) {
-            tmp = 0;
-            tmp2 = check_flag2(flag, &tWiz);
-            if (!tmp2)
-                abort_interp("Unrecognized flag");
-        }
+        } 
     }
     if (tmp == LMPI) {
         if (!flag_set_perms(ref, tmp, mlev, ProgUID))
@@ -1038,7 +1057,8 @@ prim_set(PRIM_PROTOTYPE)
             SetMLevel(ref, 0);
             DBDIRTY(ref);
         }
-    } else if (tmp) {
+    } 
+    if (tmp) {
         if (!flag_set_perms(ref, tmp, mlev, ProgUID))
             abort_interp(tp_noperm_mesg);
         if (!result) {
@@ -1050,7 +1070,8 @@ prim_set(PRIM_PROTOTYPE)
             FLAGS(ref) &= ~tmp;
             DBDIRTY(ref);
         }
-    } else {
+    } 
+    if (tmp2) {
         if (!flag_set_perms2(ref, tmp2, mlev, ProgUID))
             abort_interp(tp_noperm_mesg);
         if (!result) {
@@ -1062,7 +1083,22 @@ prim_set(PRIM_PROTOTYPE)
             FLAG2(ref) &= ~tmp2;
             DBDIRTY(ref);
         }
+    } 
+    if (tmp4) {
+        i=0; while (1 << i != tmp4) i++;
+        if (mlev < lflag_mlev[i])	
+	    abort_interp(tp_noperm_mesg);
+        if (!result) {
+            ts_modifyobject(program, ref);
+            FLAG4(ref) |= tmp4;
+            DBDIRTY(ref);
+        } else {
+            ts_modifyobject(program, ref);
+            FLAG4(ref) &= ~tmp4;
+            DBDIRTY(ref);
+        }
     }
+
     CLEAR(oper1);
     CLEAR(oper2);
 }

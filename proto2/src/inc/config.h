@@ -318,7 +318,7 @@
 #define VERBOSE_EXAMINE
 
 /* limit on player name length */
-#define PLAYER_NAME_LIMIT 16
+#define PLAYER_NAME_LIMIT tp_max_player_name_length
 
 /************************************************************************
    Various Messages 

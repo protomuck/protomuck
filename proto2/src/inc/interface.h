@@ -159,6 +159,9 @@ struct descriptor_data {
 #ifdef USE_SSL
 #define DF_SSL         0x100 /* Indicates that this connection is SSL - Alynna */
 #endif /* USE_SSL */
+#define DF_SUID        0x200 /* Set when this descriptor gets assigned a player */
+#define DF_WEBCLIENT   0x400 /* Reserved for Nuku's webclient */
+#define DF_MISC       0x8000 /* You can play with this */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
@@ -276,6 +279,7 @@ extern int pfirstconn(dbref who);
 extern int pset_user(struct descriptor_data *d, dbref who);
 extern int plogin_user(struct descriptor_data *d, dbref who);
 extern int pset_user2(int c, dbref who);
+extern int pset_user_suid(int c, dbref who);
 extern int pdescrbufsize(int c);
 extern dbref partial_pmatch(const char *name);
 extern void do_armageddon( dbref, const char * );

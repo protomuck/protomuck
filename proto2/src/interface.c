@@ -3841,6 +3841,12 @@ descr_flag_description(int descr)
     if (DR_RAW_FLAGS(d, DF_SSL))
         strcat(dbuf, " DF_SSL");
 #endif /* USE_SSL */
+    if (DR_RAW_FLAGS(d, DF_SUID))
+        strcat(dbuf, " DF_SUID");
+    if (DR_RAW_FLAGS(d, DF_WEBCLIENT))
+        strcat(dbuf, " DF_WEBCLIENT");
+    if (DR_RAW_FLAGS(d, DF_MISC))
+        strcat(dbuf, " DF_MISC");
     return dbuf;
 }
 
@@ -3874,6 +3880,9 @@ do_dinfo(dbref player, const char *arg)
     switch (d->type) {
         case CT_MUCK:
             ctype = "muck";
+            break;
+        case CT_MUF:
+            ctype = "muf";
             break;
 #ifdef NEWHTTPD
         case CT_HTTP:
@@ -5344,6 +5353,154 @@ pset_user2(int c, dbref who)
     return result;
 }
 
+void
+silent_connect(int descr, dbref player)
+{
+    dbref loc;
+    char buf[BUFFER_LEN];
+
+    if ((loc = getloc(player)) == NOTHING)
+        return;
+
+
+    if (Guest(player)) {
+        FLAGS(player) &= ~CHOWN_OK;
+    }
+    DBFETCH(player)->sp.player.last_descr = descr;
+    if (!tp_quiet_connects) {
+        if ((!Dark(player)) && (!Dark(loc)) && (!Hidden(player))) {
+            if (online(player) == 1)
+                sprintf(buf, CMOVE "%s has connected.", PNAME(player));
+            else
+                sprintf(buf, CMOVE "%s has reconnected.", PNAME(player));
+            anotify_except(DBFETCH(loc)->contents, player, buf, player);
+        }
+    }
+    return;
+}
+
+void
+silent_disconnect(struct descriptor_data *d)
+{
+    dbref player = d->player;
+    dbref loc;
+    char buf[BUFFER_LEN];
+
+    if (!d->connected || !OkObj(player) || (Typeof(player) != TYPE_PLAYER) ||
+        ((loc = getloc(player)) == NOTHING)
+        )
+        return;
+
+    if (!tp_quiet_connects) {
+        if ((!Dark(player)) && (!Dark(loc)) && (!Hidden(player))) {
+            if (online(player) == 1)
+                sprintf(buf, CMOVE "%s has disconnected.", PNAME(player));
+            else
+                sprintf(buf, CMOVE "%s has dropped a connection.",
+                        PNAME(player));
+            anotify_except(DBFETCH(loc)->contents, player, buf, player);
+        }
+    }
+
+    if (!online(player) && (FLAG2(player) & F2IDLE)) {
+        FLAG2(player) &= ~F2IDLE;
+    }
+    if (!online(player) && (FLAG2(player) & F2TRUEIDLE)) {
+        FLAG2(player) &= ~F2TRUEIDLE;
+    }
+    DBDIRTY(player);
+}
+
+void
+transfer_descr_to_player(int descr, dbref source, dbref target)
+{
+    int count = DBFETCH(target)->sp.player.descr_count;
+    int *arr = DBFETCH(target)->sp.player.descrs;
+    int index;
+
+    index = descr_index(descr);
+
+    if ((index < 0) || (index >= MAX_SOCKETS))
+        return;
+
+    if (!arr) {
+        arr = (int *) malloc(sizeof(int));
+        arr[0] = index;
+        count = 1;
+    } else {
+        arr = (int *) realloc(arr, sizeof(int) * (count + 1));
+        arr[count] = index;
+        count++;
+    }
+
+    DBFETCH(target)->sp.player.descr_count = count;
+    DBFETCH(target)->sp.player.descrs = arr;
+    count = DBFETCH(source)->sp.player.descr_count;
+    arr = DBFETCH(source)->sp.player.descrs;
+
+    if (!arr) {
+        count = 0;
+    } else if (count > 1) {
+        int src, dest;
+
+        for (src = dest = 0; src < count; src++) {
+            if (arr[src] != index) {
+                if (src != dest) {
+                    arr[dest] = arr[src];
+                }
+                dest++;
+            }
+        }
+        if (dest != count) {
+            count = dest;
+            arr = (int *) realloc(arr, sizeof(int) * count);
+        }
+    } else {
+        free((void *) arr);
+        arr = NULL;
+        count = 0;
+    }
+    DBFETCH(source)->sp.player.descr_count = count;
+    DBFETCH(source)->sp.player.descrs = arr;
+}
+
+int
+pset_user_suid(int c, dbref who)
+{
+
+    struct descriptor_data *d;
+
+    if (who == NOTHING)
+	return 0;
+
+    d = descrdata_by_descr(c);
+    if (!d)
+        return 0;
+
+    if (!d->connected)
+        return 0;
+    d->booted = 0;
+
+    /* If this descriptor is assigned to a player, silently disconnect this descriptor from the player. */
+    if (d->player != NOTHING) {
+        total_loggedin_connects--;
+	silent_disconnect(d);
+	transfer_descr_to_player(d->descriptor, d->player, who);
+    }
+    
+    d->player = who;
+    silent_connect(d->descriptor, who);
+    total_loggedin_connects++;
+    update_desc_count_table();
+    DR_ADD_FLAGS(d->descriptor, DF_SUID);
+
+    if (d->type == CT_PUEBLO) {
+        FLAG2(d->player) |= F2PUEBLO;
+    } else {
+        FLAG2(d->player) &= ~F2PUEBLO;
+    }
+    return 1;
+}
 int
 dbref_first_descr(dbref c)
 {

@@ -14,6 +14,9 @@
 #include "interface.h"
 #include "externs.h"
 
+char lflag_name[32][32];
+int lflag_mlev[32];
+
 static dbref
 match_controlled(int descr, dbref player, const char *name)
 {
@@ -1331,7 +1334,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
 {
     dbref thing;
     const char *p;
-    object_flag_type f = 0, f2 = 0;
+    object_flag_type f = 0, f2 = 0, f4 = 0;
+    int i;
 
     if (tp_db_readonly)
         return;
@@ -1564,13 +1568,37 @@ do_set(int descr, dbref player, const char *name, const char *flag)
                                                           p))) {
         f2 = F2MOBILE;
     } else {
-        anotify_nolisten2(player, CINFO "I don't recognize that flag.");
-        return;
+	i=0; while (i<32 && string_compare(lflag_name[i],p)) i++;
+	if (i == 32) {
+            anotify_nolisten2(player, CINFO "I don't recognize that flag.");
+	    return;
+	} else f4 = LFLAGx(i);
     }
     if ((Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing))))
         && !(f2 == F2PROTECT)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
+    }
+    if (f4) { // LOCAL flags!  They are SO COOL!
+	if (MLevel(player) < lflag_mlev[i]) {
+            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+	    return;
+	}
+        /* else everything is ok, do the set */
+        if (*flag == NOT_TOKEN) {
+            /* reset the flag */
+            ts_modifyobject(player, thing);
+            LFLAG(thing) &= ~f4;
+            DBDIRTY(thing);
+            anotify_nolisten2(player, CSUCC "Flag reset.");
+        } else {
+            /* set the flag */
+            ts_modifyobject(player, thing);
+            LFLAG(thing) |= f4;
+            DBDIRTY(thing);
+            anotify_nolisten2(player, CSUCC "Flag set.");
+        }
+	return;
     }
     if (f2) {                   /* New flags */
         /* check for restricted flag */
@@ -1752,4 +1780,107 @@ do_propset(int descr, dbref player, const char *name, const char *prop)
         return;
     }
     anotify_nolisten2(player, CSUCC "Property set.");
+}
+
+void 
+lflags_update()
+{
+    int i;
+    PropPtr p;
+    char buf[BUFFER_LEN];
+
+    for (i=0; i<32; i++) {
+	sprintf(buf, "@flags/%d/mlev", i);
+	p = get_property((dbref)0, buf);
+	if (!p)
+	    lflag_mlev[i] = 0;
+	else
+	    lflag_mlev[i] = PropDataVal(p);
+	sprintf(buf, "@flags/%d/name", i);
+	p = get_property((dbref)0, buf);
+	if (!p) {
+	    sprintf(buf,"LFLAG%d",i);
+	    strncpy(lflag_name[i], buf, 32);
+	} else {
+	    strncpy(lflag_name[i], PropDataUNCStr(p), 32);
+	}
+    }
+
+}
+
+void
+do_flags(int descr, dbref player, const char *args)
+{
+    int i;
+    PData pdat;
+    int lflag;
+    int lmlev;
+    char *orig[2];
+
+    char *buf=malloc(256);
+    char *lname=malloc(32);
+    
+    // Sanity
+    orig[0]=buf; orig[1]=lname;
+
+    if (tp_db_readonly)
+        return;
+
+    if (!Arch(player)) {
+        anotify(player, CFAIL "Only Archwizards (W3) or higher can define the Flags.");
+        return;
+    }
+
+    if (!args || !string_compare(args,"#update")) {
+	// Put flag update routine call right here.
+	lflags_update();
+	anotify(player, "The Local DB flags have been read from /@flags/ on #0, and updated in memory.");
+	anotify(player, "Syntax: @flags <flagnum 0..31> <flagname> <mlevel to write>");
+	return;
+    }
+
+    if (!string_compare(args,"#list")) {
+	anotify_fmt(player,"%8s%40s%8s","Flag","Flag Name","Level");
+	for (i=0; i<32; i++)
+    	    anotify_fmt(player,"%8d%40s%8d",i,lflag_name[i],lflag_mlev[i]);
+	return;
+    }
+
+    i = sscanf(args, "%d %s %d", &lflag, lname, &lmlev);
+    if (i != 3) {
+	anotify_fmt(player, "Syntax: @flags <flagnum 0..31> <flagname> <mlevel to write> (%d arguments detected, 3 were needed)",i);
+	return;
+    }
+
+    // Arg 1: The flag number.
+    if (lflag < 0 || lflag > 31) {
+	anotify(player, "Invalid local flag number.  Must be between 0 and 31.  See help @flags for more info.");
+	return;
+    }
+
+    // Arg 2: The flag name.  Defaults to LFLAG*
+    if (!lname || !*lname) sprintf(lname, "LFLAG%d", lflag);
+
+    // Arg 3: The write mlevel.  Local flags are always readable.
+    if (lmlev < -1 || lmlev > 9) {
+	anotify(player, "Invalid MLevel.  Must be between -1 and 9.  See help @flags for more info.");
+	return;
+    }
+
+    // Now we do the actual work.
+    buf = orig[0]; memset(buf, 0, sizeof(buf));
+    pdat.flags = PROP_STRTYP;
+    pdat.data.str = lname;
+    sprintf(buf, "@flags/%d/name", lflag);
+    set_property(0, buf, &pdat);
+    buf = orig[0]; memset(buf, 0, sizeof(buf));
+    pdat.flags = PROP_INTTYP;
+    pdat.data.val = lmlev;
+    sprintf(buf, "@flags/%d/mlev", lflag);
+    set_property(0, buf, &pdat);
+    lflags_update();
+    anotify_fmt(player, SYSGREEN "Local flag %d was named %s and given an mlevel of %d.", lflag, lname, lmlev);
+
+    free(orig[0]); free(orig[1]);
+    return;
 }

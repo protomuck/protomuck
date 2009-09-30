@@ -46,6 +46,12 @@ check_descr_flag(char *dflag)
     if (string_prefix("df_ssl", dflag))
         return DF_SSL;
 #endif /* USE_SSL */
+    if (string_prefix("df_suid", dflag))
+        return DF_SUID;
+    if (string_prefix("df_webclient", dflag))
+        return DF_WEBCLIENT;
+    if (string_prefix("df_misc", dflag))
+        return DF_MISC;
     return 0;
 }
 
@@ -59,7 +65,7 @@ descr_flag_set_perms(int dflag, int mlev, dbref prog)
 
     /* Standard non-settables */
     if (dflag == DF_HTML || dflag == DF_PUEBLO || dflag == DF_MUF
-        || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE
+        || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE || dflag == DF_SUID
 #ifdef USE_SSL
         || dflag == DF_SSL
 #endif /* USE_SSL */
@@ -605,6 +611,41 @@ prim_descr_setuser_nopass(PRIM_PROTOTYPE)
 
     result = pset_user2(tmp, ref);
 
+    PushInt(result);
+}
+
+void
+prim_suid(PRIM_PROTOTYPE)
+{
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+
+    if (mlev < LBOY)
+        abort_interp("W4 permissions required.");
+    if (oper1->type != PROG_OBJECT)
+        abort_interp("DBref expected. (1)");
+    if (ref != NOTHING && !valid_player(oper1))
+        abort_interp("Player dbref expected (1)");
+
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Integer expected. (2)");
+    if (oper2->data.number >= 1 && !pdescrp(oper2->data.number))
+        abort_interp("-1, 0, or valid descriptor required on item (2).");
+
+    fr->player = oper1->data.objref;
+    player = oper1->data.objref;
+    fr->variables[0].type = PROG_OBJECT;
+    fr->variables[0].data.objref = oper1->data.objref;
+
+    if (oper1->data.number > 0)
+        result = pset_user_suid(oper1->data.number, oper1->data.objref);
+    else if (oper1->data.number == 0)
+        result = pset_user_suid(fr->descr, oper1->data.objref);
+    else result = 1;
+
+    CLEAR(oper1);
+    CLEAR(oper2);
     PushInt(result);
 }
 
@@ -1222,6 +1263,42 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     CLEAR(&temp2);
 
     PushArrayRaw(nw);
+}
+
+void
+prim_descrtype(PRIM_PROTOTYPE)
+{
+    struct descriptor_data *dr;
+    static char dtype[16];
+    const char *p;
+    int x;
+
+    CHECKOP(1);
+    oper1 = POP();
+    if (mlev < LM2)
+        abort_interp("MUCKER level 2 prim.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Argument not an integer (1)");
+    if (!pdescrp(oper1->data.number))
+        abort_interp("That is not a valid descriptor.");
+    dr = descrdata_by_descr(oper1->data.number);
+    x = dr->type;
+    if (x == CT_MUCK) p = "MUCK";
+    if (x == CT_MUF) p = "MUF";
+    if (x == CT_LISTEN) p = "LISTEN";
+    if (x == CT_INBOUND) p = "INBOUND";
+    if (x == CT_OUTBOUND) p = "OUTBOUND";
+    if (x == CT_PUEBLO) p = "PUEBLO";
+#ifdef NEWHTTPD
+    if (x == CT_HTTP) p = "HTTP";
+#endif
+#ifdef USE_SSL
+    if (x == CT_SSL) p = "SSL";
+#endif
+    strcpy(dtype, p);
+    CLEAR(oper1);
+    CHECKOFLOW(1);
+    PushString((char *) dtype);
 }
 
 void
