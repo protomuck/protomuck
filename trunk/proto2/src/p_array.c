@@ -2538,3 +2538,66 @@ prim_array_sum(PRIM_PROTOTYPE)
     }
 
 }
+
+void
+prim_array_string_fragment(PRIM_PROTOTYPE)
+{
+    stk_array *nu;
+    char *tempPtr;
+    int nChunkSize = 0;
+    int nCount = 0; 
+    int nStrLen = 0;   
+
+    CHECKOP(2);
+    temp1 = *(oper1 = POP());
+    temp2 = *(oper2 = POP());
+    oper1 = &temp1;
+    oper2 = &temp2;
+    if ( temp1.type != PROG_INTEGER )
+        abort_interp("Non-integer argument (2)");
+    if ( temp2.type != PROG_STRING )
+        abort_interp("Non-string argument (1)");
+    if ( temp1.data.number < 1 )
+        abort_interp("Argument must be greater than 0. (2)");
+    CHECKOFLOW(1);
+    
+    nChunkSize = temp1.data.number;
+    
+    nu = new_array_packed(0);
+    nStrLen = temp2.data.string->length;
+   
+    tempPtr = temp2.data.string->data; 
+
+    while ( nCount + nChunkSize < nStrLen ) {
+        strncpy(buf, tempPtr, nChunkSize );        
+        *(buf+nChunkSize) = '\0';        
+        notify(3166, "loop:");
+        notify(3166, buf);
+        temp3.type = PROG_STRING;
+        temp3.data.string = alloc_prog_string(buf);
+        array_appenditem(&nu, &temp3);
+        CLEAR(&temp3);
+        
+        nCount += nChunkSize;
+        tempPtr += nChunkSize;
+    }
+ 
+    if ( nCount != nStrLen ){
+        /* One last bit of string to process */
+        strncpy(buf, tempPtr, nStrLen - nCount);
+        *(buf+(nStrLen-nCount)) = '\0';
+        notify(3166, "if:");
+        notify(3166, buf);
+        temp3.type = PROG_STRING;
+        temp3.data.string = alloc_prog_string(buf);
+        array_appenditem(&nu, &temp3);
+        CLEAR(&temp3);
+    }
+ 
+    CLEAR(&temp1);
+    CLEAR(&temp2);
+   
+    PushArrayRaw(nu);
+}      
+        
+
