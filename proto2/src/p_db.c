@@ -1086,8 +1086,10 @@ prim_set(PRIM_PROTOTYPE)
     } 
     if (tmp4) {
         i=0; while (1 << i != tmp4) i++;
-        if (mlev < lflag_mlev[i])	
-	    abort_interp(tp_noperm_mesg);
+	if (lflag_mlev[i]!=-1)
+	    if ((lflag_mlev[i]==0 && !controls(ProgUID, ref)) &&
+		(lflag_mlev[i]>0 && mlev < lflag_mlev[i]))
+		abort_interp(tp_noperm_mesg);
         if (!result) {
             ts_modifyobject(program, ref);
             FLAG4(ref) |= tmp4;
