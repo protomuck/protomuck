@@ -647,3 +647,8 @@ in ' or " marks.
 If this @tune is set to no, any existing characters with
 spaces in their name will no longer be able to log in but
 their Player object will otherwise not be affected.
+~~~
+max_player_name_length
+Specifies the maximum size of a player name, up to BUFFER_LEN 
+(usually 16384).  If you are using spaces_in_playernames, its a 
+good idea to increase this.
