@@ -380,6 +380,9 @@ extern void do_flock(int descr, dbref player, const char *name,
 extern void do_relink(int, dbref, const char *, const char *);
 extern void do_unlink_quiet(int, dbref, const char *);
 
+extern void do_flags(int descr, dbref player, const char *args);
+extern void lflags_update();
+
 /* From speech.c */
 extern void do_pose(int descr, dbref player, const char *message);
 extern void do_whisper(int descr, dbref player, const char *arg1,

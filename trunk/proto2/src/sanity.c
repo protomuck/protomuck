@@ -729,7 +729,7 @@ rand_password(void)
 void
 create_lostandfound(dbref *player, dbref *room)
 {
-    char player_name[PLAYER_NAME_LIMIT + 2] = "lost+found";
+    char player_name[18] = "lost+found";
     int temp = 0;
 
     *room = new_object(*player);
@@ -882,7 +882,7 @@ find_misplaced_objects(void)
                     break;
                 case TYPE_PLAYER:
                 {
-                    char name[PLAYER_NAME_LIMIT + 1] = "Unnamed";
+                    char name[32] = "Unnamed";
                     int temp = 0;
 
                     while (lookup_player(name) != NOTHING &&

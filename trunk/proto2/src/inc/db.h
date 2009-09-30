@@ -35,7 +35,7 @@
 
 /* max length of command argument to process_command */
 #define MAX_COMMAND_LEN 4096
-#define BUFFER_LEN ((MAX_COMMAND_LEN)*4)
+#define BUFFER_LEN ((MAX_COMMAND_LEN)*8)
 #define FILE_BUFSIZ ((BUFSIZ)*8)
 
 /* compression stuff */
@@ -143,6 +143,7 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define FLAG2(x)    (DBFETCH(x)->flag2)
 #define FLAG3(x)    (DBFETCH(x)->flag3)
 #define FLAG4(x)    (DBFETCH(x)->flag4)
+#define LFLAG(x)    (DBFETCH(x)->flag4)
 #define POWERS(x)   (DBFETCH(OWNER(x))->powers)
 #define POWERSDB(x) (DBFETCH(x)->powers)
 #define POWER2(x)   (DBFETCH(OWNER(x))->power2)
@@ -287,23 +288,40 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define F2IMMOBILE	0x40000	    /* Immobile support */
 #define F2SUSPECT       0x80000     /* SUSPECT support */
 
-/* F4 flags */
-#define UFLAG0	0x10000
-#define UFLAG1	0x20000
-#define UFLAG2	0x40000
-#define UFLAG3	0x80000
-#define UFLAG4	0x100000
-#define UFLAG5	0x200000
-#define UFLAG6	0x400000
-#define UFLAG7	0x800000
-#define UFLAG8	0x1000000
-#define UFLAG9	0x2000000
-#define UFLAGA	0x4000000
-#define UFLAGB	0x8000000
-#define UFLAGC	0x10000000
-#define UFLAGD	0x20000000
-#define UFLAGE	0x40000000
-#define UFLAGF	0x80000000
+/* F4 flags - for local use */
+#define LFLAG0	0x1
+#define LFLAG1	0x2
+#define LFLAG2	0x4
+#define LFLAG3	0x8
+#define LFLAG4	0x10
+#define LFLAG5	0x20
+#define LFLAG6	0x40
+#define LFLAG7	0x80
+#define LFLAG8	0x100
+#define LFLAG9	0x200
+#define LFLAG10	0x400
+#define LFLAG11	0x800
+#define LFLAG12	0x1000
+#define LFLAG13	0x2000
+#define LFLAG14	0x4000
+#define LFLAG15	0x8000
+#define LFLAG16	0x10000
+#define LFLAG17	0x20000
+#define LFLAG18	0x40000
+#define LFLAG19	0x80000
+#define LFLAG20	0x100000
+#define LFLAG21	0x200000
+#define LFLAG22	0x400000
+#define LFLAG23	0x800000
+#define LFLAG24	0x1000000
+#define LFLAG25	0x2000000
+#define LFLAG26	0x4000000
+#define LFLAG27	0x8000000
+#define LFLAG28	0x10000000
+#define LFLAG29	0x20000000
+#define LFLAG30	0x40000000
+#define LFLAG31	0x80000000
+#define LFLAGx(x) (1 << x)
 
 
 /* Proto @Powers */
@@ -992,6 +1010,9 @@ extern void macroload(FILE *f);
 extern int WLevel(dbref player);
 extern int db_load_format;
 extern bool db_md5_passwords;
+
+extern char lflag_name[32][32];
+extern int lflag_mlev[32];
 
 #define DOLIST(var, first) \
   for((var) = (first); (var) != NOTHING; (var) = DBFETCH(var)->next)

@@ -164,6 +164,7 @@ int tp_mcp_muf_mlev = MCP_MUF_MLEV;
 int tp_max_wiz_preempt_count = 0;
 int tp_wizhidden_access_bit = 3;
 int tp_userflag_mlev = 0;
+int tp_max_player_name_length = 32;
 
 int tp_wwwport = TINYPORT - 1;  /* hinoserm */
 
@@ -207,6 +208,7 @@ struct tune_val_entry tune_val_list[] = {
     {"Database", "max_loaded_objs", &tp_max_loaded_objs, LARCH, LMUF},
     {"Database", "wizhidden_access_bit", &tp_wizhidden_access_bit, WBOY, LMAGE},
     {"Database", "userflag_mlev", &tp_userflag_mlev, LARCH, LMUF},
+    {"Database", "max_player_name_length", &tp_max_player_name_length, LARCH, LMUF},
     {"MUF", "max_process_limit", &tp_max_process_limit, LARCH, LMUF},
     {"MUF", "max_plyr_processes", &tp_max_plyr_processes, LARCH, LMUF},
     {"MUF", "max_instr_count", &tp_max_instr_count, LARCH, LMUF},
