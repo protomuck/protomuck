@@ -1600,33 +1600,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         }
 	return;
     }
-    if (f2) {                   /* New flags */
-        /* check for restricted flag */
-        if (restricted2(player, thing, f2)) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-            return;
-        }
-        /* else everything is ok, do the set */
-        if (*flag == NOT_TOKEN) {
-            /* reset the flag */
-            ts_modifyobject(player, thing);
-            FLAG2(thing) &= ~f2;
-            DBDIRTY(thing);
-/*	if ((f2 == F2IDLE) && (Typeof(thing) == TYPE_PLAYER))
-		if (online(thing))
-			DR_CON_REM_FLAGS(least_idle_player_descr(thing), DF_IDLE); */
-            anotify_nolisten2(player, CSUCC "Flag reset.");
-        } else {
-            /* set the flag */
-            ts_modifyobject(player, thing);
-            FLAG2(thing) |= f2;
-            DBDIRTY(thing);
-/*	if ((f2 == F2IDLE) && (Typeof(thing) == TYPE_PLAYER))
-		if (online(thing))
-			DR_CON_ADD_FLAGS(least_idle_player_descr(thing), DF_IDLE); */
-            anotify_nolisten2(player, CSUCC "Flag set.");
-        }
-    } else {
+    if (f) { /* old ass flags */
         /* check for restricted flag */
         if (restricted(player, thing, f)) {
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -1646,6 +1620,55 @@ do_set(int descr, dbref player, const char *name, const char *flag)
             DBDIRTY(thing);
             anotify_nolisten2(player, CSUCC "Flag set.");
         }
+    return;
+    }
+    if (f2) { /* New f(l)ags */
+        /* check for restricted flag */
+        if (restricted2(player, thing, f2)) {
+            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+            return;
+        }
+        /* else everything is ok, do the set */
+        if (*flag == NOT_TOKEN) {
+            /* reset the flag */
+            ts_modifyobject(player, thing);
+            FLAG2(thing) &= ~f2;
+            DBDIRTY(thing);
+            anotify_nolisten2(player, CSUCC "Flag reset.");
+        } else {
+            /* set the flag */
+            ts_modifyobject(player, thing);
+            FLAG2(thing) |= f2;
+            DBDIRTY(thing);
+            anotify_nolisten2(player, CSUCC "Flag set.");
+        }
+    return;
+    } 
+    if (f4) { // LOCAL flags!  They are SO COOL!
+	// -1 = Free for all
+	//  0 = Anything I control
+	// >0 = Mlevel required
+	if (lflag_mlev[i]!=-1)
+	    if ((lflag_mlev[i]==0 && !controls(player, thing)) &&
+	        (lflag_mlev[i]>0 && MLevel(player) < lflag_mlev[i])) {
+        	anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+		return;
+	    }
+        /* else everything is ok, do the set */
+        if (*flag == NOT_TOKEN) {
+            /* reset the flag */
+            ts_modifyobject(player, thing);
+            LFLAG(thing) &= ~f4;
+            DBDIRTY(thing);
+            anotify_nolisten2(player, CSUCC "Flag reset.");
+        } else {
+            /* set the flag */
+            ts_modifyobject(player, thing);
+            LFLAG(thing) |= f4;
+            DBDIRTY(thing);
+            anotify_nolisten2(player, CSUCC "Flag set.");
+        }
+    return;
     }
 }
 

@@ -198,7 +198,11 @@ Also you can use the @flags command to set up and update a local flag:
 
 Userflags are always readable, however the mlevel required to change them can be set by
 either the prop or the @flags command interface.  Use 'man mlevel' to decide which level
-to set it at.
+to set it at. 
+
+At mlevel 0, the default, a flag can be set on anything someone controls.
+At mlevel -1, the flag can be set on anything by anyone.
+At mlevels greater than 0, it requires that mlevel of permissions to set it.
 
 To change Userflags in MUF, set the appropriate properties using setprop, then issue the
 prim 'lflags_update' which basically just does what @flags #update does.
