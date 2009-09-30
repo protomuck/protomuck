@@ -10413,3 +10413,13 @@ descriptor.  Here's what happens with different values for mode:
     the name 
 
 There was a reason why this is a W4 prim.  Tread Carefully.
+~~~
+LFLAGS_UPDATE
+
+lflags_update
+-------------
+Level: W3 Archwizard
+
+Simply refreshes the list of flags from the @flags props on #0.  Use this to
+update the names and permissions levels of local database flags while your
+program is running.
