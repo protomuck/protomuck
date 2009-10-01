@@ -638,9 +638,9 @@ prim_suid(PRIM_PROTOTYPE)
     fr->variables[0].type = PROG_OBJECT;
     fr->variables[0].data.objref = oper1->data.objref;
 
-    if (oper1->data.number > 0)
-        result = pset_user_suid(oper1->data.number, oper1->data.objref);
-    else if (oper1->data.number == 0)
+    if (oper2->data.number > 0)
+        result = pset_user_suid(oper2->data.number, oper1->data.objref);
+    else if (oper2->data.number == 0)
         result = pset_user_suid(fr->descr, oper1->data.objref);
     else result = 1;
 
