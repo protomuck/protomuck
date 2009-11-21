@@ -744,7 +744,7 @@ prim_bappend(PRIM_PROTOTYPE)
     if (oper2->data.number < 0)
         abort_interp("Arguement 2 is a negative number.");
     filename = oper1->data.string->data;
-    tempdat = (int) oper2->data.string->data;
+    tempdat = (int)oper2->data.string->data;
 #ifdef SECURE_FILE_PRIMS
     if (!(valid_name(filename)))
         abort_interp("Invalid file name.");

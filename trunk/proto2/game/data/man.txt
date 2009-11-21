@@ -162,7 +162,8 @@ Socket Prims:
   SOCKOPEN        SOCKCLOSE      SOCKSEND      SOCKRECV       NBSOCKOPEN
   SOCKCHECK       LSOCKOPEN      SOCKACCEPT    GET_SOCKINFO   SOCKET_SETUSER
   SET_SOCKOPT     SOCKTODESCR    SOCKSHUTDOWN  SOCKSECURE     SOCKUNSECURE
-  SSL_SOCKACCEPT  UDPSEND        UDPOPEN       UDPCLOSE
+  SSL_SOCKACCEPT  UDPSEND        UDPOPEN       UDPCLOSE       UDP6SEND
+  NBSOCK6OPEN     LSOCK6OPEN     SOCK6OPEN
 
 See: PRIMS6
 ~~~~~
@@ -4811,26 +4812,41 @@ is which while working on a program.
 
 When a program aborts or ends with any sockets still open, all open 
 sockets are closed. 
+
+
 NOTE: Socket prims are a compile time option and may not be present.
 SOCKOPEN is included strictly for backwards compatability, though now
 returns a non-blocking socket as well.
 
-See: SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
+Socket related prims:
+     SOCKOPEN, SOCKCLOSE, SOCKSEND, SOCKRECV, NBSOCKOPEN, SOCKCHECK,
      SOCKET?, SOCKDESCR, NBSOCKRECV, LSOCKOPEN, SOCKACCEPT, GET_SOCKINFO,
-     SOCKET_SETUSER, SET_SOCKOPT, SOCKTODESCR, SOCKSHUTDOWN
+     SOCKET_SETUSER, SET_SOCKOPT, SOCKTODESCR, SOCKSHUTDOWN, DNS
 
-As of Proto 2.0 if both SSL is compiled in and socket support, SSL 
-sockets are available, providing the primitives:
-
+SSL related prims (--enable-ssl):
      SOCKSECURE, SOCKUNSECURE, SSL_SOCKACCEPT
 
-If this support is available, you can check for it by seeing if
-SSL_SOCKETS is defined with $ifdef or an MUF check.
-~
-SOCKOPEN
+UDP related prims:
+     UDPSEND, UDPOPEN, UDPCLOSE
 
-sockopen ( s1 i -- socket s2 ) 
-------------------------------
+New IPv6 related prims (--enable-ipv6):
+     SOCK6OPEN, NBSOCK6OPEN, LSOCK6OPEN, UDP6SEND
+
+See: SOCKETS2
+~
+SOCKETS2|SOCKET PRIMS 2
+More notes on sockets:
+
+If IPv6 is enabled, UDPOPEN opens a listener on both ipv4 and ipv6.
+
+The IPv6 prims have the exact same function and format as the IPv4
+prims, but they take IPv6 addresses and hosts.  IPv6 prims will only
+attempt to seek IPv6 hosts.
+~
+SOCKOPEN|SOCK6OPEN
+
+sockopen/sock6open ( s1 i -- socket s2 ) 
+----------------------------------------
 Level: W3 ArchWizard
 s1 = string representing the host to connect to.
 i  = integer representing the port number to connect to.
@@ -4845,6 +4861,9 @@ connection is successful, a socket variable and string containing
 should be treated as a failed connection, and the socket return should
 be discarded. The code on this has been changed to create safer
 non-blocking sockets instead, and the timeout is 10 seconds.
+
+SOCK6OPEN performs the same function as SOCKOPEN, but it takes
+IPv6 hosts and IPs, and connects via IPv6.
 
 See: SOCKETS
 ~
@@ -7532,9 +7551,9 @@ have to be an object linked to d1, or even a valid dbref. Passing #-1 as d2
 will make it so that the search begins at the bottom of the data base, before
 #0.
 ~~~~~
-NBSOCKOPEN
+NBSOCKOPEN|NBSOCK6OPEN
 
-nbsockopen( s1 i -- socket s2 )
+nbsockopen/nbsock6open ( s1 i -- socket s2 )
 -------------------------------
 Level: W3 ArchWizard
 s1 = string representing the domain name to connect to.
@@ -7551,6 +7570,10 @@ The socket that is returned should then be checked with SOCKCHECK until
 the connection is completed, or a pre-determined time out has been reached.
 Note: The socket -must- clear through sockcheck before being used, or
 it may not perform correctly when used with socksend.
+
+NBSOCK6OPEN does precisely what NBSOCKOPEN does, except it takes 
+IPv6 addresses and makes IPv6 connections.  This requires you
+to compile in IPv6 support to use it.
 
 See: SOCKCHECK, SOCKET PRIMS
 ~~~~
@@ -8654,6 +8677,8 @@ PLAYER        (d) - The character's dbref that descr belongs to.
 PORT          (i) - The IP port that player connects from.
 TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port.
 USERNAME      (s) - The user name for that descr's IP address.
+IPV6          (i) - 1 if the connection is IPv6
+SSL           (i) - 1 if the connection is secured with SSL
 ~~~~
 FIND_ARRAY
 
@@ -8892,10 +8917,10 @@ This reports stats on the bandwidth usage of the MUCK in the form
 of bytes total.  Adding i1 and i2 together should give a very accurate
 total of the amount of data that has flowed over the MUCK's connections.
 ~~~~~
-LSOCKOPEN
+LSOCKOPEN|LSOCK6OPEN
 
-lsockopen ( i1 i2 -- lsock s )
-------------------------------
+lsockopen/lsock6open ( i1 i2 -- lsock s )
+-----------------------------------------
 Level: W4 Boy
 i1 = integer representing the waiting queue size
 i2 = integer representing the port to listen on
@@ -8918,6 +8943,10 @@ Once a listening socket is made, that port will stay open for as
 long as there is an instance of that MUF socket (either in a 
 variable or on the stack). Use SOCKACCEPT to accept incoming
 connections.
+
+LSOCK6OPEN does precisely what LSOCKOPEN does, except it binds
+to an IPv6 address and takes IPv6 connections.  This requires you
+to compile in IPv6 support.
 
 See: SOCKACCEPT, SOCKET PRIMS
 ~~~~
@@ -9349,6 +9378,10 @@ USERNAME     = Username for the socket's connection.
                With NBSOCKOPEN sockets, it is the player's name.
                With LSOCKOPEN sockets, it is the muck name.
                With SOCKACCEPT sockets, it is the remote connection username.
+IPV6         = If IPv6 is enabled, this is true when this socket is an 
+               IPv6 connection.
+SSL          = If SSL is enabled, the current connection is secured if 
+               this is true.
 
 See: SOCKET PRIMS
 ~~~~
@@ -10257,6 +10290,8 @@ i2 = 1 if successful, 0 if the port is in use.
 Opens a UDP listening port.  Your MUF program will receive events called 
 UDP.<port> whenever something is received in the port.
 
+If IPv6 support is compiled in, this also opens up an UDPv6 listener.
+
 See: UDP
 ~~~
 UDPCLOSE
@@ -10271,10 +10306,10 @@ Closes a UDP listening port.  Events on the port will stop coming.
 
 See: UDP
 ~~~
-UDPSEND
+UDPSEND|UDP6SEND
 
-udpsend ( s1 s2 i1 -- i2 )
-------------------
+udpsend/udp6send ( s1 s2 i1 -- i2 )
+-----------------------------------
 Level: W3 Archwizard
 s1 = UDP data to send
 s2 = Hostname or IP to send to
@@ -10285,6 +10320,9 @@ Attempts to send a UDP packet to a remote host, on the port specified.
 The packet size is limited to 1500 characters.  There is no way to know
 if the remote host gets the data, since it is a datagram.  If the host
 cannot be resolved, 0 is returned.  If sending is successful, 1 is returned.
+
+UDP6SEND does exactly what UDPSEND does, except it takes IPv6 addresses,
+and sends UDPv6 requests.
 
 See: UDP
 ~~~

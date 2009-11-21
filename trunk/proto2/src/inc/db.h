@@ -585,7 +585,11 @@ struct muf_socket {             /* struct for MUF socket data */
    int is_player;               /* means to not close the socket when clearing*/
    int readWaiting;             /* to support socket events */
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
-    SSL *ssl_session;           /* SSL session data                             */
+   SSL *ssl_session;            /* SSL session data                             */
+#endif
+#ifdef IPV6
+   int ipv6;                    /* Defined if this socket is ipv6 */
+   struct in6_addr *host6;      /* ipv6 host address */
 #endif
 };
 

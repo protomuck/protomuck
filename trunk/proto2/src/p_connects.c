@@ -46,6 +46,10 @@ check_descr_flag(char *dflag)
     if (string_prefix("df_ssl", dflag))
         return DF_SSL;
 #endif /* USE_SSL */
+#ifdef IPV6
+    if (string_prefix("df_ipv6", dflag))
+        return DF_IPV6;
+#endif /* USE_SSL */
     if (string_prefix("df_suid", dflag))
         return DF_SUID;
     if (string_prefix("df_webclient", dflag))
@@ -995,7 +999,7 @@ prim_descripnum(PRIM_PROTOTYPE)
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
     dr = descrdata_by_descr(oper1->data.number);
-    p = host_as_hex(dr->hu->h->a);
+    p = hostToIPex(dr->hu->h);
     strcpy(ipnum, p);
     CLEAR(oper1);
     CHECKOFLOW(1);
@@ -1218,6 +1222,15 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
+#ifdef IPV6
+    temp1.type = PROG_STRING;
+    temp1.data.string = alloc_prog_string("IPV6");
+    temp2.type = PROG_INTEGER;
+    temp2.data.number = (d->flags & DF_IPV6 ? 1 : 0);
+    array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    CLEAR(&temp2);
+#endif
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("HOSTNAME");
     temp2.type = PROG_STRING;

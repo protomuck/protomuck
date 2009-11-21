@@ -162,6 +162,7 @@ struct descriptor_data {
 #define DF_SUID        0x200 /* Set when this descriptor gets assigned a player */
 #define DF_WEBCLIENT   0x400 /* Reserved for Nuku's webclient */
 #define DF_MISC       0x8000 /* You can play with this */
+#define DF_IPV6      0x10000 /* Achievement Unlocked: Bleeding Edge - You are connected using IPv6! */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
@@ -295,6 +296,9 @@ extern void pdescr_welcome_user(int c);
 extern void pdescr_logout(int c);
 extern void pdump_who_users(int c, char *user);
 extern const char* host_as_hex(unsigned addr);
+#ifdef IPV6
+extern struct in6_addr str2ip6(const char *ipstr);
+#endif
 extern int str2ip(const char *ipstr);
 extern int index_descr(int index);
 extern void close_sockets(const char *msg);
@@ -325,12 +329,16 @@ extern SSL_CTX *ssl_ctx_client;
 
 /* binding support */
 extern int bind_to;
+#ifdef IPV6
+extern struct in6_addr bind6;
+#endif
 
 #ifdef UDP_SOCKETS
 struct udp_frame {
  struct frame *fr;
  unsigned short portnum;
  int socket;
+ int socket6;
 };
 
 extern struct udp_frame udp_sockets[34];

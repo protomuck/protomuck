@@ -90,8 +90,12 @@ unsigned int commandTotal = 0;  /* Total commands entered by players */
 
 struct descriptor_data *descriptor_list = 0;
 
+#ifdef IPV6
+#define MAX_LISTEN_SOCKS 32
+static int is_ipv6[MAX_LISTEN_SOCKS];
+#else
 #define MAX_LISTEN_SOCKS 16
-
+#endif
 static int listener_port[MAX_LISTEN_SOCKS];
 static int sock[MAX_LISTEN_SOCKS];
 static int ndescriptors = 0;
@@ -135,6 +139,7 @@ void descr_fsenddisc(struct descriptor_data *d);
 char *time_format_1(time_t);
 
 struct descriptor_data *new_connection(int port, int sock);
+struct descriptor_data *new_connection6(int port, int sock);
 int queue_ansi(struct descriptor_data *d, const char *msg);
 int do_command(struct descriptor_data *d, char *command);
 int is_interface_command(const char *cmd);
@@ -143,6 +148,7 @@ int process_output(struct descriptor_data *d);
 int process_input(struct descriptor_data *d);
 int get_ctype(int port);
 int make_socket(int);
+int make_socket6(int);
 
 #define MALLOC(result, type, number) do {   \
 				       if (!((result) = (type *) malloc ((number) * sizeof (type)))) \
@@ -165,10 +171,13 @@ extern FILE *delta_outfile;
 
 #ifdef USE_SSL
 static int ssl_listener_port;
-static int ssl_sock;
 static int ssl_numsocks;
 SSL_CTX *ssl_ctx;
 SSL_CTX *ssl_ctx_client;
+static int ssl_sock;
+#ifdef IPV6
+static int ssl_sock6;
+#endif
 #endif
 
 bool db_conversion_flag = 0;
@@ -179,6 +188,9 @@ bool verboseload = 0;
 
 /* binding support */
 int bind_to;
+#ifdef IPV6
+struct in6_addr bind6 = IN6ADDR_ANY_INIT;
+#endif
 
 time_t sel_prof_start_time;
 long sel_prof_idle_sec;
@@ -315,6 +327,10 @@ show_program_usage(char *prog)
             "       -port NUMBER      sets the port number to listen for connections on.\n");
     fprintf(stderr,
             "       -bind IP          bind ProtoMUCK to a specific IP\n");
+#ifdef IPV6
+    fprintf(stderr,
+            "       -bind6 IP         Enable ipv6 on this IP address\n");
+#endif
     fprintf(stderr,
             "       -gamedir PATH     changes directory to PATH before starting up.\n");
     fprintf(stderr,
@@ -458,6 +474,13 @@ main(int argc, char **argv)
                 } else {
                     bind_to = ntohl(bind_to);
                 }
+#ifdef IPV6
+            } else if (!strcmp(argv[i], "-bind6")) {
+                if (i + 1 >= argc) {
+                    show_program_usage(*argv);
+                }
+                bind6 = str2ip6(argv[++i]);
+#endif
             } else if (!strcmp(argv[i], "-gamedir")) {
                 if (i + 1 >= argc) {
                     show_program_usage(*argv);
@@ -612,25 +635,50 @@ main(int argc, char **argv)
 
     if ((resolver_myport > 1) && (resolver_myport < 65536))
         tp_textport = resolver_myport;
-    if ((tp_textport > 1) && (tp_textport < 65536))
+    if ((tp_textport > 1) && (tp_textport < 65536)) {
         listener_port[numsocks++] = tp_textport;
-
+#ifdef IPV6
+	is_ipv6[numsocks-1] = 0;
+        listener_port[numsocks++] = tp_textport;
+	is_ipv6[numsocks-1] = 1;
+#endif
+    }
 /* Only open a web port if support was #defined in config.h */
 #ifdef NEWHTTPD                 /* hinoserm */
-    if ((tp_wwwport > 1) && (tp_wwwport < 65536)) /* hinoserm */
+    if ((tp_wwwport > 1) && (tp_wwwport < 65536)) { /* hinoserm */
         listener_port[numsocks++] = tp_wwwport; /* hinoserm */
-#endif  /* NEWHTTPD */               /* hinoserm */
-    if ((tp_puebloport > 1) && (tp_puebloport < 65536))
-        listener_port[numsocks++] = tp_puebloport;
-
-#ifdef USE_SSL
-    if ((tp_sslport > 1) && (tp_sslport < 65536)) /* Alynna */
-        ssl_listener_port = tp_sslport;
-    ssl_numsocks = 1;
+#ifdef IPV6
+	is_ipv6[numsocks-1] = 0;
+        listener_port[numsocks++] = tp_wwwport;
+	is_ipv6[numsocks-1] = 1;
 #endif
-
-    if (!numsocks)
+    }
+#endif  /* NEWHTTPD */               /* hinoserm */
+    if ((tp_puebloport > 1) && (tp_puebloport < 65536)) {
+        listener_port[numsocks++] = tp_puebloport;
+#ifdef IPV6
+	is_ipv6[numsocks-1] = 0;
+        listener_port[numsocks++] = tp_puebloport;
+	is_ipv6[numsocks-1] = 1;
+#endif
+    }
+#ifdef USE_SSL
+    if ((tp_sslport > 1) && (tp_sslport < 65536)) { /* Alynna */
+        ssl_listener_port = tp_sslport;
+        ssl_numsocks = 1;
+#ifdef IPV6
+        ssl_numsocks++;
+#endif
+    }
+#endif
+    if (!numsocks) {
         listener_port[numsocks++] = TINYPORT;
+#ifdef IPV6
+	is_ipv6[numsocks-1] = 0;
+        listener_port[numsocks++] = TINYPORT;
+	is_ipv6[numsocks-1] = 1;
+#endif
+    }
 
 #ifdef USE_PS
     {
@@ -1654,20 +1702,31 @@ shovechars(void)
         ssl_sock = make_socket(tp_sslport);
         log_status("SSLX: SSL initialized OK\n");
         ssl_numsocks++;
+#ifdef IPV6
+        ssl_sock6 = make_socket6(tp_sslport);
+        log_status("SSLX: SSL ipv6 initialized OK\n");
+        ssl_numsocks++;
+#endif
     } else {
         ssl_numsocks = 0;
     }
 #endif
 
-    for (i = 0; i < numsocks; i++)
-        sock[i] = make_socket(listener_port[i]); /* fixes the socket blocking problem at startup. */
+    for (i = 0; i < numsocks; i++) {
+#ifdef IPV6
+	if (is_ipv6[i])
+            sock[i] = make_socket6(listener_port[i]);
+	else
+#endif
+            sock[i] = make_socket(listener_port[i]); /* fixes the socket blocking problem at startup. */
+    }
 
     gettimeofday(&last_slice, (struct timezone *) 0);
 
     openfiles_max = max_open_files();
     printf("Max FDs = %d\n", openfiles_max);
 
-    avail_descriptors = max_open_files() - 6;
+    avail_descriptors = max_open_files() - 10;
 
     while (shutdown_flag == 0) { /* Game Loop */
         gettimeofday(&current_time, (struct timezone *) 0);
@@ -1774,6 +1833,10 @@ shovechars(void)
 #ifdef USE_SSL
         if (ssl_numsocks > 0)
             FD_SET(ssl_sock, &input_set);
+#ifdef IPV6
+        if (ssl_numsocks > 0)
+            FD_SET(ssl_sock6, &input_set);
+#endif
 #endif
 
 #ifdef SPAWN_HOST_RESOLVER
@@ -1798,8 +1861,12 @@ shovechars(void)
 #ifdef UDP_SOCKETS
         /* Add UDP sockets to the input set */
         if (udp_count)
-            for (i = 0; i < udp_count; i++)
+            for (i = 0; i < udp_count; i++) {
                 FD_SET(udp_sockets[i].socket, &input_set);
+#ifdef IPV6
+                FD_SET(udp_sockets[i].socket6, &input_set);
+#endif
+	}
 #endif
 
 
@@ -1835,7 +1902,14 @@ shovechars(void)
 
             for (i = 0; i < numsocks; i++) { /* check for new connects */
                 if (FD_ISSET(sock[i], &input_set)) { /* new connect */
-                    if (!(newd = new_connection(listener_port[i], sock[i]))) { /* connection error */
+#ifdef IPV6
+		if (is_ipv6[i]) {
+		    newd = new_connection6(listener_port[i], sock[i]);
+		    if (newd) newd->flags += DF_IPV6;
+		} else
+#endif
+		    newd = new_connection(listener_port[i], sock[i]);
+                    if (!newd) { /* connection error */
                         if (errnosocket
 #if !defined(WIN32) && !defined(WIN_VC)
                             && errno != EINTR
@@ -1889,6 +1963,34 @@ shovechars(void)
                     newd->flags += DF_SSL;
                 }
             }
+#ifdef IPV6
+            if (FD_ISSET(ssl_sock6, &input_set)) {
+                if (!(newd = new_connection6(ssl_listener_port, ssl_sock6))) {
+#ifndef WIN32
+                    if (errno
+                        && errno != EINTR
+                        && errno != EMFILE && errno != ENFILE) {
+                        perror("new_connection");
+                        /* return; */
+                    }
+#else
+                    if (WSAGetLastError() != WSAEINTR
+                        && WSAGetLastError() != EMFILE) {
+                        perror("new_connection");
+                        /* return; */
+                    }
+#endif
+                } else {
+                    newd->ssl_session = SSL_new(ssl_ctx);
+                    SSL_set_fd(newd->ssl_session, newd->descriptor);
+                    cnt = SSL_accept(newd->ssl_session);
+                    newd->type = CT_SSL;
+                    newd->flags += DF_SSL;
+		    newd->flags += DF_IPV6;
+                }
+            }
+
+#endif
 #endif
 
 #ifdef MUF_SOCKETS
@@ -1915,7 +2017,6 @@ shovechars(void)
                     struct sockaddr_in tmpaddr;
                     socklen_t tmpsz = sizeof(tmpaddr);
 
-
                     // Get the data waiting
                     memset(buf, 0, sizeof(buf));
                     e = recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0,
@@ -1932,6 +2033,9 @@ shovechars(void)
                     array_set_strkey_intval(&nw, "port",
                                             udp_sockets[i].portnum);
                     array_set_strkey_strval(&nw, "data", buf);
+#ifdef IPV6
+                    array_set_strkey_intval(&nw, "ipv6", 0);
+#endif
                     tmpi.type = PROG_ARRAY;
                     tmpi.data.array = nw;
                     sprintf(buf2, "UDP.%d", udp_sockets[i].portnum);
@@ -1939,6 +2043,40 @@ shovechars(void)
                     CLEAR(&tmpi);
                 }
             }
+#ifdef IPV6
+            for (i = 0; i < udp_count; i++) {
+                if (FD_ISSET(udp_sockets[i].socket6, &input_set)) {
+		    log_status("UDP6 on %d", udp_sockets[i].socket6);
+                    struct inst tmpi6;
+                    stk_array *nw6 = new_array_dictionary();
+                    struct sockaddr_in6 tmpaddr6;
+                    socklen_t tmpsz6 = sizeof(tmpaddr6);
+
+                    // Get the data waiting
+                    memset(buf, 0, sizeof(buf));
+                    e = recvfrom(udp_sockets[i].socket6, buf, sizeof(buf), 0,
+                                 (struct sockaddr *) &tmpaddr6, &tmpsz6);
+                    // And dispatch the UDP event
+                    strncpy(buf2, ip_address(tmpaddr6.sin6_addr.s6_addr), 64);
+                    if (tp_log_sockets)
+                        log2filetime("logs/sockets",
+                                     "UDP6.event: pid %d, from %s, port %d\n'",
+                                     udp_sockets[i].fr->pid, buf2,
+                                     udp_sockets[i].portnum);
+                    array_set_strkey_intval(&nw6, "pid", udp_sockets[i].fr->pid);
+                    array_set_strkey_strval(&nw6, "from", buf2);
+                    array_set_strkey_intval(&nw6, "port", udp_sockets[i].portnum);
+                    array_set_strkey_strval(&nw6, "data", buf);
+                    array_set_strkey_intval(&nw6, "ipv6", 1);
+                    tmpi6.type = PROG_ARRAY;
+                    tmpi6.data.array = nw6;
+                    sprintf(buf2, "UDP.%d", udp_sockets[i].portnum);
+                    muf_event_add(udp_sockets[i].fr, buf2, &tmpi6, 0);
+                    CLEAR(&tmpi6);
+                }
+            }
+
+#endif
 #endif
 
             /* This is the loop that handles input */
@@ -2375,6 +2513,15 @@ host_as_hex(                    /* CrT */
     return buf;
 }
 
+#ifdef IPV6
+struct in6_addr 
+str2ip6(const char *ipstr)
+{
+    struct in6_addr x;
+    inet_pton(AF_INET6, ipstr, &x);
+    return x; 
+}
+#endif
 int
 str2ip(const char *ipstr)
 {
@@ -2391,7 +2538,6 @@ str2ip(const char *ipstr)
     return ((ip1 << 24) | (ip2 << 16) | (ip3 << 8) | ip4);
     /* return( htonl((ip1 << 24) | (ip2 << 16) | (ip3 << 8) | ip4) ); */
 }
-
 int
 get_ctype(int port)
 {
@@ -2443,6 +2589,83 @@ get_ctype(int port)
     return ctype;
 }
 
+#ifdef IPV6
+struct descriptor_data *
+new_connection6(int port, int sock)
+{
+    int newsock;
+    struct sockaddr_in6 addr;
+    int addr_len;
+    int ctype;
+    int result;
+    struct huinfo *hu;
+    
+    addr_len = sizeof(addr);
+    newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
+    ctype = get_ctype(port);
+    if (newsock < 0) {
+        return 0;
+    } else {
+        hu = host_getinfo6(addr.sin6_addr, port, addr.sin6_port);
+	//log_status("Resolved to: %s\n",hu->h->name);
+	/* Alynna: Fix this soon!
+        if (reg_site_is_blocked(ntohl(addr.sin6_addr.s6_addr)) == TRUE) {
+            log_status("*BLK6: %2d %s %s C#%d P#%d\n", newsock,
+                       hu->h->name, ntohs(addr.sin6_port),
+                       ++crt_connect_count, port);
+            shutdown(newsock, 2);
+            closesocket(newsock);
+            return 0;
+        }
+	*/
+#ifdef NEWHTTPD
+        if (ctype != CT_HTTP) { /* hinoserm */
+#endif /* NEWHTTPD */
+            show_status("ACT6: %2d %s %d C#%d P#%d %s\n", newsock,
+                        hu->h->name, addr.sin6_port,
+                        ++crt_connect_count, port,
+                        ctype == CT_MUCK ? "TEXT" :
+                        (ctype == CT_PUEBLO ? "PUEBLO" :
+                         (ctype == CT_MUF ? "MUF" :
+#ifdef USE_SSL
+                          (ctype == CT_SSL ? "SSL" :
+#endif /* USE_SSL */
+                           ("UNKNOWN")
+#ifdef USE_SSL
+                          )
+#endif /* USE_SSL */
+                         ))
+                );
+            if (tp_log_connects)
+                log2filetime(CONNECT_LOG, "ACT6: %2d %s %d C#%d P#%d %s\n",
+                             newsock, hu->h->name, addr.sin6_port,
+                             ++crt_connect_count, port,
+                             ctype == CT_MUCK ? "TEXT" :
+                             (ctype == CT_PUEBLO ? "PUEBLO" :
+                              (ctype == CT_MUF ? "MUF" :
+#ifdef USE_SSL
+                               (ctype == CT_SSL ? "SSL" :
+#endif /* USE_SSL */
+                                ("UNKNOWN")
+#ifdef USE_SSL
+                               )
+#endif /* USE_SSL */
+                              ))
+                    );
+#ifdef NEWHTTPD
+        }
+#endif /* NEWHTTPD */
+        result = get_property_value((dbref) 0, "~sys/concount");
+        result++;
+        add_property((dbref) 0, "~sys/concount", NULL, result);
+        if (tp_allow_old_trigs)
+            add_property((dbref) 0, "_sys/concount", NULL, result);
+        check_maxd(newsock);
+        return initializesock(newsock, hu, ctype, port, 1);
+    }
+}
+#endif
+
 struct descriptor_data *
 new_connection(int port, int sock)
 {
@@ -2452,7 +2675,7 @@ new_connection(int port, int sock)
     int ctype;
     int result;
     struct huinfo *hu;
-
+    
     addr_len = sizeof(addr);
     newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
     ctype = get_ctype(port);
@@ -2755,6 +2978,55 @@ make_socket(int port)
     listen(s, 5);
     return s;
 }
+
+#ifdef IPV6
+int
+make_socket6(int port)
+{
+    int s;
+    struct sockaddr_in6 server;
+    int opt;
+    char ip[INET6_ADDRSTRLEN];
+
+    inet_ntop(AF_INET6, bind6.s6_addr, ip, INET_ADDRSTRLEN);
+
+    log_status("IPv6 address: %.2x%.2x:%.2x%.2x:%.2x%.2x:%.2x%.2x:%.2x%.2x:%.2x%.2x:%.2x%.2x:%.2x%.2x\n", 
+		bind6.s6_addr[0], bind6.s6_addr[1], bind6.s6_addr[2], bind6.s6_addr[3],
+		bind6.s6_addr[4], bind6.s6_addr[5], bind6.s6_addr[6], bind6.s6_addr[7],
+		bind6.s6_addr[8], bind6.s6_addr[9], bind6.s6_addr[10], bind6.s6_addr[11],
+		bind6.s6_addr[12], bind6.s6_addr[13], bind6.s6_addr[14], bind6.s6_addr[15]);
+    log_status("Opening port: %s %d(ipv6)\n", ip, port); /* changed from fprintf */
+    s = socket(AF_INET6, SOCK_STREAM, 0);
+    log_status("        Sock: %d\n", s); /* changed from fprintf */
+
+    if (s < 0) {
+        perror("creating stream socket");
+        exit(3);
+    }
+
+    opt = 1;
+    if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (char *) &opt, sizeof(opt)) < 0) {
+        perror("setsockopt");
+        exit(1);
+    }
+    if (setsockopt(s, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &opt, sizeof(opt)) < 0) {
+        perror("setsockopt");
+        exit(1);
+    }
+
+    server.sin6_family = AF_INET6;
+    server.sin6_addr = bind6;
+    server.sin6_port = (int) htons(port);
+    if (bind(s, (struct sockaddr *) &server, sizeof(server))) {
+        perror("binding stream socket (ipv6)");
+        closesocket(s);
+        exit(4);
+    }
+    check_maxd(s);
+    listen(s, 5);
+    return s;
+}
+#endif
 
 struct text_block *
 make_text_block(const char *s, int n)
@@ -3821,6 +4093,10 @@ descr_flag_description(int descr)
     struct descriptor_data *d = descrdata_by_descr(descr);
 
     strcpy(dbuf, SYSGREEN "Descr Flags:" SYSYELLOW);
+#ifdef IPV6
+    if (DR_RAW_FLAGS(d, DF_IPV6))
+        strcat(dbuf, " DF_IPV6");
+#endif /* IPV6 */
 #ifdef NEWHTTPD
     if (DR_RAW_FLAGS(d, DF_HTML))
         strcat(dbuf, " DF_HTML");
@@ -3915,8 +4191,8 @@ do_dinfo(dbref player, const char *arg)
     else
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s", d->hu->h->name);
 
-    anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY
-                "%X", host_as_hex(d->hu->h->a), d->hu->u->uport, d->hu->h->a);
+        anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY
+	            "%X", hostToIPex(d->hu->h), d->hu->u->uport, d->hu->h->a);
 
     anotify_fmt(player, SYSVIOLET "Online: " SYSPURPLE "%s  " SYSBROWN "Idle: "
                 SYSYELLOW "%s  " SYSCRIMSON "Commands: " SYSRED "%d",
