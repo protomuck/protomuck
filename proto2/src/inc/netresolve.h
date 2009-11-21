@@ -1,9 +1,13 @@
 #ifndef __NEWRESOLV_H
 #define __NEWRESOLV_H
+#include <arpa/inet.h>
 
 struct hostinfo { /* linked-list struct for the new host cacher */
     time_t           wupd;      /* time of last update */
     int              a;         /* ip */
+#ifdef IPV6
+    struct in6_addr  a6;        /* Version 6 IP */
+#endif
     char             *name;     /* hostname */
     unsigned short   links;     /* number of links to this hostname */
     unsigned short   uses;      /* times used */
@@ -13,6 +17,9 @@ struct hostinfo { /* linked-list struct for the new host cacher */
 
 struct husrinfo { /* linked-list struct for usernames (userports) */
     int              a;         /* ip address */
+#ifdef IPV6
+    struct in6_addr  a6;        /* Version 6 IP */
+#endif
     unsigned short   uport;     /* the userport number */
     char            *user;      /* username */
     struct husrinfo *next;
@@ -44,6 +51,15 @@ extern void resolve_hostnames(void);
 extern int resolverpid;
 extern int resolver_sock[2];
 #endif
+
+#ifdef IPV6
+extern struct huinfo *host_getinfo6(struct in6_addr a6, unsigned short lport, unsigned short prt);
+extern char *host_get_ipv6attr(int a, unsigned short lport, unsigned short prt);
+#endif
+
+extern char *ip_address_prototype(void* x, int xsize);
+extern char *hostToIPex(struct hostinfo * h);
+#define ip_address(x) ip_address_prototype(&x, sizeof(x))
 
 extern struct huinfo *host_getinfo(int a, unsigned short lport, unsigned short prt);
 extern void host_delete(struct huinfo *hu);

@@ -1,5 +1,9 @@
 /* inc/autoconf.h.in.  Generated from configure.in by autoheader.  */
 
+/* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
+   */
+#undef HAVE_DECL_TZNAME
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
@@ -18,6 +22,9 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#undef HAVE_LIBPTHREAD
 
 /* Define to 1 if you have the `util' library (-lutil). */
 #undef HAVE_LIBUTIL
@@ -46,6 +53,9 @@
 /* Enabled if include/openssl/ssh.h exists. */
 #undef HAVE_OPENSSL_SSL_H
 
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
 
@@ -63,9 +73,6 @@
 
 /* Define to 1 if you have the <stdarg.h> header file. */
 #undef HAVE_STDARG_H
-
-/* Define to 1 if you have the <pthread.h> header file. */
-#undef HAVE_PTHREAD_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -107,8 +114,6 @@
 
 /* Define to 1 if you have the <sys/time.h> header file. */
 #undef HAVE_SYS_TIME_H
-#undef HAVE_TIME_H
-#undef HAVE_CTIME_H
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
@@ -136,6 +141,9 @@
 /* Define to 1 if you have the `vsnprintf' function. */
 #undef HAVE_VSNPRINTF
 
+/* Defined to compile for ipv6 */
+#undef IPV6
+
 /* Defined to DISABLE compression support. */
 #undef NO_COMPRESS
 
@@ -160,10 +168,10 @@
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
 
-/* The size of a `int', as computed by sizeof. */
+/* The size of `int', as computed by sizeof. */
 #undef SIZEOF_INT
 
-/* The size of a `long int', as computed by sizeof. */
+/* The size of `long int', as computed by sizeof. */
 #undef SIZEOF_LONG_INT
 
 /* Defined to enable MySQL support */
@@ -186,6 +194,28 @@
 
 /* Defined to enable SSL support. */
 #undef USE_SSL
+
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+
 
 /* Define to 1 if on MINIX. */
 #undef _MINIX
@@ -212,7 +242,7 @@
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
+/* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
 /* The type that holds socket length values on this system. */
@@ -220,5 +250,3 @@
 
 /* Define to `int' if <sys/types.h> doesn't define. */
 #undef uid_t
-
-#undef HAVE_BOOL

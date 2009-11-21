@@ -616,6 +616,10 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->usequeue = 0;
         result->data.sock->usesmartqueue = 0;
         result->data.sock->readWaiting = 0;
+#ifdef IPV6
+	result->data.sock->ipv6 = 0;
+	result->data.sock->host6 = NULL;
+#endif
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         result->data.sock->ssl_session = NULL;
 #endif
@@ -637,6 +641,102 @@ prim_nbsockopen(PRIM_PROTOTYPE)
     if (result)
         free((void *) result);
 }
+
+void
+prim_nbsock6open(PRIM_PROTOTYPE)
+{
+#ifndef IPV6
+    abort_interp("IPv6 not enabled.  Recompile, reformat, reinstall.");
+#else
+    struct inst *result = NULL;
+    register int mysock = 0;
+    struct sockaddr_in6 name;
+    struct hostent *myhost;
+    char myresult[255];
+
+    CHECKOP(2);
+    oper2 = POP();
+    oper1 = POP();
+    if (mlev < LARCH)
+        abort_interp("Socket calls are ArchWiz-only primitives.");
+    if (oper2->type != PROG_INTEGER)
+        abort_interp("Integer argument expected.");
+    if ((oper2->data.number < 1) || (oper2->data.number > 65535))
+        abort_interp("Invalid port number.");
+    if (oper1->type != PROG_STRING)
+        abort_interp("String argument expected.");
+    if (!oper1->data.string)
+        abort_interp("Host cannot be an empty string.");
+    if (!(myhost = gethostbyname2(oper1->data.string->data, AF_INET6))) {
+        strcpy(myresult, "Invalid host.");
+        result = (struct inst *) malloc(sizeof(struct inst));
+        result->type = PROG_INTEGER;
+        result->data.number = 0;
+    } else {
+        name.sin6_port = (int) htons(oper2->data.number);
+        name.sin6_family = AF_INET6;
+        bcopy((char *) myhost->h_addr, (char *) &name.sin6_addr,
+              myhost->h_length);
+        mysock = socket(AF_INET6, SOCK_STREAM, 6); /* Open a TCP socket */
+
+        make_nonblocking(mysock);
+        if (connect(mysock, (void*)&name, sizeof(struct sockaddr_in6)) == -1)
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+            sprintf(myresult, "ERROR: %d", errnosocket);
+#else
+            strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        else
+            strcpy(myresult, "noerr");
+
+        check_maxd(mysock);
+        /* Socket was made, now initialize the muf_socket struct */
+        result = (struct inst *) malloc(sizeof(struct inst));
+        result->type = PROG_SOCKET;
+        result->data.sock =
+            (struct muf_socket *) malloc(sizeof(struct muf_socket));
+        result->data.sock->socknum = mysock;
+        result->data.sock->connected = 0;
+        result->data.sock->links = 1;
+        result->data.sock->listening = 0;
+        result->data.sock->raw_input = NULL;
+        result->data.sock->raw_input_at = NULL;
+        result->data.sock->inIAC = 0;
+        result->data.sock->commands = 0;
+        result->data.sock->is_player = 0;
+        result->data.sock->port = oper2->data.number; /* remote port # */
+        result->data.sock->hostname = alloc_string(oper1->data.string->data);
+        result->data.sock->host = -1;
+        result->data.sock->host6 = (void*)myhost->h_addr;
+	result->data.sock->ipv6 = 1;
+        result->data.sock->username =
+            alloc_string(unparse_object(PSafe, PSafe));
+        result->data.sock->connected_at = time(NULL);
+        result->data.sock->last_time = time(NULL);
+        result->data.sock->usequeue = 0;
+        result->data.sock->usesmartqueue = 0;
+        result->data.sock->readWaiting = 0;
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+        result->data.sock->ssl_session = NULL;
+#endif
+        add_socket_to_queue(result->data.sock, fr);
+        if (tp_log_sockets)
+            log2filetime("logs/sockets",
+                         "#%d by %s SOCKOPEN:  %s:%d -> %d\n", program,
+                         unparse_object(PSafe, PSafe),
+                         oper1->data.string->data, oper2->data.number,
+                         result->data.sock->socknum);
+    }
+    CLEAR(oper1);
+    CLEAR(oper2);
+    copyinst(result, &arg[(*top)++]);
+    CLEAR(result);
+    PushString(myresult);
+    if (result)
+        free((void *) result);
+#endif
+}
+
 
 void
 prim_socksecure(PRIM_PROTOTYPE)
@@ -781,8 +881,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
     /* Make sure is able to reuse the port */
     setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, (char *) &yes, sizeof(int));
     /* Bind to the port */
-    errors = bind(sockdescr, (struct sockaddr *) &my_addr,
-                  sizeof(struct sockaddr));
+    errors = bind(sockdescr, (struct sockaddr *) &my_addr, sizeof(struct sockaddr));
     if (errors == -1) {
         /* Error binding to port. */
 #if defined(BRAINDEAD_OS) || defined(WIN32)
@@ -833,7 +932,11 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->port = oper1->data.number; /* listening port */
     result->data.sock->hostname = alloc_string("localhost");
     result->data.sock->username = alloc_string(tp_muckname);
-    result->data.sock->host = 1;
+    result->data.sock->host = bind_to;
+#ifdef IPV6
+    result->data.sock->host6 = NULL;
+    result->data.sock->ipv6 = 0;
+#endif
     result->data.sock->usequeue = 0;
     result->data.sock->readWaiting = 0;
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
@@ -855,6 +958,116 @@ prim_lsockopen(PRIM_PROTOTYPE)
 }
 
 void
+prim_lsock6open(PRIM_PROTOTYPE)
+{
+#ifndef IPV6
+    abort_interp("IPv6 not enabled.  Recompile, reformat, reinstall.");
+#else
+    int sockdescr = 0;
+    struct inst *result;
+    struct sockaddr_in6 my_addr;
+    char myresult[255];
+    int errors = 0;
+    int yes = 1;
+
+    CHECKOP(2);
+    /* int<queue size> int<port#> */
+    oper1 = POP();              /* port */
+    oper2 = POP();              /* queue size */
+    if (mlev < LBOY)
+        abort_interp("lsock6open is W4 or above.");
+    if (oper1->type != PROG_INTEGER || oper2->type != PROG_INTEGER)
+        abort_interp("LSOCK6OPEN requires two integers.");
+    if ((oper1->data.number < 1) || (oper1->data.number > 65535))
+        abort_interp("Invalid port number for LSOCKOPEN.");
+    if (oper2->data.number < 1 || oper2->data.number > 20)
+        abort_interp("Invalid queue size (between 5 and 20).");
+    sockdescr = socket(AF_INET6, SOCK_STREAM, 0); /* get the socket descr */
+    my_addr.sin6_family = AF_INET6;
+    my_addr.sin6_port = (int)htons(oper1->data.number); /* set bind port # */
+    //my_addr.sin6_port = oper1->data.number; /* set bind port # */
+    my_addr.sin6_addr = bind6; /* what am I bound to? */
+    // memmove(&my_addr.sin6_addr, &bind6, sizeof(struct in6_addr));
+    /* Make sure is able to reuse the port */
+    setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, (char *) &yes, sizeof(int));
+    setsockopt(sockdescr, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &yes, sizeof(int));
+    /* Bind to the port */
+    errors = bind(sockdescr, (void*)&my_addr, sizeof(struct sockaddr_in6));
+    if (errors == -1) {
+        /* Error binding to port. */
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+        sprintf(myresult, "ERROR: %d", errnosocket);
+#else
+        strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        errors = 0;
+        PushInt(errors);
+        PushString(myresult);
+        return;
+    }
+
+    /* activate listen port */
+    errors = listen(sockdescr, oper2->data.number);
+    if (errors == -1) {
+        /* Error setting listen mode. */
+#if defined(BRAINDEAD_OS) || defined(WIN32)
+        sprintf(myresult, "ERROR: %d", errnosocket);
+#else
+        strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        errors = 0;
+        PushInt(errors);
+        PushString(myresult);
+        return;
+    }
+    /* set non-blocking */
+    make_nonblocking(sockdescr);
+    /* No errors, make our listening socket */
+
+    check_maxd(sockdescr);
+    strcpy(myresult, "noerr");
+    result = (struct inst *) malloc(sizeof(struct inst));
+    result->type = PROG_SOCKET;
+    result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    result->data.sock->socknum = sockdescr;
+    result->data.sock->connected = 1;
+    result->data.sock->links = 1;
+    result->data.sock->listening = 1;
+    result->data.sock->raw_input = NULL;
+    result->data.sock->raw_input_at = NULL;
+    result->data.sock->inIAC = 0;
+    result->data.sock->connected_at = time(NULL);
+    result->data.sock->last_time = time(NULL);
+    result->data.sock->commands = 0;
+    result->data.sock->is_player = 0;
+    result->data.sock->port = oper1->data.number; /* listening port */
+    result->data.sock->hostname = alloc_string("localhost");
+    result->data.sock->username = alloc_string(tp_muckname);
+    result->data.sock->host = -1;
+    result->data.sock->host6 = &bind6;
+    result->data.sock->ipv6 = 1;
+    result->data.sock->usequeue = 0;
+    result->data.sock->readWaiting = 0;
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+    result->data.sock->ssl_session = NULL;
+#endif
+    add_socket_to_queue(result->data.sock, fr);
+    if (tp_log_sockets)
+        log2filetime("logs/sockets",
+                     "#%d by %s LSOCKOPEN: Port:%d -> %d\n", program,
+                     unparse_object(PSafe, PSafe), oper1->data.number,
+                     result->data.sock->socknum);
+    CLEAR(oper1);
+    CLEAR(oper2);
+    copyinst(result, &arg[(*top)++]);
+    PushString(myresult);
+    CLEAR(result);
+    if (result)
+        free((void *) result);
+#endif
+}
+
+void
 prim_sockaccept(PRIM_PROTOTYPE)
 {
     int newsock = 0;
@@ -863,6 +1076,9 @@ prim_sockaccept(PRIM_PROTOTYPE)
     char username[10];
     char myresult[255];
     struct sockaddr_in remoteaddr; /* client's address */
+#ifdef IPV6
+    struct sockaddr_in6 remoteaddr6; /* client's address */
+#endif
     int addr_len;
     fd_set reads;
     struct timeval t_val;
@@ -888,12 +1104,14 @@ prim_sockaccept(PRIM_PROTOTYPE)
         PushInt(newsock);
         return;
     }
-    /* connection is waiting */
-    addr_len = sizeof(remoteaddr);
+
+#ifdef IPV6
+if (oper1->data.sock->ipv6) {
+    /* connection is waiting - ipv6 */
+    addr_len = sizeof(remoteaddr6);
     sockdescr = oper1->data.sock->socknum;
     newsock =
-        accept(sockdescr, (struct sockaddr *) &remoteaddr,
-               (socklen_t *) &addr_len);
+        accept(sockdescr, (struct sockaddr *) &remoteaddr6, (socklen_t *) &addr_len);
     if (newsock == -1) {        /* some kind of error */
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
@@ -913,6 +1131,50 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result = (struct inst *) malloc(sizeof(struct inst));
     result->type = PROG_SOCKET;
     result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    hu = host_getinfo6(remoteaddr6.sin6_addr, oper1->data.sock->port,
+                       remoteaddr6.sin6_port);
+    result->data.sock->host = -1;
+    result->data.sock->host6 = &remoteaddr6.sin6_addr;
+    result->data.sock->ipv6 = 1;
+    sprintf(username, "%d", ntohs(remoteaddr6.sin6_port));
+} else {
+#endif
+    /* connection is waiting - ipv4 */
+    addr_len = sizeof(remoteaddr);
+    sockdescr = oper1->data.sock->socknum;
+    newsock =
+        accept(sockdescr, (struct sockaddr *) &remoteaddr, (socklen_t *) &addr_len);
+    if (newsock == -1) {        /* some kind of error */
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
+        sprintf(myresult, "ERROR: ERRORNOSOCKET");
+#else
+        strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        CLEAR(oper1);
+        PushString(myresult);
+        return;
+    }
+
+    make_nonblocking(newsock);
+    check_maxd(newsock);
+
+    /* We have the new socket, now initialize muf_socket struct */
+    oper1->data.sock->commands += 1;
+    result = (struct inst *) malloc(sizeof(struct inst));
+    result->type = PROG_SOCKET;
+    result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    hu =  host_getinfo(remoteaddr.sin_addr.s_addr, oper1->data.sock->port,
+                       remoteaddr.sin_port);
+    result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
+    sprintf(username, "%d", ntohs(remoteaddr.sin_port));
+#ifdef IPV6
+    result->data.sock->host6 = (void*)&in6addr_any;
+    result->data.sock->ipv6 = 0;
+}
+#endif
+    /* END ipv6/ipv4 segregated block */
+    result->data.sock->hostname = alloc_string(hu->h->name);
+    host_delete(hu);
     result->data.sock->socknum = newsock;
     result->data.sock->connected = 1;
     result->data.sock->links = 1;
@@ -922,21 +1184,13 @@ prim_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->inIAC = 0;
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
-    /* sockets confuse me too much to convert to the new */
-    /* huinfo system, so I'll quickhack it. -hinoserm */
-    hu = host_getinfo(remoteaddr.sin_addr.s_addr, oper1->data.sock->port,
-                      remoteaddr.sin_port);
-    result->data.sock->hostname = alloc_string(hu->h->name);
-    host_delete(hu);
-    sprintf(username, "%d", ntohs(remoteaddr.sin_port));
-    result->data.sock->username = alloc_string(username); /* not done */
-    result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
     result->data.sock->port = oper1->data.sock->port; /* port it connected to */
     result->data.sock->usequeue = 0;
     result->data.sock->usesmartqueue = 0;
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
+    result->data.sock->username = alloc_string(username); /* not done */
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
     result->data.sock->ssl_session = NULL;
 #endif
@@ -967,17 +1221,19 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     char username[10];
     char myresult[255];
     struct sockaddr_in remoteaddr; /* client's address */
+#ifdef IPV6
+    struct sockaddr_in6 remoteaddr6; /* client's address */
+#endif
     int addr_len;
     fd_set reads;
     struct timeval t_val;
+    struct huinfo *hu;
     int ssl_error;
     SSL *ssl_session;
-    struct huinfo *hu;
 
     CHECKOP(1);
     /* LSOCKET */
     oper1 = POP();              /* LSOCKET */
-
     if (mlev < LBOY)
         abort_interp("Listening sockets are for W4 or above.");
     if (oper1->type != PROG_SOCKET)
@@ -995,12 +1251,61 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
         PushInt(newsock);
         return;
     }
-    /* connection is waiting */
+
+#ifdef IPV6
+if (oper1->data.sock->ipv6) {
+    /* connection is waiting - ipv6 */
+    addr_len = sizeof(remoteaddr6);
+    sockdescr = oper1->data.sock->socknum;
+    newsock =
+        accept(sockdescr, (struct sockaddr *) &remoteaddr6, (socklen_t *) &addr_len);
+    if (newsock == -1) {        /* some kind of error */
+#if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
+        sprintf(myresult, "ERROR: ERRORNOSOCKET");
+#else
+        strcpy(myresult, sys_errlist[errnosocket]);
+#endif
+        CLEAR(oper1);
+        PushString(myresult);
+        return;
+    }
+
+    make_nonblocking(newsock);
+    check_maxd(newsock);
+
+    ssl_session = SSL_new(ssl_ctx);
+    SSL_set_fd(ssl_session, newsock);
+
+    if ((ssl_error = SSL_accept(ssl_session)) <= 0) {
+        ssl_error = SSL_get_error(ssl_session, ssl_error);
+        if (ssl_error != SSL_ERROR_WANT_READ
+            && ssl_error != SSL_ERROR_WANT_WRITE) {
+            sprintf(myresult, "SSLerr: %d", ssl_error);
+            SSL_free(ssl_session);
+            CLEAR(oper1);
+            PushString(myresult);
+            return;
+        }
+    }
+
+    /* We have the new socket, now initialize muf_socket struct */
+    oper1->data.sock->commands += 1;
+    result = (struct inst *) malloc(sizeof(struct inst));
+    result->type = PROG_SOCKET;
+    result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    hu = host_getinfo6(remoteaddr6.sin6_addr, oper1->data.sock->port,
+                       remoteaddr6.sin6_port);
+    result->data.sock->host = -1;
+    result->data.sock->host6 = &remoteaddr6.sin6_addr;
+    result->data.sock->ipv6 = 1;
+    sprintf(username, "%d", ntohs(remoteaddr6.sin6_port));
+} else {
+#endif
+    /* connection is waiting - ipv4 */
     addr_len = sizeof(remoteaddr);
     sockdescr = oper1->data.sock->socknum;
     newsock =
-        accept(sockdescr, (struct sockaddr *) &remoteaddr,
-               (socklen_t *) &addr_len);
+        accept(sockdescr, (struct sockaddr *) &remoteaddr, (socklen_t *) &addr_len);
     if (newsock == -1) {        /* some kind of error */
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
@@ -1034,6 +1339,18 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     result = (struct inst *) malloc(sizeof(struct inst));
     result->type = PROG_SOCKET;
     result->data.sock = (struct muf_socket *) malloc(sizeof(struct muf_socket));
+    hu =  host_getinfo(remoteaddr.sin_addr.s_addr, oper1->data.sock->port,
+                       remoteaddr.sin_port);
+    result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
+    sprintf(username, "%d", ntohs(remoteaddr.sin_port));
+#ifdef IPV6
+    result->data.sock->host6 = (void*)&in6addr_any;
+    result->data.sock->ipv6 = 0;
+}
+#endif
+    /* END ipv6/ipv4 segregated block */
+    result->data.sock->hostname = alloc_string(hu->h->name);
+    host_delete(hu);
     result->data.sock->socknum = newsock;
     result->data.sock->connected = 1;
     result->data.sock->links = 1;
@@ -1043,23 +1360,16 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     result->data.sock->inIAC = 0;
     result->data.sock->connected_at = time(NULL);
     result->data.sock->last_time = time(NULL);
-    /* sockets confuse me too much to convert to the new */
-    /* huinfo system, so I'll quickhack it. -hinoserm */
-    hu = host_getinfo(remoteaddr.sin_addr.s_addr, oper1->data.sock->port,
-                      remoteaddr.sin_port);
-    result->data.sock->hostname = alloc_string(hu->h->name);
-    host_delete(hu);
-    sprintf(username, "%d", ntohs(remoteaddr.sin_port));
-    result->data.sock->username = alloc_string(username); /* not done */
-    result->data.sock->host = ntohl(remoteaddr.sin_addr.s_addr);
     result->data.sock->port = oper1->data.sock->port; /* port it connected to */
     result->data.sock->usequeue = 0;
     result->data.sock->usesmartqueue = 0;
     result->data.sock->commands = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
-    result->data.sock->ssl_session = ssl_session;
-
+    result->data.sock->username = alloc_string(username); /* not done */
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+    result->data.sock->ssl_session = NULL;
+#endif
     add_socket_to_queue(result->data.sock, fr);
     if (tp_log_sockets)
         log2filetime("logs/sockets",
@@ -1072,9 +1382,8 @@ prim_ssl_sockaccept(PRIM_PROTOTYPE)
     CLEAR(result);
     if (result)
         free((void *) result);
-#endif /* SSL_SOCKETS && USE_SSL */
+#endif
 }
-
 
 void
 prim_get_sockinfo(PRIM_PROTOTYPE)
@@ -1097,7 +1406,13 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
 #endif
     array_set_strkey_intval(&nw, "CONNECTED", theSock->connected);
     array_set_strkey_intval(&nw, "LISTENING", theSock->listening);
-    array_set_strkey_strval(&nw, "HOST", host_as_hex(theSock->host));
+#ifdef IPV6
+    array_set_strkey_intval(&nw, "IPV6", theSock->ipv6);
+    if (theSock->ipv6)
+        array_set_strkey_strval(&nw, "HOST", ip_address_prototype((void*)theSock->host6->s6_addr,16));
+    else
+#endif
+        array_set_strkey_strval(&nw, "HOST", ip_address_prototype(&theSock->host,4));
     array_set_strkey_intval(&nw, "CONNECTED_AT", theSock->connected_at);
     array_set_strkey_intval(&nw, "LAST_TIME", theSock->last_time);
     array_set_strkey_intval(&nw, "COMMANDS", theSock->commands);
@@ -1155,6 +1470,22 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     /* first make sure that the socket is non-blocking */
     make_nonblocking(theSock->socknum);
     /* Now establish a normal telnet connection to the MUCK */
+#ifdef IPV6
+    if (theSock->ipv6) {
+#if defined(SSL_SOCKETS) && defined (USE_SSL)
+    if (theSock->ssl_session)
+        d = initializesock(theSock->socknum,
+                           host_getinfo6(*theSock->host6, theSock->port,
+                                        htons(atoi(theSock->username))), CT_SSL,
+                           theSock->port, 0);
+    else
+#endif
+        d = initializesock(theSock->socknum,
+                           host_getinfo6(*theSock->host6, theSock->port,
+                                        htons(atoi(theSock->username))),
+                           CT_MUCK, theSock->port, 0);
+    } else {
+#endif
 #if defined(SSL_SOCKETS) && defined (USE_SSL)
     if (theSock->ssl_session)
         d = initializesock(theSock->socknum,
@@ -1167,6 +1498,10 @@ prim_socket_setuser(PRIM_PROTOTYPE)
                            host_getinfo(htonl(theSock->host), theSock->port,
                                         htons(atoi(theSock->username))),
                            CT_MUCK, theSock->port, 0);
+
+#ifdef IPV6
+    }
+#endif
     /* d is now in the descriptor list and properly initialized. 
      * Now connect it to a player. */
     result = plogin_user(d, ref);
@@ -1207,10 +1542,20 @@ prim_socktodescr(PRIM_PROTOTYPE)
     /* make sure socket is non-blocking */
     make_nonblocking(theSock->socknum);
     /* Now add the descriptor to the MUCK's descriptor list */
+#ifdef IPV6
+    if (theSock->ipv6) 
+    d = initializesock(theSock->socknum,
+                       host_getinfo6(*theSock->host6, theSock->port,
+                                     htons(atoi(theSock->username))), CT_INBOUND,
+                       theSock->port, 0);
+    else
+#endif
     d = initializesock(theSock->socknum,
                        host_getinfo(htonl(theSock->host), theSock->port,
                                     htons(atoi(theSock->username))), CT_INBOUND,
                        theSock->port, 0);
+
+   
     /* now the descriptor is queued with the rest of the MUCK's d's */
     if (tp_log_sockets)
         log2filetime("logs/sockets",
@@ -1266,7 +1611,6 @@ prim_set_sockopt(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
-#ifdef UDP_SOCKETS
 void muf_udp_clean_byport(int portnum)
 {
  int i, j, x;
@@ -1275,6 +1619,9 @@ void muf_udp_clean_byport(int portnum)
   if (udp_sockets[i].portnum == portnum) {
    if (tp_log_sockets) log2filetime("logs/sockets", "UDPCLOSE: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
    close(udp_sockets[i].socket);
+#ifdef IPV6
+   close(udp_sockets[i].socket6);
+#endif
    udp_count--;
    j=i; while (j<=x) {
     udp_sockets[j] = udp_sockets[j+1];
@@ -1293,6 +1640,9 @@ void udp_socket_clean(struct frame *fr)
    if (tp_log_sockets) log2filetime("logs/sockets", "UDP.socket_clean: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
    udp_count--;
    close(udp_sockets[i].socket);
+#ifdef IPV6
+   close(udp_sockets[i].socket6);
+#endif
    j=i; 
    while (j<=x) {
     udp_sockets[j] = udp_sockets[j+1];
@@ -1315,7 +1665,12 @@ void
 prim_udpopen(PRIM_PROTOTYPE)
 {
  struct sockaddr_in sa;
+#ifdef IPV6
+ struct sockaddr_in6 sa6;
+ int yes = 1;
+#endif
  unsigned int tmp; 
+
 
  CHECKOP(1);
  oper1 = POP(); /* What port to listen for UDP events on? */
@@ -1349,13 +1704,33 @@ prim_udpopen(PRIM_PROTOTYPE)
   result=0; PushInt(result); 
   return;
  }
- 
  /* add it to the recvto mainloop */
  check_maxd(tmp);
  udp_sockets[udp_count].socket = tmp;
  udp_sockets[udp_count].fr = fr;
  udp_sockets[udp_count].portnum = oper1->data.number;
- if (tp_log_sockets) log2filetime("logs/sockets", "UDPOPEN: entry %d, port %d, descr %d\n", udp_count, udp_sockets[udp_count].portnum, udp_sockets[udp_count].socket);
+ if (tp_log_sockets) log2filetime("logs/sockets", "UDP4OPEN: entry %d, port %d, descr %d\n", udp_count, udp_sockets[udp_count].portnum, udp_sockets[udp_count].socket);
+
+#ifdef IPV6
+ /* Open an ipv6 one too! */
+ tmp = socket(AF_INET6, SOCK_DGRAM, 0);
+ setsockopt(tmp, IPPROTO_IPV6, IPV6_V6ONLY,(char *)&yes, sizeof(yes));
+ make_nonblocking(tmp);
+ sa6.sin6_family = AF_INET6;
+ sa6.sin6_port = htons(oper1->data.number);
+ sa6.sin6_addr = bind6;
+ if (bind(tmp, (struct sockaddr *)&sa6, sizeof(sa6)) == -1) {
+  /* The only real possible error here is 'port in use', so return zero if there was an error */
+  CLEAR(oper1);
+  result=0; PushInt(result); 
+  return;
+ }
+ /* add it to the recvto mainloop */
+ check_maxd(tmp);
+ udp_sockets[udp_count].socket6 = tmp;
+ if (tp_log_sockets) log2filetime("logs/sockets", "UDP6OPEN: entry %d, port %d, descr %d\n", udp_count, udp_sockets[udp_count].portnum, udp_sockets[udp_count].socket6);
+#endif
+
  udp_count++;
  CLEAR(oper1);
  result=1; PushInt(result);
@@ -1446,7 +1821,64 @@ prim_udpsend(PRIM_PROTOTYPE)
  result = 1; PushInt(result); 
 
 };
-#endif // UDP sockets //
+
+void
+prim_udp6send(PRIM_PROTOTYPE)
+{
+#ifndef IPV6
+ abort_interp("IPv6 not supported.  Recompile, reformat, reinstall.");
+#else
+ struct hostent *myhost;
+ struct sockaddr_in6 sa6;
+ unsigned int tmp; 
+ 
+ CHECKOP(3);
+ oper3 = POP(); /* port number */
+ oper2 = POP(); /* IP address */
+ oper1 = POP(); /* UDP data packet */
+ 
+ /* A bunch of sanity checks */
+ if (mlev < LARCH)
+    abort_interp("Socket prims are W3");
+ if (oper3->type != PROG_INTEGER)
+    abort_interp("Integer argument expected.");
+ if ((oper3->data.number < 1) || (oper3->data.number > 65535))
+    abort_interp("Invalid port number.");
+ if (oper2->type != PROG_STRING)
+    abort_interp("String argument expected. (1)");
+ if (!oper2->data.string)
+    abort_interp("Host cannot be an empty string.");
+ if (oper1->type != PROG_STRING)
+    abort_interp("UDP data to be sent must be a string. (3)");
+
+ /* make some sense of the hostname, or return FALSE */
+ myhost = gethostbyname2(oper2->data.string->data, AF_INET6);
+ if (!myhost) {
+    CLEAR(oper3);
+    CLEAR(oper2);
+    CLEAR(oper1);
+    result=0; PushInt(result);
+    return;
+ }
+ /* Make the socket */
+ tmp = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+ sa6.sin6_family = AF_INET6;
+ sa6.sin6_port = htons(oper3->data.number);
+ // sa6.sin6_addr = *myhost->h_addr;
+ bcopy((char *) myhost->h_addr, (char *) &sa6.sin6_addr, myhost->h_length);
+ 
+ /* ship it out, shut it down. */
+ sendto(tmp, oper1->data.string->data, oper1->data.string->length, 0, (struct sockaddr *)&sa6, sizeof(sa6)); 
+ if (tp_log_sockets) log2filetime("logs/sockets", "UDPSEND: host %s, port %d\n", myhost->h_name, htons(sa6.sin6_port));
+ close(tmp);
+ 
+ /* Yay! Return TRUE */    
+ CLEAR(oper3);
+ CLEAR(oper2);
+ CLEAR(oper1);
+ result = 1; PushInt(result); 
+#endif
+};
 
 void
 prim_dns(PRIM_PROTOTYPE)

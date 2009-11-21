@@ -8,6 +8,7 @@
 #include "props.h"
 #include "externs.h"
 #include "interface.h"
+#include "nan.h"
 
 #ifdef COMPRESS
 extern const char *compress(const char *);
@@ -973,12 +974,12 @@ db_get_single_prop(FILE * f, dbref obj, int pos)
                 tpnt[2] = toupper(tpnt[2]);
                 if (!strncmp(tpnt, "INF", 3)) {
                     if (!dtemp)
-                        pdat.data.fval = 9.99E999;
+                        pdat.data.fval = INF;
                     else
-                        pdat.data.fval = -9.99E999;
+                        pdat.data.fval = NINF;
                 } else {
                     if (!strncmp(tpnt, "NAN", 3)) {
-                        pdat.data.fval = INF;
+                        pdat.data.fval = NAN;
                     } else {
                         fprintf(stderr,
                                 "PANIC:Float prop contained invalid value.\n");

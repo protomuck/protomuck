@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include <arpa/inet.h>
 #ifdef WIN_VC
 # include <string.h>
 #else
@@ -43,6 +44,36 @@ struct tres_data {
     unsigned short lport;
     unsigned short prt;
 };
+
+char *
+ip_address_prototype(void* x, int xsize)
+{
+    static char buf[64];
+    int y;
+
+    if (xsize <= 4) {
+	y = ntohl(*(unsigned int*)x);
+	inet_ntop(AF_INET, &y, (char *)buf, 64);
+    } else {
+	inet_ntop(AF_INET6, x, (char *)buf, 64);
+    }
+    return buf;
+}
+
+char *
+hostToIPex(struct hostinfo * h)
+{
+    // if the address is filled with either 0.0.0.0 or 255.255.255.255
+    // assume its ipv6
+    if (h->a == -1)
+#ifdef IPV6
+	return ip_address_prototype(&h->a6, 16);
+#else
+	return "255.255.255.255";
+#endif
+    else
+	return ip_address_prototype(&h->a, 4);
+}
 
 const char *
 get_username(int a, int prt, int myprt)
@@ -559,6 +590,7 @@ host_get_oldres(struct hostinfo *h, unsigned short lport, unsigned short prt)
 }
 #endif
 
+
 /* host_get_oldstyle():                                             */
 /*  This is the old, original lookup method, with no added resolver */
 /*  process at all.  This is only ever used as a fallback.          */
@@ -609,6 +641,26 @@ host_get_oldstyle(struct hostinfo * h)
     return 0;
 }
 
+#ifdef IPV6
+char *
+host_get_ipv6addr(struct hostinfo * h)
+{
+    struct in6_addr addr;
+    char buf[INET_ADDRSTRLEN];
+
+    addr = h->a6;
+    inet_ntop(AF_INET6, ((char *) &addr.s6_addr), buf, INET6_ADDRSTRLEN);
+    if (*buf) {
+        if (h->wupd && strcmp(h->name, buf)) 
+	    log_status("*RES: %s to %s\n", h->name, buf);
+        free((void *) h->name);
+        h->name = alloc_string(buf);
+        h->wupd = current_systime;
+    }
+    return h->name;
+}
+#endif
+
 void
 host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
 {
@@ -639,8 +691,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
 {
     register struct hostinfo *h;
     register struct husrinfo *u;
-    register struct huinfo *hu =
-        (struct huinfo *) malloc(sizeof(struct huinfo));
+    register struct huinfo *hu = (struct huinfo *) malloc(sizeof(struct huinfo));
 
     prt = ntohs(prt);
     a = ntohl(a);
@@ -651,6 +702,9 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         u->user = alloc_string(intostr(smbuf, prt));
         u->next = userdb;
         u->a = a;
+#ifdef IPV6
+	u->a6 = in6addr_any; // Same as NULL!
+#endif
         u->uport = prt;
         u->prev = NULL;
         if (userdb)
@@ -688,6 +742,9 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
     h->links = 1;
     h->uses = 1;
     h->a = a;
+#ifdef IPV6
+    h->a6 = in6addr_any;
+#endif
     h->wupd = 0;
     h->name = alloc_string(host_as_hex(a));
     h->prev = NULL;
@@ -701,6 +758,77 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
     hu->h = h;
     return hu;
 }
+
+#ifdef IPV6
+struct huinfo *
+host_getinfo6(struct in6_addr a6, unsigned short lport, unsigned short prt)
+{
+    register struct hostinfo *h;
+    register struct husrinfo *u;
+    register struct huinfo *hu =
+        (struct huinfo *) malloc(sizeof(struct huinfo));
+
+    prt = ntohs(prt);
+
+    if (prt) {                  /* only if username is requested */
+        char smbuf[32];
+        u = (struct husrinfo *) malloc(sizeof(struct husrinfo));
+        u->user = alloc_string(intostr(smbuf, prt));
+        u->next = userdb;
+        u->a = -1;
+	u->a6 = a6;
+        u->uport = prt;
+        u->prev = NULL;
+        if (userdb)
+            userdb->prev = u;
+        userdb = u;
+        hu->u = u;
+        userdb_count++;
+    } else                      /* This case is mostly only for eventual MUF-based lookups. */
+        hu->u = NULL;
+
+    for (h = hostdb; h; h = h->next) {
+        if (h->a6.s6_addr == a6.s6_addr) {
+            /* Found it in the cache. */
+            h->links++;
+            h->uses++;
+#ifdef HOSTCACHE_DEBUG
+            log_status("HOST: In cache: %X (%s), %s\n", h->a, host_as_hex(h->a),
+                       h->name);
+#endif /* HOSTCACHE_DEBUG */
+            /* Only re-request if the time is right. Might eventually */
+            /*  want to move this to a seperate @tune.                */
+            if (current_systime - h->wupd > tp_clean_interval)
+                host_get_ipv6addr(h);
+            hu->h = h;
+            return hu;
+        }
+    }
+
+#ifdef HOSTCACHE_DEBUG
+    log_status("HOST: New (not in cache): %X (%s)\n", a, host_as_hex(a));
+#endif /* HOSTCACHE_DEBUG */
+
+    /* Not in the cache, make a new entry and request it. */
+    h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
+    h->links = 1;
+    h->uses = 1;
+    h->a = -1;
+    h->a6 = a6;
+    h->wupd = 0;
+    h->name = alloc_string("::");
+    h->prev = NULL;
+    h->next = hostdb;
+    if (hostdb)
+        hostdb->prev = h;
+    hostdb = h;
+
+    hostdb_count++;
+    host_get_ipv6addr(h);
+    hu->h = h;
+    return hu;
+}
+#endif
 
 void
 host_delete(struct huinfo *hu)

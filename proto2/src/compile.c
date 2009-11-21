@@ -586,6 +586,15 @@ include_internal_defs(COMPSTATE *cstat)
 #else
     insert_def(cstat, "SSL_SOCKETS", "0");
 #endif
+
+#ifdef IPV6
+    insert_def(cstat, "IPV6?", "1");
+    insert_def(cstat, "sock6open",
+               "nbsock6open \"Invalid host.\" over strcmp if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck if \"noerr\" break then 1 sleep repeat then");
+#else
+    insert_def(cstat, "IPV6?", "0");
+#endif 
+
 #ifdef MCP_SUPPORT
 
     /* GUI dialog types */
@@ -645,15 +654,38 @@ include_internal_defs(COMPSTATE *cstat)
 /* $defs for specific MUF prim sets */
 #ifdef SQL_SUPPPORT
     insert_def(cstat, "HAVE_SQL", "1");
+#else
+    insert_def(cstat, "HAVE_SQL", "0");
 #endif
 #ifdef FILE_PRIMS
     insert_def(cstat, "HAVE_FILE_PRIMS", "1");
+#else
+    insert_def(cstat, "HAVE_FILE_PRIMS", "0");
 #endif
 #ifdef MUF_SOCKETS
     insert_def(cstat, "HAVE_SOCKET_PRIMS", "1");
+#else
+    insert_def(cstat, "HAVE_SOCKET_PRIMS", "0");
 #endif
 #ifdef MUF_EDIT_PRIMS
     insert_def(cstat, "HAVE_MUF_EDIT_PRIMS", "1");
+#else
+    insert_def(cstat, "HAVE_MUF_EDIT_PRIMS", "0");
+#endif
+#ifdef SSL_SOCKETS
+    insert_def(cstat, "HAVE_SSL", "1");
+#else
+    insert_def(cstat, "HAVE_SSL", "0");
+#endif
+#ifdef IGNORE_SUPPORT
+    insert_def(cstat, "HAVE_IGNORES", "1");
+#else
+    insert_def(cstat, "HAVE_IGNORES", "0");
+#endif
+#ifdef IPV6
+    insert_def(cstat, "HAVE_IPV6", "1");
+#else
+    insert_def(cstat, "HAVE_IPV6", "0");
 #endif
 
 /*

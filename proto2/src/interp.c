@@ -380,7 +380,9 @@ RCLEAR(struct inst *oper, const char *file, int line)
                 /* is_player ==  1 - MUF socket was connected to a player 
                  * is_player ==  0 - MUF socket normal
                  * is_player == -1 - MUF socket made into a descriptor */
-                if (oper->data.sock->host && oper->data.sock->is_player < 1) {
+		// Alynna: Fix - test for port, not host.  Host can be validly
+		// NULL if bound to INADDR_ANY.
+                if (oper->data.sock->port && oper->data.sock->is_player < 1) {
                     if (oper->data.sock->is_player == 0) {
 #if defined(SSL_SOCKETS) && defined (USE_SSL)
                         if (oper->data.sock->ssl_session) {
