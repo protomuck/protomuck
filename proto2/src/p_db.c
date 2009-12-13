@@ -1070,7 +1070,7 @@ prim_set(PRIM_PROTOTYPE)
             DBDIRTY(ref);
         }
     } 
-    if (tmp2) {
+    if (tmp2 && !tmp) {
         if (!flag_set_perms2(ref, tmp2, mlev, ProgUID))
             abort_interp(tp_noperm_mesg);
         if (!result) {
@@ -1083,7 +1083,7 @@ prim_set(PRIM_PROTOTYPE)
             DBDIRTY(ref);
         }
     } 
-    if (tmp4) {
+    if (tmp4 && !tmp2 && !tmp) {
         i=0; while (1 << i != tmp4) i++;
 	if (lflag_mlev[i]!=-1)
 	    if ((lflag_mlev[i]==0 && !controls(ProgUID, ref)) &&

@@ -19,6 +19,8 @@
 
 /* IEEE Not A Number. - Included for the poor souls that dont have it. */
 
+#ifndef NAN
+
 #ifdef  __GNUC__
 
 # define NAN \
@@ -39,5 +41,7 @@
 
 static union { unsigned char __c[4]; float __d; } __nan_union = { __nan_bytes };
 # define NAN    (__nan_union.__d)
+
+#endif
 
 #endif  /* GCC.  */
