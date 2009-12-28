@@ -1623,9 +1623,14 @@ sockwrite(struct descriptor_data *d, const char *str, int len)
 void
 goodbye_user(struct descriptor_data *d)
 {
+    anotify_descriptor(d->descriptor, "\r\n");
+    anotify_descriptor(d->descriptor, tp_leave_message);
+    anotify_descriptor(d->descriptor, "\r\n\r\n");
+    /*
     queue_write(d, "\r\n", 2);
     queue_write(d, tp_leave_message, strlen(tp_leave_message));
     queue_write(d, "\r\n\r\n", 4);
+    */
 }
 
 void
