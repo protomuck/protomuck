@@ -6157,9 +6157,9 @@ inserts the contents of a2 into a1 beginning after the index marker.
 
 See: ARRAY PRIMS
 ~
-ARRAY_DELITEM
+ARRAY_DELITEM|[X]
 
-array_delitem( a @ -- a' )
+array_delitem( a @ -- a' )    [x]
 --------------------------
 Level: M1 Apprentice
 a  = An array.
@@ -10461,3 +10461,33 @@ Level: W3 Archwizard
 Simply refreshes the list of flags from the @flags props on #0.  Use this to
 update the names and permissions levels of local database flags while your
 program is running.
+~~~
+?DUP
+
+?dup ( x -- x )
+?dup ( x -- x x)
+----------------
+Level: M1 Apprentice
+x = Anything on the top of the stack may be duplicated.
+
+Duplicates the item at the top of the stack if it is not false.
+~~~
+NIP
+
+nip ( x y -- y )
+------------
+Level: M1 Apprentice
+x and y = Any two objects on the top of the stack.
+  
+Pops the second item of the stack into oblivion.
+~~~
+TUCK
+
+tuck ( x y -- y x y )
+---------------------
+Level: M1 Apprentice
+x and y = Any two objects on the top of the stack.
+
+Duplicates the top thing on the stack and places it under the second-to-top
+thing on the stack.
+If there are fewer than two objects on the stack, the program will abort.
