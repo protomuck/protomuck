@@ -566,6 +566,7 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "[]<-", "array_appenditem");
     insert_def(cstat, "[^]", "array_insertitem");
     insert_def(cstat, "[..]", "array_getrange");
+    insert_def(cstat, "[x]", "array_delitem");
     insert_def(cstat, "array_diff", "2 array_ndiff");
     insert_def(cstat, "array_union", "2 array_nunion");
     insert_def(cstat, "array_intersect", "2 array_nintersect");
@@ -1071,9 +1072,15 @@ OptimizeIntermediate(COMPSTATE *cstat)
     int AtNo = get_primitive("@");
     int BangNo = get_primitive("!");
     int SwapNo = get_primitive("swap");
+    int PopNo = get_primitive("pop");
+    int OverNo = get_primitive("over");
+    int NipNo = get_primitive("nip");
+    int TuckNo = get_primitive("tuck");
     int RotNo = get_primitive("rot");
+    int PickNo = get_primitive("pick");
     int NotNo = get_primitive("not");
     int StrcmpNo = get_primitive("strcmp");
+    int StringcmpNo = get_primitive("stringcmp");
     int EqualsNo = get_primitive("=");
     int PlusNo = get_primitive("+");
     int MinusNo = get_primitive("-");
@@ -1161,10 +1168,27 @@ OptimizeIntermediate(COMPSTATE *cstat)
                 }
                 break;
             case PROG_STRING:
-                /* "" strcmp 0 = into not */
                 if (IntermediateIsString(curr, "")) {
                     if (ContiguousIntermediates(Flags, curr->next, 3)) {
-                        if (IntermediateIsPrimitive(curr->next, StrcmpNo)) {
+		                /* "" strcmp 0 = into not */
+						if (IntermediateIsPrimitive(curr->next, StrcmpNo)) {
+                            if (IntermediateIsInteger(curr->next->next, 0)) {
+                                if (IntermediateIsPrimitive
+                                    (curr->next->next->next, EqualsNo)) {
+                                    if (curr->in.data.string)
+                                        free((void *) curr->in.data.string);
+                                    curr->in.type = PROG_PRIMITIVE;
+                                    curr->in.data.number = NotNo;
+                                    RemoveNextIntermediate(cstat, curr);
+                                    RemoveNextIntermediate(cstat, curr);
+                                    RemoveNextIntermediate(cstat, curr);
+                                    advance = 0;
+                                    break;
+                                }
+                            }
+                        }
+		                /* "" stringcmp 0 = into not */
+						if (IntermediateIsPrimitive(curr->next, StringcmpNo)) {
                             if (IntermediateIsInteger(curr->next->next, 0)) {
                                 if (IntermediateIsPrimitive
                                     (curr->next->next->next, EqualsNo)) {
@@ -1278,6 +1302,18 @@ OptimizeIntermediate(COMPSTATE *cstat)
                         }
                     }
                 }
+
+                /* 2 pick into over */
+                if (IntermediateIsInteger(curr, 2)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, PickNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = OverNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                        }
+                    }
+                }
                 break;
 
             case PROG_PRIMITIVE:
@@ -1285,7 +1321,7 @@ OptimizeIntermediate(COMPSTATE *cstat)
                 if (IntermediateIsPrimitive(curr, RotNo)) {
                     if (ContiguousIntermediates(Flags, curr->next, 2)) {
                         if (IntermediateIsPrimitive(curr->next, RotNo)) {
-                            if (IntermediateIsPrimitive(curr->next, SwapNo)) {
+                            if (IntermediateIsPrimitive(curr->next->next, SwapNo)) {
                                 curr->in.data.number = SwapNo;
                                 curr->next->in.data.number = RotNo;
                                 RemoveNextIntermediate(cstat, curr->next);
@@ -1317,6 +1353,36 @@ OptimizeIntermediate(COMPSTATE *cstat)
                             advance = 0;
                             break;
                         }
+                    }
+                }
+				if (IntermediateIsPrimitive(curr, SwapNo)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+						/* swap pop into nip */
+                        if (IntermediateIsPrimitive(curr->next, PopNo)) {
+                            curr->in.data.number = NipNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+						/* swap over into tuck */
+                        if (IntermediateIsPrimitive(curr->next, OverNo)) {
+                            curr->in.data.number = TuckNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                            break;
+                        }
+						/* swap 2 pick into tuck */
+						if (IntermediateIsInteger(curr->next, 2)) {
+							if (ContiguousIntermediates(Flags, curr->next, 1)) {
+								if (IntermediateIsPrimitive(curr->next->next, PickNo)) {
+									curr->in.data.number = TuckNo;
+									RemoveNextIntermediate(cstat, curr);
+									RemoveNextIntermediate(cstat, curr);
+									advance = 0;
+									break;
+								}
+							}
+						}
                     }
                 }
                 break;

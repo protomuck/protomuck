@@ -44,6 +44,17 @@ prim_dup(PRIM_PROTOTYPE)
 }
 
 void
+prim_pdup(PRIM_PROTOTYPE)
+{
+    CHECKOP_READONLY(1);
+    if (!logical_false(&arg[*top - 1])) {
+        CHECKOFLOW(1);
+        copyinst(&arg[*top - 1], &arg[*top]);
+        (*top)++;
+    }
+}
+
+void
 prim_dupn(PRIM_PROTOTYPE)
 {
     int i;
@@ -90,6 +101,29 @@ prim_ldup(PRIM_PROTOTYPE)
         copyinst(&arg[*top - result], &arg[*top]);
         (*top)++;
     }
+}
+
+void
+prim_nip(PRIM_PROTOTYPE)
+{
+    CHECKOP(2);
+    oper1 = POP();
+    temp2 = *(oper2 = POP());
+    arg[(*top)++] = *oper1;
+    CLEAR(oper1);
+}
+
+void
+prim_tuck(PRIM_PROTOTYPE)
+{
+    CHECKOP(2);
+    CHECKOFLOW(1);
+    oper1 = POP();
+    temp2 = *(oper2 = POP());
+    arg[(*top)++] = *oper1;
+    arg[(*top)++] = temp2;
+    copyinst(&arg[*top - 2], &arg[*top]);
+    (*top)++;
 }
 
 void
