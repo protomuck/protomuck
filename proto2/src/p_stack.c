@@ -108,9 +108,9 @@ prim_nip(PRIM_PROTOTYPE)
 {
     CHECKOP(2);
     oper1 = POP();
-    temp2 = *(oper2 = POP());
+    oper2 = POP();
+    CLEAR(oper2);
     arg[(*top)++] = *oper1;
-    CLEAR(oper1);
 }
 
 void
