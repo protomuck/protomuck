@@ -119,9 +119,9 @@ prim_clear_error(PRIM_PROTOTYPE)
             while (loop < ERROR_NUM) {
                 if (!strcmp(buf, err_defs[loop].error_name)) {
                     result = 1;
-                    loop = ERROR_NUM;
                     fr->error.is_flags =
                         fr->error.is_flags & (~err_bits[loop].is_flags);
+					break;
                 } else {
                     loop++;
                 }
@@ -164,9 +164,9 @@ prim_set_error(PRIM_PROTOTYPE)
             while (loop < ERROR_NUM) {
                 if (!strcmp(buf, err_defs[loop].error_name)) {
                     result = 1;
-                    loop = ERROR_NUM;
                     fr->error.is_flags =
                         fr->error.is_flags | err_bits[loop].is_flags;
+					break;
                 } else {
                     loop++;
                 }
@@ -208,9 +208,9 @@ prim_is_set(PRIM_PROTOTYPE)
             loop = 0;
             while (loop < ERROR_NUM) {
                 if (!strcmp(buf, err_defs[loop].error_name)) {
-                    loop = ERROR_NUM;
                     result =
                         ((fr->error.is_flags & err_bits[loop].is_flags) != 0);
+					break;
                 } else {
                     loop++;
                 }
@@ -251,7 +251,7 @@ prim_error_str(PRIM_PROTOTYPE)
             while (loop < ERROR_NUM) {
                 if (!strcmp(buf, err_defs[loop].error_name)) {
                     result = loop;
-                    loop = ERROR_NUM;
+                    break;
                 } else {
                     loop++;
                 }
@@ -311,7 +311,7 @@ prim_error_bit(PRIM_PROTOTYPE)
         while (loop < ERROR_NUM) {
             if (!strcmp(buf, err_defs[loop].error_name)) {
                 result = loop;
-                loop = ERROR_NUM;
+				break;
             } else {
                 loop++;
             }

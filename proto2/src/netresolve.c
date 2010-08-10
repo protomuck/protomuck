@@ -231,7 +231,7 @@ host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     
-    thread1 = pthread_create(&thread1, &attr, threaded_resolver_go, (void*) tr);
+    thread1 = (pthread_t)pthread_create(&thread1, &attr, threaded_resolver_go, (void*) tr);
  
     pthread_attr_destroy(&attr); 
  

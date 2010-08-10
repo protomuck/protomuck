@@ -1926,7 +1926,7 @@ shovechars(void)
                                        errnosocket);
 #else
                             log_status("new_connection: %s\n",
-                                       sys_errlist[errnosocket]);
+                                       strerror(errnosocket));
 #endif
                         }
                     }
@@ -3140,7 +3140,7 @@ process_output(struct descriptor_data *d)
         if (cnt < 0) {
 #ifdef DEBUGPROCESS
             fprintf(stderr, "process_output: write failed errno %d %s\n", errno,
-                    sys_errlist[errno]);
+                    strerror(errno));
 #endif
             if (errno == EWOULDBLOCK)
                 return 1;
@@ -3296,7 +3296,7 @@ process_input(struct descriptor_data *d)
     {
 #ifdef DEBUGPROCESS
         fprintf(stderr, "process_input: read failed errno %d %s\n", errno,
-                sys_errlist[errno]);
+                strerror(errno));
 #endif
         return 0;
     }

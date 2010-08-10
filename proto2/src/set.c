@@ -1840,8 +1840,8 @@ do_flags(int descr, dbref player, const char *args)
     int lmlev;
     char *orig[2];
 
-    char *buf=malloc(256);
-    char *lname=malloc(32);
+    char *buf=(char *)malloc(256);
+    char *lname=(char *)malloc(32);
     
     // Sanity
     orig[0]=buf; orig[1]=lname;
