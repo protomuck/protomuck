@@ -1039,6 +1039,14 @@ prim_read_wants_blanks(PRIM_PROTOTYPE)
 }
 
 void
+prim_get_read_wants_blanks(PRIM_PROTOTYPE)
+{
+    CHECKOFLOW(1);
+	result = (int)fr->wantsblanks;
+    PushInt(result);
+}
+
+void
 prim_debugger_break(PRIM_PROTOTYPE)
 {
     int i = 0;
