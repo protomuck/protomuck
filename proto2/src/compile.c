@@ -990,11 +990,18 @@ RemoveIntermediate(COMPSTATE *cstat, struct INTERMEDIATE *curr)
             break;
         case PROG_ADD:
             curr->in.data.addr = curr->next->in.data.addr;
+            break;
         case PROG_IF:
         case PROG_TRY:
         case PROG_JMP:
         case PROG_EXEC:
             curr->in.data.call = curr->next->in.data.call;
+            break;
+        case PROG_LABEL:
+            curr->in.data.labelname = curr->next->in.data.labelname;
+            break;
+        case PROG_OBJECT:
+            curr->in.data.objref = curr->next->in.data.objref;
             break;
         default:
             curr->in.data.number = curr->next->in.data.number;
@@ -1170,8 +1177,8 @@ OptimizeIntermediate(COMPSTATE *cstat)
             case PROG_STRING:
                 if (IntermediateIsString(curr, "")) {
                     if (ContiguousIntermediates(Flags, curr->next, 3)) {
-		                /* "" strcmp 0 = into not */
-						if (IntermediateIsPrimitive(curr->next, StrcmpNo)) {
+                        /* "" strcmp 0 = into not */
+                        if (IntermediateIsPrimitive(curr->next, StrcmpNo)) {
                             if (IntermediateIsInteger(curr->next->next, 0)) {
                                 if (IntermediateIsPrimitive
                                     (curr->next->next->next, EqualsNo)) {
@@ -1187,8 +1194,8 @@ OptimizeIntermediate(COMPSTATE *cstat)
                                 }
                             }
                         }
-		                /* "" stringcmp 0 = into not */
-						if (IntermediateIsPrimitive(curr->next, StringcmpNo)) {
+                        /* "" stringcmp 0 = into not */
+                        if (IntermediateIsPrimitive(curr->next, StringcmpNo)) {
                             if (IntermediateIsInteger(curr->next->next, 0)) {
                                 if (IntermediateIsPrimitive
                                     (curr->next->next->next, EqualsNo)) {
@@ -1355,34 +1362,34 @@ OptimizeIntermediate(COMPSTATE *cstat)
                         }
                     }
                 }
-				if (IntermediateIsPrimitive(curr, SwapNo)) {
+                if (IntermediateIsPrimitive(curr, SwapNo)) {
                     if (ContiguousIntermediates(Flags, curr->next, 1)) {
-						/* swap pop into nip */
+                        /* swap pop into nip */
                         if (IntermediateIsPrimitive(curr->next, PopNo)) {
                             curr->in.data.number = NipNo;
                             RemoveNextIntermediate(cstat, curr);
                             advance = 0;
                             break;
                         }
-						/* swap over into tuck */
+                        /* swap over into tuck */
                         if (IntermediateIsPrimitive(curr->next, OverNo)) {
                             curr->in.data.number = TuckNo;
                             RemoveNextIntermediate(cstat, curr);
                             advance = 0;
                             break;
                         }
-						/* swap 2 pick into tuck */
-						if (IntermediateIsInteger(curr->next, 2)) {
-							if (ContiguousIntermediates(Flags, curr->next, 1)) {
-								if (IntermediateIsPrimitive(curr->next->next, PickNo)) {
-									curr->in.data.number = TuckNo;
-									RemoveNextIntermediate(cstat, curr);
-									RemoveNextIntermediate(cstat, curr);
-									advance = 0;
-									break;
-								}
-							}
-						}
+                        /* swap 2 pick into tuck */
+                        if (IntermediateIsInteger(curr->next, 2)) {
+                            if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                                if (IntermediateIsPrimitive(curr->next->next, PickNo)) {
+                                    curr->in.data.number = TuckNo;
+                                    RemoveNextIntermediate(cstat, curr);
+                                    RemoveNextIntermediate(cstat, curr);
+                                    advance = 0;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
                 break;
@@ -2506,13 +2513,8 @@ do_directive(COMPSTATE *cstat, char *direct)
             snprintf(defstr, sizeof(defstr), "#%i \"%s\" call",
                      cstat->program, tmpname);
 
-            if (doitset) {
-                if (defstr && *defstr) {
-                    add_property(cstat->program, propname, defstr, 0);
-                } else {
-                    remove_property(cstat->program, propname);
-                }
-            }
+            if (doitset)
+                add_property(cstat->program, propname, defstr, 0);
         }
         while (*cstat->next_char)
             cstat->next_char++;
@@ -3256,7 +3258,7 @@ process_special(COMPSTATE *cstat, const char *token)
         struct PROC_LIST *p;
         struct publics *pub;
         int wizflag = 0;
-	int selfflag = 0;
+    int selfflag = 0;
         int wizlevel = LMAGE;
 
         if (!string_compare(token, "MAGECALL")) {
@@ -3272,8 +3274,8 @@ process_special(COMPSTATE *cstat, const char *token)
             wizflag = 1;
             wizlevel = LBOY;
         } else if (!string_compare(token, "SELFCALL") || !string_compare(token, "SAFECALL")) {
-	    selfflag = 1;
-	}
+        selfflag = 1;
+    }
         if (cstat->curr_proc)
             abort_compile(cstat,
                           "PUBLIC or WIZCALL declaration within procedure.");
@@ -3316,7 +3318,7 @@ process_special(COMPSTATE *cstat, const char *token)
                         free((void *) tok);
                     pub->addr.no = get_address(cstat, p->code, 0);
                     pub->mlev = wizflag ? wizlevel : 1;
-		    pub->self = selfflag;
+            pub->self = selfflag;
                     pub = NULL;
                 }
             }
@@ -4150,7 +4152,7 @@ free_intermediate_chain(struct INTERMEDIATE *wd)
 void
 cleanup(COMPSTATE *cstat)
 {
-/*	struct INTERMEDIATE *wd, *tempword; */
+/*  struct INTERMEDIATE *wd, *tempword; */
     struct CONTROL_STACK *eef, *tempif;
     struct PROC_LIST *p, *tempp;
     int i;
