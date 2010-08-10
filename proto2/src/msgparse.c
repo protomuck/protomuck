@@ -15,7 +15,7 @@
 #include "mfun.h"
 
 #define smnotify(X, Y, Z) { if (OkObj(Y))                       \
-                                notify_nolisten(Y, Z, 1);       \
+                                notify_nolisten(OWNER(Y), Z, 1);       \
                             else if (X > -1)                    \
                                 notify_descriptor(X, Z);        \
                           }
