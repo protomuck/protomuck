@@ -652,3 +652,7 @@ max_player_name_length
 Specifies the maximum size of a player name, up to BUFFER_LEN 
 (usually 16384).  If you are using spaces_in_playernames, its a 
 good idea to increase this.
+~~~
+sex_prop
+Specifies the property that the MUCK uses to determine the sex of a
+player, primarily used by pronoun substitutions.

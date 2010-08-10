@@ -47,7 +47,7 @@ prop_write_perms(dbref player, dbref obj, const char *name, int mlev)
 	if (!permissions(mlev, player, obj)) {
 	    if (Prop_Private(name)) return 0;
 	    if (Prop_ReadOnly(name)) return 0;
-	    if (!string_compare(name, "sex")) return 0;
+	    if (!string_compare(name, tp_sex_prop)) return 0;
 	}
       if (string_prefix(name, "_msgmacs/")) return 0;
     }
