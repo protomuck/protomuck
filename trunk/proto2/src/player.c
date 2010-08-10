@@ -111,7 +111,7 @@ connect_player(const char *name, const char *password)
 dbref
 create_player(dbref creator, const char *name, const char *password)
 {
-    char buf[PLAYER_NAME_LIMIT + 16];
+    char buf[BUFFER_LEN];
     register struct object *newp;
     dbref player;
 

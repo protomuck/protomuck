@@ -689,7 +689,7 @@ prim_bwrite(PRIM_PROTOTYPE)
         abort_interp("Arguement 3 is a negative number.");
     offset = oper1->data.number;
     filename = oper2->data.string->data;
-    tempdat = (int) oper3->data.string->data;
+    tempdat = oper3->data.number;
 #ifdef SECURE_FILE_PRIMS
     if (!(valid_name(filename)))
         abort_interp("Invalid file name.");
@@ -705,7 +705,7 @@ prim_bwrite(PRIM_PROTOTYPE)
         result = 0;
     } else {
         fseek(fh, (int) offset, SEEK_SET);
-        fputc(tempdat - 8, fh);
+        fputc(tempdat, fh);
         fclose(fh);
         result = 1;
         if (tp_log_files)
@@ -744,7 +744,7 @@ prim_bappend(PRIM_PROTOTYPE)
     if (oper2->data.number < 0)
         abort_interp("Arguement 2 is a negative number.");
     filename = oper1->data.string->data;
-    tempdat = (int)oper2->data.string->data;
+    tempdat = oper2->data.number;
 #ifdef SECURE_FILE_PRIMS
     if (!(valid_name(filename)))
         abort_interp("Invalid file name.");
@@ -759,7 +759,7 @@ prim_bappend(PRIM_PROTOTYPE)
     if (fh == NULL) {
         result = 0;
     } else {
-        fputc(tempdat - 8, fh);
+        fputc(tempdat, fh);
         result = 1;
         if (tp_log_files)
             log2filetime("logs/files", "#%d by %s BAPPEND : %s \n", program,

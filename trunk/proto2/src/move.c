@@ -1005,7 +1005,6 @@ do_recycle(int descr, dbref player, const char *name)
     }
 }
 
-extern int unlink(const char *);
 void
 recycle(int descr, dbref player, dbref thing)
 {

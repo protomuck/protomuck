@@ -2217,8 +2217,8 @@ do_sweep(int descr, dbref player, const char *name)
     }
 
     if (*name
-        && (!controls(OWNER(player), thing) & POWERS(OWNER(player)) &
-            POW_SEARCH)) {
+        && (!controls(OWNER(player), thing) && !(POWERS(OWNER(player)) &
+            POW_SEARCH))) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }

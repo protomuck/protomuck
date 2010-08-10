@@ -659,7 +659,7 @@ interp(int descr, dbref player, dbref location, dbref program,
         DBFETCH(program)->sp.program.profuses++;
     }
     DBFETCH(program)->sp.program.instances++;
-    push(fr->argument.st, &(fr->argument.top), PROG_STRING, match_args ?
+    push(fr->argument.st, &(fr->argument.top), PROG_STRING, *match_args ?
          MIPSCAST alloc_prog_string(match_args) : 0);
     return fr;
 }

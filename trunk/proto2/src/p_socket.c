@@ -586,7 +586,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
             sprintf(myresult, "ERROR: %d", errnosocket);
 #else
-            strcpy(myresult, sys_errlist[errnosocket]);
+            strcpy(myresult, strerror(errnosocket));
 #endif
         else
             strcpy(myresult, "noerr");
@@ -684,7 +684,7 @@ prim_nbsock6open(PRIM_PROTOTYPE)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
             sprintf(myresult, "ERROR: %d", errnosocket);
 #else
-            strcpy(myresult, sys_errlist[errnosocket]);
+            strcpy(myresult, strerror(errnosocket));
 #endif
         else
             strcpy(myresult, "noerr");
@@ -887,7 +887,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
         sprintf(myresult, "ERROR %d", errnosocket);
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         errors = 0;
         PushInt(errors);
@@ -902,7 +902,7 @@ prim_lsockopen(PRIM_PROTOTYPE)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
         sprintf(myresult, "ERROR: %d", errnosocket);
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         errors = 0;
         PushInt(errors);
@@ -998,7 +998,7 @@ prim_lsock6open(PRIM_PROTOTYPE)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
         sprintf(myresult, "ERROR: %d", errnosocket);
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         errors = 0;
         PushInt(errors);
@@ -1013,7 +1013,7 @@ prim_lsock6open(PRIM_PROTOTYPE)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
         sprintf(myresult, "ERROR: %d", errnosocket);
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         errors = 0;
         PushInt(errors);
@@ -1116,7 +1116,7 @@ if (oper1->data.sock->ipv6) {
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         CLEAR(oper1);
         PushString(myresult);
@@ -1148,7 +1148,7 @@ if (oper1->data.sock->ipv6) {
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         CLEAR(oper1);
         PushString(myresult);
@@ -1263,7 +1263,7 @@ if (oper1->data.sock->ipv6) {
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         CLEAR(oper1);
         PushString(myresult);
@@ -1310,7 +1310,7 @@ if (oper1->data.sock->ipv6) {
 #if defined(BRAINDEAD_OS) || defined(WIN32) || defined(__CYGWIN__)
         sprintf(myresult, "ERROR: ERRORNOSOCKET");
 #else
-        strcpy(myresult, sys_errlist[errnosocket]);
+        strcpy(myresult, strerror(errnosocket));
 #endif
         CLEAR(oper1);
         PushString(myresult);
@@ -1820,7 +1820,7 @@ prim_udpsend(PRIM_PROTOTYPE)
  CLEAR(oper1);
  result = 1; PushInt(result); 
 
-};
+}
 
 void
 prim_udp6send(PRIM_PROTOTYPE)
@@ -1878,7 +1878,7 @@ prim_udp6send(PRIM_PROTOTYPE)
  CLEAR(oper1);
  result = 1; PushInt(result); 
 #endif
-};
+}
 
 void
 prim_dns(PRIM_PROTOTYPE)
@@ -1919,6 +1919,6 @@ prim_dns(PRIM_PROTOTYPE)
     PushString(bufname); 
     PushString(bufip); 
  }
-};
+}
 
 #endif /* MUF_SOCKETS */
