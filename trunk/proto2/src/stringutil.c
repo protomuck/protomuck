@@ -178,7 +178,7 @@ pronoun_substitute(int descr, dbref player, const char *str)
     str = orig;
 
     sex = genderof(descr, player);
-    sexstr = get_property_class(player, "sex");
+    sexstr = get_property_class(player, tp_sex_prop);
     /*
        if (sexstr) {
        sexstr = do_parse_mesg(descr, player, player, sexstr, "(Lock)", sexbuf, MPI_ISLOCK);

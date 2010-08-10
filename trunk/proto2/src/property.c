@@ -541,11 +541,11 @@ copy_prop(dbref old)
 int
 genderof(int descr, dbref player)
 {
-    if (has_property_strict(descr, player, player, "sex", "male", 0))
+    if (has_property_strict(descr, player, player, tp_sex_prop, "male", 0))
         return GENDER_MALE;
-    else if (has_property_strict(descr, player, player, "sex", "female", 0))
+    else if (has_property_strict(descr, player, player, tp_sex_prop, "female", 0))
         return GENDER_FEMALE;
-    else if (has_property_strict(descr, player, player, "sex", "neuter", 0))
+    else if (has_property_strict(descr, player, player, tp_sex_prop, "neuter", 0))
         return GENDER_NEUTER;
     else
         return GENDER_UNASSIGNED;

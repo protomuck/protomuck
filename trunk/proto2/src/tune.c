@@ -49,6 +49,7 @@ const char *tp_unidle_command = "";
 const char *tp_unidle_command_msg = "";
 const char *tp_ssl_keyfile_passwd = "";
 const char *tp_reslvd_address = "127.0.0.1:12111";
+const char *tp_sex_prop = PROP_SEX;
 
 struct tune_str_entry {
     const char *group;
@@ -87,6 +88,7 @@ struct tune_str_entry tune_str_list[] = {
     {"IdleTime", "unidle_command_msg", &tp_unidle_command_msg, LARCH, LMUF, 1},
     {"SSL", "ssl_keyfile_passwd", &tp_ssl_keyfile_passwd, WBOY, LBOY, 1},
     {"System", "reslvd_address", &tp_reslvd_address, WBOY, LWIZ, 1},
+	{"Props", "sex_prop", &tp_sex_prop, LARCH, LMUF, 1},
     {NULL, NULL, NULL, 0, 0, 0}
 };
 

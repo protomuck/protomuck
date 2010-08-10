@@ -1259,13 +1259,13 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
     /* convert GENDER flag to property */
     switch ((FLAGS(objno) & GENDER_MASK) >> GENDER_SHIFT) {
         case GENDER_NEUTER:
-            add_property(objno, "sex", "neuter", 0);
+            add_property(objno, tp_sex_prop, "neuter", 0);
             break;
         case GENDER_FEMALE:
-            add_property(objno, "sex", "female", 0);
+            add_property(objno, tp_sex_prop, "female", 0);
             break;
         case GENDER_MALE:
-            add_property(objno, "sex", "male", 0);
+            add_property(objno, tp_sex_prop, "male", 0);
             break;
         default:
             break;
@@ -1381,13 +1381,13 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
     /* convert GENDER flag to property */
     switch ((FLAGS(objno) & GENDER_MASK) >> GENDER_SHIFT) {
         case GENDER_NEUTER:
-            add_property(objno, "sex", "neuter", 0);
+            add_property(objno, tp_sex_prop, "neuter", 0);
             break;
         case GENDER_FEMALE:
-            add_property(objno, "sex", "female", 0);
+            add_property(objno, tp_sex_prop, "female", 0);
             break;
         case GENDER_MALE:
-            add_property(objno, "sex", "male", 0);
+            add_property(objno, tp_sex_prop, "male", 0);
             break;
         default:
             break;
@@ -1572,13 +1572,13 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         /* convert GENDER flag to property */
         switch ((FLAGS(objno) & GENDER_MASK) >> GENDER_SHIFT) {
             case GENDER_NEUTER:
-                add_property(objno, "sex", "neuter", 0);
+                add_property(objno, tp_sex_prop, "neuter", 0);
                 break;
             case GENDER_FEMALE:
-                add_property(objno, "sex", "female", 0);
+                add_property(objno, tp_sex_prop, "female", 0);
                 break;
             case GENDER_MALE:
-                add_property(objno, "sex", "male", 0);
+                add_property(objno, tp_sex_prop, "male", 0);
                 break;
             default:
                 break;

@@ -28,6 +28,7 @@
 #define WWWDIR "_/www"
 #define PROP_PRECIOUS "@/precious"
 #define PROP_ID  "@/id"
+#define PROP_SEX "sex"
 
 /* name of the monetary unit being used */
 #define PENNY "pobble"

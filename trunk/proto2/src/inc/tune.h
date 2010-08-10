@@ -31,6 +31,7 @@ extern const char *tp_mysql_hostname;
 extern const char *tp_mysql_database;
 extern const char *tp_mysql_username;
 extern const char *tp_mysql_password;
+extern const char *tp_sex_prop;
 
 #ifdef USE_SSL
 extern const char *tp_ssl_keyfile_passwd;
