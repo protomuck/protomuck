@@ -3,8 +3,6 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <ctype.h>
-
 #include "db.h"
 #include "props.h"
 #include "params.h"

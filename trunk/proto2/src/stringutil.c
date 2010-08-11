@@ -9,8 +9,6 @@
 
 /* String utilities */
 
-#include <stdio.h>
-#include <ctype.h>
 #include "externs.h"
 
 #define DOWNCASE(x) (tolower(x))

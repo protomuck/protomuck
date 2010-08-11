@@ -5,22 +5,6 @@
 #include "config.h"
 #ifndef WIN_VC
 #ifdef FILE_PRIMS
-#include <sys/types.h>
-#include <sys/stat.h>
-#ifndef WIN_VC
-#include <unistd.h>
-#include <dirent.h>             /* May be a problem in non-linux systems. */
-#endif
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
-#include <sys/param.h>
-#include <sys/mount.h>
-#elif !defined(WIN_VC)
-#include <sys/vfs.h>
-#endif
-#include <stdio.h>
-#include <time.h>
-#include <ctype.h>
-#include <string.h>
 #include "db.h"
 #include "tune.h"
 #include "inst.h"

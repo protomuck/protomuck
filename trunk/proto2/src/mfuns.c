@@ -1,9 +1,6 @@
 
 #include "config.h"
 
-
-#include <math.h>
-#include <ctype.h>
 #include "params.h"
 
 #include "db.h"

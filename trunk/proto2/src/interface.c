@@ -3,31 +3,6 @@
 #include "copyright.h"
 #include "config.h"
 
-/* testing */
-
-#include <sys/types.h>
-#ifdef WIN_VC
-# include <string.h>
-#else
-# include <sys/file.h>
-# include <sys/ioctl.h>
-# include <sys/wait.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
-# include <netdb.h>
-#endif
-
-#include <fcntl.h>
-#if defined(HAVE_ERRNO_H)
-# include <errno.h>
-#elif defined(HAVE_SYS_ERRNO_H)
-# include <sys/errno.h>
-#else
-extern int errno;
-#endif
-#include <ctype.h>
-
 #include "cgi.h"
 #include "defaults.h"
 #include "db.h"

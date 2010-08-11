@@ -5,10 +5,7 @@
  */
 #include "copyright.h"
 #include "config.h"
-
-#include <ctype.h>
-#include <stdio.h>
-
+/* --- */
 #include "strings.h"
 #include "db.h"
 #include "props.h"

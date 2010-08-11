@@ -4,9 +4,6 @@
 #include "config.h"
 #include "params.h"
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
 #include "db.h"
 #include "tune.h"
 #include "props.h"

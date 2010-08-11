@@ -4,13 +4,6 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
-#include <ctype.h>
-#include <math.h>
-#include <stdlib.h>
-#include <float.h>
 #ifndef NAN
 #include "nan.h"
 #endif

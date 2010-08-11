@@ -1,24 +1,6 @@
 #include "copyright.h"
 #include "config.h"
-#include <sys/types.h>
-#include <fcntl.h>
-#include <ctype.h>
-#ifdef WIN_VC
-# include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <winsock.h> 
-#else
-# include <arpa/inet.h>
-# include <sys/ioctl.h>
-# include <sys/wait.h>
-# include <sys/socket.h>
-# include <sys/errno.h>
-# include <netinet/in.h>
-# include <netdb.h>
-#endif
+
 #include "defaults.h"
 #include "db.h"
 #include "interface.h"

@@ -2,9 +2,6 @@
 /* Attributions as given, modified by Jonah 'Points' Safar */
 
 #include "config.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 /*****************************************************************/
 

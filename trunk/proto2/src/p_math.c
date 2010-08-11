@@ -3,15 +3,10 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <math.h>
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
 #include "db.h"
 #include "inst.h"
 #include "externs.h"
 #include "match.h"
-#include <float.h>
 #ifndef NAN
 #include "nan.h"
 #endif

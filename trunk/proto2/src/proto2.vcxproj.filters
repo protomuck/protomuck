@@ -191,9 +191,6 @@
     <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="version.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="wiz.c">
       <Filter>Source Files</Filter>
     </ClCompile>

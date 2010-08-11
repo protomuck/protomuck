@@ -11,7 +11,6 @@
 #include "externs.h"
 #include "match.h"
 #include "strings.h"
-#include <ctype.h>
 
 struct line *read_program(dbref i);
 

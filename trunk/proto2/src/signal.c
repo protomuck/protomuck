@@ -21,17 +21,6 @@
 #include "tune.h"
 #include "netresolve.h"
 
-#include <signal.h>
-#ifdef WIN_VC
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <winsock.h> 
-#else
-#include <sys/wait.h>
-#endif
-
 /*
  * SunOS can't include signal.h and sys/signal.h, stupid broken OS.
  */

@@ -1,20 +1,9 @@
 /* Copyright (c) 1994, by Cynbe ru Taren.                               */
 
-#include "reg.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <sys/types.h>
-#include <signal.h>
 #include "config.h"
-#ifndef WIN_VC
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
-#endif
 
 #include "db.h"
+#include "reg.h"
 #include "props.h"
 #include "externs.h"
 

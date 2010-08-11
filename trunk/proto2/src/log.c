@@ -6,11 +6,6 @@
 
 #include "config.h"
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <stdarg.h>
-#include <time.h>
-
 #include "strings.h"
 #include "interface.h"
 #include "externs.h"

@@ -3,9 +3,6 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <stdio.h>
-#include <ctype.h>
-
 #include "db.h"
 #include "inst.h"
 #include "externs.h"

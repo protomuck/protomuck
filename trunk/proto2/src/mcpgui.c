@@ -2,24 +2,6 @@
 
 #ifdef MCP_SUPPORT
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
-# if defined(__APPLE__) && defined(HAVE_SYS_MALLOC_H)
-#  include <sys/malloc.h>
-# endif
-#elif defined(HAVE_MALLOC_H)
-# include <malloc.h>
-#endif
-
-#ifndef WIN_VC
-# include <sys/time.h>
-#else
-# include <time.h>
-#endif
-
 #include "interface.h"
 #include "mcp.h"
 #include "mcpgui.h"
