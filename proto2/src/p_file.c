@@ -3,14 +3,18 @@
 #endif
 #include "copyright.h"
 #include "config.h"
+#ifndef WIN_VC
 #ifdef FILE_PRIMS
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef WIN_VC
 #include <unistd.h>
+#include <dirent.h>             /* May be a problem in non-linux systems. */
+#endif
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
 #include <sys/param.h>
 #include <sys/mount.h>
-#else
+#elif !defined(WIN_VC)
 #include <sys/vfs.h>
 #endif
 #include <stdio.h>
@@ -26,7 +30,7 @@
 #include "params.h"
 #include "strings.h"
 #include "interp.h"
-#include <dirent.h>             /* May be a problem in non-linux systems. */
+
 
 extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern int tmp, result;
@@ -34,6 +38,12 @@ extern dbref ref;
 extern char buf[BUFFER_LEN];
 char *tempc = NULL;
 char *directory = (char *)"$";
+
+
+#ifdef WIN_VC
+int getuid(void) { return 0; }
+int getgid(void) { return 0; }
+#endif
 
 char *
 set_directory(char *filename)
@@ -589,10 +599,14 @@ prim_fpublish(PRIM_PROTOTYPE)
     if (filename == NULL)
         abort_interp("Invalid shortcut used.");
 #endif
+#ifndef WIN_VC
     result =
         !chmod(filename,
                S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH |
                S_IXOTH);
+#else
+	result = 0;
+#endif
     if (tp_log_files)
         log2filetime("logs/files", "#%d by %s FCHMOD: %s \n", program,
                      unparse_object(PSafe, PSafe), oper1->data.string->data);
@@ -1304,3 +1318,4 @@ prim_rmdir(PRIM_PROTOTYPE)
     PushInt(result);
 }
 #endif /* FILE_PRIMS */
+#endif /* WIN_VC */

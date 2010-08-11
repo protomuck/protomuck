@@ -1,6 +1,14 @@
 #ifndef __NEWRESOLV_H
 #define __NEWRESOLV_H
+#ifdef WIN_VC
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <signal.h>
+#include <winsock.h> 
+#else
 #include <arpa/inet.h>
+#endif
 
 struct hostinfo { /* linked-list struct for the new host cacher */
     time_t           wupd;      /* time of last update */
@@ -57,8 +65,8 @@ extern struct huinfo *host_getinfo6(struct in6_addr a6, unsigned short lport, un
 extern char *host_get_ipv6attr(int a, unsigned short lport, unsigned short prt);
 #endif
 
-extern char *ip_address_prototype(void* x, int xsize);
-extern char *hostToIPex(struct hostinfo * h);
+extern const char *ip_address_prototype(void* x, int xsize);
+extern const char *hostToIPex(struct hostinfo * h);
 #define ip_address(x) ip_address_prototype(&x, sizeof(x))
 
 extern struct huinfo *host_getinfo(int a, unsigned short lport, unsigned short prt);

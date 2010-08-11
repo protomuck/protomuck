@@ -3,10 +3,15 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <ctype.h>
-#include <arpa/inet.h>
 #ifdef WIN_VC
 # include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <signal.h>
+#include <winsock.h> 
 #else
+# include <arpa/inet.h>
 # include <sys/ioctl.h>
 # include <sys/wait.h>
 # include <sys/socket.h>
@@ -34,18 +39,9 @@ unsigned long hostdb_flushed = 0; /* number of entries purged during last flush 
 time_t hostdb_flushtime = 0;    /* time of last hostcache flush */
 dbref hostdb_flushplyr = NOTHING; /* ref of player if last flush was from #flush */
 
-#if defined(HAVE_PTHREAD_H)
+#ifdef IPV6
 
-/* Beginnings of very basic threaded resolver. */
-
-struct tres_data {
-    struct hostinfo * h;
-    //struct husrinfo * u;
-    unsigned short lport;
-    unsigned short prt;
-};
-
-char *
+const char *
 ip_address_prototype(void* x, int xsize)
 {
     static char buf[64];
@@ -60,8 +56,7 @@ ip_address_prototype(void* x, int xsize)
     return buf;
 }
 
-char *
-hostToIPex(struct hostinfo * h)
+const char *hostToIPex(struct hostinfo * h)
 {
     // if the address is filled with either 0.0.0.0 or 255.255.255.255
     // assume its ipv6
@@ -74,6 +69,26 @@ hostToIPex(struct hostinfo * h)
     else
 	return ip_address_prototype(&h->a, 4);
 }
+
+#else
+
+const char *hostToIPex(struct hostinfo * h)
+{
+	return host_as_hex(h->a);
+}
+
+#endif
+
+#if defined(HAVE_PTHREAD_H)
+
+/* Beginnings of very basic threaded resolver. */
+
+struct tres_data {
+    struct hostinfo * h;
+    //struct husrinfo * u;
+    unsigned short lport;
+    unsigned short prt;
+};
 
 const char *
 get_username(int a, int prt, int myprt)

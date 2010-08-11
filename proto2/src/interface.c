@@ -481,6 +481,7 @@ main(int argc, char **argv)
                 }
                 bind6 = str2ip6(argv[++i]);
 #endif
+#ifndef WIN_VC
             } else if (!strcmp(argv[i], "-gamedir")) {
                 if (i + 1 >= argc) {
                     show_program_usage(*argv);
@@ -489,6 +490,7 @@ main(int argc, char **argv)
                     perror("cd to gamedir");
                     exit(4);
                 }
+#endif
             } else if (!strcmp(argv[i], "--")) {
                 nomore_options = 1;
             } else {
@@ -526,7 +528,7 @@ main(int argc, char **argv)
 
     if (!sanity_interactive) {
 
-
+#ifndef WIN_VC
 #ifdef DETACH
 #if defined(__CYGWIN__) || defined(WIN32) || defined(WIN_VC)
 # ifdef __CYGWIN__
@@ -548,6 +550,7 @@ main(int argc, char **argv)
             if (fork() != 0)
                 exit(0);
         }
+#endif
 #endif
 
         /* save the PID for future use */
@@ -590,7 +593,7 @@ main(int argc, char **argv)
             setpgrp();          /* System V's way */
 #elif defined(BSD) || defined(USE_BSDPGRP)
             setpgrp(0, getpid()); /* BSDism */
-#else /* anyone else, default to POSIX (WinNT, Linux) */
+#elif !defined(WIN_VC) /* anyone else, default to POSIX (WinNT, Linux) */
             setsid();
 #endif
 # ifdef  TIOCNOTTY              /* we can force this, POSIX / BSD */
@@ -603,12 +606,15 @@ main(int argc, char **argv)
 #endif /* DETACH */
     }
 
+
+#ifdef USE_PS
     /* Initialize the array of pointers used for tracking
      * PIDs during FORCE recursion */
     for ( ; nCurPtr < 9; ++nCurPtr )
     {
         aForceFrameStack[nCurPtr] = NULL;
     }
+#endif
 
     /* Initialize MCP and some packages. */
 #ifdef MCP_SUPPORT
@@ -2260,7 +2266,9 @@ descr_sendfileblock(struct descriptor_data *d)
     if (d->dfile->sent >= d->dfile->size) {
         fclose(d->dfile->fp);
         if (d->dfile->pid == -1) {
+#ifdef NEWHTTPD
             httpfcount--;       /* This is in newhttp.c/newhttp.h */
+#endif
             d->booted = 4;
         } else if (d->dfile->pid > 0 && in_timequeue(d->dfile->pid)) {
             struct inst temp1;
@@ -2329,8 +2337,12 @@ descr_fsenddisc(struct descriptor_data *d)
             muf_event_add(destfr, "FILE.INTERRUPT", &temp1, 0);
             CLEAR(&temp1);
         }
+#ifdef NEWHTTPD
     } else if (d->dfile->pid == -1)
         httpfcount--;           /* This is in newhttp.c/newhttp.h */
+#else
+	}
+#endif
 
     fclose(d->dfile->fp);
     free((void *) d->dfile);
@@ -3179,7 +3191,7 @@ make_nonblocking(register int s)
 #endif
 
 #ifdef WIN_VC
-    int turnon = 1;
+    u_long turnon = 1;
 
     if (ioctl(s, FIONBIO, &turnon) != 0) {
 #else

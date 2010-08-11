@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <fcntl.h>
+
 #ifndef WIN_VC
 # include <sys/socket.h>
 # include <sys/errno.h>
@@ -37,6 +38,12 @@
 # include <arpa/inet.h>
 # include <netdb.h>
 # include <unistd.h>
+#else
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <signal.h>
+#include <winsock.h> 
 #endif
 
 #if defined(HAVE_ERRNO_H)
@@ -153,12 +160,17 @@ muf_socket_sendevent(struct muf_socket_queue *curr)
         if (curr->theSock->listening) {
             sprintf(littleBuf, "SOCKET.LISTEN.%d", curr->theSock->socknum);
         } else if (!curr->theSock->connected) {
-            int errval = 0;
+#ifdef WIN_VC
+            char errval = 0;
+#else
+			int errval = 0;
+#endif
             socklen_t slen = sizeof(errval);
 
             sprintf(littleBuf, "SOCKET.CONNECT.%d", curr->theSock->socknum);
             curr->theSock->readWaiting = 0;
             curr->theSock->last_time = time(NULL);
+
             getsockopt(curr->theSock->socknum, SOL_SOCKET, SO_ERROR, &errval,
                        &slen);
             curr->theSock->connected = (!errval ? 1 : -1);
@@ -584,7 +596,10 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         make_nonblocking(mysock);
         if (connect(mysock, (struct sockaddr *) &name, sizeof(name)) == -1)
 #if defined(BRAINDEAD_OS) || defined(WIN32)
-            sprintf(myresult, "ERROR: %d", errnosocket);
+			if (errnosocket == 10035)
+				strcpy(myresult, "Operation now in progress");
+			else
+				sprintf(myresult, "ERROR: %d", errnosocket);
 #else
             strcpy(myresult, strerror(errnosocket));
 #endif
@@ -1411,8 +1426,11 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     if (theSock->ipv6)
         array_set_strkey_strval(&nw, "HOST", ip_address_prototype((void*)theSock->host6->s6_addr,16));
     else
+		array_set_strkey_strval(&nw, "HOST", ip_address_prototype(&theSock->host,4));
+#else
+	array_set_strkey_strval(&nw, "HOST", host_as_hex(theSock->host));
 #endif
-        array_set_strkey_strval(&nw, "HOST", ip_address_prototype(&theSock->host,4));
+        
     array_set_strkey_intval(&nw, "CONNECTED_AT", theSock->connected_at);
     array_set_strkey_intval(&nw, "LAST_TIME", theSock->last_time);
     array_set_strkey_intval(&nw, "COMMANDS", theSock->commands);
@@ -1812,7 +1830,7 @@ prim_udpsend(PRIM_PROTOTYPE)
  /* ship it out, shut it down. */
  sendto(tmp, oper1->data.string->data, oper1->data.string->length, 0, (struct sockaddr *)&sa, sizeof(sa)); 
  if (tp_log_sockets) log2filetime("logs/sockets", "UDPSEND: host %s, port %d\n", myhost->h_name, htons(sa.sin_port));
- close(tmp);
+ close(tmp); //HinoSpoon
  
  /* Yay! Return TRUE */    
  CLEAR(oper3);

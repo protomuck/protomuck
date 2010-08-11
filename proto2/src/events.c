@@ -1,10 +1,11 @@
 
-
+#include "config.h"
 #include <time.h>
+#ifndef WIN_VC
 #include <sys/time.h>
+#endif
 #include "db.h"
 #include "props.h"
-#include "config.h"
 #include "params.h"
 #include "tune.h"
 #include "externs.h"

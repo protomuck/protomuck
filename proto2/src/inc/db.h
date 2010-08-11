@@ -8,8 +8,9 @@
 #include <math.h>
 #ifndef WIN_VC
 # include <time.h>
-#endif
 #include <sys/time.h>
+#endif
+# include <time.h>
 #ifdef HAVE_TIMEBITS_H
 #  define __need_timeval 1
 #  include <timebits.h>

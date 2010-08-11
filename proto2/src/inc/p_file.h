@@ -30,7 +30,7 @@ extern void prim_rmdir(PRIM_PROTOTYPE);
         "FSTATS", "CURID", "FSINFO", "FRM", "FREN", "FREADTO",    \
         "FNAME-OK?", "GETDIR", "MKDIR", "RMDIR"
 
-#ifdef FILE_PRIMS
+#if defined(FILE_PRIMS) && !defined(WIN_VC)
 #define PRIMS_FILE_CNT 20
 #else
 #define PRIMS_FILE_CNT 0

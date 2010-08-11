@@ -505,7 +505,7 @@ new_mvar(register const char *varname, register char *buf)
         return 1;
 
     if (varc >= MPI_MAX_VARIABLES)
-        return 2;
+        return 1;
 
     strcpy(varv[varc].name, varname);
     varv[varc++].buf = buf;
@@ -553,7 +553,7 @@ new_mfunc(register const char *funcname, register const char *buf)
         return 1;
 
     if (funcc > MPI_MAX_FUNCTIONS)
-        return 2;
+        return 1;
 
     strcpy(funcv[funcc].name, funcname);
     funcv[funcc++].buf = (char *) string_dup(buf);

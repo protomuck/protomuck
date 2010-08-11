@@ -29,6 +29,9 @@
     { __l: 0x7fc00000UL }).__d)
 
 #else
+# ifdef WIN_VC
+#  define __nan_bytes           { 0, 0, 0xc0, 0x7f }
+# else
 
 # include <endian.h>
 
@@ -38,6 +41,7 @@
 # if __BYTE_ORDER == __LITTLE_ENDIAN
 #  define __nan_bytes           { 0, 0, 0xc0, 0x7f }
 # endif
+#endif
 
 static union { unsigned char __c[4]; float __d; } __nan_union = { __nan_bytes };
 # define NAN    (__nan_union.__d)

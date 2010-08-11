@@ -19,6 +19,8 @@
    tzname.  */
 #define HAVE_TZNAME 1
 
+#define HAVE_ERRNO_H 1
+
 /* Define if you have the vprintf function.  */
 #define HAVE_VPRINTF 1
 

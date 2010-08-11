@@ -3,6 +3,8 @@
 #include "copyright.h"
 #include "config.h"
 
+#ifndef WIN_VC
+
 #include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
@@ -381,3 +383,5 @@ prim_regsub(PRIM_PROTOTYPE)
 
     PushString(buf);
 }
+
+#endif //WIN_VC

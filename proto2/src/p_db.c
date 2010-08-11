@@ -178,9 +178,9 @@ check_mlev(char *flag, int *truewiz)
         return LMPI;
     if (string_prefix("mucker", flag) || string_prefix("mucker1", flag) || string_prefix("m1", flag))
         return LMUF;
-    if (string_prefix("nucker", flag) || string_prefix("mucker2", flag) || string_prefix("m2", flag))
+    if (string_prefix("mucker2", flag) || string_prefix("m2", flag))
         return LM2;
-    if (string_prefix("sucker", flag) || string_prefix("mucker3", flag) || string_prefix("m3", flag))
+    if (string_prefix("mucker3", flag) || string_prefix("m3", flag))
         return LM3;
     if (string_prefix("mage", flag) || string_prefix("W1", flag))
         return (tp_multi_wizlevels ? LMAGE : LM3);
