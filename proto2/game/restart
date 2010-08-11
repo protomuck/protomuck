@@ -75,10 +75,17 @@ GAMEDIR=${GAMEDIR:-${0%/*}}
 # ...And then actually make sure it exists before proceeding.
 if [ ! -d $GAMEDIR ]
 then
-	echo "GAMEDIR does not appear to exist:"
-	echo "  $GAMEDIR"
-	echo "Restart attempt aborted."
-	exit 1
+	# Exception for if the restart script is called
+	if [ $GAMEDIR != "restart" ]
+	then
+		echo "PIP1"
+		pwd
+		echo "PIP2"
+		echo "GAMEDIR does not appear to exist:"
+		echo "  $GAMEDIR"
+		echo "Restart attempt aborted."
+		exit 1
+	fi
 fi
 
 # Use default values unless the user overrode them in this file or muck.config.
