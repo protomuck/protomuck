@@ -1,3 +1,24 @@
+#!/bin/sh
+
+# Generates version.c
+#
+# Copyright (c) 1990 Chelsea Dyerman
+# University of California, Berkeley (XCF)
+
+if[!-f version.c]
+    then generation = 0
+    else
+    generation =
+        `sed - n 's/^const char \*generation = \"\(.*\)\";/\1/p' <
+        version.c ` if[!"$generation"] ;
+then generation = 0;
+
+fi fi
+    generation = `expr $generation + 1 `
+    creation =
+    `date | awk
+    '{if (NF == 6) { print $1 " "  $2 " " $3 " "  $6 " at " $4 " " $5 } else { print $1 " "  $2 " " $3 " " $7 " at " $4 " " $5 " " $6 }}'
+    ` cat > version.c << EOF
 /*
  * Copyright (c) 1990 Chelsea Dyerman
  * University of California, Berkeley (XCF)
@@ -61,3 +82,5 @@ do_credits(dbref player)
         anotify_nolisten2(player, infotext[i]);
     }
 }
+
+EOF exit 0
