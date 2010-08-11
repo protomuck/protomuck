@@ -554,6 +554,11 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "err_imaginary?", "2 is_set?");
     insert_def(cstat, "err_fbounds?", "3 is_set?");
     insert_def(cstat, "err_ibounds?", "4 is_set?");
+	/* Read Wants Blanks defines */
+    insert_def(cstat, "read_wants_blanks?", "get_read_wants_blanks");
+    insert_def(cstat, "read_wants_blanks_on", "get_read_wants_blanks not if read_wants_blanks then");
+    insert_def(cstat, "read_wants_blanks_off", "get_read_wants_blanks if read_wants_blanks then");
+    insert_def(cstat, "read_wants_blanks_toggle", "read_wants_blanks get_read_wants_blanks");
 
     /* Array convenience defines */
     insert_def(cstat, "}array", "} array_make");

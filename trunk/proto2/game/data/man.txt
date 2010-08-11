@@ -62,9 +62,10 @@ Control Structures:
   BEGIN        UNTIL      REPEAT      WHILE       BREAK       CONTINUE
   COMPILED?    TREAD      FOREACH     FOR         PROPQUEUE   ENVPROPQUEUE         
   INSTANCES    MAGECALL   WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
-  GETPIDS      TRY        CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
+  GETPIDS      TRY        CATCH       ENDCATCH    JMP         ENQUEUE
   PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE  SELFCALL    DEBUGGER_BREAK
-  ENQUEUE
+  READ_WANTS_BLANKS       GET_READ_WANTS_BLANKS   READ_WANTS_BLANKS_TOGGLE
+  READ_WANTS_BLANKS_ON    READ_WANTS_BLANKS_OFF
 
 Property Prims:
   ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
@@ -420,8 +421,10 @@ TRIG         PROG      PARSEMPI    PARSEPROP   CANCALL?
 BEGIN        UNTIL     REPEAT      WHILE       BREAK       CONTINUE
 COMPILED?    TREAD     FOREACH     FOR         PROPQUEUE   ENVPROPQUEUE         
 INSTANCES    MAGECALL  WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
-GETPIDS      TRY       CATCH       ENDCATCH    JMP         READ_WANTS_BLANKS
-PARSEPROPEX  DEBUG_ON  DEBUG_OFF   DEBUG_LINE              DEBUGGER_BREAK
+GETPIDS      TRY       CATCH       ENDCATCH    JMP         PARSEPROPEX
+DEBUG_ON     DEBUG_OFF DEBUG_LINE  DEBUGGER_BREAK
+READ_WANTS_BLANKS      GET_READ_WANTS_BLANKS   READ_WANTS_BLANKS_TOGGLE
+READ_WANTS_BLANKS_ON   READ_WANTS_BLANKS_OFF
 
 See: LOOPS, MULTITASKING
 ~~~~
@@ -1578,7 +1581,8 @@ well as programs run via the MUF port. In both of these cases, the READ prim
 can be used in the same way it is used in in-MUCK programs. The running the
 program will be blocked, and the next input from the descriptor will be pushed
 onto the stack. 
-See: BACKGROUND, TREAD, READ_WANTS_BLANKS
+See: BACKGROUND, TREAD, READ_WANTS_BLANKS, GET_READ_WANTS_BLANKS,
+READ_WANTS_BLANKS_TOGGLE, READ_WANTS_BLANKS_ON, READ_WANTS_BLANKS_OFF
 ~
 REMOVE_PROP
 
@@ -9092,7 +9096,67 @@ off the behavior (i.e., it will toggle it each time it is used. ).
 Also, this behavior affects all 'read events', so TREAD, or 
 EVENT_WAITFOR can also be affected.
 
-See: READ, TREAD, EVENT_WAITFOR
+See: READ, TREAD, EVENT_WAITFOR, GET_READ_WANTS_BLANKS,
+READ_WANTS_BLANKS_ON, READ_WANTS_BLANKS_OFF, READ_WANTS_BLANKS_TOGGLE
+~~~~
+GET_READ_WANTS_BLANKS|READ_WANTS_BLANKS?
+
+get_read_wants_blanks read_wants_blanks? ( -- i )
+------------------------
+Level: M1 Apprentice
+
+When used, it will return wether or not blank entries from the user
+will be caught by the READ prim (1) or not (0). Initally, READ will
+ignore blank strings sent by the user, but after READ_WANTS_BLANKS
+is used once, it will make it so that empty input from the user
+will be caught by READ, causing a empty string to be pushed onto
+the stack.
+Note that if READ_WANTS_BLANKS is used a second time, it will turn
+off the behavior (i.e., it will toggle it each time it is used. ).
+Also, this behavior affects all 'read events', so TREAD, or 
+EVENT_WAITFOR can also be affected.
+
+See: READ, TREAD, EVENT_WAITFOR, READ_WANTS_BLANKS,
+READ_WANTS_BLANKS_ON, READ_WANTS_BLANKS_OFF, READ_WANTS_BLANKS_TOGGLE
+~~~~
+READ_WANTS_BLANKS_ON
+
+read_wants_blanks_on ( -- )
+------------------------
+Level: M1 Apprentice
+
+When used, it will set it so that blank entries from the user will
+be caught by the READ prim. Initally, READ will ignore blank
+strings sent by the user, but after this prim is used, it
+will make it so that empty input from the user will be caught by 
+READ, causing a empty string to be pushed onto the stack.
+Note that if READ_WANTS_BLANKS is used after this, it will turn
+off the behavior (i.e., it will toggle it each time it is used. ).
+Also, this behavior affects all 'read events', so TREAD, or 
+EVENT_WAITFOR can also be affected.
+
+See: READ, TREAD, EVENT_WAITFOR, READ_WANTS_BLANKS,
+GET_READ_WANTS_BLANKS, READ_WANTS_BLANKS_ON, READ_WANTS_BLANKS_OFF
+~~~~
+READ_WANTS_BLANKS_OFF
+
+read_wants_blanks_off ( -- )
+------------------------
+Level: M1 Apprentice
+
+When used, it will set is so that blank entries from the user
+will not be caught by the READ prim. Initally, READ will ignore
+blank strings sent by the user and this prim will have no effect,
+but if it has been switched to the mode where it captures empty
+input from the user, this prim will reset it back to where it
+does not.
+Note that if READ_WANTS_BLANKS is used after this, it will turn
+on the behavior.
+Also, this behavior affects all 'read events', so TREAD, or 
+EVENT_WAITFOR can also be affected.
+
+See: READ, TREAD, EVENT_WAITFOR, READ_WANTS_BLANKS,
+GET_READ_WANTS_BLANKS, READ_WANTS_BLANKS_ON, READ_WANTS_BLANKS_OFF
 ~~~~
 MUF EDIT PRIMS|MUF EDITING PRIMS|MUF EDIT
 These prims are used for editing MUF and macros. Tools needed for
@@ -9103,6 +9167,26 @@ For macros: KILL_MACRO, INSERT_MACRO, GET_MACROS_ARRAY
 For code: PROGRAM_LINECOUNT, PROGRAM_GETLINES, PROGRAM_DELETELINES, 
           PROGRAM_INSERTLINES
 ~~~~~
+READ_WANTS_BLANKS_TOGGLE
+
+read_wants_blanks_toggle ( -- i )
+------------------------
+Level: M1 Apprentice
+
+When used, it will toggle whether or not blank entries from the user
+will be caught by the READ prim (1) or not (0) and will return the
+value. Initally, READ will ignore blank strings sent by the user,
+but after this prim is used once, it will make it so that empty
+input from the user will be caught by READ, causing a empty string
+to be pushed onto the stack.
+Note that if READ_WANTS_BLANKS is used a second time, it will turn
+off the behavior (i.e., it will toggle it each time it is used. ).
+Also, this behavior affects all 'read events', so TREAD, or 
+EVENT_WAITFOR can also be affected.
+
+See: READ, TREAD, EVENT_WAITFOR, GET_READ_WANTS_BLANKS,
+READ_WANTS_BLANKS_ON, READ_WANTS_BLANKS_OFF, READ_WANTS_BLANKS
+~~~~
 KILL_MACRO
 
 kill_macro ( s -- i )
