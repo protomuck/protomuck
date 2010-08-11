@@ -61,7 +61,11 @@ void (*prim_func[]) (PRIM_PROTOTYPE) = {
         PRIMS_PROPS_FUNCS,
         PRIMS_STACK_FUNCS,
         PRIMS_STRINGS_FUNCS,
-        PRIMS_FLOAT_FUNCS, PRIMS_REGEX_FUNCS, PRIMS_ERROR_FUNCS,
+        PRIMS_FLOAT_FUNCS,
+#ifndef WIN_VC
+		PRIMS_REGEX_FUNCS,
+#endif
+		PRIMS_ERROR_FUNCS,
 #ifdef FILE_PRIMS
         PRIMS_FILE_FUNCS,
 #endif
@@ -392,7 +396,11 @@ RCLEAR(struct inst *oper, const char *file, int line)
                         }
 #endif /* SSL_SOCKETS */
                         shutdown(oper->data.sock->socknum, 2);
+#ifdef WIN_VC
+						closesocket(oper->data.sock->socknum);
+#else
                         close(oper->data.sock->socknum);
+#endif
                     } else if (oper->data.sock->is_player == -1) {
                         struct descriptor_data *d;
 

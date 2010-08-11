@@ -16,6 +16,7 @@
 #include "params.h"
 #include "strings.h"
 #include "interp.h"
+#include "newhttp.h"
 
 extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 extern struct inst temp1, temp2, temp3;
@@ -3105,4 +3106,49 @@ prim_unparse_flags(PRIM_PROTOTYPE)
 
     CLEAR(oper1);
     PushString(buf);
+}
+
+
+void
+prim_base64encode(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    if (!oper1->data.string) {
+        CLEAR(oper1);
+        PushNullStr;
+    } else {
+        if (((oper1->data.string->length + 2) / 3 * 4) > BUFFER_LEN)
+            abort_interp("Operation would result in overflow.");
+        http_encode64(oper1->data.string->data, oper1->data.string->length,
+                      buf);
+        CLEAR(oper1);
+        PushString(buf);
+    }
+}
+
+void
+prim_base64decode(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    if (!oper1->data.string) {
+        CLEAR(oper1);
+        PushNullStr;
+    } else {
+        result =
+            http_decode64(oper1->data.string->data, oper1->data.string->length,
+                          buf);
+        CLEAR(oper1);
+        if (result < 0)
+            PushNullStr;
+        else
+            PushString(buf);
+    }
 }

@@ -310,7 +310,7 @@ format_time(char *buf, int max_len, const char *fmt, struct tm *tmval)
 #endif /* USE_STRFTIME */
 }
 
-int
+time_t
 get_tz_offset(void)
 {
 /*

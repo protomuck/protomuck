@@ -1,6 +1,8 @@
 #ifndef P_REGEX_H
 #define P_REGEX_H
 
+#ifndef WIN_VC
+
 #define MUF_RE_ICASE      1
 #define MUF_RE_ALL        2
 #define MUF_RE_ICASE_STR "1"
@@ -14,5 +16,12 @@ extern void prim_regsub(PRIM_PROTOTYPE);
 #define PRIMS_REGEX_NAMES "REGEXP", "REGSUB"
 
 #define PRIMS_REGEX_CNT 2
+
+#else
+
+#define PRIMS_REGEX_CNT 0
+
+#endif //WIN_VC
+
 
 #endif /* P_REGEX_H */

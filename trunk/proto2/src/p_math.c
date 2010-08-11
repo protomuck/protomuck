@@ -28,8 +28,11 @@ extern dbref ref;
 static double tl;
 static double fresult, tf1, tf2;
 
-#define MAXINT ~(1<<((sizeof(int)*8)-1))
-#define MININT (1<<((sizeof(int)*8)-1))
+#ifndef WIN_VC
+# define MAXINT ~(1<<((sizeof(int)*8)-1))
+# define MININT (1<<((sizeof(int)*8)-1))
+#endif
+
 #define no_good(x) ((x == INF) || (x == NINF) || (x == NAN))
 #define ISINF(x) ((x == INF) || (x == NINF))
 #define ISNAN(x) (x == NAN)

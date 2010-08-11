@@ -31,8 +31,6 @@ extern void http_initstruct(struct descriptor_data *d);
 extern void http_deinitstruct(struct descriptor_data *d);
 extern void http_handler_get(struct descriptor_data *d);
 extern void http_handler_post(struct descriptor_data *d);
-extern int http_decode64(const char *in, unsigned inlen, char *out);
-extern int http_encode64(const char *_in, unsigned inlen, char *_out);
 
 
 struct http_statstruct {
@@ -62,3 +60,7 @@ struct http_mimestruct {
 #define HS_MPI         0x80   /* Method supports MPI programs.      */
 
 #endif /* NEWHTTPD */
+
+//For some reason, lots of things use these.
+extern int http_decode64(const char *in, unsigned inlen, char *out);
+extern int http_encode64(const char *_in, unsigned inlen, char *_out);

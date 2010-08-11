@@ -3,7 +3,7 @@ typedef struct mfun_dat MFNDAT;
 
 struct mfun_dat {
     const char *name;
-    char *(*mfn) (MFUNARGS);
+    const char *(*mfn) (MFUNARGS);
     short     parsep;
     short     postp;
     short     stripp;

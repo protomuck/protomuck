@@ -24,10 +24,11 @@ of any and all parts of this server.
 */
 
 #include "config.h"
+#include "db.h"
 
 #ifdef COMPRESS
 
-#define BUFFER_LEN 16384        /* nice big buffer */
+//#define BUFFER_LEN 16384        /* nice big buffer */
 
 #define TOKEN_BIT 0x80          /* if on, it's a token */
 #define TOKEN_MASK 0x7f         /* for stripping out token value */
@@ -382,7 +383,7 @@ uncompress(const char *s)
     return (char *)buf;
 }
 
-extern short db_decompression_flag;
+extern bool db_decompression_flag;
 
 const char *
 compress(const char *s)

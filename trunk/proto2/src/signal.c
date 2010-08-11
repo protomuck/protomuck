@@ -22,7 +22,15 @@
 #include "netresolve.h"
 
 #include <signal.h>
+#ifdef WIN_VC
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <signal.h>
+#include <winsock.h> 
+#else
 #include <sys/wait.h>
+#endif
 
 /*
  * SunOS can't include signal.h and sys/signal.h, stupid broken OS.
@@ -223,7 +231,7 @@ sig_reap_resolver(int i)
 #endif
     }
 #endif
-#ifndef DISKBASE
+#if !defined(DISKBASE) && !defined(WIN_VC)
     /* Alynna - make the parent process any save done messages */
     /* but only if ProtoMUCK is using forked dumps. -hinoserm */
     if (tp_dbdump_warning && dumper_pid && dumper_pid == pid) {

@@ -341,12 +341,14 @@ dump_database(register bool dofork)
     dump_database_internal();
 #else
     /* Alynna - saving the PID of the dumper so I can get around an SSL issue */
+#ifndef WIN_VC
     if (dofork) {
         if (!(dumper_pid = fork())) {
             dump_database_internal();
             _exit(0);
         }
     } else
+#endif
         dump_database_internal();
 #endif
     log_status("DUMP: %s.#%d# (done)\n", dumpfile, epoch);
@@ -374,12 +376,14 @@ fork_and_dump(register bool dofork)
     dump_database_internal();
 #else
     /* Alynna - saving the PID of the dumper so I can get around an SSL issue */
+#ifndef WIN_VC
     if (dofork) {
         if (!(dumper_pid = fork())) {
             dump_database_internal();
             _exit(0);
         }
     } else
+#endif
         dump_database_internal();
 #endif
     time(&current_systime);
@@ -1359,103 +1363,7 @@ process_command(int descr, dbref player, char *command)
                     Matched("@version");
                     anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK " PROTOBASE 
                                                SYSPURPLE " (" SYSRED VERSION SYSPURPLE ")" 
-                                               SYSNORMAL " on " SYSCYAN
-#if defined(WIN32) || defined(WIN_VC)
-                    "Windows (native)"
-#else
-# ifdef CYGWIN
-                    "Windows (cygwin)"
-# else
-#  if defined(__APPLE__)
-                    "Mac OS X"
-#  else
-#   if defined(__linux__)
-                    "GNU/Linux"
-#   else
-                    "Unix"
-#   endif
-#  endif
-# endif
-#endif
-		    SYSNORMAL ": " SYSGREEN UNAME_VALUE SYSNORMAL);
-		    anotify_nolisten2(player, SYSGREEN "Compile-time Options: " SYSNORMAL 
-#ifdef SQL_SUPPORT
-		    "MySQL "
-#endif
-#ifdef USE_SSL
-		    "SSL "
-#endif
-#ifdef USE_RESLVD
-		    "ReslvD "
-#endif
-#ifdef IPV6
-		    "IPv6 "
-#endif
-#ifdef CONTROLS_SUPPORT
-		    "ControlsACLs "
-#endif
-#ifdef DESCRFILE_SUPPORT
-		    "DescrFile "
-#endif
-#ifdef IGNORE_SUPPORT
-		    "Ignores "
-#endif
-#ifndef NO_SYSCOLOR
-		    "Color "
-#endif
-#ifdef MCP_SUPPORT
-		    "MCP "
-#endif
-#ifdef ARCHAIC_DATABASES
-		    "Archaic "
-#endif
-#ifdef DETACH
-		    "Detach "
-#endif
-#ifdef COMPRESS
-		    "Compression "
-#endif
-#ifdef USE_PS
-		    "ProcessAPI "
-#endif
-#ifdef DISKBASE
-		    "DiskBased "
-#else
-		    "MemBased "
-#endif
-#ifdef DELTADUMPS
-		    "Deltas "
-#endif
-		    "Userflags "
-#ifdef MUF_SOCKETS
-		    "MUF:Sockets "
-#endif
-#ifdef SSL_SOCKETS
-		    "MUF:SSL "
-#endif
-#ifdef UDP_SOCKETS
-		    "MUF:UDP "
-#endif
-#ifdef IPV6
-		    "MUF:IPv6 "
-#endif
-#ifdef MUF_EDIT_PRIMS
-		    "MUF:Edit "
-#endif
-#ifdef DEBUGPROCESS
-#ifdef DBDEBUG
-		    "Debug:3 "
-#else
-		    "Debug:2 "
-#endif
-#else
-#ifdef DBDEBUG
-		    "Debug:1 "
-#else
-		    "Debug:0 "
-#endif
-#endif
-		    );
+                                               SYSNORMAL " on " SYSCYAN    );
                     break;
                 case 'w':
                 case 'W':

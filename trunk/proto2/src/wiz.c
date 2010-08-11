@@ -1119,7 +1119,7 @@ do_serverdebug(int descr, dbref player, const char *arg1, const char *arg2)
 
 
 #ifndef NO_USAGE_COMMAND
-int max_open_files(void);       /* from interface.c */
+long max_open_files(void);       /* from interface.c */
 
 void
 do_usage(dbref player)

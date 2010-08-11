@@ -17,6 +17,8 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
+#define _CRT_SECURE_NO_WARNINGS 1
+
 #include "copyright.h"
 
 /************************************************************************
@@ -139,7 +141,7 @@
  * want to undef this.
  */
 
-#define FILE_PRIMS
+#undef FILE_PRIMS
 
 /* Alynna -- ACHTUNG!  PELIGRO!  DANGER!
  * DO NOT DEFINE UNDER PENALTY OF LAW.  This define is DANGEROUS.
@@ -499,6 +501,12 @@
 # include "winconf.h"
 # include "process.h"
 # include <winsock.h>
+# include <io.h>
+#undef NEWHTTPD
+#undef DETACH
+#undef IPV6
+#define socklen_t int
+#define snprintf _snprintf
 # define  errnosocket WSAGetLastError()
 # ifdef  SPAWN_HOST_RESOLVER
 #  undef SPAWN_HOST_RESOLVER
@@ -513,8 +521,8 @@
 # define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
 # define  waitpid(x,y,z) cwait((y),(x),_WAIT_CHILD)
 # define  ioctl(x,y,z) ioctlsocket((x),(y),(z))
-# define  EWOULDBLOCK WSAEWOULDBLOCK
-# define  EINTR WSAEWOULDBLOCK
+//# define  EWOULDBLOCK WSAEWOULDBLOCK
+//# define  EINTR WSAEWOULDBLOCK
 # define  getdtablesize() (FD_SETSIZE)
 # define  readsocket(x,y,z) recv((x),(y),(z),0)
 # define  writesocket(x,y,z) send((x),(y),(z),0)
