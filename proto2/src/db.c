@@ -1270,6 +1270,7 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
         default:
             break;
     }
+	FLAGS(objno) &= ~GENDER_MASK;
     /* For downward compatibility with databases using the */
     /* obsolete ANTILOCK flag. */
     if (FLAGS(objno) & ANTILOCK) {
@@ -1392,6 +1393,7 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
         default:
             break;
     }
+	FLAGS(objno) &= ~GENDER_MASK;
 
     /* o->password = getstring(f); */
     /* For downward compatibility with databases using the */
@@ -1584,6 +1586,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
                 break;
         }
     }
+	FLAGS(objno) &= ~GENDER_MASK;
 
     /* o->password = getstring(f); */
     /* For downward compatibility with databases using the */
