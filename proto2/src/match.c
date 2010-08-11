@@ -2,7 +2,6 @@
 #include "config.h"
 
 /* Routines for parsing arguments */
-#include <ctype.h>
 
 #include "db.h"
 #include "props.h"

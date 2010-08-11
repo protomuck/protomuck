@@ -6,10 +6,6 @@
 #include "config.h"
 #include "params.h"
 #ifdef SQL_SUPPORT
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
-#include <string.h>
 #include <mysql/mysql.h>
 #include <mysql/mysql_version.h>
 #include "db.h"

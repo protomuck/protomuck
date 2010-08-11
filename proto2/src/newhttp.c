@@ -29,13 +29,6 @@
 /* Sorting for the directory listing stuff would be nice.                    */
 /*****************************************************************************/
 
-#include <time.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <dirent.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include "db.h"
 #include "netresolve.h"
 #include "interface.h"

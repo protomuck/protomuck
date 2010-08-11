@@ -3,9 +3,6 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
 #include "db.h"
 #include "mpi.h"
 #include "props.h"

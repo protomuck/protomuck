@@ -3,9 +3,6 @@
 
 #ifdef MUF_EDIT_PRIMS
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
 #include "db.h"
 #include "inst.h"
 #include "externs.h"

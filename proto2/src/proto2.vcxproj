@@ -219,7 +219,6 @@
     <ClCompile Include="tune.c" />
     <ClCompile Include="unparse.c" />
     <ClCompile Include="utils.c" />
-    <ClCompile Include="version.c" />
     <ClCompile Include="wiz.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -3,8 +3,6 @@
 
 /* Predicates for testing various conditions */
 
-#include <ctype.h>
-
 #include "db.h"
 #include "props.h"
 #include "interface.h"

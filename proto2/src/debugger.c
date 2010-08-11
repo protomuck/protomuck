@@ -12,8 +12,7 @@
 #include "tune.h"
 #include "match.h"
 #include "interp.h"
-#include <ctype.h>
-#include <time.h>
+
 
 extern struct line *read_program(dbref prog);
 

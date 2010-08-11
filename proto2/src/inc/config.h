@@ -480,13 +480,6 @@
 #undef DEBUGDBDIRTY
 #define FLUSHCHANGED /* outdated, needs to be removed from the source. */
 
-/*
- * Include all the good standard headers here.
- */
-#include <stdio.h>
-#include <ctype.h>
-#include <sys/types.h>
-
 #ifdef _MSC_VER 
 /* 
  * If you are using Visual C++, please use 6.0 or later.
@@ -494,14 +487,22 @@
 #define WIN_VC
 #endif
 
+/*
+ * Include all the good standard headers here.
+ */
+#include <stdio.h>
+#include <ctype.h>
+#include <sys/types.h>
 
 /* Alynna: I am just going to assume this works.  
  * Not touching VC++ with 10 foot pole.  :) */
 #ifdef WIN_VC
 # include "winconf.h"
 # include "process.h"
+
 # include <winsock.h>
 # include <io.h>
+
 #undef NEWHTTPD
 #undef DETACH
 #undef IPV6
@@ -538,18 +539,52 @@
 # define  errnosocket    errno
 #endif
 
+#ifdef STDC_HEADERS
+# include <stdlib.h>
+#endif
+
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
+
+#ifndef WIN_VC
+# include <dirent.h>
+# include <sys/wait.h>
+# include <sys/file.h>
+# include <sys/ioctl.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+# include <arpa/inet.h>
+# include <netdb.h>
+#endif
+
+#if defined(HAVE_ERRNO_H)
+# include <errno.h>
+#elif defined(HAVE_SYS_ERRNO_H)
+# include <sys/errno.h>
+#else
+extern int errno;
+#endif
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+# if defined(__APPLE__) && defined(HAVE_SYS_MALLOC_H)
+#  include <sys/malloc.h>
+# endif
+#elif defined(HAVE_MALLOC_H)
+# include <malloc.h>
+#endif
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
+#include <sys/param.h>
+#include <sys/mount.h>
+#elif !defined(WIN_VC)
+#include <sys/vfs.h>
+#endif
+
 /* Obviously, if threading is available, we want to use the (much better)
  *  threaded resolver instead of the seperate ones.  You can change this
  *  if you want to try to use the globally-cached RESLVD first.  -Hinoserm
  */
-
-
-#ifdef STDC_HEADERS
-# include <stdlib.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
 
 #ifdef USE_PS
 # ifndef HAVE_SETPROCTITLE
@@ -636,6 +671,15 @@
 #if defined(HAVE_PTHREAD_H)
 # include <pthread.h>
 #endif
+
+#include <assert.h>
+#include <float.h>
+#include <math.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdarg.h>
+
 
 /******************************************************************/
 /* System configuration stuff... Figure out who and what we are.  */

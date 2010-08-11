@@ -73,7 +73,7 @@ MKTAGS= ctags
 #            You should not have to change anything below here           #
 ##########################################################################
 
-MISCSRC= Makefile ChangeLog COPYING mkversion.sh
+MISCSRC= Makefile ChangeLog COPYING
 
 CSRC= array.c boolexp.c cgi.c compile.c compress.c create.c db.c  \
 	debugger.c disassem.c diskprop.c edit.c events.c game.c hashtab.c  \
@@ -86,7 +86,7 @@ CSRC= array.c boolexp.c cgi.c compile.c compress.c create.c db.c  \
       property.c propdirs.c props.c random.c rob.c set.c          \
       signal.c smatch.c speech.c strftime.c stringutil.c timequeue.c     \
       timestamp.c tune.c unparse.c utils.c wiz.c reg.c netresolve.c      \
-      sanity.c newhttp.c
+      sanity.c newhttp.c version.c
 
 MSRC= olddecomp.c reconst.c interface.c
 SRC= ${MISCSRC} ${CSRC} ${MSRC}
@@ -101,7 +101,7 @@ COBJ=  array.o boolexp.o cgi.o compile.o compress.o create.o db.o  \
 	p_stack.o p_strings.o p_system.o p_regex.o \
       property.o propdirs.o props.o random.o rob.o signal.o set.o \
       smatch.o speech.o strftime.o stringutil.o timequeue.o              \
-      timestamp.o tune.o unparse.o utils.o wiz.o reg.o netresolve.o sanity.o newhttp.o
+      timestamp.o tune.o unparse.o utils.o wiz.o reg.o netresolve.o sanity.o newhttp.o version.o
 
 LOBJ= copyright.o
 MOBJ= olddecomp.o reconst.o interface.o resolver.o topwords.o 
@@ -120,17 +120,15 @@ all:    ${TARGETS}
 
 muck:	protomuck
 
-protomuck:        ${P} ${COBJ} interface.o mkversion.sh
-	sh mkversion.sh
-	${PRE} ${CC} ${CFLAGS} -c version.c
+protomuck:        ${P} ${COBJ} interface.o
 	${MV} protomuck protomuck~
 	@echo "`bash -c set | grep OSTYPE`"
 	@if [ "`bash -c set | grep OSTYPE`" = "OSTYPE=cygwin" ]; then \
-         echo ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
-	 ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${XXCFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
+         echo ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${CFLAGS} -o protomuck ${COBJ} interface.o ${LIBR}; \
+	 ${PRE} ${CC} -Wl,--heap,268435456,--stack,16777216 ${XXCFLAGS} -o protomuck ${COBJ} interface.o ${LIBR}; \
 	else \
-         echo ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
-	 ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o version.o ${LIBR}; \
+         echo ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o ${LIBR}; \
+	 ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o ${LIBR}; \
 	fi
 
 resolver:	resolver.o
@@ -201,14 +199,14 @@ clean:
 
 cleaner: clean
 	${RM} Makefile config.status config.cache ${INCLUDE}/autoconf.h
-	${RM} ${TARGETS} config.log version.c
+	${RM} ${TARGETS} config.log
 	cp Makefile.cfg Makefile
 
 clobber: cleaner
 	${RM} tags *~ *.bak *.orig
 
 nuke:
-	${RM} ${OBJ} core version.o
+	${RM} ${OBJ} core vesion.o
 	${RM} ${TARGETS} tags *~ *.bak *.orig
 	${RM} Makefile config.status ${INCLUDE}/autoconf.h
 	cp Makefile.cfg Makefile

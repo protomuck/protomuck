@@ -3,12 +3,6 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
-#ifndef WIN_VC
-# include <sys/socket.h>
-#endif
 #include "db.h"
 #include "inst.h"
 #include "externs.h"

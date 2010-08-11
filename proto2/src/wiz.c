@@ -1,25 +1,6 @@
+#include "copyright.h"
 #include "config.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#ifdef HAVE_SYS_RESOURCE_H
-# include <sys/resource.h>
-#endif
-
-#ifdef HAVE_STRING_H
-# include <string.h>
-#endif
-
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
-# if defined(__APPLE__) && defined(HAVE_SYS_MALLOC_H)
-#  include <sys/malloc.h>
-# endif
-#elif defined(HAVE_MALLOC_H)
-# include <malloc.h>
-#endif
-
-#include "copyright.h"
 #include "interface.h"
 #include "db.h"
 #include "props.h"

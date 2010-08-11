@@ -5,9 +5,6 @@
 
 #ifdef MCP_SUPPORT
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
 #include "db.h"
 #include "mcp.h"
 #include "inst.h"

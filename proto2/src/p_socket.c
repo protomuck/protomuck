@@ -25,35 +25,6 @@
 #include "config.h"
 
 #ifdef MUF_SOCKETS
-#include <sys/types.h>
-#include <stdio.h>
-#include <time.h>
-#include <fcntl.h>
-
-#ifndef WIN_VC
-# include <sys/socket.h>
-# include <sys/errno.h>
-# include <sys/errno.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
-# include <netdb.h>
-# include <unistd.h>
-#else
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <signal.h>
-#include <winsock.h> 
-#endif
-
-#if defined(HAVE_ERRNO_H)
-# include <errno.h>
-#elif defined(HAVE_SYS_ERRNO_H)
-# include <sys/errno.h>
-#else
-  extern int errno;
-#endif
-#include <ctype.h>
 
 #include "db.h"
 #include "inst.h"

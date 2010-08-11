@@ -10,9 +10,7 @@
 #include "interface.h"
 #include "externs.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <ctype.h>
+
 
 #define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
 

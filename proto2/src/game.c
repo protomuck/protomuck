@@ -1,13 +1,6 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <stdio.h>
-#include <ctype.h>
-#include <signal.h>
-#ifndef WIN_VC
-# include <sys/wait.h>
-#endif
-
 #include "db.h"
 #include "mpi.h"
 #include "props.h"
@@ -25,12 +18,19 @@
 
 /* declarations */
 static const char *dumpfile = 0;
+
 static int epoch = 0;
+
 FILE *input_file;
+
 FILE *delta_infile;
+
 FILE *delta_outfile;
+
 char *in_filename = NULL;
+
 int dumper_pid;
+
 char dump_done;
 
 /* This is the command, @autoarchive. */
@@ -68,16 +68,17 @@ void
 do_dump(dbref player, const char *newfile)
 {
     char buf[BUFFER_LEN];
+
     char *yerf = NULL;
 
     if (Wiz(player)) {
         if (*newfile && Boy(player)) {
             if (*dumpfile) {
-		yerf = (char *)dumpfile;
-		dumpfile = newfile;
-	    } else {
-            	dumpfile = alloc_string(newfile);
-		yerf = (char *)dumpfile;
+                yerf = (char *) dumpfile;
+                dumpfile = newfile;
+            } else {
+                dumpfile = alloc_string(newfile);
+                yerf = (char *) dumpfile;
             }
             sprintf(buf, CINFO "Dumping to file %s...", dumpfile);
         } else {
@@ -86,8 +87,8 @@ do_dump(dbref player, const char *newfile)
         anotify_nolisten2(player, buf);
         dump_db_now();
         anotify_nolisten2(player, CINFO "Done.");
-	if (*newfile)
-		dumpfile = (char *)yerf;
+        if (*newfile)
+            dumpfile = (char *) yerf;
     } else {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
     }
@@ -155,6 +156,7 @@ do_restart(dbref player, const char *muckname, const char *msg)
 
 #ifdef DISKBASE
 extern int propcache_hits;
+
 extern int propcache_misses;
 #endif
 
@@ -162,8 +164,11 @@ static void
 dump_database_internal(void)
 {
     char tmpfile[2048];
+
     FILE *f;
+
     int copies;
+
     char buf[BUFFER_LEN];
 
     tune_save_parmsfile();
@@ -200,9 +205,12 @@ dump_database_internal(void)
         }
         if (rename(tmpfile, dumpfile) < 0) {
             perror(tmpfile);
-            sprintf(buf,SYSRED "[WARNING] Error renaming the DB from %s to %s.  The DB got saved to %s.", tmpfile, dumpfile, tmpfile);
+            sprintf(buf,
+                    SYSRED
+                    "[WARNING] Error renaming the DB from %s to %s.  The DB got saved to %s.",
+                    tmpfile, dumpfile, tmpfile);
             ansi_wall_wizards(buf);
-	}
+        }
 #ifdef DISKBASE
 
         fclose(input_file);
@@ -225,7 +233,10 @@ dump_database_internal(void)
 
     } else {
         perror(tmpfile);
-	sprintf(buf,SYSRED "[DANGER] Error opening the db file %s for writing!  The DB did not save! :(", tmpfile);
+        sprintf(buf,
+                SYSRED
+                "[DANGER] Error opening the db file %s for writing!  The DB did not save! :(",
+                tmpfile);
         ansi_wall_wizards(buf);
     }
 
@@ -244,7 +255,10 @@ dump_database_internal(void)
             perror(tmpfile);
     } else {
         perror(tmpfile);
-	sprintf(buf,SYSRED "[WARN] Error opening the MUF macros file %s for writing.", tmpfile);
+        sprintf(buf,
+                SYSRED
+                "[WARN] Error opening the MUF macros file %s for writing.",
+                tmpfile);
         ansi_wall_wizards(buf);
     }
 
@@ -268,6 +282,7 @@ void
 panic(const char *message)
 {
     char panicfile[2048];
+
     FILE *f;
 
     log_status("PANIC: %s\n", message);
@@ -398,7 +413,9 @@ int
 time_for_monolithic(void)
 {
     dbref i;
+
     int count = 0;
+
     int a, b;
 
     if (!last_monolithic_time)
@@ -596,19 +613,128 @@ do_restrict(dbref player, const char *arg)
 
 int force_level = 0;
 
-struct frame* aForceFrameStack[9];
+struct frame *aForceFrameStack[9];
 
-void
+const char version_line1[] =
+    SYSCRIMSON "ProtoMUCK " PROTOBASE SYSPURPLE " (" SYSRED VERSION SYSPURPLE
+    ")" SYSNORMAL " on " SYSCYAN 
+#if defined(WIN32) || defined(WIN_VC)
+    "Windows (native)" 
+#else  /*  */
+# ifdef CYGWIN
+    "Windows (cygwin)" 
+# else
+#  if defined(__APPLE__)
+    "Mac OS X" 
+#  else
+#   if defined(__linux__)
+    "GNU/Linux" 
+#   else
+    "Unix" 
+#   endif
+#  endif
+# endif
+#endif  /*  */
+    SYSNORMAL ": " SYSGREEN UNAME_VALUE SYSNORMAL;
+
+const char version_line2[] = SYSGREEN "Compile-time Options: " SYSNORMAL 
+#ifdef SQL_SUPPORT
+    "MySQL " 
+#endif  /*  */
+#ifdef USE_SSL
+    "SSL " 
+#endif  /*  */
+#ifdef USE_RESLVD
+    "ReslvD " 
+#endif  /*  */
+#ifdef IPV6
+    "IPv6 " 
+#endif  /*  */
+#ifdef CONTROLS_SUPPORT
+    "ControlsACLs " 
+#endif  /*  */
+#ifdef DESCRFILE_SUPPORT
+    "DescrFile " 
+#endif  /*  */
+#ifdef IGNORE_SUPPORT
+    "Ignores " 
+#endif  /*  */
+#ifndef NO_SYSCOLOR
+    "Color " 
+#endif  /*  */
+#ifdef MCP_SUPPORT
+    "MCP " 
+#endif  /*  */
+#ifdef ARCHAIC_DATABASES
+    "Archaic " 
+#endif  /*  */
+#ifdef DETACH
+    "Detach " 
+#endif  /*  */
+#ifdef COMPRESS
+    "Compression " 
+#endif  /*  */
+#ifdef USE_PS
+    "ProcessAPI " 
+#endif  /*  */
+#ifdef DISKBASE
+    "DiskBased " 
+#else  /*  */
+    "MemBased " 
+#endif  /*  */
+#ifdef DELTADUMPS
+    "Deltas " 
+#endif  /*  */
+    "Userflags " 
+#ifdef MUF_SOCKETS
+    "MUF:Sockets " 
+#endif  /*  */
+#ifdef SSL_SOCKETS
+    "MUF:SSL " 
+#endif  /*  */
+#ifdef UDP_SOCKETS
+    "MUF:UDP " 
+#endif  /*  */
+#ifdef IPV6
+    "MUF:IPv6 " 
+#endif  /*  */
+#ifdef MUF_EDIT_PRIMS
+    "MUF:Edit " 
+#endif  /*  */
+#ifdef DEBUGPROCESS
+#ifdef DBDEBUG
+    "Debug:3 " 
+#else  /*  */
+    "Debug:2 " 
+#endif  /*  */
+#else  /*  */
+#ifdef DBDEBUG
+    "Debug:1 " 
+#else  /*  */
+    "Debug:0 " 
+#endif  /*  */
+#endif  /*  */
+    ;
+
+void
 process_command(int descr, dbref player, char *command)
 {
     char *arg1;
+
     char *arg2;
+
     char *full_command, /* *commandline=command, */ *commandstuff;
+
     char *p;                    /* utility */
+
     char pbuf[BUFFER_LEN];
+
     char xbuf[BUFFER_LEN];
+
     char ybuf[BUFFER_LEN];
+
     char zbuf[BUFFER_LEN];
+
     /* char cbuf[BUFFER_LEN]; char *c; int csharp; */
     int isOverride = 0;
 
@@ -618,10 +744,13 @@ process_command(int descr, dbref player, char *command)
     }
 
     if (force_level >= 32) {
-        anotify_fmt(player, CFAIL "I'm sorry, %s, I'm afraid I cannot do that.  Maximum force recursion depth exceeded.", NAME(player));
-	return;
+        anotify_fmt(player,
+                    CFAIL
+                    "I'm sorry, %s, I'm afraid I cannot do that.  Maximum force recursion depth exceeded.",
+                    NAME(player));
+        return;
     }
-    
+
     /* robustify player */
     if (player < 0 || player >= db_top ||
         (Typeof(player) != TYPE_PLAYER && Typeof(player) != TYPE_THING)) {
@@ -629,23 +758,23 @@ process_command(int descr, dbref player, char *command)
         return;
     }
 
-    if (
-        (
-	 (tp_log_commands || (tp_log_guests && Guest(OWNER(player)))) || 
+    if (((tp_log_commands || (tp_log_guests && Guest(OWNER(player)))) ||
          (tp_log_suspects && (FLAG2(OWNER(player)) & F2SUSPECT)) ||
-	 (tp_log_wizards && (MLevel(OWNER(player)) >= LMAGE))
-	) &&
+         (tp_log_wizards && (MLevel(OWNER(player)) >= LMAGE))
+        ) &&
         (tp_log_interactive || !(FLAGS(player) & (INTERACTIVE | READMODE)))) {
         if (*command)           /* To prevent logging of NULL commands? FB6 change */
             log_command("%s%s%s%s(%d) in %s(%d):%s %s\n",
-                        (MLevel(OWNER(player)) >= LMAGE) ? "WIZ: " : (FLAG2(OWNER(player)) & F2SUSPECT) ? "SUSPECT: " : "",
+                        (MLevel(OWNER(player)) >=
+                         LMAGE) ? "WIZ: " : (FLAG2(OWNER(player)) & F2SUSPECT) ?
+                        "SUSPECT: " : "",
                         (Typeof(player) != TYPE_PLAYER) ? NAME(player) : "",
                         (Typeof(player) != TYPE_PLAYER) ? " by " : "",
                         NAME(OWNER(player)), (int) player,
                         NAME(DBFETCH(player)->location),
                         (int) DBFETCH(player)->location,
-                        (FLAGS(player) & INTERACTIVE) ?
-                        " [interactive]" : " ", command);
+                        (FLAGS(player) & INTERACTIVE) ? " [interactive]" : " ",
+                        command);
     }
 
     if (FLAGS(player) & INTERACTIVE) {
@@ -696,12 +825,12 @@ process_command(int descr, dbref player, char *command)
     }
 
     /* Alynna: fix to process truly only argc from the command line .. 
-    memset(cbuf, 0, sizeof(cbuf)); c = command;
-    for(csharp = 0; !isspace(*(c+csharp)); csharp++) {
-	cbuf[csharp] = *(c+csharp);
-    }
-    cbuf[csharp+1] = '\0';
-    */
+       memset(cbuf, 0, sizeof(cbuf)); c = command;
+       for(csharp = 0; !isspace(*(c+csharp)); csharp++) {
+       cbuf[csharp] = *(c+csharp);
+       }
+       cbuf[csharp+1] = '\0';
+     */
     if (!(*command == OVERIDE_TOKEN && TMage(player))) {
         switch (can_move2(descr, player, command, 0)) {
             case 1:
@@ -974,13 +1103,13 @@ process_command(int descr, dbref player, char *command)
                             break;
                         case 'l':
                         case 'L':
-			    if (command[3] == 'a' || command[3] == 'A') {
-                        	Matched("@flags");
-                    		do_flags(descr, player, full_command);
-			    } else if (command[3] == 'o' || command[3] == 'O') {
-                        	Matched("@flock");
-                    		do_flock(descr, player, arg1, arg2);
-			    }
+                            if (command[3] == 'a' || command[3] == 'A') {
+                                Matched("@flags");
+                                do_flags(descr, player, full_command);
+                            } else if (command[3] == 'o' || command[3] == 'O') {
+                                Matched("@flock");
+                                do_flock(descr, player, arg1, arg2);
+                            }
                             break;
                         case 'o':
                         case 'O':
@@ -1361,9 +1490,8 @@ process_command(int descr, dbref player, char *command)
                 case 'v':
                 case 'V':
                     Matched("@version");
-                    anotify_nolisten2(player, SYSCRIMSON "ProtoMUCK " PROTOBASE 
-                                               SYSPURPLE " (" SYSRED VERSION SYSPURPLE ")" 
-                                               SYSNORMAL " on " SYSCYAN    );
+                    anotify_nolisten2(player, version_line1);
+                    anotify_nolisten2(player, version_line2);
                     break;
                 case 'w':
                 case 'W':
@@ -1461,7 +1589,7 @@ process_command(int descr, dbref player, char *command)
                 case 'A':
                     Matched("hand");
                     do_drop(descr, player, arg1, arg2);
-					break;
+                    break;
                 case 'e':
                 case 'E':
                     Matched("help");
@@ -1656,13 +1784,17 @@ process_command(int descr, dbref player, char *command)
  */
 
 int
-prop_command(int descr, dbref player, const char *command, const char *arg, const char *type,
-             int mt)
+prop_command(int descr, dbref player, const char *command, const char *arg,
+             const char *type, int mt)
 {
     PropPtr ptr;
+
     dbref progRef = AMBIGUOUS;
+
     dbref where = player;
+
     char propName[BUFFER_LEN];
+
     const char *workBuf = NULL;
 
     if (player == NOTHING)      /* For handling logincommand props. */
@@ -1715,6 +1847,7 @@ prop_command(int descr, dbref player, const char *command, const char *arg, cons
     }
     if (progRef == AMBIGUOUS) {
         char cbuf[BUFFER_LEN];
+
         int ival;
 
         ival = (mt == 0) ? MPI_ISPUBLIC : MPI_ISPRIVATE;
@@ -1733,6 +1866,7 @@ prop_command(int descr, dbref player, const char *command, const char *arg, cons
                     notify_nolisten(player, cbuf, 1);
                 } else {
                     char bbuf[BUFFER_LEN];
+
                     dbref plyr;
 
                     sprintf(bbuf, ">> %.4000s",

@@ -2,8 +2,6 @@
 #include "config.h"
 
 /* commands which set parameters */
-#include <stdio.h>
-#include <ctype.h>
 #include "strings.h"
 
 #include "db.h"

@@ -3,10 +3,6 @@
 #include "copyright.h"
 #include "config.h"
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <stdarg.h>
-
 #include "db.h"
 #include "interface.h"
 #include "tune.h"

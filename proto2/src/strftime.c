@@ -1,7 +1,5 @@
 #include "config.h"
 
-#include <time.h>
-
 void
 int2str(char *buf, int val, int len, char pref)
 {

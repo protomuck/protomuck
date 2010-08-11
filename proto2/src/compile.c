@@ -14,9 +14,6 @@
 #include "tune.h"
 #include "match.h"
 #include "interp.h"
-#include <ctype.h>
-#include <time.h>
-#include <math.h>
 #ifndef NAN
 #include "nan.h"
 #endif

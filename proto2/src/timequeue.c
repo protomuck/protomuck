@@ -16,10 +16,6 @@
 #include "externs.h"
 #include "mufevent.h"
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <time.h>
-
 /*
  * Events types and data:
  *  What, typ, sub, when, user, where, trig, prog, frame, str1, cmdstr, str3

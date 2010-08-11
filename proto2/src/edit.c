@@ -9,7 +9,6 @@
 #include "tune.h"
 #include "match.h"
 #include "strings.h"
-#include <ctype.h>
 
 #define DOWNCASE(x) (tolower(x))
 
