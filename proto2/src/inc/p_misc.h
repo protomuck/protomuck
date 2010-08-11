@@ -62,7 +62,7 @@ extern void prim_escape_url(PRIM_PROTOTYPE);
     prim_systime_precise, prim_htoi, prim_itoh, prim_unescape_url,        \
     prim_escape_url, prim_onevent, prim_interrupt_level, prim_refstamps,  \
     prim_touch, prim_use, prim_MD5hash, prim_enqueue,                     \
-	prim_get_read_wants_blanks
+    prim_get_read_wants_blanks
 
 #define PRIMS_MISC_NAMES "TIME", "DATE", "GMTOFFSET", "SYSTIME",          \
     "TIMESPLIT", "TIMEFMT", "QUEUE", "KILL", "TIMESTAMPS", "FORK", "PID", \
