@@ -22,7 +22,7 @@ const char *infotext[] =
 {
     " ",
     SYSRED "ProtoMUCK " PROTOBASE " " SYSWHITE "-- " SYSCRIMSON VERSION,
-#if defined(WIN32) || (WIN_VC)
+#if defined(WIN32) || defined(WIN_VC)
     SYSYELLOW "WINDOWS" SYSBROWN
 # ifdef WIN_VC
         ": Visual C++"
