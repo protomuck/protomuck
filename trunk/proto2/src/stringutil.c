@@ -1194,11 +1194,11 @@ unparse_mush_ansi(char *buf, char *from)
             color = (*(from++));
             if (color == 'c') {
                 color = (*(from++));
-                switch (color) {
-                    default:
+                /* switch (color) {
+                    default: */
                         ansi = "";
-                        break;
-                }
+                        /* break;
+                } */
                 if (*ansi)
                     while (*ansi)
                         *(to++) = (*(ansi++));
@@ -1400,7 +1400,7 @@ parse_tilde_ansi(char *buf, char *from)
 /* tilde_striplen: Used in order to determine the # of characters
  * to remove when stripping tilde ANSI from a string.
  */
-int
+size_t
 tilde_striplen(const char *word)
 {
     const char *from;
@@ -1432,7 +1432,7 @@ unparse_tilde_ansi(char *buf, char *from)
 {
     /* If escaped tilde ansi, take off first pair of ~& */
     /* Otherwise remove # of characters according to tilde_striplen */
-    int count;
+    size_t count;
     char *to;
 
     to = buf;
@@ -1593,7 +1593,7 @@ isascii_str(register const char *str)
 char *
 strcatn(char *buf, size_t bufsize, const char *src)
 {
-    int pos = strlen(buf);
+    size_t pos = strlen(buf);
     char *dest = &buf[pos];
 
     while (++pos < bufsize && *src) {
@@ -1608,7 +1608,7 @@ strcatn(char *buf, size_t bufsize, const char *src)
 char *
 strcpyn(char *buf, size_t bufsize, const char *src)
 {
-    int pos = 0;
+    size_t pos = 0;
     char *dest = buf;
 
     while (++pos < bufsize && *src) {

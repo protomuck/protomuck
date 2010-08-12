@@ -49,8 +49,8 @@
 
 #define FREE(x) (free((void *) x))
 
-unsigned int httpucount = 0;    /* number of total HTTP users */
-unsigned int httpfcount = 0;    /* number of total HTTP file transfers */
+int httpucount = 0;    /* number of total HTTP users */
+int httpfcount = 0;    /* number of total HTTP file transfers */
 
 struct http_statstruct http_statcodes[] = {
     {100, "Continue"},

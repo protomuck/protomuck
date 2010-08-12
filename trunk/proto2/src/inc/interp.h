@@ -81,7 +81,7 @@ extern int valid_object(struct inst *oper);
 extern int is_home(struct inst *oper);
   
 extern int permissions(int mlev, dbref player, dbref thing);
-extern int newpermissions(int mlev, dbref player, dbref thing, int true_c);
+extern int newpermissions(int mlev, dbref player, dbref thing, bool true_c);
   
 extern int arith_type(struct inst *op1, struct inst *op2);
 

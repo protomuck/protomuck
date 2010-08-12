@@ -559,7 +559,7 @@ init_game(const char *infile, const char *outfile)
         add_property((dbref) 0, "~sys/startuptime", NULL,
                      (int) time((time_t *) NULL));
         add_property((dbref) 0, "~sys/maxpennies", NULL, tp_max_pennies);
-        add_property((dbref) 0, "~sys/dumpinterval", NULL, tp_dump_interval);
+        add_property((dbref) 0, "~sys/dumpinterval", NULL, (int)tp_dump_interval);
         add_property((dbref) 0, "~sys/concount", NULL, 0);
         add_property((dbref) 0, "~sys/max_connects", NULL, 0);
         if (tp_allow_old_trigs) {
@@ -568,11 +568,11 @@ init_game(const char *infile, const char *outfile)
             add_property((dbref) 0, "_sys/maxpennies", NULL, tp_max_pennies);
             add_property((dbref) 0, "_sys/concount", NULL, 0);
             add_property((dbref) 0, "_sys/dumpinterval", NULL,
-                         tp_dump_interval);
+                         (int)tp_dump_interval);
             add_property((dbref) 0, "_sys/max_connects", NULL, 0);
         }
     }
-    // Load the local flags into memory.
+    /* Load the local flags into memory. */
     lflags_update();
     return 0;
 }
@@ -620,7 +620,8 @@ const char version_line1[] =
     ")" SYSNORMAL " on " SYSCYAN 
 #if defined(WIN32) || defined(WIN_VC)
     "Windows (native)" 
-#else  /*  */
+#else  /* 
+ */
 # ifdef CYGWIN
     "Windows (cygwin)" 
 # else
@@ -634,89 +635,121 @@ const char version_line1[] =
 #   endif
 #  endif
 # endif
-#endif  /*  */
+#endif  /* 
+ */
     SYSNORMAL ": " SYSGREEN UNAME_VALUE SYSNORMAL;
 
-const char version_line2[] = SYSGREEN "Compile-time Options: " SYSNORMAL 
+
+
+const char version_line2[] = SYSGREEN "Compile-time Options: " SYSNORMAL 
 #ifdef SQL_SUPPORT
     "MySQL " 
-#endif  /*  */
+#endif
+
 #ifdef USE_SSL
     "SSL " 
-#endif  /*  */
+#endif
+
 #ifdef USE_RESLVD
     "ReslvD " 
-#endif  /*  */
+#endif
+
 #ifdef IPV6
     "IPv6 " 
-#endif  /*  */
+#endif
+
 #ifdef CONTROLS_SUPPORT
     "ControlsACLs " 
-#endif  /*  */
+#endif
+
 #ifdef DESCRFILE_SUPPORT
     "DescrFile " 
-#endif  /*  */
+#endif
+
 #ifdef IGNORE_SUPPORT
     "Ignores " 
-#endif  /*  */
+#endif 
+
 #ifndef NO_SYSCOLOR
     "Color " 
-#endif  /*  */
+#endif
+
+#ifdef __cplusplus
+	"C++ "
+#endif
+
 #ifdef MCP_SUPPORT
     "MCP " 
-#endif  /*  */
+#endif 
+
 #ifdef ARCHAIC_DATABASES
-    "Archaic " 
-#endif  /*  */
+    "ArchaicDB " 
+#endif
+
 #ifdef DETACH
     "Detach " 
-#endif  /*  */
+#endif
+
 #ifdef COMPRESS
     "Compression " 
-#endif  /*  */
+#endif
+
 #ifdef USE_PS
     "ProcessAPI " 
-#endif  /*  */
+#endif
+
 #ifdef DISKBASE
     "DiskBased " 
-#else  /*  */
+#else
     "MemBased " 
-#endif  /*  */
+#endif
+
 #ifdef DELTADUMPS
     "Deltas " 
-#endif  /*  */
+#endif
+
     "Userflags " 
 #ifdef MUF_SOCKETS
     "MUF:Sockets " 
-#endif  /*  */
+#endif
+
 #ifdef SSL_SOCKETS
     "MUF:SSL " 
-#endif  /*  */
+#endif
+
 #ifdef UDP_SOCKETS
     "MUF:UDP " 
-#endif  /*  */
+#endif
+
 #ifdef IPV6
     "MUF:IPv6 " 
-#endif  /*  */
+#endif
+
 #ifdef MUF_EDIT_PRIMS
     "MUF:Edit " 
-#endif  /*  */
+#endif
+
 #ifdef DEBUGPROCESS
-#ifdef DBDEBUG
+# ifdef DBDEBUG
     "Debug:3 " 
-#else  /*  */
+# else
     "Debug:2 " 
-#endif  /*  */
-#else  /*  */
-#ifdef DBDEBUG
+# endif
+#else
+# ifdef DBDEBUG
     "Debug:1 " 
-#else  /*  */
+# else
     "Debug:0 " 
-#endif  /*  */
-#endif  /*  */
+# endif
+#endif
+
+#if defined(WIN_VC) && defined(_DEBUG)
+	"WIN_DEBUG "
+#endif
     ;
 
-void
+
+void
 process_command(int descr, dbref player, char *command)
 {
     char *arg1;

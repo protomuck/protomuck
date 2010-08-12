@@ -177,6 +177,9 @@
     <ClInclude Include="inc\p_muf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\dirent_win.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="timestamp.c">
@@ -407,5 +410,12 @@
     <ClCompile Include="timequeue.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="version.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="pthreads\pthreadVC.lib" />
+    <Library Include="pthreads\pthreadVC_x64.lib" />
   </ItemGroup>
 </Project>

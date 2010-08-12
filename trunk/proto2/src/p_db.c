@@ -196,9 +196,10 @@ int
 check_flag4(char *flag)
 {
     char buf[32];
+    int i=0;
+
     strncpy(buf,flag,32);
 
-    int i=0;
     while(*(buf+i)) {
 	*(buf+i)=UPCASE(*(buf+i));
 	i++;
@@ -1012,7 +1013,7 @@ prim_set(PRIM_PROTOTYPE)
     if (!*flag)
         abort_interp("Empty flag");
 #ifdef CONTROLS_SUPPORT
-    if (((check_flag1(flag) == CHOWN_OK) && !Typeof(ref)!=TYPE_PLAYER) || (check_flag2(flag, &tWiz) == F2CONTROLS)) {
+    if (((check_flag1(flag) == CHOWN_OK) && Typeof(ref) != TYPE_PLAYER) || (check_flag2(flag, &tWiz) == F2CONTROLS)) {
         if (!newpermissions(mlev, ProgUID, ref, 1))
             abort_interp(tp_noperm_mesg);
     } else {

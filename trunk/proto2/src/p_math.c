@@ -228,7 +228,7 @@ prim_divide(PRIM_PROTOTYPE)
         if (oper1->data.number) {
             result = oper2->data.number / oper1->data.number;
         } else {
-            result = 0.0;
+            result = 0;
             fr->error.error_flags.div_zero = 1;
         }
     }

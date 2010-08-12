@@ -1162,7 +1162,7 @@ do_muf_topprofs(dbref player, char *arg1)
         dbref prog;
         double proftime;
         double pcnt;
-        long comptime;
+        time_t comptime;
         long usecount;
     } *tops = NULL;
 
@@ -1280,7 +1280,7 @@ do_mpi_topprofs(dbref player, char *arg1)
         dbref prog;
         double proftime;
         double pcnt;
-        long comptime;
+        time_t comptime;
         long usecount;
     } *tops = NULL;
 
@@ -1396,7 +1396,7 @@ do_all_topprofs(dbref player, char *arg1)
         dbref prog;
         double proftime;
         double pcnt;
-        long comptime;
+        time_t comptime;
         long usecount;
         short type;
     } *tops = NULL;

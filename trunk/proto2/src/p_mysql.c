@@ -160,7 +160,7 @@ prim_sqlquery(PRIM_PROTOTYPE)
     CLEAR(oper2);
     num_rows = 0;
     if (res) {                  /* there IS a result */
-        //tmp = malloc(BUFFER_LEN);
+        /* tmp = malloc(BUFFER_LEN); */
         all_rows = mysql_num_rows(res);
         num_rows = all_rows > tp_mysql_result_limit ?
             tp_mysql_result_limit : all_rows;
@@ -175,8 +175,8 @@ prim_sqlquery(PRIM_PROTOTYPE)
             nw = new_array_dictionary();
             if (counter++ < num_rows) {
                 for (i = 0; i < num_fields; ++i) {
-                    // Alynna: To make this safe, we must normalize the string to
-                    // 16383 characters and a terminating \0
+                    /* Alynna: To make this safe, we must normalize the string to
+                                16383 characters and a terminating \0 */
                     if (row[i]) {                        
                         strncpy(tmp, row[i], 16380);
 			tmp[16380]='\0';
@@ -187,7 +187,7 @@ prim_sqlquery(PRIM_PROTOTYPE)
             } else
                 break;          /* The limit has been reached, exit the while loop */
         }
-        //free(tmp);
+        /* free(tmp); */
         mysql_free_result(res);
     } else {                    /* no result */
         num_rows = 0;

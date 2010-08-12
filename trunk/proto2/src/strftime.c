@@ -18,13 +18,14 @@ int2str(char *buf, int val, int len, char pref)
 
 
 int
-format_time(char *buf, int max_len, const char *fmt, struct tm *tmval)
+format_time(char *buf, size_t max_len, const char *fmt, struct tm *tmval)
 {
 
 #if defined(USE_STRFTIME)       /* && !defined(WIN32) */
     return (strftime(buf, max_len, fmt, tmval));
 #else
-    int pos, ret;
+    size_t pos;
+	int ret;
     char tmp[256];
 
     /* struct timezone tz; */

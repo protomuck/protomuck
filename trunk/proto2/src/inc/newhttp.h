@@ -1,7 +1,7 @@
 #ifdef NEWHTTPD
 
-extern unsigned int httpucount;
-extern unsigned int httpfcount;
+extern int httpucount;
+extern int httpfcount;
 
 extern int  array_set_strkey_arrval(stk_array **arr, const char *key, stk_array *arr2);
 extern void http_log(struct descriptor_data *d, int debuglvl, char *format, ...);
@@ -61,6 +61,6 @@ struct http_mimestruct {
 
 #endif /* NEWHTTPD */
 
-//For some reason, lots of things use these.
+/* For some reason, lots of things use these. */
 extern int http_decode64(const char *in, unsigned inlen, char *out);
 extern int http_encode64(const char *_in, unsigned inlen, char *_out);

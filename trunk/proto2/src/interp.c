@@ -378,8 +378,8 @@ RCLEAR(struct inst *oper, const char *file, int line)
                 /* is_player ==  1 - MUF socket was connected to a player 
                  * is_player ==  0 - MUF socket normal
                  * is_player == -1 - MUF socket made into a descriptor */
-		// Alynna: Fix - test for port, not host.  Host can be validly
-		// NULL if bound to INADDR_ANY.
+		/* Alynna: Fix - test for port, not host.  Host can be validly
+		   NULL if bound to INADDR_ANY. */
                 if (oper->data.sock->port && oper->data.sock->is_player < 1) {
                     if (oper->data.sock->is_player == 0) {
 #if defined(SSL_SOCKETS) && defined (USE_SSL)
@@ -615,8 +615,8 @@ interp(int descr, dbref player, dbref location, dbref program,
         fr->variables[i].data.number = 0;
     }
 
-//    for (i = 0; i < STACK_SIZE; i++)
-//        fr->system.st[i].stopat = 0;
+/*    for (i = 0; i < STACK_SIZE; i++)
+          fr->system.st[i].stopat = 0; */
 
     fr->brkpt.force_debugging = 0;
     fr->brkpt.debugging = 0;
@@ -893,8 +893,8 @@ prog_clean(struct frame *fr)
     }
     if (FLAG2(fr->prog) & F2MUFCOUNT) {
         add_property(fr->prog, "~muf/count", NULL, fr->instcnt);
-        add_property(fr->prog, "~muf/start", NULL, fr->started);
-        add_property(fr->prog, "~muf/end", NULL, now);
+        add_property(fr->prog, "~muf/start", NULL, (int)fr->started);
+        add_property(fr->prog, "~muf/end", NULL, (int)now);
         add_property(fr->prog, "~muf/who", NULL, fr->player);
         add_property(fr->prog, "~muf/trig", NULL, fr->trig);
     }
@@ -985,7 +985,7 @@ prog_clean(struct frame *fr)
     dequeue_timers(fr->pid, NULL);
     muf_event_purge(fr);
     muf_interrupt_clean(fr);
-    //muf_event_dequeue_frame(fr);
+    /* muf_event_dequeue_frame(fr); */
     fr->pid = 0;                /* cleared to keep socket events from hitting it again */
     fr->next = free_frames_list;
     free_frames_list = fr;
@@ -1285,7 +1285,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
             arg[atop++].data.string = alloc_prog_string(a->eventid);
             arg[atop].type = PROG_STRING;
             arg[atop++].data.string = alloc_prog_string(a->interrupt->id);
-            //log_status("muf_interrupt_interp():  %p\n", fr->ainttop); /* For debugging. */
+            /* log_status("muf_interrupt_interp():  %p\n", fr->ainttop); */ /* For debugging. */
         }
 	if (fr->level >= 64)
 	    abort_loop("Maximum interp depth exceeded. (64)", NULL, NULL);
@@ -2283,7 +2283,7 @@ is_home(struct inst *oper)
 }
 
 int
-newpermissions(int mlev, dbref player, dbref thing, int true_c)
+newpermissions(int mlev, dbref player, dbref thing, bool true_c)
 {
     if (mlev < 0 || mlev > LMAN)
         return 0;

@@ -446,6 +446,7 @@ flag_description(register dbref thing)
 {
     static char buf[1024];
     static char buf2[32];
+    int i,j;
 
     strcpy(buf, SYSGREEN "Type: " SYSYELLOW);
     switch (Typeof(thing)) {
@@ -592,7 +593,7 @@ flag_description(register dbref thing)
                 strcat(buf, tp_userflag_name);
             }
         }
-	int i,j;
+
 	for (i=0; i<32; i++)
 	    if (LFLAG(thing) & LFLAGx(i)) {
 		strncpy(buf2, lflag_name[i], 32);

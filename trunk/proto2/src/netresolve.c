@@ -9,10 +9,6 @@
 #include "externs.h"
 #include "netresolve.h"         /* hinoserm */
 
-//#ifndef HOSTCACHE_DEBUG
-//#define HOSTCACHE_DEBUG
-//#endif
-
 struct hostinfo *hostdb = NULL; /* the main host cache */
 struct husrinfo *userdb = NULL; /* the username list */
 unsigned long userdb_count = 0; /* number of username entries in user cache */
@@ -40,8 +36,8 @@ ip_address_prototype(void* x, int xsize)
 
 const char *hostToIPex(struct hostinfo * h)
 {
-    // if the address is filled with either 0.0.0.0 or 255.255.255.255
-    // assume its ipv6
+    /* if the address is filled with either 0.0.0.0 or 255.255.255.255
+       assume its ipv6 */
     if (h->a == -1)
 #ifdef IPV6
 	return ip_address_prototype(&h->a6, 16);
@@ -67,7 +63,7 @@ const char *hostToIPex(struct hostinfo * h)
 
 struct tres_data {
     struct hostinfo * h;
-    //struct husrinfo * u;
+    /* struct husrinfo * u; */
     unsigned short lport;
     unsigned short prt;
 };
@@ -100,7 +96,6 @@ get_username(int a, int prt, int myprt)
         if (result < 0) {
             if (!timeout--)
                 break;
-            sleep(1);
         }
     } while (result < 0 && lasterr == EINPROGRESS);
     if (result < 0 && lasterr != EISCONN) {
@@ -109,24 +104,22 @@ get_username(int a, int prt, int myprt)
 
     sprintf(buf, "%d,%d\n", prt, myprt);
     do {
-        result = write(fd, buf, strlen(buf));
+        result = writesocket(fd, buf, strlen(buf));
         lasterr = errno;
         if (result < 0) {
             if (!timeout--)
                 break;
-            sleep(1);
         }
     } while (result < 0 && lasterr == EAGAIN);
     if (result < 0)
         goto bad2;
 
     do {
-        result = read(fd, buf, sizeof(buf));
+        result = readsocket(fd, buf, sizeof(buf));
         lasterr = errno;
         if (result < 0) {
             if (!timeout--)
                 break;
-            sleep(1);
         }
     } while (result < 0 && lasterr == EAGAIN);
     if (result < 0)
@@ -149,7 +142,7 @@ get_username(int a, int prt, int myprt)
         goto bad2;
     ptr++;
     shutdown(fd, 2);
-    close(fd);
+    closesocket(fd);
     if ((ptr2 = index(ptr, '\r')))
         *ptr2 = '\0';
     if (!*ptr)
@@ -160,7 +153,7 @@ get_username(int a, int prt, int myprt)
     shutdown(fd, 2);
 
   bad:
-    close(fd);
+    closesocket(fd);
     return (0);
 }
 
@@ -169,13 +162,14 @@ threaded_resolver_go(void *ptr)
 {
     struct in_addr addr;
     struct tres_data *tr;
+    struct hostent *he;
     char *old_ptr;
 
     tr = (struct tres_data *)ptr;
 
     addr.s_addr = htonl(tr->h->a);
 
-    struct hostent *he = gethostbyaddr(((char *) &addr), sizeof(addr), AF_INET);
+    he = gethostbyaddr(((char *) &addr), sizeof(addr), AF_INET);
 
     if (he) {
         char buf[MAX_COMMAND_LEN];
@@ -200,7 +194,7 @@ threaded_resolver_go(void *ptr)
                     old_ptr = u->user;
                     u->user = alloc_string(j);
                     free((void *) old_ptr);
-                    //break;
+                    /* break; */
                 }
             }
         }
@@ -208,6 +202,7 @@ threaded_resolver_go(void *ptr)
 
     free((void *) tr);
     pthread_exit(NULL);
+	return NULL;
 }
 
 
@@ -215,24 +210,25 @@ bool
 host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
 {
     pthread_t thread1;
+	int result;
     struct tres_data *tr;
     pthread_attr_t attr;
 
     tr = (struct tres_data *) malloc(sizeof(struct tres_data));
 
     tr->h = h;
-    //tr->u = u;
+    /* tr->u = u; */
     tr->lport = lport;
     tr->prt = prt;
    
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     
-    thread1 = (pthread_t)pthread_create(&thread1, &attr, threaded_resolver_go, (void*) tr);
+    result = pthread_create(&thread1, &attr, threaded_resolver_go, (void*) tr);
  
     pthread_attr_destroy(&attr); 
  
-    if (thread1)
+    if (result)
         return 0;
     else
         return 1;
@@ -595,7 +591,7 @@ bool
 host_get_oldstyle(struct hostinfo * h)
 {
     struct in_addr addr;
-    static int secs_lost = 0;
+    static time_t secs_lost = 0;
 
     addr.s_addr = htonl(h->a);
 
@@ -700,7 +696,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
         u->next = userdb;
         u->a = a;
 #ifdef IPV6
-	u->a6 = in6addr_any; // Same as NULL!
+	u->a6 = in6addr_any; /* Same as NULL! */
 #endif
         u->uport = prt;
         u->prev = NULL;
@@ -1105,8 +1101,8 @@ do_hostcache(dbref player, const char *args)
                     (hostdb_flushed == 1) ? "entry" : "entries");
     } else if (string_prefix(arg1, "#sh")) {
         struct hostinfo **harr;
-        register long i = 0;
-        register long count = 0;
+        register unsigned long i = 0;
+        register unsigned long count = 0;
 
         if (strcasecmp(arg2, "all")) {
             count = atoi(arg2);

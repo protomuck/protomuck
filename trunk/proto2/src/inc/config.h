@@ -275,7 +275,7 @@
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
 /* a bad net connection for the server. */
-#undef DEBUGPROCESS
+#define DEBUGPROCESS
 
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
@@ -320,7 +320,7 @@
 #define VERBOSE_EXAMINE
 
 /* limit on player name length */
-#define PLAYER_NAME_LIMIT tp_max_player_name_length
+#define PLAYER_NAME_LIMIT (size_t)tp_max_player_name_length
 
 /************************************************************************
    Various Messages 
@@ -503,7 +503,6 @@
 # include <winsock.h>
 # include <io.h>
 
-#undef NEWHTTPD
 #undef DETACH
 #undef IPV6
 #define socklen_t int
@@ -513,17 +512,15 @@
 #  undef SPAWN_HOST_RESOLVER
 # endif
   /* Define WINNT >= 4.0 to get better WinSock compile */
-# ifdef _WIN32_WINNT
+/* # ifdef _WIN32_WINNT
 #  undef _WIN32_WINNT
 # endif
-# define _WIN32_WINNT 0x0400
+ _WIN32_WINNT 0x0400 */
 # include <windows.h>
 # define  strcasecmp(x,y) stricmp((x),(y))
 # define  strncasecmp(x,y,z) strnicmp((x),(y),(z))
 # define  waitpid(x,y,z) cwait((y),(x),_WAIT_CHILD)
 # define  ioctl(x,y,z) ioctlsocket((x),(y),(z))
-//# define  EWOULDBLOCK WSAEWOULDBLOCK
-//# define  EINTR WSAEWOULDBLOCK
 # define  getdtablesize() (FD_SETSIZE)
 # define  readsocket(x,y,z) recv((x),(y),(z),0)
 # define  writesocket(x,y,z) send((x),(y),(z),0)
@@ -564,6 +561,13 @@
 # include <sys/errno.h>
 #else
 extern int errno;
+#endif
+
+#ifdef WIN_VC
+# undef EINTR
+# undef EWOULDBLOCK
+# define  EWOULDBLOCK WSAEWOULDBLOCK
+# define  EINTR WSAEWOULDBLOCK
 #endif
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__APPLE__)
@@ -680,6 +684,21 @@ extern int errno;
 #include <fcntl.h>
 #include <stdarg.h>
 
+#ifdef WIN_VC
+# include "dirent_win.h"
+#endif
+
+
+#if defined(_CRT_NONSTDC_DEPRECATE)
+# define strdup _strdup
+# define stricmp _stricmp
+# define unlink _unlink
+# define getpid _getpid
+# define strnicmp _strnicmp
+# define execl _execl
+# define cwait _cwait
+#endif
+
 
 /******************************************************************/
 /* System configuration stuff... Figure out who and what we are.  */
@@ -761,8 +780,6 @@ extern int errno;
 # define SYS_TYPE "UNKNOWN"
 #endif
 
-
-// This doesn't work as expected.  At all.  Ever.  -Hinoserm
 #if defined(HAVE_PTHREAD_H)
 # undef SPAWN_HOST_RESOLVER
 # undef USE_RESLVD

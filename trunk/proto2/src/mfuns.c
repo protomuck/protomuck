@@ -606,7 +606,7 @@ mfn_timesub(MFUNARGS)
     offset = ((((time_t) time(NULL) + offset) % period) * num) / period;
     if (offset < 0)
         offset = -offset;
-    ptr = get_list_item(what, obj, perms, pname, offset + 1);
+    ptr = get_list_item(what, obj, perms, pname, (int)offset + 1);
     if (!ptr)
         ABORT_MPI("TIMESUB", "Failed list read.");
     return ptr;
@@ -726,7 +726,7 @@ mfn_ontime(MFUNARGS)
     conn = least_idle_player_descr(obj);
     if (!conn)
         return "-1";
-    sprintf(buf, "%d", pontime(conn));
+    sprintf(buf, "%d", (int)pontime(conn));
     return buf;
 }
 
@@ -746,7 +746,7 @@ mfn_idle(MFUNARGS)
     conn = least_idle_player_descr(obj);
     if (!conn)
         return "-1";
-    sprintf(buf, "%d", pidle(conn));
+    sprintf(buf, "%d", (int)pidle(conn));
     return buf;
 }
 

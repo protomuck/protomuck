@@ -22,8 +22,13 @@
 # Newer compilers don't like what we do to time_t and warns about it, so we
 # use no-strict-aliasing because the fix is uglier.
 #   -Alynna 12-25-2006.
+# 
+# Those time_t warnings are actually pretty important in catching some bugs
+# related to 32<->64bit platform issues.  I've corrected most of the
+# warnings so we should be safe to remove this now.
+#   -Hinoserm 08-12-2010
 
-OPTIM=-Wall -fno-strict-aliasing -O2 -g -U_FORTIFY_SOURCE
+OPTIM=-Wall -O2 -g -U_FORTIFY_SOURCE
 
 #
 # Paths

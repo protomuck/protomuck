@@ -73,7 +73,7 @@ prim_gmtoffset(PRIM_PROTOTYPE)
 {
     CHECKOP(0);
     CHECKOFLOW(1);
-    result = get_tz_offset();
+    result = (int)get_tz_offset();
     PushInt(result);
 }
 
@@ -81,7 +81,7 @@ void
 prim_systime(PRIM_PROTOTYPE)
 {
     CHECKOP(0);
-    result = time(NULL);
+    result = (int)time(NULL);
     CHECKOFLOW(1);
     PushInt(result);
 }
@@ -273,11 +273,11 @@ prim_timestamps(PRIM_PROTOTYPE)
     CHECKREMOTE(ref);
     CHECKOFLOW(4);
     CLEAR(oper1);
-    result = DBFETCH(ref)->ts.created;
+    result = (int)DBFETCH(ref)->ts.created;
     PushInt(result);
-    result = DBFETCH(ref)->ts.modified;
+    result = (int)DBFETCH(ref)->ts.modified;
     PushInt(result);
-    result = DBFETCH(ref)->ts.lastused;
+    result = (int)DBFETCH(ref)->ts.lastused;
     PushInt(result);
     result = DBFETCH(ref)->ts.usecount;
     PushInt(result);
