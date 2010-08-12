@@ -277,7 +277,7 @@ putfref(FILE * f, dbref ref, dbref ref2, dbref ref3, dbref ref4, dbref pow1,
 }
 
 void
-puttimestampEx(FILE * f, dbref ref, dbref ref2)
+puttimestampEx(FILE * f, int ref, int ref2)
 {
     if (fprintf(f, "%d %d\n", ref, ref2) ==
         EOF) {

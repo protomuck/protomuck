@@ -226,7 +226,7 @@ prim_conidle(PRIM_PROTOTYPE)
     result = oper1->data.number;
     if ((result < 1) || (result > pcount()))
         abort_interp("Invalid connection number (1)");
-    result = pidle(result);
+    result = (int)pidle(result);
     CHECKOFLOW(1);
     CLEAR(oper1);
     PushInt(result);
@@ -246,7 +246,7 @@ prim_contime(PRIM_PROTOTYPE)
     result = oper1->data.number;
     if ((result < 1) || (result > pcount()))
         abort_interp("Invalid connection number (1)");
-    result = pontime(result);
+    result = (int)pontime(result);
     CHECKOFLOW(1);
     CLEAR(oper1);
     PushInt(result);
@@ -913,8 +913,8 @@ prim_descridle(PRIM_PROTOTYPE)
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
     dr = descrdata_by_descr(oper1->data.number);
-    result = time(NULL);
-    result = (result - dr->last_time);
+    result = (int)time(NULL);
+    result = (result - (int)dr->last_time);
     CHECKOFLOW(1);
     CLEAR(oper1);
     PushInt(result);
@@ -935,8 +935,8 @@ prim_descrtime(PRIM_PROTOTYPE)
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
     dr = descrdata_by_descr(oper1->data.number);
-    result = time(NULL);
-    result = (result - dr->connected_at);
+    result = (int)time(NULL);
+    result = (result - (int)dr->connected_at);
     CLEAR(oper1);
     CHECKOFLOW(1);
     PushInt(result);

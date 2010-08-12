@@ -21,7 +21,7 @@ extern void prim_regsub(PRIM_PROTOTYPE);
 
 #define PRIMS_REGEX_CNT 0
 
-#endif //WIN_VC
+#endif /* WIN_VC */
 
 
 #endif /* P_REGEX_H */

@@ -575,8 +575,8 @@ struct muf_socket {             /* struct for MUF socket data */
    char *raw_input;             /* recieve queue for telnet connections. */
    char *raw_input_at;          /* for use in handling the recieve queue */
    int  inIAC;                  /* For correct telnet negotiations. */
-   int connected_at;            /* Systime connection was made. */
-   int last_time;               /* last time command recieved. */
+   time_t connected_at;         /* Systime connection was made. */
+   time_t last_time;            /* last time command recieved. */
    const char *hostname;        /* string host name for incoming cons */
    const char *username;        /* string user name for incoming cons */
    unsigned short userport;     /* userport number */

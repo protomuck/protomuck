@@ -1577,7 +1577,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
-    if (f4) { // LOCAL flags!  They are SO COOL!
+    if (f4) { /* LOCAL flags!  They are SO COOL! */
 	if (MLevel(player) < lflag_mlev[i]) {
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
 	    return;
@@ -1642,10 +1642,11 @@ do_set(int descr, dbref player, const char *name, const char *flag)
         }
     return;
     } 
-    if (f4) { // LOCAL flags!  They are SO COOL!
-	// -1 = Free for all
-	//  0 = Anything I control
-	// >0 = Mlevel required
+    if (f4) { /* LOCAL flags!  They are SO COOL! */
+	/* -1 = Free for all
+	    0 = Anything I control
+	   >0 = Mlevel required */
+
 	if (lflag_mlev[i]!=-1)
 	    if ((lflag_mlev[i]==0 && !controls(player, thing)) &&
 	        (lflag_mlev[i]>0 && MLevel(player) < lflag_mlev[i])) {
@@ -1841,7 +1842,7 @@ do_flags(int descr, dbref player, const char *args)
     char *buf=(char *)malloc(256);
     char *lname=(char *)malloc(32);
     
-    // Sanity
+    /* Sanity */
     orig[0]=buf; orig[1]=lname;
 
     if (tp_db_readonly)
@@ -1853,7 +1854,7 @@ do_flags(int descr, dbref player, const char *args)
     }
 
     if (!args || !string_compare(args,"#update")) {
-	// Put flag update routine call right here.
+	/* Put flag update routine call right here. */
 	lflags_update();
 	anotify(player, "The Local DB flags have been read from /@flags/ on #0, and updated in memory.");
 	anotify(player, "Syntax: @flags <flagnum 0..31> <flagname> <mlevel to write>");
@@ -1873,22 +1874,22 @@ do_flags(int descr, dbref player, const char *args)
 	return;
     }
 
-    // Arg 1: The flag number.
+    /* Arg 1: The flag number. */
     if (lflag < 0 || lflag > 31) {
 	anotify(player, "Invalid local flag number.  Must be between 0 and 31.  See help @flags for more info.");
 	return;
     }
 
-    // Arg 2: The flag name.  Defaults to LFLAG*
+    /* Arg 2: The flag name.  Defaults to LFLAG* */
     if (!lname || !*lname) sprintf(lname, "LFLAG%d", lflag);
 
-    // Arg 3: The write mlevel.  Local flags are always readable.
+    /* Arg 3: The write mlevel.  Local flags are always readable. */
     if (lmlev < -1 || lmlev > 9) {
 	anotify(player, "Invalid MLevel.  Must be between -1 and 9.  See help @flags for more info.");
 	return;
     }
 
-    // Now we do the actual work.
+    /* Now we do the actual work. */
     buf = orig[0]; memset(buf, 0, sizeof(buf));
     pdat.flags = PROP_STRTYP;
     pdat.data.str = lname;

@@ -597,7 +597,7 @@ ok_player_name(register const char *name)
 {
     register const char *scan;
 
-    if (!ok_name(name) || strlen(name) > PLAYER_NAME_LIMIT)
+    if (!ok_name(name) || strlen(name) > (size_t)PLAYER_NAME_LIMIT)
         return 0;
 
     for (scan = name; *scan; scan++) {

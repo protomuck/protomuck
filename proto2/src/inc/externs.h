@@ -479,9 +479,9 @@ extern void do_all_topprofs(dbref player, char *arg1);
 
 /* From boolexp.c */
 extern int size_boolexp(struct boolexp *b);
-extern int eval_boolexp(int descr, dbref player, struct boolexp *b,
+extern bool eval_boolexp(int descr, dbref player, struct boolexp *b,
                         dbref thing);
-extern int eval_boolexp2(int descr, dbref player, struct boolexp *b,
+extern bool eval_boolexp2(int descr, dbref player, struct boolexp *b,
                          dbref thing);
 extern struct boolexp *parse_boolexp(int descr, dbref player,
                                      const char *string, int dbloadp);
@@ -553,7 +553,7 @@ extern void log_program_text(struct line *first, dbref player, dbref i);
 extern void set_signals(void);
 
 /* From strftime.c */
-extern int format_time(char *buf, int max_len, const char *fmt,
+extern int format_time(char *buf, size_t max_len, const char *fmt,
                        struct tm *tmval);
 
 /* From timestamp.c */

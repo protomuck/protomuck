@@ -971,9 +971,9 @@ prim_lsock6open(PRIM_PROTOTYPE)
     sockdescr = socket(AF_INET6, SOCK_STREAM, 0); /* get the socket descr */
     my_addr.sin6_family = AF_INET6;
     my_addr.sin6_port = (int)htons(oper1->data.number); /* set bind port # */
-    //my_addr.sin6_port = oper1->data.number; /* set bind port # */
+    /* my_addr.sin6_port = oper1->data.number; */ /* set bind port # */
     my_addr.sin6_addr = bind6; /* what am I bound to? */
-    // memmove(&my_addr.sin6_addr, &bind6, sizeof(struct in6_addr));
+    /* memmove(&my_addr.sin6_addr, &bind6, sizeof(struct in6_addr)); */
     /* Make sure is able to reuse the port */
     setsockopt(sockdescr, SOL_SOCKET, SO_REUSEADDR, (char *) &yes, sizeof(int));
     setsockopt(sockdescr, IPPROTO_IPV6, IPV6_V6ONLY, (char *) &yes, sizeof(int));
@@ -1402,8 +1402,8 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
 	array_set_strkey_strval(&nw, "HOST", host_as_hex(theSock->host));
 #endif
         
-    array_set_strkey_intval(&nw, "CONNECTED_AT", theSock->connected_at);
-    array_set_strkey_intval(&nw, "LAST_TIME", theSock->last_time);
+    array_set_strkey_intval(&nw, "CONNECTED_AT", (int)theSock->connected_at);
+    array_set_strkey_intval(&nw, "LAST_TIME", (int)theSock->last_time);
     array_set_strkey_intval(&nw, "COMMANDS", theSock->commands);
     array_set_strkey_intval(&nw, "PORT", theSock->port);
     array_set_strkey_intval(&nw, "SIMPLEQUEUE", theSock->usequeue);
@@ -1607,7 +1607,7 @@ void muf_udp_clean_byport(int portnum)
  while (i<=x) 
   if (udp_sockets[i].portnum == portnum) {
    if (tp_log_sockets) log2filetime("logs/sockets", "UDPCLOSE: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
-   close(udp_sockets[i].socket);
+   closesocket(udp_sockets[i].socket);
 #ifdef IPV6
    close(udp_sockets[i].socket6);
 #endif
@@ -1628,9 +1628,9 @@ void udp_socket_clean(struct frame *fr)
   if (udp_sockets[i].fr == fr) {
    if (tp_log_sockets) log2filetime("logs/sockets", "UDP.socket_clean: entry %d, port %d, descr %d\n", i, udp_sockets[i].portnum, udp_sockets[i].socket);
    udp_count--;
-   close(udp_sockets[i].socket);
+   closesocket(udp_sockets[i].socket);
 #ifdef IPV6
-   close(udp_sockets[i].socket6);
+   closesocket(udp_sockets[i].socket6);
 #endif
    j=i; 
    while (j<=x) {
@@ -1658,7 +1658,7 @@ prim_udpopen(PRIM_PROTOTYPE)
  struct sockaddr_in6 sa6;
  int yes = 1;
 #endif
- unsigned int tmp; 
+ int tmp; 
 
 
  CHECKOP(1);
@@ -1801,7 +1801,7 @@ prim_udpsend(PRIM_PROTOTYPE)
  /* ship it out, shut it down. */
  sendto(tmp, oper1->data.string->data, oper1->data.string->length, 0, (struct sockaddr *)&sa, sizeof(sa)); 
  if (tp_log_sockets) log2filetime("logs/sockets", "UDPSEND: host %s, port %d\n", myhost->h_name, htons(sa.sin_port));
- close(tmp); //HinoSpoon
+ closesocket(tmp);
  
  /* Yay! Return TRUE */    
  CLEAR(oper3);
@@ -1853,7 +1853,7 @@ prim_udp6send(PRIM_PROTOTYPE)
  tmp = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
  sa6.sin6_family = AF_INET6;
  sa6.sin6_port = htons(oper3->data.number);
- // sa6.sin6_addr = *myhost->h_addr;
+ /* sa6.sin6_addr = *myhost->h_addr; */
  bcopy((char *) myhost->h_addr, (char *) &sa6.sin6_addr, myhost->h_length);
  
  /* ship it out, shut it down. */

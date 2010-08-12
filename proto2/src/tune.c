@@ -510,7 +510,7 @@ tune_parms_array(const char *pattern, int mlev)
                 array_set_strkey_strval(&item, "type", "timespan");
                 array_set_strkey_strval(&item, "group", ttim->group);
                 array_set_strkey_strval(&item, "name", ttim->name);
-                array_set_strkey_intval(&item, "value", *ttim->tim);
+                array_set_strkey_intval(&item, "value", (int)*ttim->tim);
                 array_set_strkey_intval(&item, "readmlev", ttim->readmlev);
                 array_set_strkey_intval(&item, "writemlev", ttim->writemlev);
                 temp1.type = PROG_ARRAY;
@@ -618,7 +618,7 @@ static const char *
 timestr_full(time_t dtime)
 {
     static char buf[32];
-    int days, hours, minutes;
+    time_t days, hours, minutes;
 
     days = dtime / 86400;
     dtime %= 86400;
@@ -627,7 +627,7 @@ timestr_full(time_t dtime)
     minutes = dtime / 60;
     dtime %= 60;
 
-    sprintf(buf, "%3dd %2d:%02d:%02d", days, hours, minutes, (int) dtime);
+    sprintf(buf, "%3dd %2d:%02d:%02d", (int)days, (int)hours, (int)minutes, (int)dtime);
 
     return buf;
 }

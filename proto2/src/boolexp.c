@@ -100,7 +100,7 @@ copy_bool(struct boolexp *old)
 }
 
 
-int
+bool
 eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
                   int evalprogram)
 {
@@ -175,20 +175,17 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
     }
 }
 
-int
+bool
 eval_boolexp_rec(int descr, dbref player, struct boolexp *b, dbref thing)
 {
-    int result;
-
-    result = eval_boolexp_rec2(descr, player, b, thing, 1);
-    return result;
+    return eval_boolexp_rec2(descr, player, b, thing, 1);
 }
 
 #ifndef SANITY
-int
+bool
 eval_boolexp(int descr, dbref player, struct boolexp *b, dbref thing)
 {
-    int result;
+    bool result;
 
     b = copy_bool(b);
     result = eval_boolexp_rec(descr, player, b, thing);
@@ -199,10 +196,10 @@ eval_boolexp(int descr, dbref player, struct boolexp *b, dbref thing)
 
 
 #ifndef SANITY
-int
+bool
 eval_boolexp2(int descr, dbref player, struct boolexp *b, dbref thing)
 {
-    int result;
+    bool result;
 
     b = copy_bool(b);
     result = eval_boolexp_rec2(descr, player, b, thing, 0);
@@ -602,6 +599,7 @@ getboolexp1(FILE * f)
   error:
     fprintf(stderr, "PANIC: Database error in reading bool expression.\n");
     abort();                    /* bomb out */
+	return NULL;
 }
 
 struct boolexp *

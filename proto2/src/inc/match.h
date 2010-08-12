@@ -8,10 +8,10 @@ struct match_data {
     int match_count;		/* holds total number of inexact matches */
     dbref match_who;		/* player used for me, here, and messages */
     dbref match_from;		/* object which is being matched around */
-    int match_descr;			/* descriptor initiating the match */
+    int match_descr;		/* descriptor initiating the match */
     const char *match_name;	/* name to match */
     int preferred_type;		/* preferred type */
-    int longest_match;		/* longest matched string */
+    size_t longest_match;	/* longest matched string */
     int match_level;		/* the highest priority level so far */
     int block_equals;		/* block matching of same name exits */
 };

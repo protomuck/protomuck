@@ -1633,7 +1633,7 @@ void
 shovechars(void)
 {
     fd_set input_set, output_set;
-    long now, tmptq;
+    time_t now, tmptq;
     struct timeval last_slice, current_time;
     struct timeval next_slice;
     struct timeval timeout, slice_timeout;
@@ -2003,11 +2003,11 @@ shovechars(void)
                     struct sockaddr_in tmpaddr;
                     socklen_t tmpsz = sizeof(tmpaddr);
 
-                    // Get the data waiting
+                    /* Get the data waiting */
                     memset(buf, 0, sizeof(buf));
                     e = recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0,
                                  (struct sockaddr *) &tmpaddr, &tmpsz);
-                    // And dispatch the UDP event
+                    /* And dispatch the UDP event */
                     strncpy(buf2, inet_ntoa(tmpaddr.sin_addr), 16);
                     if (tp_log_sockets)
                         log2filetime("logs/sockets",
@@ -2038,11 +2038,11 @@ shovechars(void)
                     struct sockaddr_in6 tmpaddr6;
                     socklen_t tmpsz6 = sizeof(tmpaddr6);
 
-                    // Get the data waiting
+                    /* Get the data waiting */
                     memset(buf, 0, sizeof(buf));
                     e = recvfrom(udp_sockets[i].socket6, buf, sizeof(buf), 0,
                                  (struct sockaddr *) &tmpaddr6, &tmpsz6);
-                    // And dispatch the UDP event
+                    /* And dispatch the UDP event */
                     strncpy(buf2, ip_address(tmpaddr6.sin6_addr.s6_addr), 64);
                     if (tp_log_sockets)
                         log2filetime("logs/sockets",
@@ -2100,7 +2100,7 @@ shovechars(void)
                 }
                 if (d->connected && OkObj(d->player)) { /* begin the idle FLAG/boots management */
                     int leastIdle = 0;
-                    int dr_idletime = 0;
+                    time_t dr_idletime = 0;
                     struct descriptor_data *tempd;
 
                     leastIdle = least_idle_player_descr(d->player);
@@ -2122,7 +2122,7 @@ shovechars(void)
                             * 60;
 
                         if (idx_idletime < 120)
-                            idx_idletime = tp_idletime;
+                            idx_idletime = (int)tp_idletime;
                         if (d->idletime_set != idx_idletime)
                             pset_idletime(d->player, idx_idletime);
                         if ((dr_idletime >= tp_idletime)
@@ -2142,7 +2142,7 @@ shovechars(void)
                         int idx_idletime = 0;
 
                         if (!idx_idletime)
-                            idx_idletime = tp_idletime;
+                            idx_idletime = (int)tp_idletime;
                         if (dr_idletime >= d->idletime_set) {
                             FLAG2(d->player) |= F2IDLE;
                             if (!(DR_RAW_FLAGS(d, DF_IDLE)))
@@ -2156,7 +2156,7 @@ shovechars(void)
                             DR_RAW_ADD_FLAGS(d, DF_IDLE);
                     }
                 } else {        /* !d->connected */
-                    int dr_idletime = (now - d->last_time);
+                    time_t dr_idletime = (now - d->last_time);
 
                     if ((dr_idletime >= tp_idletime)) {
                         if (!(DR_RAW_FLAGS(d, DF_IDLE))) /* descriptor idle */
@@ -2176,7 +2176,7 @@ shovechars(void)
                         if (get_property((dbref) 0, buff)) {
                             curidle = get_property_value((dbref) 0, buff);
                         } else {
-                            curidle = tp_connidle;
+                            curidle = (int)tp_connidle;
                         }
                         if (curidle < 30)
                             curidle = 9999999;
@@ -2599,7 +2599,7 @@ new_connection6(int port, int sock)
         return 0;
     } else {
         hu = host_getinfo6(addr.sin6_addr, port, addr.sin6_port);
-	//log_status("Resolved to: %s\n",hu->h->name);
+	/* log_status("Resolved to: %s\n",hu->h->name); */
 	/* Alynna: Fix this soon!
         if (reg_site_is_blocked(ntohl(addr.sin6_addr.s6_addr)) == TRUE) {
             log_status("*BLK6: %2d %s %s C#%d P#%d\n", newsock,
@@ -2903,7 +2903,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     d->prog = NULL;
     d->block = 0;
     d->interactive = 0;
-    d->idletime_set = tp_idletime;
+    d->idletime_set = (int)tp_idletime;
 #ifdef NEWHTTPD
     d->http = NULL;
 #endif /* NEWHTTPD */
@@ -3782,7 +3782,7 @@ check_connect(struct descriptor_data *d, const char *msg)
                 now = current_systime;
                 result = get_property_value(player, "@/Failed/Count") + 1;
                 SETMESG(player, "@/Failed/Host", d->hu->h->name);
-                add_property(player, "@/Failed/Time", NULL, now);
+                add_property(player, "@/Failed/Time", NULL, (int)now);
                 add_property(player, "@/Failed/Count", NULL, result);
             }
             if (d->fails >= 3)
@@ -4398,7 +4398,7 @@ dump_users(struct descriptor_data *d, char *user)
             sprintf(dobuf, "%-43s", "Doing...");
         }
     }
-    sprintf(plyrbuf, "%-*s", PLAYER_NAME_LIMIT + 6, "Player Name");
+    sprintf(plyrbuf, "%-*s", (int)PLAYER_NAME_LIMIT + 6, "Player Name");
     switch (wizwho) {
         case 0:{
             if (tp_who_doing) {
@@ -4512,7 +4512,7 @@ dump_users(struct descriptor_data *d, char *user)
                 }
             }
             strcpy(buf, "");
-            sprintf(plyrbuf, "%-*s", PLAYER_NAME_LIMIT + (wizwho ? 5 : 1),
+            sprintf(plyrbuf, "%-*s", (int)PLAYER_NAME_LIMIT + (wizwho ? 5 : 1),
                     plyrbuf);
             switch (wizwho) {
                 case 0:{
@@ -5211,7 +5211,7 @@ pcount(void)
     return current_descr_count;
 }
 
-int
+time_t
 pidle(int count)
 {
     struct descriptor_data *d;
@@ -5240,7 +5240,7 @@ pdbref(int count)
     return NOTHING;
 }
 
-int
+time_t
 pontime(int count)
 {
     struct descriptor_data *d;
@@ -5289,7 +5289,7 @@ least_idle_player_descr(dbref who)
     struct descriptor_data *best_d = NULL;
     int dcount, di;
     int *darr;
-    long best_time = 0;
+    time_t best_time = 0;
 
     darr = get_player_descrs(who, &dcount);
     for (di = 0; di < dcount; di++) {
@@ -5314,7 +5314,7 @@ most_idle_player_descr(dbref who)
     struct descriptor_data *best_d = NULL;
     int dcount, di;
     int *darr;
-    long best_time = 0;
+    time_t best_time = 0;
 
     darr = get_player_descrs(who, &dcount);
     for (di = 0; di < dcount; di++) {

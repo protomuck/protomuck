@@ -608,7 +608,7 @@ prim_frand(PRIM_PROTOTYPE)
     double tresult;
 
     CHECKOP(0);
-    result = (double) rand();
+    result = rand();
     tresult = (double) rand();
     if ((result < tresult) && (result != tresult)) {
         fresult = result / tresult;

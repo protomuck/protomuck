@@ -384,4 +384,4 @@ prim_regsub(PRIM_PROTOTYPE)
     PushString(buf);
 }
 
-#endif //WIN_VC
+#endif /* WIN_VC */

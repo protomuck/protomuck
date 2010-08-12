@@ -862,7 +862,7 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
     a->ret = NULL;
     a->next = NULL;
 
-    //log_status("muf_interrupt_process(): %p\n", a); /* for debugging */
+    /* log_status("muf_interrupt_process(): %p\n", a); */ /* for debugging */
 
     if (!fr->ainttop)
         fr->ainttop = a;
@@ -932,7 +932,6 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
     a->data = (struct inst *) malloc(sizeof(struct inst));
     copyinst(val, a->data);
     a->eventid = string_dup(event);
-    //interp_loop(fr->player, fr->prog, fr, 0); /* was for debugging */
 
     return !(interrupt->keep);
 }
@@ -972,7 +971,7 @@ muf_interrupt_exit(struct frame *fr)
     if (!a)
         return 0;
 
-    //log_status("muf_interrupt_pop_act(): %p\n", a); /* for debugging */
+    /* log_status("muf_interrupt_pop_act(): %p\n", a); */ /* for debugging */
 
     if (!a->next) {
         fr->interrupted = 0;

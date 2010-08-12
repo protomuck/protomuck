@@ -1,3 +1,8 @@
+#include "config.h"
+
+#if 0
+//Is this even used at all anymore?  -Hinoserm
+
 static const char _lowercase[] = {
     -128, -127, -126, -125, -124, -123, -122, -121,
     -120, -119, -118, -117, -116, -115, -114, -113,
@@ -102,3 +107,5 @@ static const char _uppercase[] = {
 
 const char *lowercase = _lowercase + 128;
 const char *uppercase = _uppercase + 128;
+
+#endif /* !WIN_VC */
