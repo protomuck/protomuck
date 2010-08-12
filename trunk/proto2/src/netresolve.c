@@ -57,7 +57,7 @@ const char *hostToIPex(struct hostinfo * h)
 
 #endif
 
-#if defined(HAVE_PTHREAD_H)
+#if defined(HAVE_PTHREAD_H) || defined(WIN_VC)
 
 /* Beginnings of very basic threaded resolver. */
 
@@ -157,8 +157,11 @@ get_username(int a, int prt, int myprt)
     return (0);
 }
 
-void *
-threaded_resolver_go(void *ptr)
+#ifdef WIN_VC
+DWORD WINAPI threaded_resolver_go(void *ptr)
+#else
+void *threaded_resolver_go(void *ptr)
+#endif
 {
     struct in_addr addr;
     struct tres_data *tr;
@@ -201,7 +204,14 @@ threaded_resolver_go(void *ptr)
     }
 
     free((void *) tr);
+#ifdef WIN_VC
+# ifndef __cplusplus
+	/* Supposedly, when using C++ and WINAPI, you just return from the thread function. */
+	ExitThread(0);
+# endif
+#else
     pthread_exit(NULL);
+#endif
 	return NULL;
 }
 
@@ -209,10 +219,12 @@ threaded_resolver_go(void *ptr)
 bool
 host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
 {
-    pthread_t thread1;
+	struct tres_data *tr;
+#ifndef WIN_VC
 	int result;
-    struct tres_data *tr;
+	pthread_t thread1;
     pthread_attr_t attr;
+#endif
 
     tr = (struct tres_data *) malloc(sizeof(struct tres_data));
 
@@ -221,16 +233,20 @@ host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
     tr->lport = lport;
     tr->prt = prt;
    
+#ifdef WIN_VC
+	CreateThread(NULL, 0, threaded_resolver_go, (void*)tr, 0, NULL);
+#else
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
     
     result = pthread_create(&thread1, &attr, threaded_resolver_go, (void*) tr);
  
-    pthread_attr_destroy(&attr); 
- 
-    if (result)
+    pthread_attr_destroy(&attr);
+
+	if (result)
         return 0;
     else
+#endif
         return 1;
 }
 

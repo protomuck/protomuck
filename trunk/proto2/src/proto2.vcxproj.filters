@@ -414,8 +414,4 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <Library Include="pthreads\pthreadVC.lib" />
-    <Library Include="pthreads\pthreadVC_x64.lib" />
-  </ItemGroup>
 </Project>

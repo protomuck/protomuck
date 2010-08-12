@@ -277,7 +277,7 @@ putfref(FILE * f, dbref ref, dbref ref2, dbref ref3, dbref ref4, dbref pow1,
 }
 
 void
-puttimestampEx(FILE * f, int ref, int ref2)
+puttimestampEx(FILE * f, int ref, dbref ref2)
 {
     if (fprintf(f, "%d %d\n", ref, ref2) ==
         EOF) {
@@ -583,10 +583,10 @@ db_write_object(FILE * f, dbref i)
         putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK),
                 (FLAG3(i) & ~DUM3_MASK), (FLAG4(i) & ~DUM4_MASK), 0, 0);
 
-    puttimestampEx(f, o->ts.created, o->ts.dcreated);
-    puttimestampEx(f, o->ts.lastused, o->ts.dlastused);
+    puttimestampEx(f, (int)o->ts.created, o->ts.dcreated);
+    puttimestampEx(f, (int)o->ts.lastused, o->ts.dlastused);
     putref(f, o->ts.usecount);
-    puttimestampEx(f, o->ts.modified, o->ts.dmodified);
+    puttimestampEx(f, (int)o->ts.modified, o->ts.dmodified);
 
 
 #ifdef DISKBASE

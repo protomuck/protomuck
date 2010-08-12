@@ -3,7 +3,7 @@
 /* uname -a output for certain local programs. */
 #if defined(_M_X64) || defined(_M_AMD64)
 # define UNAME_VALUE "Win64 (x86_64) - Microsoft Visual C++"
-#elif _M_IA64
+#elif defined(_M_IA64)
 # define UNAME_VALUE "Win64 (Itanium) - Microsoft Visual C++"
 #else
 # define UNAME_VALUE "Win32 - Microsoft Visual C++"
@@ -122,5 +122,5 @@
 /* if tm_gmtoff is defined in sys/time.h, define this */
 /* #undef HAVE_SYS_TM_GMTOFF */
 
-#include "pthread.h"
-#define HAVE_PTHREAD_H 1
+#define HAVE_MYSQL_H 1
+#define SQL_SUPPORT 1

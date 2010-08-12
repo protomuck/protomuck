@@ -1859,7 +1859,7 @@ shovechars(void)
 
         tmptq = next_muckevent_time();
         if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
-            timeout.tv_sec = tmptq + (tp_pause_min / 1000);
+            timeout.tv_sec = (long)tmptq + (tp_pause_min / 1000);
             timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
         }
         gettimeofday(&sel_in, NULL);
@@ -3126,10 +3126,10 @@ process_output(struct descriptor_data *d)
 
         if (cnt < 0) {
 #ifdef DEBUGPROCESS
-            fprintf(stderr, "process_output: write failed errno %d %s\n", errno,
-                    strerror(errno));
+            fprintf(stderr, "process_output: write failed errno %d %s\n", errnosocket,
+                    strerror(errnosocket));
 #endif
-            if (errno == EWOULDBLOCK)
+            if (errnosocket == EWOULDBLOCK)
                 return 1;
             return 0;
         }
@@ -3282,8 +3282,8 @@ process_input(struct descriptor_data *d)
 #endif
     {
 #ifdef DEBUGPROCESS
-        fprintf(stderr, "process_input: read failed errno %d %s\n", errno,
-                strerror(errno));
+        fprintf(stderr, "process_input: read failed errno %d %s\n", errnosocket,
+                strerror(errnosocket));
 #endif
         return 0;
     }
@@ -6062,7 +6062,7 @@ gettimeofday(struct timeval *tval, void *tzone)
     if (!tval)
         return;
 
-    tval->tv_sec = time(NULL);
+    tval->tv_sec = (long)time(NULL);
     tval->tv_usec = 0;
 
 }
