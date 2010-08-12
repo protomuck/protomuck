@@ -74,7 +74,7 @@ prim_sqlconnect(PRIM_PROTOTYPE)
     CLEAR(oper4);
     CLEAR(oper5);
 
-    tempsql = malloc(sizeof(MYSQL));
+    tempsql = (MYSQL *)malloc(sizeof(MYSQL));
     /* Making this error abort because it's a rare critical error 
      * that the user can't do anything about most of the time. */
     if (mysql_init(tempsql) == NULL) {
@@ -148,7 +148,7 @@ prim_sqlquery(PRIM_PROTOTYPE)
     CLEAR(oper1);
     tempsql = oper2->data.mysql->mysql_conn;
     if (mysql_query(tempsql, query)) { /* Query failed */
-        int errno = -1;
+        errno = -1;
 
         strcpy(errbuf, mysql_error(tempsql));
         CLEAR(oper2);
