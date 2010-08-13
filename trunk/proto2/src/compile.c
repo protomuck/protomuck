@@ -1087,7 +1087,9 @@ OptimizeIntermediate(COMPSTATE *cstat)
     int OverNo = get_primitive("over");
     int NipNo = get_primitive("nip");
     int TuckNo = get_primitive("tuck");
+    int DupNo = get_primitive("dup");
     int RotNo = get_primitive("rot");
+    int RotateNo = get_primitive("rotate");
     int PickNo = get_primitive("pick");
     int NotNo = get_primitive("not");
     int StrcmpNo = get_primitive("strcmp");
@@ -1314,6 +1316,18 @@ OptimizeIntermediate(COMPSTATE *cstat)
                     }
                 }
 
+                /* 1 pick into dup */
+                if (IntermediateIsInteger(curr, 1)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, PickNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = DupNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                        }
+                    }
+                }
+
                 /* 2 pick into over */
                 if (IntermediateIsInteger(curr, 2)) {
                     if (ContiguousIntermediates(Flags, curr->next, 1)) {
@@ -1325,6 +1339,42 @@ OptimizeIntermediate(COMPSTATE *cstat)
                         }
                     }
                 }
+
+                /* 3 rotate into rot */
+                if (IntermediateIsInteger(curr, 3)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, RotateNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = RotNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                        }
+                    }
+                }
+
+                /* 2 rotate into swap */ /* -2 rotate into swap */
+                if (IntermediateIsInteger(curr, 2) || IntermediateIsInteger(curr, -2)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, RotateNo)) {
+                            curr->in.type = PROG_PRIMITIVE;
+                            curr->in.data.number = SwapNo;
+                            RemoveNextIntermediate(cstat, curr);
+                            advance = 0;
+                        }
+                    }
+                }
+
+                /* 1 rotate into nothing */ /* 0 rotate into nothing */ /* -1 rotate into nothing */
+                if (IntermediateIsInteger(curr, 1) || IntermediateIsInteger(curr, 0) || IntermediateIsInteger(curr, -1)) {
+                    if (ContiguousIntermediates(Flags, curr->next, 1)) {
+                        if (IntermediateIsPrimitive(curr->next, RotateNo)) {
+                            RemoveNextIntermediate(cstat, curr);
+							RemoveIntermediate(cstat, curr);
+                            advance = 0;
+                        }
+                    }
+                }
+
                 break;
 
             case PROG_PRIMITIVE:
