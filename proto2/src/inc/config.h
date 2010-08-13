@@ -275,7 +275,7 @@
 /* A little extra debugging info for read()/write() on process input/output */
 /* I put this in when I couldn't figure out why sockets were failing from */
 /* a bad net connection for the server. */
-#define DEBUGPROCESS
+#undef DEBUGPROCESS
 
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
