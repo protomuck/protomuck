@@ -357,7 +357,12 @@ prim_array_setitem(PRIM_PROTOTYPE)
     if (result < 0) {
         char tBuf[BUFFER_LEN];
 
-        sprintf(tBuf, "Array_setitem ERROR code: %d", result);
+		if (result == -4)
+			abort_interp("Argument not an integer. (2)");
+		if (result == -5)
+			abort_interp("Array index out of range. (2)");
+
+        sprintf(tBuf, "Internal Error Code: %d", result);
         abort_interp(tBuf);
         /* abort_interp("Index out of array bounds. (3)"); */
     }
