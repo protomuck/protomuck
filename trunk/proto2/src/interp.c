@@ -1266,8 +1266,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 
     /* This is the 'natural' way to exit a function */
     while (stop) {
-        fr->instcnt++;
-        instr_count++;
+        if (++fr->instcnt < 0) fr->instcnt = 0;
+        if (++instr_count < 0) instr_count = 0;
 
         /* if there's an interrupt in queue && it hasn't had it's return set yet... */
         if (fr->ainttop && !fr->ainttop->ret) {
