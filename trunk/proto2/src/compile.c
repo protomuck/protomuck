@@ -2081,9 +2081,9 @@ do_directive(COMPSTATE *cstat, char *direct)
                           "Expected a floating point number for the version.");
         while (*cstat->next_char)
             cstat->next_char++;
-        advance_line(cstat);
         add_property(cstat->program, "_Lib-Version", tmpname, 0);
-
+        advance_line(cstat);
+        free(tmpname);
     } else if (!string_compare(temp, "author")) {
         while (*cstat->next_char && isspace(*cstat->next_char))
             cstat->next_char++; /* eating leading spaces */
@@ -2097,10 +2097,9 @@ do_directive(COMPSTATE *cstat, char *direct)
             cstat->next_char++; /* eating leading spaces */
         tmpname = (char *) cstat->next_char;
         while (*cstat->next_char)
-            cstat->next_char++;
-        advance_line(cstat);
+            cstat->next_char++; /* What does this accomplish ??? */
         add_property(cstat->program, "_Note", tmpname, 0);
-
+        advance_line(cstat);
     } else if (!string_compare(temp, "ifcancall")
                || !string_compare(temp, "ifncancall")) {
         struct match_data md;

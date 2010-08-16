@@ -1066,6 +1066,7 @@ void
 do_hostcache(dbref player, const char *args)
 {
     struct hostinfo *h;
+    struct hostinfo *hnext;
     char arg1[BUFFER_LEN];
     char *arg2;
 
@@ -1101,7 +1102,8 @@ do_hostcache(dbref player, const char *args)
 
         anotify_fmt(player, CINFO "Flushing...");
 
-        for (h = hostdb; h; h = h->next) {
+        for (h = hostdb; h; h = hnext) {
+            hnext = h->next;
             if (!h->links
                 && (doall
                     || (current_systime - h->wupd) >
