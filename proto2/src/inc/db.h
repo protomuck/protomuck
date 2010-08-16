@@ -795,7 +795,7 @@ struct frame {
     dbref   prog;                       /* program dbref */
     dbref   player;                     /* person who ran the program */
     time_t  started;                    /* When this program started. */
-    int     instcnt;                    /* How many instructions have run. */
+    unsigned int instcnt;               /* How many instructions have run. */
     int     timercount;                 /* How many timers currently exist. */
     int     pid;                        /* what is the process id? */
     char    *errorstr;                  /* the error string thrown */
