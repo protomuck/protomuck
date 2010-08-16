@@ -1,15 +1,15 @@
-~~~~
+~~~
 dumpwarn_mesg
 Message shown to all players before data-base saves according to 
 dump_warntime.
-~~~~
+~~~
 deltawarn_mesg
 Message shown to all players before delta-saves according to 
 dump_warntime.
-~~~~
+~~~
 dumpdeltas_mesg
 Message shown to all players before delta-saves begin.
-~~~~
+~~~
 dumping_mesg
 Message shown to all players at the start of a full data base save.
 ~~~
@@ -19,37 +19,43 @@ Message shown to all players once dump or delta save is done.
 huh_mesg
 Message seen when a player enters a line the server doesn't understand.
 Please see 'help huh' for more information.
-~~~~
+~~~
 leave_message
 Message shown to players when they QUIT.
-~~~~
+~~~
 idleboot_message
 Message shown to players when they are idlebooted.
 ~~~
 noperm_mesg
 Message shown when players do not have permission to do something.
-~~~~
+~~~
 noguest_mesg
 Message shown to characters set G when they do non-allowed actions.
-~~~~
+~~~
 penny
 Single monetary unit.
-~~~~
+~~~
 pennies
 Plural monetary units.
-~~~~
+~~~
 cpenny
 Capital single monetary unit.
-~~~~
+~~~
 cpennies
 Capital plural monetary units.
 ~~~
 muckname
 Change this to the name of your MUCK.
 ~~~
-dummy_midi
-Set to some small MIDI on a server. Used when starting up the web 
-login interface.
+userflag_name
+This is a string that will give the MOBILE flag, an alternate
+name.  You may then set and test for this flag by the name you
+enter here, and it will be displayed as such in 'examine'.  You
+may use this if your MUCK requires a flag for its own use.  The
+'userflag' has no effect on anything it is set on except as 
+defined in your MUF.  In all cases, you may still test for the
+userflag using MOBILE, OFFER, or ?, and it parses to '?' in
+your dbref.  Also see the 'userflag_mlev' tune and 'help mobile'.
 ~~~
 mailserver
 No longer has any in-server function since the removal of @hopper. 
@@ -62,6 +68,53 @@ Set this to the server name. Such as tnt.dynodns.net.
 reg_email
 No longer has any in-server function since the removal of @hopper. Has 
 been left in to account for any MUF programs that depend on this field.
+~~~
+proplist_counter_fmt
+Used to display the system standard naming format for proplists. This string 
+specifies the format of the namee of the property that the count of list items 
+is stored in. Any instance of P will be replaced by the proplist name. The 
+default is "P#".
+~~~
+proplist_entry_fmt
+Used to specify the system standard format for proplists. Any instance of P in
+the string will be replaced by the proplist name. Any instance of N in the 
+string will be replaced by the item's number. The default is "P#/N".
+~~~
+unidle_command
+This is a string that players can enter into the MUCK without
+actually unidling. Designed to allow players to set up unidle
+triggers to keep connections behind routers and firewalls from
+getting dropped when they idle. If they set up an idle trigger
+that sends the word that this @tune setting is set to, then
+they can keep their connection from dropping without unidling
+their characters on the MUCK. Note that whatever this command
+is, it does not get processed as input by the player, so do not
+use anything that is already a command players can use. The
+allow_unidle @tune option must be set to yes.
+~~~
+unidle_command_msg
+This is a message that will be printed out to players when
+they enter the unidle_command string.  This is to further
+assist with connections that constantly drop if a player
+sits idle for too long.  You may disable the printing of a
+message by setting this to '-' without the quotation marks.
+~~~
+ssl_keyfile_passwd
+This field provides a password for commercial or personal SSL 
+certificates that require a password or passphrase for their use.
+~~~
+reslvd_address
+This is a string that describes the host and port of the reslvd
+daemon, in <host>:<port> format. If either the host or port are
+missing, ProtoMUCK defaults to the values specified in config.h
+under RESOLVER_HOST and RESOLVER_PORT. Setting this option to
+NULL disables the reslvd connection. Note that, while a hostname
+will work, an IP address is recommended, as the muck will hang
+while the name is initially resolved.
+~~~
+sex_prop
+Specifies the property that the MUCK uses to determine the sex of a
+player, primarily used by pronoun substitutions.
 ~~~
 dump_interval
 Time between dumps or delta-dumps.
@@ -81,11 +134,11 @@ object or property remains in RAM before it is cleaned out.
 aging_time
 Unused time before obj shows as old in in-server searches such as 
 @find.
-~~~~~
+~~~
 connidle
 This sets how idle a connection has to be on the login screen before it
 gets dropped.
-~~~~~
+~~~
 maxidle
 How much time a player can idle before being booted if idleboot is on.
 ~~~
@@ -96,16 +149,19 @@ and the _idle/ propqueues get called.
 ~~~
 cron_interval
 Frequency at which to run the MUF set in cron_prog.
-~~~~
+~~~
 archive_interval
 Frequency at which to run full site backups. Needs to at least be
 longer than the #define for ARCHIVE_DELAY (30 minutes by default).
 A good frequency is about once per week, though sites that see a
 lot more changes may prefer more frequent archives. 
 See: 'help @autoarchive' for details
-~~~~
+~~~
 mainport
 The main telenet port to access the MUCK.
+~~~
+sslport
+The port SSL-aware clients use for secured connections.
 ~~~
 wwwport
 The port web browsers should access to interact with the MUCK.
@@ -159,6 +215,21 @@ max_loaded_objs
 Max %of db in unchanged objects allowed to be loaded.  Generally 5% 
 This is only needed if you defined DISKBASED in config.h 
 ~~~
+wizhidden_access_bit
+Values 1-5 change the level of bit it takes to access wizhidden
+'@' props, W1 (Mage) to W5(the MAN).  Read and Write are given.
+~~~
+userflag_mlev
+This is the minimum mlevel a player must be or a program must be
+running at to change the userflag (MOBILE).  Change this if your
+MUCK uses the userflags for its own purposes, and you dont want
+unpriveleged players changing it.
+~~~
+max_player_name_length
+Specifies the maximum size of a player name, up to BUFFER_LEN 
+(usually 16384).  If you are using spaces_in_playernames, its a 
+good idea to increase this.
+~~~
 max_process_limit
 Max # of timequeue events allowed.
 ~~~
@@ -188,7 +259,7 @@ to allocate them.  Helps prevent memory fragmentation.
 ~~~
 max_output
 Max amount of output text before the <Flushed output> is forced.
-~~
+~~~
 rand_screens
 Number of random welcome screens in game/data/welcome directory. 
 ~~~
@@ -199,81 +270,122 @@ propqueue.
 ~~~
 playermax_limit
 Maximum allowed concurrent player connections.
-~~
+~~~
 process_timer_limit
 Set this to the number of timers to be allowed per muf program.
-~~
+~~~
 dump_copies
 This sets the number of past data base copies to keep in the backup/data
 directory on the server. Max is 25, setting it to 0 will disable past
 dump saving.
-~~
+~~~
+min_progbreak_lev
+This determines the lowest level that can use the @Q command to 
+break a foreground program. W2 and above can always do it.
+~~~
+max_wiz_preempt_count
+Sets a hard max instruction count on PREEMPT programs that not 
+even wiz-owned programs can exceed. If left at 0, there is no
+max limit for PREEMPT programs running under Mage permissions
+or higher.
+~~~
+mcp_muf_mlev
+This determines the M level that a player must have to write 
+programs that take advantage of MCP related prims.
+~~~
+mysql_result_limit
+Restricts the number of rows that can be returned from
+the SQLQUERY prim. Should never set this to over 2000.
+If not working with SQL and MUF, don't worry about
+this setting.
+~~~
+web_logfile_lvl
+This parameter requires a description.
+~~~
+web_logwall_lvl
+This parameter requires a description.
+~~~
+web_htmuf_mlvl
+This parameter requires a description.
+~~~
+web_max_files
+This parameter requires a description.
+~~~
+web_max_filesize
+This parameter requires a description.
+~~~
+web_max_users
+This parameter requires a description.
+~~~
 quit_prog
 This sets the MUF program to call when a player types 'QUIT'. 
-~~
+~~~
 login_who_prog
 Program to be run when a player types WHO at the login screen.
-~~
+~~~
 player_start
 Where newly @pcreated players are placed. Also becomes the 
 default home when a player has no other home.
-~~
+~~~
 player_prototype
 Dbref of player from which to copy all flags and props when 
 a new player is @pcreated. The props copying is optional, 
 according to the pcreate_copy_props @tune setting.
-~~
+~~~
 cron_prog
 Program to run at the frequency of the cron_interval. 
-~~
+~~~
 www_root
 The room that will hold the props that contain HTML or call HTMufs
 for the webserver support in ProtoMUCK.
-~~
-www_surfer
-This is the user that will have HTMuf cgi scripts executed as.  
-If it is set to #-1 or an invalid user, muf cgi scripts won't
-execute. 'me @' in MUF programs called from the webserver will
-return this player's dbref. Setting this player = DARK and
-PARENT will enable LOGWALLED wizards to see a lot more status
-log for browser connections to the MUCK. 
-~~
+~~~
+default_parent
+Set this to the room that the in-server @dig should select when no
+alternative parent room is located when a new room is made.
+~~~
 use_hostnames
 Do reverse domain name lookup. Turn this parameter of if there is
 severe lag when players connect.
-~~
+~~~
 log_commands
 Log all commands entered by players to a file.
-~~
+~~~
+log_interactive
+Log all commands entered in interactive programs.
+~~~
 log_connects
 Log all connections and disconnections to the MUCK, along with
 host names.
-~~
+~~~
 log_failed_commands
 Log all unrecognized commands entered by players.
-~~
+~~~
 log_programs
 Log all non-wizard owned program text at the time the program is
 saved.
-~~
+~~~
 log_guests
 Log all actions done by characters that have the G flag set out to
 the command log file. 
-~~
+~~~
 log_suspects
 Log all actions done by characters that have the SUSPECT flag set 
 out to the command log file. 
-~~
+~~~
+log_wizards
+When this tune is enabled, wizards commands W1-W5 is always sent to
+the commands log despite the value of the log_commands tune.
+~~~
 log_files
 Log the use of the file prims. Keeps track of the names of the files
 affected by the file prims, but does not log the actual text written to
 or read from the file.
-~~
+~~~
 log_sockets
 Log the use of the socket prims. Keeps track of the activity on each
 MUF socket descriptor, but does not log the actual data transmitted
 through the socket.
-~~
+~~~
 log_failedhelp
 When set to 'yes', will log failed attempts to use the in-server 
 help commands to a file in the logs/ directory. If something a
@@ -283,22 +395,22 @@ is logged as well.
 ~~~
 dbdump_warning
 Display the save messages for full data base saves.
-~~
+~~~
 deltadump_warning
 Display the save messages for delta dump saves.
-~~
+~~~
 periodic_program_purge
 Set this to yes to purge unused programs from RAM. Programs that have
 not been used for the length indicated in clean_interval will be taken
 out of RAM.
-~~
+~~~
 secure_who
 Prevents using WHO from the login screen.
-~~
+~~~
 who_doing
 In-server WHO will display the @doing list from the _/do prop on
 players.
-~~
+~~~
 realms_control
 Makes it so that if a parent room is set WIZARD, the owner of that
 parent room becomes a like a 'wizard' for all objects within that
@@ -316,149 +428,146 @@ if CONTROLS is also set on the environment room.
 allow_listeners
 Allow listen properties to execute when something is notified to
 the object that the listen prop is on.
-~~
+~~~
 allow_listeners_obj
 Objects can have listen properties.
-~~
+~~~
 allow_listeners_env
 Searches up the room environments for listeners.
-~~
+~~~
 allow_zombies
 Allow mortal players to @force around objects that are set ZOMBIE.
-~~
+~~~
 wiz_vehicles
 Allow only wizards to @set the VEHICLE flag on Thing objects.
-~~
+~~~
+wiz_puppets
+Allow only wizards to @set the ZOMBIE flag on Thing objects.
+~~~
 wiz_name
 Only wizards can change player names.
-~~
+~~~
 recycle_frobs
 When a player is @frobbed (@toaded), the object created is 
 auto-recycled. 
-~~
+~~~
 m1_name_notify
 Force Mucker Level 1 muf progs to prepend names on notify's to 
 players other than the using player, and on notify_except's
 and notify_excludes.
-~~
+~~~
 teleport_to_player
 Allow the use of exits linked to players. 
-~~
+~~~
 secure_teleport
 Make using a personal action to leave a room require that the 
 source room be controlled by the player, or else be set JUMP_OK.
-~~
+~~~
 exit_darking
 Allow players to set exits DARK.
-~~
+~~~
 thing_darking
 Allow players to set things DARK.
-~~
+~~~
 dark_sleepers
 Sleeping players effectively have the DARK flag set.
-~~
+~~~
 who_hides_dark
 Players set DARK do not appear in the in-server WHO list.
-~~
+~~~
 old_priorities
 With this defined to 1, exits that aren't on TYPE_THING objects will
 always act as if they have at least a Priority Level of 1.
 Define this if you want to use this server with an old db, and don't
 want to re-set the Levels of all the LOOK, DISCONNECT, and CONNECT 
 actions.
-~~
+~~~
 do_mpi_parsing
 Turning this off prevents text from being sent through the MPI parser.
-~~
+~~~
 look_propqueues
 Turning this on allows _look/ propqueue hooks.
-~~
+~~~
+dump_propqueues
+This enables a @dumpwarn and @dump propqueue to be used on #0.
+~~~
 lock_envcheck
 Turning this on allows locks to check down the environment for props.
-~~
+~~~
 diskbase_propvals
 Turning this on causes the server to only load props when they are
 being used, otherwise they are not stored in RAM. Slows down the 
 MUCK but makes it more memory efficient.
-~~
+~~~
 idleboot
 Turning this on will boot players once they reach maxidle.
-~~
+~~~
 playermax
 Turning this on will enforce the max_players @tune by booting
 players who connect once the limit has been reached.
-~~
+~~~
 db_readonly
 Turning this on prevents most changes to be made to the data base. 
 @newpasswording and @frobbing can still be done, however.
-~~
+~~~
 building
 Setting this to no will disable the in-server building commands, such
 as @create, @dig, @open.
-~~
+~~~
 all_can_build_rooms
 Turning this to yes allows even players with no BUILDER bit to make
 rooms.
-~~
+~~~
 restricted_building
 Setting this to yes prevents players from making anything unless they
 have a BUILDER flag. Is overridden by the all_can_build_rooms option.
-~~
-allow_home
-Setting this to no disables the in-server home command.
-~~
-enable_idle_msgs
-If this is enabled, then the room will be notified with a message if a player 
-goes idle, or becomes unidle.
-~~
-user_idle_propqueue
-If enabled, this will allow _Idle/ and _Unidle to be used, so that not just 
-administration can set this propdir.
-~~
-quiet_moves
-Setting this to yes turns off the '%N has arrived/left.' messages 
-when players enter or leave rooms.
-~~
-expanded_debug
-Setting this to yes causes the MUF debugger to display the contents
-of MUF arrays.  It also expands the strings.
-~~
-proplist_int_counter
-Used to specify whether the system standard for proplist storage is
-to use integer or string props for the counter.
-~~
-proplist_entry_fmt
-Used to specify the system standard format for proplists. Any instance of P in
-the string will be replaced by the proplist name. Any instance of N in the 
-string will be replaced by the item's number. The default is "P#/N".
-~~
-proplist_counter_fmt
-Used to display the system standard naming format for proplists. This string 
-specifies the format of the namee of the property that the count of list items 
-is stored in. Any instance of P will be replaced by the proplist name. The 
-default is "P#".
-~~
-enable_mcp
-Setting this to no turns off the MCP version indicator upon connection.
-However, it also disables the use of MCP all together. 
-~~
-enable_commandprops
-Setting this to yes turns on command prop support. Setting it to no shuts off 
-the command prop support.
-~~
-old_parseprop
-When set to 'no', the parseprop prim gets its permissions from the
-object on which the prop to be parsed is located. When set to 'yes',
-the parseprop prim gets its permissions from the permission bit set
-on the MUF program itself.
 ~~~
 pcreate_copy_props
 Setting this to yes will make it so that newly made players will have the
 props on the player_prototype copied to them at @pcreation time.
 ~~~
+allow_home
+Setting this to no disables the in-server home command.
+~~~
+enable_idle_msgs
+If this is enabled, then the room will be notified with a message if a player 
+goes idle, or becomes unidle.
+~~~
+user_idle_propqueue
+If enabled, this will allow _Idle/ and _Unidle to be used, so that not just 
+administration can set this propdir.
+~~~
+use_self_on_command
+When this is tuned on (the default), every command a player
+executes triggers an update of ones lastused timestamp.  When off
+this is disabled, and only a few other events, notably connection,
+disconnection, and the TOUCH/USE prims, will update this timestamp.
+~~~
+quiet_moves
+Setting this to yes turns off the '%N has arrived/left.' messages 
+when players enter or leave rooms.
+~~~
 quiet_connects
 Setting this to yes will shut off the '%N has connected/disconnected.' 
 messages.
+~~~
+proplist_int_counter
+Used to specify whether the system standard for proplist storage is
+to use integer or string props for the counter.
+~~~
+enable_mcp
+Setting this to no turns off the MCP version indicator upon connection.
+However, it also disables the use of MCP all together. 
+~~~
+enable_commandprops
+Setting this to yes turns on command prop support. Setting it to no shuts off 
+the command prop support.
+~~~
+old_parseprop
+When set to 'no', the parseprop prim gets its permissions from the
+object on which the prop to be parsed is located. When set to 'yes',
+the parseprop prim gets its permissions from the permission bit set
+on the MUF program itself.
 ~~~
 mpi_needflag
 Setting this to yes will make it so that players and objects must have the
@@ -486,53 +595,23 @@ allow_old_trigs
 Setting this to no disables all _ prefixed propqueues. For example, 
 _connect, _disconnect, etc., will not work if this is set to no.
 Setting it to yes leaves all of those propqueues enabled.
-~~~~
-auto_archive
-Setting this to 'no' shuts down all use of the @autoarchive support,
-either by the command or by the @tune. Setting it to yes allows W4
-and above to run @autoarchive and to set the archive_interval
-@tune setting. 
-See: 'help @autoarchive' for details.
-~~~~
-default_parent
-Set this to the room that the in-server @dig should select when no
-alternative parent room is located when a new room is made.
-~~~
-min_progbreak_lev
-This determines the lowest level that can use the @Q command to 
-break a foreground program. W2 and above can always do it.
-~~~
-mcp_muf_lev
-This determines the M level that a player must have to write 
-programs that take advantage of MCP related prims.
 ~~~
 multi_wizlevels
 This @tune can turn off tiered wiz levels. With it on, there
 will be W5/W4/W3/W2/W1 (The Neon/Glow scheme). Turning it off
 will make it so that there is only #1/W (Fuzzball scheme).
 ~~~
+auto_archive
+Setting this to 'no' shuts down all use of the @autoarchive support,
+either by the command or by the @tune. Setting it to yes allows W4
+and above to run @autoarchive and to set the archive_interval
+@tune setting. 
+See: 'help @autoarchive' for details.
+~~~
 optimize_muf
 Turning this on enables the byte-code optimizer when compiling
 MUF programs. MUF optimization can be turned off on a program
 by program basis by setting the program = N.
-~~~
-dump_propqueues
-This enables a @dumpwarn and @dump propqueue to be used on #0.
-~~~
-mysql_result_limit
-Restricts the number of rows that can be returned from
-the SQLQUERY prim. Should never set this to over 2000.
-If not working with SQL and MUF, don't worry about
-this setting.
-~~~
-socket_events
-Turn on MUF Socket events. Allows MUF programs to catch
-socket events via EVENT_WAITFOR. If you do not know what
-this is, you may just leave it off.
-~~~
-logwall_www
-Turns off all Webserver logwalling to cut down on lots
-of webserver related spam.
 ~~~
 compatible_muf_perms
 Tuning this on, will change the permissions model for MUF so
@@ -543,31 +622,6 @@ QUELL will run it at the permissions of the calling player.
 This is as per FB/Glow behaviour.  If you are running a FB
 or glow database, best to set this ON, if a Neon or Proto DB
 set it off.
-~~~
-max_wiz_preempt_count
-Sets a hard max instruction count on PREEMPT programs that not 
-even wiz-owned programs can exceed. If left at 0, there is no
-max limit for PREEMPT programs running under Mage permissions
-or higher.
-~~~
-unidle_command
-This is a string that players can enter into the MUCK without
-actually unidling. Designed to allow players to set up unidle
-triggers to keep connections behind routers and firewalls from
-getting dropped when they idle. If they set up an idle trigger
-that sends the word that this @tune setting is set to, then
-they can keep their connection from dropping without unidling
-their characters on the MUCK. Note that whatever this command
-is, it does not get processed as input by the player, so do not
-use anything that is already a command players can use. The
-allow_unidle @tune option must be set to yes.
-~~~
-unidle_command_msg
-This is a message that will be printed out to players when
-they enter the unidle_command string.  This is to further
-assist with connections that constantly drop if a player
-sits idle for too long.  You may disable the printing of a
-message by setting this to '-' without the quotation marks.
 ~~~
 allow_unidle
 Allows players to use whatever the unidle_command is set to
@@ -586,58 +640,12 @@ get a zero result, since all error conditions return either inf
 (for true floating point overflows) or nan (for 'not a number'
 conditions.
 ~~~
-wizhidden_access_bit
-Values 1-5 change the level of bit it takes to access wizhidden
-'@' props, W1 (Mage) to W5(the MAN).  Read and Write are given.
-~~~~~
-userflag_name
-This is a string that will give the MOBILE flag, an alternate
-name.  You may then set and test for this flag by the name you
-enter here, and it will be displayed as such in 'examine'.  You
-may use this if your MUCK requires a flag for its own use.  The
-'userflag' has no effect on anything it is set on except as 
-defined in your MUF.  In all cases, you may still test for the
-userflag using MOBILE, OFFER, or ?, and it parses to '?' in
-your dbref.  Also see the 'userflag_mlev' tune and 'help mobile'.
-~~~
-userflag_mlev
-This is the minimum mlevel a player must be or a program must be
-running at to change the userflag (MOBILE).  Change this if your
-MUCK uses the userflags for its own purposes, and you dont want
-unpriveleged players changing it.
-~~~
-reslvd_address
-This is a string that describes the host and port of the reslvd
-daemon, in <host>:<port> format. If either the host or port are
-missing, ProtoMUCK defaults to the values specified in config.h
-under RESOLVER_HOST and RESOLVER_PORT. Setting this option to
-NULL disables the reslvd connection. Note that, while a hostname
-will work, an IP address is recommended, as the muck will hang
-while the name is initially resolved.
-~~~
-sslport
-The port SSL-aware clients use for secured connections.
-~~~
-ssl_keyfile_passwd
-This field provides a password for commercial or personal SSL 
-certificates that require a password or passphrase for their use.
-~~~
 autolinking
 When this tune is on, all new actions will be, by default, linked 
 to NIL(#-4).  This is generally safer and more convenient than
 having them be created unlinked, and allows MPI to be loaded into
 the @succ of the action and used right away without special 
 treatment.
-~~~
-use_self_on_command
-When this is tuned on (the default), every command a player
-executes triggers an update of ones lastused timestamp.  When off
-this is disabled, and only a few other events, notably connection,
-disconnection, and the TOUCH/USE prims, will update this timestamp.
-~~~
-log_wizards
-When this tune is enabled, wizards commands W1-W5 is always sent to
-the commands log despite the value of the log_commands tune.
 ~~~
 spaces_in_playernames
 @pcreate and the connect screen will support spaces in player
@@ -648,11 +656,23 @@ If this @tune is set to no, any existing characters with
 spaces in their name will no longer be able to log in but
 their Player object will otherwise not be affected.
 ~~~
-max_player_name_length
-Specifies the maximum size of a player name, up to BUFFER_LEN 
-(usually 16384).  If you are using spaces_in_playernames, its a 
-good idea to increase this.
+web_allow_players
+This parameter requires a description.
 ~~~
-sex_prop
-Specifies the property that the MUCK uses to determine the sex of a
-player, primarily used by pronoun substitutions.
+web_allow_playerhtmuf
+This parameter requires a description.
+~~~
+web_allow_htmuf
+This parameter requires a description.
+~~~
+web_allow_vhosts
+This parameter requires a description.
+~~~
+web_allow_files
+This parameter requires a description.
+~~~
+web_allow_dirlist
+This parameter requires a description.
+~~~
+web_allow_mpi
+This parameter requires a description.
