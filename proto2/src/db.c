@@ -507,7 +507,7 @@ log_program_text(struct line *first, dbref player, dbref i)
 
 #ifndef SANITY
     strcpy(fname, PROGRAM_LOG);
-    f = fopen(fname, "a");
+    f = fopen(fname, "ab");
     if (!f) {
         log_status("Couldn't open file %s!\n", fname);
         return;
@@ -538,7 +538,7 @@ write_program(struct line *first, dbref i)
     char fname[BUFFER_LEN];
 
     sprintf(fname, "muf/%d.m", (int) i);
-    f = fopen(fname, "w");
+    f = fopen(fname, "wb");
     if (!f) {
         log_status("Couldn't open file %s!\n", fname);
         return;
@@ -1161,7 +1161,7 @@ read_program(dbref i)
 
     first = NULL;
     sprintf(buf, "muf/%d.m", (int) i);
-    f = fopen(buf, "r");
+    f = fopen(buf, "rb");
     if (!f)
         return 0;
 
