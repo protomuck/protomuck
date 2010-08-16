@@ -300,22 +300,66 @@ If not working with SQL and MUF, don't worry about
 this setting.
 ~~~
 web_logfile_lvl
-This parameter requires a description.
+This is the level of debug messages that will be logged to the logs/webserver
+file.
+
+ 0 = Disable logging
+ 1 = Log only the request type, URL and hostname (one line)
+ 2 = Log the request type, URL, hostname, virtual host, referrer and useragent.
+ 3 = Log the entire request and headers, excluding POST data.
+ 4 = Log the entire request and headers, including POST data.
+ 5 = Log all input data, including POST data and system debug messages.
+ 9 = Log extremely verbose information, only useful to ProtoMUCK developers.
+
+NOTE: Enabling this setting could cause the webserver log to grow very rapidly
+on popular servers.
+
+Recommended value: 3
 ~~~
 web_logwall_lvl
-This parameter requires a description.
+This is the level of debug messages that will be logged to the LOGWALL and the
+logs/status file.
+
+ 0 = Disable logging
+ 1 = Log only the request type, URL and hostname (one line)
+ 2 = Log the request type, URL, hostname, virtual host, referrer and useragent.
+ 3 = Log the entire request and headers, excluding POST data.
+ 4 = Log the entire request and headers, including POST data.
+ 5 = Log all input data, including POST data and system debug messages.
+ 9 = Log extremely verbose information, only useful to ProtoMUCK developers.
+
+NOTE: Setting this higher than 1 will cause the logwall to spit out several
+lines of data every time someone accesses the webserver.  If you need extra
+logging but don't need to spam the logwall, see: web_logfile_lvl
+
+Recommended value: 1
 ~~~
 web_htmuf_mlvl
-This parameter requires a description.
+This is the minimum mlevel required to be set on a MUF program before the
+webserver will attempt to execute it.
+
+Recommended value: 3
 ~~~
 web_max_files
-This parameter requires a description.
+This is the maximum number of file transfers the webserver can currently have
+open.  This setting does not override web_max_users.  Set 0 for unlimited.
+
+NOTE: The webserver will be limited based on your platform's available
+resources, regardless of this setting.
 ~~~
 web_max_filesize
-This parameter requires a description.
+This is the maximum size (in bytes) of a single file allowed to be accessed by
+the fileserver. Set 0 for unlimited.
+
+NOTE: Internal limitations cause a maximum filesize of about 2GB regardless of
+this setting, including on 64-bit systems.
 ~~~
 web_max_users
-This parameter requires a description.
+This is the maximum amount of connections permitted to the webserver at once.
+Set to 0 for unlimited.
+
+NOTE: The webserver will be limited based on your platform's available
+resources, regardless of this setting.
 ~~~
 quit_prog
 This sets the MUF program to call when a player types 'QUIT'. 
@@ -657,22 +701,30 @@ spaces in their name will no longer be able to log in but
 their Player object will otherwise not be affected.
 ~~~
 web_allow_players
-This parameter requires a description.
+If TRUE, setting will allow players to have a _/www prop on themselves, which
+is accessable through http://yourserver/~playername
 ~~~
 web_allow_playerhtmuf
-This parameter requires a description.
+If TRUE and web_allow_players is TRUE, the webserver will be allowed to execute
+MUF programs in a player's _/www directory.
 ~~~
 web_allow_htmuf
-This parameter requires a description.
+If TRUE, setting will allow the webserver to execute MUF programs and display
+the results as a web page.
 ~~~
 web_allow_vhosts
-This parameter requires a description.
+If TRUE, setting will cause the webserver to check @vhosts propdir on the
+webroom and allocate any virtual hosts that might be configured there.  If
+FALSE, webserver will assume all domain names go to a single place.
 ~~~
 web_allow_files
-This parameter requires a description.
+If TRUE, setting will allow the webserver to display files located in the
+files\public_html directory.
 ~~~
 web_allow_dirlist
-This parameter requires a description.
+If TRUE, setting will allow the webserver to create a directory listing page
+for directories with no index.html (or similar) file.
 ~~~
 web_allow_mpi
-This parameter requires a description.
+If TRUE, setting will allow MPI to be executed by the webserver and displayed
+on pages.
