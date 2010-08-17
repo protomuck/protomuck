@@ -166,7 +166,7 @@ int tp_mcp_muf_mlev = MCP_MUF_MLEV;
 int tp_max_wiz_preempt_count = 0;
 int tp_wizhidden_access_bit = 3;
 int tp_userflag_mlev = 0;
-int tp_max_player_name_length = 32;
+int tp_max_player_name_length = 16;
 
 int tp_wwwport = TINYPORT - 1;  /* hinoserm */
 
