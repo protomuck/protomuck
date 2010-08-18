@@ -299,7 +299,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                     moveto(victim, destination);
                     sprintf(buf, CSUCC "%s teleported to %s.",
                             unparse_object(player, victim),
-                            (destination == -3 ? "HOME" : NAME(destination))
+                            (destination == -3 ? "HOME" : (destination == -4 ? NAME(OWNER(victim)) : NAME(destination)))
                         );
                     anotify_nolisten2(player, buf);
                     break;

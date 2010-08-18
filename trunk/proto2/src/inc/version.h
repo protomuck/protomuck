@@ -1,6 +1,6 @@
-#define PROTOBASE "2.0b9.05.0"
+#define PROTOBASE "2.0b9.05.1"
 #define PROTOVER "Proto" PROTOBASE
 #define NEONVER "Neon2.17"
-#define VERSION "Muck2.2fb6.9012"
+#define VERSION "Muck2.2fb6.9051"
 
 extern const char *infotext[];
