@@ -6,6 +6,7 @@
  *  Contact addresses
  *     Chris Brine      - Moose/Van - ashitaka@home.com
  *     Richard Taylor   - Akari     - Nakoruru08@hotmail.com
+ *                      - Alynna    - alynna@kitsunet.net
  *
  *  This code is based loosely on the following code
  *     TinyMUD
