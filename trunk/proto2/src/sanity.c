@@ -756,7 +756,8 @@ create_lostandfound(dbref *player, dbref *room)
         DBFETCH(*player)->sp.player.home = *room;
         EXITS(*player) = NOTHING;
         DBFETCH(*player)->sp.player.pennies = tp_start_pennies;
-        DBFETCH(*player)->sp.player.password = rand_password();
+        DBFETCH(*player)->sp.player.password = NULL;
+        set_password(*player,rand_password());
         DBFETCH(*player)->sp.player.curr_prog = NOTHING;
         DBFETCH(*player)->sp.player.insert_mode = 0;
 #ifdef IGNORE_SUPPORT

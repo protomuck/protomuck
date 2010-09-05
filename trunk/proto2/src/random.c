@@ -273,7 +273,7 @@ MD5hash(void *dest, const void *orig, int len)
     struct xMD5Context context;
 
     xMD5Init(&context);
-    xMD5Update(&context, (const byte *) orig, len);
+    if (len>0) xMD5Update(&context, (const byte *) orig, len);
     xMD5Final((byte *) dest, &context);
 }
 
@@ -395,6 +395,21 @@ Base64Encode(char *outbuf, const void *inbuf, size_t inlen)
     }
 }
 
+/* dest buffer MUST be at least 25 chars long. */
+void
+MD5hex(void *dest, const void *orig, int len)
+{
+    unsigned char *tmp = (unsigned char *)malloc(16);
+
+    MD5hash(tmp, orig, len);
+    unsigned char i;
+    int j;
+    for (j=0; j<=15; ++j) {
+        i = (unsigned char)tmp[j];
+        sprintf((char *)dest+(j*2), "%.2X", (unsigned char)i);
+    }
+    free((void *)tmp);
+}
 
 /* dest buffer MUST be at least 24 chars long. */
 void
@@ -405,6 +420,102 @@ MD5base64(char *dest, const void *orig, int len)
     MD5hash(tmp, orig, len);
     Base64Encode(dest, tmp, 16);
     free(tmp);
+}
+
+// Needs a buffer of at least ((((ilen+3)/4)*3)*2)+1 chars long
+int
+base64tohex(char *dest, int olen, const char *orig, int ilen)
+{
+    int tlen = (((ilen+3)/4)*3)+1;
+    if (olen < ((tlen-1)*2)+1) return 0;
+    
+    unsigned char *tmp = (unsigned char *)malloc(tlen);
+    Base64Decode(tmp, tlen, orig);
+    unsigned char i;
+    int j, k;
+    for (j=0, k=0; (j<tlen) && (k<olen); j++, k+=2) {
+        i = tmp[j];
+        if (i==0) break;
+        sprintf(dest+k, "%.2X", i);
+    }
+    free((void *)tmp);
+    return strlen(dest);
+}
+
+// Needs a buffer of at least (((((ilen+1)/2)+2)/3)*4)+1 chars long
+int
+hextobase64(char *dest, int olen, const char *orig, int ilen)
+{
+    int odd = ilen % 2;
+    int tlen = (ilen/2)+1;
+    if (olen < ((((tlen+(odd*2))+2)/3)*4)+1) return 0;
+
+    char *tmp = (char *)malloc(tlen);
+    unsigned char i = 0;
+    int j, k;
+    for (j=0, k=0; (j<ilen) && (k<olen) && (orig[j]!=0x00); j++) {
+        i = (orig[j] >=
+            'A' ? ((orig[j] & 0xdf) - 'A') +
+            10 : (orig[j] - '0'));
+        i*=16; j++;
+        if ((j>=ilen) || (orig[j]==0x00)) {
+            tmp[k] = i;
+            k++;
+            break;
+        }
+        i = (orig[j] >=
+            'A' ? ((orig[j] & 0xdf) - 'A') +
+            10 : (orig[j] - '0'));
+        tmp[k] = i;
+        k++;
+    }
+    tmp[k] = 0x00;
+    Base64Encode(dest, tmp, tlen-1);
+    free((void *)tmp);
+    return k;
+}
+
+// Needs a buffer of at least (ilen*2)+1 chars long
+int
+strtohex(char *dest, int olen, const char *orig, int ilen)
+{
+    int tlen = (ilen*2)+1;
+    if (olen < tlen) return 0;
+    unsigned char i;
+    int j, k;
+    for (j=0, k=0; (j<ilen) && (k<olen); j++, k+=2) {
+        i = ((const unsigned char *)orig)[j];
+        sprintf(dest+k, "%.2X", i);
+    }
+    return k;
+}
+
+// Needs a buffer of at least ((ilen+1)/2)+1 chars long
+int
+hextostr(char *dest, int olen, const char *orig, int ilen)
+{
+    if (olen < ((ilen+1)/2)+1) return 0;
+
+    unsigned char i = 0;
+    int j, k;
+    for (j=0, k=0; (j<ilen) && (k<olen) && (orig[j]!=0x00); j++) {
+        i = (orig[j] >=
+            'A' ? ((orig[j] & 0xdf) - 'A') +
+            10 : (orig[j] - '0'));
+        i*=16; j++;
+        if ((j>=ilen) || (orig[j]==0x00)) {
+            dest[k] = i;
+            k++;
+            break;
+        }
+        i += (orig[j] >=
+            'A' ? ((orig[j] & 0xdf) - 'A') +
+            10 : (orig[j] - '0'));
+        dest[k] = i;
+        k++;
+    }
+    dest[k] = 0x00;
+    return k;
 }
 
 /*****************************************************************/

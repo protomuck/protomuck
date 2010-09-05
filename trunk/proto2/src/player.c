@@ -13,23 +13,28 @@ static hash_tab player_list[PLAYER_HASH_SIZE];
 bool
 check_password(dbref player, const char *check_pw)
 {
-    if (player != NOTHING) {
-        const char *password = DBFETCH(player)->sp.player.password;
+    if (player == NOTHING) return 0;
+    
+    const char *password = DBFETCH(player)->sp.player.password;
+    /* We now do this smartly based on the DB_NEWPASSES */
+    /*  database flag. -Hinoserm                        */
 
-        /* We now do this smartly based on the DB_MD5PASSES */
-        /*  database flag. -Hinoserm                        */
+    if (!password || !*password) return 1;
 
-        if (!password || !*password)
-            return 1;
-
-        if (db_md5_passwords) {
-            char md5buf[64];
-
-            MD5base64(md5buf, check_pw, strlen(check_pw));
-            if (!strcmp(md5buf, password))
-                return 1;
-        } else if (!strcmp(check_pw, password))
-            return 1;
+    if (!db_hash_passwords)
+        return !strcmp(check_pw, password);
+    
+    if (hash_compare(password, check_pw)) {
+        switch (hash_tagtoval(password)) {
+            case HTYPE_CURRENT: break;     /* Our current best, preserve */
+            case HTYPE_NONE: break;        /* If there's no password, preserve */
+            case HTYPE_DISABLED: break;    /* If there's no password, preserve */
+            case HTYPE_INVALID: break;     /* Don't recognize the type, preserve */
+            default:                       /* Not our current best, upgrade */
+                set_password(player, check_pw);
+                break;
+        }
+        return 1;
     }
     return 0;
 }
@@ -37,32 +42,35 @@ check_password(dbref player, const char *check_pw)
 bool
 set_password(dbref player, const char *password)
 {
-    if (player != NOTHING) {
-        if (!password || !*password) {
-            if (DBFETCH(player)->sp.player.password)
-                free((void *) DBFETCH(player)->sp.player.password);
-            DBSTORE(player, sp.player.password, NULL);
-            return 1;
-        }
+    if (player == NOTHING) return 0;
 
-        if (!ok_password(password))
-            return 0;
-
+    if (!password || !*password) {
         if (DBFETCH(player)->sp.player.password)
             free((void *) DBFETCH(player)->sp.player.password);
 
-        if (db_md5_passwords) {
-            char md5buf[64];
-
-            MD5base64(md5buf, password, strlen(password));
-            DBSTORE(player, sp.player.password, alloc_string(md5buf));
-        } else
-            DBSTORE(player, sp.player.password, alloc_string(password));
-
+        char hashbuf[BUFFER_LEN];
+        int res = hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
+        if (!res) return 0;
+        DBSTORE(player, sp.player.password, alloc_string(hashbuf));
         return 1;
     }
 
-    return 0;
+    if (!ok_password(password))
+        return 0;
+
+    if (DBFETCH(player)->sp.player.password)
+        free((void *) DBFETCH(player)->sp.player.password);
+
+    if (db_hash_passwords) {
+        char hashbuf[BUFFER_LEN];
+        int res = hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
+        if (!res) return 0;
+        DBSTORE(player, sp.player.password, alloc_string(hashbuf));
+        return 1;
+    }
+
+    DBSTORE(player, sp.player.password, alloc_string(password));
+    return 1;
 }
 
 dbref

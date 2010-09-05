@@ -157,7 +157,7 @@ static int ssl_sock6;
 
 bool db_conversion_flag = 0;
 bool db_decompression_flag = 0;
-bool db_md5_convert = 0;
+bool db_hash_convert = 0;
 bool wizonly_mode = 0;
 bool verboseload = 0;
 
@@ -311,7 +311,7 @@ show_program_usage(char *prog)
     fprintf(stderr,
             "       -convert          load db, save in current format, and quit.\n");
     fprintf(stderr,
-            "       -pwconvert        convert passwords to MD5 format on next save.\n");
+            "       -pwconvert        convert passwords to hashed format on next save.\n");
     fprintf(stderr,
             "       -decompress       when saving db, save in uncompressed format.\n");
     fprintf(stderr,
@@ -321,7 +321,8 @@ show_program_usage(char *prog)
     fprintf(stderr,
             "       -sanfix           attempt to auto-fix a corrupt db after loading.\n");
     fprintf(stderr, "       -wizonly          only allow wizards to login.\n");
-    fprintf(stderr,
+    fprintf(stderr, "       -godpasswd PASS   reset God(#1)'s password to PASS.  Implies -convert\n");
+	fprintf(stderr,
             "       -version          display this server's version.\n");
     fprintf(stderr, "       -verboseload      show messages while loading.\n");
     fprintf(stderr, "       -help             display this message.\n");
@@ -361,6 +362,7 @@ main(int argc, char **argv)
     FILE *ffd;
     char *infile_name = NULL;
     char *outfile_name = NULL;
+    char *num_one_new_passwd = NULL;
     int i, nomore_options;
     int sanity_skip;
     int sanity_interactive;
@@ -417,7 +419,7 @@ main(int argc, char **argv)
             } else if (!strcmp(argv[i], "-sanfix")) {
                 sanity_autofix = 1;
             } else if (!strcmp(argv[i], "-pwconvert")) {
-                db_md5_convert = 1;
+                db_hash_convert = 1;
             } else if (!strcmp(argv[i], "-version")) {
                 printf("ProtoMUCK %s (%s -- %s)\n", PROTOBASE, VERSION,
                        NEONVER);
@@ -433,6 +435,17 @@ main(int argc, char **argv)
                     show_program_usage(*argv);
                 }
                 outfile_name = argv[++i];
+
+            } else if (!strcmp(argv[i], "-godpasswd")) {
+                if (i + 1 >= argc) {
+                    show_program_usage(*argv);
+                }
+                num_one_new_passwd = argv[++i];
+                if (!ok_password(num_one_new_passwd)) {
+                    fprintf(stderr, "Bad -godpasswd password.\n");
+                    exit(1);
+                }
+                db_conversion_flag = 1;
 
             } else if (!strcmp(argv[i], "-port")) {
                 if (i + 1 >= argc) {
@@ -612,6 +625,10 @@ main(int argc, char **argv)
     if (init_game(infile_name, outfile_name) < 0) {
         fprintf(stderr, "Couldn't load %s!\n", infile_name);
         exit(2);
+    }
+
+    if (num_one_new_passwd != NULL) {
+        set_password(GOD, num_one_new_passwd);
     }
 
     if ((resolver_myport > 1) && (resolver_myport < 65536))
