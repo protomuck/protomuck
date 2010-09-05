@@ -196,13 +196,12 @@ dump_database_internal(void)
 #endif
             rename(dumpfile, destfile); /* proto.new -> proto.new.1 */
 
-        } else {
-#ifdef WIN_VC
-            /* Windows rename() differs from Unix rename(). Won't overwrite. */
-            if (unlink(dumpfile))
-                perror(dumpfile);
-#endif
         }
+#ifdef WIN_VC
+        /* Windows rename() differs from Unix rename(). Won't overwrite. */
+        if (unlink(dumpfile))
+            perror(dumpfile);
+#endif
         if (rename(tmpfile, dumpfile) < 0) {
             perror(tmpfile);
             sprintf(buf,

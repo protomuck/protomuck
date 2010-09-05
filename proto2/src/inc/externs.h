@@ -598,6 +598,11 @@ extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
 extern unsigned long rndm(void *buffer);
 extern void MD5base64(char *dest, const void *orig, int len);
+extern void Base64Encode(char *outbuf, const void *inbuf, size_t inlen);
+extern size_t Base64Decode(void *outbuf, size_t outbuflen, const char *inbuf);
+
+/* from sha1.c */
+extern void SHAbase64(char *dest, const void *orig, int len);
 
 #ifdef MCP_SUPPORT
 

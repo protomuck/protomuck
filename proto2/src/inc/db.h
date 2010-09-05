@@ -213,7 +213,37 @@ extern short dbcheck(const char *file, int line, dbref item);
 
 #define DB_PARMSINFO    0x0001
 #define DB_COMPRESSED   0x0002
-#define DB_MD5PASSES    0x0004
+#define DB_NEWPASSES    0x0004  /* Used to be DB_MD5PASSES */
+#define DB_UNUSED3      0x0008 /* Available for use */
+#define DB_HASHVERL     0x0010
+#define DB_HASHVERH     0x0020
+#define DB_HASHVERU     0x0040
+#define DB_RESEVED7     0x0080 /* Reserved for future use with hashing */
+
+#define HVER_MASK       0x00F0
+#define HVER_SHIFT      4
+#define HVER_NONE       0x0 /* Tagging Disabled (Equivalent to old DB_MD5PASSES behavior, used when DB_NEWPASSES is ment to be off) */
+#define HVER_RAWMD5     0x0 /* Tagging Disabled (Equivalent to old DB_MD5PASSES behavior, used when DB_NEWPASSES is ment to be on) */
+#define HVER_SHA1SALT   0x1 /* Tagging Enabled, SHA-1+Salt is default algo, can read Plain, MD5, MD5+Salt, SHA1, SHA1+Salt */
+#define HVER_RESERVED2  0x2 /* Reserved for future hashing algo upgrades */
+#define HVER_RESERVED3  0x3 /* Reserved for future hashing algo upgrades */
+#define HVER_RESERVED4  0x4 /* Reserved for future hashing algo upgrades */
+#define HVER_RESERVED5  0x5 /* Reserved for future hashing algo upgrades */
+#define HVER_RESERVED6  0x6 /* Reserved for future hashing algo upgrades */
+#define HVER_RESERVED7  0x7 /* Reserved for future hashing algo upgrades */
+                           /* If more slots are needed, consider making a new database format update with a global DB parameter */
+                           /* Alternately, there's a flag reserved for future expansion if need be which will double the capacity */
+#define HVER_CURRENT   HVER_SHA1SALT /* Our current version */
+
+#define HTYPE_DISABLED  -2 /* Reserved for diabled passwords (disallow login with any password) */
+#define HTYPE_INVALID   -1 /* Returned for errors */
+#define HTYPE_NONE      0  /* Reserved for blank passwords (allow logins with any password) */
+#define HTYPE_PLAIN     1  /* Reserved for plaintext passwords */
+#define HTYPE_MD5       2  /* Reserved for MD5 hashed passwords */
+#define HTYPE_MD5SALT   3  /* Reserved for Salted MD5 hashed passwords */
+#define HTYPE_SHA1      4  /* Reserved for SHA1 hashed passwords */
+#define HTYPE_SHA1SALT  5  /* Reserved for Salted SHA1 hashed passwords */
+#define HTYPE_CURRENT   HTYPE_SHA1SALT /* Our current best */
 
 #define TYPE_ROOM	    0x0
 #define TYPE_THING	    0x1
@@ -1016,7 +1046,8 @@ extern void macrodump(struct macrotable *node, FILE *f);
 extern void macroload(FILE *f);
 extern int WLevel(dbref player);
 extern int db_load_format;
-extern bool db_md5_passwords;
+extern bool db_hash_passwords;
+extern int db_hash_ver;
 
 extern char lflag_name[32][32];
 extern int lflag_mlev[32];
@@ -1026,6 +1057,14 @@ extern int lflag_mlev[32];
 #define PUSH(thing, locative) \
     {DBSTORE((thing), next, (locative)); (locative) = (thing);}
 #define getloc(thing) (DBFETCH(thing)->location)
+
+extern char *hash_valtotag(int type);
+extern int hash_tagtoval(const char *tag);
+extern int hash_password(int type, char *out, const char *password, const char *saltin);
+extern int hash_split(const char *hashin, int *tagout, char *hashout, char *saltout);
+extern int hash_compare(const char *hash, const char *password);
+extern int hash_oldconvert(char *out, const char *hash);
+
 
 /*
   Usage guidelines:

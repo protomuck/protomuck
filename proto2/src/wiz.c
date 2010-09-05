@@ -827,8 +827,7 @@ do_purge(int descr, dbref player, const char *arg1, const char *arg2)
         return;
     }
 
-    if ((!DBFETCH(victim)->sp.player.password ||
-         check_password(victim, arg2)) &&
+    if (!check_password(victim, arg2) &&
         (strcmp(arg2, "yes") ||
          !(Arch(player) || POWERS(player) & POW_PLAYER_PURGE))
         ) {
