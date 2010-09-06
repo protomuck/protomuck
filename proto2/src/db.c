@@ -1633,33 +1633,55 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             o->exits = getref(f);
             o->sp.player.pennies = getref(f);
             if (db_hash_passwords) {
-                if (db_hash_ver==HVER_NONE) {
-                    char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
-                    const char *p = getstring_noalloc(f);
-                    hash_oldconvert(hashbuf, p);
-                    o->sp.player.password = alloc_string(hashbuf);
-                } else {
-                    const char *p = getstring_noalloc(f);
-                    if (hash_tagtoval(p)==HTYPE_PLAIN) {
-                        char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
-                        hash_split(p, NULL, hashbuf, NULL);
-                        hash_password(HTYPE_CURRENT, hashbuf, hashbuf, NULL);
-                        o->sp.player.password = alloc_string(hashbuf);
-                    } else {
-                        o->sp.player.password = alloc_string(p);
-                    }
-                }
-            } else {
                 if (db_hash_convert) {
+                    // Update legacy untagged raw plaintext to new tagged hex encoded best algorithm
                     char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
                     const char *p = getstring_noalloc(f);
                     if (!p || !*p) {
+                        // Convert blank legacy untagged raw plaintext password to new tagged NONE indicator
                         hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
                     } else {
+                        // Convert legacy untagged raw plaintext password to new tagged hex encoded best algorithm
                         hash_password(HTYPE_CURRENT, hashbuf, p, NULL);
                     }
                     o->sp.player.password = alloc_string(hashbuf);
                 } else {
+                    if (db_hash_ver==HVER_NONE) {
+                        // Update legacy untagged base64 encoded md5 to new tagged hex encoded unsalted MD5 algorithm
+                        char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
+                        const char *p = getstring_noalloc(f);
+                        hash_oldconvert(hashbuf, p);
+                        o->sp.player.password = alloc_string(hashbuf);
+                    } else {
+                        // Handle new tagged methods
+                        const char *p = getstring_noalloc(f);
+                        if (hash_tagtoval(p)==HTYPE_PLAIN) {
+                            // Update new tagged plaintext to new tagged hex encoded best algorithm
+                            char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
+                            hash_split(p, NULL, hashbuf, NULL);
+                            hash_password(HTYPE_CURRENT, hashbuf, hashbuf, NULL);
+                            o->sp.player.password = alloc_string(hashbuf);
+                        } else {
+                            // Preserve new tagged methods
+                            o->sp.player.password = alloc_string(p);
+                        }
+                    }
+                }
+            } else {
+                if (db_hash_convert) { // This section doesn't need to be here, but is included for robustness
+                    // Update legacy untagged raw plaintext to new tagged hex encoded best algorithm
+                    char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
+                    const char *p = getstring_noalloc(f);
+                    if (!p || !*p) {
+                        // Convert blank legacy untagged raw plaintext password to new tagged NONE indicator
+                        hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
+                    } else {
+                        // Convert legacy untagged raw plaintext password to new tagged hex encoded best algorithm
+                        hash_password(HTYPE_CURRENT, hashbuf, p, NULL);
+                    }
+                    o->sp.player.password = alloc_string(hashbuf);
+                } else {
+                    // Preserve legacy untagged raw plaintext
                     o->sp.player.password = getstring(f);
                 }
             }
