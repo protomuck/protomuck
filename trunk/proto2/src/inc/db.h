@@ -1058,12 +1058,12 @@ extern int lflag_mlev[32];
     {DBSTORE((thing), next, (locative)); (locative) = (thing);}
 #define getloc(thing) (DBFETCH(thing)->location)
 
-extern char *hash_valtotag(int type);
-extern int hash_tagtoval(const char *tag);
-extern int hash_password(int type, char *out, const char *password, const char *saltin);
-extern int hash_split(const char *hashin, int *tagout, char *hashout, char *saltout);
-extern int hash_compare(const char *hash, const char *password);
-extern int hash_oldconvert(char *out, const char *hash);
+extern char *db_hash_valtotag(int type);
+extern int db_hash_tagtoval(const char *tag);
+extern int db_hash_password(int type, char *out, const char *password, const char *saltin);
+extern int db_hash_split(const char *hashin, int *tagout, char *hashout, char *saltout);
+extern int db_hash_compare(const char *hash, const char *password);
+extern int db_hash_oldconvert(char *out, const char *hash);
 
 
 /*
