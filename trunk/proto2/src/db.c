@@ -14,10 +14,15 @@
 #include "strings.h"
 
 struct object *db = 0;
+
 dbref db_top = 0;
+
 dbref recyclable = NOTHING;
+
 int db_load_format = 0;
+
 bool db_hash_passwords = 0;
+
 int db_hash_ver = 0;
 
 #ifndef DB_INITIAL_SIZE
@@ -37,8 +42,11 @@ extern char *alloc_string(const char *);
 #endif
 
 int number(const char *s);
+
 int ifloat(const char *s);
+
 void putproperties(FILE * f, int obj);
+
 void getproperties(FILE * f, int obj);
 
 #ifdef DBDEBUG
@@ -62,11 +70,14 @@ dbref
 getparent(dbref obj)
 {
     int limit = 88;
-    if (!OkObj(obj)) return GLOBAL_ENVIRONMENT;
+
+    if (!OkObj(obj))
+        return GLOBAL_ENVIRONMENT;
     do {
         if (Typeof(obj) == TYPE_THING && (FLAGS(obj) & VEHICLE) && limit-- > 0) {
             obj = DBFETCH(obj)->sp.thing.home;
-            if (obj == NIL) obj = GLOBAL_ENVIRONMENT;
+            if (obj == NIL)
+                obj = GLOBAL_ENVIRONMENT;
             if (obj != NOTHING && Typeof(obj) == TYPE_PLAYER)
                 obj = DBFETCH(obj)->sp.player.home;
         } else {
@@ -217,7 +228,9 @@ dbref
 new_program(register dbref player, register const char *name)
 {
     register unsigned char mlvl;
+
     register dbref newprog;
+
     char buf[BUFFER_LEN];
 
     newprog = new_object(player);
@@ -282,8 +295,7 @@ putfref(FILE * f, dbref ref, dbref ref2, dbref ref3, dbref ref4, dbref pow1,
 void
 puttimestampEx(FILE * f, int ref, dbref ref2)
 {
-    if (fprintf(f, "%d %d\n", ref, ref2) ==
-        EOF) {
+    if (fprintf(f, "%d %d\n", ref, ref2) == EOF) {
         fprintf(stderr, "PANIC: Unable write to db file.\n");
         abort();
     }
@@ -309,8 +321,11 @@ void
 putproperties_rec(FILE * f, const char *dir, dbref obj)
 {
     PropPtr pref;
+
     PropPtr p, pptr;
+
     char buf[BUFFER_LEN];
+
     char name[BUFFER_LEN];
 
     pref = first_prop_nofetch(obj, dir, &pptr, name);
@@ -338,7 +353,9 @@ putproperties(FILE * f, dbref obj)
 }
 
 extern FILE *input_file;
+
 extern FILE *delta_infile;
+
 extern FILE *delta_outfile;
 
 #ifdef DISKBASE
@@ -347,8 +364,11 @@ int
 fetch_propvals(dbref obj, const char *dir)
 {
     PropPtr p, pptr;
+
     int cnt = 0;
+
     char buf[BUFFER_LEN];
+
     char name[BUFFER_LEN];
 
     p = first_prop_nofetch(obj, dir, &pptr, name);
@@ -369,7 +389,9 @@ void
 putprops_copy(FILE * f, dbref obj)
 {
     char buf[BUFFER_LEN * 3];
+
     char *ptr;
+
     FILE *g;
 
     if (DBFETCH(obj)->propsmode != PROPS_UNLOADED) {
@@ -443,6 +465,7 @@ void
 foldtree(struct macrotable *center)
 {
     int count = 0;
+
     struct macrotable *nextcent = center;
 
     for (; nextcent; nextcent = nextcent->left)
@@ -470,6 +493,7 @@ int
 macrochain(struct macrotable *lastnode, FILE * f)
 {
     char *line, *line2;
+
     struct macrotable *newmacro;
 
     if (!(line = file_line(f)))
@@ -505,7 +529,9 @@ void
 log_program_text(struct line *first, dbref player, dbref i)
 {
     FILE *f;
+
     char fname[BUFFER_LEN], buf1[BUFFER_LEN], buf2[BUFFER_LEN];
+
     time_t lt = current_systime;
 
 #ifndef SANITY
@@ -538,6 +564,7 @@ void
 write_program(struct line *first, dbref i)
 {
     FILE *f;
+
     char fname[BUFFER_LEN];
 
     sprintf(fname, "muf/%d.m", (int) i);
@@ -566,6 +593,7 @@ int
 db_write_object(FILE * f, dbref i)
 {
     struct object *o = DBFETCH(i);
+
     int j;
 
 #ifdef DISKBASE
@@ -586,10 +614,10 @@ db_write_object(FILE * f, dbref i)
         putfref(f, (FLAGS(i) & ~DUMP_MASK), (FLAG2(i) & ~DUM2_MASK),
                 (FLAG3(i) & ~DUM3_MASK), (FLAG4(i) & ~DUM4_MASK), 0, 0);
 
-    puttimestampEx(f, (int)o->ts.created, o->ts.dcreated);
-    puttimestampEx(f, (int)o->ts.lastused, o->ts.dlastused);
+    puttimestampEx(f, (int) o->ts.created, o->ts.dcreated);
+    puttimestampEx(f, (int) o->ts.lastused, o->ts.dlastused);
     putref(f, o->ts.usecount);
-    puttimestampEx(f, (int)o->ts.modified, o->ts.dmodified);
+    puttimestampEx(f, (int) o->ts.modified, o->ts.dmodified);
 
 
 #ifdef DISKBASE
@@ -688,7 +716,8 @@ db_write(FILE * f)
            + (db_decompression_flag ? 0 : DB_COMPRESSED)
 #endif
            + (db_hash_passwords ? DB_NEWPASSES : 0)
-           + (db_hash_passwords ? ((HVER_CURRENT << HVER_SHIFT) & HVER_MASK) : 0)
+           +
+           (db_hash_passwords ? ((HVER_CURRENT << HVER_SHIFT) & HVER_MASK) : 0)
         );
     putref(f, tune_count_parms());
     tune_save_parms_to_file(f);
@@ -730,6 +759,7 @@ dbref
 parse_dbref(const char *s)
 {
     const char *p;
+
     int x;
 
     x = atol(s);
@@ -762,6 +792,7 @@ dbref
 getref(FILE * f)
 {
     char buf[BUFFER_LEN];
+
     int peekch;
 
     /*
@@ -780,7 +811,9 @@ dbref
 getfref(FILE * f, dbref *f2, dbref *f3, dbref *f4, dbref *p1, dbref *p2)
 {
     char buf[BUFFER_LEN];
+
     dbref f1;
+
     int got, peekch;
 
     if ((peekch = do_peek(f)) == NUMBER_TOKEN || peekch == LOOKUP_TOKEN) {
@@ -811,7 +844,9 @@ dbref
 gettimestampEx(FILE * f, dbref *f2)
 {
     char buf[BUFFER_LEN];
+
     dbref f1;
+
     int got, peekch;
 
     if ((peekch = do_peek(f)) == NUMBER_TOKEN || peekch == LOOKUP_TOKEN) {
@@ -832,10 +867,12 @@ gettimestampEx(FILE * f, dbref *f2)
 
 
 static char xyzzybuf[BUFFER_LEN];
+
 static const char *
 getstring_noalloc(FILE * f)
 {
     char *p;
+
     char c;
 
     if (fgets(xyzzybuf, sizeof(xyzzybuf), f) == NULL) {
@@ -895,7 +932,9 @@ int
 ifloat(const char *s)
 {
     const char *hold = NULL;
+
     int decFound = 0;           /* bool to indicate if a decimal is found yet */
+
     int expFound = 0;           /* bool to indicate if exponent is found yet */
 
     if (!s)
@@ -976,6 +1015,7 @@ void
 getproperties(FILE * f, dbref obj)
 {
     char buf[BUFFER_LEN], *p;
+
     int datalen;
 
 #ifdef DISKBASE
@@ -1027,7 +1067,9 @@ void
 skipproperties(FILE * f, dbref obj)
 {
     char buf[BUFFER_LEN * 3];
+
     int islisten = 0;
+
     int iscommand = 0;
 
     /* get rid of first line */
@@ -1157,10 +1199,15 @@ struct line *
 read_program(dbref i)
 {
     char buf[BUFFER_LEN];
+
     struct line *first;
+
     struct line *prev = NULL;
+
     struct line *nw;
+
     FILE *f;
+
     int len;
 
     first = NULL;
@@ -1204,7 +1251,9 @@ void
 db_read_object_old(FILE * f, struct object *o, dbref objno)
 {
     dbref exits, f2, f3, f4, p1, p2;
+
     int pennies;
+
     const char *password;
 
     db_clear_object(-1, objno);
@@ -1236,7 +1285,7 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
     o->ts.dcreated = -1;
     o->ts.dlastused = -1;
     o->ts.dmodified = -1;
-    
+
 
     FLAGS(objno) |= getfref(f, &f2, &f3, &f4, &p1, &p2);
     FLAG2(objno) |= f2;
@@ -1272,7 +1321,7 @@ db_read_object_old(FILE * f, struct object *o, dbref objno)
         default:
             break;
     }
-	FLAGS(objno) &= ~GENDER_MASK;
+    FLAGS(objno) &= ~GENDER_MASK;
     /* For downward compatibility with databases using the */
     /* obsolete ANTILOCK flag. */
     if (FLAGS(objno) & ANTILOCK) {
@@ -1331,6 +1380,7 @@ void
 db_read_object_new(FILE * f, struct object *o, dbref objno)
 {
     dbref f2, f3, f4, p1, p2;
+
     int j;
 
     db_clear_object(-1, objno);
@@ -1395,7 +1445,7 @@ db_read_object_new(FILE * f, struct object *o, dbref objno)
         default:
             break;
     }
-	FLAGS(objno) &= ~GENDER_MASK;
+    FLAGS(objno) &= ~GENDER_MASK;
 
     /* o->password = getstring(f); */
     /* For downward compatibility with databases using the */
@@ -1446,7 +1496,9 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
                      int dtype, int read_before)
 {
     dbref f2, f3, f4, p1, p2;
+
     int tmp, c, prop_flag = 0;
+
     int j = 0;
 
     if (read_before) {
@@ -1527,12 +1579,12 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             fprintf(stderr, "[timestamps v4] ");
         /* Foxen and WhiteFire timestamps */
         o->ts.created = gettimestampEx(f, &f2);
-	o->ts.dcreated = f2;
+        o->ts.dcreated = f2;
         o->ts.lastused = gettimestampEx(f, &f2);
-	o->ts.dlastused = f2;	
+        o->ts.dlastused = f2;
         o->ts.usecount = getref(f);
         o->ts.modified = gettimestampEx(f, &f2);
-	o->ts.dmodified = f2;
+        o->ts.dmodified = f2;
     }
 
     c = getc(f);
@@ -1554,7 +1606,9 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     } else {
         /* do our own getref */
         int sign = 0;
+
         char buf[BUFFER_LEN];
+
         int i = 0;
 
         if (c == '-')
@@ -1588,7 +1642,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
                 break;
         }
     }
-	FLAGS(objno) &= ~GENDER_MASK;
+    FLAGS(objno) &= ~GENDER_MASK;
 
     /* o->password = getstring(f); */
     /* For downward compatibility with databases using the */
@@ -1635,8 +1689,11 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             if (db_hash_passwords) {
                 if (db_hash_convert) {
                     // Update legacy untagged raw plaintext to new tagged hex encoded best algorithm
-                    char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
+                    char hashbuf[BUFFER_LEN];
+
+                    hashbuf[0] = '\0';
                     const char *p = getstring_noalloc(f);
+
                     if (!p || !*p) {
                         // Convert blank legacy untagged raw plaintext password to new tagged NONE indicator
                         db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
@@ -1646,20 +1703,27 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
                     }
                     o->sp.player.password = alloc_string(hashbuf);
                 } else {
-                    if (db_hash_ver==HVER_NONE) {
+                    if (db_hash_ver == HVER_NONE) {
                         // Update legacy untagged base64 encoded md5 to new tagged hex encoded unsalted MD5 algorithm
-                        char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
+                        char hashbuf[BUFFER_LEN];
+
+                        hashbuf[0] = '\0';
                         const char *p = getstring_noalloc(f);
+
                         db_hash_oldconvert(hashbuf, p);
                         o->sp.player.password = alloc_string(hashbuf);
                     } else {
                         // Handle new tagged methods
                         const char *p = getstring_noalloc(f);
-                        if (db_hash_tagtoval(p)==HTYPE_PLAIN) {
+
+                        if (db_hash_tagtoval(p) == HTYPE_PLAIN) {
                             // Update new tagged plaintext to new tagged hex encoded best algorithm
-                            char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
+                            char hashbuf[BUFFER_LEN];
+
+                            hashbuf[0] = '\0';
                             db_hash_split(p, NULL, hashbuf, NULL);
-                            db_hash_password(HTYPE_CURRENT, hashbuf, hashbuf, NULL);
+                            db_hash_password(HTYPE_CURRENT, hashbuf, hashbuf,
+                                             NULL);
                             o->sp.player.password = alloc_string(hashbuf);
                         } else {
                             // Preserve new tagged methods
@@ -1670,8 +1734,11 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             } else {
                 if (db_hash_convert) { // This section doesn't need to be here, but is included for robustness
                     // Update legacy untagged raw plaintext to new tagged hex encoded best algorithm
-                    char hashbuf[BUFFER_LEN]; hashbuf[0]='\0';
+                    char hashbuf[BUFFER_LEN];
+
+                    hashbuf[0] = '\0';
                     const char *p = getstring_noalloc(f);
+
                     if (!p || !*p) {
                         // Convert blank legacy untagged raw plaintext password to new tagged NONE indicator
                         db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
@@ -1734,7 +1801,9 @@ void
 autostart_progs(void)
 {
     dbref i;
+
     struct object *o;
+
     struct line *tmp;
 
     if (db_conversion_flag) {
@@ -1761,12 +1830,19 @@ dbref
 db_read(FILE * f)
 {
     dbref i, thisref;
+
     struct object *o;
+
     const char *special;
+
     int doing_deltas = 0;
+
     int main_db_format = 0;
+
     int parmcnt;
+
     int dbflags = 0;
+
     char c;
 
     db_load_format = 0;
@@ -1815,12 +1891,13 @@ db_read(FILE * f)
 #endif
             }
 
-			if ((db_hash_passwords = (dbflags & DB_NEWPASSES || db_load_format == 8)))
+            if ((db_hash_passwords =
+                 (dbflags & DB_NEWPASSES || db_load_format == 8)))
                 db_hash_convert = 0;
             else if (db_hash_convert)
                 db_hash_passwords = 1;
             db_hash_ver = db_hash_passwords ?
-                    ((dbflags&HVER_MASK)>>HVER_SHIFT) : HVER_NONE;
+                ((dbflags & HVER_MASK) >> HVER_SHIFT) : HVER_NONE;
 
             db_grow(i);
 #ifdef ARCHAIC_DATABASES
@@ -1949,8 +2026,10 @@ db_read(FILE * f)
                                             recyclable = i;
                                         }
                                     }
-                                    if (db_hash_passwords) db_hash_ver = HVER_CURRENT;
-                                    else db_hash_ver = HVER_NONE;
+                                    if (db_hash_passwords)
+                                        db_hash_ver = HVER_CURRENT;
+                                    else
+                                        db_hash_ver = HVER_NONE;
                                     autostart_progs();
                                     return db_top;
                                 } else {
@@ -2018,15 +2097,24 @@ char *
 db_hash_valtotag(int type)
 {
     switch (type) {
-        case HTYPE_SHA1SALT: return "SHA1SALTED";
-        case HTYPE_MD5: return "MD5";
-        case HTYPE_NONE: return "NONE";
-        case HTYPE_DISABLED: return "DISABLED";
-        case HTYPE_PLAIN: return "PLAIN";
-        case HTYPE_SHA1: return "SHA1";
-        case HTYPE_MD5SALT: return "MD5SALTED";
-        case HTYPE_INVALID: return NULL;
-        default: return NULL;
+        case HTYPE_SHA1SALT:
+            return "SHA1SALTED";
+        case HTYPE_MD5:
+            return "MD5";
+        case HTYPE_NONE:
+            return "NONE";
+        case HTYPE_DISABLED:
+            return "DISABLED";
+        case HTYPE_PLAIN:
+            return "PLAIN";
+        case HTYPE_SHA1:
+            return "SHA1";
+        case HTYPE_MD5SALT:
+            return "MD5SALTED";
+        case HTYPE_INVALID:
+            return NULL;
+        default:
+            return NULL;
     }
 }
 
@@ -2034,20 +2122,31 @@ int
 db_hash_tagtoval(const char *tag)
 {
     char buf[BUFFER_LEN];
+
     int i = 0;
-    if (!tag) return HTYPE_INVALID;
-    for (i=0;(i<BUFFER_LEN-1); i++) {
-        if (tag[i]=='\0' || tag[i]==':') break;
-        buf[i] = (char)toupper((int)tag[i]);
+
+    if (!tag)
+        return HTYPE_INVALID;
+    for (i = 0; (i < BUFFER_LEN - 1); i++) {
+        if (tag[i] == '\0' || tag[i] == ':')
+            break;
+        buf[i] = (char) toupper((int) tag[i]);
     }
     buf[i++] = '\0';
-    if (!strcmp(buf, "SHA1SALTED")) return HTYPE_SHA1SALT;
-    if (!strcmp(buf, "MD5")) return HTYPE_MD5;
-    if (!strcmp(buf, "NONE")) return HTYPE_NONE;
-    if (!strcmp(buf, "DISABLED")) return HTYPE_DISABLED;
-    if (!strcmp(buf, "PLAIN")) return HTYPE_PLAIN;
-    if (!strcmp(buf, "SHA1")) return HTYPE_SHA1;
-    if (!strcmp(buf, "MD5SALTED")) return HTYPE_MD5SALT;
+    if (!strcmp(buf, "SHA1SALTED"))
+        return HTYPE_SHA1SALT;
+    if (!strcmp(buf, "MD5"))
+        return HTYPE_MD5;
+    if (!strcmp(buf, "NONE"))
+        return HTYPE_NONE;
+    if (!strcmp(buf, "DISABLED"))
+        return HTYPE_DISABLED;
+    if (!strcmp(buf, "PLAIN"))
+        return HTYPE_PLAIN;
+    if (!strcmp(buf, "SHA1"))
+        return HTYPE_SHA1;
+    if (!strcmp(buf, "MD5SALTED"))
+        return HTYPE_MD5SALT;
     return HTYPE_INVALID;
 }
 
@@ -2055,28 +2154,34 @@ int
 db_hash_password(int type, char *out, const char *password, const char *saltin)
 {
     char buf[BUFFER_LEN];
+
     char sbuf[17];
+
     char salt[9];
-    int i=0;
-    if (!out) return 0;
+
+    int i = 0;
+
+    if (!out)
+        return 0;
     if (!password || !*password) {
         sprintf(out, "%s", db_hash_valtotag(HTYPE_NONE));
         return 1;
     }
     if (!saltin || !*saltin) {
-        for (i=0; i<8; i++)
-            salt[i] = (unsigned char)(RANDOM()&0xFF);
-        salt[8]='\0';
+        for (i = 0; i < 8; i++)
+            salt[i] = (unsigned char) (RANDOM() & 0xFF);
+        salt[8] = '\0';
     } else {
-        for (i=0; i<8; i++)
-            salt[i] = saltin[i];
-        salt[8]='\0';
+        memcpy(salt, saltin, 8);
+        //for (i = 0; i < 8; i++)
+        //    salt[i] = saltin[i];
+        salt[8] = '\0';
     }
     strtohex(sbuf, 17, salt, 8);
     switch (type) {
         case HTYPE_SHA1SALT:
             sprintf(buf, "%.8s%s", salt, password);
-            SHA1hex(buf, buf, strlen(password)+8);
+            SHA1hex(buf, buf, strlen(password) + 8);
             sprintf(out, "%s:%s:%s", db_hash_valtotag(type), buf, sbuf);
             break;
         case HTYPE_MD5:
@@ -2099,7 +2204,7 @@ db_hash_password(int type, char *out, const char *password, const char *saltin)
             break;
         case HTYPE_MD5SALT:
             sprintf(buf, "%.8s%s", salt, password);
-            MD5hex(buf, buf, strlen(password)+8);
+            MD5hex(buf, buf, strlen(password) + 8);
             sprintf(out, "%s:%s:%s", db_hash_valtotag(type), buf, sbuf);
             break;
         case HTYPE_INVALID:
@@ -2115,30 +2220,45 @@ db_hash_password(int type, char *out, const char *password, const char *saltin)
 int
 db_hash_split(const char *hashin, int *tagout, char *hashout, char *saltout)
 {
-    int i=0, k=0, mode=0;
+    int i = 0, k = 0, mode = 0;
+
     int j[3];
-    if (!hashin) return 0;
-    if (hashin[i] == '\0') return 0;
-    mode=1;
-    for (i=0;(i<BUFFER_LEN-1) && (mode<4); i++) {
-        if (hashin[i]==':') { j[mode-1] = i; mode++; }
-        if (hashin[i]=='\0') { j[mode-1] = i; break; }
+
+    if (!hashin)
+        return 0;
+    if (hashin[i] == '\0')
+        return 0;
+    mode = 1;
+    for (i = 0; (i < BUFFER_LEN - 1) && (mode < 4); i++) {
+        if (hashin[i] == ':') {
+            j[mode - 1] = i;
+            mode++;
+        }
+        if (hashin[i] == '\0') {
+            j[mode - 1] = i;
+            break;
+        }
     }
     switch (mode) {
         case 4:
             mode--;
         case 3:
-            for (i=j[1]+1, k=0; i<j[2]; i++, k++) {
-                if (saltout) saltout[k] = hashin[i];
+            for (i = j[1] + 1, k = 0; i < j[2]; i++, k++) {
+                if (saltout)
+                    saltout[k] = hashin[i];
             }
-            if (saltout) saltout[k++]='\0';
+            if (saltout)
+                saltout[k++] = '\0';
         case 2:
-            for (i=j[0]+1, k=0; i<j[1]; i++, k++) {
-                if (hashout) hashout[k] = hashin[i];
+            for (i = j[0] + 1, k = 0; i < j[1]; i++, k++) {
+                if (hashout)
+                    hashout[k] = hashin[i];
             }
-            if (hashout) hashout[k++]='\0';
+            if (hashout)
+                hashout[k++] = '\0';
         case 1:
-			if (tagout) *tagout = db_hash_tagtoval(hashin);
+            if (tagout)
+                *tagout = db_hash_tagtoval(hashin);
             break;
         default:
             return 0;
@@ -2150,23 +2270,38 @@ int
 db_hash_compare(const char *hash, const char *password)
 {
     char buf[BUFFER_LEN];
+
     char hbuf[BUFFER_LEN];
-    char sbuf[BUFFER_LEN]; sbuf[0]='\0';
-    char salt[9]; salt[0]='\0';
-    int res=0, tag=0, i=0;
-    if (!hash) return 1;
-    for (i=0; hash[i]!=0 && i<BUFFER_LEN-1; i++) buf[i]=toupper(hash[i]);
-    buf[i]='\0';
+
+    char sbuf[BUFFER_LEN];
+
+    sbuf[0] = '\0';
+    char salt[9];
+
+    salt[0] = '\0';
+    int res = 0, tag = 0, i = 0;
+
+    if (!hash)
+        return 1;
+    for (i = 0; hash[i] != 0 && i < BUFFER_LEN - 1; i++)
+        buf[i] = toupper(hash[i]);
+    buf[i] = '\0';
     res = db_hash_split(buf, &tag, NULL, sbuf);
-    if (res==0) return 0;
-    if (tag == HTYPE_DISABLED) return 0;
-    if (tag == HTYPE_NONE) return 1;
-    if (!password || !*password) return 0;
-    if (res==3) {
+    if (res == 0)
+        return 0;
+    if (tag == HTYPE_DISABLED)
+        return 0;
+    if (tag == HTYPE_NONE)
+        return 1;
+    if (!password || !*password)
+        return 0;
+    if (res == 3) {
         hextostr(salt, 9, sbuf, 16);
-        if (!db_hash_password(tag, hbuf, password, salt)) return 0;
+        if (!db_hash_password(tag, hbuf, password, salt))
+            return 0;
     } else {
-        if (!db_hash_password(tag, hbuf, password, NULL)) return 0;
+        if (!db_hash_password(tag, hbuf, password, NULL))
+            return 0;
     }
     return !strcmp(buf, hbuf);
 }
@@ -2175,11 +2310,13 @@ int
 db_hash_oldconvert(char *out, const char *hash)
 {
     char buf[BUFFER_LEN];
+
     if (!hash || !*hash) {
         sprintf(out, "%s", db_hash_valtotag(HTYPE_NONE));
         return 1;
     }
-    if (!base64tohex(buf, BUFFER_LEN, hash, strlen(hash))) return 0;
+    if (!base64tohex(buf, BUFFER_LEN, hash, strlen(hash)))
+        return 0;
     sprintf(out, "%s:%s", db_hash_valtotag(HTYPE_MD5), buf);
     return 1;
 }
