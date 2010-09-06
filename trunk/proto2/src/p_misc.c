@@ -1147,27 +1147,40 @@ prim_itoh(PRIM_PROTOTYPE)
 void
 prim_MD5hash(PRIM_PROTOTYPE)
 {
-    char output[16];
-    char hexout[32];
-    unsigned char i;
-    int j;
+    char hexout[33];
 
     CHECKOP(1);
     oper1 = POP();
 
     if (oper1->type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
-    if (!oper1->data.string)
-	abort_interp("Null string cannot be hashed. (1)")
+    if (!oper1->data.string) {
+		MD5hex((char *)hexout, "", 0);
+	} else {
+		MD5hex((char *)hexout, oper1->data.string->data, oper1->data.string->length);
+	}
 
-    MD5hash((char *)output, oper1->data.string->data, oper1->data.string->length);
-        
-    for (j=0; j<=15; ++j) {
-	i = (unsigned char)output[j];
-        sprintf((char *)hexout+(j*2), "%.2X", (unsigned char)i);
-    }
+	CLEAR(oper1);
+    PushString(hexout); 
+}
 
-    CLEAR(oper1);
+void
+prim_SHA1hash(PRIM_PROTOTYPE)
+{
+    char hexout[41];
+
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+    if (!oper1->data.string) {
+		SHA1hex((char *)hexout, "", 0);
+	} else {
+		SHA1hex((char *)hexout, oper1->data.string->data, oper1->data.string->length);
+	}
+
+	CLEAR(oper1);
     PushString(hexout); 
 }
 
