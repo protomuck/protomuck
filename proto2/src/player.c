@@ -24,8 +24,8 @@ check_password(dbref player, const char *check_pw)
     if (!db_hash_passwords)
         return !strcmp(check_pw, password);
     
-    if (hash_compare(password, check_pw)) {
-        switch (hash_tagtoval(password)) {
+    if (db_hash_compare(password, check_pw)) {
+        switch (db_hash_tagtoval(password)) {
             case HTYPE_CURRENT: break;     /* Our current best, preserve */
             case HTYPE_NONE: break;        /* If there's no password, preserve */
             case HTYPE_DISABLED: break;    /* If there's no password, preserve */
@@ -49,7 +49,7 @@ set_password(dbref player, const char *password)
             free((void *) DBFETCH(player)->sp.player.password);
 
         char hashbuf[BUFFER_LEN];
-        int res = hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
+        int res = db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
         if (!res) return 0;
         DBSTORE(player, sp.player.password, alloc_string(hashbuf));
         return 1;
@@ -63,7 +63,7 @@ set_password(dbref player, const char *password)
 
     if (db_hash_passwords) {
         char hashbuf[BUFFER_LEN];
-        int res = hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
+        int res = db_hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
         if (!res) return 0;
         DBSTORE(player, sp.player.password, alloc_string(hashbuf));
         return 1;
