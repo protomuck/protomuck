@@ -228,6 +228,7 @@
     <ClInclude Include="inc\p_strings.h" />
     <ClInclude Include="inc\p_system.h" />
     <ClInclude Include="inc\reg.h" />
+    <ClInclude Include="inc\sha1.h" />
     <ClInclude Include="inc\strings.h" />
     <ClInclude Include="inc\tune.h" />
     <ClInclude Include="inc\version.h" />
@@ -299,6 +300,7 @@
     <ClCompile Include="rob.c" />
     <ClCompile Include="sanity.c" />
     <ClCompile Include="set.c" />
+    <ClCompile Include="sha1.c" />
     <ClCompile Include="signal.c" />
     <ClCompile Include="smatch.c" />
     <ClCompile Include="speech.c" />
