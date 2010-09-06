@@ -180,6 +180,9 @@
     <ClInclude Include="inc\dirent_win.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\sha1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="timestamp.c">
@@ -411,6 +414,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="version.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sha1.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
