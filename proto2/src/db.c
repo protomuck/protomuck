@@ -2076,7 +2076,7 @@ db_hash_password(int type, char *out, const char *password, const char *saltin)
     switch (type) {
         case HTYPE_SHA1SALT:
             sprintf(buf, "%.8s%s", salt, password);
-            SHA1hex(buf, password, strlen(password)+8);
+            SHA1hex(buf, buf, strlen(password)+8);
             sprintf(out, "%s:%s:%s", db_hash_valtotag(type), buf, sbuf);
             break;
         case HTYPE_MD5:
@@ -2099,7 +2099,7 @@ db_hash_password(int type, char *out, const char *password, const char *saltin)
             break;
         case HTYPE_MD5SALT:
             sprintf(buf, "%.8s%s", salt, password);
-            MD5hex(buf, password, strlen(password)+8);
+            MD5hex(buf, buf, strlen(password)+8);
             sprintf(out, "%s:%s:%s", db_hash_valtotag(type), buf, sbuf);
             break;
         case HTYPE_INVALID:
