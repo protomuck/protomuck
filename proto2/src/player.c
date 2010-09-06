@@ -13,24 +13,31 @@ static hash_tab player_list[PLAYER_HASH_SIZE];
 bool
 check_password(dbref player, const char *check_pw)
 {
-    if (player == NOTHING) return 0;
-    
+    if (player == NOTHING)
+        return 0;
+
     const char *password = DBFETCH(player)->sp.player.password;
+
     /* We now do this smartly based on the DB_NEWPASSES */
     /*  database flag. -Hinoserm                        */
 
-    if (!password || !*password) return 1;
+    if (!password || !*password)
+        return 1;
 
     if (!db_hash_passwords)
         return !strcmp(check_pw, password);
-    
+
     if (db_hash_compare(password, check_pw)) {
         switch (db_hash_tagtoval(password)) {
-            case HTYPE_CURRENT: break;     /* Our current best, preserve */
-            case HTYPE_NONE: break;        /* If there's no password, preserve */
-            case HTYPE_DISABLED: break;    /* If there's no password, preserve */
-            case HTYPE_INVALID: break;     /* Don't recognize the type, preserve */
-            default:                       /* Not our current best, upgrade */
+            case HTYPE_CURRENT:
+                break;          /* Our current best, preserve */
+            case HTYPE_NONE:
+                break;          /* If there's no password, preserve */
+            case HTYPE_DISABLED:
+                break;          /* If there's no password, preserve */
+            case HTYPE_INVALID:
+                break;          /* Don't recognize the type, preserve */
+            default:           /* Not our current best, upgrade */
                 set_password(player, check_pw);
                 break;
         }
@@ -42,15 +49,19 @@ check_password(dbref player, const char *check_pw)
 bool
 set_password(dbref player, const char *password)
 {
-    if (player == NOTHING) return 0;
+    if (player == NOTHING)
+        return 0;
 
     if (!password || !*password) {
         if (DBFETCH(player)->sp.player.password)
             free((void *) DBFETCH(player)->sp.player.password);
 
         char hashbuf[BUFFER_LEN];
+
         int res = db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
-        if (!res) return 0;
+
+        if (!res)
+            return 0;
         DBSTORE(player, sp.player.password, alloc_string(hashbuf));
         return 1;
     }
@@ -63,8 +74,11 @@ set_password(dbref player, const char *password)
 
     if (db_hash_passwords) {
         char hashbuf[BUFFER_LEN];
+
         int res = db_hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
-        if (!res) return 0;
+
+        if (!res)
+            return 0;
         DBSTORE(player, sp.player.password, alloc_string(hashbuf));
         return 1;
     }
@@ -120,7 +134,9 @@ dbref
 create_player(dbref creator, const char *name, const char *password)
 {
     char buf[BUFFER_LEN];
+
     register struct object *newp;
+
     dbref player;
 
     if (!ok_player_name(name) || !ok_password(password) || tp_db_readonly)
