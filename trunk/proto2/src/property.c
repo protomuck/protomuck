@@ -541,16 +541,20 @@ copy_prop(dbref old)
 int
 genderof(int descr, dbref player)
 {
-    if (has_property_strict(descr, player, player, tp_sex_prop, "male", 0))
-        return GENDER_MALE;
-    else if (has_property_strict(descr, player, player, tp_sex_prop, "female", 0))
-        return GENDER_FEMALE;
-    else if (has_property_strict(descr, player, player, tp_sex_prop, "neuter", 0))
-        return GENDER_NEUTER;
-    else
-        return GENDER_UNASSIGNED;
-}
+    const char *sexstr = NULL;
+    sexstr = get_property_class(player, tp_sex_prop);
+    while (sexstr && isspace(*sexstr)) sexstr++;
 
+    if (!sexstr || !*sexstr)
+        return GENDER_UNASSIGNED;
+    if (string_compare(sexstr, "male") == 0)
+        return GENDER_MALE;
+    if (string_compare(sexstr, "female") == 0)
+        return GENDER_FEMALE;
+    if (string_compare(sexstr, "neuter") == 0)
+        return GENDER_NEUTER;
+    return GENDER_UNASSIGNED;
+}
 
 /* return a pointer to the first property in a propdir and duplicates the
    property name into 'name'.  returns 0 if the property list is empty
