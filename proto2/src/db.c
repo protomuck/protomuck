@@ -8,21 +8,14 @@
 #include "params.h"
 #include "tune.h"
 #include "interface.h"
-
 #include "externs.h"
-
 #include "strings.h"
 
 struct object *db = 0;
-
 dbref db_top = 0;
-
 dbref recyclable = NOTHING;
-
 int db_load_format = 0;
-
 bool db_hash_passwords = 0;
-
 int db_hash_ver = 0;
 
 #ifndef DB_INITIAL_SIZE
@@ -42,11 +35,8 @@ extern char *alloc_string(const char *);
 #endif
 
 int number(const char *s);
-
 int ifloat(const char *s);
-
 void putproperties(FILE * f, int obj);
-
 void getproperties(FILE * f, int obj);
 
 #ifdef DBDEBUG
@@ -228,9 +218,7 @@ dbref
 new_program(register dbref player, register const char *name)
 {
     register unsigned char mlvl;
-
     register dbref newprog;
-
     char buf[BUFFER_LEN];
 
     newprog = new_object(player);
@@ -321,11 +309,8 @@ void
 putproperties_rec(FILE * f, const char *dir, dbref obj)
 {
     PropPtr pref;
-
     PropPtr p, pptr;
-
     char buf[BUFFER_LEN];
-
     char name[BUFFER_LEN];
 
     pref = first_prop_nofetch(obj, dir, &pptr, name);
@@ -353,9 +338,7 @@ putproperties(FILE * f, dbref obj)
 }
 
 extern FILE *input_file;
-
 extern FILE *delta_infile;
-
 extern FILE *delta_outfile;
 
 #ifdef DISKBASE
@@ -443,6 +426,7 @@ macrodump(struct macrotable *node, FILE * f)
 {
     if (!node)
         return;
+
     macrodump(node->left, f);
     putstring(f, node->name);
     putstring(f, node->definition);
@@ -465,7 +449,6 @@ void
 foldtree(struct macrotable *center)
 {
     int count = 0;
-
     struct macrotable *nextcent = center;
 
     for (; nextcent; nextcent = nextcent->left)
@@ -493,7 +476,6 @@ int
 macrochain(struct macrotable *lastnode, FILE * f)
 {
     char *line, *line2;
-
     struct macrotable *newmacro;
 
     if (!(line = file_line(f)))
@@ -529,9 +511,7 @@ void
 log_program_text(struct line *first, dbref player, dbref i)
 {
     FILE *f;
-
     char fname[BUFFER_LEN], buf1[BUFFER_LEN], buf2[BUFFER_LEN];
-
     time_t lt = current_systime;
 
 #ifndef SANITY
@@ -564,7 +544,6 @@ void
 write_program(struct line *first, dbref i)
 {
     FILE *f;
-
     char fname[BUFFER_LEN];
 
     sprintf(fname, "muf/%d.m", (int) i);
@@ -593,7 +572,6 @@ int
 db_write_object(FILE * f, dbref i)
 {
     struct object *o = DBFETCH(i);
-
     int j;
 
 #ifdef DISKBASE
@@ -759,7 +737,6 @@ dbref
 parse_dbref(const char *s)
 {
     const char *p;
-
     int x;
 
     x = atol(s);
@@ -792,7 +769,6 @@ dbref
 getref(FILE * f)
 {
     char buf[BUFFER_LEN];
-
     int peekch;
 
     /*
@@ -811,9 +787,7 @@ dbref
 getfref(FILE * f, dbref *f2, dbref *f3, dbref *f4, dbref *p1, dbref *p2)
 {
     char buf[BUFFER_LEN];
-
     dbref f1;
-
     int got, peekch;
 
     if ((peekch = do_peek(f)) == NUMBER_TOKEN || peekch == LOOKUP_TOKEN) {
@@ -844,9 +818,7 @@ dbref
 gettimestampEx(FILE * f, dbref *f2)
 {
     char buf[BUFFER_LEN];
-
     dbref f1;
-
     int got, peekch;
 
     if ((peekch = do_peek(f)) == NUMBER_TOKEN || peekch == LOOKUP_TOKEN) {
@@ -932,9 +904,7 @@ int
 ifloat(const char *s)
 {
     const char *hold = NULL;
-
     int decFound = 0;           /* bool to indicate if a decimal is found yet */
-
     int expFound = 0;           /* bool to indicate if exponent is found yet */
 
     if (!s)
@@ -1015,7 +985,6 @@ void
 getproperties(FILE * f, dbref obj)
 {
     char buf[BUFFER_LEN], *p;
-
     int datalen;
 
 #ifdef DISKBASE
@@ -1067,9 +1036,7 @@ void
 skipproperties(FILE * f, dbref obj)
 {
     char buf[BUFFER_LEN * 3];
-
     int islisten = 0;
-
     int iscommand = 0;
 
     /* get rid of first line */
@@ -1172,6 +1139,7 @@ db_free(void)
         db = 0;
         db_top = 0;
     }
+
     clear_players();
     clear_primitives();
     recyclable = NOTHING;
@@ -1192,6 +1160,7 @@ get_new_line(void)
     nw->this_line = NULL;
     nw->next = NULL;
     nw->prev = NULL;
+
     return nw;
 }
 
@@ -1199,15 +1168,10 @@ struct line *
 read_program(dbref i)
 {
     char buf[BUFFER_LEN];
-
     struct line *first;
-
     struct line *prev = NULL;
-
     struct line *nw;
-
     FILE *f;
-
     int len;
 
     first = NULL;
@@ -1251,9 +1215,7 @@ void
 db_read_object_old(FILE * f, struct object *o, dbref objno)
 {
     dbref exits, f2, f3, f4, p1, p2;
-
     int pennies;
-
     const char *password;
 
     db_clear_object(-1, objno);
@@ -1801,9 +1763,7 @@ void
 autostart_progs(void)
 {
     dbref i;
-
     struct object *o;
-
     struct line *tmp;
 
     if (db_conversion_flag) {
@@ -1830,19 +1790,12 @@ dbref
 db_read(FILE * f)
 {
     dbref i, thisref;
-
     struct object *o;
-
     const char *special;
-
     int doing_deltas = 0;
-
     int main_db_format = 0;
-
     int parmcnt;
-
     int dbflags = 0;
-
     char c;
 
     db_load_format = 0;
@@ -2122,17 +2075,19 @@ int
 db_hash_tagtoval(const char *tag)
 {
     char buf[BUFFER_LEN];
-
     int i = 0;
 
     if (!tag)
         return HTYPE_INVALID;
+
     for (i = 0; (i < BUFFER_LEN - 1); i++) {
         if (tag[i] == '\0' || tag[i] == ':')
             break;
         buf[i] = (char) toupper((int) tag[i]);
     }
+
     buf[i++] = '\0';
+
     if (!strcmp(buf, "SHA1SALTED"))
         return HTYPE_SHA1SALT;
     if (!strcmp(buf, "MD5"))
@@ -2147,6 +2102,7 @@ db_hash_tagtoval(const char *tag)
         return HTYPE_SHA1;
     if (!strcmp(buf, "MD5SALTED"))
         return HTYPE_MD5SALT;
+
     return HTYPE_INVALID;
 }
 
@@ -2154,11 +2110,8 @@ int
 db_hash_password(int type, char *out, const char *password, const char *saltin)
 {
     char buf[BUFFER_LEN];
-
     char sbuf[17];
-
     char salt[9];
-
     int i = 0;
 
     if (!out)
@@ -2173,11 +2126,11 @@ db_hash_password(int type, char *out, const char *password, const char *saltin)
         salt[8] = '\0';
     } else {
         memcpy(salt, saltin, 8);
-        //for (i = 0; i < 8; i++)
-        //    salt[i] = saltin[i];
         salt[8] = '\0';
     }
+
     strtohex(sbuf, 17, salt, 8);
+
     switch (type) {
         case HTYPE_SHA1SALT:
             sprintf(buf, "%.8s%s", salt, password);
@@ -2221,14 +2174,16 @@ int
 db_hash_split(const char *hashin, int *tagout, char *hashout, char *saltout)
 {
     int i = 0, k = 0, mode = 0;
-
     int j[3];
 
     if (!hashin)
         return 0;
+
     if (hashin[i] == '\0')
         return 0;
+
     mode = 1;
+
     for (i = 0; (i < BUFFER_LEN - 1) && (mode < 4); i++) {
         if (hashin[i] == ':') {
             j[mode - 1] = i;
@@ -2239,6 +2194,7 @@ db_hash_split(const char *hashin, int *tagout, char *hashout, char *saltout)
             break;
         }
     }
+
     switch (mode) {
         case 4:
             mode--;
@@ -2263,6 +2219,7 @@ db_hash_split(const char *hashin, int *tagout, char *hashout, char *saltout)
         default:
             return 0;
     }
+
     return mode;
 }
 
@@ -2270,16 +2227,13 @@ int
 db_hash_compare(const char *hash, const char *password)
 {
     char buf[BUFFER_LEN];
-
     char hbuf[BUFFER_LEN];
-
     char sbuf[BUFFER_LEN];
+	char salt[9];
+	int res = 0, tag = 0, i = 0;
 
     sbuf[0] = '\0';
-    char salt[9];
-
     salt[0] = '\0';
-    int res = 0, tag = 0, i = 0;
 
     if (!hash)
         return 1;
@@ -2315,8 +2269,10 @@ db_hash_oldconvert(char *out, const char *hash)
         sprintf(out, "%s", db_hash_valtotag(HTYPE_NONE));
         return 1;
     }
+
     if (!base64tohex(buf, BUFFER_LEN, hash, strlen(hash)))
         return 0;
+
     sprintf(out, "%s:%s", db_hash_valtotag(HTYPE_MD5), buf);
     return 1;
 }
