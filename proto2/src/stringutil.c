@@ -29,7 +29,7 @@ alphanum_compare(const char *t1, const char *s2)
     const char *u1, *u2;
     register const char *s1 = t1;
 
-    while (*s1 && DOWNCASE(*s1) == DOWNCASE(*s2))
+    while (*s1 && *s2 && DOWNCASE(*s1) == DOWNCASE(*s2))
         s1++, s2++;
 
     /* if at a digit, compare number values instead of letters. */
@@ -74,7 +74,7 @@ alphanum_compare(const char *t1, const char *s2)
 int
 string_compare(register const char *s1, register const char *s2)
 {
-    while (*s1 && DOWNCASE(*s1) == DOWNCASE(*s2))
+    while (*s1 && *s2 && DOWNCASE(*s1) == DOWNCASE(*s2))
         s1++, s2++;
 
     return (DOWNCASE(*s1) - DOWNCASE(*s2));
