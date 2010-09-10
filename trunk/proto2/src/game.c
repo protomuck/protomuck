@@ -16,6 +16,10 @@
 
 #define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
 
+#ifdef MCCP_ENABLED
+extern void do_compress(dbref player, int descr, const char *msg);
+#endif /* MCCP_ENABLED */
+
 /* declarations */
 static const char *dumpfile = 0;
 
@@ -1538,6 +1542,13 @@ process_command(int descr, dbref player, char *command)
         case '&':
             do_mush_set(descr, player, arg1, arg2, command);
             break;
+#ifdef MCCP_ENABLED
+        case 'c':
+        case 'C':
+            Matched("compress");
+            do_compress(player, descr, arg1);
+            break;
+#endif /* MCCP_ENABLED */
         case 'd':
         case 'D':
             switch (command[1]) {

@@ -154,17 +154,14 @@ struct descriptor_data {
     struct dfile_struct     *dfile;         /* hinoserm: Used by descr_sendfile and newhttpd */
 #endif
 #ifdef MCCP_ENABLED
-	unsigned char           *out_compress_buf;
+    unsigned char           *out_compress_buf;
     z_stream                *out_compress;  /* hinoserm: Used for MCCP Compression; compressed data stream */
-	unsigned char *outbuf;
-	size_t outlen;
-    int                      compressing;   /* hinoserm: Used to indicate if compressing; 1 for v1, 2 for v2, 0 for no */
-	int						 mccp_ready;
+    short                    compressing;   /* hinoserm: Used to indicate if compressing; 1 for v1, 2 for v2, 0 for no */
+    short                    mccp_ready;    /* hinoserm: Used to indicate that client is willing to compress */
 #endif
-	char  *telopt_sb_buf;
-	size_t telopt_sb_buf_len;
-
-	char  *telopt_termtype;
+    char                    *telopt_sb_buf;
+    size_t                   telopt_sb_buf_len;
+    char                    *telopt_termtype;
 };
 
 #define DF_HTML          0x1 /* Connected to the internal WEB server. -- UNIMPLEMENTED */
