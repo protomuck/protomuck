@@ -1618,14 +1618,12 @@ int
 sockwrite(struct descriptor_data *d, const char *str, int len)
 {
 
-    int length = 0;
-
     /* 
     WARNING: It is not acceptable to use sockwrite() directly except in extremely specific cases,
              where buffering may result in unexpected results.  Please use queue_write(), which
              has the same function parameters as sockwrite().  -Hinoserm
     */
-
+#ifdef MCCP_ENABLED
     if (d && d->out_compress)
     {
         d->out_compress->next_in = (unsigned char *)str;
@@ -1636,9 +1634,13 @@ sockwrite(struct descriptor_data *d, const char *str, int len)
 			d->out_compress->avail_out = COMPRESS_BUF_SIZE - (d->out_compress->next_out - d->out_compress_buf);
 
             if (d->out_compress->avail_out)
+
             {
+
                 if (deflate(d->out_compress, Z_SYNC_FLUSH) != Z_OK)
+
                     return -1;
+
             } else {
                 Sleep(0);
             }
@@ -1648,16 +1650,15 @@ sockwrite(struct descriptor_data *d, const char *str, int len)
 
         return len - d->out_compress->avail_in;
 
-    } else {
+    } else
+#endif /* MCCP_ENABLED */
 #ifdef USE_SSL
         if (d->ssl_session)
             return SSL_write(d->ssl_session, str, len);
         else
 #endif
             return writesocket(d->descriptor, str, len);
-    }
 }
-
 
 void
 goodbye_user(struct descriptor_data *d)
@@ -2847,8 +2848,9 @@ shutdownsock(struct descriptor_data *d)
     }
 #endif /* NEWHTTPD */
 
+#ifdef MCCP_ENABLED
 	mccp_end(d);
-
+#endif /* MCCP_ENABLED */
     bytesIn += d->input_len;
     bytesOut += d->output_len;
     commandTotal += d->commands;
@@ -2938,14 +2940,16 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     ndescriptors++;
     MALLOC(d, struct descriptor_data, 1);
 
-	d->out_compress = NULL;
+#ifdef MCCP_ENABLED
+    d->out_compress = NULL;
     d->out_compress_buf = NULL;
     d->compressing = 0;
-	d->mccp_ready = 0;
+    d->mccp_ready = 0;
+#endif /* MCCP_ENABLED */
 
-	d->telopt_sb_buf_len = 0;
-	d->telopt_sb_buf = NULL;
-	d->telopt_termtype = NULL;
+    d->telopt_sb_buf_len = 0;
+    d->telopt_sb_buf = NULL;
+    d->telopt_termtype = NULL;
 
     d->descriptor = s;
     d->connected = 0;

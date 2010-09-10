@@ -77,4 +77,4 @@ extern void prim_escape_url(PRIM_PROTOTYPE);
     "TOUCH", "USE", "MD5HASH", "SHA1HASH", "ENQUEUE",                     \
 	"GET_READ_WANTS_BLANKS"
 
-#define PRIMS_MISC_CNT 49
+#define PRIMS_MISC_CNT 50
