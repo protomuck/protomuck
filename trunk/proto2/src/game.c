@@ -716,8 +716,14 @@ const char version_line2[] = SYSGREEN "Compile-time Options: " SYSNORMAL
     "MUF:Sockets " 
 #endif
 
-#ifdef SSL_SOCKETS
+#ifdef USE_SSL
+# ifdef SSL_SOCKETS
     "MUF:SSL " 
+# endif
+#endif
+
+#ifdef MCCP_ENABLED
+    "MCCP "
 #endif
 
 #ifdef UDP_SOCKETS

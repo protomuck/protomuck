@@ -319,7 +319,7 @@ pawprint(void)
 }
 
 const char *
-uncompress(const char *s)
+puncompress(const char *s)
 {
 	static unsigned char buf[BUFFER_LEN];
 	unsigned int i, j, mode, c;
@@ -385,7 +385,7 @@ uncompress(const char *s)
 extern bool db_decompression_flag;
 
 const char *
-compress(const char *s)
+pcompress(const char *s)
 {
 	static unsigned char buf[BUFFER_LEN];
 	int a = 0;

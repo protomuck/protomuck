@@ -1641,8 +1641,6 @@ sockwrite(struct descriptor_data *d, const char *str, int len)
 
                     return -1;
 
-            } else {
-                Sleep(0);
             }
 
             mccp_process_compressed(d);
@@ -3018,7 +3016,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
 #endif /* NEWHTTPD */
         ) {
 		queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
-		queue_write(d, "\377\373\125\012",   4); /* IAC WILL TELOPT_COMPRESS  (MCCP v1) */
+		/* queue_write(d, "\377\373\125\012",   4); */ /* IAC WILL TELOPT_COMPRESS  (MCCP v1) */
 		queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
         announce_login(d); 
         welcome_user(d);
@@ -4296,6 +4294,10 @@ descr_flag_description(int descr)
         strcat(dbuf, " DF_WEBCLIENT");
     if (DR_RAW_FLAGS(d, DF_MISC))
         strcat(dbuf, " DF_MISC");
+#ifdef MCCP_ENABLED
+    if (DR_RAW_FLAGS(d, DF_COMPRESS))
+        strcat(dbuf, " DF_COMPRESS");
+#endif /* MCCP_ENABLED */
     return dbuf;
 }
 
@@ -6384,11 +6386,25 @@ mccp_process_compressed(struct descriptor_data *d)
 void
 do_compress(dbref player, int descr, const char *arg)
 {
+    struct descriptor_data *d = descrdata_by_descr(descr);   
+
     if (!strcmp(arg, "off")) {
-        mccp_end(descrdata_by_descr(descr));
-        notify(player, "MCCP Compression Ended.");
+        if (d->compressing) {
+            mccp_end(d);
+            queue_ansi(d, "MCCP Compression Ended.\r\n");
+        } else
+            queue_ansi(d, "You do not have MCCP turned on!\r\n");
+    } else if (!strcmp(arg, "on")) {
+        if (d->compressing) {
+            queue_ansi(d, "You already have MCCP turned on!\r\n");
+        } else if (!d->mccp_ready) {
+            queue_ansi(d, "Your client does not appear to support MCCP.\r\n");
+        } else {
+            mccp_start(d, d->mccp_ready);
+            queue_ansi(d, "MCCP Compression Started.\r\n");
+        }                      
     } else
-        notify(player, "Proper usage: compress off");
+        queue_ansi(d, "Compression Help Goes Here\r\n");
 }
 
 void
@@ -6405,7 +6421,7 @@ mccp_start(struct descriptor_data *d, int version)
         if (get_property(d->player, "/_Prefs/NoMCCP"))
             return;
 
-    log_status("MCCP_START(%d)\r\n", d->descriptor);
+    /* log_status("MCCP_START(%d)\r\n", d->descriptor); */
 	opt = (d->telopt_termtype && !string_compare(d->telopt_termtype, "simplemu"));
 	if (opt)
 		setsockopt(d->descriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
@@ -6422,7 +6438,8 @@ mccp_start(struct descriptor_data *d, int version)
 #ifdef WIN32
 		Sleep(20); //20ms
 #else
-		usleep(20000); //20ms
+		fsync(d->descriptor);
+                usleep(20000); //20ms
 #endif
 	}
 
@@ -6436,11 +6453,11 @@ mccp_start(struct descriptor_data *d, int version)
     s->next_out = d->out_compress_buf;
     s->avail_out = COMPRESS_BUF_SIZE;
 
-	s->zalloc = zlib_alloc;
-	s->zfree  = zlib_free;
+    s->zalloc = zlib_alloc;
+    s->zfree  = zlib_free;
     s->opaque = NULL;
 
-	if (deflateInit(s, 9) != Z_OK)
+    if (deflateInit(s, 9) != Z_OK)
     {
         free((void *)d->out_compress_buf);
         free((void *)s);
@@ -6462,7 +6479,7 @@ mccp_end(struct descriptor_data *d)
 {
     unsigned char dummy[1];
 
-    log_status("MCCP_END(%d)\n", d->descriptor);
+    /* log_status("MCCP_END(%d)\n", d->descriptor); */
 
     if (!d->out_compress)
         return;
@@ -6470,6 +6487,7 @@ mccp_end(struct descriptor_data *d)
     d->out_compress->avail_in = 0;
     d->out_compress->next_in = dummy;
 
+    /* Blob says I should handle this differently.  I'll look into it later, since it works currently.  -Hinoserm */
     if (deflate(d->out_compress, Z_FINISH) == Z_STREAM_END)
         mccp_process_compressed(d);
 

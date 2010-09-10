@@ -30,7 +30,6 @@
 #define TELOPT_MCCP2    0x56
 
 #ifdef MCCP_ENABLED
-#include <zlib.h> /* make automatic later -hinoserm */
 #define COMPRESS_BUF_SIZE 16384 /* This will use 16k for every descriptor that has MCCP enabled */
 #endif
 

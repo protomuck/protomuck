@@ -53,6 +53,10 @@ check_descr_flag(char *dflag)
         return DF_WEBCLIENT;
     if (string_prefix("df_misc", dflag))
         return DF_MISC;
+#ifdef MCCP_ENABLED
+    if (string_prefix("df_compress", dflag))
+        return DF_COMPRESS;
+#endif /* MCCP_ENABLED */
     return 0;
 }
 
@@ -70,6 +74,9 @@ descr_flag_set_perms(int dflag, int mlev, dbref prog)
 #ifdef USE_SSL
         || dflag == DF_SSL
 #endif /* USE_SSL */
+#ifdef MCCP_ENABLED
+        || dflag == DF_COMPRESS 
+#endif /* MCCP_ENABLED */
         )
         return 0;
 

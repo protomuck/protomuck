@@ -870,13 +870,13 @@ getstring_noalloc(FILE * f)
 #define getstring(x) alloc_string(getstring_noalloc(x))
 
 #ifdef COMPRESS
-extern const char *compress(const char *);
+extern const char *pcompress(const char *);
 
 #ifdef ARCHAIC_DATABASES
 extern const char *old_uncompress(const char *);
 #endif /* ARCHAIC_DATABASES */
 
-#define alloc_compressed(x) alloc_string(compress(x))
+#define alloc_compressed(x) alloc_string(pcompress(x))
 #else
 #define alloc_compressed(x) alloc_string(x)
 #endif /* COMPRESS */
