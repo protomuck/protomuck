@@ -95,6 +95,11 @@
  */
 #define DESCRFILE_SUPPORT
 
+/* Define this to enable MCCP client/server compression protocol.  This
+ *  will only be compiled in if zlib is also available.
+ */
+#define MCCP_ENABLED
+
 /* Alynna - Define this to have support for the @/ignore prop, a reflist
    on a player which will drop notifies from the players in the prop to
    the player specified.
@@ -544,6 +549,12 @@
 # include <unistd.h>
 #endif
 
+#ifdef HAVE_ZLIB
+# include <zlib.h>
+#else
+# undef MCCP_ENABLED
+#endif
+
 #ifndef WIN_VC
 # include <dirent.h>
 # include <sys/wait.h>
@@ -551,6 +562,7 @@
 # include <sys/ioctl.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <netinet/tcp.h>
 # include <arpa/inet.h>
 # include <netdb.h>
 #endif

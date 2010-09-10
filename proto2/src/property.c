@@ -11,13 +11,13 @@
 #include "nan.h"
 
 #ifdef COMPRESS
-extern const char *compress(const char *);
+extern const char *pcompress(const char *);
 
 #ifdef ARCHAIC_DATABASES
 extern const char *old_uncompress(const char *);
 #endif
 
-#define alloc_compressed(x) alloc_string(compress(x))
+#define alloc_compressed(x) alloc_string(pcompress(x))
 #else /* !COMPRESS */
 #define alloc_compressed(x) alloc_string(x)
 #endif /* COMPRESS */

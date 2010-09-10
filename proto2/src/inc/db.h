@@ -41,12 +41,12 @@
 
 /* compression stuff */
 #ifdef COMPRESS
-extern const char *uncompress(const char *);
-extern const char *compress(const char *);
+extern const char *puncompress(const char *);
+extern const char *pcompress(const char *);
 
-#define alloc_compressed(x) alloc_string(compress(x))
-#define get_compress(x) compress(x)
-#define get_uncompress(x) uncompress(x)
+#define alloc_compressed(x) alloc_string(pcompress(x))
+#define get_compress(x) pcompress(x)
+#define get_uncompress(x) puncompress(x)
 #else /* COMPRESS */
 #define alloc_compressed(x) alloc_string(x)
 #define get_compress(x) (x)

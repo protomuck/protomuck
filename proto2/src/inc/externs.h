@@ -504,10 +504,10 @@ extern const char *ansiname(dbref loc, char buf[BUFFER_LEN]);
 #ifdef COMPRESS
 extern void save_compress_words_to_file(FILE * f);
 extern void init_compress_from_file(FILE * dicto);
-extern const char *compress(const char *);
+extern const char *pcompress(const char *);
 extern void init_compress(void);
 #endif /* COMPRESS */
-extern const char *uncompress(const char *);
+extern const char *puncompress(const char *);
 
 /* From edit.c */
 extern void interactive(int descr, dbref player, const char *command);
