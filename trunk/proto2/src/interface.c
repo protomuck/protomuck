@@ -6359,7 +6359,7 @@ mccp_process_compressed(struct descriptor_data *d)
     {
 		int nWrite = 0;
           
-        if ((nWrite = writesocket(d->descriptor, (const char *)d->out_compress_buf, length)) < 0) {
+        if ((nWrite = writesocket(d->descriptor, (const char *)d->out_compress_buf, UMIN(length, 4096))) < 0) {
             if (errnosocket == EWOULDBLOCK)
 				nWrite = 0;
 			else
@@ -6371,7 +6371,7 @@ mccp_process_compressed(struct descriptor_data *d)
                 d->out_compress->next_out = d->out_compress_buf;
                 d->out_compress->avail_out = COMPRESS_BUF_SIZE;
             } else {
-                memmove(d->out_compress_buf, d->out_compress_buf+nWrite, nWrite);
+                memmove(d->out_compress_buf, d->out_compress_buf+nWrite, (length-nWrite));
                 d->out_compress->next_out = d->out_compress_buf + (length-nWrite);
                 d->out_compress->avail_out += nWrite;
 
