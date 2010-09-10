@@ -1219,6 +1219,16 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
+	temp1.type = PROG_STRING;
+    temp1.data.string = alloc_prog_string("TERMTYPE");
+    temp2.type = PROG_STRING;
+	if (d->telopt_termtype)
+		temp2.data.string = alloc_prog_string(d->telopt_termtype);
+	else
+		temp2.data.string = alloc_prog_string("<unknown>");
+    array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    CLEAR(&temp2);
 #ifdef IPV6
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("IPV6");

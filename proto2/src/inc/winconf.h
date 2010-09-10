@@ -123,4 +123,7 @@
 /* #undef HAVE_SYS_TM_GMTOFF */
 
 #define HAVE_MYSQL_H 1
-#define SQL_SUPPORT 1
+#define SQL_SUPPORT  1
+#define MCCP_ENABLED 1
+
+#include <zlib.h>

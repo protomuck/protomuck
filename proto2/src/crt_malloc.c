@@ -421,7 +421,7 @@ blocks_sort(                    /* Sort 'b1' on 'live_bytes'. */
 static Block
 block_alloc(const char *file, int line)
 {
-    Block b = malloc(sizeof(A_Block));
+    Block b = (Block)malloc(sizeof(A_Block));
 
     b->file = file;
     b->line = line;
