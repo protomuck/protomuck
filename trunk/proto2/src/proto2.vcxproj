@@ -81,7 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include;c:\zlib\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAs>CompileAsCpp</CompileAs>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -89,11 +89,11 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>zdll.lib;mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>128000</StackCommitSize>
       <StackReserveSize>16000000</StackReserveSize>
       <AdditionalOptions>/NODEFAULTLIB:library %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\lib\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\zlib\lib;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\lib\debug</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>

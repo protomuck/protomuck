@@ -23,6 +23,17 @@
 #define SSL_CERT_FILE "data/server.pem"
 #define SSL_KEY_FILE "data/server.pem"
 
+#define TELOPT_MAX_BUF_LEN 1024
+
+#define TELOPT_TERMTYPE 0x18
+#define TELOPT_MCCP1    0x55
+#define TELOPT_MCCP2    0x56
+
+#ifdef MCCP_ENABLED
+#include <zlib.h> /* make automatic later -hinoserm */
+#define COMPRESS_BUF_SIZE 16384 /* This will use 16k for every descriptor that has MCCP enabled */
+#endif
+
 /* structures */
 
 struct text_block {
@@ -142,8 +153,18 @@ struct descriptor_data {
 #if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
     struct dfile_struct     *dfile;         /* hinoserm: Used by descr_sendfile and newhttpd */
 #endif
+#ifdef MCCP_ENABLED
+	unsigned char           *out_compress_buf;
+    z_stream                *out_compress;  /* hinoserm: Used for MCCP Compression; compressed data stream */
+	unsigned char *outbuf;
+	size_t outlen;
+    int                      compressing;   /* hinoserm: Used to indicate if compressing; 1 for v1, 2 for v2, 0 for no */
+	int						 mccp_ready;
+#endif
+	char  *telopt_sb_buf;
+	size_t telopt_sb_buf_len;
 
-
+	char  *telopt_termtype;
 };
 
 #define DF_HTML          0x1 /* Connected to the internal WEB server. -- UNIMPLEMENTED */
@@ -161,6 +182,7 @@ struct descriptor_data {
 #endif /* USE_SSL */
 #define DF_SUID        0x200 /* Set when this descriptor gets assigned a player */
 #define DF_WEBCLIENT   0x400 /* Reserved for Nuku's webclient */
+#define DF_COMPRESS    0x800 /* Indicates that this connection is MCCP-enabled -hinoserm */
 #define DF_MISC       0x8000 /* You can play with this */
 #define DF_IPV6      0x10000 /* Achievement Unlocked: Bleeding Edge - You are connected using IPv6! */
 
@@ -219,7 +241,7 @@ extern void anotify_descriptor(int descr, const char *msg);
 extern int anotify(dbref player, const char *msg);
 extern int notify_html(dbref player, const char *msg);
 extern void add_to_queue(struct text_queue *q, const char *b, int n); /* hinoserm */
-extern int queue_write(struct descriptor_data *, const char *, int);  /* hinoserm */
+extern int queue_write(struct descriptor_data *d, const char *b, int n);  /* hinoserm */
 extern int queue_string(struct descriptor_data *d, const char *s);
 extern int notify_nolisten(dbref player, const char *msg, int isprivate);
 extern int anotify_nolisten2(dbref player, const char *msg);

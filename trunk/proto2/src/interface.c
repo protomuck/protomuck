@@ -104,6 +104,13 @@ void init_descriptor_lookup(void);
 void process_commands(void);
 void shovechars(void);
 
+#ifdef MCCP_ENABLED
+void mccp_start(struct descriptor_data *d, int version);
+void mccp_end(struct descriptor_data *d);
+bool mccp_process_compressed(struct descriptor_data *d);
+#define UMIN(a,b) ((a)<(b)?(a):(b))
+#endif
+
 #if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
 long descr_sendfile(struct descriptor_data *d, int start, int stop,
                     const char *filename, int pid);
@@ -1610,13 +1617,47 @@ max_open_files(void)
 int
 sockwrite(struct descriptor_data *d, const char *str, int len)
 {
+
+    int length = 0;
+
+    /* 
+    WARNING: It is not acceptable to use sockwrite() directly except in extremely specific cases,
+             where buffering may result in unexpected results.  Please use queue_write(), which
+             has the same function parameters as sockwrite().  -Hinoserm
+    */
+
+    if (d && d->out_compress)
+    {
+        d->out_compress->next_in = (unsigned char *)str;
+        d->out_compress->avail_in = len;
+
+        //while (d->out_compress->avail_in)
+        //{
+			d->out_compress->avail_out = COMPRESS_BUF_SIZE - (d->out_compress->next_out - d->out_compress_buf);
+
+            if (d->out_compress->avail_out)
+            {
+                if (deflate(d->out_compress, Z_SYNC_FLUSH) != Z_OK)
+                    return -1;
+            } else {
+                Sleep(0);
+            }
+
+            mccp_process_compressed(d);
+        //}
+
+        return len - d->out_compress->avail_in;
+
+    } else {
 #ifdef USE_SSL
-    if (d->ssl_session)
-        return SSL_write(d->ssl_session, str, len);
-    else
+        if (d->ssl_session)
+            return SSL_write(d->ssl_session, str, len);
+        else
 #endif
-        return writesocket(d->descriptor, str, len);
+            return writesocket(d->descriptor, str, len);
+    }
 }
+
 
 void
 goodbye_user(struct descriptor_data *d)
@@ -1814,8 +1855,13 @@ shovechars(void)
                 timeout = slice_timeout;
             else
                 FD_SET(d->descriptor, &input_set);
+
             if (d->output.head) /* Prepare write pool */
                 FD_SET(d->descriptor, &output_set);
+#ifdef MCCP_ENABLED /* If MCCP is enabled, and data is waiting to be sent out of the compression buffer */
+            else if (d->out_compress && COMPRESS_BUF_SIZE - d->out_compress->avail_out)
+                FD_SET(d->descriptor, &output_set);
+#endif
 #ifdef USE_SSL
             if (d->ssl_session) {
                 /* SSL may want to write even if the output queue is empty */
@@ -2114,6 +2160,10 @@ shovechars(void)
                 if (FD_ISSET(d->descriptor, &output_set)) {
                     if (!process_output(d)) /* send text */
                         d->booted = 1; /* connection lost */
+#ifdef MCCP_ENABLED
+                    else if (!mccp_process_compressed(d))
+                        d->booted = 1;
+#endif
                 }
                 if (d->connected && OkObj(d->player)) { /* begin the idle FLAG/boots management */
                     int leastIdle = 0;
@@ -2796,6 +2846,9 @@ shutdownsock(struct descriptor_data *d)
 #ifdef NEWHTTPD
     }
 #endif /* NEWHTTPD */
+
+	mccp_end(d);
+
     bytesIn += d->input_len;
     bytesOut += d->output_len;
     commandTotal += d->commands;
@@ -2834,6 +2887,11 @@ shutdownsock(struct descriptor_data *d)
         descr_fsenddisc(d);
 #endif /* DESCRFILE_SUPPORT */
     host_delete(d->hu);
+
+	if (d->telopt_sb_buf)
+		free((char *)d->telopt_sb_buf);
+	if (d->telopt_termtype)
+		free((char *)d->telopt_termtype);
 
     FREE(d);
     ndescriptors--;
@@ -2879,6 +2937,15 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
 
     ndescriptors++;
     MALLOC(d, struct descriptor_data, 1);
+
+	d->out_compress = NULL;
+    d->out_compress_buf = NULL;
+    d->compressing = 0;
+	d->mccp_ready = 0;
+
+	d->telopt_sb_buf_len = 0;
+	d->telopt_sb_buf = NULL;
+	d->telopt_termtype = NULL;
 
     d->descriptor = s;
     d->connected = 0;
@@ -2946,7 +3013,10 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
         && ctype != CT_HTTP
 #endif /* NEWHTTPD */
         ) {
-        announce_login(d);
+		queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
+		queue_write(d, "\377\373\125\012",   4); /* IAC WILL TELOPT_COMPRESS  (MCCP v1) */
+		queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
+        announce_login(d); 
         welcome_user(d);
     }
     return d;
@@ -3166,6 +3236,7 @@ process_output(struct descriptor_data *d)
         cur->start += cnt;
         break;
     }
+
     return 1;
 }
 
@@ -3333,10 +3404,10 @@ process_input(struct descriptor_data *d)
             if (p > d->raw_input) {
 #ifdef NEWHTTPD
                 if (d->type == CT_HTTP) { /* hinoserm */
-/* There's a reason why I don't do this with  *//* hinoserm */
-/* the pre-existing queuing stuff. If I did,  *//* hinoserm */
-/* the content data stuff wouldn't work. This *//* hinoserm */
-/* might change if it becomes a problem.      *//* hinoserm */
+/* There's a reason why I don't do this with  */ /* hinoserm */
+/* the pre-existing queuing stuff. If I did,  */ /* hinoserm */
+/* the content data stuff wouldn't work. This */ /* hinoserm */
+/* might change if it becomes a problem.      */ /* hinoserm */
                     http_process_input(d, d->raw_input); /* hinoserm */
                 } else
 #endif /* NEWHTTPD */
@@ -3369,7 +3440,7 @@ process_input(struct descriptor_data *d)
                     d->inIAC = 0;
                     break;
                 case '\366':{  /* AYT */
-                    sockwrite(d, "[Yes]\r\n", 7);
+                    queue_write(d, "[Yes]\r\n", 7);
                     d->inIAC = 0;
                     break;
                 }
@@ -3382,8 +3453,13 @@ process_input(struct descriptor_data *d)
                     p = d->raw_input;
                     d->inIAC = 0;
                     break;
-                case '\372':   /* Go ahead. Treat as NOP */
-                    d->inIAC = 0;
+                case '\372':   /* SB */ /* Go ahead. Treat as NOP */
+					if (d->telopt_sb_buf)
+						free((char *)d->telopt_sb_buf);
+					d->telopt_sb_buf = (char *)malloc(TELOPT_MAX_BUF_LEN);
+					d->telopt_sb_buf_len = 0;
+
+                    d->inIAC = 5;
                     break;
                 case '\373':   /* Will option offer */
                     d->inIAC = 2;
@@ -3407,15 +3483,88 @@ process_input(struct descriptor_data *d)
                     d->inIAC = 0;
                     break;
             }
+		} else if (d->inIAC == 5) {
+			if (*q == '\xF0' && *(q-1) == '\xFF') {
+				d->telopt_sb_buf[d->telopt_sb_buf_len-1] = '\0';
+
+				/* Begin processing the TELOPT data buffer */
+				if (d->telopt_sb_buf_len) {
+					switch (d->telopt_sb_buf[0]) {
+						case TELOPT_TERMTYPE:
+							if (d->telopt_sb_buf_len < 2) /* At this point, a valid request would have at least two bytes in it. */
+								break;
+
+							if (d->telopt_sb_buf[1] == 1) {
+                                /* 
+                                   The client requested our termtype.  Send it.
+                                   It would not be proper to send our version number here.
+                                */
+								queue_write(d, "\xFF\xFA\x00ProtoMUCK\xFF\xF0", 14);
+							} else if (!d->telopt_sb_buf[1]) {
+								if (d->telopt_termtype)
+									free((char *) d->telopt_termtype);
+
+                                if (d->telopt_sb_buf_len < 3) {
+                                    /* If the other end sent a blank termtype, don't bother allocating it. */
+                                    d->telopt_termtype = NULL;
+                                } else {
+								    d->telopt_termtype = (char *)malloc(sizeof(char) * (d->telopt_sb_buf_len-1));
+
+                                    /* Move the data into the termtype string, making sure to add a null at the end. */
+                                    memcpy(d->telopt_termtype, d->telopt_sb_buf + 2, d->telopt_sb_buf_len-2);
+								    d->telopt_termtype[d->telopt_sb_buf_len-2] = '\0';
+#ifdef MCCP_ENABLED
+                                    /* Due to SimpleMU, we need to determine the termtype before we can enable MCCP. */
+								    if (d->mccp_ready && !d->compressing)
+									    mccp_start(d, d->mccp_ready);
+#endif
+
+                                    /* log_status("TELOPT_TERMTYPE(%d): %s\r\n", d->descriptor, d->telopt_termtype); */
+                                }
+							} /* else { */
+							  /* An unsupported request/response happened */
+                              /* This is where we would implement other sub-negotiation types. */
+							  /* } */
+					}
+				}
+
+				d->inIAC = 0;
+			} else {
+				if (d->telopt_sb_buf_len < TELOPT_MAX_BUF_LEN)
+					d->telopt_sb_buf[d->telopt_sb_buf_len++] = *q;
+				else
+					d->inIAC = 0;
+            }
         } else if (d->inIAC == 2) {
-            /* send back DONT option in all cases */
-            sockwrite(d, "\377\376", 2);
-            sockwrite(d, q, 1);
+			if (*q == TELOPT_TERMTYPE) { /* TERMTYPE */
+				queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
+			} else {
+				/* send back DONT option in all other cases */
+				queue_write(d, "\377\376", 2);
+				queue_write(d, q, 1);
+			}
             d->inIAC = 0;
         } else if (d->inIAC == 3) {
-            /* Send back WONT in all cases */
-            sockwrite(d, "\377\374", 2);
-            sockwrite(d, q, 1);
+#ifdef MCCP_ENABLED
+			if (*q == TELOPT_MCCP2) {        /* TELOPT_COMPRESS2 */
+                if (*(q-1) == '\375') {      /* Start MCCP Compression (v2) */
+                    d->mccp_ready = 2;
+					
+                    /* Thanks to SimpleMU, we're required to know the termtype before we can enable MCCP. */
+					if (d->telopt_termtype && !d->compressing)
+						mccp_start(d, d->mccp_ready);
+				} else if (*(q-1) == '\376') /* End MCCP Compression (v2) */
+                    mccp_end(d);
+			} else {
+                /* Send back WONT in all cases */
+                queue_write(d, "\377\374", 2);
+                queue_write(d, q, 1);
+            }
+#else
+			queue_write(d, "\377\374", 2);
+            queue_write(d, q, 1);
+#endif
+
             d->inIAC = 0;
         } else if (d->inIAC == 4) {
             /* ignore WON'T option */
@@ -3887,6 +4036,17 @@ check_connect(struct descriptor_data *d, const char *msg)
                 d->did_connect = 1;
                 d->connected_at = current_systime;
                 d->player = player;
+/*
+#ifdef MCCP_ENABLED
+				if (OkObj(d->player)) {
+                    if (get_property(d->player, "/_Prefs/NoMCCP")) {
+                        mccp_end(d);
+					} else {
+						queue_write(d, "\377\373\126\012", 4); // IAC WILL TELOPT_COMPRESS2 (MCCP v2)
+					}
+				}
+#endif */
+
                 update_desc_count_table();
                 remember_player_descr(player, d->descriptor);
                 if (!string_compare(command, "ch")) {
@@ -4193,6 +4353,8 @@ do_dinfo(dbref player, const char *arg)
     if (d->flags)
         /* need to print out the flags */
         anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
+
+	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s", (d->telopt_termtype ? d->telopt_termtype : "<unknown>"));
 
     if (Arch(player))
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
@@ -6162,4 +6324,164 @@ ignorance(register dbref src, dbref tgt)
 
     return 0;
 }
+#endif
+
+#ifdef MCCP_ENABLED
+
+void *zlib_alloc(void *opaque, unsigned int items, unsigned int size)
+{
+	return calloc(items, size);
+}
+
+
+void zlib_free(void *opaque, void *address) 
+{
+	free(address);
+}
+
+bool
+mccp_process_compressed(struct descriptor_data *d)
+{
+    int length;
+
+    if (!d->out_compress)
+        return TRUE;
+
+    // Try to write out some data..
+    length = COMPRESS_BUF_SIZE - d->out_compress->avail_out;
+    if (length > 0)
+    {
+		int nWrite = 0;
+          
+        if ((nWrite = writesocket(d->descriptor, (const char *)d->out_compress_buf, length)) < 0) {
+            if (errnosocket == EWOULDBLOCK)
+				nWrite = 0;
+			else
+                return 0;
+        }
+
+        if (nWrite) {
+            if (nWrite == length) {
+                d->out_compress->next_out = d->out_compress_buf;
+                d->out_compress->avail_out = COMPRESS_BUF_SIZE;
+            } else {
+                memmove(d->out_compress_buf, d->out_compress_buf+nWrite, nWrite);
+                d->out_compress->next_out = d->out_compress_buf + (length-nWrite);
+                d->out_compress->avail_out += nWrite;
+
+            }
+        }
+
+    }
+
+    return 1;
+}
+
+void
+do_compress(dbref player, int descr, const char *arg)
+{
+    if (!strcmp(arg, "off")) {
+        mccp_end(descrdata_by_descr(descr));
+        notify(player, "MCCP Compression Ended.");
+    } else
+        notify(player, "Proper usage: compress off");
+}
+
+void
+mccp_start(struct descriptor_data *d, int version)
+{
+    z_stream *s;
+	int opt = 0;
+
+	d->out_compress = NULL;
+    d->out_compress_buf = NULL;
+    d->compressing = 0;
+
+    if (OkObj(d->player))
+        if (get_property(d->player, "/_Prefs/NoMCCP"))
+            return;
+
+    log_status("MCCP_START(%d)\r\n", d->descriptor);
+	opt = (d->telopt_termtype && !string_compare(d->telopt_termtype, "simplemu"));
+	if (opt)
+		setsockopt(d->descriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
+
+	if (version == 1)
+        sockwrite(d, "\377\372\125\373\360", 5); /* IAC SB COMPRESS WILL SE (MCCP v1) */
+	else if (version == 2) 
+		sockwrite(d, "\377\372\126\377\360", 5); /* IAC SB COMPRESS2 IAC SE (MCCP v2) */ //ff fa 56 ff f0
+	else
+		return;
+
+	if (opt)  {
+		//This is a temporary fix for a bug related to SimpleMU.
+#ifdef WIN32
+		Sleep(20); //20ms
+#else
+		usleep(20000); //20ms
+#endif
+	}
+
+
+    s = (z_stream *) malloc(sizeof(z_stream));
+    d->out_compress_buf = (unsigned char *) malloc(sizeof(unsigned char) * COMPRESS_BUF_SIZE);
+
+    s->next_in = NULL;
+    s->avail_in = 0;
+
+    s->next_out = d->out_compress_buf;
+    s->avail_out = COMPRESS_BUF_SIZE;
+
+	s->zalloc = zlib_alloc;
+	s->zfree  = zlib_free;
+    s->opaque = NULL;
+
+	if (deflateInit(s, 9) != Z_OK)
+    {
+        free((void *)d->out_compress_buf);
+        free((void *)s);
+        d->out_compress_buf = NULL;
+        return;
+    }
+
+    d->compressing = version;
+    d->out_compress = s;
+
+    DR_RAW_ADD_FLAGS(d, DF_COMPRESS);
+
+    return;
+}
+
+
+void
+mccp_end(struct descriptor_data *d)
+{
+    unsigned char dummy[1];
+
+    log_status("MCCP_END(%d)\n", d->descriptor);
+
+    if (!d->out_compress)
+        return;
+
+    d->out_compress->avail_in = 0;
+    d->out_compress->next_in = dummy;
+
+    if (deflate(d->out_compress, Z_FINISH) == Z_STREAM_END)
+        mccp_process_compressed(d);
+
+    deflateEnd(d->out_compress);
+    free((void *)d->out_compress_buf);
+    free((void *)d->out_compress);
+
+    d->out_compress = NULL;
+    d->out_compress_buf = NULL;
+    d->compressing = 0;
+
+    DR_RAW_REM_FLAGS(d, DF_COMPRESS);
+
+
+    return;
+
+}
+
 #endif
