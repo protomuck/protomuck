@@ -248,6 +248,8 @@ DF_IDLE        (Set at the same time as the IDLE flag is)
 DF_TRUEIDLE    (Set as the same time as the TRUEIDLE flag is)
 DF_INTERACTIVE (Set at the same time as the INTERACTIVE flag is)
 DF_COLOR       (Currently does nothing. Settable via DESCR_SET prim)
+DF_SSL         (Set if connection is SSL-encrypted)
+DF_COMPRESS    (Set if MCCP is currently in use)
 
 As time goes by, descriptor flags will begin to play a more important
 role, though for now they are for specific purposes. 

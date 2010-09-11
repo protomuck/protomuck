@@ -8683,6 +8683,7 @@ TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port.
 USERNAME      (s) - The user name for that descr's IP address.
 IPV6          (i) - 1 if the connection is IPv6
 SSL           (i) - 1 if the connection is secured with SSL
+TERMTYPE      (s) - The TELNET terminal type, or "<unknown>" if unset.
 ~~~~
 FIND_ARRAY
 
