@@ -166,7 +166,7 @@ int
 muf_event_dequeue_frame(struct frame *fr)
 {
     struct mufevent_process *proc = mufevent_processes, *tmp;
-    register int count = 0;
+    int count = 0;
 
     while (proc) {
         tmp = proc->next;
@@ -855,7 +855,7 @@ static int
 muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
                       const char *event, struct inst *val)
 {
-    register struct muf_ainterrupt *a;
+    struct muf_ainterrupt *a;
 
     a = (struct muf_ainterrupt *) malloc(sizeof(struct muf_ainterrupt));
     a->interrupt = interrupt;
@@ -872,7 +872,7 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
     fr->aintbot = a;
 
     if (fr->ainttop == a) {
-        register struct mufevent_process *p;
+        struct mufevent_process *p;
         struct muf_qitem *q =
             (struct muf_qitem *) malloc(sizeof(struct muf_qitem));
         q->type = 0;
@@ -898,7 +898,7 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
         }
 
         if (!q->type) {
-            register timequeue tmp, ptr;
+            timequeue tmp, ptr;
 
             tmp = ptr = tqhead;
             while (ptr) {
@@ -966,7 +966,7 @@ int
 muf_interrupt_exit(struct frame *fr)
 {
     struct muf_ainterrupt *a = fr->ainttop;
-    register int qtype = 0;
+    int qtype = 0;
 
     if (!a)
         return 0;
@@ -998,7 +998,7 @@ muf_interrupt_exit(struct frame *fr)
 /*  This function searches through a program's interrupt list and */
 /*   returns it if found, NULL otherwise.  -Hinoserm              */
 struct muf_interrupt *
-muf_interrupt_find(register struct frame *fr, register const char *id)
+muf_interrupt_find(struct frame *fr, const char *id)
 {
     register struct muf_interrupt *e = fr->interrupts;
 

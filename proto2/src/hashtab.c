@@ -51,7 +51,7 @@ add_hash(register const char *name, hash_data data,
          hash_tab *table, unsigned size)
 {
     register hash_entry *hp;
-    unsigned hashval;
+    register unsigned int hashval;
 
     hashval = hash(name, size);
 
@@ -101,7 +101,7 @@ void
 kill_hash(hash_tab *table, unsigned size, int freeptrs)
 {
     register hash_entry *hp, *np;
-    unsigned i;
+    register unsigned int i;
 
     for (i = 0; i < size; i++) {
         for (hp = table[i]; hp != NULL; hp = np) {

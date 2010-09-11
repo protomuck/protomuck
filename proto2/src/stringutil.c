@@ -27,7 +27,7 @@ alphanum_compare(const char *t1, const char *s2)
 {
     int n1, n2, cnt1, cnt2;
     const char *u1, *u2;
-    register const char *s1 = t1;
+    const char *s1 = t1;
 
     while (*s1 && *s2 && DOWNCASE(*s1) == DOWNCASE(*s2))
         s1++, s2++;
@@ -72,7 +72,7 @@ alphanum_compare(const char *t1, const char *s2)
 }
 
 int
-string_compare(register const char *s1, register const char *s2)
+string_compare(const char *s1, const char *s2)
 {
     while (*s1 && *s2 && DOWNCASE(*s1) == DOWNCASE(*s2))
         s1++, s2++;
@@ -81,7 +81,7 @@ string_compare(register const char *s1, register const char *s2)
 }
 
 const char *
-exit_prefix(register const char *string, register const char *prefix)
+exit_prefix(const char *string, const char *prefix)
 {
     const char *p;
     const char *s = string;
@@ -109,7 +109,7 @@ exit_prefix(register const char *string, register const char *prefix)
 }
 
 int
-string_prefix(register const char *string, register const char *prefix)
+string_prefix(const char *string, const char *prefix)
 {
     while (*string && *prefix && DOWNCASE(*string) == DOWNCASE(*prefix))
         string++, prefix++;
@@ -118,7 +118,7 @@ string_prefix(register const char *string, register const char *prefix)
 
 /* accepts only nonempty matches starting at the beginning of a word */
 const char *
-string_match(register const char *src, register const char *sub)
+string_match(const char *src, const char *sub)
 {
     if (*sub != '\0') {
         while (*src) {
@@ -1579,9 +1579,9 @@ has_suffix_char(const char *text, char suffix)
 /*   and returns the result.                          */
 
 bool
-isascii_str(register const char *str)
+isascii_str(const char *str)
 {
-    register const char *p;
+    const char *p;
 
     for (p = str; *p; p++)
         if (!isascii(*p))

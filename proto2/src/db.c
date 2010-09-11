@@ -215,10 +215,10 @@ new_object(dbref player)
 
 
 dbref
-new_program(register dbref player, register const char *name)
+new_program(dbref player, const char *name)
 {
-    register unsigned char mlvl;
-    register dbref newprog;
+    unsigned char mlvl;
+    dbref newprog;
     char buf[BUFFER_LEN];
 
     newprog = new_object(player);

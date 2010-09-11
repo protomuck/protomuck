@@ -24,7 +24,7 @@ struct line *read_program(dbref i);
 static dbref
 parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
 {
-    register dbref dobj;        /* destination room/player/thing/link */
+    dbref dobj;        /* destination room/player/thing/link */
     char buf[BUFFER_LEN];
     struct match_data md;
 
@@ -70,10 +70,10 @@ parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
  * Returns 1 if circular reference found, 0 if not.
  */
 bool
-exit_loop_check(register dbref source, register dbref dest)
+exit_loop_check(dbref source, dbref dest)
 {
 
-    register int i;
+    int i;
 
     if (source == dest)
         return 1;               /* That's an easy one! */
@@ -106,7 +106,7 @@ exit_loop_check(register dbref source, register dbref dest)
 void
 do_open(int descr, dbref player, const char *direction, const char *linkto)
 {
-    register char *rname, *qname;
+    char *rname, *qname;
     dbref loc, exit = NOTHING;
     char buf2[BUFFER_LEN];
 
@@ -183,8 +183,8 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
                             tp_pennies);
             } else {
                 dbref good_dest[MAX_LINKS];
-                register int i;
-                register int ndest =
+                int i;
+                int ndest =
                     link_exit(descr, player, exit, (char *) qname, good_dest);
                 DBFETCH(exit)->sp.exit.ndest = ndest;
                 DBFETCH(exit)->sp.exit.dest =
@@ -227,11 +227,11 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 
 int
 _link_exit(int descr, dbref player, dbref exit, char *dest_name,
-           register dbref *dest_list, register bool dryrun)
+           dbref *dest_list, bool dryrun)
 {
     char buf[BUFFER_LEN], qbuf[BUFFER_LEN];
-    register bool error = 0;
-    register char *p, *q;
+    bool error = 0;
+    char *p, *q;
     int prdest = 0;
     int ndest = 0;
     dbref dest;
@@ -334,7 +334,7 @@ void
 do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 {
     dbref good_dest[MAX_LINKS];
-    register int ndest, i;
+    int ndest, i;
     struct match_data md;
     char buf[BUFFER_LEN];
     dbref thing, dest;
@@ -514,12 +514,12 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
 void
 do_dig(int descr, dbref player, const char *name, const char *pname)
 {
-    register char *rname, *qname;
-    register dbref newparent;
+    char *rname, *qname;
+    dbref newparent;
     char rbuf[BUFFER_LEN];
     char qbuf[BUFFER_LEN];
     char buf[BUFFER_LEN];
-    register dbref room;
+    dbref room;
     struct match_data md;
     dbref parent;
 
@@ -632,7 +632,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
 void
 do_prog(int descr, dbref player, const char *name)
 {
-    register dbref i;
+    dbref i;
     struct match_data md;
 
     if (Typeof(player) != TYPE_PLAYER) {
@@ -692,7 +692,7 @@ do_prog(int descr, dbref player, const char *name)
 void
 do_edit(int descr, dbref player, const char *name)
 {
-    register dbref i;
+    dbref i;
     struct match_data md;
 
     if (Typeof(player) != TYPE_PLAYER) {
@@ -746,7 +746,7 @@ mcpedit_program(int descr, dbref player, dbref prog, const char *name,
 {
     char namestr[BUFFER_LEN];
     char refstr[BUFFER_LEN];
-    register struct line *curr;
+    struct line *curr;
     McpMesg msg;
     McpVer supp;
 
@@ -778,7 +778,7 @@ mcpedit_program(int descr, dbref player, dbref prog, const char *name,
 void
 do_mcpedit(int descr, dbref player, const char *name)
 {
-    register dbref i;
+    dbref i;
     struct match_data md;
     McpFrame *mfr;
 
@@ -814,7 +814,7 @@ do_mcpedit(int descr, dbref player, const char *name)
 void
 do_mcpprogram(int descr, dbref player, const char *name)
 {
-    register dbref i;
+    dbref i;
     McpFrame *mfr;
     struct match_data md;
 

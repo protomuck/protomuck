@@ -136,9 +136,9 @@ static int lastfetchslot = -1;
 void
 update_fetchstats(void)
 {
-    register int slot =
+    int slot =
         ((current_systime / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
-    register int i;
+    int i;
 
     if (slot != lastfetchslot) {
         if (lastfetchslot == -1) {
@@ -156,11 +156,11 @@ update_fetchstats(void)
 
 
 void
-report_fetchstats(register dbref player)
+report_fetchstats(dbref player)
 {
-    register int i =
+    int i =
         ((current_systime / FETCHSTATS_SLOT_TIME) % FETCHSTATS_SLOTS);
-    register int count = 0;
+    int count = 0;
     double sum = 0.0, maxv = 0.0, minv;
 
     while (lastfetchslot != i) {
@@ -226,8 +226,8 @@ void
 report_cachestats(dbref player)
 {
     dbref obj;
-    register int count, checked = 0, ipct;
-    register bool gap = 0;
+    int count, checked = 0, ipct;
+    bool gap = 0;
     time_t when, now;
 
     notify(player, "LRU proploaded cache time distribution graph.");
@@ -263,7 +263,7 @@ report_cachestats(dbref player)
 }
 
 void
-diskbase_debug(register dbref player)
+diskbase_debug(dbref player)
 {
     notify_fmt(player, "Propcache hit ratio: %.3f%% (%ld hits / %ld fetches)",
                (100.0 * propcache_hits / (propcache_hits + propcache_misses)),

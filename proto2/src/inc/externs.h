@@ -183,11 +183,11 @@ extern void do_mcpedit(int descr, dbref player, const char *name);
 extern void do_edit(int descr, dbref player, const char *name);
 extern int unset_source(dbref player, dbref loc, dbref action);
 extern int _link_exit(int descr, dbref player, dbref exit, char *dest_name,
-                               register dbref *dest_list, register bool dryrun);
+                               dbref *dest_list, bool dryrun);
 #define link_exit(A, B, C, D, E) (_link_exit(A, B, C, D, E, 0))
 #define link_exit_dry(A, B, C, D, E) (_link_exit(A, B, C, D, E, 1))
 extern void set_source(dbref player, dbref action, dbref source);
-extern bool exit_loop_check(register dbref source, register dbref dest);
+extern bool exit_loop_check(dbref source, dbref dest);
 
 /* from diskprop.c */
 extern void diskbase_debug(dbref player);
@@ -211,9 +211,9 @@ extern void do_auto_archive(int descr, dbref player);
 extern void do_dump(dbref player, const char *newfile);
 extern void do_shutdown(dbref player, const char *muckname, const char *msg);
 extern void do_restart(dbref player, const char *muckname, const char *msg);
-extern void fork_and_dump(register bool dofork);
+extern void fork_and_dump(bool dofork);
 extern void archive_site(void);
-extern void dump_database(register bool dofork);
+extern void dump_database(bool dofork);
 extern int prop_command(int descr, dbref player, const char *command, const char *arg,
                         const char *type, int mt);
 extern void dump_warning(void);
@@ -225,11 +225,11 @@ extern void dump_deltas(void);
 #endif
 
 /* From hashtab.c */
-extern unsigned hash(register const char *s, unsigned hash_size);
-extern hash_data *find_hash(const char *s, hash_tab *table, unsigned size);
-extern hash_entry *add_hash(const char *name, hash_data data, hash_tab *table,
+extern unsigned hash(const char *s, unsigned hash_size);
+extern hash_data *find_hash(register const char *s, hash_tab *table, unsigned size);
+extern hash_entry *add_hash(register const char *name, hash_data data, hash_tab *table,
                             unsigned size);
-extern int free_hash(const char *name, hash_tab *table, unsigned size);
+extern int free_hash(register const char *name, hash_tab *table, unsigned size);
 extern void kill_hash(hash_tab *table, unsigned size, int freeptrs);
 
 /* From help.c */
@@ -246,33 +246,33 @@ extern void do_info(dbref player, const char *topic, const char *seg);
 extern void do_sysparm(dbref player, const char *topic);
 
 /* From look.c */
-extern int size_object(register dbref i, register int load);
+extern int size_object(dbref i, int load);
 extern void look_room(int descr, dbref player, dbref room);
 
 /* extern void look_room_simple(dbref player, dbref room); */
-extern const char *power_description(register dbref thing);
-extern void do_look_around(register int descr, register dbref player);
-extern void do_look_at(int descr, dbref player, register const char *name,
+extern const char *power_description(dbref thing);
+extern void do_look_around(int descr, dbref player);
+extern void do_look_at(int descr, dbref player, const char *name,
                        const char *detail);
 extern void do_examine(int descr, dbref player, const char *name,
                        const char *dir);
-extern void do_inventory(register dbref player);
-extern void do_score(register dbref player);
-extern void do_find(register dbref player, register const char *name, const char *flags);
-extern void do_owned(register dbref player, const char *name, const char *flags);
+extern void do_inventory(dbref player);
+extern void do_score(dbref player);
+extern void do_find(dbref player, const char *name, const char *flags);
+extern void do_owned(dbref player, const char *name, const char *flags);
 extern void do_sweep(int descr, dbref player, const char *name);
-extern void do_trace(int descr, register dbref player, const char *name, register int depth);
-extern void do_entrances(int descr, register dbref player, const char *name,
+extern void do_trace(int descr, dbref player, const char *name, int depth);
+extern void do_entrances(int descr, dbref player, const char *name,
                          const char *flags);
-extern void do_contents(int descr, register dbref player, const char *name,
+extern void do_contents(int descr, dbref player, const char *name,
                         const char *flags);
 extern void exec_or_notify_2(int descr, dbref player, dbref thing,
                            const char *message, const char *whatcalled, bool typ);
 #define exec_or_notify(A, B, C, D, E) (exec_or_notify_2(A, B, C, D, E, 1))
 #define exec_or_html_notify(A, B, C, D, E) (exec_or_notify_2(A, B, C, D, E, 0))
-extern char init_checkflags(dbref player, register const char *flags,
+extern char init_checkflags(dbref player, const char *flags,
                            struct flgchkdat *check);
-extern bool checkflags(register dbref what, struct flgchkdat check);
+extern bool checkflags(dbref what, struct flgchkdat check);
 
 /* From move.c */
 extern void moveto(dbref what, dbref where);
@@ -300,27 +300,27 @@ extern bool check_password(dbref player, const char *check_pw);
 extern bool set_password(dbref player, const char *set_pw);
 
 /* From predicates.c */
-extern bool ok_name(register const char *name);
-extern bool ok_password(register const char *password);
-extern bool ok_player_name(register const char *name);
-extern bool test_lock(register int descr, register dbref player, register dbref thing,
-                      register const char *lockprop);
-extern bool test_lock_false_default(register int descr, register dbref player, 
-                                  register dbref thing, register const char *lockprop);
-extern bool can_link_to(register dbref who, object_flag_type what_type, register dbref where);
-extern bool can_link(register dbref who, register dbref what);
-extern bool could_doit(int descr, register dbref player, register dbref thing);
-extern bool could_doit2(int descr, register dbref player, register dbref thing, char *prop,
-                       register bool tryprog);
-extern bool can_doit(int descr, register dbref player, register dbref thing,
+extern bool ok_name(const char *name);
+extern bool ok_password(const char *password);
+extern bool ok_player_name(const char *name);
+extern bool test_lock(int descr, dbref player, dbref thing,
+                      const char *lockprop);
+extern bool test_lock_false_default(int descr, dbref player, 
+                                  dbref thing, const char *lockprop);
+extern bool can_link_to(dbref who, object_flag_type what_type, dbref where);
+extern bool can_link(dbref who, dbref what);
+extern bool could_doit(int descr, dbref player, dbref thing);
+extern bool could_doit2(int descr, dbref player, dbref thing, char *prop,
+                       bool tryprog);
+extern bool can_doit(int descr, dbref player, dbref thing,
                     const char *default_fail_msg);
-extern bool can_see(register dbref player, register dbref thing, register bool can_see_location);
+extern bool can_see(dbref player, dbref thing, bool can_see_location);
 #define controls(W, H)     (newcontrols(W, H, 0)) 
 #define truecontrols(W, H) (newcontrols(W, H, 1)) 
-extern bool newcontrols(register dbref who, register dbref what, register bool true_c);
-extern bool restricted(register dbref player, register dbref thing, object_flag_type flag);
-extern bool restricted2(register dbref player, register dbref thing, object_flag_type flag);
-extern bool payfor(register dbref who, register int cost);
+extern bool newcontrols(dbref who, dbref what, bool true_c);
+extern bool restricted(dbref player, dbref thing, object_flag_type flag);
+extern bool restricted2(dbref player, dbref thing, object_flag_type flag);
+extern bool payfor(dbref who, int cost);
 
 /* From rob.c */
 extern void do_give(int descr, dbref player, const char *recipient, int amount);
@@ -411,8 +411,8 @@ extern void parse_omessage(int descr, dbref player, dbref dest, dbref exit,
 /* From stringutil.c */
 extern int alphanum_compare(const char *s1, const char *s2);
 extern int string_compare(const char *s1, const char *s2);
-extern const char *exit_prefix(register const char *string,
-                               register const char *prefix);
+extern const char *exit_prefix(const char *string,
+                               const char *prefix);
 extern int string_prefix(const char *string, const char *prefix);
 extern const char *string_match(const char *src, const char *sub);
 extern char *pronoun_substitute(int descr, dbref player, const char *str);
@@ -435,7 +435,7 @@ extern void prefix_message(char *, const char *, const char *, int, int);
 extern int is_prop_prefix(const char *, const char *);
 extern int has_suffix(const char *, const char *);
 extern int has_suffix_char(const char *, char);
-extern bool isascii_str(register const char *str);
+extern bool isascii_str(const char *str);
 extern char* strcatn(char* buf, size_t bufsize, const char* src);
 extern char* strcpyn(char* buf, size_t bufsize, const char* src);
 

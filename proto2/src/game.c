@@ -345,7 +345,7 @@ panic(const char *message)
 }
 
 void
-dump_database(register bool dofork)
+dump_database(bool dofork)
 {
     epoch++;
 
@@ -378,7 +378,7 @@ time_t last_monolithic_time = 0;
  * Named "fork_and_dump()" mostly for historical reasons...
  */
 void
-fork_and_dump(register bool dofork)
+fork_and_dump(bool dofork)
 {
     epoch++;
 

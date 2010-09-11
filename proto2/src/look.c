@@ -20,9 +20,9 @@
 
 /* prints owner of something */
 static void
-print_owner(register dbref player, register dbref thing)
+print_owner(dbref player, dbref thing)
 {
-    register dbref ref;
+    dbref ref;
 
     switch (Typeof(thing)) {
         case TYPE_PLAYER:
@@ -54,9 +54,9 @@ print_owner(register dbref player, register dbref thing)
 
 void
 exec_or_notify_2(int descr, dbref player, dbref thing,
-                 const char *message, const char *whatcalled, register bool typ)
+                 const char *message, const char *whatcalled, bool typ)
 {
-    register const char *p;
+    const char *p;
     char buf[BUFFER_LEN];
 
     p = message;
@@ -64,9 +64,9 @@ exec_or_notify_2(int descr, dbref player, dbref thing,
     if (*p == EXEC_SIGNAL) {
         char tmpcmd[BUFFER_LEN];
         char tmparg[BUFFER_LEN];
-        register char *p2;
-        register char *p3;
-        register int i;
+        char *p2;
+        char *p3;
+        int i;
 
         if (*(++p) == REGISTERED_TOKEN) {
             strcpy(buf, p);
@@ -121,12 +121,12 @@ exec_or_notify_2(int descr, dbref player, dbref thing,
 }
 
 int
-count_details(dbref player, register dbref what, register const char *propname)
+count_details(dbref player, dbref what, const char *propname)
 {
-    register const char *pname;
+    const char *pname;
     char exbuf[BUFFER_LEN];
     char buf[BUFFER_LEN];
-    register int count;
+    int count;
 
 
     count = 0;
@@ -147,7 +147,7 @@ void
 look_details(dbref player, dbref what, const char *propname)
 {
     const char *pname;
-    register char *tmpchr;
+    char *tmpchr;
     char buf[BUFFER_LEN], buf2[BUFFER_LEN];
     char exbuf[BUFFER_LEN];
 
@@ -178,8 +178,8 @@ static void
 look_contents(dbref player, dbref loc, const char *contents_name)
 {
     dbref thing;
-    register bool can_see_loc;
-    register bool saw_something = 0;
+    bool can_see_loc;
+    bool saw_something = 0;
 
     /* check to see if he can see the location */
     can_see_loc = (!Dark(loc) || controls(player, loc) || Light(loc));
@@ -220,7 +220,7 @@ look_simple(int descr, dbref player, dbref thing, const char *name)
 }
 
 void
-look_room(register int descr, register dbref player, register dbref loc)
+look_room(int descr, dbref player, dbref loc)
 {
     char obj_num[20];
 
@@ -270,9 +270,9 @@ look_room(register int descr, register dbref player, register dbref loc)
 }
 
 void
-do_look_around(register int descr, register dbref player)
+do_look_around(int descr, dbref player)
 {
-    register dbref loc;
+    dbref loc;
 
     if ((loc = getloc(player)) == NOTHING)
         return;
@@ -281,11 +281,11 @@ do_look_around(register int descr, register dbref player)
 }
 
 void
-do_look_at(int descr, dbref player, register const char *name,
+do_look_at(int descr, dbref player, const char *name,
            const char *detail)
 {
     dbref thing, lastthing;
-    register bool nomatch;
+    bool nomatch;
     struct match_data md;
     char buf[BUFFER_LEN];
     char obj_num[20];
@@ -442,7 +442,7 @@ do_look_at(int descr, dbref player, register const char *name,
 #ifdef VERBOSE_EXAMINE
 
 static const char *
-flag_description(register dbref thing)
+flag_description(dbref thing)
 {
     static char buf[1024];
     static char buf2[32];
@@ -608,7 +608,7 @@ flag_description(register dbref thing)
 #endif /* VERBOSE_EXAMINE */
 
 const char *
-power_description(register dbref thing)
+power_description(dbref thing)
 {
     static char buf[1024];
 
@@ -664,9 +664,9 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
     PropPtr propadr, pptr;
-    register char *ptr, *wldcrd = wld;
-    register int i, cnt = 0;
-    register bool recurse = 0;
+    char *ptr, *wldcrd = wld;
+    int i, cnt = 0;
+    bool recurse = 0;
 
     strcpy(wld, wild);
     i = strlen(wld);
@@ -702,9 +702,9 @@ listprops_wildcard(dbref player, dbref thing, const char *dir, const char *wild)
 }
 
 int
-size_object(register dbref i, register int load)
+size_object(dbref i, int load)
 {
-    register int byts;
+    int byts;
 
     byts = sizeof(struct object);
 
@@ -730,8 +730,8 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
     char buf2[BUFFER_LEN];
     char buf[BUFFER_LEN];
     struct match_data md;
-    register dbref thing;
-    register int i, cnt;
+    dbref thing;
+    int i, cnt;
     dbref content;
     dbref exit;
     dbref ref_tm;
@@ -1130,7 +1130,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
 
 
 void
-do_score(register dbref player)
+do_score(dbref player)
 {
     char buf[BUFFER_LEN];
 
@@ -1141,9 +1141,9 @@ do_score(register dbref player)
 }
 
 void
-do_inventory(register dbref player)
+do_inventory(dbref player)
 {
-    register dbref thing;
+    dbref thing;
 
     if ((thing = DBFETCH(player)->contents) == NOTHING &&
         !count_details(player, player, "_obj")) {
@@ -1162,14 +1162,14 @@ do_inventory(register dbref player)
 }
 
 char
-init_checkflags(dbref player, register const char *flags,
+init_checkflags(dbref player, const char *flags,
                 struct flgchkdat *check)
 {
     char buf[BUFFER_LEN];
-    register char *cptr;
-    register char output_type = 0;
-    register char mode = 0;
-    register bool inflags = 1;
+    char *cptr;
+    char output_type = 0;
+    char mode = 0;
+    bool inflags = 1;
 
     strcpy(buf, flags);
     for (cptr = buf; *cptr && (*cptr != '='); cptr++) ;
@@ -1702,7 +1702,7 @@ init_checkflags(dbref player, register const char *flags,
 
 
 bool
-checkflags(register dbref what, struct flgchkdat check)
+checkflags(dbref what, struct flgchkdat check)
 {
     if (check.fortype && (Typeof(what) != check.istype))
         return (0);
@@ -1805,8 +1805,8 @@ checkflags(register dbref what, struct flgchkdat check)
 
 
 void
-display_objinfo(register dbref player, register dbref obj,
-                register char output_type)
+display_objinfo(dbref player, dbref obj,
+                char output_type)
 {
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
@@ -1873,13 +1873,13 @@ display_objinfo(register dbref player, register dbref obj,
 
 
 void
-do_find(register dbref player, register const char *name, const char *flags)
+do_find(dbref player, const char *name, const char *flags)
 {
-    register char output_type;
+    char output_type;
     char buf[BUFFER_LEN + 2];
-    register int total = 0;
+    int total = 0;
     struct flgchkdat check;
-    register dbref i;
+    dbref i;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -1910,12 +1910,12 @@ do_find(register dbref player, register const char *name, const char *flags)
 
 
 void
-do_owned(register dbref player, const char *name, const char *flags)
+do_owned(dbref player, const char *name, const char *flags)
 {
-    register char output_type;
-    register dbref victim, i;
+    char output_type;
+    dbref victim, i;
     struct flgchkdat check;
-    register int total = 0;
+    int total = 0;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -1950,11 +1950,11 @@ do_owned(register dbref player, const char *name, const char *flags)
 }
 
 void
-do_trace(int descr, register dbref player, const char *name, register int depth)
+do_trace(int descr, dbref player, const char *name, int depth)
 {
     struct match_data md;
-    register dbref thing;
-    register int i;
+    dbref thing;
+    int i;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -1983,15 +1983,15 @@ do_trace(int descr, register dbref player, const char *name, register int depth)
 }
 
 void
-do_entrances(int descr, register dbref player, const char *name,
+do_entrances(int descr, dbref player, const char *name,
              const char *flags)
 {
-    register dbref i, thing;
+    dbref i, thing;
     dbref j;
     struct match_data md;
     struct flgchkdat check;
-    register int total = 0;
-    register char output_type;
+    int total = 0;
+    char output_type;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -2069,15 +2069,15 @@ do_entrances(int descr, register dbref player, const char *name,
 }
 
 void
-do_contents(int descr, register dbref player, const char *name,
+do_contents(int descr, dbref player, const char *name,
             const char *flags)
 {
     dbref thing;
-    register dbref i;
+    dbref i;
     struct match_data md;
     struct flgchkdat check;
-    register int total = 0;
-    register char output_type;
+    int total = 0;
+    char output_type;
 
     if (Guest(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
@@ -2143,7 +2143,7 @@ static bool
 exit_matches_name(dbref exit, const char *name)
 {
     char buf[BUFFER_LEN];
-    register char *ptr, *ptr2;
+    char *ptr, *ptr2;
     
     if (!OkObj(exit)) return 0;
     if (!DBFETCH(exit)->sp.exit.ndest) return 0;
@@ -2167,7 +2167,7 @@ exit_matches_name(dbref exit, const char *name)
 void
 exit_match_exists(dbref player, dbref obj, const char *name)
 {
-    register dbref exit;
+    dbref exit;
     char buf[BUFFER_LEN];
 
     exit = DBFETCH(obj)->exits;
@@ -2184,9 +2184,9 @@ exit_match_exists(dbref player, dbref obj, const char *name)
 void
 do_sweep(int descr, dbref player, const char *name)
 {
-    register dbref ref;
+    dbref ref;
     dbref thing, loc;
-    register bool flag, tellflag;
+    bool flag, tellflag;
     struct match_data md;
     char buf[BUFFER_LEN];
 

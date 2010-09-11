@@ -60,7 +60,7 @@ macro_expansion(struct macrotable *node, const char *match)
     if (!node)
         return NULL;
     else {
-        register int value = string_compare(match, node->name);
+        int value = string_compare(match, node->name);
 
         if (value < 0)
             return macro_expansion(node->left, match);
@@ -93,7 +93,7 @@ new_macro(const char *name, const char *definition, dbref player)
 int
 grow_macro_tree(struct macrotable *node, struct macrotable *newmacro)
 {
-    register int value = strcmp(newmacro->name, node->name);
+    int value = strcmp(newmacro->name, node->name);
 
     if (!value)
         return 0;

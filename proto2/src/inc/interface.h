@@ -102,6 +102,22 @@ struct dfile_struct {       /* hinoserm */  /***********************************
 
 struct huinfo; /* from netresolve.h -hinoserm */
 
+#ifdef MCCP_ENABLED
+struct mccp {
+    unsigned char           *buf;           /* hinoserm: Used for buffering unsent compressed data */
+    z_stream                *z;             /* hinoserm: Used for MCCP Compression; compressed data stream */
+    short                    version;       /* hinoserm: Used to indicate if compressing; 1 for v1, 2 for v2, 0 for no */
+};
+#endif /* MCCP_ENABLED */
+
+struct telopt {
+    char                    *sb_buf;        /* hinoserm: Used by SD request/response system, init to NULL */
+    size_t                   sb_buf_len;    /* hinoserm: Used by SD request/response system, init to 0 */
+    char                    *termtype;      /* hinoserm: Indicates the client's TERMINAL TYPE info, or NULL */
+    signed char              mccp;          /* hinoserm: Indicates that client is able/willing to compress */
+};
+
+
 struct descriptor_data {
     int                      descriptor;    /* Descriptor number */
     int                      connected;     /* Connected as a player? */
@@ -153,14 +169,9 @@ struct descriptor_data {
     struct dfile_struct     *dfile;         /* hinoserm: Used by descr_sendfile and newhttpd */
 #endif
 #ifdef MCCP_ENABLED
-    unsigned char           *out_compress_buf;
-    z_stream                *out_compress;  /* hinoserm: Used for MCCP Compression; compressed data stream */
-    short                    compressing;   /* hinoserm: Used to indicate if compressing; 1 for v1, 2 for v2, 0 for no */
-    short                    mccp_ready;    /* hinoserm: Used to indicate that client is willing to compress */
+    struct mccp             *mccp;
 #endif
-    char                    *telopt_sb_buf;
-    size_t                   telopt_sb_buf_len;
-    char                    *telopt_termtype;
+    struct telopt            telopt;
 };
 
 #define DF_HTML          0x1 /* Connected to the internal WEB server. -- UNIMPLEMENTED */
@@ -275,7 +286,7 @@ extern char *phost(int c);
 extern char *puser(int c);
 extern char *pipnum(int c);
 extern char *pport(int c);
-extern void make_nonblocking(register int s);
+extern void make_nonblocking(int s);
 extern char *time_format_2(time_t dt);
 
 extern void pboot(int c);
@@ -321,7 +332,7 @@ extern int str2ip(const char *ipstr);
 extern int index_descr(int index);
 extern void close_sockets(const char *msg);
 #ifdef IGNORE_SUPPORT
-extern char ignorance(register dbref src, dbref tgt);
+extern char ignorance(dbref src, dbref tgt);
 extern void init_ignore(dbref tgt);
 #endif
 #if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)

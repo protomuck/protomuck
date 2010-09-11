@@ -1023,7 +1023,7 @@ extern struct shared_string *alloc_prog_string(const char *);
 #endif
 
 extern dbref new_object(dbref player);	/* return a new object */
-extern dbref new_program(register dbref player, register const char *name); /* return a new MUF program type. */
+extern dbref new_program(dbref player, const char *name); /* return a new MUF program type. */
 extern dbref getref(FILE *);	/* Read a database reference from a file. */
 extern void putref(FILE *, dbref);	/* Write one ref to the file */
 extern struct boolexp *getboolexp(FILE *);	/* get a boolexp */

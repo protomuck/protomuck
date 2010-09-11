@@ -1208,14 +1208,14 @@ interp_set_depth(struct frame *fr)
 struct inst *
 interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 {
-    register struct inst *pc;
-    register int atop;
-    register struct inst *arg;
-    register struct inst *temp1;
-    register struct inst *temp2;
-    register struct stack_addr *sys;
-    register int instr_count;
-    register int stop;
+    struct inst *pc;
+    int atop;
+    struct inst *arg;
+    struct inst *temp1;
+    struct inst *temp2;
+    struct stack_addr *sys;
+    int instr_count;
+    int stop;
     int i, tmp, writeonly, mlev;
     static struct inst retval;
     char dbuf[BUFFER_LEN];
@@ -1271,7 +1271,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 
         /* if there's an interrupt in queue && it hasn't had it's return set yet... */
         if (fr->ainttop && !fr->ainttop->ret) {
-            register struct muf_ainterrupt *a = fr->ainttop;
+            struct muf_ainterrupt *a = fr->ainttop;
 
             sys[stop].progref = program;
             sys[stop++].offset = pc; /* create return point for EXIT */

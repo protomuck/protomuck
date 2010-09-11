@@ -4065,7 +4065,7 @@ object(const char *token)
 int
 label(const char *token)
 {
-    register int i = strlen(token);
+    int i = strlen(token);
 
     return (i > 1 && token[i - 1] == ':');
 }

@@ -111,6 +111,10 @@ bool mccp_process_compressed(struct descriptor_data *d);
 #define UMIN(a,b) ((a)<(b)?(a):(b))
 #endif
 
+void telopt_init(struct telopt *t);
+void telopt_clean(struct telopt *t);
+
+
 #if defined(DESCRFILE_SUPPORT) || defined(NEWHTTPD)
 long descr_sendfile(struct descriptor_data *d, int start, int stop,
                     const char *filename, int pid);
@@ -1624,20 +1628,19 @@ sockwrite(struct descriptor_data *d, const char *str, int len)
              has the same function parameters as sockwrite().  -Hinoserm
     */
 #ifdef MCCP_ENABLED
-    if (d && d->out_compress)
-    {
-        d->out_compress->next_in = (unsigned char *)str;
-        d->out_compress->avail_in = len;
+    if (d->mccp) {
+        d->mccp->z->next_in = (unsigned char *)str;
+        d->mccp->z->avail_in = len;
 
         //while (d->out_compress->avail_in)
         //{
-			d->out_compress->avail_out = COMPRESS_BUF_SIZE - (d->out_compress->next_out - d->out_compress_buf);
+			d->mccp->z->avail_out = COMPRESS_BUF_SIZE - (d->mccp->z->next_out - d->mccp->buf);
 
-            if (d->out_compress->avail_out)
+            if (d->mccp->z->avail_out)
 
             {
 
-                if (deflate(d->out_compress, Z_SYNC_FLUSH) != Z_OK)
+                if (deflate(d->mccp->z, Z_SYNC_FLUSH) != Z_OK)
 
                     return -1;
 
@@ -1646,7 +1649,7 @@ sockwrite(struct descriptor_data *d, const char *str, int len)
             mccp_process_compressed(d);
         //}
 
-        return len - d->out_compress->avail_in;
+        return len - d->mccp->z->avail_in;
 
     } else
 #endif /* MCCP_ENABLED */
@@ -1858,7 +1861,7 @@ shovechars(void)
             if (d->output.head) /* Prepare write pool */
                 FD_SET(d->descriptor, &output_set);
 #ifdef MCCP_ENABLED /* If MCCP is enabled, and data is waiting to be sent out of the compression buffer */
-            else if (d->out_compress && COMPRESS_BUF_SIZE - d->out_compress->avail_out)
+            else if (d->mccp && COMPRESS_BUF_SIZE - d->mccp->z->avail_out)
                 FD_SET(d->descriptor, &output_set);
 #endif
 #ifdef USE_SSL
@@ -2888,10 +2891,7 @@ shutdownsock(struct descriptor_data *d)
 #endif /* DESCRFILE_SUPPORT */
     host_delete(d->hu);
 
-	if (d->telopt_sb_buf)
-		free((char *)d->telopt_sb_buf);
-	if (d->telopt_termtype)
-		free((char *)d->telopt_termtype);
+	telopt_clean(&d->telopt);
 
     FREE(d);
     ndescriptors--;
@@ -2939,15 +2939,10 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     MALLOC(d, struct descriptor_data, 1);
 
 #ifdef MCCP_ENABLED
-    d->out_compress = NULL;
-    d->out_compress_buf = NULL;
-    d->compressing = 0;
-    d->mccp_ready = 0;
+    d->mccp = NULL;
 #endif /* MCCP_ENABLED */
 
-    d->telopt_sb_buf_len = 0;
-    d->telopt_sb_buf = NULL;
-    d->telopt_termtype = NULL;
+    telopt_init(&d->telopt);
 
     d->descriptor = s;
     d->connected = 0;
@@ -3243,7 +3238,7 @@ process_output(struct descriptor_data *d)
 }
 
 void
-make_nonblocking(register int s)
+make_nonblocking(int s)
 {
 #if !defined(O_NONBLOCK) || defined(ULTRIX) /* POSIX ME HARDER */
 # ifdef FNDELAY                 /* SUN OS */
@@ -3456,10 +3451,10 @@ process_input(struct descriptor_data *d)
                     d->inIAC = 0;
                     break;
                 case '\372':   /* SB */ /* Go ahead. Treat as NOP */
-					if (d->telopt_sb_buf)
-						free((char *)d->telopt_sb_buf);
-					d->telopt_sb_buf = (char *)malloc(TELOPT_MAX_BUF_LEN);
-					d->telopt_sb_buf_len = 0;
+					if (d->telopt.sb_buf)
+						free((void *)d->telopt.sb_buf);
+					d->telopt.sb_buf = (char *)malloc(TELOPT_MAX_BUF_LEN);
+					d->telopt.sb_buf_len = 0;
 
                     d->inIAC = 5;
                     break;
@@ -3487,42 +3482,46 @@ process_input(struct descriptor_data *d)
             }
 		} else if (d->inIAC == 5) {
 			if (*q == '\xF0' && *(q-1) == '\xFF') {
-				d->telopt_sb_buf[d->telopt_sb_buf_len-1] = '\0';
+				d->telopt.sb_buf[d->telopt.sb_buf_len-1] = '\0';
 
 				/* Begin processing the TELOPT data buffer */
-				if (d->telopt_sb_buf_len) {
-					switch (d->telopt_sb_buf[0]) {
+				if (d->telopt.sb_buf_len) {
+					switch (d->telopt.sb_buf[0]) {
 						case TELOPT_TERMTYPE:
-							if (d->telopt_sb_buf_len < 2) /* At this point, a valid request would have at least two bytes in it. */
+							if (d->telopt.sb_buf_len < 2) /* At this point, a valid request would have at least two bytes in it. */
 								break;
 
-							if (d->telopt_sb_buf[1] == 1) {
+							if (d->telopt.sb_buf[1] == 1) {
                                 /* 
                                    The client requested our termtype.  Send it.
                                    It would not be proper to send our version number here.
                                 */
 								queue_write(d, "\xFF\xFA\x00ProtoMUCK\xFF\xF0", 14);
-							} else if (!d->telopt_sb_buf[1]) {
-								if (d->telopt_termtype)
-									free((char *) d->telopt_termtype);
+							} else if (!d->telopt.sb_buf[1]) {
+								if (d->telopt.termtype)
+									free((void *) d->telopt.termtype);
 
-                                if (d->telopt_sb_buf_len < 3) {
+                                if (d->telopt.sb_buf_len < 3) {
                                     /* If the other end sent a blank termtype, don't bother allocating it. */
-                                    d->telopt_termtype = NULL;
+                                    d->telopt.termtype = NULL;
                                 } else {
-								    d->telopt_termtype = (char *)malloc(sizeof(char) * (d->telopt_sb_buf_len-1));
+								    d->telopt.termtype = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
 
                                     /* Move the data into the termtype string, making sure to add a null at the end. */
-                                    memcpy(d->telopt_termtype, d->telopt_sb_buf + 2, d->telopt_sb_buf_len-2);
-								    d->telopt_termtype[d->telopt_sb_buf_len-2] = '\0';
+                                    memcpy(d->telopt.termtype, d->telopt.sb_buf + 2, d->telopt.sb_buf_len-2);
+								    d->telopt.termtype[d->telopt.sb_buf_len-2] = '\0';
 #ifdef MCCP_ENABLED
                                     /* Due to SimpleMU, we need to determine the termtype before we can enable MCCP. */
-								    if (d->mccp_ready && !d->compressing)
-									    mccp_start(d, d->mccp_ready);
+								    if (d->telopt.mccp && !d->mccp)
+									    mccp_start(d, d->telopt.mccp);
 #endif
 
                                     /* log_status("TELOPT_TERMTYPE(%d): %s\r\n", d->descriptor, d->telopt_termtype); */
                                 }
+
+                                free((void *)d->telopt.sb_buf); /* don't need the buffer anymore */
+                                d->telopt.sb_buf = NULL;
+                                d->telopt.sb_buf_len = 0;
 							} /* else { */
 							  /* An unsupported request/response happened */
                               /* This is where we would implement other sub-negotiation types. */
@@ -3532,8 +3531,8 @@ process_input(struct descriptor_data *d)
 
 				d->inIAC = 0;
 			} else {
-				if (d->telopt_sb_buf_len < TELOPT_MAX_BUF_LEN)
-					d->telopt_sb_buf[d->telopt_sb_buf_len++] = *q;
+                if (d->telopt.sb_buf_len < TELOPT_MAX_BUF_LEN)
+					d->telopt.sb_buf[d->telopt.sb_buf_len++] = *q;
 				else
 					d->inIAC = 0;
             }
@@ -3550,11 +3549,11 @@ process_input(struct descriptor_data *d)
 #ifdef MCCP_ENABLED
 			if (*q == TELOPT_MCCP2) {        /* TELOPT_COMPRESS2 */
                 if (*(q-1) == '\375') {      /* Start MCCP Compression (v2) */
-                    d->mccp_ready = 2;
+                    d->telopt.mccp = 2;
 					
                     /* Thanks to SimpleMU, we're required to know the termtype before we can enable MCCP. */
-					if (d->telopt_termtype && !d->compressing)
-						mccp_start(d, d->mccp_ready);
+					if (d->telopt.termtype && !d->mccp)
+						mccp_start(d, d->telopt.mccp);
 				} else if (*(q-1) == '\376') /* End MCCP Compression (v2) */
                     mccp_end(d);
 			} else {
@@ -4360,7 +4359,7 @@ do_dinfo(dbref player, const char *arg)
         /* need to print out the flags */
         anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
 
-	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s", (d->telopt_termtype ? d->telopt_termtype : "<unknown>"));
+	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s", (d->telopt.termtype ? d->telopt.termtype : "<unknown>"));
 
     if (Arch(player))
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
@@ -4533,11 +4532,11 @@ void
 dump_users(struct descriptor_data *d, char *user)
 {
     struct descriptor_data *dlist;
-    register char wizwho = (!tp_mortalwho);
+    char wizwho = (!tp_mortalwho);
     short players = 0;
     short idleplyrs = 0;
     static short player_max = 0;
-    register const char *p;
+    const char *p;
     char buf[BUFFER_LEN], dobuf[BUFFER_LEN];
     char plyrbuf[BUFFER_LEN], typbuf[BUFFER_LEN];
     char tbuf[BUFFER_LEN], tbuf2[BUFFER_LEN];
@@ -4805,7 +4804,7 @@ pdump_who_users(int c, char *user)
 char *
 time_format_1(time_t dt)
 {
-    register struct tm *delta;
+    struct tm *delta;
     static char buf[64];
 
     delta = gmtime(&dt);
@@ -4821,7 +4820,7 @@ time_format_1(time_t dt)
 char *
 time_format_2(time_t dt)
 {
-    register struct tm *delta;
+    struct tm *delta;
     static char buf[64];
 
     delta = gmtime(&dt);
@@ -6240,27 +6239,14 @@ help_user(struct descriptor_data *d)
     }
 }
 
-#ifdef WIN_VC
-void
-gettimeofday(struct timeval *tval, void *tzone)
-{
-    if (!tval)
-        return;
-
-    tval->tv_sec = (long)time(NULL);
-    tval->tv_usec = 0;
-
-}
-#endif
-
 #ifdef IGNORE_SUPPORT
 /* Alynna: in-server ignore support */
 void
 init_ignore(dbref tgt)
 {
-    register struct object *pobj = DBFETCH(tgt);
-    register const char *rawstr;
-    register short i = 0;
+    struct object *pobj = DBFETCH(tgt);
+    const char *rawstr;
+    int i = 0;
 
     if ((rawstr = get_property_class(tgt, "/@/ignore"))) {
         for (; *rawstr && isspace(*rawstr); rawstr++) ;
@@ -6294,10 +6280,10 @@ init_ignore(dbref tgt)
 }
 
 char                            /* char, for when you only need a byte's worth. */
-ignorance(register dbref src, dbref tgt)
+ignorance(dbref src, dbref tgt)
 {
-    register struct object *tobj = DBFETCH(tgt);
-    register short i;
+    struct object *tobj = DBFETCH(tgt);
+    int i;
 
     /* We leave ignorance negatively if the dbref is invalid or the source is a wizard or theirselves. 
        This catches 99.999% of the cases where the system calls something through a standard player
@@ -6334,139 +6320,124 @@ ignorance(register dbref src, dbref tgt)
 
 #ifdef MCCP_ENABLED
 
-void *zlib_alloc(void *opaque, unsigned int items, unsigned int size)
-{
-	return calloc(items, size);
-}
-
-
-void zlib_free(void *opaque, void *address) 
-{
-	free(address);
-}
-
-bool
-mccp_process_compressed(struct descriptor_data *d)
-{
-    int length;
-
-    if (!d->out_compress)
-        return TRUE;
-
-    // Try to write out some data..
-    length = COMPRESS_BUF_SIZE - d->out_compress->avail_out;
-    if (length > 0)
-    {
-		int nWrite = 0;
-          
-        if ((nWrite = writesocket(d->descriptor, (const char *)d->out_compress_buf, UMIN(length, 4096))) < 0) {
-            if (errnosocket == EWOULDBLOCK)
-				nWrite = 0;
-			else
-                return 0;
-        }
-
-        if (nWrite) {
-            if (nWrite == length) {
-                d->out_compress->next_out = d->out_compress_buf;
-                d->out_compress->avail_out = COMPRESS_BUF_SIZE;
-            } else {
-                memmove(d->out_compress_buf, d->out_compress_buf+nWrite, (length-nWrite));
-                d->out_compress->next_out = d->out_compress_buf + (length-nWrite);
-                d->out_compress->avail_out += nWrite;
-
-            }
-        }
-
-    }
-
-    return 1;
-}
-
 void
 do_compress(dbref player, int descr, const char *arg)
 {
     struct descriptor_data *d = descrdata_by_descr(descr);   
 
     if (!strcmp(arg, "off")) {
-        if (d->compressing) {
+        if (d->mccp) {
             mccp_end(d);
             queue_ansi(d, "MCCP Compression Ended.\r\n");
         } else
             queue_ansi(d, "You do not have MCCP turned on!\r\n");
     } else if (!strcmp(arg, "on")) {
-        if (d->compressing) {
+        if (d->mccp) {
             queue_ansi(d, "You already have MCCP turned on!\r\n");
-        } else if (!d->mccp_ready) {
+        } else if (!d->telopt.mccp) {
             queue_ansi(d, "Your client does not appear to support MCCP.\r\n");
         } else {
-            mccp_start(d, d->mccp_ready);
+            mccp_start(d, d->telopt.mccp);
             queue_ansi(d, "MCCP Compression Started.\r\n");
         }                      
     } else
         queue_ansi(d, "Compression Help Goes Here\r\n");
 }
 
+
+bool
+mccp_process_compressed(struct descriptor_data *d)
+{
+    int length;
+
+    if (!d->mccp)
+        return TRUE;
+    
+    // Try to write out some data..
+    length = COMPRESS_BUF_SIZE - d->mccp->z->avail_out;
+    if (length > 0) {
+        int nWrite = 0;
+      
+        if ((nWrite = writesocket(d->descriptor, (const char *)d->mccp->buf, UMIN(length, 4096))) < 0) {
+            if (errnosocket == EWOULDBLOCK)
+                nWrite = 0;
+            else
+                return 0;
+        }
+
+        if (nWrite) {
+            if (nWrite == length) {
+                d->mccp->z->next_out = d->mccp->buf;
+                d->mccp->z->avail_out = COMPRESS_BUF_SIZE;
+            } else {
+                memmove(d->mccp->buf, d->mccp->buf + nWrite, (length-nWrite));
+                d->mccp->z->next_out = d->mccp->buf + (length-nWrite);
+                d->mccp->z->avail_out += nWrite;
+            }
+        }
+    }
+
+    return 1;
+}
+
 void
 mccp_start(struct descriptor_data *d, int version)
 {
     z_stream *s;
-	int opt = 0;
-
-	d->out_compress = NULL;
-    d->out_compress_buf = NULL;
-    d->compressing = 0;
-
-    if (OkObj(d->player))
-        if (get_property(d->player, "/_Prefs/NoMCCP"))
-            return;
-
+    struct mccp *m;
+    int opt = 0;
+    
+    m = (struct mccp *) malloc(sizeof(struct mccp));
+    m->z = NULL;
+    m->buf = NULL;
+    m->version = 0;
+    
     /* log_status("MCCP_START(%d)\r\n", d->descriptor); */
-	opt = (d->telopt_termtype && !string_compare(d->telopt_termtype, "simplemu"));
-	if (opt)
-		setsockopt(d->descriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
+    opt = (d->telopt.termtype && !string_compare(d->telopt.termtype, "simplemu"));
+    if (opt)
+        setsockopt(d->descriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
 
 	if (version == 1)
         sockwrite(d, "\377\372\125\373\360", 5); /* IAC SB COMPRESS WILL SE (MCCP v1) */
 	else if (version == 2) 
-		sockwrite(d, "\377\372\126\377\360", 5); /* IAC SB COMPRESS2 IAC SE (MCCP v2) */ //ff fa 56 ff f0
-	else
-		return;
+        sockwrite(d, "\377\372\126\377\360", 5); /* IAC SB COMPRESS2 IAC SE (MCCP v2) */ //ff fa 56 ff f0
 
-	if (opt)  {
-		//This is a temporary fix for a bug related to SimpleMU.
+    if (opt)  {
+        //This is a temporary fix for a bug related to SimpleMU.
 #ifdef WIN32
-		Sleep(20); //20ms
+        Sleep(20); //20ms
 #else
-		fsync(d->descriptor);
-                usleep(20000); //20ms
+        fsync(d->descriptor);
+        usleep(20000); //20ms
 #endif
-	}
+    }
 
 
     s = (z_stream *) malloc(sizeof(z_stream));
-    d->out_compress_buf = (unsigned char *) malloc(sizeof(unsigned char) * COMPRESS_BUF_SIZE);
+    m->buf = (unsigned char *) malloc(sizeof(unsigned char) * COMPRESS_BUF_SIZE);
 
     s->next_in = NULL;
     s->avail_in = 0;
 
-    s->next_out = d->out_compress_buf;
+    s->next_out = m->buf;
     s->avail_out = COMPRESS_BUF_SIZE;
 
-    s->zalloc = zlib_alloc;
-    s->zfree  = zlib_free;
+    s->zalloc = NULL;
+    s->zfree  = NULL;
     s->opaque = NULL;
 
-    if (deflateInit(s, 9) != Z_OK)
-    {
-        free((void *)d->out_compress_buf);
+    if (deflateInit(s, 9) != Z_OK) {
+        free((void *)m->buf);
+        free((void *)m);
         free((void *)s);
-        d->out_compress_buf = NULL;
+        d->mccp = NULL;
+
         return;
     }
 
-    d->compressing = version;
-    d->out_compress = s;
+    m->version = version;
+    m->z = s;
+    d->mccp = m;
 
     DR_RAW_ADD_FLAGS(d, DF_COMPRESS);
 
@@ -6481,29 +6452,51 @@ mccp_end(struct descriptor_data *d)
 
     /* log_status("MCCP_END(%d)\n", d->descriptor); */
 
-    if (!d->out_compress)
+    if (!d->mccp)
         return;
 
-    d->out_compress->avail_in = 0;
-    d->out_compress->next_in = dummy;
+    d->mccp->z->avail_in = 0;
+    d->mccp->z->next_in = dummy;
 
     /* Blob says I should handle this differently.  I'll look into it later, since it works currently.  -Hinoserm */
-    if (deflate(d->out_compress, Z_FINISH) == Z_STREAM_END)
+    if (deflate(d->mccp->z, Z_FINISH) == Z_STREAM_END)
         mccp_process_compressed(d);
 
-    deflateEnd(d->out_compress);
-    free((void *)d->out_compress_buf);
-    free((void *)d->out_compress);
+    deflateEnd(d->mccp->z);
+    free((void *)d->mccp->buf);
+    free((void *)d->mccp->z);
+    free((void *)d->mccp);
 
-    d->out_compress = NULL;
-    d->out_compress_buf = NULL;
-    d->compressing = 0;
+    d->mccp = NULL;
 
     DR_RAW_REM_FLAGS(d, DF_COMPRESS);
-
 
     return;
 
 }
+
+void
+telopt_init(struct telopt *t)
+{
+    t->mccp = 0;
+    t->sb_buf = NULL;
+    t->sb_buf_len = 0;
+    t->termtype = NULL;
+}
+
+void
+telopt_clean(struct telopt *t)
+{
+    t->mccp = 0;
+    if (t->sb_buf)
+        free((void *)t->sb_buf);
+    t->sb_buf = NULL;
+    t->sb_buf_len = 0;
+
+    if (t->termtype)
+        free((void *)t->termtype);
+    t->termtype = NULL;
+}
+
 
 #endif
