@@ -205,7 +205,7 @@ static PropPtr
 insert(char *key, PropPtr *avl)
 {
     PropPtr ret;
-    register PropPtr p = *avl;
+    PropPtr p = *avl;
 
     if (p) {
         if (Comparator(key, PropName(p)) >= 0) {

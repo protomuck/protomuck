@@ -698,9 +698,9 @@ host_request(struct hostinfo *h, unsigned short lport, unsigned short prt)
 struct huinfo *
 host_getinfo(int a, unsigned short lport, unsigned short prt)
 {
-    register struct hostinfo *h;
-    register struct husrinfo *u;
-    register struct huinfo *hu = (struct huinfo *) malloc(sizeof(struct huinfo));
+    struct hostinfo *h;
+    struct husrinfo *u;
+    struct huinfo *hu = (struct huinfo *) malloc(sizeof(struct huinfo));
 
     prt = ntohs(prt);
     a = ntohl(a);
@@ -772,9 +772,9 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
 struct huinfo *
 host_getinfo6(struct in6_addr a6, unsigned short lport, unsigned short prt)
 {
-    register struct hostinfo *h;
-    register struct husrinfo *u;
-    register struct huinfo *hu =
+    struct hostinfo *h;
+    struct husrinfo *u;
+    struct huinfo *hu =
         (struct huinfo *) malloc(sizeof(struct huinfo));
 
     prt = ntohs(prt);
@@ -985,7 +985,7 @@ unsigned long
 host_hostdb_size(void)
 {
     struct hostinfo *h;
-    register unsigned long hsize =
+    unsigned long hsize =
         ((sizeof(struct hostinfo) + 1) * hostdb_count) + sizeof(hostdb_count) +
         sizeof(hostdb_flushed) + sizeof(hostdb_flushtime) +
         sizeof(hostdb_flushplyr);
@@ -1003,7 +1003,7 @@ unsigned long
 host_userdb_size(void)
 {
     struct husrinfo *u;
-    register unsigned long usize =
+    unsigned long usize =
         ((sizeof(struct husrinfo) + 1) * userdb_count) + sizeof(userdb_count);
     /* The +1 above is because each u->user string has a \0 byte, */
     /*  which strlen won't see.  Keeps the add instruction out of */
@@ -1021,7 +1021,7 @@ host_userdb_size(void)
 char *
 time_format_3(time_t dt)
 {
-    register struct tm *delta;
+    struct tm *delta;
     static char buf[64];
 
     if (!dt)
@@ -1095,7 +1095,7 @@ do_hostcache(dbref player, const char *args)
         /* Sure is non-informative.  Hope to eventually change that. */
         anotify_fmt(player, CSUCC "Done.");
     } else if (string_prefix(arg1, "#fl")) {
-        register bool doall = (!strcasecmp(arg2, "all"));
+        bool doall = (!strcasecmp(arg2, "all"));
 
         hostdb_flushed = 0;
         hostdb_flushplyr = player;
@@ -1119,8 +1119,8 @@ do_hostcache(dbref player, const char *args)
                     (hostdb_flushed == 1) ? "entry" : "entries");
     } else if (string_prefix(arg1, "#sh")) {
         struct hostinfo **harr;
-        register unsigned long i = 0;
-        register unsigned long count = 0;
+        unsigned long i = 0;
+        unsigned long count = 0;
 
         if (strcasecmp(arg2, "all")) {
             count = atoi(arg2);

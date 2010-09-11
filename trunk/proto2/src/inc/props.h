@@ -138,8 +138,8 @@ extern PropPtr new_prop(PropPtr *l, char *path);
 extern PropPtr delete_prop(PropPtr *list, char *name);
 extern int size_proplist(PropPtr avl);
 
-extern void set_property_nofetch(dbref object, register const char *pname, PData *dat, register bool pure);
-extern void set_property(dbref object, register const char *pname, PData *dat);
+extern void set_property_nofetch(dbref object, const char *pname, PData *dat, bool pure);
+extern void set_property(dbref object, const char *pname, PData *dat);
 
 extern void add_prop_nofetch(dbref player, const char *type, const char *pclass,
                              int value);

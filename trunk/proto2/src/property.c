@@ -31,11 +31,11 @@ extern const char *old_uncompress(const char *);
 #define fltostr(x,y) (sprintf(x, "%.15g", y) ? x : x)
 
 void
-set_property_nofetch(dbref object, register const char *pname, PData * dat,
-                     register bool pure)
+set_property_nofetch(dbref object, const char *pname, PData * dat,
+                     bool pure)
 {
     char buf[BUFFER_LEN];
-    register char *n;
+    char *n;
     PropPtr p;
 
     /* Make sure that we are passed a valid property name */
@@ -155,7 +155,7 @@ set_property_nofetch(dbref object, register const char *pname, PData * dat,
 
 
 void
-set_property(dbref object, register const char *pname, PData * dat)
+set_property(dbref object, const char *pname, PData * dat)
 {
 #ifdef DISKBASE
     fetchprops(object);

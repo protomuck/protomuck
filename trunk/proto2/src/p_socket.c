@@ -534,7 +534,7 @@ void
 prim_nbsockopen(PRIM_PROTOTYPE)
 {
     struct inst *result = NULL;
-    register int mysock = 0;
+    int mysock = 0;
     struct sockaddr_in name;
     struct hostent *myhost;
     char myresult[255];
@@ -635,7 +635,7 @@ prim_nbsock6open(PRIM_PROTOTYPE)
     abort_interp("IPv6 not enabled.  Recompile, reformat, reinstall.");
 #else
     struct inst *result = NULL;
-    register int mysock = 0;
+    int mysock = 0;
     struct sockaddr_in6 name;
     struct hostent *myhost;
     char myresult[255];

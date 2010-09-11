@@ -135,7 +135,7 @@ create_player(dbref creator, const char *name, const char *password)
 {
     char buf[BUFFER_LEN];
 
-    register struct object *newp;
+    struct object *newp;
 
     dbref player;
 

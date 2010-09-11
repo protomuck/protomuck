@@ -1229,8 +1229,8 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
 	temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("TERMTYPE");
     temp2.type = PROG_STRING;
-	if (d->telopt_termtype)
-		temp2.data.string = alloc_prog_string(d->telopt_termtype);
+	if (d->telopt.termtype)
+		temp2.data.string = alloc_prog_string(d->telopt.termtype);
 	else
 		temp2.data.string = alloc_prog_string("<unknown>");
     array_setitem(&nw, &temp1, &temp2);

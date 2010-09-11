@@ -12,8 +12,8 @@
 #include "reg.h"
 
 bool
-can_link_to(register dbref who, object_flag_type what_type,
-            register dbref where)
+can_link_to(dbref who, object_flag_type what_type,
+            dbref where)
 {
     if (where == HOME)
         return 1;
@@ -62,7 +62,7 @@ can_link_to(register dbref who, object_flag_type what_type,
 }
 
 bool
-can_link(register dbref who, register dbref what)
+can_link(dbref who, dbref what)
 {
     return (controls(who, what) || ((Typeof(what) == TYPE_EXIT)
                                     && DBFETCH(what)->sp.exit.ndest == 0));
@@ -75,9 +75,9 @@ can_link(register dbref who, register dbref what)
  */
 
 bool
-could_doit(int descr, register dbref player, register dbref thing)
+could_doit(int descr, dbref player, dbref thing)
 {
-    register dbref source, dest, owner;
+    dbref source, dest, owner;
 
     if (Typeof(thing) == TYPE_EXIT) {
         if (DBFETCH(thing)->sp.exit.ndest == 0) {
@@ -146,10 +146,10 @@ could_doit(int descr, register dbref player, register dbref thing)
 
 
 bool
-could_doit2(int descr, register dbref player, register dbref thing, char *prop,
-            register bool tryprog)
+could_doit2(int descr, dbref player, dbref thing, char *prop,
+            bool tryprog)
 {
-    register dbref source, dest, owner;
+    dbref source, dest, owner;
 
     if (Typeof(thing) == TYPE_EXIT) {
         if (DBFETCH(thing)->sp.exit.ndest == 0) {
@@ -218,10 +218,10 @@ could_doit2(int descr, register dbref player, register dbref thing, char *prop,
 
 
 bool
-test_lock(register int descr, register dbref player, register dbref thing,
-          register const char *lockprop)
+test_lock(int descr, dbref player, dbref thing,
+          const char *lockprop)
 {
-    register struct boolexp *lokptr;
+    struct boolexp *lokptr;
 
     lokptr = get_property_lock(thing, lockprop);
     return (eval_boolexp(descr, player, lokptr, thing));
@@ -229,10 +229,10 @@ test_lock(register int descr, register dbref player, register dbref thing,
 
 
 bool
-test_lock_false_default(register int descr, register dbref player,
-                        register dbref thing, register const char *lockprop)
+test_lock_false_default(int descr, dbref player,
+                        dbref thing, const char *lockprop)
 {
-    register struct boolexp *lok = get_property_lock(thing, lockprop);
+    struct boolexp *lok = get_property_lock(thing, lockprop);
 
     if (lok == TRUE_BOOLEXP)
         return 0;
@@ -242,10 +242,10 @@ test_lock_false_default(register int descr, register dbref player,
 
 
 bool
-can_doit(int descr, register dbref player, register dbref thing,
+can_doit(int descr, dbref player, dbref thing,
          const char *default_fail_msg)
 {
-    register dbref loc;
+    dbref loc;
 
     if ((loc = getloc(player)) == NOTHING)
         return 0;
@@ -294,7 +294,7 @@ can_doit(int descr, register dbref player, register dbref thing,
 }
 
 bool
-can_see(register dbref player, register dbref thing, register bool can_see_loc)
+can_see(dbref player, dbref thing, bool can_see_loc)
 {
     if (!OkObj(player) || !OkObj(thing))
         return 0;
@@ -333,9 +333,9 @@ can_see(register dbref player, register dbref thing, register bool can_see_loc)
 #endif
 
 bool
-newcontrols(register dbref who, register dbref what, register bool true_c)
+newcontrols(dbref who, dbref what, bool true_c)
 {
-    register dbref index;
+    dbref index;
 
     /* No one controls invalid objects */
     /* if (what < 0 || what >= db_top)  -- not good enough */
@@ -425,7 +425,7 @@ newcontrols(register dbref who, register dbref what, register bool true_c)
  * Note that this function only handles flagset 1. restricted2 for flagset2
  */
 bool
-restricted(register dbref player, register dbref thing, object_flag_type flag)
+restricted(dbref player, dbref thing, object_flag_type flag)
 {
     switch (flag) {
         case ABODE:
@@ -496,7 +496,7 @@ restricted(register dbref player, register dbref thing, object_flag_type flag)
  * 0 indicates they can, 1 indicates they cannot. Only checks flagset2.
  */
 bool
-restricted2(register dbref player, register dbref thing, object_flag_type flag)
+restricted2(dbref player, dbref thing, object_flag_type flag)
 {
     switch (flag) {
         case F2GUEST:
@@ -541,7 +541,7 @@ restricted2(register dbref player, register dbref thing, object_flag_type flag)
  * it.
  */
 bool
-payfor(register dbref who, register int cost)
+payfor(dbref who, int cost)
 {
     if (who == NOTHING)
         return 1;
@@ -559,9 +559,9 @@ payfor(register dbref who, register int cost)
 }
 
 bool
-word_start(register const char *str, register const char let)
+word_start(const char *str, const char let)
 {
-    register bool chk;
+    bool chk;
 
     for (chk = 1; *str; str++) {
         if (chk && *str == let)
@@ -574,7 +574,7 @@ word_start(register const char *str, register const char let)
 }
 
 bool
-ok_name(register const char *name)
+ok_name(const char *name)
 {
     return (name
             && *name
@@ -593,9 +593,9 @@ ok_name(register const char *name)
 }
 
 bool
-ok_player_name(register const char *name)
+ok_player_name(const char *name)
 {
-    register const char *scan;
+    const char *scan;
 
     if (!ok_name(name) || strlen(name) > (size_t)PLAYER_NAME_LIMIT)
         return 0;
@@ -620,7 +620,7 @@ ok_player_name(register const char *name)
 }
 
 bool
-ok_password(register const char *password)
+ok_password(const char *password)
 {
     register const char *scan;
 

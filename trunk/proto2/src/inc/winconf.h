@@ -124,6 +124,4 @@
 
 #define HAVE_MYSQL_H 1
 #define SQL_SUPPORT  1
-#define MCCP_ENABLED 1
-
-#include <zlib.h>
+#define HAVE_ZLIB 1

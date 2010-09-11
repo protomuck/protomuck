@@ -45,10 +45,10 @@ extern struct mufevent *muf_event_peek(struct frame *fr);
 extern int muf_event_dequeue_descr(int descr, int sleeponly);
 
 /* for MUF "interrupts" */
-extern struct muf_interrupt *muf_interrupt_find(register struct frame *fr,
-                                                register const char *id);
+extern struct muf_interrupt *muf_interrupt_find(struct frame *fr,
+                                                const char *id);
 extern int muf_interrupt_check_byevent(struct frame *fr,
-                                       register const char *event,
+                                       const char *event,
                                        struct inst *val);
 extern void muf_interrupt_clean(struct frame *fr);
 extern int muf_interrupt_exit(struct frame *fr);
