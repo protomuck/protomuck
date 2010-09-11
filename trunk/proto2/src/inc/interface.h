@@ -25,9 +25,25 @@
 
 #define TELOPT_MAX_BUF_LEN 1024
 
-#define TELOPT_TERMTYPE 0x18
-#define TELOPT_MCCP1    0x55
-#define TELOPT_MCCP2    0x56
+#define TELOPT_IAC      '\xFF'
+
+#define TELOPT_DO       '\xFD'
+#define TELOPT_DONT     '\xFE'
+
+#define TELOPT_WILL     '\xFB'
+#define TELOPT_WONT     '\xFC'
+
+#define TELOPT_SB       '\xFA'
+#define TELOPT_SE       '\xF0'
+
+#define TELOPT_TERMTYPE '\x18'
+#define TELOPT_NAWS     '\x1F'
+#define TELOPT_MCCP1    '\x55'
+#define TELOPT_MCCP2    '\x56'
+
+#define TELOPT_MSSP     '\x46'
+#define TELOPT_MSSP_VAR '\x01'
+#define TELOPT_MSSP_VAL '\x02'
 
 #ifdef MCCP_ENABLED
 #define COMPRESS_BUF_SIZE 16384 /* This will use 16k for every descriptor that has MCCP enabled */
@@ -115,6 +131,8 @@ struct telopt {
     size_t                   sb_buf_len;    /* hinoserm: Used by SD request/response system, init to 0 */
     char                    *termtype;      /* hinoserm: Indicates the client's TERMINAL TYPE info, or NULL */
     signed char              mccp;          /* hinoserm: Indicates that client is able/willing to compress */
+    unsigned short           width;         /* hinoserm: for NAWS */
+    unsigned short           height;        /* hinoserm: for NAWS */
 };
 
 

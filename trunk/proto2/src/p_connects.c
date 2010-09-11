@@ -1288,6 +1288,22 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
+    temp1.type = PROG_STRING;
+    temp1.data.string = alloc_prog_string("WIDTH");
+    temp2.type = PROG_INTEGER;
+    curLen = (int) d->telopt.width;
+    temp2.data.number = curLen;
+    array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    CLEAR(&temp2);
+    temp1.type = PROG_STRING;
+    temp1.data.string = alloc_prog_string("HEIGHT");
+    temp2.type = PROG_INTEGER;
+    curLen = (int) d->telopt.height;
+    temp2.data.number = curLen;
+    array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    CLEAR(&temp2);
 
     PushArrayRaw(nw);
 }
