@@ -96,6 +96,7 @@ void remember_player_descr(dbref player, int);
 void welcome_user(struct descriptor_data *d);
 void forget_player_descr(dbref player, int);
 void help_user(struct descriptor_data *d);
+void mssp_send(struct descriptor_data *d);
 void announce_connect(int descr, dbref);
 void freeqs(struct descriptor_data *d);
 void update_desc_count_table(void);
@@ -1688,6 +1689,7 @@ static int con_players_curr = 0; /* for playermax checks. */
 extern void purge_free_frames(void);
 
 time_t current_systime = 0;
+time_t startup_systime = 0;
 
 void
 shovechars(void)
@@ -1713,6 +1715,8 @@ shovechars(void)
     extern struct muf_socket_queue *socket_list;
     struct muf_socket_queue *curr = socket_list;
 #endif
+
+    time(&startup_systime);
 
 #ifdef USE_SSL
     SSL_load_error_strings();
@@ -3010,9 +3014,10 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
         && ctype != CT_HTTP
 #endif /* NEWHTTPD */
         ) {
-		queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
-		/* queue_write(d, "\377\373\125\012",   4); */ /* IAC WILL TELOPT_COMPRESS  (MCCP v1) */
-		queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
+        queue_write(d, "\xFF\xFB\x46",       3); /* IAC WILL MSSP */
+        queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
+        queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
+        queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
         announce_login(d); 
         welcome_user(d);
     }
@@ -3450,7 +3455,7 @@ process_input(struct descriptor_data *d)
                     p = d->raw_input;
                     d->inIAC = 0;
                     break;
-                case '\372':   /* SB */ /* Go ahead. Treat as NOP */
+                case TELOPT_SB:   /* SB */ /* Go ahead. Treat as NOP */
 					if (d->telopt.sb_buf)
 						free((void *)d->telopt.sb_buf);
 					d->telopt.sb_buf = (char *)malloc(TELOPT_MAX_BUF_LEN);
@@ -3458,17 +3463,19 @@ process_input(struct descriptor_data *d)
 
                     d->inIAC = 5;
                     break;
-                case '\373':   /* Will option offer */
+                case TELOPT_WILL:   /* Will option offer */
                     d->inIAC = 2;
                     break;
-                case '\374':   /* won't option */
+                case TELOPT_WONT:   /* won't option */
                     d->inIAC = 4;
                     break;
-                case '\375':   /* DO option request */
-                case '\376':   /* DONT option request */
-                    d->inIAC = 3;
+                case TELOPT_DO:   /* DO option request */
+                    d->inIAC = TELOPT_DO;
                     break;
-                case '\377':   /* IAC a second time */
+                case TELOPT_DONT:   /* DONT option request */
+                    d->inIAC = TELOPT_DONT;
+                    break;
+                case TELOPT_IAC:   /* IAC a second time */
 #if 1
                     /* for future 8 bit clean code, perhaps */
                     /* the future, is NOW! -hinoserm */
@@ -3487,6 +3494,14 @@ process_input(struct descriptor_data *d)
 				/* Begin processing the TELOPT data buffer */
 				if (d->telopt.sb_buf_len) {
 					switch (d->telopt.sb_buf[0]) {
+                        case TELOPT_NAWS:
+                            if (d->telopt.sb_buf_len != 6)
+                                break;
+
+                            d->telopt.width  =  (d->telopt.sb_buf[3] <<8) | d->telopt.sb_buf[2];
+                            d->telopt.height =  (d->telopt.sb_buf[5] <<8) | d->telopt.sb_buf[4];
+                            /* that was easy */
+                            break;
 						case TELOPT_TERMTYPE:
 							if (d->telopt.sb_buf_len < 2) /* At this point, a valid request would have at least two bytes in it. */
 								break;
@@ -3518,16 +3533,20 @@ process_input(struct descriptor_data *d)
 
                                     /* log_status("TELOPT_TERMTYPE(%d): %s\r\n", d->descriptor, d->telopt_termtype); */
                                 }
-
-                                free((void *)d->telopt.sb_buf); /* don't need the buffer anymore */
-                                d->telopt.sb_buf = NULL;
-                                d->telopt.sb_buf_len = 0;
 							} /* else { */
 							  /* An unsupported request/response happened */
                               /* This is where we would implement other sub-negotiation types. */
 							  /* } */
+                            break;
+
+                        default:
+                            break;
 					}
 				}
+
+                free((void *)d->telopt.sb_buf); /* don't need the buffer anymore */
+                d->telopt.sb_buf = NULL;
+                d->telopt.sb_buf_len = 0;
 
 				d->inIAC = 0;
 			} else {
@@ -3536,29 +3555,33 @@ process_input(struct descriptor_data *d)
 				else
 					d->inIAC = 0;
             }
-        } else if (d->inIAC == 2) {
+        } else if (d->inIAC == 2) { /* WILL */
 			if (*q == TELOPT_TERMTYPE) { /* TERMTYPE */
 				queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
-			} else {
+            } else if (*q == TELOPT_MSSP) {
+                mssp_send(d);
+			} else if (*q == TELOPT_NAWS) {
+                /* queue_write(d, "\xFF\xFD\x1F", 3); */ /* Oops, infinite loop */
+            } else {
 				/* send back DONT option in all other cases */
 				queue_write(d, "\377\376", 2);
 				queue_write(d, q, 1);
 			}
             d->inIAC = 0;
-        } else if (d->inIAC == 3) {
+        } else if (d->inIAC == TELOPT_DO) {
 #ifdef MCCP_ENABLED
-			if (*q == TELOPT_MCCP2) {        /* TELOPT_COMPRESS2 */
-                if (*(q-1) == '\375') {      /* Start MCCP Compression (v2) */
-                    d->telopt.mccp = 2;
+            if (*q == TELOPT_MCCP2) {        /* TELOPT_COMPRESS2 */
+                d->telopt.mccp = 2;
 					
-                    /* Thanks to SimpleMU, we're required to know the termtype before we can enable MCCP. */
-					if (d->telopt.termtype && !d->mccp)
-						mccp_start(d, d->telopt.mccp);
-				} else if (*(q-1) == '\376') /* End MCCP Compression (v2) */
-                    mccp_end(d);
+                /* Thanks to SimpleMU, we're required to know the termtype before we can enable MCCP. */
+				if (d->telopt.termtype && !d->mccp)
+					mccp_start(d, d->telopt.mccp);
+            } else if (*q == TELOPT_MSSP) {
+                mssp_send(d);
+			} else if (*q == TELOPT_NAWS) {
 			} else {
                 /* Send back WONT in all cases */
-                queue_write(d, "\377\374", 2);
+                queue_write(d, "\377\xFC", 2);
                 queue_write(d, q, 1);
             }
 #else
@@ -3566,6 +3589,23 @@ process_input(struct descriptor_data *d)
             queue_write(d, q, 1);
 #endif
 
+            d->inIAC = 0;
+        } else if (d->inIAC == TELOPT_DONT) {
+#ifdef MCCP_ENABLED
+            if (*q == TELOPT_MCCP2) {        /* TELOPT_COMPRESS2 */
+                d->telopt.mccp = 0;
+				mccp_end(d);
+            } else if (*q == TELOPT_MSSP) {
+			} else if (*q == TELOPT_NAWS) {
+			} else {
+                /* Send back WONT in all cases */
+                queue_write(d, "\377\xFC", 2);
+                queue_write(d, q, 1);
+            }
+#else
+			queue_write(d, "\377\374", 2);
+            queue_write(d, q, 1);
+#endif
             d->inIAC = 0;
         } else if (d->inIAC == 4) {
             /* ignore WON'T option */
@@ -4037,16 +4077,6 @@ check_connect(struct descriptor_data *d, const char *msg)
                 d->did_connect = 1;
                 d->connected_at = current_systime;
                 d->player = player;
-/*
-#ifdef MCCP_ENABLED
-				if (OkObj(d->player)) {
-                    if (get_property(d->player, "/_Prefs/NoMCCP")) {
-                        mccp_end(d);
-					} else {
-						queue_write(d, "\377\373\126\012", 4); // IAC WILL TELOPT_COMPRESS2 (MCCP v2)
-					}
-				}
-#endif */
 
                 update_desc_count_table();
                 remember_player_descr(player, d->descriptor);
@@ -6475,6 +6505,8 @@ mccp_end(struct descriptor_data *d)
 
 }
 
+#endif
+
 void
 telopt_init(struct telopt *t)
 {
@@ -6482,6 +6514,8 @@ telopt_init(struct telopt *t)
     t->sb_buf = NULL;
     t->sb_buf_len = 0;
     t->termtype = NULL;
+    t->width = 0;
+    t->height = 0;
 }
 
 void
@@ -6492,11 +6526,129 @@ telopt_clean(struct telopt *t)
         free((void *)t->sb_buf);
     t->sb_buf = NULL;
     t->sb_buf_len = 0;
+    t->width = 0;
+    t->height = 0;
 
     if (t->termtype)
         free((void *)t->termtype);
     t->termtype = NULL;
 }
 
+void
+mssp_send(struct descriptor_data *d)
+{
+    char buf[BUFFER_LEN];
+    char mssp_var[BUFFER_LEN];
+    char mssp_val[BUFFER_LEN];
+    char propname[BUFFER_LEN];
+    char *p;
+    PropPtr propadr, pptr;
+    PropPtr prptr;
 
+    const char *dir = "/~mssp";
+    const dbref ref = (dbref)0;
+
+    int sent_name = 0;
+    int sent_players = 0;
+    int sent_uptime = 0;
+    int sent_ansi = 0;
+    int sent_mccp = 0;
+    int sent_codebase = 0;
+    int sent_family = 0;
+
+    queue_write(d, "\xFF\xFA\x46", 3);
+
+    propadr = first_prop(ref, dir, &pptr, propname);
+    while (propadr) {
+        strcpy(mssp_var, propname);
+        sprintf(buf, "%s%c%s", dir, PROPDIR_DELIMITER, propname);
+        prptr = get_property(ref, buf);
+        if (prptr) {
+#ifdef DISKBASE
+            propfetch(ref, prptr);
 #endif
+            switch (PropType(prptr)) {
+                case PROP_STRTYP:
+                    strcpy(mssp_val, PropDataUNCStr(prptr));
+                    break;
+                case PROP_INTTYP:
+                    sprintf(mssp_val, "%d", PropDataVal(prptr));
+                    break;
+                case PROP_FLTTYP:
+                    sprintf(mssp_val, "%#.15g", PropDataFVal(prptr));
+                    break;
+                default:
+                    mssp_val[0] = '\0';
+                    break;
+            }
+        }
+        propadr = next_prop(pptr, propadr, propname);
+
+        for (p = mssp_var; *p; p++)
+            *p = UPCASE(*p);
+
+        if (*mssp_var && *mssp_val) {
+            if (!strcmp("NAME", mssp_var))
+                sent_name = 1;
+            else if (!strcmp("PLAYERS", mssp_var))
+                sent_players = 1;
+            else if (!strcmp("UPTIME", mssp_var))
+                sent_uptime = 1;
+            else if (!strcmp("ANSI", mssp_var))
+                sent_ansi = 1;
+            else if (!strcmp("MCCP", mssp_var))
+                sent_mccp = 1;
+            else if (!strcmp("CODEBASE", mssp_var))
+                sent_codebase = 1;
+            else if (!strcmp("FAMILY", mssp_var))
+                sent_family = 1;
+
+            sprintf(buf, "\x01%s\x02%s", mssp_var, mssp_val);
+            queue_write(d, buf, strlen(buf));
+        }
+    }
+
+    if (!sent_name) {
+        sprintf(buf, "\x01%s\x02%s", "NAME", tp_muckname);
+        queue_write(d, buf, strlen(buf));
+    }
+
+    if (!sent_players) {
+        sprintf(buf, "\x01%s\x02%d", "PLAYERS", pcount());
+        queue_write(d, buf, strlen(buf));
+    }
+
+    if (!sent_uptime) {
+        sprintf(buf, "\x01%s\x02%d", "UPTIME", (int)startup_systime);
+        queue_write(d, buf, strlen(buf));
+    }
+
+    if (!sent_ansi) {
+        sprintf(buf, "\x01%s\x02%d", "ANSI", 1);
+        queue_write(d, buf, strlen(buf));
+    }
+
+    if (!sent_codebase) {
+        sprintf(buf, "\x01%s\x02%s", "CODEBASE", "ProtoMUCK");
+        queue_write(d, buf, strlen(buf));
+    }
+
+    if (!sent_family) {
+        sprintf(buf, "\x01%s\x02%s", "FAMILY", "MUCK");
+        queue_write(d, buf, strlen(buf));
+    }
+
+
+    if (!sent_mccp) {
+#ifdef MCCP_ENABLED
+        sprintf(buf, "\x01%s\x02%d", "MCCP", 1);
+#else
+        sprintf(buf, "\x01%s\x02%d", "MCCP", 0);
+#endif
+        queue_write(d, buf, strlen(buf));
+    }
+
+    queue_write(d, "\xFF\xF0", 2);
+}
+
+
