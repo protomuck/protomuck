@@ -127,7 +127,7 @@ struct mccp {
 #endif /* MCCP_ENABLED */
 
 struct telopt {
-    char                    *sb_buf;        /* hinoserm: Used by SD request/response system, init to NULL */
+    unsigned char           *sb_buf;        /* hinoserm: Used by SD request/response system, init to NULL */
     size_t                   sb_buf_len;    /* hinoserm: Used by SD request/response system, init to 0 */
     char                    *termtype;      /* hinoserm: Indicates the client's TERMINAL TYPE info, or NULL */
     signed char              mccp;          /* hinoserm: Indicates that client is able/willing to compress */

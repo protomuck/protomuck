@@ -3456,10 +3456,10 @@ process_input(struct descriptor_data *d)
                     d->inIAC = 0;
                     break;
                 case TELOPT_SB:   /* SB */ /* Go ahead. Treat as NOP */
-					if (d->telopt.sb_buf)
-						free((void *)d->telopt.sb_buf);
-					d->telopt.sb_buf = (char *)malloc(TELOPT_MAX_BUF_LEN);
-					d->telopt.sb_buf_len = 0;
+                    if (d->telopt.sb_buf)
+                        free((void *)d->telopt.sb_buf);
+                    d->telopt.sb_buf = (unsigned char *)malloc(TELOPT_MAX_BUF_LEN);
+                    d->telopt.sb_buf_len = 0;
 
                     d->inIAC = 5;
                     break;
@@ -3487,86 +3487,86 @@ process_input(struct descriptor_data *d)
                     d->inIAC = 0;
                     break;
             }
-		} else if (d->inIAC == 5) {
-			if (*q == '\xF0' && *(q-1) == '\xFF') {
-				d->telopt.sb_buf[d->telopt.sb_buf_len-1] = '\0';
+        } else if (d->inIAC == 5) {
+            if (*q == '\xF0' && *(q-1) == '\xFF') {
+                d->telopt.sb_buf[d->telopt.sb_buf_len-1] = '\0';
 
-				/* Begin processing the TELOPT data buffer */
-				if (d->telopt.sb_buf_len) {
-					switch (d->telopt.sb_buf[0]) {
+                /* Begin processing the TELOPT data buffer */
+                if (d->telopt.sb_buf_len) {
+                    switch (d->telopt.sb_buf[0]) {
                         case TELOPT_NAWS:
                             if (d->telopt.sb_buf_len != 6)
                                 break;
 
-                            d->telopt.width  =  (d->telopt.sb_buf[3] <<8) | d->telopt.sb_buf[2];
-                            d->telopt.height =  (d->telopt.sb_buf[5] <<8) | d->telopt.sb_buf[4];
+                            d->telopt.width  =  (d->telopt.sb_buf[1] <<8) | d->telopt.sb_buf[2];
+                            d->telopt.height =  (d->telopt.sb_buf[3] <<8) | d->telopt.sb_buf[4];
+                            
                             /* that was easy */
                             break;
-						case TELOPT_TERMTYPE:
-							if (d->telopt.sb_buf_len < 2) /* At this point, a valid request would have at least two bytes in it. */
-								break;
+                        case TELOPT_TERMTYPE:
+                            if (d->telopt.sb_buf_len < 2) /* At this point, a valid request would have at least two bytes in it. */
+                                break;
 
-							if (d->telopt.sb_buf[1] == 1) {
+                            if (d->telopt.sb_buf[1] == 1) {
                                 /* 
                                    The client requested our termtype.  Send it.
                                    It would not be proper to send our version number here.
                                 */
-								queue_write(d, "\xFF\xFA\x00ProtoMUCK\xFF\xF0", 14);
-							} else if (!d->telopt.sb_buf[1]) {
-								if (d->telopt.termtype)
-									free((void *) d->telopt.termtype);
+                                queue_write(d, "\xFF\xFA\x00ProtoMUCK\xFF\xF0", 14);
+                            } else if (!d->telopt.sb_buf[1]) {
+                                if (d->telopt.termtype)
+                                    free((void *) d->telopt.termtype);
 
                                 if (d->telopt.sb_buf_len < 3) {
                                     /* If the other end sent a blank termtype, don't bother allocating it. */
                                     d->telopt.termtype = NULL;
                                 } else {
-								    d->telopt.termtype = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
+                                    d->telopt.termtype = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
 
                                     /* Move the data into the termtype string, making sure to add a null at the end. */
                                     memcpy(d->telopt.termtype, d->telopt.sb_buf + 2, d->telopt.sb_buf_len-2);
-								    d->telopt.termtype[d->telopt.sb_buf_len-2] = '\0';
+                                    d->telopt.termtype[d->telopt.sb_buf_len-2] = '\0';
 #ifdef MCCP_ENABLED
                                     /* Due to SimpleMU, we need to determine the termtype before we can enable MCCP. */
-								    if (d->telopt.mccp && !d->mccp)
-									    mccp_start(d, d->telopt.mccp);
+                                    if (d->telopt.mccp && !d->mccp)
+                                        mccp_start(d, d->telopt.mccp);
 #endif
 
                                     /* log_status("TELOPT_TERMTYPE(%d): %s\r\n", d->descriptor, d->telopt_termtype); */
                                 }
-							} /* else { */
-							  /* An unsupported request/response happened */
+                            } /* else { */
+                              /* An unsupported request/response happened */
                               /* This is where we would implement other sub-negotiation types. */
-							  /* } */
+                         /* } */
                             break;
-
                         default:
                             break;
-					}
-				}
+                    }
+                }
 
                 free((void *)d->telopt.sb_buf); /* don't need the buffer anymore */
                 d->telopt.sb_buf = NULL;
                 d->telopt.sb_buf_len = 0;
 
-				d->inIAC = 0;
-			} else {
+                d->inIAC = 0;
+            } else {
                 if (d->telopt.sb_buf_len < TELOPT_MAX_BUF_LEN)
-					d->telopt.sb_buf[d->telopt.sb_buf_len++] = *q;
-				else
-					d->inIAC = 0;
+                    d->telopt.sb_buf[d->telopt.sb_buf_len++] = *q;
+                else
+                    d->inIAC = 0;
             }
         } else if (d->inIAC == 2) { /* WILL */
-			if (*q == TELOPT_TERMTYPE) { /* TERMTYPE */
-				queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
+            if (*q == TELOPT_TERMTYPE) { /* TERMTYPE */
+                queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
             } else if (*q == TELOPT_MSSP) {
                 mssp_send(d);
-			} else if (*q == TELOPT_NAWS) {
+            } else if (*q == TELOPT_NAWS) {
                 /* queue_write(d, "\xFF\xFD\x1F", 3); */ /* Oops, infinite loop */
             } else {
-				/* send back DONT option in all other cases */
-				queue_write(d, "\377\376", 2);
-				queue_write(d, q, 1);
-			}
+                /* send back DONT option in all other cases */
+                queue_write(d, "\377\376", 2);
+                queue_write(d, q, 1);
+            }
             d->inIAC = 0;
         } else if (d->inIAC == TELOPT_DO) {
 #ifdef MCCP_ENABLED
@@ -3574,18 +3574,18 @@ process_input(struct descriptor_data *d)
                 d->telopt.mccp = 2;
 					
                 /* Thanks to SimpleMU, we're required to know the termtype before we can enable MCCP. */
-				if (d->telopt.termtype && !d->mccp)
-					mccp_start(d, d->telopt.mccp);
+                if (d->telopt.termtype && !d->mccp)
+                    mccp_start(d, d->telopt.mccp);
             } else if (*q == TELOPT_MSSP) {
                 mssp_send(d);
-			} else if (*q == TELOPT_NAWS) {
-			} else {
+            } else if (*q == TELOPT_NAWS) {
+            } else {
                 /* Send back WONT in all cases */
                 queue_write(d, "\377\xFC", 2);
                 queue_write(d, q, 1);
             }
 #else
-			queue_write(d, "\377\374", 2);
+            queue_write(d, "\377\374", 2);
             queue_write(d, q, 1);
 #endif
 
@@ -3596,8 +3596,8 @@ process_input(struct descriptor_data *d)
                 d->telopt.mccp = 0;
 				mccp_end(d);
             } else if (*q == TELOPT_MSSP) {
-			} else if (*q == TELOPT_NAWS) {
-			} else {
+            } else if (*q == TELOPT_NAWS) {
+            } else {
                 /* Send back WONT in all cases */
                 queue_write(d, "\377\xFC", 2);
                 queue_write(d, q, 1);
