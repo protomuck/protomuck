@@ -565,10 +565,10 @@ prim_rsplit(PRIM_PROTOTYPE)
     if (!oper2->data.string) {
         result = 0;
     } else {
+        strcpy(buf, oper2->data.string->data);
         if (oper1->data.string->length > oper2->data.string->length) {
             result = -1;
         } else {
-            strcpy(buf, oper2->data.string->data);
             temp =
                 buf + (oper2->data.string->length - oper1->data.string->length);
             hold = NULL;
