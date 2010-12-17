@@ -5,6 +5,8 @@
 
 #define MUF_RE_ICASE      1
 #define MUF_RE_ALL        2
+#define MUF_RE_EXTENDED     4
+
 #define MUF_RE_ICASE_STR "1"
 #define MUF_RE_ALL_STR   "2"
 
