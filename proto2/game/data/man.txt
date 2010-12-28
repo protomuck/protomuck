@@ -2114,7 +2114,6 @@ d  = A valid dbref.
 Updates the 'last used' timestamp and refstamp on the object (d), and
 also increments the usecount on the object.
 ~
-
 INT?
 
 int? ( x -- i )
