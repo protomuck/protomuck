@@ -592,11 +592,11 @@ include_internal_defs(COMPSTATE *cstat)
 
 #ifdef IPV6
     insert_def(cstat, "IPV6?", "1");
-    insert_def(cstat, "sock6open",
-               "nbsock6open \"Invalid host.\" over strcmp if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck if \"noerr\" break then 1 sleep repeat then");
 #else
     insert_def(cstat, "IPV6?", "0");
 #endif 
+    insert_def(cstat, "sock6open",
+               "nbsock6open \"Invalid host.\" over strcmp if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck if \"noerr\" break then 1 sleep repeat then");
 
 #ifdef MCP_SUPPORT
 
