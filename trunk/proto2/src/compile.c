@@ -543,7 +543,7 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "default", "pop 1 if");
     insert_def(cstat, "endcase", "pop pop 1 until");
     insert_def(cstat, "sockopen",
-               "nbsockopen \"Invalid host.\" over strcmp if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck if \"noerr\" break then 1 sleep repeat then");
+               "nbsockopen \"Operation now in progress\" over strcmp not if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck dup 1 = if pop \"noerr\" break then -1 = if \"refused\" break then 1 sleep repeat then");
     insert_def(cstat, "sockrecv", "nbsockrecv swap pop");
     /* MUF Error defines */
     insert_def(cstat, "err_divzero?", "0 is_set?");
@@ -596,7 +596,7 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "IPV6?", "0");
 #endif 
     insert_def(cstat, "sock6open",
-               "nbsock6open \"Invalid host.\" over strcmp if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck if \"noerr\" break then 1 sleep repeat then");
+               "nbsock6open \"Operation now in progress\" over strcmp not if pop 1 10 1 for 10 = if \"timed out\" break then dup sockcheck dup 1 = if pop \"noerr\" break then -1 = if \"refused\" break then 1 sleep repeat then");
 
 #ifdef MCP_SUPPORT
 
