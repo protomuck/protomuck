@@ -759,7 +759,7 @@ do_list_publics(dbref player, dbref program)
 {
     struct publics *ptr;
 
-    anotify_nolisten(player, CINFO "PUBLIC funtions:", 1);
+    anotify_nolisten(player, CINFO "PUBLIC functions:", 1);
     for (ptr = DBFETCH(program)->sp.program.pubs; ptr; ptr = ptr->next)
         notify(player, ptr->subname);
 }
