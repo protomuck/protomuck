@@ -9,6 +9,7 @@ compile             (c)     compile program
 <num> [<num>]list   (l)     list a single line, or a range of lines
 uncompile           (u)     serves no point in current MUCK versions
 numbers             (n)     toggle line numbers in program listings
+publics             (p)     list words declared as PUBLIC
 .                   (.)     enter . to exit insert mode
 quit                (q)     exit and save changes to the MUF code
 cancel              (x)     exit editor without saving any changes
