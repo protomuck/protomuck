@@ -816,7 +816,11 @@ prim_setname(PRIM_PROTOTYPE)
             if (mlev < LMAGE)
                 abort_interp(tp_noperm_mesg);
             /* split off password */
-            for (password = buf; *password && !isspace(*password); password++) ;
+	    if (tp_spaces_in_playernames)
+                for (password = buf; *password && !(*password == '='); password++) ;
+	    else
+                for (password = buf; *password && !isspace(*password); password++) ;
+
             /* eat whitespace */
             if (*password) {
                 *password++ = '\0'; /* terminate name */
