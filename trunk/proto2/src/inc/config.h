@@ -146,7 +146,7 @@
  * want to undef this.
  */
 
-#undef FILE_PRIMS
+#define FILE_PRIMS
 
 /* Alynna -- ACHTUNG!  PELIGRO!  DANGER!
  * DO NOT DEFINE UNDER PENALTY OF LAW.  This define is DANGEROUS.
