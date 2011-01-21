@@ -12,12 +12,13 @@
 
 extern void prim_regexp(PRIM_PROTOTYPE);
 extern void prim_regsub(PRIM_PROTOTYPE);
+extern void prim_regmatch(PRIM_PROTOTYPE);
 
-#define PRIMS_REGEX_FUNCS prim_regexp, prim_regsub
+#define PRIMS_REGEX_FUNCS prim_regexp, prim_regsub, prim_regmatch
 
-#define PRIMS_REGEX_NAMES "REGEXP", "REGSUB"
+#define PRIMS_REGEX_NAMES "REGEXP", "REGSUB", "REGMATCH"
 
-#define PRIMS_REGEX_CNT 2
+#define PRIMS_REGEX_CNT 3
 
 #else
 

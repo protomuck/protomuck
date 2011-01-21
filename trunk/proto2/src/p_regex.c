@@ -390,4 +390,74 @@ prim_regsub(PRIM_PROTOTYPE)
     PushString(buf);
 }
 
+void
+prim_regmatch(PRIM_PROTOTYPE)
+{
+    int         matches[MATCH_ARR_SIZE];
+    muf_re*     re;
+    char*       text;
+    int         flags;
+    int         len;
+    int         matchcnt = 0;
+    const char* errstr;
+    int         result = 0;
+
+    oper3 = POP(); /* int:Flags */
+    oper2 = POP(); /* str:Pattern */
+    oper1 = POP(); /* str:Text */
+
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument (1)");
+    if (oper2->type != PROG_STRING)
+        abort_interp("Non-string argument (2)");
+    if (oper3->type != PROG_INTEGER)
+        abort_interp("Non-integer argument (3)");
+    if (!oper2->data.string)
+        abort_interp("Empty string argument (2)");
+
+    /* This primitive is for matching, not capturing. Using user-supplied
+     * parenthesis for anything other than grouping purposes is therefore a
+     * waste of resources, but most casual regex users won't know about the
+     * non-capturing parenthesis alternatives available when PCRE_EXTENDED is
+     * set. Since this is the case, we'll enable PCRE_NO_AUTO_CAPTURE as a
+     * default option to optimize the majority of lazy user input.
+     * -brevantes */
+
+    flags = PCRE_NO_AUTO_CAPTURE;
+
+    if (oper3->data.number & MUF_RE_ICASE)
+        flags |= PCRE_CASELESS;
+    if (oper3->data.number & MUF_RE_EXTENDED)
+        flags |= PCRE_EXTENDED;
+
+    if ((re = muf_re_get(oper2->data.string, flags, &errstr)) == NULL)
+        abort_interp(errstr);
+
+    text    = (char *)DoNullInd(oper1->data.string);
+    len     = strlen(text);
+
+    if ((matchcnt = pcre_exec(re->re, NULL, text, len, 0, 0, matches, MATCH_ARR_SIZE)) < 0)
+    {
+        if (matchcnt != PCRE_ERROR_NOMATCH)
+        {
+            abort_interp(muf_re_error(matchcnt));
+        }
+    }
+    
+    /* Keep in mind that matchcnt is the number of match offsets returned after
+     * capture groups are scanned. Any returns higher than 1 would just confuse
+     * the user needessly, so we won't return the raw matchcnt. -brevantes */
+
+    if (matchcnt >= 1)
+    {
+        result = 1;
+    }
+    
+    CLEAR(oper3);
+    CLEAR(oper2);
+    CLEAR(oper1);
+
+    PushInt(result);
+}
+
 #endif /* WIN_VC */

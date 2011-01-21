@@ -52,7 +52,7 @@ Stack Prims:
   SOCKET?     LOCK?      FLOAT?        VARIABLE?   ARRAY?   
   MARK        }          CHECKARGS     REVERSE     LREVERSE 
   POPN        PICK       PUT           DESCR?      SQL? 
-  MARK? 
+  MARK?       NIP        TUCK
 
 Control Structures:
   EXIT         CALL       EXECUTE     READ        PUBLIC      SLEEP
@@ -65,7 +65,7 @@ Control Structures:
   GETPIDS      TRY        CATCH       ENDCATCH    JMP         ENQUEUE
   PARSEPROPEX  DEBUG_ON   DEBUG_OFF   DEBUG_LINE  SELFCALL    DEBUGGER_BREAK
   READ_WANTS_BLANKS       GET_READ_WANTS_BLANKS   READ_WANTS_BLANKS_TOGGLE
-  READ_WANTS_BLANKS_ON    READ_WANTS_BLANKS_OFF
+  READ_WANTS_BLANKS_ON    READ_WANTS_BLANKS_OFF   CATCH_DETAILED
 
 Property Prims:
   ADDPROP     GETPROP       SETPROP         ENVPROP       REMOVE_PROP
@@ -129,7 +129,7 @@ Strings Prims:
   FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
   ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
   NAME-OK?      PNAME-OK?    ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
-  POWER_2CHAR   UNESCAPE_URL ESCAPE_URL
+  POWER_2CHAR   UNESCAPE_URL ESCAPE_URL   SHA1HASH     MD5HASH
  
 See: PRIMS5
 ~~~~~
@@ -384,7 +384,7 @@ These prims are used to move and manipulate things on the stack:
   SOCKET?     LOCK?      FLOAT?        VARIABLE?   ARRAY?   
   MARK        }          CHECKARGS     REVERSE     LREVERSE 
   POPN        PICK       PUT           DESCR?      SQL? 
-  MARK? 
+  MARK?       NIP        TUCK
 
 See: DATA TYPES
 ~~~~~
@@ -400,7 +400,7 @@ STRLEN        TOUPPER      TOLOWER      STRENCRYPT   STRDECRYPT
 FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
 ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
 PNAME-OK?     NAME-OK?     ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
-POWER_2CHAR   UNESCAPE_URL ESCAPE_URL
+POWER_2CHAR   UNESCAPE_URL ESCAPE_URL   SHA1HASH     MD5HASH
 
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
@@ -424,7 +424,7 @@ INSTANCES    MAGECALL  WIZCALL     ARCHCALL    BOYCALL     GETPIDINFO
 GETPIDS      TRY       CATCH       ENDCATCH    JMP         PARSEPROPEX
 DEBUG_ON     DEBUG_OFF DEBUG_LINE  DEBUGGER_BREAK
 READ_WANTS_BLANKS      GET_READ_WANTS_BLANKS   READ_WANTS_BLANKS_TOGGLE
-READ_WANTS_BLANKS_ON   READ_WANTS_BLANKS_OFF
+READ_WANTS_BLANKS_ON   READ_WANTS_BLANKS_OFF   CATCH_DETAILED
 
 See: LOOPS, MULTITASKING
 ~~~~
@@ -10502,6 +10502,24 @@ for use with the MIDSTR primitive, and consider the first character of the
 string to be position 1.
   
 The "flag" argument may be 0, or a combination of the following:
+  
+    $def REG_ICASE    1   (Case insensitive match)
+    $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
+~~~
+REGMATCH
+
+regmatch ( str:text str:pattern str:substr int:flags -- int:result )
+--------------------------------------------------------------------
+  
+  Tests text to see if it matches the given PCRE style regular expression
+pattern.  Returns 1 if the test succeeded, otherwise returns 0.  This primitive
+is suitable for use as a more precise alternative to smatch.
+
+  Since this primitive is only designed for matching, it automatically assumes
+that any parenthesis in the match pattern were provided for grouping purposes
+only.  There is no need to optimize the pattern further.
+  
+The "Flag" argument may be 0, or a combination of the following:
   
     $def REG_ICASE    1   (Case insensitive match)
     $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
