@@ -1437,6 +1437,7 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     array_set_strkey_intval(&nw, "PORT", theSock->port);
     array_set_strkey_intval(&nw, "SIMPLEQUEUE", theSock->usequeue);
     array_set_strkey_intval(&nw, "TELNETQUEUE", theSock->usesmartqueue);
+    array_set_strkey_intval(&nw, "RAWMODE", theSock->rawmode);
     array_set_strkey_intval(&nw, "READWAITING", theSock->readWaiting);
     array_set_strkey_strval(&nw, "HOSTNAME",
                             theSock->hostname ? theSock->hostname : "");
