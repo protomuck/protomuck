@@ -3269,7 +3269,7 @@ make_blocking(int s)
 
     if (ioctl(s, FIONBIO, &turnon) != 0) {
 #else
-    if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
+    if (fcntl(s, F_SETFL, 0) == -1) {
 #endif
         perror("make_blocking: fcntl");
         panic("O_NONBLOCK fcntl failed");
