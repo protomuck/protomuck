@@ -638,6 +638,7 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "NOQUEUE", "0");
     insert_def(cstat, "SIMPLEQUEUE", "1");
     insert_def(cstat, "TELNETQUEUE", "2");
+    insert_def(cstat, "RAWMODE", "3");
     insert_def(cstat, "HOMEINSTANCE", "5");
     /* For REG Expression support */
 #ifndef WIN_VC
