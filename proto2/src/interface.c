@@ -574,6 +574,7 @@ main(int argc, char **argv)
         fprintf(stderr, "----------------------------------------------\n");
 #endif
 
+
 #ifdef DETACH
 /*    fprintf(stdout,"Console messages to '%s', Error messages to '%s'.", LOG_FILE, LOG_ERR_FILE); */
         if (!sanity_interactive && !db_conversion_flag) {
@@ -1775,6 +1776,14 @@ shovechars(void)
 
     openfiles_max = max_open_files();
     printf("Max FDs = %d\n", openfiles_max);
+
+    printf("\nListening on: ");
+    for (i = 0; i < numsocks; i++) {
+        if (get_ctype(listener_port[i]) == CT_MUCK) {
+            printf("%d ", listener_port[i]);
+        }
+    }
+    printf("\n");
 
     avail_descriptors = max_open_files() - 10;
 
@@ -3243,6 +3252,31 @@ process_output(struct descriptor_data *d)
 }
 
 void
+make_blocking(int s)
+{
+#if !defined(O_NONBLOCK) || defined(ULTRIX) /* POSIX ME HARDER */
+# ifdef FNDELAY                 /* SUN OS */
+#  define O_NONBLOCK FNDELAY
+# else
+#  ifdef O_NDELAY               /* SyseVil */
+#   define O_NONBLOCK O_NDELAY
+#  endif /* O_NDELAY */
+# endif /* FNDELAY */
+#endif
+
+#ifdef WIN_VC
+    u_long turnon = 0;
+
+    if (ioctl(s, FIONBIO, &turnon) != 0) {
+#else
+    if (fcntl(s, F_SETFL, O_NONBLOCK) == -1) {
+#endif
+        perror("make_blocking: fcntl");
+        panic("O_NONBLOCK fcntl failed");
+    }
+}
+
+void
 make_nonblocking(int s)
 {
 #if !defined(O_NONBLOCK) || defined(ULTRIX) /* POSIX ME HARDER */
@@ -4267,7 +4301,7 @@ close_sockets(const char *msg)
         closesocket(sock[i]);
     }
 #ifdef USE_SSL
-    close(ssl_sock);
+    closesocket(ssl_sock);
 #endif
 
 }
@@ -6641,7 +6675,7 @@ mssp_send(struct descriptor_data *d)
 
     if (!sent_mccp) {
 #ifdef MCCP_ENABLED
-        sprintf(buf, "\x01%s\x02%d", "MCCP", 1);
+        sprintf(buf, "\x01%s\x02%d", "MCCP", 1);  
 #else
         sprintf(buf, "\x01%s\x02%d", "MCCP", 0);
 #endif
@@ -6650,5 +6684,3 @@ mssp_send(struct descriptor_data *d)
 
     queue_write(d, "\xFF\xF0", 2);
 }
-
-

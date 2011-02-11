@@ -532,6 +532,7 @@
 # define  random() rand()
 # define  srandom() srand()
 # define  errnosocket WSAGetLastError()
+# undef FILE_PRIMS /* Temporary - Hinoserm */
 #else
 # include "autoconf.h"
 # define  readsocket(x,y,z) read((x),(y),(z))

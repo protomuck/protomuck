@@ -3,6 +3,7 @@
 #endif
 #include "copyright.h"
 #include "config.h"
+#ifndef WIN32
 #ifdef FILE_PRIMS
 #include "db.h"
 #include "tune.h"
@@ -1301,3 +1302,4 @@ prim_rmdir(PRIM_PROTOTYPE)
     PushInt(result);
 }
 #endif /* FILE_PRIMS */
+#endif /* WIN32 */

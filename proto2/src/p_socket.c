@@ -206,9 +206,9 @@ prim_socksend(PRIM_PROTOTYPE)
         sprintf(buf, "%s\n", oper2->data.string->data);
 
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
-        if (oper1->data.sock->ssl_session)
+        if (oper1->data.sock->ssl_session) {
             result = SSL_write(oper1->data.sock->ssl_session, buf, strlen(buf));
-        else
+        } else
 #endif
             result = writesocket(oper1->data.sock->socknum, buf, strlen(buf));
 
@@ -251,125 +251,144 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     if (oper1->data.sock->listening)
         abort_interp("NBSOCKRECV does not work with Listening SOCKETS.");
 
-    mystring = (char *) malloc(3);
-    bigbuf = (char *) malloc(BUFFER_LEN);
-    memset(bigbuf, '\0', BUFFER_LEN); /* clear buffer out */
-    bufpoint = bigbuf;
-
-    t_val.tv_sec = 0;
-    t_val.tv_usec = 0;
-
-    loop = 0;
     sockval = oper1->data.sock->socknum;
-    *mystring = '\0';
 
     /* In order to keep this from hanging on certain packets,
-     * we need to change the socket to non-blocking
-     */
+        * we need to change the socket to non-blocking
+        */
     make_nonblocking(sockval);
 
-    FD_ZERO(&reads);
-    FD_SET(oper1->data.sock->socknum, &reads);
-
-    select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
-    if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
+    if (oper1->data.sock->rawmode) {
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
-        if (oper1->data.sock->ssl_session)
-            while (1) {
-                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-                if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
-                    SSL_ERROR_WANT_READ)
-                    break;
+        if (oper1->data.sock->ssl_session) {
+            if ((readme = SSL_read(oper1->data.sock->ssl_session, buf, BUFFER_LEN-2)) <= 0) {
+                sprintf(buf, "SSL_ERROR: %d", SSL_get_error(oper1->data.sock->ssl_session, readme));
+                make_blocking(sockval);
+            }
         } else
 #endif
-            readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+            readme = readsocket(sockval, buf, BUFFER_LEN-2);
 
-        conRead = readme;
-        while (readme > 0 && charCount < BUFFER_LEN) {
-            if ((*mystring == '\0') || (((*mystring == '\n') ||
-                                         (*mystring == '\r'))))
-                break;
-            gotmessage = 1;     /* indicates the socket sent -something- */
-            ++charCount;
-            /* if (isascii(*mystring)) -- Commented this out to test 8-bit support on the stack -Hinoserm */
-            *bufpoint++ = *mystring;
-#if defined(SSL_SOCKETS) && defined(USE_SSL)
+        oper1->data.sock->readWaiting = 0;
+        CLEAR(oper1);
+        CHECKOFLOW(2);
+        PushInt(readme);
+        PushString(buf);
+    } else {
+        mystring = (char *) malloc(3);
+        bigbuf = (char *) malloc(BUFFER_LEN);
+        memset(bigbuf, '\0', BUFFER_LEN); /* clear buffer out */
+        bufpoint = bigbuf;
+
+        t_val.tv_sec = 0;
+        t_val.tv_usec = 0;
+
+        loop = 0;
+        *mystring = '\0';
+
+        FD_ZERO(&reads);
+        FD_SET(oper1->data.sock->socknum, &reads);
+
+        select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
+        if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
+ #if defined(SSL_SOCKETS) && defined(USE_SSL)
             if (oper1->data.sock->ssl_session)
                 while (1) {
-                    readme =
-                        SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+                    readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
                     if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
                         SSL_ERROR_WANT_READ)
                         break;
             } else
-#endif
+ #endif
                 readme = readsocket(oper1->data.sock->socknum, mystring, 1);
-        }
-        if (*mystring == '\n' && oper1->data.sock->usequeue) {
-            gotmessage = 1;     /* needed to catch enter presses for sockqueue */
-            if (charCount == 0)
-                charCount = 1;
-            bigbuf[0] = '\n';
-        }
-        if (gotmessage && oper1->data.sock->usequeue) { /* special handling */
-            char *p, *pend, *q, *qend;
-            struct muf_socket *theSock = oper1->data.sock;
 
-            if (!theSock->raw_input) { /* No Queue. Allocate one. */
-                theSock->raw_input = (char *) malloc(sizeof(char) * BUFFER_LEN);
-                theSock->raw_input_at = theSock->raw_input;
-            }
-            p = theSock->raw_input_at;
-            pend = theSock->raw_input + BUFFER_LEN - 1;
-            gotmessage = 0;     /* now it determines if we send or not. */
-            for (q = bigbuf, qend = bigbuf + charCount; q < qend; ++q) {
-                if (*q == '\n' || *q == '\r' || p == pend) { /* EOL, or full */
-                    *p = '\0';
-                    if (p > theSock->raw_input) /* have string */
-                        strcpy(bigbuf, theSock->raw_input);
-                    else        /* empty string */
-                        strcpy(bigbuf, "");
-                    free(theSock->raw_input);
-                    theSock->raw_input = NULL;
-                    theSock->raw_input_at = NULL;
-                    p = NULL;
-                    gotmessage = 1; /* to prevent clearing bigbuf later */
+            conRead = readme;
+            while (readme > 0 && charCount < BUFFER_LEN) {
+                if ((*mystring == '\0') || (((*mystring == '\n') ||
+                                             (*mystring == '\r'))))
                     break;
-                } else if (p < pend && theSock->usesmartqueue) { /* && isascii(*q) used to be in here -Hinoserm */
-                    if (*q == '\t') /* tab */
-                        *p++ = ' ';
-                    else if (*q == 8 || *q == 127) /* delete */
-                        if (p > theSock->raw_input)
-                            --p;
-                        else
-                            *p = '\0';
-                    else if (*q != 13)
-                        *p++ = *q; /* Changed this a bit to test -Hinoserm */
-                } else if (p < pend && theSock->usequeue) /* && isascii(*q) used to be in here -Hinoserm */
-                    *p++ = *q;
-            }                   /* for */
-            if (p > theSock->raw_input)
-                theSock->raw_input_at = p;
-            if (!gotmessage)
-                strcpy(bigbuf, "");
-        }                       /* if usequeues */
-    }                           /* if FD_ISSET */
-    if (gotmessage) {           /* update */
-        oper1->data.sock->last_time = time(NULL);
-        oper1->data.sock->commands += 1;
-    }
-    oper1->data.sock->readWaiting = 0;
-    CLEAR(oper1);
-    if (tp_log_sockets)
-        if (gotmessage)
-            log2filetime("logs/sockets", "#%d by %s SOCKRECV:  %d\n", program,
-                         unparse_object(PSafe, PSafe), sockval);
+                gotmessage = 1;     /* indicates the socket sent -something- */
+                ++charCount;
+                /* if (isascii(*mystring)) -- Commented this out to test 8-bit support on the stack -Hinoserm */
+                *bufpoint++ = *mystring;
+ #if defined(SSL_SOCKETS) && defined(USE_SSL)
+                if (oper1->data.sock->ssl_session)
+                    while (1) {
+                        readme =
+                            SSL_read(oper1->data.sock->ssl_session, mystring, 1);
+                        if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
+                            SSL_ERROR_WANT_READ)
+                            break;
+                } else
+ #endif
+                    readme = readsocket(oper1->data.sock->socknum, mystring, 1);
+            }
+            if (*mystring == '\n' && oper1->data.sock->usequeue) {
+                gotmessage = 1;     /* needed to catch enter presses for sockqueue */
+                if (charCount == 0)
+                    charCount = 1;
+                bigbuf[0] = '\n';
+            }
+            if (gotmessage && oper1->data.sock->usequeue) { /* special handling */
+                char *p, *pend, *q, *qend;
+                struct muf_socket *theSock = oper1->data.sock;
 
-    CHECKOFLOW(2);
-    PushInt(conRead);
-    PushString(bigbuf);
-    free((void *) mystring);
-    free((void *) bigbuf);
+                if (!theSock->raw_input) { /* No Queue. Allocate one. */
+                    theSock->raw_input = (char *) malloc(sizeof(char) * BUFFER_LEN);
+                    theSock->raw_input_at = theSock->raw_input;
+                }
+                p = theSock->raw_input_at;
+                pend = theSock->raw_input + BUFFER_LEN - 1;
+                gotmessage = 0;     /* now it determines if we send or not. */
+                for (q = bigbuf, qend = bigbuf + charCount; q < qend; ++q) {
+                    if (*q == '\n' || *q == '\r' || p == pend) { /* EOL, or full */
+                        *p = '\0';
+                        if (p > theSock->raw_input) /* have string */
+                            strcpy(bigbuf, theSock->raw_input);
+                        else        /* empty string */
+                            strcpy(bigbuf, "");
+                        free(theSock->raw_input);
+                        theSock->raw_input = NULL;
+                        theSock->raw_input_at = NULL;
+                        p = NULL;
+                        gotmessage = 1; /* to prevent clearing bigbuf later */
+                        break;
+                    } else if (p < pend && theSock->usesmartqueue) { /* && isascii(*q) used to be in here -Hinoserm */
+                        if (*q == '\t') /* tab */
+                            *p++ = ' ';
+                        else if (*q == 8 || *q == 127) /* delete */
+                            if (p > theSock->raw_input)
+                                --p;
+                            else
+                                *p = '\0';
+                        else if (*q != 13)
+                            *p++ = *q; /* Changed this a bit to test -Hinoserm */
+                    } else if (p < pend && theSock->usequeue) /* && isascii(*q) used to be in here -Hinoserm */
+                        *p++ = *q;
+                }                   /* for */
+                if (p > theSock->raw_input)
+                    theSock->raw_input_at = p;
+                if (!gotmessage)
+                    strcpy(bigbuf, "");
+            }                       /* if usequeues */
+        }                           /* if FD_ISSET */
+        if (gotmessage) {           /* update */
+            oper1->data.sock->last_time = time(NULL);
+            oper1->data.sock->commands += 1;
+        }
+        oper1->data.sock->readWaiting = 0;
+        CLEAR(oper1);
+        if (tp_log_sockets)
+            if (gotmessage)
+                log2filetime("logs/sockets", "#%d by %s SOCKRECV:  %d\n", program,
+                             unparse_object(PSafe, PSafe), sockval);
+
+        CHECKOFLOW(2);
+        PushInt(conRead);
+        PushString(bigbuf);
+        free((void *) mystring);
+        free((void *) bigbuf);
+    }
 }
 
 void
@@ -601,6 +620,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->last_time = time(NULL);
         result->data.sock->usequeue = 0;
         result->data.sock->usesmartqueue = 0;
+        result->data.sock->rawmode = 0;
         result->data.sock->readWaiting = 0;
 #ifdef IPV6
 	result->data.sock->ipv6 = 0;
@@ -701,6 +721,7 @@ prim_nbsock6open(PRIM_PROTOTYPE)
         result->data.sock->last_time = time(NULL);
         result->data.sock->usequeue = 0;
         result->data.sock->usesmartqueue = 0;
+        result->data.sock->rawmode = 0;
         result->data.sock->readWaiting = 0;
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         result->data.sock->ssl_session = NULL;
@@ -747,12 +768,11 @@ prim_socksecure(PRIM_PROTOTYPE)
             if (ssl_error <= 0) {
                 ssl_error =
                     SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
-                result = (ssl_error != SSL_ERROR_WANT_READ
-                          && ssl_error != SSL_ERROR_WANT_WRITE)
-                    ? ssl_error : 0;
+                result = ssl_error;
             } else
                 result = 0;
         } else {
+            make_blocking(oper1->data.sock->socknum);
             oper1->data.sock->ssl_session = SSL_new(ssl_ctx_client);
             SSL_set_fd(oper1->data.sock->ssl_session,
                        oper1->data.sock->socknum);
@@ -760,9 +780,7 @@ prim_socksecure(PRIM_PROTOTYPE)
             if (ssl_error <= 0) {
                 ssl_error =
                     SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
-                result = (ssl_error != SSL_ERROR_WANT_READ
-                          && ssl_error != SSL_ERROR_WANT_WRITE)
-                    ? ssl_error : 0;
+                result = ssl_error;
             } else
                 result = 0;
         }
@@ -1174,6 +1192,7 @@ if (oper1->data.sock->ipv6) {
     result->data.sock->usequeue = 0;
     result->data.sock->usesmartqueue = 0;
     result->data.sock->commands = 0;
+    result->data.sock->rawmode = 1;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
     result->data.sock->username = alloc_string(username); /* not done */
@@ -1350,6 +1369,7 @@ if (oper1->data.sock->ipv6) {
     result->data.sock->usequeue = 0;
     result->data.sock->usesmartqueue = 0;
     result->data.sock->commands = 0;
+    result->data.sock->rawmode = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
     result->data.sock->username = alloc_string(username); /* not done */
@@ -1576,6 +1596,7 @@ prim_set_sockopt(PRIM_PROTOTYPE)
     if (flag == 0) {            /* remove any queue options */
         theSock->usequeue = 0;
         theSock->usesmartqueue = 0;
+        theSock->rawmode = 0;
         if (theSock->raw_input) {
             free(theSock->raw_input);
             theSock->raw_input = NULL;
@@ -1583,16 +1604,27 @@ prim_set_sockopt(PRIM_PROTOTYPE)
         }
         result = 1;
     } else if (flag == 1) {
+        theSock->rawmode = 0;
         theSock->usequeue = 1;
         theSock->usesmartqueue = 0;
         result = 1;
     } else if (flag == 2) {
+        theSock->rawmode = 0;
         theSock->usequeue = 1;
         theSock->usesmartqueue = 1;
         result = 1;
     } else if (flag == 5) {
         update_socket_frame(theSock, fr);
         result = 1;
+    } else if (flag == 3) {
+        theSock->rawmode = 1;
+        theSock->usesmartqueue = 0;
+        theSock->usequeue = 0;
+        if (theSock->raw_input) {
+            free(theSock->raw_input);
+            theSock->raw_input = NULL;
+            theSock->raw_input_at = NULL;
+        }
     } else
         result = 0;
     CLEAR(oper1);
