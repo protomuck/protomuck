@@ -305,6 +305,7 @@ extern char *puser(int c);
 extern char *pipnum(int c);
 extern char *pport(int c);
 extern void make_nonblocking(int s);
+extern void make_blocking(int s);
 extern char *time_format_2(time_t dt);
 
 extern void pboot(int c);

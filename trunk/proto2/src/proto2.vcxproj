@@ -81,7 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include;c:\zlib\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include;C:\Program Files (x86)\GnuWin32\include;C:\openssl-0.9.8g_win32\include</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAs>CompileAsCpp</CompileAs>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -89,11 +89,11 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>zdll.lib;mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ssleay32.lib;libeay32.lib;zlib.lib;mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StackCommitSize>128000</StackCommitSize>
       <StackReserveSize>16000000</StackReserveSize>
       <AdditionalOptions>/NODEFAULTLIB:library %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalLibraryDirectories>C:\zlib\lib;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\lib\debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\lib\debug;C:\openssl-0.9.8g_win32\lib\</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -129,8 +129,8 @@
       <CompileAs>CompileAsCpp</CompileAs>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include</AdditionalIncludeDirectories>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include;C:\Program Files (x86)\GnuWin32\include</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
@@ -141,7 +141,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <StackReserveSize>16000000</StackReserveSize>
       <StackCommitSize>128000</StackCommitSize>
-      <AdditionalDependencies>mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>zlib.lib;mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\lib\opt</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>
