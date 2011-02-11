@@ -203,7 +203,11 @@ prim_socksend(PRIM_PROTOTYPE)
         fcntl(oper1->data.sock->socknum, F_SETFL, 0);
 #endif
 
-        sprintf(buf, "%s\n", oper2->data.string->data);
+        if (oper1->data.sock->rawmode)
+            strcpy(buf, oper2->data.string->data);
+        else
+            sprintf(buf, "%s\n", oper2->data.string->data);
+
 
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         if (oper1->data.sock->ssl_session) {
@@ -263,12 +267,15 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         if (oper1->data.sock->ssl_session) {
             if ((readme = SSL_read(oper1->data.sock->ssl_session, buf, BUFFER_LEN-2)) <= 0) {
                 sprintf(buf, "SSL_ERROR: %d", SSL_get_error(oper1->data.sock->ssl_session, readme));
+#if defined(WIN32)
                 make_blocking(sockval);
+#endif
             }
         } else
 #endif
             readme = readsocket(sockval, buf, BUFFER_LEN-2);
-
+        if (readme > -1)
+            buf[readme] = '\0';
         oper1->data.sock->readWaiting = 0;
         CLEAR(oper1);
         CHECKOFLOW(2);
@@ -772,7 +779,9 @@ prim_socksecure(PRIM_PROTOTYPE)
             } else
                 result = 0;
         } else {
+#if defined(WIN32)
             make_blocking(oper1->data.sock->socknum);
+#endif
             oper1->data.sock->ssl_session = SSL_new(ssl_ctx_client);
             SSL_set_fd(oper1->data.sock->ssl_session,
                        oper1->data.sock->socknum);
