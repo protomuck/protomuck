@@ -181,8 +181,14 @@ void *threaded_resolver_go(void *ptr)
         struct husrinfo *u;
 
 
-        if (tr->h->wupd && strcmp(tr->h->name, he->h_name))
-            log_status("*RES: %s to %s\n", tr->h->name, he->h_name);
+        /*-------------------------------------------------------------*/
+        /* I just realized how bad it is to call log_status from a     */
+        /*  thread, especially with MCCP (zlib) compression. -Hinoserm */
+        /*-------------------------------------------------------------*/
+        /* if (tr->h->wupd && strcmp(tr->h->name, he->h_name))         */
+        /*    log_status("*RES: %s to %s\n", tr->h->name, he->h_name); */
+        /*-------------------------------------------------------------*/
+
         
         old_ptr = tr->h->name;
         tr->h->name = alloc_string(he->h_name);
