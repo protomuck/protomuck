@@ -4636,6 +4636,7 @@ original player, and the second player then connected. It returns 1 if
 the descriptor was found and reassigned, or 0 in case of failure.
 
 This primitive is usable only by W4's and requires no password to use.
+Attempting to setuser to #1 with this prim will fail and be logged.
 ~
 INTERP
 
