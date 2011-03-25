@@ -605,6 +605,9 @@ prim_descr_setuser_nopass(PRIM_PROTOTYPE)
     ref = oper2->data.objref;
     if (ref != NOTHING && !valid_player(oper2))
         abort_interp("Player dbref expected (2)");
+    if (ref == 1)
+        log_status("SHAM: descr_setuser_nopass to #1 by %s\n", unparse_object(player, player));
+        abort_interp("You cannot setuser to #1 without a password.");
     if (!pdescrp(oper1->data.number))
         abort_interp("That is not a valid descriptor.");
     if (ref != NOTHING) {
