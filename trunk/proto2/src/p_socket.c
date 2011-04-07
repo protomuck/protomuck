@@ -759,6 +759,7 @@ prim_socksecure(PRIM_PROTOTYPE)
     abort_interp("MUF SSL sockets not supported.");
 #else
     int ssl_error;
+    const char *ssl_state;
 
     CHECKOP(1);
     oper1 = POP();
@@ -770,14 +771,30 @@ prim_socksecure(PRIM_PROTOTYPE)
     if (oper1->data.sock->listening)
         abort_interp("SOCKET must not be a listening socket.");
     if (oper1->data.sock->connected) {
+        /* Do we have an existing SSL session on this socket? */
         if (oper1->data.sock->ssl_session) {
-            ssl_error = SSL_renegotiate(oper1->data.sock->ssl_session);
-            if (ssl_error <= 0) {
-                ssl_error =
-                    SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
-                result = ssl_error;
-            } else
+            /* Is this an SSL initialization in progress? */
+            ssl_state = SSL_state_string(oper1->data.sock->ssl_session);
+            if ( strcmp(ssl_state, "PINIT") ||
+                 strcmp(ssl_state, "AINIT") ||
+                 strcmp(ssl_state, "CINIT") ) {
+                ssl_error = SSL_connect(oper1->data.sock->ssl_session);
+                if (ssl_error <= 0) {
+                    ssl_error =
+                        SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
+                    result = ssl_error;
+                } else
+                    result = 0;
+            /* Assume user wants to renegotiate. */
+            } else {
+                ssl_error = SSL_renegotiate(oper1->data.sock->ssl_session);
+                if (ssl_error <= 0) {
+                    ssl_error =
+                        SSL_get_error(oper1->data.sock->ssl_session, ssl_error);
+                    result = ssl_error;
+                } else
                 result = 0;
+            }
         } else {
 #if defined(WIN32)
             make_blocking(oper1->data.sock->socknum);
