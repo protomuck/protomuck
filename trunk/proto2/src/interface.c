@@ -2066,10 +2066,11 @@ shovechars(void)
                     muf_socket_sendevent(curr);
                 }
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
-                if (curr->theSock->ssl_session) {
-                    ssl_buffer = SSL_pending(curr->theSock->ssl_session);
-                    if (ssl_buffer > 0)
-                        muf_socket_sendevent(curr);
+                else
+                    if (curr->theSock->ssl_session) {
+                        ssl_buffer = SSL_pending(curr->theSock->ssl_session);
+                        if (ssl_buffer > 0)
+                            muf_socket_sendevent(curr);
                     }
 #endif
             }
