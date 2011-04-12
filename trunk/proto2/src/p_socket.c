@@ -243,6 +243,8 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     fd_set reads;
     struct timeval t_val;
     int charCount = 0;
+    int ssl_error;
+    int ssl_buffer = 0;
 
     CHECKOP(1);
     /* socket -- */
@@ -254,6 +256,12 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         abort_interp("Socket argument expected!");
     if (oper1->data.sock->listening)
         abort_interp("NBSOCKRECV does not work with Listening SOCKETS.");
+
+
+ #if defined(SSL_SOCKETS) && defined(USE_SSL)
+    if ((oper1->data.sock->ssl_session))
+        ssl_buffer = SSL_pending(oper1->data.sock->ssl_session);
+ #endif
 
     sockval = oper1->data.sock->socknum;
 
@@ -297,15 +305,18 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         FD_SET(oper1->data.sock->socknum, &reads);
 
         select(oper1->data.sock->socknum + 1, &reads, NULL, NULL, &t_val);
-        if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
+        if ( (FD_ISSET(oper1->data.sock->socknum, &reads))
+             || ssl_buffer > 0) {
  #if defined(SSL_SOCKETS) && defined(USE_SSL)
             if (oper1->data.sock->ssl_session)
                 while (1) {
                     readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-                    if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
-                        SSL_ERROR_WANT_READ)
-                        break;
-            } else
+                    ssl_error = SSL_get_error(oper1->data.sock->ssl_session, readme);
+                    if (ssl_error != SSL_ERROR_WANT_READ &&
+                        ssl_error != SSL_ERROR_WANT_WRITE)
+                            break;
+                    }
+            else
  #endif
                 readme = readsocket(oper1->data.sock->socknum, mystring, 1);
 
@@ -323,10 +334,12 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                     while (1) {
                         readme =
                             SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-                        if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
-                            SSL_ERROR_WANT_READ)
-                            break;
-                } else
+                        ssl_error = SSL_get_error(oper1->data.sock->ssl_session, readme);
+                        if (ssl_error != SSL_ERROR_WANT_READ &&
+                            ssl_error != SSL_ERROR_WANT_WRITE )
+                                break;
+                    }
+                else
  #endif
                     readme = readsocket(oper1->data.sock->socknum, mystring, 1);
             }
@@ -404,6 +417,7 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
     char *mystring;
     int readme, gotmessage = 0;
     int sockval = 0;
+    int ssl_error;
     fd_set reads;
     struct timeval t_val;
     unsigned int theChar = 0;
@@ -438,8 +452,10 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
         if (oper1->data.sock->ssl_session)
             while (1) {
                 readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-                if (SSL_get_error(oper1->data.sock->ssl_session, readme) !=
-                    SSL_ERROR_WANT_READ)
+                ssl_error = SSL_get_error(oper1->data.sock->ssl_session,
+                                         readme);
+                if (ssl_error != SSL_ERROR_WANT_READ &&
+                    ssl_error != SSL_ERROR_WANT_WRITE)
                     break;
         } else
 #endif
