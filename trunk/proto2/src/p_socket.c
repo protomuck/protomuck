@@ -236,7 +236,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 {
     char *bigbuf, *bufpoint;
     char *mystring;
-    int loop, gotmessage = 0;
+    int gotmessage = 0;
     int readme = 0;
     int conRead = 1;            /* bool to detect dropped connections */
     int sockval = 0;
@@ -298,7 +298,6 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         t_val.tv_sec = 0;
         t_val.tv_usec = 0;
 
-        loop = 0;
         *mystring = '\0';
 
         FD_ZERO(&reads);

@@ -155,13 +155,10 @@ purge_timenode_free_pool()
 int
 control_process(dbref player, int pid)
 {
-    timequeue tmp, ptr = tqhead;
+    timequeue ptr = tqhead;
 
-    tmp = ptr;
-    while ((ptr) && (pid != ptr->eventnum)) {
-        tmp = ptr;
+    while ((ptr) && (pid != ptr->eventnum))
         ptr = ptr->next;
-    }
 
     if (!ptr)
         return muf_event_controls(player, pid);

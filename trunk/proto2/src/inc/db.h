@@ -568,6 +568,7 @@ struct line {
 #define PROG_LVAR_BANG     26   /* ! shortcut for local vars */
 #define PROG_MYSQL         27   /* A MySQL database connection */
 #define PROG_LABEL         28   /* An MUF label */
+#define PROG_MODPRIM       29   /* For modular primitives */
 
 #define MAX_VAR        204	    /* maximum number of variables including the  */
 				                /* basic ME and LOC                           */
@@ -650,6 +651,63 @@ struct muf_proc_data {
 	const char **varnames;
 };
 
+#ifdef MODULAR_SUPPORT
+
+struct module;
+
+extern char *module_load(const char *filename, dbref who);
+extern char module_error[BUFFER_LEN];
+extern struct module *modules;
+extern void module_remember(struct module *m);
+extern void module_free(struct module *m);
+
+struct mod_primlist {
+	const char *sym;
+	const char *name;
+	void (*func)();
+	int flags;
+	struct module *mod;
+	long links;
+};
+
+struct mod_proglist {
+	dbref prog;
+
+	struct mod_proglist *prev;
+	struct mod_proglist *next;
+};
+
+struct mod_dependancies {
+	const char *name;
+	int min_version;
+	int max_version;
+};
+
+struct mod_info {
+	const char *name;
+	const char *description;
+	int         version;
+	struct mod_dependancies *requires;
+};
+
+
+struct module {
+	struct mod_proglist *progs;
+	struct mod_primlist *prims;
+	void *handle;
+
+	dbref loadedby_prog;
+	dbref loadedby_who;
+	time_t loaded_when;
+
+	struct mod_info *info;
+
+	struct module *next;
+	struct module *prev;
+};
+
+#endif
+
 struct inst {			/* instruction */
     short   type;
     short   line;
@@ -668,6 +726,9 @@ struct inst {			/* instruction */
 #endif                                  /*----------------------------------*/
         struct muf_proc_data *mufproc;  /* Data specific to each procedure  */
         char *labelname;                /* The name of an MUF Label         */
+#ifdef MODULAR_SUPPORT
+		struct mod_primlist *modprim;
+#endif
     } data;
 };
 
@@ -795,6 +856,17 @@ struct muf_qitem { /* queue item to put back later */
     } t;
 };
 
+struct funcprof {
+	const char *funcname;
+	double starttime;
+	double endtime;
+	double totaltime;
+	double lasttotal;
+	long usecount;
+
+	struct funcprof *next;
+};
+
 /* frame data structure necessary for executing programs */
 struct frame {
     struct frame *next;
@@ -854,13 +926,14 @@ struct frame {
         } error_flags;
         int is_flags;
     } error;
+	struct funcprof *fprofile;
 };
-
 
 struct publics {
     char   *subname;
     int mlev;
     int self;
+	long usecount;
     union {
 	struct inst *ptr;
 	int     no;
@@ -924,6 +997,7 @@ union specific {      /* I've been railroaded! */
       struct timeval proftime;      /* Profiling time spent in this program */
       time_t profstart;             /* Time when profiling started for this prog */
       unsigned int profuses;        /* # calls to this program while profiling */
+	  struct funcprof *fprofile;
     }       program;
 };
 

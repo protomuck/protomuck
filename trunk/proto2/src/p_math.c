@@ -666,7 +666,6 @@ void
 prim_plusplus(PRIM_PROTOTYPE)
 {
     struct inst *tmp;
-    short itype;
     int vnum;
 
     CHECKOP(1)
@@ -713,7 +712,6 @@ prim_plusplus(PRIM_PROTOTYPE)
             abort_interp("Invalid datatype.");
     }
 
-    itype = temp1.type;
     vnum = temp1.data.number;
     switch (temp2.type) {
         case PROG_INTEGER:
@@ -763,7 +761,6 @@ void
 prim_minusminus(PRIM_PROTOTYPE)
 {
     struct inst *tmp;
-    short itype;
     int vnum;
 
     CHECKOP(1)
@@ -810,7 +807,6 @@ prim_minusminus(PRIM_PROTOTYPE)
             abort_interp("Invalid datatype.");
     }
 
-    itype = temp1.type;
     vnum = temp1.data.number;
     switch (temp2.type) {
         case PROG_INTEGER:

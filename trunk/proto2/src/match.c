@@ -311,7 +311,7 @@ match_exits(dbref first, struct match_data *md)
 {
     dbref exit, absolute;
     const char *exitname, *p;
-    int /* i, */ exitprog, lev;
+    int /* i, exitprog, */ lev;
 
     if (first == NOTHING)
         return;                 /* Easy fail match */
@@ -327,15 +327,13 @@ match_exits(dbref first, struct match_data *md)
             md->exact_match = exit;
             continue;
         }
-        exitprog = 1;
+
         /*
            if (FLAGS(exit) & HAVEN || !tp_require_has_mpi_arg) {
-           exitprog = 1;
            } else if (DBFETCH(exit)->sp.exit.dest) {
            for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++) {
            if ((DBFETCH(exit)->sp.exit.dest)[i] != NIL)
            if (Typeof((DBFETCH(exit)->sp.exit.dest)[i]) == TYPE_PROGRAM)
-           exitprog = 1;
            }
            }
          */

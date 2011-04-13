@@ -376,13 +376,11 @@ trigger(int descr, dbref player, dbref exit, int pflag)
     dbref loc;
     int sobjact;                /* sticky object action flag, sends home
                                  * source obj */
-    int succ;
     struct frame *tmpfr;
 
     loc = DBFETCH(player)->location;
 
     sobjact = 0;
-    succ = 0;
 
     for (i = 0; i < DBFETCH(exit)->sp.exit.ndest; i++) {
         dest = (DBFETCH(exit)->sp.exit.dest)[i];
@@ -397,7 +395,6 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                 parse_omessage(descr, player, loc, exit, GETOSUCC(exit),
                                NAME(player), "(@Osucc)");
             }
-            succ = 1;
         } else {
             switch (Typeof(dest)) {
                 case TYPE_ROOM:
@@ -460,7 +457,6 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                             break;
 #endif
                         enter_room(descr, player, dest, exit);
-                        succ = 1;
                     }
                     break;
                 case TYPE_THING:
@@ -495,7 +491,6 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                                 break;
 #endif
                             enter_room(descr, player, dest, exit);
-                            succ = 1;
                         }
                     } else {
                         if (Typeof(DBFETCH(exit)->location) == TYPE_THING) {
@@ -520,15 +515,11 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                             }
                             moveto(dest, DBFETCH(exit)->location);
                         }
-                        if (GETSUCC(exit))
-                            succ = 1;
                     }
                     break;
                 case TYPE_EXIT: /* It's a meta-link(tm)! */
                     ts_useobject(player, dest);
                     trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0);
-                    if (GETSUCC(exit))
-                        succ = 1;
                     break;
                 case TYPE_PLAYER:
                     if (pflag && DBFETCH(dest)->location != NOTHING) {
@@ -538,7 +529,6 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                                               "That would cause a paradox.");
                             break;
                         }
-                        succ = 1;
                         if (FLAGS(dest) & JUMP_OK) {
                             if (GETDROP(exit)) {
                                 exec_or_notify(descr, player, exit,

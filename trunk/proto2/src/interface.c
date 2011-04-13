@@ -36,6 +36,10 @@ int shutdown_flag = 0;
 int restart_flag = 0;
 int total_loggedin_connects = 0;
 
+#ifdef MODULAR_SUPPORT
+struct module *modules = NULL;
+#endif
+
 #ifdef USE_PS
 
 #ifndef PS_CLOBBER_ARGV
@@ -999,11 +1003,10 @@ html_escape2(char *msg, int addbr)
 char *
 grab_html(int nothtml, char *title)
 {
-    char *tempstr;
     static char buf[BUFFER_LEN];
 
     buf[0] = '\0';
-    tempstr = buf;
+
     if (!title || !*title) {
         return NULL;
     }
@@ -1222,9 +1225,8 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
     char *ptr1;
     const char *ptr2;
     dbref ref;
-    char *lwp;
     int *darr;
-    int len, di;
+    int di;
     int dcount;
 
     if (player < 0)
@@ -1246,8 +1248,6 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
             d = descrdata_by_index(darr[di]);
             if (d->connected && d->player == player) {
                 if ((d->linelen > 0) && !(FLAGS(player) & CHOWN_OK)) {
-                    lwp = buf;
-                    len = strlen(buf);
                     if (d)
                         queue_unhtml(d, buf);
                 } else if (d)
@@ -1320,9 +1320,8 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
     char *ptr1;
     const char *ptr2;
     dbref ref;
-    char *lwp;
     int *darr;
-    int len, di;
+    int di;
     int dcount;
 
     if (player < 0)
@@ -1345,8 +1344,6 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
         for (di = 0; di < dcount; di++) {
             d = descrdata_by_index(darr[di]);
             if ((d->linelen > 0) && !(FLAGS(player) & CHOWN_OK)) {
-                lwp = buf;
-                len = strlen(buf);
                 if (d)
                     queue_html(d, buf);
             } else {
@@ -1706,7 +1703,7 @@ shovechars(void)
     int avail_descriptors;
     struct timeval sel_in, sel_out;
     int openfiles_max;
-    int e, i;
+    int i;
     char buf[2048], buf2[256];
 
 #ifdef USE_SSL
@@ -2092,7 +2089,7 @@ shovechars(void)
 
                     /* Get the data waiting */
                     memset(buf, 0, sizeof(buf));
-                    e = recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0,
+                    recvfrom(udp_sockets[i].socket, buf, sizeof(buf), 0,
                                  (struct sockaddr *) &tmpaddr, &tmpsz);
                     /* And dispatch the UDP event */
                     strncpy(buf2, inet_ntoa(tmpaddr.sin_addr), 16);
@@ -4293,6 +4290,9 @@ close_sockets(const char *msg)
         if (d->next)                                                                                                                                                                     /****/
             d->next->prev = d->prev;     /****/
                                    /****/
+#ifdef MCCP_ENABLED
+	    mccp_end(d);
+#endif
 #ifdef NEWHTTPD
         if (d->http)
             http_deinitstruct(d);
@@ -6693,3 +6693,142 @@ mssp_send(struct descriptor_data *d)
 
     queue_write(d, "\xFF\xF0", 2);
 }
+
+#ifdef MODULAR_SUPPORT
+
+char module_error[BUFFER_LEN];
+
+void
+module_remember(struct module *m)
+{
+	if (modules)
+		modules->prev = m;
+	m->next = modules;
+	modules = m;
+}
+
+char *
+module_load(const char *filename, dbref who)
+{
+	struct module *m = (struct module *)malloc(sizeof(struct module));
+	struct module *mo;
+	void *(*func)();
+	char *error;
+
+	dlerror();
+	m->handle = dlopen(filename, RTLD_NOW | RTLD_GLOBAL);
+
+	if (!m->handle && (error = dlerror()) != NULL) {
+		free((void *)m);
+		log_status("MODULE_LOAD(%s): ERROR %s\r\n", filename, error); 
+		return error;
+	}
+
+	func = dlsym(m->handle, "__get_module_info");
+
+	if ((error = dlerror()) != NULL)  {
+		dlclose(m->handle);
+		free((void *)m);
+		log_status("MODULE_LOAD(%s): ERROR %s\r\n", filename, error);
+		return error;
+	}
+
+	if (!(m->info = (*func)(m))) {
+		dlclose(m->handle);
+		free((void *)m);
+		log_status("MODULE_LOAD(%s): ERROR %s\r\n", filename, module_error);
+		return module_error;
+	}
+
+	mo = modules;
+	while (mo) {
+        if (mo->handle == m->handle) {
+			strcpy(module_error, "module is already loaded");
+			break;
+		} else if (!string_compare(mo->info->name, m->info->name)) {
+			strcpy(module_error, "module with same name is already loaded");
+			dlclose(m->handle);
+			break;
+		}
+		mo = mo->next;
+	}
+
+	if (mo) {
+		log_status("MODULE_LOAD(%s): ERROR %s\r\n", m->info->name, module_error);
+		free((void *)m);
+		return module_error;
+	}
+
+	/* for (i = 0; mr->info->requires[i].name; i++) {
+		
+	} */
+
+
+	m->prims = NULL;
+	func = dlsym(m->handle, "__get_prim_list");
+
+	if ((error = dlerror()) == NULL)  {	
+		m->prims = (*func)();
+
+		if (m->prims) {
+			int i;
+			for (i = 0; m->prims[i].name; i++) {
+				m->prims[i].mod = m;
+				m->prims[i].func = dlsym(m->handle, m->prims[i].sym);
+
+				if ((error = dlerror()) != NULL)  {
+					sprintf(module_error, "Bad Primitive (%s): %s", m->prims[i].name,  error);
+					log_status("MODULE_LOAD(%s): ERROR %s\r\n", m->info->name, module_error);
+
+					dlclose(m->handle);
+					free((void *)m);
+					return module_error;
+				}
+
+				log_status("MODULE(%s) Has PRIM_%s\r\n", filename, m->prims[i].name);
+			}
+		}
+	}
+
+	strcpy(module_error, "");
+
+	m->progs = NULL;
+	m->prev = NULL;
+	m->next = NULL;
+
+	module_remember(m);
+
+	return NULL;
+}
+
+void
+module_free(struct module *m)
+{
+
+	if (m->progs) {
+		struct mod_proglist *mpr = m->progs;
+
+		while (mpr) {
+			struct mod_proglist *ompr = mpr->next;
+			/* TODO: this needs to safely deal with loaded muf programs --hinoserm */
+			uncompile_program(mpr->prog);
+
+			//free((void *)mpr);
+			mpr = ompr;
+		}
+	}
+
+	if (m->next)
+	   m->next->prev = m->prev;
+	if (m->prev)
+		m->prev->next = m->next;
+	if (m == modules)
+		modules = m->next;
+	
+	log_status("MODULE: Free'd %s.\r\n", m->info->name);
+	dlclose(m->handle);
+	free((void *)m);
+}
+
+
+#endif

@@ -565,6 +565,9 @@
 # include <netinet/tcp.h>
 # include <arpa/inet.h>
 # include <netdb.h>
+#ifdef MODULAR_SUPPORT
+# include <dlfcn.h> /* modular support */
+#endif
 #endif
 
 #if defined(HAVE_ERRNO_H)
