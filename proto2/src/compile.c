@@ -461,6 +461,12 @@ include_defs(COMPSTATE *cstat, dbref i)
 void
 include_internal_defs(COMPSTATE *cstat)
 {
+	int i;
+	char buf[BUFFER_LEN];
+#ifdef MODULAR_SUPPORT
+	struct module *m = modules;
+#endif
+
     /* Create standard server defines */
     insert_def(cstat, "__version", VERSION);
     insert_def(cstat, "__neon", NEONVER);
@@ -708,6 +714,38 @@ include_internal_defs(COMPSTATE *cstat)
 #ifdef SSL_SOCKETS
     insert_def(cstat, "SSL_SOCKETS", "1");
     insert_def(cstat, "SSL_SOCKOPEN", "SSL_NBSOCKOPEN");
+#endif
+
+	for (i = 0; i < BASE_MAX; i++) {
+		sprintf(buf,  "prim(%s)", base_inst[i]);
+		insert_def(cstat, buf, "\"system\"");
+	}
+
+#ifdef MODULAR_SUPPORT
+	while (m) {
+		if (!m->next)
+			break;
+
+		m = m->next;
+	}
+
+	while (m) {
+		char buf2[BUFFER_LEN];
+
+		sprintf(buf,  "module(%s)", m->info->name);
+		sprintf(buf2, "%d",         (m->info->version ? m->info->version : 1));
+        insert_def(cstat, buf, buf2);
+
+		for (i = 0; m->prims[i].name; i++) {
+			sprintf(buf,  "modprim(%s)", m->prims[i].name);
+			sprintf(buf2, "\"%s\"",      m->info->name);
+			insert_def(cstat, buf, buf2);
+			sprintf(buf, "prim(%s)", m->prims[i].name);
+			insert_def(cstat, buf, buf2);
+		}
+
+		m = m->prev;
+	};
 #endif
 
 }
@@ -1625,6 +1663,35 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
     cleanup(&cstat);
     DBFETCH(cstat.program)->sp.program.instances = 0;
 
+#ifdef MODULAR_SUPPORT
+	for (i = 0; i < DBFETCH(cstat.program)->sp.program.siz; i++) {
+		if (DBFETCH(cstat.program)->sp.program.code[i].type == PROG_MODPRIM) {
+			struct module *m = DBFETCH(cstat.program)->sp.program.code[i].data.modprim->mod;
+			struct mod_proglist *prm = m->progs;
+
+			DBFETCH(cstat.program)->sp.program.code[i].data.modprim->links++;
+
+			while (prm) {
+				if (prm->prog == cstat.program)
+					break;
+				
+				prm = prm->next;
+			}
+
+			if (!prm) {
+				prm = (struct mod_proglist *)malloc(sizeof(struct mod_proglist));
+				prm->prog = cstat.program;
+				prm->prev = NULL;
+				prm->next = m->progs;
+				if (m->progs)
+					m->progs->prev = prm;
+				m->progs = prm;
+				log_status("MODULE: Added prog %d to module %s because of %s.\r\n", prm->prog, m->info->name, DBFETCH(cstat.program)->sp.program.code[i].data.modprim->name);
+			}
+		}
+	}
+#endif
+
     /* restart AUTOSTART program. */
     if ((FLAGS(cstat.program) & ABODE) && TMage(OWNER(cstat.program)))
         add_muf_queue_event(-1, OWNER(cstat.program), NOTHING, NOTHING,
@@ -1642,6 +1709,11 @@ find_label(COMPSTATE *cstat, const char *name)
             return p;
     return NULL;
 }
+
+#ifdef MODULAR_SUPPORT
+int modprim(const char *token);
+struct INTERMEDIATE *modprim_word(COMPSTATE *cstat, const char *token);
+#endif /* MODULAR_SUPPORT */
 
 struct INTERMEDIATE *
 next_word(COMPSTATE *cstat, const char *token)
@@ -1664,6 +1736,10 @@ next_word(COMPSTATE *cstat, const char *token)
         new_word = var_word(cstat, token);
     else if (special(token))
         new_word = process_special(cstat, token);
+#ifdef MODULAR_SUPPORT
+	else if (modprim(token))
+        new_word = modprim_word(cstat, token);
+#endif
     else if (primitive(token))
         new_word = primitive_word(cstat, token);
     else if (string(token))
@@ -3353,6 +3429,7 @@ process_special(COMPSTATE *cstat, const char *token)
             cstat->currpubs->addr.no = get_address(cstat, p->code, 0);
             cstat->currpubs->mlev = wizflag ? wizlevel : 1;
             cstat->currpubs->self = selfflag;
+			cstat->currpubs->usecount = 0;
             return 0;
         }
         for (pub = cstat->currpubs; pub;) {
@@ -3436,6 +3513,78 @@ process_special(COMPSTATE *cstat, const char *token)
         abort_compile(cstat, buf);
     }
 }
+
+#ifdef MODULAR_SUPPORT
+
+extern struct module *modules;
+
+int
+modprim(const char *token)
+{
+	struct mod_primlist *mpr = NULL;
+	struct module *m;
+	int i;
+
+	m = modules;
+	while (m) {
+		if (m->prims) {
+			for (i = 0; m->prims[i].name; i++) {
+				if (!string_compare(m->prims[i].name, token)) {
+					mpr = &m->prims[i]; 
+					break;
+				}
+			}
+
+			if (mpr)
+				break;
+		}
+
+		m = m->next;
+	}
+	
+	if (mpr)
+		return 1;
+	else
+		return 0;
+}
+
+/* return modular prim word. */
+struct INTERMEDIATE *
+modprim_word(COMPSTATE *cstat, const char *token)
+{
+    struct INTERMEDIATE *nw, *cur;
+    struct mod_primlist *mpr = NULL;
+	struct module *m;
+	int i;
+
+    cur = nw = new_inst(cstat);
+
+	m = modules;
+	while (m) {
+		if (m->prims) {
+			for (i = 0; m->prims[i].name; i++) {
+				if (!string_compare(m->prims[i].name, token)) {
+					mpr = &m->prims[i]; 
+					break;
+				}
+			}
+
+			if (mpr)
+				break;
+		}
+
+		m = m->next;
+	}  
+
+    cur->no = cstat->nowords++;
+    cur->in.type = PROG_MODPRIM;
+    cur->in.line = cstat->lineno;
+    cur->in.data.modprim = mpr;
+
+    return nw;
+}
+
+#endif /* MODULAR_SUPPORT */
 
 /* return primitive word. */
 struct INTERMEDIATE *
@@ -4348,6 +4497,11 @@ copy_program(COMPSTATE *cstat)
             case PROG_LABEL:
                 code[i].data.labelname = curr->in.data.labelname;
                 break;
+#ifdef MODULAR_SUPPORT
+			case PROG_MODPRIM:
+				code[i].data.modprim = curr->in.data.modprim;
+				break;
+#endif
             default:
                 v_abort_compile(cstat,
                                 "Unknown type compile!  Internal error.");
@@ -4439,6 +4593,7 @@ void
 free_prog(dbref prog)
 {
     int i;
+	struct funcprof *fpr;
     struct inst *c = DBFETCH(prog)->sp.program.code;
     int siz = DBFETCH(prog)->sp.program.siz;
 
@@ -4462,6 +4617,29 @@ free_prog(dbref prog)
                             unparse_object(MAN, prog), c[i].data.addr->links);
                 }
                 free(c[i].data.addr);
+#ifdef MODULAR_SUPPORT
+			} else if (c[i].type == PROG_MODPRIM) {
+				struct module *m = c[i].data.modprim->mod;
+				struct mod_proglist *prm = m->progs;
+
+				c[i].data.modprim->links--;
+
+				while (prm) {
+					if (prm->prog == prog) {
+						if (prm->next)
+						   prm->next->prev = prm->prev;
+						if (prm->prev)
+							prm->prev->next = prm->next;
+						if (prm == m->progs)
+							m->progs = m->progs->next;
+							log_status("MODULE: Removed prog %d from module %s because of %s.\r\n", prog, m->info->name,c[i].data.modprim->name);
+						free((void *)prm);
+						break;
+					}
+					
+					prm = prm->next;
+				}
+#endif /* MODULAR_SUPPORT */
             } else {
                 CLEAR(c + i);
             }
@@ -4471,6 +4649,13 @@ free_prog(dbref prog)
     DBFETCH(prog)->sp.program.code = 0;
     DBFETCH(prog)->sp.program.siz = 0;
     DBFETCH(prog)->sp.program.start = 0;
+
+	while (DBFETCH(prog)->sp.program.fprofile) {
+		fpr = DBFETCH(prog)->sp.program.fprofile->next;
+		free((void *)DBFETCH(prog)->sp.program.fprofile->funcname);
+		free((void *)DBFETCH(prog)->sp.program.fprofile);
+		DBFETCH(prog)->sp.program.fprofile = fpr;
+	}	
 }
 
 long

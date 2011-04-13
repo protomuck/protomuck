@@ -647,10 +647,8 @@ strdecrypt(const char *data, const char *key)
     char linebuf[BUFFER_LEN];
     static char buf[BUFFER_LEN];
     const char *cp;
-    unsigned char *ptr;
     unsigned char *ups;
     const unsigned char *upt;
-    int linelen;
     int outlen;
     int count;
     int seed, seed2;
@@ -660,13 +658,10 @@ strdecrypt(const char *data, const char *key)
     if (!initialized_crypt)
         init_crypt();
 
-    ptr = (unsigned char *) linebuf;
-
     if ((data[0] - ' ') < 1 || (data[0] - ' ') > 1) {
         return "";
     }
 
-    linelen = strlen(data);
     chrcnt = charset_count[(data[0] - ' ') - 1];
     seed2 = (data[1] - ' ');
 

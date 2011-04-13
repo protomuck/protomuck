@@ -661,7 +661,6 @@ void
 tune_show_strings(dbref player, char *name)
 {
     int total = 0;
-    const char *lastname = NULL;
     char buf[BUFFER_LEN + 50], tbuf[BUFFER_LEN];
     struct tune_str_entry *tstr = tune_str_list;
 
@@ -672,7 +671,6 @@ tune_show_strings(dbref player, char *name)
                     SYSRED " = " SYSCYAN "%.4096s",
                     (WLevel(OWNER(player)) >= tstr->writemlev) ? ' ' : '-',
                     tstr->name, tct(*tstr->str, tbuf));
-            lastname = tstr->name;
             anotify_nolisten2(player, buf);
             total++;
         }
@@ -686,7 +684,6 @@ void
 tune_show_times(dbref player, char *name)
 {
     int total = 0;
-    const char *lastname = NULL;
     char buf[BUFFER_LEN + 50];
     struct tune_time_entry *ttim = tune_time_list;
 
@@ -697,7 +694,6 @@ tune_show_times(dbref player, char *name)
                     SYSRED " = " SYSPURPLE "%s",
                     (WLevel(OWNER(player)) >= ttim->writemlev) ? ' ' : '-',
                     ttim->name, timestr_full(*ttim->tim));
-            lastname = ttim->name;
             anotify_nolisten2(player, buf);
             total++;
         }
@@ -711,7 +707,6 @@ void
 tune_show_vals(dbref player, char *name)
 {
     int total = 0;
-    const char *lastname = NULL;
     char buf[BUFFER_LEN + 50];
     struct tune_val_entry *tval = tune_val_list;
 
@@ -722,7 +717,6 @@ tune_show_vals(dbref player, char *name)
                     SYSRED " = " SYSYELLOW "%d",
                     (WLevel(OWNER(player)) >= tval->writemlev) ? ' ' : '-',
                     tval->name, *tval->val);
-            lastname = tval->name;
             anotify_nolisten2(player, buf);
             total++;
         }
@@ -736,7 +730,6 @@ void
 tune_show_refs(dbref player, char *name)
 {
     int total = 0;
-    const char *lastname = NULL;
     char buf[BUFFER_LEN + 50];
     struct tune_ref_entry *tref = tune_ref_list;
 
@@ -747,7 +740,6 @@ tune_show_refs(dbref player, char *name)
                     SYSRED " = %s",
                     (WLevel(OWNER(player)) >= tref->writemlev) ? ' ' : '-',
                     tref->name, ansi_unparse_object(player, *tref->ref));
-            lastname = tref->name;
             anotify_nolisten2(player, buf);
             total++;
         }
@@ -761,7 +753,6 @@ void
 tune_show_bool(dbref player, char *name)
 {
     int total = 0;
-    const char *lastname = NULL;
     char buf[BUFFER_LEN + 50];
     struct tune_bool_entry *tbool = tune_bool_list;
 
@@ -772,7 +763,6 @@ tune_show_bool(dbref player, char *name)
                     SYSRED " = " SYSBLUE "%s",
                     (WLevel(OWNER(player)) >= tbool->writemlev) ? ' ' : '-',
                     tbool->name, ((*tbool->boolv) ? "yes" : "no"));
-            lastname = tbool->name;
             anotify_nolisten2(player, buf);
             total++;
         }

@@ -758,6 +758,11 @@ const char version_line2[] = SYSGREEN "Compile-time Options: " SYSNORMAL
     ;
 
 
+extern void do_muf_funcprofs(dbref player, char *arg1);
+extern void do_modload(dbref player, char *arg);
+extern void do_modunload(dbref player, char *arg);
+extern void do_modinfo(dbref player, char *arg);
+
 void
 process_command(int descr, dbref player, char *command)
 {
@@ -1262,6 +1267,7 @@ process_command(int descr, dbref player, char *command)
                                 default:
                                     goto bad;
                             }
+							break;
 #endif
                         case 'e':
                         case 'E':
@@ -1278,6 +1284,35 @@ process_command(int descr, dbref player, char *command)
                             Matched("@muftops");
                             do_muf_topprofs(player, arg1);
                             break;
+						case 'f':
+						case 'F':
+							Matched("@mfuncs");
+							do_muf_funcprofs(player, arg1);
+							break;
+#ifdef MODULAR_SUPPORT
+						case 'o':
+						case 'O':
+							switch (command[4]) {
+								case 'l':
+								case 'L':
+									Matched("@modload");
+									do_modload(player, full_command);
+									break;
+								case 's':
+								case 'S':
+									Matched("@modinfo");
+									do_modinfo(player, full_command);
+								    break;
+								case 'u':
+								case 'U':
+									Matched("@modunload");
+									do_modunload(player, full_command);
+									break;
+								default:
+                                    goto bad;
+						   }
+						   break;
+#endif
                         default:
                             goto bad;
                     }

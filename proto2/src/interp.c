@@ -505,6 +505,71 @@ purge_try_pool(void)
 }
 
 
+void
+muf_funcprof_enter(struct frame *fr, const char *funcname)
+{
+	struct funcprof *fpr = (struct funcprof *)malloc(sizeof(struct funcprof));
+	struct timeval fulltime;
+
+    gettimeofday(&fulltime, (struct timezone *) 0);
+
+	fpr->next = fr->fprofile;
+	fpr->funcname = alloc_string(funcname);
+	fpr->starttime = fulltime.tv_sec + (((double) fulltime.tv_usec) / 1.0e6);
+	fpr->totaltime = 0;
+	fpr->lasttotal = 0;
+	fpr->endtime = 0;
+	fpr->usecount = 1;
+	fr->fprofile = fpr;
+}
+
+void 
+muf_funcprof_exit(struct frame *fr, dbref prog)
+{
+	if (fr->fprofile) {
+		struct funcprof *fpr = fr->fprofile;
+		struct timeval fulltime;
+
+		gettimeofday(&fulltime, (struct timezone *) 0);
+
+		fr->fprofile = fpr->next;
+
+		fpr->endtime = fulltime.tv_sec + (((double) fulltime.tv_usec) / 1.0e6);
+		fpr->totaltime += fpr->endtime - fpr->starttime;
+		fpr->lasttotal = fpr->totaltime;
+		fpr->next = NULL;
+
+		if (fr->fprofile)
+			fr->fprofile->totaltime -= fpr->totaltime;
+
+		if (DBFETCH(prog)->sp.program.fprofile) {
+			struct funcprof *fpe = DBFETCH(prog)->sp.program.fprofile;
+
+			while (fpe) {
+				if (!string_compare(fpe->funcname, fpr->funcname))
+					break;
+
+				fpe = fpe->next;
+			}
+
+			if (fpe) {
+				fpe->usecount  += fpr->usecount;
+				fpe->totaltime += fpr->totaltime;
+				fpe->lasttotal  = fpr->totaltime;
+				fpe->endtime    = fpr->endtime;
+				free((void *)fpr->funcname);
+				free((void *)fpr);
+			} else {
+				fpr->next = DBFETCH(prog)->sp.program.fprofile;
+				DBFETCH(prog)->sp.program.fprofile = fpr;
+			}
+		} else
+			DBFETCH(prog)->sp.program.fprofile = fpr;
+	}
+}
+
+
+
 /* the forced_pid argument assigns the frame a PID if passed,
  * otherwise the frame gets its own from top_pid like normal
  */
@@ -564,6 +629,8 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->caller.top = 1;
     fr->caller.st[0] = source;
     fr->caller.st[1] = program;
+
+	fr->fprofile = NULL;
 
     fr->system.top = 1;
     fr->system.st[0].progref = 0;
@@ -879,6 +946,7 @@ prog_clean(struct frame *fr)
     int i;
     struct frame *ptr;
     time_t now;
+	struct funcprof *fpr;
 
     now = current_systime;
 
@@ -990,6 +1058,12 @@ prog_clean(struct frame *fr)
     fr->next = free_frames_list;
     free_frames_list = fr;
     err = 0;
+
+	while (fr->fprofile) {
+		fpr = fr->fprofile->next;
+		free((void *)fr->fprofile);
+		fr->fprofile = fpr;
+	}	
 }
 
 void
@@ -1576,6 +1650,9 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                     copyinst(temp1, tmp);
                     CLEAR(temp1);
                 }
+
+				muf_funcprof_enter(fr, pc->data.mufproc->procname);
+
                 pc++;
             }
                 break;
@@ -1630,7 +1707,16 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 pc++;
                 CLEAR(temp1);
                 break;
-
+#ifdef MODULAR_SUPPORT
+			case PROG_MODPRIM:
+				nargs = 0;
+				reload(fr, atop, stop);
+				tmp = atop;
+				pc->data.modprim->func(player, program, mlev, pc, arg, &tmp, fr);
+				atop = tmp;
+				pc++;
+				break;
+#endif /* MODULAR_SUPPORT */
             case PROG_PRIMITIVE:
                 /*
                  * All pc modifiers and stuff like that should stay here,
@@ -1773,12 +1859,15 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                 abort_loop
                                     ("Insufficient permissions to call WIZCALL-type function. (2)",
                                      temp2, temp2);
-			    if (pbs->self && (temp1->data.objref != program))
-				abort_loop
-				    ("SELFCALL Violation: Function called from outside containing program. (2)",
-				     temp2, temp2);
+							if (pbs->self && (temp1->data.objref != program))
+								abort_loop
+									("SELFCALL Violation: Function called from outside containing program. (2)",
+									 temp2, temp2);
                             pc = pbs->addr.ptr;
+
+							pbs->usecount++;
                         }
+
                         if (temp1->data.objref != program) {
                             calc_profile_timing(program, fr);
                             gettimeofday(&fr->proftime, NULL);
@@ -1795,6 +1884,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         break;
 
                     case IN_RET:
+						muf_funcprof_exit(fr, program);
+
                         if (stop > 1 && program != sys[stop - 1].progref) {
                             if (sys[stop - 1].progref > db_top ||
                                 sys[stop - 1].progref < 0 ||

@@ -70,6 +70,13 @@ insttotext(struct frame *fr, int lev, struct inst *theinst, char *buffer,
         strmax = BUFFER_LEN / 11;
 
     switch (theinst->type) {
+#ifdef MODULAR_SUPPORT
+		case PROG_MODPRIM:
+			sprintf(buffer, "%s{%s}",
+			theinst->data.modprim->name,
+			theinst->data.modprim->mod->info->name);
+			break;
+#endif
         case PROG_PRIMITIVE:
             if (theinst->data.number >= BASE_MIN &&
                 theinst->data.number <= BASE_MAX)

@@ -1152,6 +1152,142 @@ do_usage(dbref player)
 #endif /* NO_USAGE_COMMAND */
 
 
+#ifdef MODULAR_SUPPORT
+void do_modload(dbref player, char *arg)
+{
+	char *error;
+
+	if (!Boy(OWNER(player))) {
+        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        return;
+    }
+
+	if ((error = module_load(arg, player))) {
+		anotify_fmt(player, CFAIL "Module load failed: %s", error);
+		return;
+	}
+
+	anotify_fmt(player, CSUCC "Loaded %s (version %d): %s", modules->info->name, modules->info->version, modules->info->description);
+}
+
+void do_modunload(dbref player, char *arg)
+{
+	struct module *m = modules;
+	char buf[BUFFER_LEN];
+	bool force = 0;
+	char arg1[BUFFER_LEN];
+    char *arg2;
+
+	if (!Boy(OWNER(player))) {
+        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        return;
+    }
+
+    strcpy(arg1, arg);
+
+    for (arg2 = arg1; *arg2 && !isspace(*arg2); arg2++) ;
+    if (*arg2)
+        *arg2++ = '\0';
+    while (isspace(*arg2))
+        arg2++;
+
+    if (!string_compare(arg1, "#force")) {
+		force = 1;
+		strcpy(buf, arg2);
+	} else
+		strcpy(buf, arg1);
+
+	while (m) {
+		if (!string_compare(buf, m->info->name)) {
+			if (m->progs && !force) {
+				anotify_nolisten2(player, CFAIL "This module is currently required by running programs and will not be unloaded.  Use #force to force unloading.");
+				return;
+			}
+            break;
+		}
+
+		m = m->next;
+	}
+
+	if (m) {
+		struct module *mr;
+		int i;
+
+		startover:
+		
+		mr = modules;
+
+		while (mr) {
+			if (mr->info->requires) {
+				for (i = 0; mr->info->requires[i].name; i++) {
+					if (!string_compare(mr->info->requires[i].name, m->info->name)) {
+						if (!force) {
+							anotify_fmt(player, CFAIL "This module is currently required by module \"%s\".  Use #force to force unloading.", mr->info->name);
+							return;
+						} else {
+							char buf[BUFFER_LEN];
+							sprintf(buf, "#force %s", mr->info->name);
+							do_modunload(player, buf);
+							goto startover;
+						}
+					}
+				}
+			}
+
+			mr = mr->next;
+		}
+
+		anotify_fmt(player, CSUCC "Unloaded %s.", m->info->name);
+		module_free(m);
+	} else
+		anotify_nolisten2(player, CINFO "Not found.");
+}
+
+void do_modinfo(dbref player, char *arg)
+{
+
+}
+
+#endif /* MODULAR_SUPPORT */
+
+void
+do_muf_funcprofs(dbref player, char *arg1)
+{
+    char buf[BUFFER_LEN];
+    dbref i = NOTHING;
+    int count = atoi(arg1);
+	struct funcprof *fpr;
+
+    if (!Mage(OWNER(player))) {
+        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        return;
+    }
+
+    if (count < 0) {
+        anotify_nolisten2(player, CFAIL "Count has to be a positive number.");
+        return;
+    } /* else if (count == 0) {
+        count = 10;
+    } */
+
+    for (i = db_top; i-- > 0;) {
+		if (!count || i == count) {
+			if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code && DBFETCH(i)->sp.program.fprofile) {
+				fpr = DBFETCH(i)->sp.program.fprofile;
+				while (fpr) {
+						sprintf(buf, "%30s %30s %f, %ld", unparse_object(player, i), fpr->funcname, fpr->totaltime, fpr->usecount);
+						anotify_nolisten2(player, buf);
+
+					fpr = fpr->next;
+				}
+			}
+		}
+	}
+
+    anotify_nolisten2(player, CINFO "Done.");
+}
+
+
 
 void
 do_muf_topprofs(dbref player, char *arg1)

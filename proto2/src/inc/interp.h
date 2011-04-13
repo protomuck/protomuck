@@ -167,22 +167,23 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
 
 extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 
-#include "p_connects.h"
-#include "p_db.h"
-#include "p_math.h"
-#include "p_misc.h"
-#include "p_props.h"
-#include "p_stack.h"
-#include "p_strings.h"
-#include "p_mcp.h"
-#include "p_float.h"
-#include "p_error.h"
-#include "p_file.h"
-#include "p_array.h"
-#include "p_socket.h"
-#include "p_system.h"
-#include "p_mysql.h"
-#include "p_muf.h"
-#include "p_regex.h"
-#include "p_http.h" /* hinoserm */
-
+#ifndef PROTOMUCK_MODULE
+# include "p_connects.h"
+# include "p_db.h"
+# include "p_math.h"
+# include "p_misc.h"
+# include "p_props.h"
+# include "p_stack.h"
+# include "p_strings.h"
+# include "p_mcp.h"
+# include "p_float.h"
+# include "p_error.h"
+# include "p_file.h"
+# include "p_array.h"
+# include "p_socket.h"
+# include "p_system.h"
+# include "p_mysql.h"
+# include "p_muf.h"
+# include "p_regex.h"
+# include "p_http.h" /* hinoserm */
+#endif
