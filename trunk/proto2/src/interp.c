@@ -947,7 +947,7 @@ prog_clean(struct frame *fr)
     int i;
     struct frame *ptr;
     time_t now;
-	struct funcprof *fpr;
+    struct funcprof *fpr;
 
     now = current_systime;
 
@@ -1062,7 +1062,9 @@ prog_clean(struct frame *fr)
 
 	while (fr->fprofile) {
 		fpr = fr->fprofile->next;
-		free((void *)fr->fprofile);
+                if (fr->fprofile->funcname)
+		    free((void *)fr->fprofile->funcname);
+                free((void *)fr->fprofile);
 		fr->fprofile = fpr;
 	}	
 }
