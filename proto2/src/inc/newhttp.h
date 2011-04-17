@@ -1,3 +1,5 @@
+#ifndef __INCL_NEWHTTP_H
+#define __INCL_NEWHTTP_H
 #ifdef NEWHTTPD
 
 extern int httpucount;
@@ -64,3 +66,4 @@ struct http_mimestruct {
 /* For some reason, lots of things use these. */
 extern int http_decode64(const char *in, unsigned inlen, char *out);
 extern int http_encode64(const char *_in, unsigned inlen, char *_out);
+#endif

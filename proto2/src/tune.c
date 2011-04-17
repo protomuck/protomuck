@@ -149,6 +149,7 @@ int tp_max_process_limit = MAX_PROCESS_LIMIT;
 int tp_max_plyr_processes = MAX_PLYR_PROCESSES;
 int tp_max_instr_count = MAX_INSTR_COUNT;
 int tp_instr_slice = INSTR_SLICE;
+int tp_msec_slice = 200;
 int tp_mpi_max_commands = MPI_MAX_COMMANDS;
 int tp_pause_min = PAUSE_MIN;
 int tp_free_frames_pool = FREE_FRAMES_POOL;
@@ -215,6 +216,7 @@ struct tune_val_entry tune_val_list[] = {
     {"MUF", "max_plyr_processes", &tp_max_plyr_processes, LARCH, LMUF},
     {"MUF", "max_instr_count", &tp_max_instr_count, LARCH, LMUF},
     {"MUF", "instr_slice", &tp_instr_slice, LARCH, LMUF},
+    {"MUF", "msec_slice", &tp_msec_slice, LARCH, LMUF},
     {"MPI", "mpi_max_commands", &tp_mpi_max_commands, LARCH, LMUF},
     {"System", "pause_min", &tp_pause_min, LARCH, LMUF},
     {"MUF", "free_frames_pool", &tp_free_frames_pool, LARCH, LMUF},

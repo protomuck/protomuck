@@ -82,6 +82,7 @@ extern int tp_max_process_limit;
 extern int tp_max_plyr_processes;
 extern int tp_max_instr_count;
 extern int tp_instr_slice;
+extern int tp_msec_slice;
 extern int tp_mpi_max_commands;
 extern int tp_pause_min;
 extern int tp_free_frames_pool;

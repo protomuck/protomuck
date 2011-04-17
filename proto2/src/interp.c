@@ -526,6 +526,7 @@ muf_funcprof_enter(struct frame *fr, const char *funcname)
 void 
 muf_funcprof_exit(struct frame *fr, dbref prog)
 {
+
 	if (fr->fprofile) {
 		struct funcprof *fpr = fr->fprofile;
 		struct timeval fulltime;
@@ -1293,6 +1294,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
     int i, tmp, writeonly, mlev;
     static struct inst retval;
     char dbuf[BUFFER_LEN];
+    struct timeval start_time, current_time;
     struct descriptor_data *curdescr = NULL;
 
     if (interp_depth) {
@@ -1337,6 +1339,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
     instr_count = 0;
     mlev = ProgMLevel(program);
     gettimeofday(&fr->proftime, NULL);
+    if (tp_msec_slice) {
+        gettimeofday(&start_time, NULL);
+        gettimeofday(&current_time, NULL);
+    }
 
     /* This is the 'natural' way to exit a function */
     while (stop) {
@@ -1384,9 +1390,16 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                NULL, NULL);
             }
         } else {
+            int lzn = 0;
+            if (tp_msec_slice && !(instr_count % 100))
+                gettimeofday(&current_time, (struct timezone *) 0);
+
             /* if in FOREGROUND or BACKGROUND mode, '0 sleep' every so often. */
-            if ((fr->instcnt > tp_instr_slice * 4)
-                && (instr_count >= tp_instr_slice)) {
+            if ((tp_msec_slice && ((lzn = msec_diff(current_time, start_time)) >= tp_msec_slice)) || (!tp_msec_slice && tp_instr_slice && ((fr->instcnt > tp_instr_slice * 4)
+                && (instr_count >= tp_instr_slice)))) {
+                 
+		//if (tp_msec_slice && lzn >= tp_msec_slice)
+                    log_status("[TSLC] Made program %d wait (%dms, %ld inst, %d).\r\n", program, lzn, instr_count, pc->line);
                 fr->pc = pc;
                 reload(fr, atop, stop);
                 if (OkObj(player)) {

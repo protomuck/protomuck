@@ -22,26 +22,6 @@
  * will fill a supplied 16-byte array with the digest.
  */
 
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-typedef uint32_t word32;
-typedef uint8_t byte;
-#elif defined(HAVE_INTTYPES_H)
-# include <inttypes.h>
-typedef uint32_t word32;
-typedef uint8_t byte;
-#elif SIZEOF_LONG_INT==4
-typedef unsigned long word32;
-typedef unsigned char byte;
-#elif SIZEOF_INT==4
-typedef unsigned int word32;
-typedef unsigned char byte;
-#else
-typedef unsigned long word32;
-typedef unsigned char byte;
-#endif
-
-
 struct xMD5Context {
     word32 buf[4];
     word32 bytes[2];

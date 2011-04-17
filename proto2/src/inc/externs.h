@@ -1,3 +1,6 @@
+#ifndef __INCL_EXTERNS_H
+#define __INCL_EXTERNS_H
+
 #include "copyright.h"
 
 /*
@@ -596,7 +599,7 @@ extern void tune_save_parmsfile(void);
 /* from random.c */
 extern void *init_seed(char *seed);
 extern void delete_seed(void *buffer);
-extern unsigned long rndm(void *buffer);
+extern word32 rndm(void *buffer);
 extern void MD5base64(char *dest, const void *orig, int len);
 extern void Base64Encode(char *outbuf, const void *inbuf, size_t inlen);
 extern size_t Base64Decode(void *outbuf, size_t outbuflen, const char *inbuf);
@@ -627,3 +630,4 @@ extern unsigned long sel_prof_idle_use;
 
 /* from p_socket.c */
 
+#endif
