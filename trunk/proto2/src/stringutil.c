@@ -78,6 +78,8 @@ string_compare(const char *s1, const char *s2)
         s1++, s2++;
 
     return (DOWNCASE(*s1) - DOWNCASE(*s2));
+
+    //return (strcasecmp(s1, s2));
 }
 
 const char *

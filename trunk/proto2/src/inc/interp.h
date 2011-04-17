@@ -1,4 +1,5 @@
-
+#ifndef __INCL_INTERP_H
+#define __INCL_INTERP_H
 
 
 /* Stuff the interpreter needs. */
@@ -186,4 +187,6 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 # include "p_muf.h"
 # include "p_regex.h"
 # include "p_http.h" /* hinoserm */
+#endif
+
 #endif

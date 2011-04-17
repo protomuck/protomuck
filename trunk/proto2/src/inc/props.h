@@ -1,3 +1,6 @@
+#ifndef __INCL_PROPS_H
+#define __INCL_PROPS_H
+
 /* Property struct */
 
 union pdata_u {
@@ -213,3 +216,6 @@ extern int Prop_SysPerms(dbref obj, const char *type);
 extern void reflist_add(dbref obj, const char *propname, dbref toadd);
 extern void reflist_del(dbref obj, const char *propname, dbref todel);
 extern int reflist_find(dbref obj, const char *propname, dbref tofind);
+
+
+#endif

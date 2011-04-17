@@ -1667,6 +1667,7 @@ prim_set_sockopt(PRIM_PROTOTYPE)
             theSock->raw_input = NULL;
             theSock->raw_input_at = NULL;
         }
+		result = 1;
     } else
         result = 0;
     CLEAR(oper1);

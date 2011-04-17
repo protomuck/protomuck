@@ -1,3 +1,6 @@
+#ifndef __INCL_DBSEARCH_H
+#define __INCL_DBSEARCH_H
+
 /* Took the flgchkdat out of look.c and inserted into this header
  * file for the purpose of working with the findnext prop.
  */
@@ -40,3 +43,4 @@ struct flgchkdat {
     int     size;               /* what size to check against. No check if 0 */
 };
 
+#endif

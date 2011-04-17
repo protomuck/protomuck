@@ -519,6 +519,7 @@ main(int argc, char **argv)
             }
         }
     }
+
     if (!infile_name || !outfile_name) {
         show_program_usage(*argv);
     }

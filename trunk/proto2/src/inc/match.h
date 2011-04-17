@@ -1,3 +1,6 @@
+#ifndef __INCL_MATCH_H
+#define __INCL_MATCH_H
+
 #include "copyright.h"
 #include "db.h"
 
@@ -94,3 +97,4 @@ extern dbref noisy_match_result(struct match_data *md);
 extern const char *path_name( const char *path );
 
 
+#endif
