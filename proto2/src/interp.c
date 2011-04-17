@@ -1401,7 +1401,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 && (instr_count >= tp_instr_slice)))) {
                  
 		//if (tp_msec_slice && lzn >= tp_msec_slice)
-                    log_status("[TSLC] Made program %d wait (%dms, %ld inst, %d).\r\n", program, lzn, instr_count, pc->line);
+                    //log_status("[TSLC] Made program %d wait (%dms, %ld inst, %d).\r\n", program, lzn, instr_count, pc->line);
                 fr->pc = pc;
                 reload(fr, atop, stop);
                 if (OkObj(player)) {

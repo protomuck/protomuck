@@ -234,7 +234,7 @@
 
 /* Use to compress string data (recomended)
  */
-#undef COMPRESS
+#define COMPRESS
 
 /* To use a simple disk basing scheme where properties aren't loaded
  * from the input file until they are needed, define this. 
