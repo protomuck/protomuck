@@ -38,8 +38,7 @@ OPTIM=-Wall -O2 -g -U_FORTIFY_SOURCE
 ROOT= ..
 
 # Where the include files are
-INCLUDE= ./inc @INCL@
-
+INCLUDE= ./inc
 # Destination for binaries
 DEST=${ROOT}/game
 
@@ -58,8 +57,8 @@ LIBR=@LIBS@
 #
 # Include path, Cflags...
 #
-CFLAGS=${OPTIM} ${DEFS} -I${INCLUDE}
-CXXFLAGS=${OPTIM} ${DEFS} -I${INCLUDE}
+CFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INCL@
+CXXFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INCL@
 
 #
 # for saving old copies.
@@ -204,17 +203,19 @@ clean:
 	${RM} ${OBJ} core version.o ${SOBJ} resolver.o reslvd.o
 
 cleaner: clean
-	${RM} Makefile config.status config.cache ${INCLUDE}/autoconf.h
+	${RM} Makefile config.status config.cache inc/autoconf.h
 	${RM} ${TARGETS} config.log
 	cp Makefile.cfg Makefile
 
 clobber: cleaner
 	${RM} tags *~ *.bak *.orig
 
+distclean: cleaner
+
 nuke:
 	${RM} ${OBJ} core vesion.o
 	${RM} ${TARGETS} tags *~ *.bak *.orig
-	${RM} Makefile config.status ${INCLUDE}/autoconf.h
+	${RM} Makefile config.status inc/autoconf.h
 	cp Makefile.cfg Makefile
 	-${CLEAN} *
 
