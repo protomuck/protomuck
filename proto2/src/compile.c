@@ -699,6 +699,11 @@ include_internal_defs(COMPSTATE *cstat)
 #else
     insert_def(cstat, "HAVE_IPV6", "0");
 #endif
+#ifdef PCRE_SUPPORT
+    insert_def(cstat, "HAVE_PCRE", "1");
+#else
+    insert_def(cstat, "HAVE_PCRE", "0");
+#endif
 
 /*
 #ifdef IGNORE_SUPPORT
