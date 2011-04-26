@@ -3657,7 +3657,11 @@ Some special defines that can be checked via $ifdef:
     HAVE_SQL            - If $ifdef'd, means SQL support was compiled in.
     HAVE_FILE_PRIMS     - If $ifdef'd, means File prims are compiled in.
     HAVE_SOCKET_PRIMS   - If $ifdef'd, means Socket prims are compiled in.
+    HAVE_IPV6           - If $ifdef'd, means the IPV6 socket prims are compiled.
+    HAVE_SSL            - If $ifdef'd, means the SSL socket prims are compiled.
     HAVE_MUF_EDIT_PRIMS - If $ifdef'd, means the MUF editing prims are compiled.
+    HAVE_PCRE           - If $ifdef'd, means the regexp prims are compiled in.
+    HAVE_IGNORES        - If $ifdef'd, means the ignore prims are compiled in.
 
 See 'man dir8' for more information on directives.
 
