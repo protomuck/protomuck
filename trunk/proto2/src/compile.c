@@ -647,7 +647,7 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "RAWMODE", "3");
     insert_def(cstat, "HOMEINSTANCE", "5");
     /* For REG Expression support */
-#ifndef WIN_VC
+#ifdef PCRE_SUPPORT
     insert_def(cstat, "reg_icase", MUF_RE_ICASE_STR);
     insert_def(cstat, "reg_all", MUF_RE_ALL_STR);
 #endif

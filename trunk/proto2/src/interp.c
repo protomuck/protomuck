@@ -56,7 +56,7 @@ void (*prim_func[]) (PRIM_PROTOTYPE) = {
         PRIMS_STACK_FUNCS,
         PRIMS_STRINGS_FUNCS,
         PRIMS_FLOAT_FUNCS,
-#ifndef WIN_VC
+#ifdef PCRE_SUPPORT
 		PRIMS_REGEX_FUNCS,
 #endif
 		PRIMS_ERROR_FUNCS,

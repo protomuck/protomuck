@@ -206,6 +206,9 @@ cleaner: clean
 	${RM} Makefile config.status config.cache inc/autoconf.h
 	${RM} ${TARGETS} config.log
 	cp Makefile.cfg Makefile
+	@if test -d "autom4te.cache"; then \
+		rm -Rf ./autom4te.cache; \
+ 	fi
 
 clobber: cleaner
 	${RM} tags *~ *.bak *.orig
