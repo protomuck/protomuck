@@ -25,7 +25,7 @@ const char *base_inst[] = {
     PRIMS_STACK_NAMES,
     PRIMS_STRINGS_NAMES,
     PRIMS_FLOAT_NAMES,
-#ifndef WIN_VC
+#ifdef PCRE_SUPPORT
     PRIMS_REGEX_NAMES,
 #endif
     PRIMS_ERROR_NAMES,

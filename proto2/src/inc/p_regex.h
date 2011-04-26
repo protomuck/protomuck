@@ -1,7 +1,7 @@
 #ifndef P_REGEX_H
 #define P_REGEX_H
 
-#ifndef WIN_VC
+#ifdef PCRE_SUPPORT
 
 #define MUF_RE_ICASE      1
 #define MUF_RE_ALL        2
@@ -20,11 +20,10 @@ extern void prim_regmatch(PRIM_PROTOTYPE);
 
 #define PRIMS_REGEX_CNT 3
 
-#else
+#else /* PCRE_SUPPORT */
 
 #define PRIMS_REGEX_CNT 0
 
-#endif /* WIN_VC */
-
+#endif /* PCRE_SUPPORT */
 
 #endif /* P_REGEX_H */
