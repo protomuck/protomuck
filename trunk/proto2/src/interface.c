@@ -4000,15 +4000,30 @@ check_connect(struct descriptor_data *d, const char *msg)
     char buf[BUFFER_LEN];
     char *p = NULL;
 
-    if (tp_log_connects)
-        log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg);
-
     parse_connect(msg, command, user, password);
     for (xref = 0; command[xref]; xref++)
         command[xref] = DOWNCASE(command[xref]);
     strcpy(msgargs, user);
     strcat(msgargs, " ");
     strcat(msgargs, password);
+
+    /* Logging needs to happen now for simplicity's sake, but we should not log
+       if the string would get parsed by the connect handler. Note that the
+       password will still get betrayed if the user typos the first two letters
+       of "connect" or "ch", but this is still a vast improvement.
+           
+       If you want to debug strings passed to the connection handler, define
+       DEBUGLOGINS somewhere. This should not be done in "live" environments,
+       as it makes hashing your player passwords pointless. -brevantes */
+
+#ifndef DEBUGLOGINS
+    if (tp_log_connects &&
+        !(
+            ((string_prefix("connect", command) && !string_prefix("c", command))
+            || !string_compare(command, "ch"))
+        ))
+#endif
+        log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg);
 
     if (d->interactive == 2) {
         p = buf;
