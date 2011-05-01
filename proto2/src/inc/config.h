@@ -282,6 +282,13 @@
 /* a bad net connection for the server. */
 #undef DEBUGPROCESS
 
+/* Normally, unobfuscated connect commands at the login screen should not be */
+/* sent to the connection log because it exposes user passwords. You can     */
+/* #define DEBUGLOGINS below if you need to troubleshoot these strings.      */
+/* Normal users *should not* do this, because it completely defeats the      */
+/* on-disk security of hashed passwords in the database. -brevantes          */
+#undef DEBUGLOGINS
+
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
 /* all @tune options as before. */
