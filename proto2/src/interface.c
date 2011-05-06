@@ -1709,7 +1709,6 @@ shovechars(void)
 
 #ifdef USE_SSL
     int ssl_status_ok = 1;
-    int ssl_buffer;
 #endif
 #ifdef MUF_SOCKETS
     extern struct muf_socket_queue *socket_list;
@@ -2061,14 +2060,26 @@ shovechars(void)
                 if (FD_ISSET(curr->theSock->socknum, &input_set)
                     || (!curr->theSock->connected
                         && FD_ISSET(curr->theSock->socknum, &output_set))) {
-                    muf_socket_sendevent(curr);
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+                    /* Don't fire an event during SSL (re)negotiation. */
+                    if (curr->theSock->ssl_session) {
+                        if (SSL_is_init_finished(curr->theSock->ssl_session)
+                            && SSL_want_nothing(curr->theSock->ssl_session)) {
+                            muf_socket_sendevent(curr);
+                        }
+                    }
+                    else
+#endif
+                        muf_socket_sendevent(curr);
                 }
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
                 else
-                    if (curr->theSock->ssl_session) {
-                        ssl_buffer = SSL_pending(curr->theSock->ssl_session);
-                        if (ssl_buffer > 0)
-                            muf_socket_sendevent(curr);
+                    /* This feeds in buffered SSL data, without requiring socket
+                     * activity to trigger the event. */
+                    if (curr->theSock->ssl_session
+                        && SSL_pending(curr->theSock->ssl_session) > 0
+                        && SSL_want_nothing(curr->theSock->ssl_session)) {
+                        muf_socket_sendevent(curr);
                     }
 #endif
             }
