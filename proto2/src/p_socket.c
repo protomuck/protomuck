@@ -815,7 +815,6 @@ prim_socksecure(PRIM_PROTOTYPE)
     abort_interp("MUF SSL sockets not supported.");
 #else
     int ssl_error;
-    const char *ssl_state;
 
     CHECKOP(1);
     oper1 = POP();
@@ -830,10 +829,7 @@ prim_socksecure(PRIM_PROTOTYPE)
         /* Do we have an existing SSL session on this socket? */
         if (oper1->data.sock->ssl_session) {
             /* Is this an SSL initialization in progress? */
-            ssl_state = SSL_state_string(oper1->data.sock->ssl_session);
-            if ( strcmp(ssl_state, "PINIT") ||
-                 strcmp(ssl_state, "AINIT") ||
-                 strcmp(ssl_state, "CINIT") ) {
+            if ( SSL_is_init_finished(oper1->data.sock->ssl_session) ) {
                 ssl_error = SSL_connect(oper1->data.sock->ssl_session);
                 if (ssl_error <= 0) {
                     ssl_error =
