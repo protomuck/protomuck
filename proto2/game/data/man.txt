@@ -9562,7 +9562,7 @@ EVENT_WAITFOR will return:
 (SOCKET) "SOCKET.READ.<sock number>" for normal sockets and
 (LSOCKET) "SOCKET.LISTEN.<sock number>" for listening sockets. 
 
-See: SOCKET EVENTS 2
+See: SOCKET EVENTS 2, SSL ERRORS
 ~~~
 SOCKET EVENTS 2|SOCKETEVENTS 2|SOCKET EVENTS2
 
@@ -10037,6 +10037,31 @@ do nothing, and none of the ignore prims but this one will work.
 
 See: HELP IGNORE
 ~~~
+SSL ERRORS
+
+SSL Errors
+----------
+It is important to keep in mind that a SSL channel can fail at any time while
+the hosts are communicating. When this happens, a SOCKET.SSLERR.<sock number>
+event will be sent to the home instance of the socket, immediately prior to any
+further SOCKET.READ.<sock number> events that will be received by it. The event
+will contain a string with the SSL protocol error code:
+
+http://www.openssl.org/docs/ssl/SSL_get_error.html
+(Note that you will never get SSL_ERROR_NONE or SSL_ERROR_WANT_*.)
+
+How to handle a SSL session collapse is up to you. Depending on the application
+you are communicating with, it may support some form of re-establishing a
+secure channel, or you may have to close the socket completely and start over
+from the beginning. The important thing to realize is that once this event is
+queued, anything received or sent on the socket will be completely
+unencrypted. Proto will not stop you from sending data over the insecure
+channel, though it is likely that the remote side will detect the condition and
+close the socket before too much damage is done.
+
+If the remote application allows you to renegotiate SSL within the same
+connection, just use socksecure again and proceed as normal.
+~~~
 SOCKSECURE
 
 socksecure ( socket -- i )
@@ -10046,9 +10071,16 @@ socket = A socket connected to an SSL supported connection
      i = 0 if connected, -1 if disconnected, >0 for other SSL errors
 
 Attempts to secure a connection using SSL.  The remote end must support SSL
-or SSL negotiation.  If successful, this returns 0.
+or SSL negotiation.  If successful, this returns 0.  If the return is 2 or
+3, the non-blocking SSL negotiation is still in process and socksecure should
+be tried again. (similar to sockcheck)
 
-See: SOCKUNSECURE
+You should loop around socksecure until you get a return that is not 2 or 3.
+If the final return is 0, the channel is now secure. Any other return indicates
+that the attempt failed and that the channel remains unsecure. Attempts to
+use socksend on the socket during SSL negotiation will fail.
+
+See: SOCKUNSECURE, SSL ERRORS
 ~~~
 SOCKUNSECURE
 
