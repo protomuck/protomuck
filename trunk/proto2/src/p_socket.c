@@ -123,9 +123,23 @@ muf_socket_sendevent(struct muf_socket_queue *curr)
 {
     char littleBuf[50];
     struct inst temp1;
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+    struct inst temp2;
+#endif
 
     if (!curr->theSock->readWaiting && curr->pid == curr->fr->pid) {
         curr->theSock->readWaiting = 1;
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+        /* Warn the user that SSL has shut down. -brevantes */
+        if (curr->theSock->sslAbort) {
+            curr->theSock->sslAbort = 0;
+            sprintf(littleBuf, "SOCKET.SSLERR.%d", curr->theSock->socknum);
+            temp2.type = PROG_STRING;
+            temp2.data.string = alloc_prog_string(curr->theSock->sslError);
+            muf_event_add(curr->fr, littleBuf, &temp2, 1);
+            curr->theSock->sslError = NULL;
+        }
+#endif
         temp1.type = PROG_SOCKET;
         temp1.data.sock = curr->theSock;
         if (curr->theSock->listening) {
@@ -171,6 +185,44 @@ update_socket_frame(struct muf_socket *mufSock, struct frame *newfr)
         }
     }
 }
+
+#if defined(SSL_SOCKETS) && defined(USE_SSL)
+void
+ssl_read_loop(struct muf_socket *mufSock, int *readme, char *mystring)
+{
+    char littleBuf[50];
+    int ssl_error;
+
+    while (1) {
+        *readme = SSL_read(mufSock->ssl_session, mystring, 1);
+        ssl_error = SSL_get_error(mufSock->ssl_session, *readme);
+        if (ssl_error == SSL_ERROR_WANT_READ ||
+            ssl_error == SSL_ERROR_WANT_WRITE)
+            continue;
+        if (ssl_error == SSL_ERROR_NONE)
+            break;
+        /* If we got this far, the SSL channel is dead. */
+        SSL_free(mufSock->ssl_session);
+        mufSock->ssl_session = NULL;
+        mufSock->sslAbort = 1; /* Triggers SOCKET.SSLERR event */
+        switch (ssl_error) {
+            case SSL_ERROR_ZERO_RETURN:
+                mufSock->sslError = alloc_string("SSL_ERROR_ZERO_RETURN");
+                break;
+            case SSL_ERROR_SYSCALL:
+                mufSock->sslError = alloc_string("SSL_ERROR_SYSCALL");
+                break;
+            case SSL_ERROR_SSL:
+                mufSock->sslError = alloc_string("SSL_ERROR_SSL");
+                break;
+            default:
+                sprintf(littleBuf, "UNKNOWN (%d)", ssl_error);
+                mufSock->sslError = alloc_string(littleBuf);
+        }
+        break;
+    }
+}
+#endif
 
 void
 prim_socksend(PRIM_PROTOTYPE)
@@ -258,8 +310,6 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
 
 
  #if defined(SSL_SOCKETS) && defined(USE_SSL)
-    int ssl_error;
-
     if ((oper1->data.sock->ssl_session))
         ssl_buffer = SSL_pending(oper1->data.sock->ssl_session);
  #endif
@@ -309,13 +359,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
              || ssl_buffer > 0) {
  #if defined(SSL_SOCKETS) && defined(USE_SSL)
             if (oper1->data.sock->ssl_session)
-                while (1) {
-                    readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-                    ssl_error = SSL_get_error(oper1->data.sock->ssl_session, readme);
-                    if (ssl_error != SSL_ERROR_WANT_READ &&
-                        ssl_error != SSL_ERROR_WANT_WRITE)
-                            break;
-                    }
+                ssl_read_loop(oper1->data.sock, &readme, mystring);
             else
  #endif
                 readme = readsocket(oper1->data.sock->socknum, mystring, 1);
@@ -331,14 +375,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
                 *bufpoint++ = *mystring;
  #if defined(SSL_SOCKETS) && defined(USE_SSL)
                 if (oper1->data.sock->ssl_session)
-                    while (1) {
-                        readme =
-                            SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-                        ssl_error = SSL_get_error(oper1->data.sock->ssl_session, readme);
-                        if (ssl_error != SSL_ERROR_WANT_READ &&
-                            ssl_error != SSL_ERROR_WANT_WRITE )
-                                break;
-                    }
+                   ssl_read_loop(oper1->data.sock, &readme, mystring);
                 else
  #endif
                     readme = readsocket(oper1->data.sock->socknum, mystring, 1);
@@ -448,17 +485,9 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
 
     if (FD_ISSET(oper1->data.sock->socknum, &reads)) {
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
-        int ssl_error;
-
         if (oper1->data.sock->ssl_session)
-            while (1) {
-                readme = SSL_read(oper1->data.sock->ssl_session, mystring, 1);
-                ssl_error = SSL_get_error(oper1->data.sock->ssl_session,
-                                         readme);
-                if (ssl_error != SSL_ERROR_WANT_READ &&
-                    ssl_error != SSL_ERROR_WANT_WRITE)
-                    break;
-        } else
+            ssl_read_loop(oper1->data.sock, &readme, mystring);
+        else
 #endif
             readme = readsocket(oper1->data.sock->socknum, mystring, 1);
 
@@ -652,6 +681,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
 #endif
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         result->data.sock->ssl_session = NULL;
+        result->data.sock->sslAbort = 0;
+        result->data.sock->sslError = NULL;
 #endif
         add_socket_to_queue(result->data.sock, fr);
         if (tp_log_sockets)
@@ -749,6 +780,8 @@ prim_nbsock6open(PRIM_PROTOTYPE)
         result->data.sock->readWaiting = 0;
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
         result->data.sock->ssl_session = NULL;
+        result->data.sock->sslAbort = 0;
+        result->data.sock->sslError = NULL;
 #endif
         add_socket_to_queue(result->data.sock, fr);
         if (tp_log_sockets)
@@ -987,6 +1020,8 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->usequeue = 0;
     result->data.sock->readWaiting = 0;
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
+    result->data.sock->sslAbort = 0;
+    result->data.sock->sslError = NULL;
     result->data.sock->ssl_session = NULL;
 #endif
     add_socket_to_queue(result->data.sock, fr);
@@ -1097,6 +1132,8 @@ prim_lsock6open(PRIM_PROTOTYPE)
     result->data.sock->readWaiting = 0;
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
     result->data.sock->ssl_session = NULL;
+    result->data.sock->sslAbort = 0;
+    result->data.sock->sslError = NULL;
 #endif
     add_socket_to_queue(result->data.sock, fr);
     if (tp_log_sockets)
@@ -1241,6 +1278,8 @@ if (oper1->data.sock->ipv6) {
     result->data.sock->username = alloc_string(username); /* not done */
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
     result->data.sock->ssl_session = NULL;
+    result->data.sock->sslAbort = 0;
+    result->data.sock->sslError = NULL;
 #endif
     add_socket_to_queue(result->data.sock, fr);
     if (tp_log_sockets)
