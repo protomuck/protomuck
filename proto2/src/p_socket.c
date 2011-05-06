@@ -1235,7 +1235,7 @@ if (oper1->data.sock->ipv6) {
     result->data.sock->usequeue = 0;
     result->data.sock->usesmartqueue = 0;
     result->data.sock->commands = 0;
-    result->data.sock->rawmode = 1;
+    result->data.sock->rawmode = 0;
     result->data.sock->is_player = 0;
     result->data.sock->readWaiting = 0;
     result->data.sock->username = alloc_string(username); /* not done */
