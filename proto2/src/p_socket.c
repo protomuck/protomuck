@@ -219,6 +219,12 @@ ssl_read_loop(struct muf_socket *mufSock, int *readme, char *mystring)
                 sprintf(littleBuf, "UNKNOWN (%d)", ssl_error);
                 mufSock->sslError = alloc_string(littleBuf);
         }
+        /* readme will be <=0 after the failed SSL_read, need to set it to
+         * something more compliant with how nbsockrecv is documented. */
+        if (oper1->data.sock->connected == 1)
+            *readme = 1;
+        else
+            *readme = 0;
         break;
     }
 }
