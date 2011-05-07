@@ -9562,6 +9562,9 @@ EVENT_WAITFOR will return:
 (SOCKET) "SOCKET.READ.<sock number>" for normal sockets and
 (LSOCKET) "SOCKET.LISTEN.<sock number>" for listening sockets. 
 
+If you are using SSL, refer to the SSL ERRORS manpage for info on
+additional events you may recieve.
+
 See: SOCKET EVENTS 2, SSL ERRORS
 ~~~
 SOCKET EVENTS 2|SOCKETEVENTS 2|SOCKET EVENTS2
@@ -10042,25 +10045,57 @@ SSL ERRORS
 SSL Errors
 ----------
 It is important to keep in mind that a SSL channel can fail at any time while
-the hosts are communicating. When this happens, a SOCKET.SSLERR.<sock number>
-event will be sent to the home instance of the socket, immediately prior to any
-further SOCKET.READ.<sock number> events that will be received by it. The event
-will contain a string with the SSL protocol error code:
+the hosts are communicating. How to handle a SSL session collapse is up to you.
+Depending on the application you are communicating with, it may support some
+form of re-establishing a secure channel, or you may have to close the socket
+completely and start over from the beginning. If the remote application allows
+you to renegotiate SSL within the same connection, just use socksecure again
+on the existing socket and proceed as normal.
 
-http://www.openssl.org/docs/ssl/SSL_get_error.html
-(Note that you will never get SSL_ERROR_NONE or SSL_ERROR_WANT_*.)
+If you have not used set_sockopt to change your socket mode to RAWMODE, a SSL
+error will trigger a SOCKET.SSLERR.<sock number> event being sent to the home
+instance of the socket. This will arrive immediately prior to any further
+SOCKET.READ events that will be received by it. Note that even if you are using
+RAWMODE, socksend can still trigger SOCKET.SSLERR events. nbsockrecv will not.
 
-How to handle a SSL session collapse is up to you. Depending on the application
-you are communicating with, it may support some form of re-establishing a
-secure channel, or you may have to close the socket completely and start over
-from the beginning. The important thing to realize is that once this event is
-queued, anything received or sent on the socket will be completely
-unencrypted. Proto will not stop you from sending data over the insecure
-channel, though it is likely that the remote side will detect the condition and
-close the socket before too much damage is done.
+The SOCKET.SSLERR event returns a dictionary style array with these keys:
 
-If the remote application allows you to renegotiate SSL within the same
-connection, just use socksecure again and proceed as normal.
+"ssl_error"  = The error code returned by the socksend or nbsockrecv operation
+               that triggered the event. You can find a list here:
+               http://www.openssl.org/docs/ssl/SSL_get_error.html
+               (You will never get SSL_ERROR_NONE or SSL_ERROR_WANT_*.)
+"ssl_return" = This is the value referred to as "ret" in the above webpage. In
+               most cases the value in the ssl_error key will be enough to
+               understand what happened, but in some cases this value is needed
+               as well to provide some additional context. It is always <=0.
+
+(One caveat: If an error is generated where ssl_error is SSL_ERROR_SYSCALL and
+ssl_return is 0, no event is sent. This is because the underlying connection
+has been terminated, and there is no benefit to handling the event.)
+
+The important thing to realize is that once a SOCKET.SSLERR event has been
+queued, anything received or sent on the socket will be completely unencrypted.
+Proto will not stop you from sending data over an unsecure channel, though it
+is likely that the remote side will detect the condition and close the socket
+before too much damage is done.
+
+
+If you are using RAWMODE sockets, refer to the next manpage.
+
+See: SSL ERRORS 2
+~~~
+SSL ERRORS 2
+
+If your socket is using RAWMODE, SSL errors detected by nbsockrecv will not
+generate an event. You will instead receive a string return from nbsockrecv in
+the format of "SSL_ERROR: #", where # is the OpenSSL error code returned. Note
+that unlike standard SSL sockets, the game will not automatically retry
+non-blocking read operations for you. It is assumed that you know what the
+OpenSSL error code numbers are and how to handle the error in all cases,
+including when to retry the operation.
+
+Note that you will still receive SOCKET.SSLERR events when using socksend. Only
+nbsockrecv will behave in the fashion described above.
 ~~~
 SOCKSECURE
 
