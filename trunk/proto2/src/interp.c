@@ -511,6 +511,7 @@ muf_funcprof_enter(struct frame *fr, const char *funcname)
 	struct funcprof *fpr = (struct funcprof *)malloc(sizeof(struct funcprof));
 	struct timeval fulltime;
 
+   return;
     gettimeofday(&fulltime, (struct timezone *) 0);
 
 	fpr->next = fr->fprofile;
@@ -526,7 +527,7 @@ muf_funcprof_enter(struct frame *fr, const char *funcname)
 void 
 muf_funcprof_exit(struct frame *fr, dbref prog)
 {
-
+return;
 	if (fr->fprofile) {
 		struct funcprof *fpr = fr->fprofile;
 		struct timeval fulltime;

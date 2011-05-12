@@ -916,14 +916,23 @@ prim_propqueue(PRIM_PROTOTYPE)
    if (!valid_object(oper4))
       abort_interp("Invalid object. (1)");
    
-   propqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, oper4->data.objref, 
-             oper2->data.objref, NOTHING, oper3->data.string->data,
-             oper1->data.string->data, 1, 1);
+   {
+      dbref obj1 = oper4->data.objref;
+      dbref obj2 = oper2->data.objref;
+      char *str1 = string_dup(oper3->data.string->data);
+      char *str2 = string_dup(oper1->data.string->data);
 
-   CLEAR(oper1);
-   CLEAR(oper2);
-   CLEAR(oper3);
-   CLEAR(oper4);
+      CLEAR(oper1);
+      CLEAR(oper2);
+      CLEAR(oper3);
+      CLEAR(oper4);
+
+
+      propqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, obj1, obj2, NOTHING, str1, str2, 1, 1);
+
+      free((void *)str1);
+      free((void *)str2);
+   }
 }
 
 void
@@ -954,14 +963,23 @@ prim_envpropqueue(PRIM_PROTOTYPE)
    if (!valid_object(oper4))
       abort_interp("Invalid object. (1)");
    
-   envpropqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, oper4->data.objref, 
-             oper2->data.objref, NOTHING, oper3->data.string->data,
-             oper1->data.string->data, 1, 1);
+   {
+      dbref obj1 = oper4->data.objref;
+      dbref obj2 = oper2->data.objref;
+      char *str1 = string_dup(oper3->data.string->data);
+      char *str2 = string_dup(oper1->data.string->data);
 
-   CLEAR(oper1);
-   CLEAR(oper2);
-   CLEAR(oper3);
-   CLEAR(oper4);
+      CLEAR(oper1);
+      CLEAR(oper2);
+      CLEAR(oper3);
+      CLEAR(oper4);
+
+
+      propqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, obj1, obj2, NOTHING, str1, str2, 1, 1);
+
+      free((void *)str1);
+      free((void *)str2);
+   }
 }
 
 void
