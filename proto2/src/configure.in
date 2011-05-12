@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl
 dnl TinyMUCK fb5.x auto-config script writen by: Peter "WhiteFire" Torkelson
 dnl
-AC_REVISION($Revision: 1.24 $)dnl
+AC_REVISION($Revision: 1.25 $)dnl
 AC_INIT(game.c)
 AC_CONFIG_HEADER(inc/autoconf.h)
 echo " "
@@ -226,7 +226,7 @@ fi
 AC_CHECK_LIB(dl, dlopen)
 
 AC_DEFINE(MODULAR_SUPPORT, [], [Defined to enable modular support])
-LIBS="-ldl -rdynamic $LIBS"
+LIBS="-rdynamic $LIBS"
 ])
 
 AC_ARG_ENABLE(asroot,
