@@ -928,7 +928,7 @@ struct frame {
         } error_flags;
         int is_flags;
     } error;
-	struct funcprof *fprofile;
+    struct funcprof *fprofile;
 };
 
 struct publics {
@@ -999,7 +999,7 @@ union specific {      /* I've been railroaded! */
       struct timeval proftime;      /* Profiling time spent in this program */
       time_t profstart;             /* Time when profiling started for this prog */
       unsigned int profuses;        /* # calls to this program while profiling */
-	  struct funcprof *fprofile;
+      struct funcprof *fprofile;
     }       program;
 };
 

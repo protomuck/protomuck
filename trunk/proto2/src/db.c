@@ -244,7 +244,7 @@ new_program(dbref player, const char *name)
     DBFETCH(newprog)->sp.program.code = 0;
     DBFETCH(newprog)->sp.program.start = 0;
     DBFETCH(newprog)->sp.program.pubs = 0;
-	DBFETCH(newprog)->sp.program.fprofile = NULL;
+    DBFETCH(newprog)->sp.program.fprofile = NULL;
 #ifdef MCP_SUPPORT
     DBFETCH(newprog)->sp.program.mcpbinds = 0;
 #endif
@@ -1741,7 +1741,7 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
             o->sp.program.proftime.tv_usec = 0;
             o->sp.program.profstart = 0;
             o->sp.program.profuses = 0;
-			o->sp.program.fprofile = NULL;
+            o->sp.program.fprofile = NULL;
             o->sp.program.instances = 0;
 
 #ifdef ARCHAIC_DATABASES
