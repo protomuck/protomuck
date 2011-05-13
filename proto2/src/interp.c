@@ -508,11 +508,11 @@ purge_try_pool(void)
 void
 muf_funcprof_enter(struct frame *fr, const char *funcname)
 {
+
 	struct funcprof *fpr = (struct funcprof *)malloc(sizeof(struct funcprof));
 	struct timeval fulltime;
 
-   return;
-    gettimeofday(&fulltime, (struct timezone *) 0);
+        gettimeofday(&fulltime, (struct timezone *) 0);
 
 	fpr->next = fr->fprofile;
 	fpr->funcname = alloc_string(funcname);
@@ -521,13 +521,12 @@ muf_funcprof_enter(struct frame *fr, const char *funcname)
 	fpr->lasttotal = 0;
 	fpr->endtime = 0;
 	fpr->usecount = 1;
-	fr->fprofile = fpr;
+        fr->fprofile = fpr;
 }
 
 void 
 muf_funcprof_exit(struct frame *fr, dbref prog)
 {
-return;
 	if (fr->fprofile) {
 		struct funcprof *fpr = fr->fprofile;
 		struct timeval fulltime;
