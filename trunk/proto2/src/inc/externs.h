@@ -418,6 +418,8 @@ extern const char *exit_prefix(const char *string,
                                const char *prefix);
 extern int string_prefix(const char *string, const char *prefix);
 extern const char *string_match(const char *src, const char *sub);
+
+extern char *mushformat_substitute(const char *str);
 extern char *pronoun_substitute(int descr, dbref player, const char *str);
 extern char *intostr(char *buf, int i);
 extern char *html_escape(const char *str);
@@ -441,6 +443,10 @@ extern int has_suffix_char(const char *, char);
 extern bool isascii_str(const char *str);
 extern char* strcatn(char* buf, size_t bufsize, const char* src);
 extern char* strcpyn(char* buf, size_t bufsize, const char* src);
+
+/* Lazy macros to simplify writing MUSH formatting hooks in notify prims */
+#define strcpy_mush(x,y) (strcpy(x, mushformat_substitute(y)))
+#define prefix_message_mush(v,w,x,y,z) (prefix_message(v,mushformat_substitute(w),x,y,z))
 
 
 #if !defined(MALLOC_PROFILING)

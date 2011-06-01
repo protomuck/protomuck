@@ -700,6 +700,19 @@ If this @tune is set to no, any existing characters with
 spaces in their name will no longer be able to log in but
 their Player object will otherwise not be affected.
 ~~~
+mush_format_escapes
+Experimental support for parsing some commonly requested (and
+admittedly convenient) MUSH-style text formatting codes. For now
+this support is limited to the notification prims for testing.
+Resetting of ANSI colors after a %r is a known bug.
+
+%r - Carriage return.
+%t - Soft tab. Inserver #define MUSH_TAB defaults to four spaces.
+%b - A single character of whitespace. Kinda useless, but easy.
+%% - A single escaped %.
+
+All codes are case insensitive.
+~~~
 web_allow_players
 If TRUE, setting will allow players to have a _/www prop on themselves, which
 is accessable through http://yourserver/~playername

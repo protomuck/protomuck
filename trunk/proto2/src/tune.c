@@ -357,6 +357,7 @@ int tp_allow_unidle = 0;
 int tp_alt_infinity_handler = 1;
 int tp_autolinking = 1;
 int tp_spaces_in_playernames = 0;
+int tp_mush_format_escapes = 0;
 
 /* int tp_require_has_mpi_arg = 0; */
 
@@ -454,6 +455,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Math", "alt_infinity_handler", &tp_alt_infinity_handler, LARCH, LMUF},
     {"MPI", "autolinking", &tp_autolinking, LARCH, LMUF},
     {"Database", "spaces_in_playernames", &tp_spaces_in_playernames, LBOY, LMUF},
+    {"System", "mush_format_escapes", &tp_mush_format_escapes, LBOY, LMUF},
 /*    {"MPI", "require_has_mpi_arg", &tp_require_has_mpi_arg, LARCH, LMUF}, */
 #ifdef NEWHTTPD
     {"HTTPD", "web_allow_players", &tp_web_allow_players, LARCH, LMUF},

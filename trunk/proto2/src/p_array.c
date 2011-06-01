@@ -748,12 +748,20 @@ prim_array_notify(PRIM_PROTOTYPE)
         do {
             oper4 = array_getitem(strarr, &temp2);
             strcpy(buf, DoNullInd(oper4->data.string));
+
             if (tp_m1_name_notify && mlev < 2) {
-                prefix_message(buf, DoNullInd(oper4->data.string),
-                               NAME(PSafe), BUFFER_LEN, 1);
+                if ( !tp_mush_format_escapes )
+                    prefix_message(buf, DoNullInd(oper4->data.string),
+                                   NAME(PSafe), BUFFER_LEN, 1);
+                else
+                    prefix_message_mush(buf, DoNullInd(oper4->data.string),
+                                        NAME(PSafe), BUFFER_LEN, 1);
             } else {
-                strcpy(buf, DoNullInd(oper4->data.string));
-            }
+                if ( !tp_mush_format_escapes )
+                    strcpy(buf, DoNullInd(oper4->data.string));
+                else
+                    strcpy_mush(buf, DoNullInd(oper4->data.string));
+                }
 
             if (array_first(refarr, &temp1)) {
                 do {
@@ -803,8 +811,12 @@ prim_array_ansi_notify(PRIM_PROTOTYPE)
         do {
             oper4 = array_getitem(strarr, &temp2);
             strcpy(buf, DoNullInd(oper4->data.string));
+
             if (tp_m1_name_notify && mlev < 2) {
-                strcpy(buf2, NAME(PSafe));
+                if ( !tp_mush_format_escapes )
+                    strcpy(buf2, NAME(PSafe));
+                else
+                    strcpy_mush(buf2, NAME(PSafe));
                 strcat(buf2, " ");
                 if (!string_prefix(buf, buf2)) {
                     strcat(buf2, buf);
@@ -861,7 +873,10 @@ prim_array_notify_html(PRIM_PROTOTYPE)
     if (array_first(strarr, &temp2)) {
         do {
             oper4 = array_getitem(strarr, &temp2);
-            strcpy(buf, DoNullInd(oper4->data.string));
+            if ( !tp_mush_format_escapes )
+                strcpy(buf, DoNullInd(oper4->data.string));
+            else
+                strcpy_mush(buf, DoNullInd(oper4->data.string));
             if (tp_m1_name_notify && mlev < 2) {
                 strcpy(buf2, NAME(PSafe));
                 strcat(buf2, " ");
