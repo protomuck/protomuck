@@ -136,6 +136,74 @@ string_match(const char *src, const char *sub)
     return 0;
 }
 
+#define MUSH_TAB "    "
+
+char *
+mushformat_substitute(const char *str)
+{
+    char c;
+    //char d;
+    char prn[3];
+    static char buf[BUFFER_LEN * 2];
+    char orig[BUFFER_LEN];
+    char *result;
+
+    prn[0] = '%';
+    prn[2] = '\0';
+
+    strcpy(orig, str);
+    str = orig;
+
+    result = buf;
+    while (*str) {
+        if (*str == '%') {
+            *result = '\0';
+            prn[1] = c = *(++str);
+            if (!c) {
+                *(result++) = '%';
+                continue;
+            } else if (c == '%') {
+                *(result++) = '%';
+                str++;
+            } else {
+                c = (isupper(c)) ? c : toupper(c);
+                switch (c) {
+                    case 'T': /* tab */
+                        strcatn(result, sizeof(buf) - (result - buf),
+                                MUSH_TAB);
+                        break;
+                    case 'B': /* single whitespace, kinda pointless */
+                        strcatn(result, sizeof(buf) - (result - buf),
+                                " ");
+                        break;
+                    case 'R': /* carriage return */
+                        strcatn(result, sizeof(buf) - (result - buf),
+                                "\r");
+                        break;
+                    default:
+                        *result = *str;
+                        result[1] = '\0';
+                        break;
+                }
+                result += strlen(result);
+                str++;
+                if ((result - buf) > (BUFFER_LEN - 2)) {
+                    buf[BUFFER_LEN - 1] = '\0';
+                    return buf;
+                }
+            }
+        } else {
+            if ((result - buf) > (BUFFER_LEN - 2)) {
+                buf[BUFFER_LEN - 1] = '\0';
+                return buf;
+            }
+            *result++ = *str++;
+        }
+    }
+    *result = '\0';
+    return buf;
+}
+
 /*
  * pronoun_substitute()
  *

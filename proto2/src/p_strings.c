@@ -955,6 +955,11 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
     }
     if (oper1->data.string) {
         strcpy(buf, oper1->data.string->data);
+        if ( !tp_mush_format_escapes )
+            strcpy(buf, oper1->data.string->data);
+        else
+            strcpy_mush(buf, oper1->data.string->data);
+        
         notify_descriptor(oper2->data.number, buf);
     }
     CLEAR(oper1);
@@ -984,7 +989,10 @@ prim_ansi_notify_descriptor(PRIM_PROTOTYPE)
         return;
     }
     if (oper1->data.string) {
-        strcpy(buf, oper1->data.string->data);
+        if ( !tp_mush_format_escapes )
+            strcpy(buf, oper1->data.string->data);
+        else
+            strcpy_mush(buf, oper1->data.string->data);
         anotify_descriptor(oper2->data.number, buf);
     }
     CLEAR(oper1);
@@ -1039,10 +1047,17 @@ prim_notify(PRIM_PROTOTYPE)
 
     if (oper1->data.string) {
         if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                           BUFFER_LEN, 1);
+            if ( !tp_mush_format_escapes )
+                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                               BUFFER_LEN, 1);
+            else
+                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                                    BUFFER_LEN, 1);
         } else {
-            strcpy(buf, oper1->data.string->data);
+            if ( !tp_mush_format_escapes )
+                strcpy(buf, oper1->data.string->data);
+            else
+                strcpy_mush(buf, oper1->data.string->data);
         }
         notify_listeners(fr->descr, PSafe, program, oper2->data.objref,
                          getloc(PSafe), buf, 1);
@@ -1074,10 +1089,17 @@ prim_notify_html(PRIM_PROTOTYPE)
 
     if (oper1->data.string) {
         if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                           BUFFER_LEN - 1, 1);
+            if ( !tp_mush_format_escapes )
+                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                               BUFFER_LEN - 1, 1);
+            else
+                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                               BUFFER_LEN - 1, 1);
         } else {
-            strcpy(buf, oper1->data.string->data);
+            if ( !tp_mush_format_escapes )
+                strcpy(buf, oper1->data.string->data);
+            else
+                strcpy_mush(buf, oper1->data.string->data);
         }
         strcat(buf, "\r");
         notify_html_listeners(fr->descr, PSafe, program, oper2->data.objref,
@@ -1109,10 +1131,17 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
 
     if (oper1->data.string) {
         if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                           BUFFER_LEN, 1);
+            if ( !tp_mush_format_escapes )
+                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                               BUFFER_LEN, 1);
+            else
+                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                               BUFFER_LEN, 1);
         } else {
-            strcpy(buf, oper1->data.string->data);
+            if ( !tp_mush_format_escapes )
+                strcpy(buf, oper1->data.string->data);
+            else
+                strcpy_mush(buf, oper1->data.string->data);
         }
         notify_html_listeners(fr->descr, PSafe, program, oper2->data.objref,
                               getloc(PSafe), buf, 1);
@@ -1137,10 +1166,17 @@ prim_ansi_notify(PRIM_PROTOTYPE)
 
     if (oper1->data.string) {
         if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+            if ( !tp_mush_format_escapes )
+                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                               BUFFER_LEN, 1);
+            else
+                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         } else {
-            strcpy(buf, oper1->data.string->data);
+            if ( !tp_mush_format_escapes )
+                strcpy(buf, oper1->data.string->data);
+            else
+                strcpy_mush(buf, oper1->data.string->data);
         }
         ansi_notify_listeners(fr->descr, PSafe, program, oper2->data.objref,
                               getloc(PSafe), buf, 1);
@@ -1166,10 +1202,17 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 
     if (tp_m1_name_notify && oper1->data.string &&
         mlev < LM2 && PSafe != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                       BUFFER_LEN, 1);
+        if ( !tp_mush_format_escapes )
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                           BUFFER_LEN, 1);
+        else
+            prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                                BUFFER_LEN, 1);
     } else {
-        strcpy(buf, DoNullInd(oper1->data.string));
+        if ( !tp_mush_format_escapes )
+            strcpy(buf, DoNullInd(oper1->data.string));
+        else
+            strcpy_mush(buf, DoNullInd(oper1->data.string));
     }
 
     result = oper2->data.number;
@@ -1249,10 +1292,17 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 
     if (tp_m1_name_notify && oper1->data.string &&
         mlev < LM2 && PSafe != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                       BUFFER_LEN, 1);
+        if ( !tp_mush_format_escapes )
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                           BUFFER_LEN, 1);
+        else
+            prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                                BUFFER_LEN, 1);
     } else {
-        strcpy(buf, DoNullInd(oper1->data.string));
+        if ( !tp_mush_format_escapes )
+            strcpy(buf, DoNullInd(oper1->data.string));
+        else
+            strcpy_mush(buf, DoNullInd(oper1->data.string));
     }
 
     result = oper2->data.number;
@@ -1332,10 +1382,17 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
 
     if (tp_m1_name_notify && oper1->data.string &&
         mlev < LM2 && PSafe != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                       BUFFER_LEN, 1);
+        if ( !tp_mush_format_escapes )
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                           BUFFER_LEN, 1);
+        else
+            prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                                BUFFER_LEN, 1);
     } else {
-        strcpy(buf, DoNullInd(oper1->data.string));
+        if ( !tp_mush_format_escapes )
+            strcpy(buf, DoNullInd(oper1->data.string));
+        else
+            strcpy_mush(buf, DoNullInd(oper1->data.string));
     }
 
     strcat(buf, "\r");
@@ -1416,10 +1473,17 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 
     if (tp_m1_name_notify && oper1->data.string &&
         mlev < LM2 && PSafe != oper2->data.objref) {
-        prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                       BUFFER_LEN, 1);
+        if ( !tp_mush_format_escapes )
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                           BUFFER_LEN, 1);
+        else
+            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                           BUFFER_LEN, 1);
     } else {
-        strcpy(buf, DoNullInd(oper1->data.string));
+        if ( !tp_mush_format_escapes )
+            strcpy(buf, DoNullInd(oper1->data.string));
+        else
+            strcpy(buf, DoNullInd(oper1->data.string));
     }
 
     result = oper2->data.number;
