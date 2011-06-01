@@ -177,8 +177,16 @@ mushformat_substitute(const char *str)
                                 " ");
                         break;
                     case 'R': /* carriage return */
-                        strcatn(result, sizeof(buf) - (result - buf),
-                                "\r");
+                        if (*--result == '\r') {
+                            result++;
+                            /* necessary to make \r\r work */
+                            strcatn(result, sizeof(buf) - (result - buf),
+                                    " \r");
+                        } else {
+                            result++;
+                            strcatn(result, sizeof(buf) - (result - buf),
+                                    "\r");
+                        }
                         break;
                     default:
                         *result = *str;
