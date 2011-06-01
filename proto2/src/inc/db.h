@@ -621,7 +621,7 @@ struct muf_socket {             /* struct for MUF socket data */
    int readWaiting;             /* to support socket events */
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
    SSL *ssl_session;            /* SSL session data                             */
-   int sslAbort;                /* flag set when SSL channel has collapsed */
+   int sslStatus;                /* flag set when SSL channel has collapsed */
    char *sslError;            /* error message associated with sslAbort */
 #endif
 #ifdef IPV6
