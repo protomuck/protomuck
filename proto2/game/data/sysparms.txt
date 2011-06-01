@@ -713,6 +713,14 @@ Resetting of ANSI colors after a %r is a known bug.
 
 All codes are case insensitive.
 ~~~
+strict_mush_escapes
+Controls whether or not the % character is gobbled up by unhandled
+% codes. Turning this on will provide an experience similar to
+what MUSH users expect, while leaving it off will reduce the
+amount of accidental interference caused by the presence of a %
+character. (similar to what MUCK users are accustomed to with
+softcoded %r and %t support)
+~~~
 web_allow_players
 If TRUE, setting will allow players to have a _/www prop on themselves, which
 is accessable through http://yourserver/~playername

@@ -189,6 +189,10 @@ mushformat_substitute(const char *str)
                         }
                         break;
                     default:
+                        /* if strict_mush_escapes is tuned off, don't gobble
+                           unhandled % escapes */
+                        if ( !tp_strict_mush_escapes )
+                            *(result++) = '%';
                         *result = *str;
                         result[1] = '\0';
                         break;

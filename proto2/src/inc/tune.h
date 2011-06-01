@@ -202,6 +202,7 @@ extern int tp_alt_infinity_handler;
 extern int tp_autolinking;
 extern int tp_spaces_in_playernames;
 extern int tp_mush_format_escapes;
+extern int tp_strict_mush_escapes;
 /* extern int tp_require_has_mpi_arg; */
 #ifdef NEWHTTPD                         /* hinoserm */
 extern int tp_web_allow_players;        /* hinoserm */
