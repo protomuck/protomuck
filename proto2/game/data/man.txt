@@ -6225,7 +6225,7 @@ Given a stackrange of strictly arrays, it returns an array that
 contains an intersection of all the arrays. An intersection is a set
 of data that represents which elements were common to all of the arrays
 checked. For example:
-{"a" "b" "c"} { "b" "c" "d" } { "d" "e"} -> { "b" "c" }
+{"a" "b" "c"} { "b" "c" "d" } { "c" "d" "e" } -> { "c" }
 
 See: ARRAY PRIMS, STACKRANGE, ARRAY_NUNION, ARRAY_NDIFF
      ARRAY_INTERSECT
