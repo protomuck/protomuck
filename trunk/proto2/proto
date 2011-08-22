@@ -1,6 +1,6 @@
 #!/bin/sh -f
-# Enter up to 10 extra ports here:
-
+# Enter up to 10 extra ports here. Refer to the documentation for MOREPORTS
+# in the restart script, or just use that instead.
 PORTS="";
 
 # Start/stop the netmuck server.
