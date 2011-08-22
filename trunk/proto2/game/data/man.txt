@@ -4821,7 +4821,6 @@ is which while working on a program.
 When a program aborts or ends with any sockets still open, all open 
 sockets are closed. 
 
-
 NOTE: Socket prims are a compile time option and may not be present.
 SOCKOPEN is included strictly for backwards compatability, though now
 returns a non-blocking socket as well.
@@ -8952,6 +8951,12 @@ Once a listening socket is made, that port will stay open for as
 long as there is an instance of that MUF socket (either in a 
 variable or on the stack). Use SOCKACCEPT to accept incoming
 connections.
+
+LSOCKOPEN is not the only way for incoming connections to be
+handed off to a MUF program. Refer to "help muf ports" for more
+information. MUF Ports are better than LSOCKOPEN for "on-demand"
+type programs that don't need to be running all the time between
+connections, such as custom connection screens.
 
 LSOCK6OPEN does precisely what LSOCKOPEN does, except it binds
 to an IPv6 address and takes IPv6 connections.  This requires you
