@@ -19,20 +19,25 @@ GAMEDIR=${GAMEDIR:-${0%/*}}
 # This calls muck.config if it's present. Probably best to leave this alone.
 . "$GAMEDIR/muck.config" > /dev/null 2>&1
 
-# Once upon a time, the MAINPORT defined in this file was used by Proto. Now
-# it's just a way for the script to be able to see if the game is already
-# running. You only need to set this if you're running multiple games as the
-# same user and this script is complaining at you.
+# MAINPORT isn't required, but is useful if you want to run multiple games
+# on the same shell user. If this value isn't defined, the game will default
+# to listening on the "mainport" @tune, or the value in data/sysparms.txt if
+# it differs. This script will not let you run multiple games under the same
+# user unless you define MAINPORT.
 #MAINPORT=8881
 
-
-# MOREPORTS specifies additional ports to listen on, for legacy purposes.
-# If you don't know what this is, you probably don't need it. This parameter
-# is ignored unless MAINPORT was also defined.
+# You can ignore MOREPORTS if you're setting up a brand new game.
 #
+# MOREPORTS specifies additional ports you want the game to listen on. These
+# will be standard ports, unless you use the @ports/ propdir on #0 to map
+# them to other types of sockets. Refer to "help @ports" in-game for more
+# information on how all of this works.
+#
+# You can also specify these ports with the PORTS value in the "$GAMEDIR/proto"
+# script, but it's not recommended to use both.
+# 
 # To list multiple ports, separate them with spaces.  ie:
 # PORTS="8801 8802 8803"
-# Note: These ports do not override the ports in @tune.
 #MOREPORTS=""
 
 # The following are the paths to the db files to load, save to, and archive to.
@@ -120,6 +125,19 @@ else
 	muck=`ps x | grep protomuck | wc -l`
 fi
 
+if [ "$*" ]
+then
+    # Make sure the passed in args are a space separated list of numbers.
+    PASSEDARGS=$*
+    if [[ "${PASSEDARGS//[[:space:]]}" != [1-9]+([0-9]) ]]
+    then
+        echo "The only argument to $0 should be a space separated list of port"
+        echo "numbers. If you're using the $GAMEDIR/proto script, check the"
+        echo "value of the PORTS variable."
+        exit 1
+    fi
+fi
+  
 datestamp=`date +%m%d%y%H%M`
 if [ "$muck" -gt 1 ]
 then
@@ -225,6 +243,12 @@ fi
 
 dbsiz=`ls -1s $MUCKDB | awk '{print $1}'`
 diskfree=`df -k . | tail -1 | awk '{print $4}'`
+# Check to see if df output overflowed into the next line due to an unusually
+# long filesystem path...dev-mapper and LVM on Linux are the usual culprit.
+if [ ${diskfree#${diskfree%?}} == '%' ]
+then
+  diskfree=`df -k . | tail -1 | awk '{print $3}'`
+fi
 
 diskneeded=$(($dbsiz * 3))
 spacediff=$(($diskneeded - $diskfree))
@@ -239,6 +263,6 @@ fi
 # echo "Server started at: `date`"
 #( ./protomuck $MUCKDB $MUCKOUT $PORTS >& logs/ttyerr.log ) &
 echo -n "(${MUCKNAME:-ProtoMUCK} on port ${MAINPORT:-(default)} from $MUCKDB): "
-./protomuck $MUCKDB $MUCKOUT $MAINPORT $MOREPORTS
+./protomuck $MUCKDB $MUCKOUT $MAINPORT $MOREPORTS $PASSEDARGS
 # echo "Server stopped at: `date`"
 
