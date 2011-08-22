@@ -3744,10 +3744,10 @@ handled by @tune. Using this support, one can add additional ports
 that duplicate the existing ones, or take advantage of a new concept
 called MUF ports. There will be a MUF front end for @ports support
 eventually, but for now, the manual steps to set it up are as follows:
-#1
-Add a list of ports in the ./proto start up script. The location to do so
-is marked as:
-PORTS="";
+
+Add a list of ports in the ./proto or ./game/restart scripts, by changing
+the PORTS variable in "proto" or MOREPORTS variable in "restart".
+
 Simply insert between the "" marks a space deliminated list of additional
 ports desired. This is all that is needed to open the port on start up of
 the MUCK.
@@ -3761,7 +3761,9 @@ See @PORTS2
 The next step is to configure how the new port is to behave, or, in other
 words, what type of port it is. This is done by setting certain props on
 #0. The MUCK does not have to be restarted for changes to the @ports/ 
-directory to take affect.
+directory to take affect, but adding a new <port#> propdir by itself does
+nothing without updating one of the restart scripts to open the port and
+restarting the game. (see previous page)
 
 @ports/<port#>/type:<integer prop representing the port type>
     This integer sets the type of port that the new port is to be. 
@@ -3771,10 +3773,11 @@ directory to take affect.
     1 = HTTP/WWW Port (Webserver)
     2 = Pueblo Port   (Pueblo)
     3 = MUF Port      (MUF Program)
+    4 = SSL Text Port (SSL Encrypted Telnet)
 @ports/<port#>/idle:<integer prop representing time in seconds>
     This sets how idle a connection can get to the new port before it is
     disconnected. This does not apply to MUF ports or webserver ports. It is
-    optional.
+    optional, and defaults to the value of the connidle @tune.
 @ports/<port#>/MUF:<dbref prop representing the MUF port program to call>
     If the port type is a MUF Port, then when a connection is made to the
     MUCK, this program will be run instead of the normal in-server connection
