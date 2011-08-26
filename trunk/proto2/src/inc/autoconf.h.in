@@ -8,6 +8,9 @@
    */
 #undef HAVE_DIRENT_H
 
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
 
@@ -23,11 +26,20 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Define to 1 if you have the `dl' library (-ldl). */
+#undef HAVE_LIBDL
+
+/* Define to 1 if you have the `pcre' library (-lpcre). */
+#undef HAVE_LIBPCRE
+
 /* Define to 1 if you have the `pthread' library (-lpthread). */
 #undef HAVE_LIBPTHREAD
 
 /* Define to 1 if you have the `util' library (-lutil). */
 #undef HAVE_LIBUTIL
+
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
 
 /* Define to 1 if the system has the type `long long'. */
 #undef HAVE_LONG_LONG
@@ -52,6 +64,9 @@
 
 /* Enabled if include/openssl/ssh.h exists. */
 #undef HAVE_OPENSSL_SSL_H
+
+/* PCRE headers are under pcre dir. */
+#undef HAVE_PCREINCDIR
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
@@ -86,7 +101,7 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
-/* Define to 1 if `tm_zone' is member of `struct tm'. */
+/* Define to 1 if `tm_zone' is a member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
@@ -138,14 +153,17 @@
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
 
-/* Define to 1 if you have zlib available. */
-#undef HAVE_ZLIB
-
 /* Define to 1 if you have the `vsnprintf' function. */
 #undef HAVE_VSNPRINTF
 
+/* Defined to compile ZLIB support */
+#undef HAVE_ZLIB
+
 /* Defined to compile for ipv6 */
 #undef IPV6
+
+/* Defined to enable modular support */
+#undef MODULAR_SUPPORT
 
 /* Defined to DISABLE compression support. */
 #undef NO_COMPRESS
@@ -162,8 +180,14 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* Defined to enable PCRE support */
+#undef PCRE_SUPPORT
 
 /* DANGEROUS: Defined to allow file prims and webserver to run as root */
 #undef PROTO_AS_ROOT
@@ -197,9 +221,6 @@
 
 /* Defined to enable SSL support. */
 #undef USE_SSL
-
-/* Defined to enable modules support. */
-#undef MODULAR_SUPPORT
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -244,6 +265,9 @@
 #ifndef __cplusplus
 #undef inline
 #endif
+
+/* The base path to the installation for PCRE. Usually /usr. */
+#undef pcredir
 
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
