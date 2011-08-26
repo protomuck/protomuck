@@ -21,8 +21,10 @@ const char *base_inst[] = {
     PRIMS_STACK_NAMES,
     PRIMS_STRINGS_NAMES,
     PRIMS_FLOAT_NAMES,
-    PRIMS_REGEX_NAMES,
     PRIMS_ERROR_NAMES,
+#ifdef PCRE_SUPPORT
+    PRIMS_REGEX_NAMES,
+#endif
 #ifdef FILE_PRIMS
     PRIMS_FILE_NAMES,
 #endif
