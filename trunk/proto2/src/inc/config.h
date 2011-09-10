@@ -108,7 +108,7 @@
  */
 
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#undef IGNORE_SUPPORT
+#define IGNORE_SUPPORT
 #define MAX_IGNORES 64
 #define MUF_MAX_IGNORES "64"
 
