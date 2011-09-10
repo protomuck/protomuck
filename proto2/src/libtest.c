@@ -29,7 +29,7 @@ extern int tmp, result;
 extern dbref ref;
 extern char buf[BUFFER_LEN];
                              /* NAME       DESCRIPTION                             VERSION   DEPENDANCIES */
-static struct mod_info minfo = {"libtest", "This module is for testing purposes.", 7,        NULL};
+static struct mod_info minfo = {"libtest", "This module is for testing purposes.", 8,        NULL};
 
 static struct module *mthis;
 
@@ -90,10 +90,25 @@ void __prim_nuku_rp_getstatus_1(PRIM_PROTOTYPE)
 		}
 	} else {
 		int cstr_len;
+                char buf2[BUFFER_LEN];
+                int q = 0;
+                int stoppit = 0;
+
+
+        strcpy(buf, DoNullInd(oper1->data.string));
+        for (p = buf; *p; p++) {
+                if (*p == '`')
+                   stoppit = 1;
+                else
+                   buf2[q++] = *p;
+        }
+        buf2[q++] = '\0';
+
+                strcpy(buf, buf2);
 
 		sprintf(dir, "/@rp/ATB/%d/status", oper2->data.objref);
-		sprintf(cstr, " %s", DoNullInd(oper1->data.string));
-		sprintf(dstr, " %sDebuff", DoNullInd(oper1->data.string));
+		sprintf(cstr, " %s", buf2);
+		sprintf(dstr, " %sDebuff", buf2);
 		cstr_len = strlen(cstr);
 	
 
@@ -160,12 +175,15 @@ void __prim_nuku_rp_getstatus_1(PRIM_PROTOTYPE)
 									fout += PropDataFVal(prptr) * debuff;
 									break;
 							}
+                                                        if (stoppit)
+                                                           break;
+
 						}
 					}
 				}
 			}
 			propadr = next_prop(pptr, propadr, propname);
-		}
+		} 
 	}
 
 	CLEAR(oper1);
@@ -260,13 +278,23 @@ void __prim_funcprof_array(PRIM_PROTOTYPE)
 			}
 		}
 	} else if (oper1->type == PROG_INTEGER) {
+                int pid = oper1->data.number;
 		timequeue ptr = tqhead;
+
 		nw = new_array_packed(0);
 
-		while (ptr) {
-			if (ptr->eventnum == oper1->data.number && ptr->fr && ptr->fr->fprofile) {
-				struct funcprof *fpe = ptr->fr->fprofile;
+    while (ptr) {
+        if (ptr->eventnum == pid) {
+            if (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER) {   
+                break;
+            }
+        }
+        ptr = ptr->next;
+    }
 
+    if (ptr && (ptr->eventnum == pid) && ptr->fr &&
+        (ptr->typ != TQ_MUF_TYP || ptr->subtyp != TQ_MUF_TIMER) && ptr->fr->fprofile) {
+				struct funcprof *fpe = ptr->fr->fprofile;
 				while (fpe) {
 					stk_array *nw2 = new_array_dictionary();
 
@@ -326,15 +354,10 @@ void __prim_funcprof_array(PRIM_PROTOTYPE)
 
 					fpe = fpe->next;
 				}
-				break;
 			}
 
-			ptr = ptr->next;
-		}
 
-		
-	}
-
+        }		
 
 	PushArrayRaw(nw);
 }
