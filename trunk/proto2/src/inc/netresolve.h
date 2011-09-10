@@ -19,6 +19,10 @@ struct hostinfo { /* linked-list struct for the new host cacher */
     char             *name;     /* hostname */
     unsigned short   links;     /* number of links to this hostname */
     unsigned short   uses;      /* times used */
+#if defined(HAVE_PTHREAD_H) || defined(WIN_VC)
+    pthread_t        thread;    /* if threading resolver is enabled, this is the thread doing the work (or NULL if finished) */
+    time_t           thread_start; /* POSIX time of when the thread started */
+#endif
     struct hostinfo *next;
     struct hostinfo *prev;
 };

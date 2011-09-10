@@ -791,7 +791,7 @@ color_lookup(dbref player, const char *color, const char *defcolor,
 
     if ((!color) || (!*color))
         return defcolor;
-    if (player != NOTHING) {
+    if (player != NOTHING && OkObj(player)) {
         if (!strcasecmp("SUCC", color) || !strcasecmp("CSUCC", color)) {
             tempcolor = GETMESG(player, "_/COLORS/SUCC");
             if (!tempcolor)
@@ -855,6 +855,7 @@ color_lookup(dbref player, const char *color, const char *defcolor,
             return color_lookup(player, color, defcolor, intrecurse);
         }
     }                           /* End of player != NOTHING check. Too lazy to indent all that. */
+
     if (!strcasecmp("NORMAL", color)) {
         return ANSINORMAL;
     } else if (!strcasecmp("BOLD", color) || !strcasecmp("BRIGHT", color)) {

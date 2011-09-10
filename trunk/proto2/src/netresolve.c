@@ -209,6 +209,7 @@ void *threaded_resolver_go(void *ptr)
         }
     }
 
+    tr->h->thread_start = 0;
     free((void *) tr);
 #ifdef WIN_VC
 # ifndef __cplusplus
@@ -225,11 +226,23 @@ void *threaded_resolver_go(void *ptr)
 bool
 host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
 {
-	struct tres_data *tr;
+    struct tres_data *tr;
 #ifndef WIN_VC
-	int result;
-	pthread_t thread1;
+    int result;
+    pthread_t thread1;
     pthread_attr_t attr;
+
+
+    if (h->thread_start) {
+        if (current_systime - h->thread_start >= 300) { /* 5 minutes */
+# ifdef HOSTCACHE_DEBUG
+            log_status("RLVD_THREADED(%s): Resolver thread has been running for %ld seconds.  Thread terminated\n", host_as_hex(h->a), current_systime - h->thread_start);
+# endif /* HOSTCACHE_DEBUG */
+            //pthread_cancel(h->thread);
+            h->thread_start = 0;
+        } else
+            return -1;
+    }
 #endif
 
     tr = (struct tres_data *) malloc(sizeof(struct tres_data));
@@ -238,20 +251,24 @@ host_get_resthrd(struct hostinfo *h, unsigned short lport, unsigned short prt)
     /* tr->u = u; */
     tr->lport = lport;
     tr->prt = prt;
-   
+
+    h->thread_start = current_systime;
+  
 #ifdef WIN_VC
-	CreateThread(NULL, 0, threaded_resolver_go, (void*)tr, 0, NULL);
+    CreateThread(NULL, 0, threaded_resolver_go, (void*)tr, 0, NULL);
 #else
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+    h->thread = thread1;
     
     result = pthread_create(&thread1, &attr, threaded_resolver_go, (void*) tr);
  
     pthread_attr_destroy(&attr);
 
-	if (result)
+    if (result) {
+        h->thread_start = 0;
         return 0;
-    else
+    } else
 #endif
         return 1;
 }
@@ -735,7 +752,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
             /* Found it in the cache. */
             h->links++;
             h->uses++;
-#ifdef HOSTCACHE_DEBUG
+#ifdef HATS_ARE_COOL //HOSTCACHE_DEBUG
             log_status("HOST: In cache: %X (%s), %s\n", h->a, host_as_hex(h->a),
                        h->name);
 #endif /* HOSTCACHE_DEBUG */
@@ -754,6 +771,10 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
 
     /* Not in the cache, make a new entry and request it. */
     h = (struct hostinfo *) malloc(sizeof(struct hostinfo));
+
+#if defined(HAVE_PTHREAD_H) || defined(WIN_VC)
+    h->thread_start = 0;
+#endif
     h->links = 1;
     h->uses = 1;
     h->a = a;
@@ -875,6 +896,16 @@ host_free(struct hostinfo *h)
     if (h == hostdb)
         hostdb = h->next;
     hostdb_count--;
+    
+#if defined(HAVE_PTHREAD_H) || defined(WIN_VC)
+    if (h->thread_start) {
+# ifdef HOSTCACHE_DEBUG           
+        log_status("HOST_FREE(%s): Resolver thread has been running for %ld seconds.  Thread terminated.\n", host_as_hex(h->a), current_systime - h->thread_start);
+# endif /* HOSTCACHE_DEBUG */
+        //pthread_cancel(h->thread);
+        h->thread_start = 0;
+    }
+#endif
     free((void *) h->name);
     free((void *) h);
 }
@@ -912,6 +943,7 @@ host_load(void)
         h->links = 0;
         h->uses = 0;
         h->wupd = 0;
+        h->thread_start = 0;
         h->a = (int) ip;
         h->name = alloc_string(name);
         h->prev = NULL;
@@ -1169,3 +1201,4 @@ do_hostcache(dbref player, const char *args)
             anotify_fmt(player, "  Entries flushed:    %ld", hostdb_flushed);
     }
 }
+

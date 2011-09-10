@@ -287,7 +287,7 @@
 /* #define DEBUGLOGINS below if you need to troubleshoot these strings.      */
 /* Normal users *should not* do this, because it completely defeats the      */
 /* on-disk security of hashed passwords in the database. -brevantes          */
-#undef DEBUGLOGINS
+#define DEBUGLOGINS
 
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */
