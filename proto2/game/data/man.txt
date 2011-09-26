@@ -10610,9 +10610,9 @@ i = mode or descriptor to give to the target
 d = target to receive the process and/or descriptor
 
 The SUID prim is useful for assigning players to MUF or HTTP descriptors, or
-for handing off a running MUF to another player.   The first argument takes
-the target of the handoff.   The second argument specifies either a mode or
-descriptor.  Here's what happens with different values for mode:
+for handing off a running MUF to another player.  The first argument specifies
+either a mode or descriptor.  The second argument takes the target of the
+handoff.  Here's what happens with different values for mode:
 
 -1: The process only is handed off to the target, the descriptor remains with
     the trigger player.   This causes output to fork, anything notified to the
