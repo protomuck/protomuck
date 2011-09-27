@@ -111,16 +111,28 @@ find_registered_obj(dbref player, const char *name)
     const char *p;
     char buf[BUFFER_LEN];
     PropPtr ptr;
+    dbref tmp;
 
+    tmp = player;
     if (*name != REGISTERED_TOKEN)
         return (NOTHING);
     for (p = name + 1; *p && isspace(*p); p++) ;
     if (!*p)
         return (NOTHING);
-    sprintf(buf, "_reg/%s", p);
-    ptr = regenvprop(&player, buf, 0);
-    if (!ptr)
-        return NOTHING;
+#ifdef HIDDEN_REG
+    sprintf(buf, "@reg/%s", p);
+    ptr = regenvprop(&player, buf, 0);;
+    if (!ptr) {
+        player = tmp;
+        *buf = '\0';
+#endif
+        sprintf(buf, "_reg/%s", p);
+        ptr = regenvprop(&player, buf, 0);
+        if (!ptr)
+            return NOTHING;
+#ifdef HIDDEN_REG
+    }
+#endif
 #ifdef DISKBASE
     propfetch(player, ptr);     /* DISKBASE PROPVALS */
 #endif

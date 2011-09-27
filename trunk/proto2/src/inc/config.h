@@ -108,7 +108,7 @@
  */
 
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#define IGNORE_SUPPORT
+#undef IGNORE_SUPPORT
 #define MAX_IGNORES 64
 #define MUF_MAX_IGNORES "64"
 
@@ -317,6 +317,14 @@
 /* Define this to set which server to use for e-mail registration.
  */
 #define MAILSERVER "mail.somewhere.com"
+
+/* Define this to enable an additional "@reg" propdir that is searched down the
+ * environment before the standard _reg propdir. This is useful if you need to
+ * define per-player registry entries that they can't remove by accident, but
+ * comes at the cost of an additional environment lookup for every match string
+ * beginning with $ that doesn't match on @reg.
+ */
+#undef HIDDEN_REG
 
 /************************************************************************
    Game Options
