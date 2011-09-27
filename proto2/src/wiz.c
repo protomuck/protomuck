@@ -296,7 +296,19 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                         && DBFETCH(destination)->sp.room.dropto != NOTHING
                         && !(FLAGS(destination) & STICKY))
                         destination = DBFETCH(destination)->sp.room.dropto;
-                    moveto(victim, destination);
+                    /* Bugfix: treat THINGs more like PLAYERs. */
+                    if (Typeof(victim) == TYPE_THING) {
+                        if (FLAGS(victim) & ZOMBIE) {
+                            anotify_nolisten2(victim,
+                                              CNOTE
+                                              "You feel a wrenching sensation...");
+                        }
+                        enter_room(descr, victim, destination,
+                                   DBFETCH(victim)->location);
+                    } else {
+                        moveto(victim, destination);
+                    }
+                    /* End bugfix */
                     sprintf(buf, CSUCC "%s teleported to %s.",
                             unparse_object(player, victim),
                             (destination == -3 ? "HOME" : (destination == -4 ? NAME(OWNER(victim)) : NAME(destination)))
