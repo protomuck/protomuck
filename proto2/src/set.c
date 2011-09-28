@@ -752,7 +752,7 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
 
         pdat.flags = PROP_LOKTYP;
         pdat.data.lok = TRUE_BOOLEXP;
-        set_property(thing, "_/chlk", &pdat);
+        set_property(thing, CHLK_PROP, &pdat);
         ts_modifyobject(player, thing);
         anotify_nolisten2(player, CSUCC "Chown lock cleared.");
     } else {
@@ -764,7 +764,7 @@ do_chlock(int descr, dbref player, const char *name, const char *keyname)
         } else {
             /* everything ok, do it */
             pdat.flags = PROP_LOKTYP;
-            set_property(thing, "_/chlk", &pdat);
+            set_property(thing, CHLK_PROP, &pdat);
             ts_modifyobject(player, thing);
             anotify_nolisten2(player, CSUCC "Chown lock set.");
         }
@@ -1144,7 +1144,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
     if (!truecontrols(OWNER(player), thing) && (!(FLAGS(thing) & CHOWN_OK) ||
                                                 Typeof(thing) == TYPE_PROGRAM ||
                                                 !test_lock(descr, player, thing,
-                                                           "_/chlk"))) {
+                                                           CHLK_PROP))) {
         if (!(POWERS(player) & POW_CHOWN_ANYTHING)) {
             anotify_nolisten2(player,
                               CFAIL "You can't take possession of that.");

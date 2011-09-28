@@ -1566,7 +1566,7 @@ prim_setown(PRIM_PROTOTYPE)
         (mlev < MLevel(OWNER(oper2->data.objref))))
         abort_interp(tp_noperm_mesg);
     if ((mlev < LWIZ) && (!(FLAGS(ref) & CHOWN_OK) ||
-                          !test_lock(fr->descr, PSafe, ref, "_/chlk")))
+                          !test_lock(fr->descr, PSafe, ref, CHLK_PROP)))
         abort_interp(tp_noperm_mesg);
     switch (Typeof(ref)) {
         case TYPE_ROOM:

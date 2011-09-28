@@ -217,7 +217,34 @@
 /* This is the section to turn on and off cutting edge features.
  */
 
-#define CONTROLS_SUPPORT	/* Alynna 20030907 */
+/* Define HIDDEN_CHLK to move the chown lock prop from /_/chlk to /@/chlk.
+ * Players can still modify the chown lock via the @chlock command, but won't
+ * be able to modify the prop directly. This isn't particularly useful unless
+ * you plan on using CONTROLS_SUPPORT (defined below).
+ *
+ * /// CAUTION \\\
+ * Enabling this define on an existing site will make all PROGRAMS, ROOMS,
+ * THINGS and EXITS with a CHOWN_OK flag @chownable by anyone until the @chlock
+ * has been replaced. Run the following commands as a wizard to find them:
+ *
+ * @find =FC
+ * @find =RC
+ * @find =TC
+ * @find =EC
+ *
+ * -brevantes
+ */
+#undef HIDDEN_CHLK
+
+
+/* Don't define CONTROLS_SUPPORT without defining HIDDEN_CHLK as well. It does
+ * not prevent players from directly @propsetting the /_/chlk prop despite
+ * blocking them from using the @chlock command.
+ *
+ * You may define this without HIDDEN_CHLK if your site was already using it,
+ * but you do so at your own risk. -brevantes
+ */
+#undef CONTROLS_SUPPORT	/* Alynna 20030907 */
 
 /* If you have problems compiling with DETACH defined, uncomment one
  * of these:
@@ -320,11 +347,12 @@
 
 /* Define this to enable an additional "@reg" propdir that is searched down the
  * environment before the standard _reg propdir. This is useful if you need to
- * define per-player registry entries that they can't remove by accident, but
+ * define per-player registry entries that they can't remove by accident. It
  * comes at the cost of an additional environment lookup for every match string
  * beginning with $ that doesn't match on @reg.
  */
 #undef HIDDEN_REG
+
 
 /************************************************************************
    Game Options
@@ -491,6 +519,12 @@
  */
 #define TRUE  1
 #define FALSE 0
+
+#ifdef HIDDEN_CHLK
+#define CHLK_PROP "@/chlk"
+#else
+#define CHLK_PROP "_/chlk"
+#endif
 
 /*
  * Memory/malloc stuff.

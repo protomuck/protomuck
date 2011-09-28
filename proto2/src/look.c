@@ -865,7 +865,7 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
     anotify_nolisten(player, buf, 1);
 
     sprintf(buf, SYSVIOLET "Chown_OK Key:" SYSPURPLE " %s",
-            unparse_boolexp(OWNER(player), get_property_lock(thing, "_/chlk"),
+            unparse_boolexp(OWNER(player), get_property_lock(thing, CHLK_PROP),
                             1));
     anotify_nolisten(player, buf, 1);
 
