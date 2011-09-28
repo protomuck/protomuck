@@ -329,7 +329,7 @@ can_see(dbref player, dbref thing, bool can_see_loc)
 
 #ifdef CONTROLS_SUPPORT
 #   define controlsEx(W, H) ((FLAG2(H) & F2CONTROLS) && \
-    test_lock_false_default(-1, OWNER(W), H, "_/chlk"))
+    test_lock_false_default(-1, OWNER(W), H, CHLK_PROP))
 #endif
 
 bool
@@ -602,12 +602,12 @@ ok_player_name(const char *name)
 
     for (scan = name; *scan; scan++) {
         if ( tp_spaces_in_playernames ) {
-            if ( !isprint(*scan)) {
+            if ( !isprint(*scan) || *scan == '"' ) {
                 return 0;
             }         
         }
         else {
-            if ( !(isprint(*scan) && !isspace(*scan)) ) /* was isgraph(*scan) */
+            if ( !isprint(*scan) && !isspace(*scan) ) /* was isgraph(*scan) */
                 return 0;
         }
     }
