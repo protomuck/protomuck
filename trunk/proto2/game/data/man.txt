@@ -6807,7 +6807,7 @@ For example, the code:
         }dict
     }list
     "%-16.15[username]s %3[count]i %5[object]d %4.2[4]g"
-    array_formatstrings
+    array_fmtstrings
     { me @ }list array_notify
 
 ... would show the following output to the user:
