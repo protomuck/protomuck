@@ -33,14 +33,15 @@ Multitasking Prims:
   ONEVENT       INTERRUPT_LEVEL
 
 Math and Logic Prims:
-  +     -     *     /     %     <     >     =     <=     >=  
+  +    -    *    /    %    <    >    =    !=    <=    >=  
   RANDOM     BITOR     BITXOR     BITSHIFT     ++     -- 
   CEIL       FLOOR     SQRT       PI           ROUND  
   SIN        COS       TAN        ASIN         ACOS   ATAN
   ATAN2      DIST3D    XYZ_TO_POLAR            POLAR_TO_XYZ  
   EXP        LOG       LOG10      FABS         POW    FRAND
   FMOD       MODF      AND        OR           NOT    ABS
-  SRAND      GETSEED   SETSEED    SIGN         XOR
+  SRAND      GETSEED   SETSEED    SIGN         XOR    INF
+  EPSILON
 
 See: PRIMS2
 ~~~~
@@ -151,7 +152,7 @@ Data Base Prims:
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
   GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
   ANSI_NAME     REFSTAMPS   TOUCH        USE            ANSI_UNPARSEOBJ
-  ISFLAG?
+  ISFLAG?                                               GETLINKS_ARRAY
       
 System Prims:
   SYSPARM         SETSYSPARM     LOGSTATUS     VERSION     FORCE
@@ -289,7 +290,7 @@ MATH PRIMS|MATHPRIMS
 
 The following prims are used to perform arithmetic with MUF:
 
-+     -     *     /     %     <     >     =     <=     >=  
++    -    *     /     %     <     >     =     <=     >=  
 RANDOM     BITOR     BITXOR     BITSHIFT     ++     --
 CEIL       FLOOR     SQRT       PI           ROUND  
 SIN        COS       TAN        ASIN         ACOS   ATAN
@@ -367,12 +368,13 @@ The following prims are used to work with the MUCK database:
   NEWROOM       NEWOBJECT   NEWEXIT      TIMESTAMPS     NEXTTHING_FLAG
   PENNIES       ADDPENNIES  NAME         UNPARSEOBJ     MOVEPENNIES
   COPYOBJ       RECYCLE     MOVETO       STATS          DBTOP
-  OK?           THING?      EXIT?        PLAYER?   PROGRAM?   ROOM?
+  OK?           THING?      EXIT?        PLAYER?        PROGRAM?   ROOM?
   NEXTPROGRAM   NEXTEXIT    NEXTROOM     NEXTTHING      NEXTPLAYER_FLAG
   NEXTENTRANCE  POWER?      ISPOWER?     NEWPROGRAM     NEXTPLAYER_POWER   
-  PNAME-OK?     NAME-OK?    FINDNEXT     EXITS_ARRAY    CONTENTS_ARRAY
+  PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
   GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
-  ANSI_NAME     ANSI_UNPARSEOBJ
+  ANSI_NAME     REFSTAMPS   TOUCH        USE            ANSI_UNPARSEOBJ
+  ISFLAG?                                               GETLINKS_ARRAY
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -699,9 +701,9 @@ performed where n1 is a variable type.  This is mainly useful in
 calculating an offset for a variable array. + and - may also be
 performed on dbrefs.
 ~
-LOGICAL OPERATORS|<|>|<=|>=|=|LESS THAN|GREATER THAN|EQUALS
+LOGICAL OPERATORS|<|>|<=|>=|=|!=|LESS THAN|GREATER THAN|EQUALS|EQUAL|NOT EQUALS|NOT EQUAL
 
-< > = <= >= ( n1 n2 -- i )
+< > = != <= >= ( n1 n2 -- i )
 --------------------------
 Level: M1 Apprentice
 n1 and n2 = Any float or integer.
@@ -2146,6 +2148,12 @@ by the program owner, or set = L, = A, or = PARENT.
 If trying to link a thing, destination must be a room or a player. If it
 is a room, the room must be set = L. If it is a player, it must be the same
 player as who owns the program.
+~
+GETLINKS_ARRAY
+GETLINKS_ARRAY ( d -- a )
+
+  Returns a list array that contains the dbref of every object that the
+given object is linked to.
 ~
 STRING?
 
@@ -5479,6 +5487,27 @@ Returns the value of PI.
 
 See: FLOAT PRIMS
 ~
+INF
+INF ( -- f )
+
+  Returns the value of an Infinite result.  Most functions will not
+  accept this value as a legal input.
+  Also see: EPSILON and FLOAT
+~
+EPSILON
+EPSILON ( -- flt:epsilon )
+
+  Returns the smallest number such that 1.0 + Epsilon is distinct from 1.0
+in the internal representation for floating point numbers.  This is the
+precision error.  This is useful when comparing that two numbers are equal
+to within the precision of the system.  ie:
+    float1 @ float2 @ - fabs epsilon < if "Equivalent" then
+
+  When you are working with numbers that have exponent parts that may not be
+near e+00, you should do a relative comparison instead:
+    float1 @ float2 @ - float1 @ / fabs epsilon < if "Equivalent" then
+Also see: INF, FLOAT, FABS, -, /, @, <, IF and THEN
+~
 ROUND
 
 round ( f1 i -- f2 )
@@ -5763,7 +5792,7 @@ Below is a list of float prims supported by ProtoMUCK:
 
 INF, CEIL, FLOOR, SQRT, PI, ROUND, SIN, COS, TAN, ASIN, ACOS, ATAN, ATAN2
 DIST3D, XYZ_TO_POLAR, POLAR_TO_XYZ, EXP, LOG, LOG10, FABS, FLOAT, POW
-FRAND, FMOD, MODF, STRTOF, FTOSTR, FLOAT?
+FRAND, FMOD, MODF, STRTOF, FTOSTR, FLOAT?, EPSILON
 
 FLOAT ERRORS PRIMS: CLEAR, ERROR_NUM, CLEAR_ERROR, SET_ERROR, IS_SET?
                     ERROR_STR, ERROR_NAME, ERROR_BIT, ERROR?
@@ -5814,7 +5843,7 @@ ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
 ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
 EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
 ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED
-ARRAY_SUM            ARRAY_STRING_FRAGMENT
+ARRAY_SUM            ARRAY_GETLINKS       ARRAY_FMTSTRING    ARRAY_STRING_FRAGMENT
 
 See: Individual entries for more information.
 ~~~~~~
@@ -6749,6 +6778,63 @@ identifiers:
         ? - unknown type argument, will print a string stating what the
             variable type is
 ~~~~
+ARRAY_FMTSTRINGS
+ARRAY_FMTSTRINGS ( list:dicts str:format -- list:results )
+
+  Lets you apply a format string, a la FMTSTRING, to each of a list of
+dictionaries of input data, returning a list of strings, one for each
+input dictionary.
+
+  Unlike FMTSTRING, the format string needs to have key markers to
+specify which key of each input dictionary to use to get the data for
+each format field.  You specify the key markers in each format
+subsititution by adding a '[KEY]' before the substitution type letter.
+For example, the code:
+
+    {
+        {
+            "username" "Johnny"
+            "count" 4
+            "object" #18
+            4  pi
+        }dict
+        {
+            "username" "Ghaladahsk_Fadja"
+            "count" 123
+            "object" #97
+        }dict
+    }list
+    "%-16.15[username]s %3[count]i %5[object]d %4.2[4]g"
+    array_formatstrings
+    { me @ }list array_notify
+
+... would show the following output to the user:
+
+    Johnny             4   #18 3.14
+    Ghaladahsk_Fadj  123   #97 0.00
+
+  Note that if a key does not exist in an input dictionary, then that
+format field will be assumed to either be 0, #-1, or a null string,
+as apropriate for the format type.
+
+  Numeric keys can be referred to as well as string keys.  This also
+means that you may use a list of list arrays as input, instead of a
+list of dictionaries.
+
+  See FMTSTRING for a full description of normal substitution format codes.
+Note that unlike FMTSTRING, the format strings cannot use calculated
+field widths or precisions via '*'.
+
+  Hint: If you want to use this format method on a single dictionary, you
+can do something like:
+
+    pid getpidinfo   (to give us a dictionary of data.)
+    1 array_make     (to make a list with that as its single entry)
+    "%-40[player]D %6[pid]i %[called_prog]D" 
+    array_fmtstrings
+    0 []             (to get the formatted result string.)
+Also see: FMTSTRING
+~~~~~~
 DESCR_ARRAY
 
 
@@ -9840,6 +9926,47 @@ Used primarily by the MUF webserver and HTMuf/CGI
 programs.
  
 See: UNESCAPE_URL
+~~~~
+MD5HASH
+ 
+MD5HASH ( s1 -- s2 )
+-----------------
+Level: M1 Apprentice
+s1 = Any string
+s2 = MD5 hash of s1
+ 
+Given any string as s1, md5hash will compute a unique (for most
+practical uses) hash checksum for that string. s2 will always return
+the same result when given the same s1, but will return a different
+result if s1 has changed by one or more characters. (even a newline)
+
+A md5hash is slightly faster to compute than sha1hash, but vulnerable
+to some well-documented collision attacks. sha1hash should always be used
+instead of md5hash when performing a validation that can in any way be
+influenced by a malicious user. It is extremely unlikely to encounter
+one of these collisions when processing casual workloads.
+
+See: SHA1SUM
+~~~~
+SHA1HASH
+ 
+SHA1HASH ( s1 -- s2 )
+-----------------
+Level: M1 Apprentice
+s1 = Any string
+s2 = SHA1 hash of s1
+ 
+Given any string as s1, sha1hash will compute a unique hash checksum
+for that string. s2 will always return the same result when given the
+same s1, but will return a different result if s1 has changed by one
+or more characters. (even a newline)
+
+md5hash is slightly faster to compute than sha1hash, but vulnerable to
+some well-documented collision attacks. sha1hash should always be used
+instead of md5hash if it is performing a validation that can in any way
+be influenced by a malicious user. 
+
+See: MD5SUM
 ~~~~
 SOCKSHUTDOWN
 
