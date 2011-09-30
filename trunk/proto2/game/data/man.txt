@@ -33,7 +33,7 @@ Multitasking Prims:
   ONEVENT       INTERRUPT_LEVEL
 
 Math and Logic Prims:
-  +    -    *    /    %    <    >    =    !=    <=    >=  
+  +    -    *    /    %    <    >    =    !=    <=    >=    ^
   RANDOM     BITOR     BITXOR     BITSHIFT     ++     -- 
   CEIL       FLOOR     SQRT       PI           ROUND  
   SIN        COS       TAN        ASIN         ACOS   ATAN
@@ -290,7 +290,7 @@ MATH PRIMS|MATHPRIMS
 
 The following prims are used to perform arithmetic with MUF:
 
-+    -    *     /     %     <     >     =     <=     >=  
++    -    *    /    %    <    >    =    !=    <=    >=    ^
 RANDOM     BITOR     BITXOR     BITSHIFT     ++     --
 CEIL       FLOOR     SQRT       PI           ROUND  
 SIN        COS       TAN        ASIN         ACOS   ATAN
@@ -5674,7 +5674,7 @@ Converts integer to floating point type.
 
 See: FLOAT PRIMS
 ~
-POW
+POW|^
 
 pow ( n1 n2 -- f )
 ------------------
@@ -5685,6 +5685,8 @@ f  = float representing the result.
 
 Returns n1 to the power of n2.  If n1 is zero, n2 must be greater than
 zero.  If n1 is less than zero, n2 must be an integer value.
+
+^ is an alias for this primitive
 
 See: FLOAT PRIMS
 ~
