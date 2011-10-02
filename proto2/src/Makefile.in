@@ -57,8 +57,8 @@ LIBR=@LIBS@
 #
 # Include path, Cflags...
 #
-CFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INCL@
-CXXFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INCL@
+CFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INC@ @INCL@
+CXXFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INC@ @INCL@
 
 #
 # for saving old copies.
