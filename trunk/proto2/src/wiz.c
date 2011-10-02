@@ -13,6 +13,10 @@
 #include "strings.h"
 #include "netresolve.h"
 
+#ifdef HAVE_SYS_RESOURCE_H
+#include <sys/resource.h>
+#endif /* HAVE_SYS_RESOURCE_H */
+
 #define anotify_nolisten2(x, y) anotify_nolisten(x, y, 1);
 
 void
