@@ -32,12 +32,11 @@ static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
 static char buf[BUFFER_LEN];
 
 /*
-   PCRE and non-PCRE regexp support are both defined in this file. I decided
-   not to merge the two branches together with ifdefs since the non-PCRE stuff
-   is deprecated from FB and not likely to be developed further by anyone.
-   
-   Keeping it this way allows FB changes to be easily backported while
-   retaining functionality for Proto folks who don't want to install PCRE.
+   Non-PCRE regex was deprecated in FBMUCK and we have followed suit. While
+   it would be nice to support both PCRE and non-PCRE flavored regexps, this
+   would create some messy incompatibilities in softcode to keep track of.
+   Other languages such as PHP have been dropping support for non-PCRE regex as
+   well, so this seems the right way to go.
    
    -brevantes
 */
