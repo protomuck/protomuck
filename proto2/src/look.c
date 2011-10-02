@@ -1536,12 +1536,14 @@ init_checkflags(dbref player, const char *flags,
                     else
                         check->setflag2 |= F2MOBILE;
                     break;
+#ifdef CONTROLS_SUPPORT
                 case '~':
                     if (mode)
                         check->clearflag2 |= F2CONTROLS;
                     else
                         check->setflag2 |= F2CONTROLS;
                     break;
+#endif /* CONTROLS_SUPPORT */
                 case '|':
                     if (mode)
                         check->clearflag2 |= F2IMMOBILE;
