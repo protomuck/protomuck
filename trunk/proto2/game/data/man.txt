@@ -5845,7 +5845,7 @@ ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
 ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
 EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
 ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED
-ARRAY_SUM            ARRAY_GETLINKS       ARRAY_FMTSTRING    ARRAY_STRING_FRAGMENT
+ARRAY_SUM            ARRAY_GETLINKS       ARRAY_FMTSTRINGS   ARRAY_STRING_FRAGMENT
 
 See: Individual entries for more information.
 ~~~~~~
@@ -10714,7 +10714,7 @@ The "flag" argument may be 0, or a combination of the following:
 ~~~
 REGMATCH
 
-regmatch ( str:text str:pattern str:substr int:flags -- int:result )
+regmatch ( str:text str:pattern int:flags -- int:result )
 --------------------------------------------------------------------
   
   Tests text to see if it matches the given PCRE style regular expression
