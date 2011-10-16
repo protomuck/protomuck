@@ -271,7 +271,40 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                     tp_listen_mlev, 1, 1);
         listenqueue(descr, who, room, obj, obj, xprog, "@aolisten", noamsg,
                     tp_listen_mlev, 0, 1);
+        /* Loop up the environment only if tp_listeners_env is set and obj
+         * is a room. Runs once otherwise. -brevantes */
+        if (tp_listeners_env && (Typeof(obj) == TYPE_ROOM) ) {
+            obj = DBFETCH(obj)->location;
+            for (;obj != NOTHING;obj = DBFETCH(obj)->location) {
+                listenqueue(descr, who, room, obj, obj, xprog, "_listen", msg,
+                            tp_listen_mlev, 1, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "_olisten", msg,
+                            tp_listen_mlev, 0, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "~listen", msg,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "~olisten", msg,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@listen", msg,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@olisten", msg,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "_alisten", noamsg,
+                            tp_listen_mlev, 1, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "_aolisten", noamsg,
+                            tp_listen_mlev, 0, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "~alisten", noamsg,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "~aolisten", noamsg,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@alisten", noamsg,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@aolisten", noamsg,
+                            tp_listen_mlev, 0, 1);
+            }
+            return 0;
+        }
     }
+
 
     if (tp_zombies && (Typeof(obj) == TYPE_THING) && !isprivate
             && !(FLAGS(obj) & QUELL)) {
@@ -356,6 +389,38 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                     tp_listen_mlev, 1, 1);
         listenqueue(descr, who, room, obj, obj, xprog, "@aolisten", msg,
                     tp_listen_mlev, 0, 1);
+        /* Loop up the environment only if tp_listeners_env is set and obj
+         * is a room. Runs once otherwise. -brevantes */
+        if (tp_listeners_env && (Typeof(obj) == TYPE_ROOM) ) {
+            obj = DBFETCH(obj)->location;
+            for (;obj != NOTHING;obj = DBFETCH(obj)->location) {
+                listenqueue(descr, who, room, obj, obj, xprog, "_listen", noabuf,
+                            tp_listen_mlev, 1, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "_olisten", noabuf,
+                            tp_listen_mlev, 0, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "~listen", noabuf,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "~olisten", noabuf,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@listen", noabuf,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@olisten", noabuf,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "_alisten", msg,
+                            tp_listen_mlev, 1, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "_aolisten", msg,
+                            tp_listen_mlev, 0, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "~alisten", msg,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "~aolisten", msg,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@alisten", msg,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@aolisten", msg,
+                            tp_listen_mlev, 0, 1);
+            }
+            return 0;
+        }
     }
 
     if (tp_zombies && (Typeof(obj) == TYPE_THING) && !isprivate
@@ -440,6 +505,38 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
                     tp_listen_mlev, 1, 1);
         listenqueue(descr, who, room, obj, obj, xprog, "@aolisten", noabuf,
                     tp_listen_mlev, 0, 1);
+        /* Loop up the environment only if tp_listeners_env is set and obj
+         * is a room. Runs once otherwise. -brevantes */
+        if (tp_listeners_env && (Typeof(obj) == TYPE_ROOM) ) {
+            obj = DBFETCH(obj)->location;
+            for (;obj != NOTHING;obj = DBFETCH(obj)->location) {
+                listenqueue(descr, who, room, obj, obj, xprog, "_listen", nohbuf,
+                            tp_listen_mlev, 1, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "_olisten", nohbuf,
+                            tp_listen_mlev, 0, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "~listen", nohbuf,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "~olisten", nohbuf,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@listen", nohbuf,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@olisten", nohbuf,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "_alisten", noabuf,
+                            tp_listen_mlev, 1, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "_aolisten", noabuf,
+                            tp_listen_mlev, 0, 0);
+                listenqueue(descr, who, room, obj, obj, xprog, "~alisten", noabuf,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "~aolisten", noabuf,
+                            tp_listen_mlev, 0, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@alisten", noabuf,
+                            tp_listen_mlev, 1, 1);
+                listenqueue(descr, who, room, obj, obj, xprog, "@aolisten", noabuf,
+                            tp_listen_mlev, 0, 1);
+            }
+            return 0;
+        }
     }
 
     if (tp_zombies && (Typeof(obj) == TYPE_THING) && !isprivate
@@ -498,14 +595,6 @@ notify_except(dbref first, dbref exception, const char *msg, dbref who)
 
         if (tp_listeners) {
             notify_from_echo(who, srch, msg, 0);
-
-            if (tp_listeners_env) {
-                srch = DBFETCH(srch)->location;
-                while (srch != NOTHING) {
-                    notify_from_echo(who, srch, msg, 0);
-                    srch = getparent(srch);
-                }
-            }
         }
 
         DOLIST(first, first) {
@@ -529,14 +618,6 @@ notify_html_except(dbref first, dbref exception, const char *msg, dbref who)
 
         if (tp_listeners) {
             notify_from_echo(who, srch, msg, 0);
-
-            if (tp_listeners_env) {
-                srch = DBFETCH(srch)->location;
-                while (srch != NOTHING) {
-                    notify_html_from_echo(who, srch, msg, 0);
-                    srch = getparent(srch);
-                }
-            }
         }
 
         DOLIST(first, first) {
@@ -561,14 +642,6 @@ anotify_except(dbref first, dbref exception, const char *msg, dbref who)
 
         if (tp_listeners) {
             anotify_from_echo(who, srch, msg, 0);
-
-            if (tp_listeners_env) {
-                srch = DBFETCH(srch)->location;
-                while (srch != NOTHING) {
-                    anotify_from_echo(who, srch, msg, 0);
-                    srch = getparent(srch);
-                }
-            }
         }
 
         DOLIST(first, first) {

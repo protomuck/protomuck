@@ -1264,12 +1264,6 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 
         if (tp_listeners) {
             notify_listeners(fr->descr, PSafe, program, where, where, buf, 0);
-            if (tp_listeners_env) {
-                what = DBFETCH(where)->location;
-                for (; what != NOTHING; what = DBFETCH(what)->location)
-                    notify_listeners(fr->descr, PSafe, program, what, where,
-                                     buf, 0);
-            }
         }
     }
 }
@@ -1355,12 +1349,12 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
         if (tp_listeners) {
             ansi_notify_listeners(fr->descr, PSafe, program, where, where, buf,
                                   0);
-            if (tp_listeners_env) {
-                what = DBFETCH(where)->location;
-                for (; what != NOTHING; what = DBFETCH(what)->location)
-                    ansi_notify_listeners(fr->descr, PSafe, program, what,
-                                          where, buf, 0);
-            }
+//            if (tp_listeners_env) {
+//                what = DBFETCH(where)->location;
+//                for (; what != NOTHING; what = DBFETCH(what)->location)
+//                    ansi_notify_listeners(fr->descr, PSafe, program, what,
+//                                          where, buf, 0);
+//            }
         }
     }
 }
@@ -1447,12 +1441,12 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
         if (tp_listeners) {
             notify_html_listeners(fr->descr, PSafe, program, where, where, buf,
                                   0);
-            if (tp_listeners_env) {
-                what = DBFETCH(where)->location;
-                for (; what != NOTHING; what = DBFETCH(what)->location)
-                    notify_html_listeners(fr->descr, PSafe, program, what,
-                                          where, buf, 0);
-            }
+//            if (tp_listeners_env) {
+//                what = DBFETCH(where)->location;
+//                for (; what != NOTHING; what = DBFETCH(what)->location)
+//                    notify_html_listeners(fr->descr, PSafe, program, what,
+//                                          where, buf, 0);
+//            }
         }
     }
 }
@@ -1536,12 +1530,12 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
         if (tp_listeners) {
             notify_html_listeners(fr->descr, PSafe, program, where, where, buf,
                                   0);
-            if (tp_listeners_env) {
-                what = DBFETCH(where)->location;
-                for (; what != NOTHING; what = DBFETCH(what)->location)
-                    notify_html_listeners(fr->descr, PSafe, program, what,
-                                          where, buf, 0);
-            }
+//            if (tp_listeners_env) {
+//                what = DBFETCH(where)->location;
+//                for (; what != NOTHING; what = DBFETCH(what)->location)
+//                    notify_html_listeners(fr->descr, PSafe, program, what,
+//                                          where, buf, 0);
+//            }
         }
     }
 }
