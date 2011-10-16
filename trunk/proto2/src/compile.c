@@ -1565,7 +1565,9 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
     cstat.variabletypes[3] = PROG_STRING;
 
     /* free old stuff */
-    (void) dequeue_prog(cstat.program, 0);
+    if (DBFETCH(cstat.program)->sp.program.siz)
+        /* only dequeue if compiled */
+        (void) dequeue_prog(cstat.program, 0);
     free_prog(cstat.program);
     cleanpubs(DBFETCH(cstat.program)->sp.program.pubs);
     DBFETCH(cstat.program)->sp.program.pubs = NULL;
