@@ -10732,7 +10732,7 @@ Some of the benefits of PCRE regular expressions include:
   have the y character in front of it".
 + The * character is treated as a modifier. The pattern "z*" means "zero or
   more consecutive z characters", whereas the same SMATCH pattern would be
-  interpreted as "the letter a followed by zero or more characters". The
+  interpreted as "the letter z followed by zero or more characters". The
   regular expression version of the SMATCH pattern "z*" would be "z.*". 
 + The + character is similar to *, but means "one or more characters". "z+"
   means "one or more consecutive z characters", whereas "z*" means "zero or
