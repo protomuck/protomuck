@@ -10752,8 +10752,8 @@ REGULAR EXPRESSIONS (cont'd)
   "bar" that may or may not have the word "foo" in front of it.
 + The | character modifies whatever is immediately in front of and behind it,
   and is used for alternation. It can be used outside of grouping parentheis,
-  but is more useful inside of them. "(foo|bar)baz" matches the words "foobar"
-  and "barbaz", but not "bbqbaz".
+  but is more useful inside of them. "(foo|bar)baz" matches the words "foobaz"
+  and "barbaz", but not "foobar" or "bbqbaz".
 + Parenthesis are also used for capturing. Each set of parenthesis is assigned
   a number from left to right, starting from 1 and counting upward. The
   contents of these parenthesis can be referred to in your replacement pattern
