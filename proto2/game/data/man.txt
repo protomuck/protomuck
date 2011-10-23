@@ -10690,6 +10690,88 @@ Ie: to replace all words in a string with 'yadda', ignoring case, you would
 use the following code:
   
     "[a-z]+" "yadda" REG_ICASE REG_ALL + REGSUB
+
+See: REGULAR EXPRESSIONS, REGEXP, REGMATCH
+~~~
+REGEX PRIMS|REGEXP PRIMS|PCRE PRIMS|PCRE|REGULAR EXPRESSIONS
+REGULAR EXPRESSIONS
+
+PCRE regular expressions are available if the PCRE libraries were found on the
+server when the game was compiled. You can check for their availability in your
+programs with a "$ifdef HAVE_PCRE" structure.
+
+Regular expressions are similar to SMATCH patterns, but offer much more in
+terms of precision...as well as complexity. These pages are in no way offered
+as a comprehensive reference for writing regular expressions, but are intended
+to highlight some of the cases where they may be of interest compared to more
+traditional text manipulation methods.
+
+Continued in: REGULAR EXPRESSIONS2
+~~~~
+REGULAR EXPRESSIONS2
+REGULAR EXPRESSIONS (cont'd)
+
+Some of the benefits of PCRE regular expressions include:
+
++ Multi-run optimization. When any of the regexp prims are executed, the
+  compiled form of the regular expression search pattern is stored in an
+  in-memory hash cache (containing 64 entries by default). This makes it
+  extremely likely that it will still be in memory between invocations of the
+  regexp prims, reducing the system cost per instruction. Keep in mind that
+  each hash table entry is indexed by the unique combination of search pattern
+  and regular expression flags, so try to avoid switching flags between
+  invocations of the same pattern wherever possible.
++ ^ and $ are special zero-width characters that mean "the beginning of a line"
+  and "the end of a line", respectively. "^z" matches "the letter z at the
+  immediate beginning of a line", and "z$" matches "the letter z at the
+  immediate end of a line".
++ The . character takes on the "any single character" role that the ? mark does
+  in SMATCH patterns. In regular expressions, the ? character "modifies"
+  whatever is immediately in front of it, indicating that it "may or may not be
+  there". A pattern of "y?z" translates to "a z character that may or may not
+  have the y character in front of it".
++ The * character is treated as a modifier. The pattern "z*" means "zero or
+  more consecutive z characters", whereas the same SMATCH pattern would be
+  interpreted as "the letter a followed by zero or more characters". The
+  regular expression version of the SMATCH pattern "z*" would be "z.*". 
++ The + character is similar to *, but means "one or more characters". "z+"
+  means "one or more consecutive z characters", whereas "z*" means "zero or
+  more consecutive z characters".
++ [] brackets operate similarly to SMATCH patterns, but are fully-fledged
+  "character classes". Reading up on these may prove handy.
+
+Continued in: REGULAR EXPRESSIONS3
+~~~~
+REGULAR EXPRESSIONS3
+
+REGULAR EXPRESSIONS (cont'd)
+
++ Parenthesis are used for grouping. Any of the "modifier" characters described
+  above apply to the entire contents of the parenthesis if the modifier occurs
+  immediately afterwords. For example, the pattern "(foo)?bar" matches a word
+  "bar" that may or may not have the word "foo" in front of it.
++ The | character modifies whatever is immediately in front of and behind it,
+  and is used for alternation. It can be used outside of grouping parentheis,
+  but is more useful inside of them. "(foo|bar)baz" matches the words "foobar"
+  and "barbaz", but not "bbqbaz".
++ Parenthesis are also used for capturing. Each set of parenthesis is assigned
+  a number from left to right, starting from 1 and counting upward. The
+  contents of these parenthesis can be referred to in your replacement pattern
+  with a special "\\1", "\\2", etc. syntax. For example:
+
+  "foobarbaz" "foo(bar)baz" "\\1" 0 regsub
+
+  ...would return:
+
+  "bar"
++ If you want to use parenthesis for grouping and don't need to perform any
+  capturing, you can optimize your query slightly by using (?:) to do grouping
+  instead of (). "(foo|bar)" is the same as "(?:foo|bar)", but the latter will
+  not capture the result.
++ While an advanced subject, the concepts of "lookahead" and "lookbehind" can
+  prove extremely useful. Once you have a handle on the other outlined
+  concepts, you may wish to look for an online tutorial on these subjects.
+
 ~~~
 REGEXP
 
@@ -10711,6 +10793,8 @@ The "flag" argument may be 0, or a combination of the following:
   
     $def REG_ICASE    1   (Case insensitive match)
     $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
+
+See: REGULAR EXPRESSIONS, REGSUB, REGMATCH
 ~~~
 REGMATCH
 
@@ -10729,6 +10813,8 @@ The "Flag" argument may be 0, or a combination of the following:
   
     $def REG_ICASE    1   (Case insensitive match)
     $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
+
+See: REGULAR EXPRESSIONS, REGEXP, REGSUB
 ~~~
 SUID
 
