@@ -8560,7 +8560,7 @@ If there are no matches remaining in the data base after d1, then #-1
 is returned. Otherwise d3 is the next matching objec that fits the 
 parameters.
 
-Supported PCRE flags:
+Supported PCRE option flags:
      REG_NONE, REG_ICASE, REG_EXTENDED
 
 See: REGULAR EXPRESSIONS, PCRE FLAGS, NEXT, NEXTOWNED, HELP @FIND,
@@ -10839,7 +10839,7 @@ a submatch.  Uses PCRE style regular expression syntax.  If you plan on
 performing a substitution against a large number of strings, you may
 wish to use ARRAY_REGSUB instead for its special optimizations.
   
-Supported PCRE flags:
+Supported PCRE option flags:
     REG_NONE, REG_ICASE, REG_ALL, REG_EXTENDED  
 
 See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_REGSUB
@@ -10854,7 +10854,7 @@ a submatch.  Uses PCRE style regular expression syntax.  If strarr contains at
 least three items, additional matching optimizations are performed.  This makes
 it preferable to using REGSUB when working with large data sets.
   
-Supported PCRE flags:
+Supported PCRE option flags:
     REG_NONE, REG_ICASE, REG_ALL, REG_EXTENDED  
 
 See: REGULAR EXPRESSIONS, PCRE FLAGS, REGSUB
@@ -10878,6 +10878,7 @@ Options are combined through simple addition. Example:
 See: REGEX PRIMS, REGULAR EXPRESSIONS
 ~~~
 REGULAR EXPRESSIONS|PCRE EXPRESSIONS|PCRE
+
 REGULAR EXPRESSIONS
 
 PCRE regular expressions are available if the PCRE libraries were found on the
@@ -10895,6 +10896,7 @@ See: REGEX PRIMS, REGEX FLAGS, REGEX OPTIMIZATION
 Continued in: REGULAR EXPRESSIONS2
 ~~~~
 REGULAR EXPRESSIONS2
+
 REGULAR EXPRESSIONS (cont'd)
 
 Some of the benefits of PCRE regular expressions include:
@@ -10959,6 +10961,7 @@ REGULAR EXPRESSIONS (cont'd)
 
 ~~~
 PRIMS8|REGEX PRIMS|REGEXP PRIMS|PCRE PRIMS
+
 Regular Expression Primitives
 
 Matching:
@@ -10979,6 +10982,8 @@ Notes on regex seach pattern optimization.
   REGEX OPTIMIZATION3: The Regex Cache
   REGEX OPTIMIZATION4: Loop Optimization (Automatic)
 
+
+See: REGULAR EXPRESSIONS
 ~~~~
 REGEX OPTIMIZATION2|REGEXP OPTIMIZATION2
 
@@ -11056,7 +11061,7 @@ for each captured parenthesized subexpression.  These indices are apropriate
 for use with the MIDSTR primitive, and consider the first character of the
 string to be position 1.
  
-Supported PCRE flags:
+Supported PCRE option flags:
     REG_NONE, REG_ICASE, REG_EXTENDED
   
 See: REGULAR EXPRESSIONS, PCRE FLAGS
@@ -11075,13 +11080,13 @@ that any parenthesis in the match pattern were provided for grouping purposes
 only.  There is no need to optimize the pattern further.
 
   If you intend to match a large number of strings against the same pattern,
-using ARRAY_REGMATCHVALS combined with an array of strings is more efficient
+using ARRAY_REGMATCHVAL combined with an array of strings is more efficient
 due to the additional optimizations it performs.
   
-Supported PCRE flags:
+Supported PCRE option flags:
     REG_NONE, REG_ICASE, REG_EXTENDED
 
-See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_REGMATCHVALS
+See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_REGMATCHVAL
 ~~~
 SUID
 
