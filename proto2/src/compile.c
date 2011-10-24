@@ -648,8 +648,10 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "HOMEINSTANCE", "5");
     /* For REG Expression support */
 #ifdef PCRE_SUPPORT
+    insert_def(cstat, "reg_none", "0");
     insert_def(cstat, "reg_icase", MUF_RE_ICASE_STR);
     insert_def(cstat, "reg_all", MUF_RE_ALL_STR);
+    insert_def(cstat, "reg_extended", MUF_RE_EXTENDED_STR);
 #endif
 
     /* Some math stuff */
