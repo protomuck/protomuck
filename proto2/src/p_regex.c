@@ -263,6 +263,7 @@ prim_regsub(PRIM_PROTOTYPE)
     char*       write_ptr   = buf;
     int         write_left  = BUFFER_LEN - 1;
     muf_re*     re;
+    pcre_extra* extra = NULL;
     char*       text;
     char*       textstart;
     const char* errstr;
@@ -294,12 +295,24 @@ prim_regsub(PRIM_PROTOTYPE)
     if ((re = muf_re_get(oper2->data.string, flags, &errstr)) == NULL)
         abort_interp(errstr);
 
+    if (oper4->data.number & MUF_RE_ALL) {
+        /* User requested a recursive pattern search. This generally means
+         * pcre_exec will be called at least twice unless the pattern doesn't
+         * exist in the string at all. Presence of this option suggests that
+         * the user anticipates the pattern occurring at least once, so it's
+         * safest to go ahead and study the pattern. -brevantes */
+        extra = pcre_study(re->re, 0, &errstr);
+        if (errstr)
+            abort_interp(errstr);
+    }
+
+
     textstart = text = (char *)DoNullInd(oper1->data.string);
 
     len = strlen(textstart);
     while((*text != '\0') && (write_left > 0))
     {
-        if ((matchcnt = pcre_exec(re->re, NULL, textstart, len, text-textstart, 0, matches, MATCH_ARR_SIZE)) < 0)
+        if ((matchcnt = pcre_exec(re->re, extra, textstart, len, text-textstart, 0, matches, MATCH_ARR_SIZE)) < 0)
         {
             if (matchcnt != PCRE_ERROR_NOMATCH)
             {
@@ -435,8 +448,6 @@ prim_array_regsub(PRIM_PROTOTYPE)
     oper2 = POP(); /* str:Pattern */
     oper1 = POP(); /* str:Text */
 
-    //if (oper1->type != PROG_STRING)
-    //    abort_interp("Non-string argument (1)");
     if (oper1->type != PROG_ARRAY)
         abort_interp("Argument not an array of strings. (1)");
     if (!array_is_homogenous(oper1->data.array, PROG_STRING))
@@ -463,9 +474,9 @@ prim_array_regsub(PRIM_PROTOTYPE)
     nw = new_array_dictionary();
     arr = oper1->data.array;
 
-    if (array_count(arr) > 2) {
-        /* This pattern is getting used 3 or more times, let's study it. A null
-         * return is okay, that just means there's nothing to optimize. */
+    if ((oper4->data.number & MUF_RE_ALL ) || array_count(arr) > 2) {
+        /* Study the pattern if the user requested recursive substitution, or
+         * if the input array contains at least three items. */
         extra = pcre_study(re->re, 0, &errstr);
         if (errstr)
             abort_interp(errstr);
