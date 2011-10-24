@@ -16,6 +16,7 @@ PRIMS4 - Connections, Locks, Strings
 PRIMS5 - Data Base, System, Sockets
 PRIMS6 - Arrays, Files, MCP Prims
 PRIMS7 - MUF editing prims, MySQL prims, ANSI prims
+PRIMS8 - Regexp Prims
 
 To view a list of prim topics: PRIMS LIST
 ~~~~~
@@ -131,6 +132,7 @@ Strings Prims:
   ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
   NAME-OK?      PNAME-OK?    ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
   POWER_2CHAR   UNESCAPE_URL ESCAPE_URL   SHA1HASH     MD5HASH
+  REGMATCH      REGSUB       REGEXP
  
 See: PRIMS5
 ~~~~~
@@ -152,7 +154,8 @@ Data Base Prims:
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
   GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
   ANSI_NAME     REFSTAMPS   TOUCH        USE            ANSI_UNPARSEOBJ
-  ISFLAG?                                               GETLINKS_ARRAY
+  ISFLAG?                   REGFINDNEXT                 GETLINKS_ARRAY
+                                                        REGFIND_ARRAY
       
 System Prims:
   SYSPARM         SETSYSPARM     LOGSTATUS     VERSION     FORCE
@@ -172,24 +175,27 @@ See: PRIMS6
 PRIMS6|PRIM6
 
 Array Prims:
-  ARRAY_MAKE           ARRAY_MAKE_DICT     
-  ARRAY_EXPLODE        ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
-  ARRAY_FIRST          ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
-  ARRAY_GETITEM        ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_SORT
-  ARRAY_GETRANGE       ARRAY_SETRANGE       ARRAY_INSERTRANGE  ARRAY?
-  ARRAY_DELITEM        ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
-  ARRAY_NINTERSECT     ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
-  ARRAY_NOTIFY         ARRAY_REVERSE        DESCR_ARRAY        DICTIONARY?
-  ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS 
-  ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
-  ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
-  ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL   
-  ARRAY_ANSI_NOTIFY    NOTIFY_ARRAY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
-  ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
-  EXITS_ARRAY          ENTRANCES_ARRAY      GETOBJINFO         GETDESCRINFO
-  FIND_ARRAY           ARRAY_CUT            ARRAY_COMPARE      ARRAY_INTERPRET
-  ARRAY_SORT_INDEXED   ARRAY_SUM            ARRAY_STRING_FRAGMENT
-  }ARRAY     }LIST     }DICT     }JOIN      }CAT
+ARRAY_MAKE          ARRAY_MAKE_DICT     ARRAY_INTERPRET
+ARRAY_EXPLODE       ARRAY_VALS          ARRAY_KEYS          ARRAY_COUNT
+ARRAY_FIRST         ARRAY_LAST          ARRAY_PREV          ARRAY_NEXT
+ARRAY_GETITEM       ARRAY_SETITEM       ARRAY_APPENDITEM    ARRAY_SORT
+ARRAY_GETRANGE      ARRAY_SETRANGE      ARRAY_INSERTRANGE   ARRAY?
+ARRAY_DELITEM       ARRAY_DELRANGE      ARRAY_NUNION        ARRAY_UNION
+ARRAY_NINTERSECT    ARRAY_INTERSECT     ARRAY_NDIFF         ARRAY_DIFF
+ARRAY_JOIN          ARRAY_REVERSE       DESCR_ARRAY         DICTIONARY?
+ARRAY_GET_PROPDIRS  ARRAY_GET_PROPVALS  ARRAY_PUT_PROPVALS  ARRAY_NOTIFY
+ARRAY_GET_PROPLIST  ARRAY_PUT_PROPLIST  ARRAY_INSERTITEM    ARRAY_ANSI_NOTIFY
+ARRAY_GET_REFLIST   ARRAY_PUT_REFLIST   ARRAY_JOIN          ARRAY_NOTIFY_HTML
+CONTENTS_ARRAY      EXITS_ARRAY         ARRAY_FINDVAL       FIND_ARRAY
+ENTRANCES_ARRAY     ONLINE_ARRAY        ARRAY_EXCLUDEVAL    REGFIND_ARRAY
+GETOBJINFO          GETDESCRINFO        ARRAY_EXTRACT       ARRAY_FILTER_FLAGS
+ARRAY_MATCHVAL      ARRAY_MATCHKEY                          ARRAY_FILTER_PROP
+ARRAY_REGMATCHVAL   ARRAY_REGMATCHKEY   ARRAY_REGSUB        ARRAY_REGFILTER_PROP
+ARRAY_CUT           ARRAY_COMPARE       ARRAY_SORT_INDEXED  ARRAY_NESTED_GET
+ARRAY_SUM           ARRAY_GETLINKS      ARRAY_FMTSTRINGS    ARRAY_NESTED_SET
+ARRAY_STRING_FRAGMENT                                       ARRAY_NESTED_DEL
+
+        }ARRAY        }LIST        }DICT        }JOIN        }CAT
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
@@ -374,7 +380,8 @@ The following prims are used to work with the MUCK database:
   PNAME-OK?     NAME-OK?    FINDNEXT     CONTENTS_ARRAY EXITS_ARRAY
   GETOBJINFO    FIND_ARRAY  FLAG_2CHAR   POWER_2CHAR    ENTRANCES_ARRAY
   ANSI_NAME     REFSTAMPS   TOUCH        USE            ANSI_UNPARSEOBJ
-  ISFLAG?                                               GETLINKS_ARRAY
+  ISFLAG?                   REGFINDNEXT                 GETLINKS_ARRAY
+                                                        REGFIND_ARRAY
 ~~~~
 STACK PRIMS|STACKPRIMS
 
@@ -403,6 +410,7 @@ FMTSTRING     TOKENSPLIT   TEXTATTR     PARSE_ANSI   UNPARSE_ANSI
 ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
 PNAME-OK?     NAME-OK?     ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
 POWER_2CHAR   UNESCAPE_URL ESCAPE_URL   SHA1HASH     MD5HASH
+REGMATCH      REGSUB       REGEXP
 
 Note on ANSI compatability:
 ANSI_NOTIFY works only with Neon style ANSI tags, like ^BLUE^.
@@ -5829,23 +5837,29 @@ See: ARRAYS2
 ARRAYS2|ARRAY2
 
 The following ARRAY prims are available:
-ARRAY_MAKE           ARRAY_MAKE_DICT      }DICT              }LIST
-ARRAY_EXPLODE        ARRAY_VALS           ARRAY_KEYS         ARRAY_COUNT  
-ARRAY_FIRST          ARRAY_LAST           ARRAY_PREV         ARRAY_NEXT
-ARRAY_GETITEM        ARRAY_SETITEM        ARRAY_APPENDITEM   ARRAY_SORT
-ARRAY_GETRANGE       ARRAY_SETRANGE       ARRAY_INSERTRANGE  ARRAY?
-ARRAY_DELITEM        ARRAY_DELRANGE       ARRAY_NUNION       ARRAY_UNION
-ARRAY_NINTERSECT     ARRAY_INTERSECT      ARRAY_NDIFF        ARRAY_DIFF
-ARRAY_NOTIFY         ARRAY_REVERSE        DESCR_ARRAY        DICTIONARY?
-ARRAY_GET_PROPDIRS   ARRAY_GET_PROPVALS   ARRAY_PUT_PROPVALS }JOIN
-ARRAY_GET_PROPLIST   ARRAY_PUT_PROPLIST   ARRAY_INSERTITEM
-ARRAY_GET_REFLIST    ARRAY_PUT_REFLIST    ARRAY_FINDVAL
-ARRAY_INSERTITEM     ONLINE_ARRAY         ARRAY_EXCLUDEVAL
-ARRAY_ANSI_NOTIFY    ARRAY_NOTIFY_HTML    ARRAY_JOIN         ARRAY_MATCHKEY
-ARRAY_MATCHVAL       ARRAY_EXTRACT        ARRAY_FILTER_PROP  CONTENTS_ARRAY
-EXITS_ARRAY          GETOBJINFO           GETDESCRINFO       FIND_ARRAY
-ARRAY_CUT            ARRAY_COMPARE        ARRAY_SORT_INDEXED
-ARRAY_SUM            ARRAY_GETLINKS       ARRAY_FMTSTRINGS   ARRAY_STRING_FRAGMENT
+
+ARRAY_MAKE          ARRAY_MAKE_DICT     ARRAY_INTERPRET
+ARRAY_EXPLODE       ARRAY_VALS          ARRAY_KEYS          ARRAY_COUNT
+ARRAY_FIRST         ARRAY_LAST          ARRAY_PREV          ARRAY_NEXT
+ARRAY_GETITEM       ARRAY_SETITEM       ARRAY_APPENDITEM    ARRAY_SORT
+ARRAY_GETRANGE      ARRAY_SETRANGE      ARRAY_INSERTRANGE   ARRAY?
+ARRAY_DELITEM       ARRAY_DELRANGE      ARRAY_NUNION        ARRAY_UNION
+ARRAY_NINTERSECT    ARRAY_INTERSECT     ARRAY_NDIFF         ARRAY_DIFF
+ARRAY_JOIN          ARRAY_REVERSE       DESCR_ARRAY         DICTIONARY?
+ARRAY_GET_PROPDIRS  ARRAY_GET_PROPVALS  ARRAY_PUT_PROPVALS  ARRAY_NOTIFY
+ARRAY_GET_PROPLIST  ARRAY_PUT_PROPLIST  ARRAY_INSERTITEM    ARRAY_ANSI_NOTIFY
+ARRAY_GET_REFLIST   ARRAY_PUT_REFLIST   ARRAY_JOIN          ARRAY_NOTIFY_HTML
+CONTENTS_ARRAY      EXITS_ARRAY         ARRAY_FINDVAL       FIND_ARRAY
+ENTRANCES_ARRAY     ONLINE_ARRAY        ARRAY_EXCLUDEVAL    REGFIND_ARRAY
+GETOBJINFO          GETDESCRINFO        ARRAY_EXTRACT       ARRAY_FILTER_FLAGS
+ARRAY_MATCHVAL      ARRAY_MATCHKEY                          ARRAY_FILTER_PROP
+ARRAY_REGMATCHVAL   ARRAY_REGMATCHKEY   ARRAY_REGSUB        ARRAY_REGFILTER_PROP
+ARRAY_CUT           ARRAY_COMPARE       ARRAY_SORT_INDEXED  ARRAY_NESTED_GET
+ARRAY_SUM           ARRAY_GETLINKS      ARRAY_FMTSTRINGS    ARRAY_NESTED_SET
+ARRAY_STRING_FRAGMENT                                       ARRAY_NESTED_DEL
+
+        }ARRAY        }LIST        }DICT        }JOIN        }CAT
+
 
 See: Individual entries for more information.
 ~~~~~~
@@ -8395,7 +8409,31 @@ Takes an array of all strings and a string representing a smatch pattern.
 It returns a dictionary array that contains all the key-value pairs where
 the value was a string that matched the given smatch wild card pattern.
 
-See: SMATCH, ARRAY_MATCHKEY
+See: SMATCH, ARRAY_REGMATCHVAL, ARRAY_MATCHKEY
+~~~
+ARRAY_REGMATCHVAL
+
+array_regmatchval ( a1 s i -- a2 )
+----------------------------------
+Level: M1 Apprentice
+a1 = An array with all strings for its values.
+s  = string containing a PCRE pattern string.
+i  = integer containing PCRE option flags.
+a2 = dictionary array with containing key-value pairs.
+
+Takes an array of all strings, a string representing a PCRE regular
+expression pattern, and an integer containing PCRE options. It returns a
+dictionary array that contains all the key-value pairs where the value was a
+string that matched the given regular expression pattern.
+
+If the array contains at least three items, additional optimizations are
+performed internally. Use this primitive instead of manually looping a large
+number of strings through a string match for a performance gain.
+
+Supported PCRE option flags:
+    REG_NONE, REG_ICASE, REG_EXTENDED
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_MATCHVAL, ARRAY_REGMATCHKEY
 ~~~~
 ARRAY_MATCHKEY
 
@@ -8410,12 +8448,35 @@ Takes a dictionary array of all strings and a string representing a smatch patte
 It returns a dictionary array that contains all the key-value pairs where
 the the key was a string that matches the smatch wild card pattern.
 
-See: SMATCH, ARRAY_MATCHKEY
+See: SMATCH, ARRAY_REGMATCHKEY, ARRAY_MATCHVAL
+~~~~
+ARRAY_REGMATCHKEY
+
+array_regmatchkey ( a1 s i -- a2 )
+----------------------------------
+Level: M1 Apprentice
+a1 = An array with all strings for its values.
+s  = string containing a PCRE pattern string.
+i  = integer containing PCRE option flags.
+a2 = dictionary array with containing key-value pairs.
+
+Takes a dictionary array of all strings and a string representing a PCRE
+regular expression, and an integer containing PCRE options. It returns a
+dictionary array that contains all the key-value pairs where the the key was a
+string that matches the given regular expression pattern.
+
+If the array contains at least three items, additional optimizations are
+performed internally.
+
+Supported PCRE option flags:
+     REG_NONE, REG_ICASE, REG_EXTENDED
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_MATCHKEY, ARRAY_REGMATCHVAL
 ~~~~
 ARRAY_EXTRACT
 
-array_extrat ( a1 a2 -- a3 )
-----------------------------
+array_extract ( a1 a2 -- a3 )
+-----------------------------
 Level: M1 Apprentice
 a1 = An array.
 a2 = A list array of indexes.
@@ -8432,12 +8493,13 @@ findnext ( d1 d2 s1 s2 -- d3 )
 Level: M2 Journeyman
 d1 = dbref to start from.
 d2 = Owner to search for.
-s1 = Name smatch pattern.
+s1 = smatch pattern to run against object names
 s2 = string containing a flag list.
+d3 = next dbref
 
 Searches for the next object in the data base that comes after d1 that
 is owned by d1, who's name matches the wildcard pattern in s1, and 
-who's flags match those specified in s2.
+whose flags match those specified in s2.
 
 A search can be started with #-1, to ensure that all objects owned
 by that player are checked. 
@@ -8459,7 +8521,50 @@ If there are no matches remaining in the data base after d1, then #-1
 is returned. Otherwise d3 is the next matching objec that fits the 
 parameters.
 
-See also NEXT, NEXTOWNED, SMATCH, HELP @FIND.
+See: NEXT, NEXTOWNED, SMATCH, HELP @FIND, FIND_ARRAY, REGFINDNEXT
+~~~~
+REGFINDNEXT
+
+regfindnext ( d1 d2 s1 s2 i -- d3 )
+---------------------------------
+Level: M2 Journeyman
+d1 = dbref to start from.
+d2 = Owner to search for.
+s1 = PCRE regular expression pattern to run against object names
+s2 = string containing a flag list.
+i  = integer containing PCRE option flags.
+d3 = next dbref
+
+Searches for the next object in the data base that comes after d1 that
+is owned by d1, who's name matches the PCRE regular expression pattern in s1,
+and whose flags match those specified in s2.
+
+A search can be started with #-1, to ensure that all objects owned
+by that player are checked. 
+
+Players of M3 or higher can have d2 be #-1, which will leave out the
+ownership checks. 
+Players at M2 level can only perform searches with an owner being
+the one that is the effective UID of the program.
+
+If s1 is an empty string, then name checks will not be done. 
+If s2 is an empty string, then flag checks will not be done.
+
+The s1 checks for patterns using PCRE regular expressions.
+The s2 is checked for the same sorts of flags used with the 
+in-server @find command. Eg: "F3!D" will match all MUF programs
+in the data base that are set mucker lefvel 3, and are not debug.
+The i contains the PCRE option flags.
+
+If there are no matches remaining in the data base after d1, then #-1
+is returned. Otherwise d3 is the next matching objec that fits the 
+parameters.
+
+Supported PCRE flags:
+     REG_NONE, REG_ICASE, REG_EXTENDED
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, NEXT, NEXTOWNED, HELP @FIND,
+     REGFIND_ARRAY, FINDNEXT
 ~~~~~
 FREADTO
 
@@ -8500,8 +8605,36 @@ prop to search for in s1, and a string that can be smatched to the contents
 of the props being checked in s2, returns an array that contains only
 the dbrefs that have the prop in s1 with contents that pass the smatch 
 matching with s2. 
+
 So if "*" is passed as s2, then all dbrefs that have that prop at all
 will get put into array a2.
+
+See: ARRAY_REGFILTER_PROP
+~~~~
+ARRAY_REGFILTER_PROP
+
+array_regfilter_prop ( a1 s1 s2 i -- a2 )
+-----------------------------------------
+Level: M1 Apprentice
+a1 = A list array of all dbrefs.
+s1 = string representing prop name.
+s2 = smatch string representing prop contents.
+i  = integer containing PCRE option flags.
+a2 = A list array with only the dbrefs that passed the filter.
+
+Given a list array of all dbrefs, a string representing the name of the
+prop to search for in s1, and a PCRE regular expression search pattern to be
+matched to the contents of the props being checked in s2, returns an array that
+contains only the dbrefs that have the prop in s1 with contents that pass the
+regular expression contained in s2.
+
+So if "*" is passed as s2, then all dbrefs that have that prop at all
+will get put into array a2.
+
+Supported PCRE option flags:
+    REG_NONE, REG_ICASE, REG_EXTENDED
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_FILTER_PROP
 ~~~~~
 GETPIDS
 
@@ -8782,7 +8915,7 @@ find_array ( d1 s1 s2 -- arr )
 ---------------------------------
 Level: M2 Journeyman
 d1 = Owner to search for.
-s1 = Name smatch pattern.
+s1 = smatch pattern to run against object names
 s2 = string containing a flag list.
 arr = An array containing all the matches according to the parameters.
 
@@ -8791,7 +8924,28 @@ all matches to the stack in a list array all at once. It is comperable to
 the in-game @find command, except all matches are returned to the stack
 in a single array.
   
-See: FINDNEXT, ARRAY PRIMS
+See: FINDNEXT, REGFIND_ARRAY, ARRAY PRIMS
+~~~~
+REGFIND_ARRAY
+
+regfind_array ( d1 s1 s2 i -- arr )
+-----------------------------------
+Level: M2 Journeyman
+d1 = Owner to search for.
+s1 = PCRE regular expression pattern to run against object names
+s2 = string containing a flag list.
+i  = integer containing PCRE option flags.
+arr = An array containing all the matches according to the parameters.
+
+This prim works exactly like the REGFINDNEXT prim, except that it returns
+all matches to the stack in a list array all at once. It is comperable to
+the in-game @find command, except all matches are returned to the stack
+in a single array.
+  
+Supported PCRE option flags:
+    REG_NONE, REG_ICASE, REG_EXTENDED
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, REGFINDNEXT, FIND_ARRAY, ARRAY PRIMS
 ~~~~
 DESCRBOOT
 
@@ -10671,6 +10825,9 @@ Looks up the IP of a host by its name.  It returns the real name of the host
 and the IP of the host on the stack.  If the host cannot be found, it returns
 a pair of null strings.
 ~~~
+
+
+~~~
 REGSUB
 
 regsub ( str:text str:pattern str:substr int:flags -- str:result )
@@ -10678,22 +10835,49 @@ regsub ( str:text str:pattern str:substr int:flags -- str:result )
   
 Performs a regular expression substitution using pattern against text,
 replacing the match with substr.  substr may contain \digit to specify
-a submatch.  Uses PCRE style regular expression syntax.
+a submatch.  Uses PCRE style regular expression syntax.  If you plan on
+performing a substitution against a large number of strings, you may
+wish to use ARRAY_REGSUB instead for its special optimizations.
   
-The "Flag" argument may be a combination, or none of the following:
-  
-    $def REG_ICASE    1   (Case insensitive match)
-    $def REG_ALL      2   (Substitute all matches, rather than just the first)
-    $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
-  
-Ie: to replace all words in a string with 'yadda', ignoring case, you would
-use the following code:
-  
-    "[a-z]+" "yadda" REG_ICASE REG_ALL + REGSUB
+Supported PCRE flags:
+    REG_NONE, REG_ICASE, REG_ALL, REG_EXTENDED  
 
-See: REGULAR EXPRESSIONS, REGEXP, REGMATCH
+See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_REGSUB
 ~~~
-REGEX PRIMS|REGEXP PRIMS|PCRE PRIMS|PCRE|REGULAR EXPRESSIONS
+ARRAY_REGSUB
+
+array_regsub ( arr:strarr str:pattern str:substr int:flags -- arr:result )
+---------------------------------------------------------------------------
+Performs a regular expression substitution using pattern against strarr, which
+must be an array containing only strings.  substr may contain \digit to specify
+a submatch.  Uses PCRE style regular expression syntax.  If strarr contains at
+least three items, additional matching optimizations are performed.  This makes
+it preferable to using REGSUB when working with large data sets.
+  
+Supported PCRE flags:
+    REG_NONE, REG_ICASE, REG_ALL, REG_EXTENDED  
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, REGSUB
+~~~
+PCRE FLAGS|PCRE OPTIONS|REGEX FLAGS|REGEX OPTIONS|REGEXP FLAGS|REGEXP OPTIONS
+
+The regular expression primitives share a number of options between them.
+Refer to their individual manpages for which options they support.
+
+    REG_NONE        (No options, same as 0. Ignored if combined.)
+    REG_ICASE       (Case insensitive match)
+    REG_ALL         (Substitute all matches, rather than just the first)
+    REG_EXTENDED    (Allows PCRE comments, etc.  See PCRE docs.)
+
+Options are combined through simple addition. Example:
+
+    REG_ICASE+REG_EXTENDED
+
+     ...would enable case insensitive matching and extended PCRE syntax.
+
+See: REGEX PRIMS, REGULAR EXPRESSIONS
+~~~
+REGULAR EXPRESSIONS|PCRE EXPRESSIONS|PCRE
 REGULAR EXPRESSIONS
 
 PCRE regular expressions are available if the PCRE libraries were found on the
@@ -10706,6 +10890,8 @@ as a comprehensive reference for writing regular expressions, but are intended
 to highlight some of the cases where they may be of interest compared to more
 traditional text manipulation methods.
 
+See: REGEX PRIMS, REGEX FLAGS, REGEX OPTIMIZATION
+
 Continued in: REGULAR EXPRESSIONS2
 ~~~~
 REGULAR EXPRESSIONS2
@@ -10713,14 +10899,17 @@ REGULAR EXPRESSIONS (cont'd)
 
 Some of the benefits of PCRE regular expressions include:
 
-+ Multi-run optimization. When any of the regexp prims are executed, the
-  compiled form of the regular expression search pattern is stored in an
-  in-memory hash cache (containing 64 entries by default). This makes it
-  extremely likely that it will still be in memory between invocations of the
-  regexp prims, reducing the system cost per instruction. Keep in mind that
-  each hash table entry is indexed by the unique combination of search pattern
-  and regular expression flags, so try to avoid switching flags between
-  invocations of the same pattern wherever possible.
++ Optimization for search patterns frequently used by programs.  When any of
+  the regexp prims are executed, the compiled form of the search pattern is
+  stored in a persistent hash cache. This makes it very likely that it will
+  still be in memory between invocations of different programs, reducing the
+  cost per instruction for match patterns that are frequently used by the game.
+  See "man REGEX OPTIMIZATION2" for more info.
++ Optimization for running a search pattern against large data sets. Certain
+  regex prims perform additional optimization if they can predict that the
+  match pattern is going to be used many times within one instruction. Using
+  these prims where possible instead of manually looping through an array's
+  contents will be more efficient. See "man REGEX OPTIMIZATION3" for more info.
 + ^ and $ are special zero-width characters that mean "the beginning of a line"
   and "the end of a line", respectively. "^z" matches "the letter z at the
   immediate beginning of a line", and "z$" matches "the letter z at the
@@ -10737,8 +10926,6 @@ Some of the benefits of PCRE regular expressions include:
 + The + character is similar to *, but means "one or more characters". "z+"
   means "one or more consecutive z characters", whereas "z*" means "zero or
   more consecutive z characters".
-+ [] brackets operate similarly to SMATCH patterns, but are fully-fledged
-  "character classes". Reading up on these may prove handy.
 
 Continued in: REGULAR EXPRESSIONS3
 ~~~~
@@ -10746,6 +10933,8 @@ REGULAR EXPRESSIONS3
 
 REGULAR EXPRESSIONS (cont'd)
 
++ [] brackets operate similarly to SMATCH patterns, but are full-fledged
+  "character classes". Reading up on these may prove handy.
 + Parenthesis are used for grouping. Any of the "modifier" characters described
   above apply to the entire contents of the parenthesis if the modifier occurs
   immediately afterwords. For example, the pattern "(foo)?bar" matches a word
@@ -10764,13 +10953,90 @@ REGULAR EXPRESSIONS (cont'd)
   ...would return:
 
   "bar"
-+ If you want to use parenthesis for grouping and don't need to perform any
-  capturing, you can optimize your query slightly by using (?:) to do grouping
-  instead of (). "(foo|bar)" is the same as "(?:foo|bar)", but the latter will
-  not capture the result.
 + While an advanced subject, the concepts of "lookahead" and "lookbehind" can
   prove extremely useful. Once you have a handle on the other outlined
   concepts, you may wish to look for an online tutorial on these subjects.
+
+~~~
+PRIMS8|REGEX PRIMS|REGEXP PRIMS|PCRE PRIMS
+Regular Expression Primitives
+
+Matching:
+    REGMATCH        ARRAY_REGMATCHKEY   ARRAY_REGMATCHVAL
+    REGFINDNEXT     REGFIND_ARRAY       ARRAY_REGFILTERPROP 
+   
+Manipulation:
+    REGEXP          REGSUB              ARRAY_REGSUB    
+
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, REGEX OPTIMIZATION
+~~~
+REGEX OPTIMIZATION
+
+Notes on regex seach pattern optimization.
+
+  REGEX OPTIMIZATION2: Misc Notes
+  REGEX OPTIMIZATION3: The Regex Cache
+  REGEX OPTIMIZATION4: Loop Optimization (Automatic)
+
+~~~~
+REGEX OPTIMIZATION2
+
+Misc optimization suggestions.
+
++ Parenthesis are used both for grouping *and* capturing inside of the
+  non-"matching" regex prims. If you don't need capturing/backreferences, or
+  have no idea what that even means, you can get a small performance increase
+  by using (?: ) parenthesis instead of ( ). The ?: will not be matched
+  against your input string. The "matching" regex prims do not support
+  capturing/backreferences, so this is unnecessary. They are still used for
+  grouping however.
+  
++ More as I can remember them...
+
+Continued in: REGEX OPTIMIZATION3
+~~~~
+REGEX OPTIMIZATION3
+
+Regex Cache:
+  The game stores a regex cache in memory that persists between calls to
+  different programs. The max number of entries is set by MUF_RE_CACHE_ITEMS
+  in p_regex.c at compile time. Each hash table entry is unique to every
+  combination of PCRE flags and search pattern; if even one option is changed
+  but the search pattern stays the same, they will get different hash entries.
+  Avoid needlessly changing flags between common searches.
+
+  One caveat is that the prims listed as "matching" in the REGEX PRIMS manpage
+  internally store an extra flag that disables the calculation of backreferences
+  from normal parenthesis, since it would serve no purpose. A consequence of
+  this is that hash table entries will never be shared between the "matching"
+  regex prims and the others.
+
+  Another caveat is that there is no insurance that a hash table entry won't be
+  overwritten for the next (MUF_RE_CACHE_ITEMS - 1) entries stored inside; it's
+  just very unlikely. Should this trouble you for whatever reason, you can
+  always recompile with a higher MUF_RE_CACHE_ITEMS value to reduce the
+  possibility even further.
+
+Continued in: REGEX OPTIMIZATION4
+~~~~
+REGEX OPTIMIZATION4
+
+Loop Optimization
+  The PCRE parser allows a pattern to be "studied" for additional optimization
+  if it's known ahead of time that pattern is going to be used a number of times
+  in advance, but this is not done by default to avoid needless overhead on
+  oneshot search patterns. This is implemented in the MUF interpreter inside
+  of the regex prims that accept an array of items to match against.
+
+  Pattern studying always occurs inside of REGFIND_ARRAY and REGFINDNEXT, since
+  it's very rare that the pattern isn't being executed against a large data set.
+  Otherwise, pattern studying occurs if the input array to a regex prim contains
+  at least three items.
+
+  You should always try to use regex prims that support loop optimization when
+  working with large data sets, since looping through them manually will never
+  invoke the extra "study" optimizations.
 
 ~~~
 REGEXP
@@ -10788,18 +11054,16 @@ of the substring that matched the entire pattern, followed by similar sublists
 for each captured parenthesized subexpression.  These indices are apropriate
 for use with the MIDSTR primitive, and consider the first character of the
 string to be position 1.
+ 
+Supported PCRE flags:
+    REG_NONE, REG_ICASE, REG_EXTENDED
   
-The "flag" argument may be 0, or a combination of the following:
-  
-    $def REG_ICASE    1   (Case insensitive match)
-    $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
-
-See: REGULAR EXPRESSIONS, REGSUB, REGMATCH
+See: REGULAR EXPRESSIONS, PCRE FLAGS
 ~~~
 REGMATCH
 
 regmatch ( str:text str:pattern int:flags -- int:result )
---------------------------------------------------------------------
+---------------------------------------------------------
   
   Tests text to see if it matches the given PCRE style regular expression
 pattern.  Returns 1 if the test succeeded, otherwise returns 0.  This primitive
@@ -10808,13 +11072,15 @@ is suitable for use as a more precise alternative to smatch.
   Since this primitive is only designed for matching, it automatically assumes
 that any parenthesis in the match pattern were provided for grouping purposes
 only.  There is no need to optimize the pattern further.
-  
-The "Flag" argument may be 0, or a combination of the following:
-  
-    $def REG_ICASE    1   (Case insensitive match)
-    $def REG_EXTENDED 4   (Allows PCRE comments, etc.  See PCRE docs.)
 
-See: REGULAR EXPRESSIONS, REGEXP, REGSUB
+  If you intend to match a large number of strings against the same pattern,
+using ARRAY_REGMATCHVALS combined with an array of strings is more efficient
+due to the additional optimizations it performs.
+  
+Supported PCRE flags:
+    REG_NONE, REG_ICASE, REG_EXTENDED
+
+See: REGULAR EXPRESSIONS, PCRE FLAGS, ARRAY_REGMATCHVALS
 ~~~
 SUID
 
