@@ -616,6 +616,7 @@ prim_regmatch(PRIM_PROTOTYPE)
     const char* errstr = NULL;
     int         result = 0;
 
+    CHECKOP(3);
     oper3 = POP(); /* int:Flags */
     oper2 = POP(); /* str:Pattern */
     oper1 = POP(); /* str:Text */
