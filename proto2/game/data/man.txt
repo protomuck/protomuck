@@ -10971,7 +10971,7 @@ Manipulation:
 
 See: REGULAR EXPRESSIONS, PCRE FLAGS, REGEX OPTIMIZATION
 ~~~
-REGEX OPTIMIZATION
+REGEX OPTIMIZATION|REGEXP OPTIMIZATION
 
 Notes on regex seach pattern optimization.
 
@@ -10980,7 +10980,7 @@ Notes on regex seach pattern optimization.
   REGEX OPTIMIZATION4: Loop Optimization (Automatic)
 
 ~~~~
-REGEX OPTIMIZATION2
+REGEX OPTIMIZATION2|REGEXP OPTIMIZATION2
 
 Misc optimization suggestions.
 
@@ -10996,7 +10996,7 @@ Misc optimization suggestions.
 
 Continued in: REGEX OPTIMIZATION3
 ~~~~
-REGEX OPTIMIZATION3
+REGEX OPTIMIZATION3|REGEXP OPTIMIZATION3
 
 Regex Cache:
   The game stores a regex cache in memory that persists between calls to
@@ -11020,19 +11020,20 @@ Regex Cache:
 
 Continued in: REGEX OPTIMIZATION4
 ~~~~
-REGEX OPTIMIZATION4
+REGEX OPTIMIZATION4|REGEXP OPTIMIZATION4
 
 Loop Optimization
   The PCRE parser allows a pattern to be "studied" for additional optimization
   if it's known ahead of time that pattern is going to be used a number of times
   in advance, but this is not done by default to avoid needless overhead on
   oneshot search patterns. This is implemented in the MUF interpreter inside
-  of the regex prims that accept an array of items to match against.
+  of primitives that accept a regex match string as input and internally loop
+  over a data set.
 
   Pattern studying always occurs inside of REGFIND_ARRAY and REGFINDNEXT, since
   it's very rare that the pattern isn't being executed against a large data set.
   Otherwise, pattern studying occurs if the input array to a regex prim contains
-  at least three items.
+  at least three items to loop over.
 
   You should always try to use regex prims that support loop optimization when
   working with large data sets, since looping through them manually will never
