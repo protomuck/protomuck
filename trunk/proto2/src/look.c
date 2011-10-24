@@ -1470,6 +1470,12 @@ init_checkflags(dbref player, const char *flags,
                     else
                         check->iswiz = 1;
                     break;
+                case 'X':
+                    if (mode)
+                        check->clearflags |= XFORCIBLE;
+                    else
+                        check->setflags |= XFORCIBLE;
+                    break;
                 case 'G':
                     if (mode)
                         check->clearflag2 |= F2GUEST;
