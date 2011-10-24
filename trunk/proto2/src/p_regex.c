@@ -415,6 +415,8 @@ prim_regsub(PRIM_PROTOTYPE)
 
     *write_ptr = '\0';
 
+    free(extra);
+
     CLEAR(oper4);
     CLEAR(oper3);
     CLEAR(oper2);
@@ -608,6 +610,7 @@ prim_array_regsub(PRIM_PROTOTYPE)
         } while (array_next(arr, &temp1));
     }
 
+    free(extra);
 
     CLEAR(oper4);
     CLEAR(oper3);
@@ -738,6 +741,9 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
             }
         } while (array_next(arr, &temp1));
     }
+
+    free(extra);
+
     CLEAR(oper3);
     CLEAR(oper2);
     CLEAR(oper1);
@@ -813,6 +819,8 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
             }
         } while (array_next(arr, &temp1));
     }
+
+    free(extra);
 
     CLEAR(oper3);
     CLEAR(oper2);
@@ -905,6 +913,8 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
         } while (array_next(arr, &temp1));
     }
 
+    free(extra);
+
     CLEAR(oper4);
     CLEAR(oper3);
     CLEAR(oper2);
@@ -989,6 +999,9 @@ prim_regfind_array(PRIM_PROTOTYPE)
                 }
         }
     }
+
+    free(extra);
+
     CLEAR(oper1);
     CLEAR(oper2);
     CLEAR(oper3);
@@ -1096,6 +1109,8 @@ prim_regfindnext(PRIM_PROTOTYPE)
             }
         }
     }
+
+    free(extra);
 
     CLEAR(oper1);
     CLEAR(oper2);
