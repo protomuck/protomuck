@@ -10837,8 +10837,8 @@ Performs a regular expression substitution using pattern against text,
 replacing the match with substr.  substr may contain \digit to specify
 a submatch.  Uses PCRE style regular expression syntax.  If you plan on
 performing a substitution against a large number of strings, you may
-wish to use ARRAY_REGSUB instead for its special optimizations.
-  
+wish to use ARRAY_REGSUB instead for its special loop optimizations.
+
 Supported PCRE option flags:
     REG_NONE, REG_ICASE, REG_ALL, REG_EXTENDED  
 
@@ -10866,7 +10866,10 @@ Refer to their individual manpages for which options they support.
 
     REG_NONE        (No options, same as 0. Ignored if combined.)
     REG_ICASE       (Case insensitive match)
-    REG_ALL         (Substitute all matches, rather than just the first)
+    REG_ALL         (Substitute all matches, rather than just the first. This
+                     also enables loop optimizations since the pattern will
+                     always be matched against at least twice unless the string
+                     is not found at all.)
     REG_EXTENDED    (Allows PCRE comments, etc.  See PCRE docs.)
 
 Options are combined through simple addition. Example:
@@ -11023,6 +11026,10 @@ Regex Cache:
   always recompile with a higher MUF_RE_CACHE_ITEMS value to reduce the
   possibility even further.
 
+  You can view the contents of the regex cache with the @regexcache command. It
+  is restricted to W4 since there is no way of knowing how confidential the
+  match patterns might be.
+
 Continued in: REGEX OPTIMIZATION4
 ~~~~
 REGEX OPTIMIZATION4|REGEXP OPTIMIZATION4
@@ -11038,11 +11045,17 @@ Loop Optimization
   Pattern studying always occurs inside of REGFIND_ARRAY and REGFINDNEXT, since
   it's very rare that the pattern isn't being executed against a large data set.
   Otherwise, pattern studying occurs if the input array to a regex prim contains
-  at least three items to loop over.
+  at least three items to loop over, or if the primitive accepts the REG_ALL
+  option and it is enabled. "Study data" is stored in the persistent cache with
+  the associated pattern. Cached study data will be used by *all* regex prims,
+  even if they would never generate study data on their own. (like REGMATCH)
 
   You should always try to use regex prims that support loop optimization when
   working with large data sets, since looping through them manually will never
   invoke the extra "study" optimizations.
+
+  Patterns with associated study data will display a "1" under the "studied?"
+  column in the output of the @regexcache command.
 
 ~~~
 REGEXP
