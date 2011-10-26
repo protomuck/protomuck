@@ -81,7 +81,7 @@ show_re_cache(dbref player) {
 
         if (re->re) {
             patterns++;
-            anotify_fmt(player, "%3i %4i %5i        %i \"%s\"",
+            notify_fmt(player, "%3i %4i %5i        %i \"%s\"",
                        idx, re->hits, re->flags,
                          (re->extra != NULL), DoNullInd(re->pattern));
             pcre_fullinfo(re->re, NULL, PCRE_INFO_SIZE, &tmp);
