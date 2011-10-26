@@ -625,6 +625,11 @@ extern void show_mcp_error(McpFrame *mfr, char *topic, char *text);
 extern void muf_socket_sendevent(struct muf_socket_queue *curr);
 #endif /* MUF_SOCKETS */
 
+/* from p_regex.c */
+#ifdef PCRE_SUPPORT
+extern void show_re_cache(dbref player);
+#endif /* PCRE_SUPPORT */
+
 /* For MPI profiling */
 extern time_t mpi_prof_start_time;
 
