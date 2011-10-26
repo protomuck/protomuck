@@ -15,14 +15,17 @@
  * scenarios that don't require capturing. muf_re_get returns a null pointer if
  * fed a null pattern, and regmatch_exec performs a strcmp against an empty
  * string if fed a null muf_re pointer.
+ *
+ * If you want to use pcre_study on a value returned by regmatch_re_get, you'll
+ * need to make sure it didn't return a null pointer.
  * 
  * *muf_re regmatch_re_get(const char* pattern, int flags, const char* errstr)
- *     int   regmatch_exec(muf_re* re, pcre_extra* extra, const char *inputstr)
+ *     int   regmatch_exec(muf_re* re, const char *inputstr)
  */
 #define regmatch_re_get(x,y,z) x ? (muf_re_get(x,y,z)) : NULL
 
-#define regmatch_exec(x,y,z) x ? (pcre_exec(x->re,y,z,strlen(z),0,0,NULL,0)) \
-                               : (strcmp("",z) == 0 ? 1 : PCRE_ERROR_NOMATCH )
+#define regmatch_exec(x,y) x ? (pcre_exec(x->re,x->extra,y,strlen(y),0,0,NULL,0)) \
+                               : (strcmp("",y) == 0 ? 1 : PCRE_ERROR_NOMATCH )
 
 extern void prim_regexp(PRIM_PROTOTYPE);
 extern void prim_regsub(PRIM_PROTOTYPE);
