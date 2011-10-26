@@ -51,12 +51,37 @@ static char buf[BUFFER_LEN];
 
 typedef struct {
     struct shared_string *pattern;
+    int hits;
     int flags;
     /* regex_t re; */
     pcre* re;
+    pcre_extra* extra;
 } muf_re;
 
 static muf_re muf_re_cache[MUF_RE_CACHE_ITEMS];
+
+void
+show_re_cache(dbref player) {
+    muf_re* re;
+    int idx = 0;
+
+    if (!Boy(OWNER(player))) {
+        anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
+        return;
+    }
+
+    anotify(player,"idx hits flags studied? pattern"); 
+    while (idx <= MUF_RE_CACHE_ITEMS) {
+        re = &muf_re_cache[idx];
+
+        if (re->re) {
+            anotify_fmt(player, "%3i %4i %5i        %i \"%s\"",
+                       idx, re->hits, re->flags,
+                         (re->extra != NULL), DoNullInd(re->pattern));
+        }
+        idx++;
+    }
+}
 
 muf_re* muf_re_get(struct shared_string* pattern, int flags, const char** errmsg)
 {
@@ -69,12 +94,14 @@ muf_re* muf_re_get(struct shared_string* pattern, int flags, const char** errmsg
         if ((flags != re->flags) || strcmp(DoNullInd(pattern), DoNullInd(re->pattern)))
         {
             pcre_free(re->re);
+            free(re->extra);
 
             if (re->pattern && (--re->pattern->links == 0))
                 free((void *)re->pattern);
-        }
-        else
+        } else {
+            re->hits++;
             return re;
+        }
     }
 
     re->re = pcre_compile(DoNullInd(pattern), flags, errmsg, &erroff, NULL);
@@ -85,11 +112,11 @@ muf_re* muf_re_get(struct shared_string* pattern, int flags, const char** errmsg
     }
 
     re->pattern = pattern;
-
-    if (pattern)
-        re->pattern->links++;
+    re->pattern->links++;
 
     re->flags   = flags;
+    re->hits    = 1;
+    re->extra   = NULL;
 
     return re;
 }
@@ -152,7 +179,7 @@ prim_regexp(PRIM_PROTOTYPE)
     text    = (char *)DoNullInd(oper1->data.string);
     len     = strlen(text);
 
-    if ((matchcnt = pcre_exec(re->re, NULL, text, len, 0, 0, matches, MATCH_ARR_SIZE)) < 0)
+    if ((matchcnt = pcre_exec(re->re, re->extra, text, len, 0, 0, matches, MATCH_ARR_SIZE)) < 0)
     {
         if (matchcnt != PCRE_ERROR_NOMATCH)
         {
@@ -263,7 +290,6 @@ prim_regsub(PRIM_PROTOTYPE)
     char*       write_ptr   = buf;
     int         write_left  = BUFFER_LEN - 1;
     muf_re*     re;
-    pcre_extra* extra = NULL;
     char*       text;
     char*       textstart;
     const char* errstr;
@@ -295,13 +321,13 @@ prim_regsub(PRIM_PROTOTYPE)
     if ((re = muf_re_get(oper2->data.string, flags, &errstr)) == NULL)
         abort_interp(errstr);
 
-    if (oper4->data.number & MUF_RE_ALL) {
+    if (!re->extra && (oper4->data.number & MUF_RE_ALL)) {
         /* User requested a recursive pattern search. This generally means
          * pcre_exec will be called at least twice unless the pattern doesn't
          * exist in the string at all. Presence of this option suggests that
          * the user anticipates the pattern occurring at least once, so it's
          * safest to go ahead and study the pattern. -brevantes */
-        extra = pcre_study(re->re, 0, &errstr);
+        re->extra = pcre_study(re->re, 0, &errstr);
         if (errstr)
             abort_interp(errstr);
     }
@@ -312,7 +338,7 @@ prim_regsub(PRIM_PROTOTYPE)
     len = strlen(textstart);
     while((*text != '\0') && (write_left > 0))
     {
-        if ((matchcnt = pcre_exec(re->re, extra, textstart, len, text-textstart, 0, matches, MATCH_ARR_SIZE)) < 0)
+        if ((matchcnt = pcre_exec(re->re, re->extra, textstart, len, text-textstart, 0, matches, MATCH_ARR_SIZE)) < 0)
         {
             if (matchcnt != PCRE_ERROR_NOMATCH)
             {
@@ -415,8 +441,6 @@ prim_regsub(PRIM_PROTOTYPE)
 
     *write_ptr = '\0';
 
-    free(extra);
-
     CLEAR(oper4);
     CLEAR(oper3);
     CLEAR(oper2);
@@ -437,7 +461,6 @@ prim_array_regsub(PRIM_PROTOTYPE)
     char*       write_ptr   = buf;
     int         write_left  = BUFFER_LEN - 1;
     muf_re*     re;
-    pcre_extra* extra = NULL;
     char*       text;
     char*       textstart;
     const char* errstr;
@@ -476,10 +499,11 @@ prim_array_regsub(PRIM_PROTOTYPE)
     nw = new_array_dictionary();
     arr = oper1->data.array;
 
-    if ((oper4->data.number & MUF_RE_ALL ) || array_count(arr) > 2) {
+    if (!re->extra
+        && ((oper4->data.number & MUF_RE_ALL ) || array_count(arr) > 2)) {
         /* Study the pattern if the user requested recursive substitution, or
          * if the input array contains at least three items. */
-        extra = pcre_study(re->re, 0, &errstr);
+        re->extra = pcre_study(re->re, 0, &errstr);
         if (errstr)
             abort_interp(errstr);
     }
@@ -495,7 +519,7 @@ prim_array_regsub(PRIM_PROTOTYPE)
 
             while((*text != '\0') && (write_left > 0))
             {
-                if ((matchcnt = pcre_exec(re->re, extra, textstart, len,
+                if ((matchcnt = pcre_exec(re->re, re->extra, textstart, len,
                                           text-textstart, 0, matches,
                                           MATCH_ARR_SIZE)) < 0)
                 {
@@ -610,8 +634,6 @@ prim_array_regsub(PRIM_PROTOTYPE)
         } while (array_next(arr, &temp1));
     }
 
-    free(extra);
-
     CLEAR(oper4);
     CLEAR(oper3);
     CLEAR(oper2);
@@ -663,7 +685,7 @@ prim_regmatch(PRIM_PROTOTYPE)
 
     text    = (char *)DoNullInd(oper1->data.string);
 
-    if ((matchcnt = regmatch_exec(re, NULL, text)) < 0) {
+    if ((matchcnt = regmatch_exec(re, text)) < 0) {
         if (matchcnt != PCRE_ERROR_NOMATCH)
         {
             abort_interp(muf_re_error(matchcnt));
@@ -687,7 +709,6 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
     stk_array *arr;
     stk_array *nw;
     muf_re* re;
-    pcre_extra* extra = NULL;
     char* text;
     int flags;
     int matchcnt = 0;
@@ -718,10 +739,10 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
     nw = new_array_dictionary();
     arr = oper1->data.array;
 
-    if (re && array_count(arr) > 2) {
+    if (re && !re->extra && array_count(arr) > 2) {
         /* This pattern is getting used 3 or more times, let's study it. A null
          * return is okay, that just means there's nothing to optimize. */
-        extra = pcre_study(re->re, 0, &errstr);
+        re->extra = pcre_study(re->re, 0, &errstr);
         if (errstr)
             abort_interp(errstr);
     }
@@ -731,7 +752,7 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
             if (temp1.type == PROG_STRING) {
                 text    = (char *)DoNullInd(temp1.data.string);
 
-                if ((matchcnt = regmatch_exec(re, NULL, text)) < 0) {
+                if ((matchcnt = regmatch_exec(re, text)) < 0) {
                     if (matchcnt != PCRE_ERROR_NOMATCH)
                         abort_interp(muf_re_error(matchcnt));
                 } else {
@@ -741,8 +762,6 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
             }
         } while (array_next(arr, &temp1));
     }
-
-    free(extra);
 
     CLEAR(oper3);
     CLEAR(oper2);
@@ -758,7 +777,6 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
     stk_array *arr;
     stk_array *nw;
     muf_re* re;
-    pcre_extra* extra = NULL;
     char* text;
     int flags;
     int matchcnt = 0;
@@ -789,10 +807,10 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
     nw = new_array_dictionary();
     arr = oper1->data.array;
 
-    if (re && array_count(arr) > 2) {
+    if (re && !re->extra && array_count(arr) > 2) {
         /* This pattern is getting used 3 or more times, let's study it. A null
          * return is okay, that just means there's nothing to optimize. */
-        extra = pcre_study(re->re, 0, &errstr);
+        re->extra = pcre_study(re->re, 0, &errstr);
         if (errstr)
             abort_interp(errstr);
     }
@@ -802,7 +820,7 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
             in = array_getitem(arr, &temp1);
             if (in->type == PROG_STRING) {
                 text    = (char *)DoNullInd(in->data.string);
-                if ((matchcnt = regmatch_exec(re, NULL, text)) < 0) {
+                if ((matchcnt = regmatch_exec(re, text)) < 0) {
                     if (matchcnt != PCRE_ERROR_NOMATCH)
                         abort_interp(muf_re_error(matchcnt));
                 } else {
@@ -810,7 +828,7 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
                 }
             } else if (in->type == PROG_OBJECT) {
                 text    = (char *) NAME(in->data.objref);
-                if ((matchcnt = regmatch_exec(re, NULL, text)) < 0) {
+                if ((matchcnt = regmatch_exec(re, text)) < 0) {
                     if (matchcnt != PCRE_ERROR_NOMATCH)
                         abort_interp(muf_re_error(matchcnt));
                 } else {
@@ -820,7 +838,6 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
         } while (array_next(arr, &temp1));
     }
 
-    free(extra);
 
     CLEAR(oper3);
     CLEAR(oper2);
@@ -840,7 +857,6 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
     char* prop;
     const char* ptr;
     muf_re* re;
-    pcre_extra* extra = NULL;
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;
@@ -881,10 +897,10 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
     if (errstr)
         abort_interp(errstr)
 
-    if (re && array_count(arr) > 2) {
+    if (re && !re->extra && array_count(arr) > 2) {
         /* This pattern is getting used 3 or more times, let's study it. A null
          * return is okay, that just means there's nothing to optimize. */
-        extra = pcre_study(re->re, 0, &errstr);
+        re->extra = pcre_study(re->re, 0, &errstr);
         if (errstr)
             abort_interp(errstr);
     }
@@ -902,7 +918,7 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
                         strcpy(buf, ptr);
                     else
                         strcpy(buf, "");
-                    if ((matchcnt = regmatch_exec(re, NULL, buf)) < 0) {
+                    if ((matchcnt = regmatch_exec(re, buf)) < 0) {
                         if (matchcnt != PCRE_ERROR_NOMATCH)
                             abort_interp(muf_re_error(matchcnt));
                     } else {
@@ -913,7 +929,6 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
         } while (array_next(arr, &temp1));
     }
 
-    free(extra);
 
     CLEAR(oper4);
     CLEAR(oper3);
@@ -930,7 +945,6 @@ prim_regfind_array(PRIM_PROTOTYPE)
     const char *name;
     stk_array *nw;
     muf_re* re;
-    pcre_extra* extra = NULL;
     char* text;
     int flags;
     int matchcnt = 0;
@@ -969,10 +983,11 @@ prim_regfind_array(PRIM_PROTOTYPE)
 
     /* We're scanning a chunk of the DB, so studying should pay off.
      * A null return is fine, it just means we can't optimize further. */
-    if (re)
-        extra = pcre_study(re->re, 0, &errstr);
-    if (errstr)
-        abort_interp(errstr);
+    if (re && !re->extra) {
+        re->extra = pcre_study(re->re, 0, &errstr);
+        if (errstr)
+            abort_interp(errstr);
+    }
 
     who = oper1->data.objref;
     name = DoNullInd(oper2->data.string);
@@ -990,7 +1005,7 @@ prim_regfind_array(PRIM_PROTOTYPE)
                 result = array_appendref(&nw, ref);
             else
                 text = (char *)NAME(ref);
-                if ((matchcnt = regmatch_exec(re, NULL, text)) < 0)
+                if ((matchcnt = regmatch_exec(re, text)) < 0)
                 {
                     if (matchcnt != PCRE_ERROR_NOMATCH)
                         abort_interp(muf_re_error(matchcnt));
@@ -1000,7 +1015,6 @@ prim_regfind_array(PRIM_PROTOTYPE)
         }
     }
 
-    free(extra);
 
     CLEAR(oper1);
     CLEAR(oper2);
@@ -1016,7 +1030,6 @@ prim_regfindnext(PRIM_PROTOTYPE)
     dbref who, item, ref, i;
     const char *name;
     muf_re* re;
-    pcre_extra* extra = NULL;
     char* text;
     int flags;
     int matchcnt = 0;
@@ -1077,8 +1090,8 @@ prim_regfindnext(PRIM_PROTOTYPE)
 
     /* We're scanning a chunk of the DB, so studying should pay off.
      * A null return is fine, it just means we can't optimize further. */
-    if (re) {
-        extra = pcre_study(re->re, 0, &errstr);
+    if (re && !re->extra) {
+        re->extra = pcre_study(re->re, 0, &errstr);
         if (errstr)
             abort_interp(errstr);
     }
@@ -1099,7 +1112,7 @@ prim_regfindnext(PRIM_PROTOTYPE)
                 break;
             } else {
                 text = (char *) NAME(i);
-                if ((matchcnt = regmatch_exec(re, NULL, text)) < 0) {
+                if ((matchcnt = regmatch_exec(re, text)) < 0) {
                     if (matchcnt != PCRE_ERROR_NOMATCH)
                         abort_interp(muf_re_error(matchcnt));
                 } else {
@@ -1110,7 +1123,6 @@ prim_regfindnext(PRIM_PROTOTYPE)
         }
     }
 
-    free(extra);
 
     CLEAR(oper1);
     CLEAR(oper2);

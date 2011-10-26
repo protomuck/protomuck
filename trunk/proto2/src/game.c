@@ -1435,6 +1435,13 @@ process_command(int descr, dbref player, char *command)
                             Matched("@recycle");
                             do_recycle(descr, player, arg1);
                             break;
+#ifdef PCRE_SUPPORT
+                        case 'g':
+                        case 'G':
+                            Matched("@regexcache");
+                            show_re_cache(player);
+                            break;
+#endif /* PCRE_SUPPORT */
                         case 'l':
                         case 'L':
                             Matched("@relink");
