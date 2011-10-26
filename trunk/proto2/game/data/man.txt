@@ -10969,7 +10969,7 @@ Regular Expression Primitives
 
 Matching:
     REGMATCH        ARRAY_REGMATCHKEY   ARRAY_REGMATCHVAL
-    REGFINDNEXT     REGFIND_ARRAY       ARRAY_REGFILTERPROP 
+    REGFINDNEXT     REGFIND_ARRAY       ARRAY_REGFILTER_PROP 
    
 Manipulation:
     REGEXP          REGSUB              ARRAY_REGSUB    
