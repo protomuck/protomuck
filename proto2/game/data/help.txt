@@ -1017,6 +1017,43 @@ Objects set with the PROTECT flag cannot be @recycled.
 The global_environment (Typically #0) cannot be @recycled.
 @destroy is an alias for the @recycle command.
 ~
+@regexcache
+-----------
+Permissions: BOY
+
+Displays the contents of the game's persistent regular expression cache,
+provided that the game was compiled with PCRE_SUPPORT enabled. Output will look
+something similar to the following:
+
+idx hits flags studied? pattern
+  6    7     0        1 "foo"
+ 19    1  4096        0 "bar"
+ 41    2  4096        1 "vin$"
+ 51    4  4096        1 ".a"
+ 60    2  4096        1 "host$"
+
+5 compiled patterns are using 266 bytes of RAM.
+4 study instances are using are using 176 bytes of RAM.
+
+idx is the position in the regex cache, a number in the range of 0 through
+(MUF_RE_CACHE_ITEMS-1).
+
+"hits" is the number of times the cache entry has been reloaded during
+initialization of a regex primitive (not how many strings it has been compared
+against).
+
+"flags" contains the bitmask of PCRE options set. Not very useful.
+
+"studied?" indicates whether or not a pattern has been studied for additional
+optimization data, usually because the MUF interpreter predicted that it would
+be used several times within a single primitive. 1 is true, 0 is false.
+
+"pattern" is the string representation of the compiled regular expression.
+There is no way of knowing how sensitive this information might be, which is
+the primary reason this primitive requires W4 privileges.
+
+Memory stats are self-explanatory, and generally negligable.
+~
 @stats
 @stats [me]
 -----------
