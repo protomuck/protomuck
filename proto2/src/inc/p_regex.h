@@ -12,9 +12,9 @@
 #define MUF_RE_EXTENDED_STR  "4"
 
 /* The regmatch_* macros are convenience wrappers for simple text matching
- * scenarios that don't require capturing. muf_re_get returns a null pointer if
- * fed a null pattern, and regmatch_exec performs a strcmp against an empty
- * string if fed a null muf_re pointer.
+ * scenarios that don't require capturing. regmatch_re_get returns a null
+ * pointer if fed a null pattern, and regmatch_exec performs a strcmp against
+ * an empty string if fed a null muf_re pointer.
  *
  * If you want to use pcre_study on a value returned by regmatch_re_get, you'll
  * need to make sure it didn't return a null pointer.

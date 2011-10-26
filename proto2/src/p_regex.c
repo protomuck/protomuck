@@ -63,24 +63,39 @@ static muf_re muf_re_cache[MUF_RE_CACHE_ITEMS];
 void
 show_re_cache(dbref player) {
     muf_re* re;
+    size_t tmp;
     int idx = 0;
+    int patterns = 0;
+    int studies = 0;
+    size_t size_re = 0;
+    size_t size_extra = 0;
 
     if (!Boy(OWNER(player))) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
 
-    anotify(player,"idx hits flags studied? pattern"); 
+    anotify(player, SYSYELLOW "idx hits flags studied? pattern"); 
     while (idx <= MUF_RE_CACHE_ITEMS) {
         re = &muf_re_cache[idx];
 
         if (re->re) {
+            patterns++;
             anotify_fmt(player, "%3i %4i %5i        %i \"%s\"",
                        idx, re->hits, re->flags,
                          (re->extra != NULL), DoNullInd(re->pattern));
+            pcre_fullinfo(re->re, NULL, PCRE_INFO_SIZE, &tmp);
+            size_re = size_re + tmp;
+            if (re->extra) {
+                studies++;
+                pcre_fullinfo(re->re, re->extra, PCRE_INFO_STUDYSIZE, &tmp);
+                size_extra = size_extra + tmp;
+            }
         }
         idx++;
     }
+    anotify_fmt(player, SYSPURPLE "\n%i compiled patterns are using %zd bytes of RAM.", patterns, size_re);
+    anotify_fmt(player, SYSGREEN "%i study instances are using are using %zd bytes of RAM.", studies, size_extra);
 }
 
 muf_re* muf_re_get(struct shared_string* pattern, int flags, const char** errmsg)
