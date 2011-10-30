@@ -7274,7 +7274,7 @@ an event never arrives and their input hangs. Likewise, be mindful that events
 can arrive at any time, and when using interrupts it's your own responsibility
 to figure out what happens when an interrupt arrives during a crucial function.
 
-Event Types: TIMER EVENTS, SOCKET EVENTS, USER EVENTS, SYSTEM EVENTS
+Event Types: TIMER EVENTS, SOCKET EVENTS, SYSTEM EVENTS
 Receiving Events: EVENT_WAIT, EVENT_WAITFOR, ONEVENT
 Other Topics: EVENT PRIMS, INTERRUPTS, TIMER PRIMS, SOCKET PRIMS
 ~~
