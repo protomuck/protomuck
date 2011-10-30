@@ -104,6 +104,7 @@ time_t tp_maxidle = MAXIDLE;
 time_t tp_idletime = IDLETIME;
 time_t tp_cron_interval = CRON_INTERVAL;
 time_t tp_archive_interval = ARCHIVE_INTERVAL;
+time_t tp_shutdown_delay = SHUTDOWN_DELAY;
 
 struct tune_time_entry {
     const char *group;
@@ -124,6 +125,7 @@ struct tune_time_entry tune_time_list[] = {
     {"Idletime", "idletime", &tp_idletime, LARCH, LMUF},
     {"MUF", "cron_interval", &tp_cron_interval, LARCH, LMUF},
     {"Database", "archive_interval", &tp_archive_interval, LARCH, LMUF},
+    {"System", "shutdown_delay", &tp_shutdown_delay, LARCH, LMUF},
     {NULL, NULL, NULL, 0, 0}
 };
 
@@ -294,6 +296,7 @@ int tp_log_wizards = LOG_WIZARDS;
 int tp_log_files = LOG_FILES;
 int tp_log_sockets = LOG_SOCKETS;
 int tp_log_failedhelp = LOG_FAILEDHELP;
+int tp_db_events = 0;
 int tp_dbdump_warning = DBDUMP_WARNING;
 int tp_deltadump_warning = DELTADUMP_WARNING;
 int tp_periodic_program_purge = PERIODIC_PROGRAM_PURGE;
@@ -393,6 +396,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Logs", "log_files", &tp_log_files, WBOY, LWIZ},
     {"Logs", "log_sockets", &tp_log_sockets, WBOY, LWIZ},
     {"Logs", "log_failedhelp", &tp_log_failedhelp, WBOY, LWIZ},
+    {"Database", "db_events", &tp_db_events, WBOY, LMUF},
     {"Database", "dbdump_warning", &tp_dbdump_warning, LARCH, LMUF},
     {"Database", "deltadump_warning", &tp_deltadump_warning, LARCH, LMUF},
     {"System", "periodic_program_purge", &tp_periodic_program_purge, LARCH,
