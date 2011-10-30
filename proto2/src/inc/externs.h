@@ -109,6 +109,9 @@ typedef struct timenode {
     struct inst *where;
     int eventnum;
 } *timequeue;
+
+extern timequeue tqhead;
+
 extern stk_array *get_pids(dbref ref);
 extern stk_array *get_pidinfo(int pid);
 extern int scan_instances(dbref program);
@@ -629,6 +632,10 @@ extern void muf_socket_sendevent(struct muf_socket_queue *curr);
 #ifdef PCRE_SUPPORT
 extern void show_re_cache(dbref player);
 #endif /* PCRE_SUPPORT */
+
+/* from mufevents.c */
+extern void broadcast_muf_event(char *event, struct inst *val, int queues,
+                                int exclusive);
 
 /* For MPI profiling */
 extern time_t mpi_prof_start_time;

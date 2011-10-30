@@ -36,6 +36,8 @@ int shutdown_flag = 0;
 int restart_flag = 0;
 int total_loggedin_connects = 0;
 
+time_t delayed_shutdown = 0;
+
 #ifdef MODULAR_SUPPORT
 struct module *modules = NULL;
 #endif
@@ -1795,6 +1797,11 @@ shovechars(void)
 
         purge_free_frames();
         untouchprops_incremental(1);
+
+        if (delayed_shutdown && current_systime >= delayed_shutdown ) {
+            log_status("Countdown reached, shutting down.\n");
+            shutdown_flag = 1;
+        }
 
         if (shutdown_flag)
             break;              /* Get out of game loop */
@@ -4108,7 +4115,10 @@ check_connect(struct descriptor_data *d, const char *msg)
                     (tp_playermax && con_players_curr >= tp_playermax_limit)) &&
                    !TMage(player)
             ) {
-            if (wizonly_mode) {
+            if (delayed_shutdown) {
+                queue_ansi(d,
+                           "Sorry, but the game currently shutting down. Try again later.");
+            } else if (wizonly_mode) {
                 queue_ansi(d,
                            "Sorry, but the game is in maintenance mode currently, and only wizards are allowed to connect.  Try again later.");
             } else {
@@ -6255,7 +6265,10 @@ welcome_user(struct descriptor_data *d)
             }
             fclose(f);
         }
-        if (wizonly_mode) {
+        if (delayed_shutdown) {
+            queue_unhtml(d, MARK
+                         "<b>The game is currently shutting down, and only wizards can connect.</b>\r\n");
+        } else if (wizonly_mode) {
             queue_unhtml(d, MARK
                          "<b>Due to maintenance, only wizards can connect now.</b>\r\n");
 
@@ -6310,7 +6323,10 @@ welcome_user(struct descriptor_data *d)
             }
             fclose(f);
         }
-        if (wizonly_mode) {
+        if (delayed_shutdown) {
+            queue_unhtml(d, MARK
+                         "The game is currently shutting down, and only wizards can connect.\r\n");
+        } else if (wizonly_mode) {
             queue_unhtml(d, MARK
                          "Due to maintenance, only wizards can connect now.\r\n");
         } else if (tp_playermax && con_players_curr >= tp_playermax_limit) {

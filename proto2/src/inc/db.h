@@ -909,6 +909,7 @@ struct frame {
     int     errorline;                  /* the program line that threw an error */
     int     aborted;                    /* indicates program aborted */
     int     descr;                      /* Descriptor of running player */
+    int     shutdown_seen;              /* Queues SHUTDOWN events during delayed shutdown */
     void *rndbuf;                       /* buffer for seedable random */
     struct scopedvar_t *svars;          /* Variables with function scoping. */
     struct mufevent *events;            /* MUF event list. */

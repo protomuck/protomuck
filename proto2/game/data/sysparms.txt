@@ -157,6 +157,19 @@ A good frequency is about once per week, though sites that see a
 lot more changes may prefer more frequent archives. 
 See: 'help @autoarchive' for details
 ~~~
+shutdown_delay
+If set to a positive time value, @shutdown and @restart will:
+
+1) toggle the wizonly flag
+2) trigger the programs in the @shutdown propqueue on #0
+3) send running all processes a SHUTDOWN event
+4) shut down the game after the configured time has elapsed
+
+All new processes started during a delayed shutdown cycle will
+already have a SHUTDOWN event queued. A delayed @shutdown can
+be aborted with a "=abort" parameter to @shutdown or @restart,
+or be skipped entirely with "=now".
+~~~
 mainport
 The main telenet port to access the MUCK.
 ~~~
@@ -439,6 +452,10 @@ is logged as well.
 ~~~
 dbdump_warning
 Display the save messages for full data base saves.
+~~~
+db_events
+Broadcast DUMP and DUMPWARN events to all running programs for the
+corresponding database events. Refer to "man SYSTEM EVENTS2".
 ~~~
 deltadump_warning
 Display the save messages for delta dump saves.

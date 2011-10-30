@@ -1522,7 +1522,7 @@ TELEPORT        - [t] Unrestricted use of @teleport
 See: @POWERS
 ~~~
 @shutdown
-@shutdown <muckname>
+@shutdown <muckname>=<extra>
 --------------------
 Permissions: W3 ArchWizard
 
@@ -1533,6 +1533,16 @@ Failed attempts to use @shutdown are logged to the status log with
 the prefix: SHAM
 Successful uses of @shutdown are logged to the status log with the
 prefix: SHUT
+
+If shutdown_delay is @tuned to a positive value, "@restrict on" will be
+enabled and all processes will be sent a SHUTDOWN event. Once the delay
+has elapsed, the game will restart.
+
+Everything after <muckname> is optional. It can be one of the following:
+
+          now   = Immediate @restart (for when shutdown_delay is enabled)
+          abort = Abort a delayed shutdown, if applicable.
+(anything else) = A custom message to WALL to the game with the shutdown.
 ~
 @frob|@toad
 @frob <player1> [= <player2>] 
@@ -3033,7 +3043,7 @@ For administrators: If you set a message on the prop '_poll' on room
 
 ~
 @restart
-@restart <muckname>
+@restart <muckname>=<extra>
 -------------------
 Permissions: W3 ArchWizard
 
@@ -3044,6 +3054,16 @@ prefix of:
 SHAM
 Successful restarts are logged to the status log with the prefix of:
 REST
+
+If shutdown_delay is @tuned to a positive value, "@restrict on" will be
+enabled and all processes will be sent a SHUTDOWN event. Once the delay
+has elapsed, the game will restart.
+
+Everything after <muckname> is optional. It can be one of the following:
+
+          now   = Immediate @restart (for when shutdown_delay is enabled)
+          abort = Abort a delayed shutdown, if applicable.
+(anything else) = A custom message to WALL to the game with the restart.
 
 Restarting the muck involves booting all the players, shutting down all
 the programs, then shutting down the binary, then starting the binary
@@ -3764,6 +3784,7 @@ disclogin  - When a connection drops from the login screen.
 @dump      - On #0 only as @dump, triggered when the MUCK saves the db.
 @dumpwarn  - On #0 only as @dumpwarn, triggered when the MUCK warns of saves.
 @huh       - On #0 only as @huh, triggered when an invalid command is entered.
+@shutdown  - On #0 only as @shutdown, triggered during a delayed shutdown.
 ~~~~
 SCORE|
 score

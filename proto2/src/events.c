@@ -52,8 +52,6 @@ check_dump_time(void)
     if (!dump_warned) {
         if (((last_dump_time + tp_dump_interval) - tp_dump_warntime)
             < currtime) {
-            if (tp_dump_propqueues)
-                propqueue(0, 1, 0, -1, 0, -1, "@dumpwarn", "Dumpwarn", 1, 1);
             dump_warning();
             dump_warned = 1;
         }
