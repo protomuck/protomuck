@@ -78,6 +78,7 @@
 #define CRON_INTERVAL TIME_MINUTE(15) /* frequency of cron-daemon runs */
 #define IDLETIME TIME_MINUTE(30) /* Time until player is idle */
 #define ARCHIVE_INTERVAL TIME_DAY(7) /* Frequency of site archiving */
+#define SHUTDOWN_DELAY TIME_MINUTE(1) /* How long programs have to self-term */
 /* The minimum amount of time that must pass between site archives.
  * Note that this setting does not have a related @tune in-muck
  */

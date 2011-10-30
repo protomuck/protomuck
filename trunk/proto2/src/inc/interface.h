@@ -288,6 +288,9 @@ extern void ansi_wall_wizards(const char *msg);
 extern void show_wizards(dbref player);
 extern int shutdown_flag; /* if non-zero, interface should shut down */
 extern int restart_flag; /* if non-zero, should restart after shut down */
+/* if delayed_shutdown is non-null, game is in a delayed shutdown loop.
+ * interface should shut down when when tp_shutdown_delay has been exceeded. */
+extern time_t delayed_shutdown;
 extern void emergency_shutdown(void);
 extern int boot_off(dbref player);
 extern void boot_player_off(dbref player);

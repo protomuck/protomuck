@@ -438,6 +438,36 @@ muf_event_free(struct mufevent *ptr)
     free(ptr);
 }
 
+/* Send an event to every program in the time and event queues. This should be
+ * used sparingly and only by the system itself, usually to warn processes of
+ * major events such as DUMPWARN, DUMP, and SHUTDOWN.
+ *
+ * Values for "queues":
+ * 2 = Time Queue
+ * 1 = Event Queue
+ * 0 = Both
+ ( */
+void
+broadcast_muf_event(char *event, struct inst *val, int queues, int exclusive)
+{
+
+    struct mufevent_process *eqptr = mufevent_processes;
+    timequeue tqptr = tqhead;
+
+    if (queues == 2 || queues == 0) {
+        while (tqptr) {
+            muf_event_add(tqptr->fr, event, val, exclusive);
+            tqptr = tqptr->next;
+        }
+    }
+
+    if (queues == 1 || queues == 0) {
+        while (eqptr) {
+            muf_event_add(eqptr->fr, event, val, exclusive);
+            eqptr = eqptr->next;
+        }
+    }
+}
 
 /* void muf_event_add(struct frame* fr, char* event, struct inst* val, int exclusive)
  * Adds a MUF event to the event queue for the given program instance.
@@ -651,6 +681,13 @@ muf_event_process(void)
                 } else {
                     dbref current_program = NOTHING;
                     short block = 0, is_fg;
+
+                    if (delayed_shutdown
+                        && (proc->fr->shutdown_seen < delayed_shutdown) ) {
+                        /* Events processed by this function don't need
+                         * SHUTDOWN events injected via interp_loop. */
+                        proc->fr->shutdown_seen = delayed_shutdown;
+                    }
 
                     if (OkObj(proc->player)) {
                         current_program =

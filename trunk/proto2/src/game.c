@@ -20,6 +20,7 @@
 extern void do_compress(dbref player, int descr, const char *msg);
 #endif /* MCCP_ENABLED */
 
+extern struct inst temp1;
 /* declarations */
 static const char *dumpfile = 0;
 
@@ -111,19 +112,116 @@ do_delta(dbref player)
 }
 #endif
 
+/* Toggle wizonly and start a shutdown cycle. The final shutdown_flag gets set
+ * inside of shovechars when the delay has elapsed.
+ *
+ * While delayed_shutdown is positive, all interpreter loops will be sent
+ * sent a SHUTDOWN event that is exclusive to this shutdown cycle if they
+ * haven't seen one already. If this shutdown cycle is aborted and another
+ * is started later, they will get another event for the new cycle (unless the
+ * old event was never handled).
+ * 
+ * -brevantes  */
+void
+do_delayed_shutdown(dbref player)
+{
+    if (tp_shutdown_delay < 1) {
+        /* This should only happen if someone is messing around with the caller
+         * functions that use us. */
+        notify(player, SYSRED
+               "LOGIC ERROR: do_delayed_shutdown run with negative delay.");
+        return;
+    }
+    char buf[BUFFER_LEN];
+    delayed_shutdown = current_systime + tp_shutdown_delay;
+    wizonly_mode = 1;
+    
+    temp1.type = PROG_INTEGER;
+    temp1.data.number = delayed_shutdown;
+
+    /* We need to wake up any WAIT events and let them know about the shutdown.
+     * muf_event_process will make sure any woken up events don't get a second
+     * SHUTDOWN event when they're passed to interp_loop. -brevantes */
+    broadcast_muf_event("SHUTDOWN", &temp1, 1, 1);
+    propqueue(0, 1, 0, -1, 0, -1, "@shutdown", "Shutdown", 1, 1);
+
+    notify(player, SYSRED "The countdown starts...");
+
+
+    sprintf(buf, "%s%s%sSystem shutdown in %li seconds.\r\n",
+            SYSWHITE, MARK, SYSNORMAL, (long int)tp_shutdown_delay);
+    wall_and_flush(buf);
+}
+
+/* Cancel a delayed shutdown. This does not clean up any of the SHUTDOWN events
+ * that were broadcasted; individual processes are responsible for examining
+ * the timestamp that was packaged with the SHUTDOWN event and making a
+ * decision based on whether systime has exceeded it.
+ *
+ * This does not untoggle wizonly, and informs the user of such. -brevantes */
+void
+cancel_delayed_shutdown(dbref player)
+{
+    char buf[BUFFER_LEN];
+
+    if (delayed_shutdown) {
+        restart_flag = 0;
+        delayed_shutdown = 0;
+
+        log_status("Countdown aborted by %s\n", unparse_object(player, player));
+
+        sprintf(buf, "%s%s%sShutdown cancelled.\r\n", SYSWHITE, MARK, SYSNORMAL);
+        wall_and_flush(buf);
+
+        notify(player, SYSYELLOW
+            "Countdown aborted. Use \"@restrict off\" to enable logins.");
+
+        /* Restore default shutdown messages. */
+        strcpy(restart_message, "\r\nServer restarting, be back in a few!\r\n");
+        strcpy(shutdown_message, "\r\nServer shutting down, be back in a few!\r\n");
+        return;
+    } else {
+        notify(player,
+               SYSYELLOW "No shutdown in progress.");
+        return;
+    }
+}
+
 void
 do_shutdown(dbref player, const char *muckname, const char *msg)
 {
+    int nodelay = !strcmp(msg, "now");
+    int cancel = !strcmp(msg, "abort");
+
     if ((Arch(player)) || (POWERS(player) & POW_SHUTDOWN)) {
         if (*muckname == '\0' || strcmp(muckname, tp_muckname)) {
-            notify(player,
-                   SYSCYAN "Usage: " SYSAQUA "@shutdown muckname[=message]");
+            notify(player, SYSCYAN
+                "Usage: " SYSAQUA "@shutdown muckname[=now|abort|message]");
             return;
         }
-        log_status("SHUT: by %s\n", unparse_object(player, player));
-        shutdown_flag = 1;
+        if (cancel) {
+            cancel_delayed_shutdown(player);
+            return;
+        }
+        if (!nodelay && delayed_shutdown) {
+            notify(player, SYSRED
+                   "Delayed shutdown already in progress.");
+            notify(player, SYSCYAN
+                   "    @shutdown muckname=abort (to cancel shutdown)");
+            notify(player, SYSCYAN
+                   "    @shutdown muckname=now   (immediate shutdown)");
+            return;
+        }
+        if (!nodelay && tp_shutdown_delay > 0) {
+            log_status("SHUT: by %s (%lis delay)\n",
+                unparse_object(player, player), (long int)tp_shutdown_delay);
+            do_delayed_shutdown(player);
+        } else {
+            log_status("SHUT: by %s\n", unparse_object(player, player));
+            shutdown_flag = 1;
+        }
         restart_flag = 0;
-        if (*msg != '\0') {
+        if (!nodelay && *msg != '\0') {
             strcat(shutdown_message, SYSWHITE MARK SYSNORMAL);
             strcat(shutdown_message, msg);
             strcat(shutdown_message, "\r\n");
@@ -137,20 +235,43 @@ do_shutdown(dbref player, const char *muckname, const char *msg)
 void
 do_restart(dbref player, const char *muckname, const char *msg)
 {
+    int nodelay = !strcmp(msg, "now");
+    int cancel = !strcmp(msg, "abort");
+
+
     if ((Arch(player)) || (POWERS(player) & POW_SHUTDOWN)) {
         if (*muckname == '\0' || strcmp(muckname, tp_muckname)) {
-            notify(player,
-                   SYSCYAN "Syntax: " SYSAQUA "@restart muckname[=message]");
+            notify(player, SYSCYAN
+                   "Syntax: " SYSAQUA "@restart muckname[=now|abort|message]");
             return;
         }
-        log_status("REST: by %s\n", unparse_object(player, player));
-        shutdown_flag = 1;
-        restart_flag = 1;
-        if (*msg != '\0') {
+        if (cancel) {
+            cancel_delayed_shutdown(player);
+            return;
+        }
+        if (!nodelay && delayed_shutdown) {
+            notify(player, SYSRED
+                   "Delayed shutdown already in progress.");
+            notify(player, SYSCYAN
+                   "    @restart muckname=abort (to cancel shutdown)");
+            notify(player, SYSCYAN
+                   "    @restart muckname=now   (immediate restart)");
+            return;
+        }
+        if (!nodelay && tp_shutdown_delay > 0) {
+            log_status("REST: by %s (%lis delay)\n",
+                unparse_object(player, player), (long int)tp_shutdown_delay);
+            do_delayed_shutdown(player);
+        } else {
+            log_status("REST: by %s\n", unparse_object(player, player));
+            shutdown_flag = 1;
+        }
+        if (!nodelay && *msg != '\0') {
             strcat(restart_message, SYSWHITE MARK SYSNORMAL);
             strcat(restart_message, msg);
             strcat(restart_message, "\r\n");
         }
+        restart_flag = 1;
     } else {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         log_status("SHAM: Restart by %s\n", unparse_object(player, player));
@@ -350,6 +471,13 @@ dump_database(bool dofork)
     epoch++;
 
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
+
+    if (tp_db_events) {
+        temp1.type = PROG_INTEGER;
+        temp1.data.number = current_systime;
+
+        broadcast_muf_event("DUMP", &temp1, 0, 1);
+    }
     if (tp_dump_propqueues)
         propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
     if (tp_dbdump_warning)
@@ -385,6 +513,12 @@ fork_and_dump(bool dofork)
     last_monolithic_time = current_systime;
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
 
+    if (tp_db_events) {
+        temp1.type = PROG_INTEGER;
+        temp1.data.number = current_systime;
+
+        broadcast_muf_event("DUMP", &temp1, 0, 1);
+    }
     if (tp_dump_propqueues)
         propqueue(0, 1, 0, -1, 0, -1, "@dump", "Dump", 1, 1);
     if (tp_dbdump_warning)
@@ -464,6 +598,14 @@ dump_warning(void)
         wall_and_flush(tp_dumpwarn_mesg);
 #endif
     }
+    if (tp_db_events) {
+        temp1.type = PROG_INTEGER;
+        temp1.data.number = current_systime + tp_dump_warntime;
+
+        broadcast_muf_event("DUMPWARN", &temp1, 0, 1);
+    }
+    if (tp_dump_propqueues)
+        propqueue(0, 1, 0, -1, 0, -1, "@dumpwarn", "Dumpwarn", 1, 1);
 }
 
 #ifdef DELTADUMPS

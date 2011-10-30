@@ -686,6 +686,8 @@ interp(int descr, dbref player, dbref location, dbref program,
 /*    for (i = 0; i < STACK_SIZE; i++)
           fr->system.st[i].stopat = 0; */
 
+    fr->shutdown_seen = 0;
+
     fr->brkpt.force_debugging = 0;
     fr->brkpt.debugging = 0;
     fr->brkpt.bypass = 0;
@@ -731,6 +733,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     DBFETCH(program)->sp.program.instances++;
     push(fr->argument.st, &(fr->argument.top), PROG_STRING, *match_args ?
          MIPSCAST alloc_prog_string(match_args) : 0);
+
     return fr;
 }
 
@@ -1290,6 +1293,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
     struct inst *arg;
     struct inst *temp1;
     struct inst *temp2;
+    struct inst temp3;
     struct stack_addr *sys;
     int instr_count;
     int stop;
@@ -1346,8 +1350,18 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         gettimeofday(&current_time, NULL);
     }
 
+
     /* This is the 'natural' way to exit a function */
     while (stop) {
+        /* Stores the time of the last shutdown processed instead of 1, just in
+         * case I add the ability to cancel a delayed shutdown later. -brevantes */
+        if (delayed_shutdown && (fr->shutdown_seen < delayed_shutdown)) {
+            temp3.type = PROG_INTEGER;
+            temp3.data.number = delayed_shutdown;
+            muf_event_add(fr, "SHUTDOWN", &temp3, 1);
+            fr->shutdown_seen = delayed_shutdown;
+        }
+
         if (++fr->instcnt < 0) fr->instcnt = 0;
         if (++instr_count < 0) instr_count = 0;
 
@@ -2260,6 +2274,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 /* End of TODO */
     if (atop) {
         struct inst *rv;
+
 
         if (rettyp) {
             copyinst(arg + atop - 1, &retval);

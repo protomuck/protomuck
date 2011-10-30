@@ -53,6 +53,7 @@ extern time_t tp_connidle;
 extern time_t tp_maxidle;
 extern time_t tp_cron_interval;
 extern time_t tp_archive_interval;
+extern time_t tp_shutdown_delay;
 
 /* integers */
 
@@ -140,6 +141,7 @@ extern int tp_log_wizards;
 extern int tp_log_files;
 extern int tp_log_sockets;
 extern int tp_log_failedhelp;
+extern int tp_db_events;                /* brevantes */
 extern int tp_dbdump_warning;
 extern int tp_deltadump_warning;
 extern int tp_periodic_program_purge;
