@@ -569,15 +569,22 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "}dict", "} 2 / array_make_dict");
     insert_def(cstat, "}join", "} array_make \"\" array_join");
     insert_def(cstat, "}tell", "} array_make me @ 1 array_make array_notify");
+    insert_def(cstat, "array_diff", "2 array_ndiff");
+    insert_def(cstat, "array_union", "2 array_nunion");
+    insert_def(cstat, "array_intersect", "2 array_nintersect");
     insert_def(cstat, "[]", "array_getitem");
     insert_def(cstat, "->[]", "array_setitem");
     insert_def(cstat, "[]<-", "array_appenditem");
     insert_def(cstat, "[^]", "array_insertitem");
     insert_def(cstat, "[..]", "array_getrange");
     insert_def(cstat, "[x]", "array_delitem");
-    insert_def(cstat, "array_diff", "2 array_ndiff");
-    insert_def(cstat, "array_union", "2 array_nunion");
-    insert_def(cstat, "array_intersect", "2 array_nintersect");
+    /* Versions of the same that operate upon variables instead of arrays */
+    insert_def(cstat, "*[]", "over @ swap array_getitem swap !");
+    insert_def(cstat, "*->[]", "over -4 rotate swap @ swap array_setitem swap !");
+    insert_def(cstat, "*[]<-", "tuck @ array_appenditem swap !");
+    insert_def(cstat, "*[^]", "over -4 rotate swap @ swap array_insertitem swap !");
+    insert_def(cstat, "*[..]", "3 pick dup -5 rotate @ 3 put array_getrange swap !");
+    insert_def(cstat, "*[x]", "over @ swap array_delitem swap !");
 #ifdef IGNORE_SUPPORT
     insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
     insert_def(cstat, "IGNORE_ADD", "\"/@/ignore\" swap reflist_add");
