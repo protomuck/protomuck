@@ -6224,7 +6224,7 @@ array_insertitem can be shortcutted to [^]
 
 See: ARRAY PRIMS
 ~
-ARRAY_GETRANGE
+ARRAY_GETRANGE|[..]
 
 array_getrange( a @ @2 -- a2 )	[..]
 ------------------------------
