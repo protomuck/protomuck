@@ -195,7 +195,10 @@ ARRAY_CUT           ARRAY_COMPARE       ARRAY_SORT_INDEXED  ARRAY_NESTED_GET
 ARRAY_SUM           ARRAY_GETLINKS      ARRAY_FMTSTRINGS    ARRAY_NESTED_SET
 ARRAY_STRING_FRAGMENT                                       ARRAY_NESTED_DEL
 
-        }ARRAY        }LIST        }DICT        }JOIN        }CAT
+            }ARRAY     }LIST     }DICT     }JOIN     }CAT     }TELL    
+
+            []         ->[]      []<-      [^]      [x]       [..]
+                      *->[]     *[]<-     *[^]     *[x]
 
 File Prims: 
   FWRITE    FREAD    FREADN    FAPPEND    FCR      FREADTO
@@ -5885,10 +5888,45 @@ ARRAY_CUT           ARRAY_COMPARE       ARRAY_SORT_INDEXED  ARRAY_NESTED_GET
 ARRAY_SUM           ARRAY_GETLINKS      ARRAY_FMTSTRINGS    ARRAY_NESTED_SET
 ARRAY_STRING_FRAGMENT                                       ARRAY_NESTED_DEL
 
-        }ARRAY        }LIST        }DICT        }JOIN        }CAT
+            }ARRAY     }LIST     }DICT     }JOIN     }CAT     }TELL    
+            []         ->[]      []<-      [^]      [x]       [..]
+                      *->[]     *[]<-     *[^]     *[x]
 
 
 See: Individual entries for more information.
+~~~~~~
+*->[]|*[]<-|*[^]|*[x]
+*->[] ( x v @ -- )
+Perform array_setitem on an array variable.
+
+*[]<- ( x v -- )
+Perform array_appenditem on an array variable.
+
+*[^]  ( x v @ -- )
+Perform array_insertitem on an array variable.
+
+*[x]  ( v @ -- )
+Perform array_delitem on an array variable.
+
+
+These are variable assignment macros for variables. They work like their their
+non-variable counterparts, but take a variable storing an array as a parameter
+instead of an array, and return nothing to the stack. You must initialize the
+variable with some kind of array before using these operators, or you will get
+the expected abort message.
+
+They are inserver shortcuts for:
+    *->[]
+        over -4 rotate swap @ swap array_setitem swap !
+    *[]<-
+        tuck @ array_appenditem swap !
+    *[^]
+        over -4 rotate swap @ swap array_insertitem swap !
+    *[x]
+        over @ swap array_delitem swap !
+
+See: ->[], []<-, [^], [x]
+     (array_setitem, array_appenditem, array_inseritem, array_delitem)
 ~~~~~~
 STACKRANGE|STACKCOUNT
 
@@ -6167,7 +6205,7 @@ array_appenditem can be shortcutted to []<-
 
 See: ARRAY PRIMS
 ~
-ARRAY_INSERTITEM
+ARRAY_INSERTITEM|[^]
 
 array_insertitem ( x a @ -- a' )	[^]
 --------------------------------
