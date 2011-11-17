@@ -6357,7 +6357,7 @@ previous difference from the top of the stack down.
 See: ARRAY PRIMS, STACKRANGE, ARRAY_NUNION, ARRAY_NINTERSECT
      ARRAY_DIFF
 ~
-ARRAY_NOTIFY|ARRAY_ANSI_NOTIFY|ARRAY_NOTIFY_HTML
+ARRAY_NOTIFY|ARRAY_ANSI_NOTIFY|ARRAY_NOTIFY_HTML|}TELL
 
 array_notify( a1 a2 -- )
 array_ansi_notify( a1 a2 -- )
@@ -6373,6 +6373,9 @@ listen props. However, ZOMBIE objects do not seem to get notified.
 Will still name append messages for M1 if the @tune is set to 
 require that. The ANSI and HTML versions work just the same, except
 for handling ANSI and HTML sending as well.
+
+}TELL is a shortcut for:
+    } array_make me @ 1 array_make array_notify
 
 See: ARRAY PRIMS
 ~
