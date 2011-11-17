@@ -5909,7 +5909,7 @@ Perform array_insertitem on an array variable.
 Perform array_delitem on an array variable.
 
 
-These are assignment macros for array variables. They work like their their
+These are assignment macros for array variables. They work like their
 non-variable counterparts, but take a variable storing an array as a parameter
 instead of an array, and return nothing to the stack. You must initialize the
 variable with some kind of array before using these operators, or you will get
