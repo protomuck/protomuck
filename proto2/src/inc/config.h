@@ -108,7 +108,7 @@
  */
 
 /* Be aware, this is slightly resource intensive. -Hinoserm */
-#undef IGNORE_SUPPORT
+#define IGNORE_SUPPORT
 #define MAX_IGNORES 64
 #define MUF_MAX_IGNORES "64"
 
@@ -234,7 +234,7 @@
  *
  * -brevantes
  */
-#undef HIDDEN_CHLK
+#define HIDDEN_CHLK
 
 
 /* Don't define CONTROLS_SUPPORT without defining HIDDEN_CHLK as well. It does
@@ -244,7 +244,7 @@
  * You may define this without HIDDEN_CHLK if your site was already using it,
  * but you do so at your own risk. -brevantes
  */
-#undef CONTROLS_SUPPORT	/* Alynna 20030907 */
+#define CONTROLS_SUPPORT	/* Alynna 20030907 */
 
 /* If you have problems compiling with DETACH defined, uncomment one
  * of these:
@@ -314,7 +314,7 @@
 /* #define DEBUGLOGINS below if you need to troubleshoot these strings.      */
 /* Normal users *should not* do this, because it completely defeats the      */
 /* on-disk security of hashed passwords in the database. -brevantes          */
-#undef DEBUGLOGINS
+#define DEBUGLOGINS
 
 /* Define this to make various system related @tune options changable */
 /* by W4+ admin only. Leaving it undefined will allow W3 admin to change */

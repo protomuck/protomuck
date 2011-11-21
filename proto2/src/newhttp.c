@@ -49,6 +49,10 @@
 
 #define FREE(x) (free((void *) x))
 
+#ifdef MCCP_ENABLED
+void mccp_start(struct descriptor_data *d, int version);
+#endif
+
 int httpucount = 0;    /* number of total HTTP users */
 int httpfcount = 0;    /* number of total HTTP file transfers */
 
@@ -293,6 +297,9 @@ void
 http_sendheader(struct descriptor_data *d, int statcode,
                 const char *content_type, int content_length)
 {
+    struct http_field *f;
+    int iscompressed=0;
+
     char tbuf[BUFFER_LEN];
     time_t t = time(NULL) + get_tz_offset();
 
@@ -311,7 +318,20 @@ http_sendheader(struct descriptor_data *d, int statcode,
     else
         queue_text(d, "Content-Type: text/plain\r\n");
 
+
+    f = http_fieldlookup(d, "Accept-Encoding");
+    
+    if (f && f->data && equalstr("*gzip*", f->data)) {
+        iscompressed = 1;
+        queue_text(d, "Content-Encoding: gzip\r\n");
+    }
+
     queue_text(d, "\r\n");
+
+    if (iscompressed) {
+       process_output(d);
+       mccp_start(d, 0);
+    }
 }
 
 void
