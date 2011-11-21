@@ -48,6 +48,11 @@ extern void prim_descr_sslp(PRIM_PROTOTYPE);
 extern void prim_descr_sendfile(PRIM_PROTOTYPE);
 extern void prim_descrtype(PRIM_PROTOTYPE);
 extern void prim_suid(PRIM_PROTOTYPE);
+extern void prim_mccp_start(PRIM_PROTOTYPE);
+extern void prim_mccp_end(PRIM_PROTOTYPE);
+
+
+
 
 #define PRIMS_CONNECTS_FUNCS prim_awakep, prim_online, prim_concount,       \
     prim_condbref, prim_conidle, prim_contime, prim_conhost, prim_conuser,  \
@@ -62,7 +67,7 @@ extern void prim_suid(PRIM_PROTOTYPE);
     prim_descrleastidle, prim_descrmostidle, prim_descrboot,                \
     prim_getdescrinfo, prim_descr_set, prim_descr_flagp, prim_bandwidth,    \
     prim_descrbufsize, prim_descr_sslp, prim_descr_sendfile, prim_suid,     \
-    prim_descrtype
+    prim_descrtype, prim_mccp_start, prim_mccp_end
 
 #define PRIMS_CONNECTS_NAMES "AWAKE?", "ONLINE", "CONCOUNT",  \
     "CONDBREF", "CONIDLE", "CONTIME", "CONHOST", "CONUSER",   \
@@ -77,7 +82,7 @@ extern void prim_suid(PRIM_PROTOTYPE);
     "DESCRLEASTIDLE", "DESCRMOSTIDLE", "DESCRBOOT",           \
     "GETDESCRINFO", "DESCR_SET", "DESCR_FLAG?", "BANDWIDTH",  \
     "DESCRBUFSIZE", "DESCR_SSL?", "DESCR_SENDFILE", "SUID",   \
-    "DESCRTYPE"
+    "DESCRTYPE", "MCCP_START", "MCCP_END"
 
-#define PRIMS_CONNECTS_CNT 50
+#define PRIMS_CONNECTS_CNT 52
 

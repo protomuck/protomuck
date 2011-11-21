@@ -1482,6 +1482,52 @@ prim_descrbufsize(PRIM_PROTOTYPE)
     PushInt(result);
 }
 
+#ifdef MCCP_ENABLED
+void mccp_start(struct descriptor_data *d, int version);
+void mccp_end(struct descriptor_data *d);
+#endif
+
+void
+prim_mccp_start(PRIM_PROTOTYPE)
+{
+    struct descriptor_data *d;
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (mlev < 3)
+        abort_interp("Requires Mucker Level 3 or better.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Integer descriptor number expected.");
+    tmp = oper1->data.number;
+    CLEAR(oper1);
+    if (!(d = descrdata_by_descr(tmp)))
+        abort_interp("Invalid descriptor.");
+#ifdef MCCP_ENABLED
+    mccp_start(d, 2);
+#endif
+}
+
+void
+prim_mccp_end(PRIM_PROTOTYPE)
+{
+    struct descriptor_data *d;
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (mlev < LMAGE)
+        abort_interp("Requires W1 or better.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Integer descriptor number expected.");
+    tmp = oper1->data.number;
+    CLEAR(oper1);
+    if (!(d = descrdata_by_descr(tmp)))
+        abort_interp("Invalid descriptor.");
+#ifdef MCCP_ENABLED
+    mccp_end(d);
+#endif
+}
+
+
 void
 prim_descr_sendfile(PRIM_PROTOTYPE)
 {
