@@ -607,7 +607,7 @@ ok_player_name(const char *name)
             }         
         }
         else {
-            if ( !isprint(*scan) && !isspace(*scan) ) /* was isgraph(*scan) */
+            if ( !isprint(*scan) || isspace(*scan) ) /* was isgraph(*scan) */
                 return 0;
         }
     }
