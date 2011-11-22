@@ -51,6 +51,7 @@
 
 #ifdef MCCP_ENABLED
 void mccp_start(struct descriptor_data *d, int version);
+extern int process_output(struct descriptor_data *d);
 #endif
 
 int httpucount = 0;    /* number of total HTTP users */
