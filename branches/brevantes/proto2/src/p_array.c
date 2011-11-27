@@ -2547,7 +2547,9 @@ prim_array_nested_set(PRIM_PROTOTYPE)
             CLEAR(&nest[0]);
             break;
         default: /* some kind of variable */
-            copyinst(&nest[0], in);
+            arr = in->data.array;
+            in->data.array = nest[0].data.array;
+            nest[0].data.array = arr;
             CLEAR(&nest[0]);
             PushInst(oper2);
             /* NO CLEAR */
@@ -2564,6 +2566,7 @@ prim_array_nested_del(PRIM_PROTOTYPE)
     struct inst *in;
 
     stk_array *idxarr;
+    stk_array *arr;
     int i, idxcnt;
 
     idx = NULL;
@@ -2638,7 +2641,9 @@ prim_array_nested_del(PRIM_PROTOTYPE)
             CLEAR(&nest[0]);
             break;
         default: /* some kind of variable */
-            copyinst(&nest[0], in);
+            arr = in->data.array;
+            in->data.array = nest[0].data.array;
+            nest[0].data.array = arr;
             CLEAR(&nest[0]);
             PushInst(oper2);
             /* NO CLEAR */
