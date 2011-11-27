@@ -157,6 +157,9 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
                        struct inst *pc, struct inst *arg, int *top, \
                        struct frame *fr
 
+/* used for passing PRIM_PROTOTYPE args to a helper function */
+#define PRIM_HELPER    player, program, mlev, pc, arg, top, fr
+
 #define SORTTYPE_CASEINSENS     0x1 
 #define SORTTYPE_DESCENDING     0x2 
 

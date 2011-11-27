@@ -24,6 +24,84 @@ extern int prop_read_perms(dbref player, dbref obj, const char *name, int mlev);
 extern int prop_write_perms(dbref player, dbref obj, const char *name,
                             int mlev);
 
+
+/* Parse an oper and obtain the address of the array it points to; either the
+   oper itself if it's an array, or the contents of a variable. Aborts if
+   the oper does not contain an array or a variable, or if the variable does
+   not contain an array.
+   
+   This is only useful with primitives that modify an array and return it. Don't
+   use it just because your input args *operate* on an array.
+   
+   -brevantes */
+struct inst *
+helper_oper_getarray(PRIM_PROTOTYPE, struct inst *oper, char *errbuf) {
+    struct inst *result;
+
+    switch (oper->type) {
+        case PROG_ARRAY:
+            return(oper);
+        case PROG_VAR:
+            result = &fr->variables[oper->data.number];
+        case PROG_SVAR:
+            result = scopedvar_get(fr, 0, oper->data.number);
+            break;
+        case PROG_LVAR:{
+            struct localvars *tmp2 = localvars_get(fr, program);
+            result = &(tmp2->lvars[oper->data.number]);
+            break;
+        }
+        default:
+            strcpy(errbuf,"Argument not an array or variable.");
+            return NULL;
+    }
+
+    if (result->type != PROG_ARRAY) {
+        strcpy(errbuf,"Argument variable does not contain an array.");
+        return NULL;
+    }
+
+    return result;
+}
+
+/* Send the array where it needs to go; either the stack or into a variable.
+   It's meant as a complement to helper_oper_getarray, and likewise should only
+   be used in primitives that take an array as input and return a modified one.
+   (in fact, it's dangerous if you aren't because it NULLs oper->data.array)
+
+   If the array was stored into a variable, a variable is returned to the stack.
+   This is unusual, but it maintains a consistent stack operating methodology
+   with how the modifying array prims chain into each other in a series:
+
+   "foo" 1 array_make var! myvar
+   "bar" myvar @ array_appenditem "baz" swap array_appenditem
+   myvar !
+
+   "foo" 1 array_make var! myvar
+   "bar" myvar array_appenditem "baz" array_appenditem
+   pop
+
+   -brevantes */
+void
+helper_array_push(PRIM_PROTOTYPE,
+                  struct inst *oper) {
+
+    if (oper->type == PROG_ARRAY) {
+        stk_array *nw = oper->data.array;
+       
+        /* prevent data.array from being de-incremented a second time */ 
+        oper->data.array = NULL;
+        CLEAR(oper);
+        PushArrayRaw(nw);
+    } else {
+        /* a variable - the kind doesn't matter because we modified it by
+           address directly. all that's left to do is push the variable back to
+           the top of the stack. */
+        PushInst(oper);
+        /* NO CLEAR */
+    }
+}
+
 void
 prim_array_make(PRIM_PROTOTYPE)
 {
@@ -341,7 +419,8 @@ prim_array_getitem(PRIM_PROTOTYPE)
 void
 prim_array_setitem(PRIM_PROTOTYPE)
 {
-    stk_array *nw;
+    //stk_array *nw;
+    struct inst *in; /* helper return */
 
     CHECKOP(3);
     oper1 = POP();              /* ???  index to store at */
@@ -349,87 +428,105 @@ prim_array_setitem(PRIM_PROTOTYPE)
     oper3 = POP();              /* ???  item to store     */
 
     if (oper1->type != PROG_INTEGER && oper1->type != PROG_STRING)
-        abort_interp("Argument not an integer or string. (2)");
-    if (oper2->type != PROG_ARRAY)
-        abort_interp("Argument not an array. (1)");
+        abort_interp("Argument not an integer or string. (3)");
+    //if (oper2->type != PROG_ARRAY)
+    //    abort_interp("Argument not an array. (1)");
+    if (!(in = helper_oper_getarray(PRIM_HELPER, oper2, buf))) {
+        strcat(buf," (2)");
+        abort_interp(buf);
+    }
 
-    result = array_setitem(&oper2->data.array, oper1, oper3);
+    //result = array_setitem(&oper2->data.array, oper1, oper3);
+    result = array_setitem(&in->data.array, oper1, oper3);
     if (result < 0) {
         char tBuf[BUFFER_LEN];
 
 		if (result == -4)
-			abort_interp("Argument not an integer. (2)");
+			abort_interp("Argument not an integer. (3)");
 		if (result == -5)
-			abort_interp("Array index out of range. (2)");
+			abort_interp("Array index out of range. (3)");
 
         sprintf(tBuf, "Internal Error Code: %d", result);
         abort_interp(tBuf);
         /* abort_interp("Index out of array bounds. (3)"); */
     }
 
-    nw = oper2->data.array;
-    oper2->data.array = NULL;
+    //nw = oper2->data.array;
+    //oper2->data.array = NULL;
 
     CLEAR(oper1);
-    CLEAR(oper2);
+    //CLEAR(oper2);
     CLEAR(oper3);
-
-    PushArrayRaw(nw);
+    helper_array_push(PRIM_HELPER, oper2);
 }
 
 void
 prim_array_appenditem(PRIM_PROTOTYPE)
 {
-    stk_array *nw;
+    //stk_array *nw;
+    struct inst *in; /* helper return */
 
     CHECKOP(2);
-    oper2 = POP();              /* arr  Array to store in */
-    oper1 = POP();              /* ???  item to store     */
+    oper2 = POP();              /* arr/var  Array to store in */
+    oper1 = POP();              /* ???      item to store     */
 
-    if (oper2->type != PROG_ARRAY)
-        abort_interp("Argument not an array. (2)");
-    if (oper2->data.array && oper2->data.array->type != ARRAY_PACKED)
-        abort_interp("Argument must be a list type array. (2)");
+    //if (oper2->type != PROG_ARRAY)
+    //    abort_interp("Argument not an array. (2)");
+    if (!(in = helper_oper_getarray(PRIM_HELPER, oper2, buf))) {
+        strcat(buf," (2)");
+        abort_interp(buf);
+    }
+    //if (oper2->data.array && oper2->data.array->type != ARRAY_PACKED)
+    if (in->data.array && in->data.array->type != ARRAY_PACKED)
+        abort_interp("Argument must contain a list type array. (2)");
 
-    result = array_appenditem(&oper2->data.array, oper1);
+    //result = array_appenditem(&oper2->data.array, oper1);
+    result = array_appenditem(&in->data.array, oper1);
+        
     if (result == -1)
         abort_interp("Internal Error!");
 
-    nw = oper2->data.array;
-    oper2->data.array = NULL;
+    //nw = oper2->data.array;
+    //oper2->data.array = NULL;
 
     CLEAR(oper1);
-    CLEAR(oper2);
-
-    PushArrayRaw(nw);
+    //CLEAR(oper2);
+    helper_array_push(PRIM_HELPER, oper2);
 }
 
 void
 prim_array_insertitem(PRIM_PROTOTYPE)
 {
-    stk_array *nw;
+    //stk_array *nw;
+    struct inst *in; /* helper return */
 
     CHECKOP(3);
     oper1 = POP();              /* ???  index to store at */
     oper2 = POP();              /* arr  Array to store in */
     oper3 = POP();              /* ???  item to store     */
     if (oper1->type != PROG_INTEGER && oper1->type != PROG_STRING)
-        abort_interp("Argument not an integer or string. (2)");
-    if (oper2->type != PROG_ARRAY)
-        abort_interp("Argument not an array. (1)");
+        abort_interp("Argument not an integer or string. (3)");
+    //if (oper2->type != PROG_ARRAY)
+    //    abort_interp("Argument not an array. (1)");
+    if (!(in = helper_oper_getarray(PRIM_HELPER, oper2, buf))) {
+        strcat(buf," (2)");
+        abort_interp(buf);
+    }
 
-    result = array_insertitem(&oper2->data.array, oper1, oper3);
+    //result = array_insertitem(&oper2->data.array, oper1, oper3);
+    result = array_insertitem(&in->data.array, oper1, oper3);
     if (result < 0)
         abort_interp("Index out of array bounds. (3)");
 
-    nw = oper2->data.array;
-    oper2->data.array = NULL;
+    //nw = oper2->data.array;
+    //oper2->data.array = NULL;
 
     CLEAR(oper1);
-    CLEAR(oper2);
+    //CLEAR(oper2);
     CLEAR(oper3);
+    helper_array_push(PRIM_HELPER, oper2);
 
-    PushArrayRaw(nw);
+    //PushArrayRaw(nw);
 }
 
 
@@ -529,25 +626,32 @@ prim_array_insertrange(PRIM_PROTOTYPE)
 void
 prim_array_delitem(PRIM_PROTOTYPE)
 {
-    stk_array *nw;
+    //stk_array *nw;
+    struct inst *in;
 
     CHECKOP(2);
     oper1 = POP();              /* int  item to delete */
     oper2 = POP();              /* arr  Array   */
     if (oper1->type != PROG_INTEGER && oper1->type != PROG_STRING)
         abort_interp("Argument not an integer or string. (2)");
-    if (oper2->type != PROG_ARRAY)
-        abort_interp("Argument not an array. (1)");
+    //if (oper2->type != PROG_ARRAY)
+    //    abort_interp("Argument not an array. (1)");
+    if (!(in = helper_oper_getarray(PRIM_HELPER, oper2, buf))) {
+        strcat(buf," (1)");
+        abort_interp(buf);
+    }
 
-    result = array_delitem(&oper2->data.array, oper1);
+    //result = array_delitem(&oper2->data.array, oper1);
+    result = array_delitem(&in->data.array, oper1);
 
-    nw = oper2->data.array;
-    oper2->data.array = NULL;
+    //nw = oper2->data.array;
+    //oper2->data.array = NULL;
 
     CLEAR(oper1);
-    CLEAR(oper2);
+    //CLEAR(oper2);
 
-    PushArrayRaw(nw);
+    //PushArrayRaw(nw);
+    helper_array_push(PRIM_HELPER, oper2);
 }
 
 
@@ -2361,6 +2465,7 @@ prim_array_nested_set(PRIM_PROTOTYPE)
     struct inst *idx;
     struct inst *dat;
     struct inst temp;
+    struct inst *in;
     stk_array *arr;
     stk_array *idxarr;
     int i, idxcnt;
@@ -2374,8 +2479,13 @@ prim_array_nested_set(PRIM_PROTOTYPE)
         abort_interp("Argument not an array of indexes. (3)");
     if (!oper1->data.array || oper1->data.array->type == ARRAY_DICTIONARY)
         abort_interp("Argument not an array of indexes. (3)");
-    if (oper2->type != PROG_ARRAY)
-        abort_interp("Argument not an array. (2)");
+    //if (oper2->type != PROG_ARRAY)
+    //    abort_interp("Argument not an array. (2)");
+    if (!(in = helper_oper_getarray(PRIM_HELPER, oper2, buf))) {
+        strcat(buf," (2)");
+        abort_interp(buf);
+    }
+
 
     idxarr = oper1->data.array;
     idxcnt = array_count(idxarr);
@@ -2383,9 +2493,11 @@ prim_array_nested_set(PRIM_PROTOTYPE)
         abort_interp("Nesting would be too deep. (3)");
 
     if (idxcnt == 0) {
-        copyinst(oper2, &nest[0]);
+        //copyinst(oper2, &nest[0]);
+        copyinst(in, &nest[0]);
     } else {
-        dat = oper2;
+        //dat = oper2;
+        dat = in;
         for (i = 0; i < idxcnt; i++) {
             copyinst(dat, &nest[i]);
             temp.type = PROG_INTEGER;
@@ -2424,12 +2536,22 @@ prim_array_nested_set(PRIM_PROTOTYPE)
     }
 
     CLEAR(oper1);
-    CLEAR(oper2);
+    //CLEAR(oper2);
     CLEAR(oper3);
 
     /* copy data to stack, then clear temp inst */
-    copyinst(&nest[0], &arg[(*top)++]);
-    CLEAR(&nest[0]);
+    switch (oper2->type) {
+        case PROG_ARRAY:
+            CLEAR(oper2);
+            copyinst(&nest[0], &arg[(*top)++]);
+            CLEAR(&nest[0]);
+            break;
+        default: /* some kind of variable */
+            copyinst(&nest[0], in);
+            CLEAR(&nest[0]);
+            PushInst(oper2);
+            /* NO CLEAR */
+    }
 }
 
 void
@@ -2439,6 +2561,8 @@ prim_array_nested_del(PRIM_PROTOTYPE)
     struct inst *idx;
     struct inst *dat;
     struct inst temp;
+    struct inst *in;
+
     stk_array *idxarr;
     int i, idxcnt;
 
@@ -2450,8 +2574,12 @@ prim_array_nested_del(PRIM_PROTOTYPE)
         abort_interp("Argument not an array of indexes. (2)");
     if (!oper1->data.array || oper1->data.array->type == ARRAY_DICTIONARY)
         abort_interp("Argument not an array of indexes. (2)");
-    if (oper2->type != PROG_ARRAY)
-        abort_interp("Argument not an array. (1)");
+    //if (oper2->type != PROG_ARRAY)
+    //    abort_interp("Argument not an array. (1)");
+    if (!(in = helper_oper_getarray(PRIM_HELPER, oper2, buf))) {
+        strcat(buf," (2)");
+        abort_interp(buf);
+    }
 
     idxarr = oper1->data.array;
     idxcnt = array_count(idxarr);
@@ -2459,11 +2587,13 @@ prim_array_nested_del(PRIM_PROTOTYPE)
         abort_interp("Nesting would be too deep. (2)");
 
     if (idxcnt == 0) {
-        copyinst(oper2, &nest[0]);
+        //copyinst(oper2, &nest[0]);
+        copyinst(in, &nest[0]);
     } else {
         int doneearly = 0;
 
-        dat = oper2;
+        //dat = oper2;
+        dat = in;
         for (i = 0; i < idxcnt; i++) {
             copyinst(dat, &nest[i]);
             temp.type = PROG_INTEGER;
@@ -2496,11 +2626,23 @@ prim_array_nested_del(PRIM_PROTOTYPE)
     }
 
     CLEAR(oper1);
-    CLEAR(oper2);
+    //CLEAR(oper2);
 
     /* copy data to stack, then clear temp inst */
-    copyinst(&nest[0], &arg[(*top)++]);
-    CLEAR(&nest[0]);
+    //copyinst(&nest[0], &arg[(*top)++]);
+    //CLEAR(&nest[0]);
+    switch (oper2->type) {
+        case PROG_ARRAY:
+            CLEAR(oper2);
+            copyinst(&nest[0], &arg[(*top)++]);
+            CLEAR(&nest[0]);
+            break;
+        default: /* some kind of variable */
+            copyinst(&nest[0], in);
+            CLEAR(&nest[0]);
+            PushInst(oper2);
+            /* NO CLEAR */
+    }
 }
 
 void
