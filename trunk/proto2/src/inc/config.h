@@ -148,14 +148,20 @@
 
 #define FILE_PRIMS
 
-/* Alynna -- ACHTUNG!  PELIGRO!  DANGER!
+/* ACHTUNG!  PELIGRO!  DANGER!
  * DO NOT DEFINE UNDER PENALTY OF LAW.  This define is DANGEROUS.
  * Define this if you want to run Proto as root, and still have 
  * access to things like file primitives and other potential
- * compromises.  You might want to do this if you decided that
- * ProtoMUCK is a better webserver than Apache. 
+ * compromises.  If you want to use ProtoMUCK as a webserver on
+ * a privileged port (<=1024, like 80), it's recommended that you
+ * do NOT turn this define on, and instead use a proxying webserver
+ * that drops root privileges after the port bind. (ProtoMUCK does
+ * not do this)  You can usually configure a proxying webserver to
+ * proxy traffic sent to the root URI (/) if that is what you are
+ * trying to accomplish, but note that you will need to refer to
+ * the proxy's logs in order to get the real IP address of clients
+ * (or extract it from a header like X-Forwarded-For).
  *
- * See http://www.protomuck.org/ for an example of this. :)
  */
 /* Made this into a configure option, available via:
  *   ./configure --enable-asroot
