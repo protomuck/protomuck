@@ -132,7 +132,7 @@ Strings Prims:
   ESCAPE_ANSI   ANSI_STRLEN  ANSI_STRCUT  ANSI_STRIP   STRIPSPACES
   NAME-OK?      PNAME-OK?    ANSI_MIDSTR  PARSE_NEON   FLAG_2CHAR
   POWER_2CHAR   UNESCAPE_URL ESCAPE_URL   SHA1HASH     MD5HASH
-  REGMATCH      REGSUB       REGEXP
+  REGMATCH      REGSUB       REGEXP       FMTSTRINGEX
  
 See: PRIMS5
 ~~~~~
@@ -195,7 +195,7 @@ ARRAY_CUT           ARRAY_COMPARE       ARRAY_SORT_INDEXED  ARRAY_NESTED_GET
 ARRAY_SUM           ARRAY_GETLINKS      ARRAY_FMTSTRINGS    ARRAY_NESTED_SET
 ARRAY_STRING_FRAGMENT                                       ARRAY_NESTED_DEL
 
-            }ARRAY     }LIST     }DICT     }JOIN     }CAT     }TELL    
+            }ARRAY     }LIST     }DICT     }JOIN    }CAT      }TELL    
 
             []         ->[]      []<-      [^]      [x]       [..]
                       *->[]     *[]<-     *[^]     *[x]
@@ -6863,7 +6863,13 @@ identifiers:
             variable type is
 ~~~~
 ARRAY_FMTSTRINGS
+
 ARRAY_FMTSTRINGS ( list:dicts str:format -- list:results )
+----------------------------------------------------------
+Level: M1 Apprentice
+dicts:   An array of arrays or dictionaries with keys and values
+format:  A format string
+results: An array of strings, formatted as specified
 
   Lets you apply a format string, a la FMTSTRING, to each of a list of
 dictionaries of input data, returning a list of strings, one for each
@@ -6909,18 +6915,43 @@ list of dictionaries.
 Note that unlike FMTSTRING, the format strings cannot use calculated
 field widths or precisions via '*'.
 
-  Hint: If you want to use this format method on a single dictionary, you
-can do something like:
+  Hint: If you want to use this format method on a single dictionary
+or array, take a look at FMTSTRINGEX.
 
-    pid getpidinfo   (to give us a dictionary of data.)
-    1 array_make     (to make a list with that as its single entry)
-    "%-40[player]D %6[pid]i %[called_prog]D" 
-    array_fmtstrings
-    0 []             (to get the formatted result string.)
-Also see: FMTSTRING
+Also see: FMTSTRING, FMTSTRINGEX
+~~~~~~
+FMTSTRINGEX
+
+fmtstringEx ( array/dict:keyvals s:format -- s:result )
+-------------------------------------------------------
+keyvals: An array of values or a dictionary of keys and values.
+format:  A format string in a similar format to FMTSTRING
+result:  The formatted string
+
+This function takes either an array of values, or a dictionary of keys and
+values, a format string using the same format as ARRAY_FMTSTRINGS, and
+returns a result formatted as specified in the format string.
+
+Examples on how this works:
+On an array:
+ { "A" "B" "C" "D" "E" "F" "G" }array 
+ "%[2]s %[0]s %[1]s %[1]s %[0]s %[6]s %[4]s" fmtstringEx
+ Result: "C A B B A G E"
+
+On a dictionary:
+ { "species" "Cat" "paws" 4 "lives" 9 }dict
+ "This is a %[species]s.  It has %[paws]i paws and %[lives]i lives." fmtstringEx
+ Result: "This is a cat.  It has 4 paws and 9 lives."
+
+fmtstringEx is primarily a convenience wrapper for array_fmtstrings, and is
+an inserver define for:
+ swap 1 array_make array_fmtstrings 0 array_getitem
+
+When you want to operate on an array of data, use ARRAY_FMTSTRINGS
+
+Also see: ARRAY_FMTSTRINGS, FMTSTRING
 ~~~~~~
 DESCR_ARRAY
-
 
 descr_array (d -- a) 
 --------------------
