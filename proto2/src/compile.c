@@ -585,6 +585,10 @@ include_internal_defs(COMPSTATE *cstat)
     insert_def(cstat, "*[^]", "over -4 rotate swap @ swap array_insertitem swap !");
     insert_def(cstat, "*[..]", "3 pick dup -5 rotate @ 3 put array_getrange swap !");
     insert_def(cstat, "*[x]", "over @ swap array_delitem swap !");
+    /* fmtstringEx: a version of array_fmtstrings that operates on a single dict/array 
+       and returns a single string.  Covers 99% of cases of use of that prim. */
+    insert_def(cstat, "fmtstringEx", "swap 1 array_make swap array_fmtstrings 0 array_getitem");
+
 #ifdef IGNORE_SUPPORT
     insert_def(cstat, "MAX_IGNORES", MUF_MAX_IGNORES);
     insert_def(cstat, "IGNORE_ADD", "\"/@/ignore\" swap reflist_add");

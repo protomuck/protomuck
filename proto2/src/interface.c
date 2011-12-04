@@ -2143,7 +2143,7 @@ shovechars(void)
 
                     /* Get the data waiting */
                     memset(buf, 0, sizeof(buf));
-                    e = recvfrom(udp_sockets[i].socket6, buf, sizeof(buf), 0,
+                    recvfrom(udp_sockets[i].socket6, buf, sizeof(buf), 0,
                                  (struct sockaddr *) &tmpaddr6, &tmpsz6);
                     /* And dispatch the UDP event */
                     strncpy(buf2, ip_address(tmpaddr6.sin6_addr.s6_addr), 64);
