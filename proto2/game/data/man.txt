@@ -189,7 +189,7 @@ ARRAY_GET_REFLIST   ARRAY_PUT_REFLIST   ARRAY_JOIN          ARRAY_NOTIFY_HTML
 CONTENTS_ARRAY      EXITS_ARRAY         ARRAY_FINDVAL       FIND_ARRAY
 ENTRANCES_ARRAY     ONLINE_ARRAY        ARRAY_EXCLUDEVAL    REGFIND_ARRAY
 GETOBJINFO          GETDESCRINFO        ARRAY_EXTRACT       ARRAY_FILTER_FLAGS
-ARRAY_MATCHVAL      ARRAY_MATCHKEY                          ARRAY_FILTER_PROP
+ARRAY_MATCHVAL      ARRAY_MATCHKEY      ARRAY_FILTER_SMART  ARRAY_FILTER_PROP
 ARRAY_REGMATCHVAL   ARRAY_REGMATCHKEY   ARRAY_REGSUB        ARRAY_REGFILTER_PROP
 ARRAY_CUT           ARRAY_COMPARE       ARRAY_SORT_INDEXED  ARRAY_NESTED_GET
 ARRAY_SUM           ARRAY_GETLINKS      ARRAY_FMTSTRINGS    ARRAY_NESTED_SET
@@ -5882,7 +5882,7 @@ ARRAY_GET_REFLIST   ARRAY_PUT_REFLIST   ARRAY_JOIN          ARRAY_NOTIFY_HTML
 CONTENTS_ARRAY      EXITS_ARRAY         ARRAY_FINDVAL       FIND_ARRAY
 ENTRANCES_ARRAY     ONLINE_ARRAY        ARRAY_EXCLUDEVAL    REGFIND_ARRAY
 GETOBJINFO          GETDESCRINFO        ARRAY_EXTRACT       ARRAY_FILTER_FLAGS
-ARRAY_MATCHVAL      ARRAY_MATCHKEY                          ARRAY_FILTER_PROP
+ARRAY_MATCHVAL      ARRAY_MATCHKEY      ARRAY_FILTER_SMART  ARRAY_FILTER_PROP
 ARRAY_REGMATCHVAL   ARRAY_REGMATCHKEY   ARRAY_REGSUB        ARRAY_REGFILTER_PROP
 ARRAY_CUT           ARRAY_COMPARE       ARRAY_SORT_INDEXED  ARRAY_NESTED_GET
 ARRAY_SUM           ARRAY_GETLINKS      ARRAY_FMTSTRINGS    ARRAY_NESTED_SET
@@ -11419,3 +11419,43 @@ x and y = Any two objects on the top of the stack.
 Duplicates the top thing on the stack and places it under the second-to-top
 thing on the stack.
 If there are fewer than two objects on the stack, the program will abort.
+~~~
+ARRAY_FILTER_SMART
+
+array_filter_smart ( a1 i1 s1 x1 -- a2 )
+------------------------------------------
+
+Filters a1 (an array of dbrefs) based on the setting of i1 and the values provided by s1 and x1.
+
+i1 is a flag bitfield.  You may BITOR values together to make the appropriate filter.
+s1 is the property name
+x1 is the value you are searching for
+
+The valid flags are:
+
+FILTER_PROP_INT
+FILTER_PROP_FLOAT
+FILTER_PROP_DBREF
+FILTER_PROP_STRING
+FILTER_PROP_LOCK (not implemented)
+  These select what type of prop(s) you want to search for.
+
+FILTER_PROP_NUMBER
+  This is basically an alias to FILTER_PROP_INT and FILTER_PROP_FLOAT OR'd together.
+
+FILTER_PROP_EXISTS
+  Checks if the prop exists, regardless of type.
+
+FILTER_PROPNAME_SMATCH (not implemented)
+  This specifies you want to use SMATCH-based checking for property names (s1)
+
+FILTER_GREATER
+FILTER_LESSER
+FILTER_EQUAL
+FILTER_NOTEQUAL
+FILTER_SMATCH
+  This selects the type of matching you want to perform (x1)
+
+FILTER_CASELESS
+  Match strings with caseless checks
+
