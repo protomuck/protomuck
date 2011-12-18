@@ -6503,8 +6503,10 @@ mccp_start(struct descriptor_data *d, int version)
     struct mccp *m;
     int opt = 0;
 
+#ifdef USE_SSL
     if (d->type == CT_SSL)
-        return; 
+        return;
+#endif
    
     m = (struct mccp *) malloc(sizeof(struct mccp));
     m->z = NULL;
