@@ -512,7 +512,10 @@ muf_funcprof_enter(struct frame *fr, const char *funcname)
 	struct funcprof *fpr = (struct funcprof *)malloc(sizeof(struct funcprof));
 	struct timeval fulltime;
 
-        gettimeofday(&fulltime, (struct timezone *) 0);
+	if (!tp_muf_profiling)
+		return;
+
+    gettimeofday(&fulltime, (struct timezone *) 0);
 
 	fpr->next = fr->fprofile;
 	fpr->funcname = alloc_string(funcname);
@@ -1407,7 +1410,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
             }
         } else {
             int lzn = 0;
-            if (tp_msec_slice && !(instr_count % 100))
+            if (tp_msec_slice && !(instr_count % tp_instr_slice))
                 gettimeofday(&current_time, (struct timezone *) 0);
 
             /* if in FOREGROUND or BACKGROUND mode, '0 sleep' every so often. */

@@ -362,6 +362,7 @@ int tp_autolinking = 1;
 int tp_spaces_in_playernames = 0;
 int tp_mush_format_escapes = 0;
 int tp_strict_mush_escapes = 0;
+int tp_muf_profiling       = 0;
 
 /* int tp_require_has_mpi_arg = 0; */
 
@@ -455,6 +456,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"System", "multi_wizlevels", &tp_multi_wizlevels, LBOY, LMUF},
     {"Database", "auto_archive", &tp_auto_archive, LBOY, LMAGE},
     {"MUF", "optimize_muf", &tp_optimize_muf, LBOY, LMAGE},
+	{"MUF", "muf_profiling", &tp_muf_profiling, LBOY, LMAGE},
     {"MUF", "compatible_muf_perms", &tp_compatible_muf_perms, LBOY, LMAGE},
     {"Idletime", "allow_unidle", &tp_allow_unidle, LARCH, LMUF},
     {"Math", "alt_infinity_handler", &tp_alt_infinity_handler, LARCH, LMUF},
