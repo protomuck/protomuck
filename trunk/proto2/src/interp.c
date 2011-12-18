@@ -509,13 +509,14 @@ void
 muf_funcprof_enter(struct frame *fr, const char *funcname)
 {
 
-	struct funcprof *fpr = (struct funcprof *)malloc(sizeof(struct funcprof));
+	struct funcprof *fpr;
 	struct timeval fulltime;
 
 	if (!tp_muf_profiling)
 		return;
 
-    gettimeofday(&fulltime, (struct timezone *) 0);
+        fpr = (struct funcprof *)malloc(sizeof(struct funcprof));
+        gettimeofday(&fulltime, (struct timezone *) 0);
 
 	fpr->next = fr->fprofile;
 	fpr->funcname = alloc_string(funcname);
