@@ -1212,6 +1212,204 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
     PushArrayRaw(nu);
 }
 
+void prim_array_filter_smart(PRIM_PROTOTYPE)
+{
+    struct inst *in;
+    struct inst temp1;
+    stk_array *arr;
+    stk_array *nu;
+    char* prop;
+    const char* ptr;
+	PropPtr prptr;
+	int fflags;
+	int val_int = 0;
+	double val_flt = 0.0;
+	dbref val_ref = 0;
+	char val_str[BUFFER_LEN];	
+	CHECKOP(4);
+    oper1 = POP(); /* x1 */
+	oper2 = POP(); /* s1 - propname */
+	oper3 = POP(); /* i1 - flags */
+	oper4 = POP(); /* a1 - array */
+	
+	if (oper4->type != PROG_ARRAY)
+        abort_interp("Argument not an array. (1)");
+    if (!array_is_homogenous(oper4->data.array, PROG_OBJECT))
+        abort_interp("Argument not an array of dbrefs. (1)");
+    if (oper2->type != PROG_STRING || !oper2->data.string)
+        abort_interp("Argument not a non-null string. (3)");
+    if (oper3->type != PROG_INTEGER)
+        abort_interp("Argument not an integer. (2)");
+
+	fflags = oper3->data.number;
+
+	if (fflags & FILTER_PROPNAME_SMATCH)
+		abort_interp("FILTER_PROPNAME_SMATCH is not currently supported");
+	if (fflags & FILTER_PROP_LOCK)
+		abort_interp("FILTER_PROP_LOCK is not currently supported");
+
+	if (!(fflags & FILTER_PROP_EXISTS)) {
+		strcpy(val_str, "");
+		switch (oper1->type) {
+			case PROG_STRING:
+				if (oper1->data.string) {
+					strcpy(val_str, oper1->data.string->data);
+					val_int = atoi(val_str);
+					val_ref = (dbref)atoi(val_str);
+					if (ifloat(val_str))
+						sscanf(val_str, "%lg", &val_flt);
+				}
+				break;
+			case PROG_INTEGER:
+				val_int = oper1->data.number;
+				val_ref = oper1->data.number;
+				val_flt = oper1->data.number;
+				sprintf(val_str, "%d", oper1->data.number);
+				break;
+			case PROG_FLOAT:
+				val_int = oper1->data.fnumber;
+				val_ref = oper1->data.fnumber;
+				val_flt = oper1->data.fnumber;
+				sprintf(val_str, "%#.15g", oper1->data.fnumber);
+				break;
+			case PROG_OBJECT:
+				val_int = oper1->data.objref;
+				val_ref = oper1->data.objref;
+				val_flt = oper1->data.objref;
+				sprintf(val_str, "#%d", oper1->data.objref);
+				break;
+			default:
+				abort_interp("Unmatchable type specified (4)");
+				break;
+		}
+	}
+
+    ptr = oper2->data.string->data;
+    while ((ptr = index(ptr, PROPDIR_DELIMITER)))
+        if (!(*(++ptr)))
+            abort_interp("Cannot access a propdir directly.");
+
+
+    nu = new_array_packed(0);
+    arr = oper4->data.array;
+    prop = (char *) DoNullInd(oper2->data.string);
+
+    if (array_first(arr, &temp1)) {
+        do {
+			bool isyes = 0;
+
+            in = array_getitem(arr, &temp1);
+            if (valid_object(in)) {
+                ref = in->data.objref;
+                CHECKREMOTE(ref);
+                if (prop_read_perms(ProgUID, ref, prop, mlev)) {
+					prptr = get_property(ref, prop);
+					if (prptr) {
+						if (fflags & FILTER_PROP_EXISTS) {
+							isyes = 1;
+						} else {
+							double fresult;
+							char *temp;
+#ifdef DISKBASE
+							propfetch(oper2->data.objref, prptr);
+#endif
+							switch(PropType(prptr)) {
+								case PROP_STRTYP:
+									if (fflags & FILTER_PROP_STRING) {
+										temp = (char *)PropDataUNCStr(prptr);
+										if (fflags & FILTER_SMATCH)
+											if (equalstr(val_str, temp))
+												isyes = 1;
+
+										if (fflags & FILTER_CASELESS) {
+											result = string_compare(temp, val_str);
+										} else {
+											result = strcmp(temp, val_str);
+										}
+
+										if (fflags & FILTER_EQUAL && !result)
+											isyes = 1;
+
+										if (fflags & FILTER_GREATER && result > 0)
+											isyes = 1;
+
+										if (fflags & FILTER_LESSER && result < 0)
+											isyes = 1;
+
+										if (fflags & FILTER_NOTEQUAL && result)
+											isyes = 1;
+									}
+									break;
+								case PROP_INTTYP:
+									 if (fflags & FILTER_PROP_INT) {
+										result = PropDataVal(prptr);
+
+										if (fflags & FILTER_EQUAL && (result == val_int))
+											isyes = 1;
+
+										if (fflags & FILTER_GREATER && (result > val_int))
+											isyes = 1;
+
+										if (fflags & FILTER_LESSER && (result < val_int))
+											isyes = 1;
+
+										if (fflags & FILTER_NOTEQUAL && (result != val_int))
+											isyes = 1;	 
+									 }
+									 break;
+								case PROP_FLTTYP:
+									if (fflags & FILTER_PROP_FLOAT) {
+										fresult = PropDataFVal(prptr);
+
+										if (fflags & FILTER_EQUAL && (fresult == val_flt))
+											isyes = 1;
+
+										if (fflags & FILTER_GREATER && (fresult > val_flt))
+											isyes = 1;
+
+										if (fflags & FILTER_LESSER && (fresult < val_flt))
+											isyes = 1;
+
+										if (fflags & FILTER_NOTEQUAL && (fresult != val_flt))
+											isyes = 1;
+									 }
+									 break;
+								case PROP_REFTYP:
+									if (fflags & FILTER_PROP_FLOAT) {
+										ref = PropDataRef(prptr);
+
+										if (fflags & FILTER_EQUAL && (ref == val_ref))
+											isyes = 1;
+
+										if (fflags & FILTER_GREATER && (ref > val_ref))
+											isyes = 1;
+
+										if (fflags & FILTER_LESSER && (ref < val_ref))
+											isyes = 1;
+
+										if (fflags & FILTER_NOTEQUAL && (ref != val_ref))
+											isyes = 1;
+									}
+									break;
+								default:
+									break;
+							}
+						}
+
+						if (isyes)
+							array_appenditem(&nu, in);
+					}
+                }
+            }
+        } while (array_next(arr, &temp1));
+    }
+	CLEAR(oper4);
+    CLEAR(oper3);
+    CLEAR(oper2);
+    CLEAR(oper1);
+    PushArrayRaw(nu);
+}
+
 void
 prim_reflist_find(PRIM_PROTOTYPE)
 {

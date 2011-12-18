@@ -488,6 +488,20 @@ include_internal_defs(COMPSTATE *cstat)
     insert_intdef(cstat, "sorttype_nocase_descend", SORTTYPE_NOCASE_DESCEND);
     insert_intdef(cstat, "sorttype_shuffle", SORTTYPE_SHUFFLE);
 
+    insert_intdef(cstat, "filter_caseless",    FILTER_CASELESS);
+	insert_intdef(cstat, "filter_equal",       FILTER_EQUAL);
+	insert_intdef(cstat, "filter_greater",     FILTER_GREATER);
+	insert_intdef(cstat, "filter_lesser",      FILTER_LESSER);
+	insert_intdef(cstat, "filter_notequal",    FILTER_NOTEQUAL);
+	insert_intdef(cstat, "filter_smatch",      FILTER_SMATCH);
+	insert_intdef(cstat, "filter_prop_dbref",  FILTER_PROP_DBREF);
+	insert_intdef(cstat, "filter_prop_exists", FILTER_PROP_EXISTS);
+	insert_intdef(cstat, "filter_prop_float",  FILTER_PROP_FLOAT);
+	insert_intdef(cstat, "filter_prop_int",    FILTER_PROP_INT);
+	insert_intdef(cstat, "filter_prop_lock",   FILTER_PROP_LOCK);
+	insert_intdef(cstat, "filter_prop_number", FILTER_PROP_NUMBER);
+	insert_intdef(cstat, "filter_prop_string", FILTER_PROP_STRING);
+	insert_intdef(cstat, "filter_propname_smatch", FILTER_PROPNAME_SMATCH);
 
     /* Make defines for compatability to removed primitives */
     insert_def(cstat, "nextthing", "#-1 \"\" \"T\" findnext");

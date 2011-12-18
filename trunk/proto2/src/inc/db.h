@@ -21,7 +21,6 @@
 #include <mysql/mysql_version.h>
 #endif
 
-
 #ifdef USE_SSL
 # if defined (HAVE_OPENSSL_SSL_H)
 #  include <openssl/ssl.h>
@@ -210,6 +209,22 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define SETLOCK(x,y)  {PData pdat; pdat.flags = PROP_LOKTYP; pdat.data.lok = y; set_property(x, "_/lok", &pdat);}
 #define LOADLOCK(x,y) {PData pdat; pdat.flags = PROP_LOKTYP; pdat.data.lok = y; set_property_nofetch(x, "_/lok", &pdat, 0); DBDIRTY(x);}
 #define CLEARLOCK(x)  {PData pdat; pdat.flags = PROP_LOKTYP; pdat.data.lok = TRUE_BOOLEXP; set_property(x, "_/lok", &pdat); DBDIRTY(x);}
+
+/* these are used by ARRAY_FILTER_SMART */
+#define FILTER_PROP_INT           0x1 /* 1 */
+#define FILTER_PROP_FLOAT         0x2 /* 2 */
+#define FILTER_PROP_NUMBER        0x3 /* 3 */
+#define FILTER_PROP_DBREF         0x4 /* 4 */
+#define FILTER_PROP_STRING        0x8 /* 8 */
+#define FILTER_PROP_LOCK         0x10 /* 16 */
+#define FILTER_PROPNAME_SMATCH   0x20 /* 32 */
+#define FILTER_GREATER           0x40 /* 64 */
+#define FILTER_LESSER            0x80 /* 128 */
+#define FILTER_EQUAL            0x100 /* 256 */
+#define FILTER_NOTEQUAL         0x200 /* 512 */
+#define FILTER_SMATCH           0x400 /* 1024 */
+#define FILTER_CASELESS         0x800 /* 2048 */
+#define FILTER_PROP_EXISTS     0x1000 /* 4096 */
 
 #define DB_PARMSINFO    0x0001
 #define DB_COMPRESSED   0x0002
