@@ -4209,7 +4209,9 @@ parse_connect(const char *msg, char *command, char *user, char *pass)
 {
     int cnt = 0;
     char *p = NULL;
+    const char *start = NULL;
     int bInQuotes = 0;
+    int lastSpace = -1;
 
     while (*msg && isascii(*msg) && isspace(*msg)) /* space */
         msg++;
@@ -4228,8 +4230,7 @@ parse_connect(const char *msg, char *command, char *user, char *pass)
         if ( *msg && ++cnt < 80 && ( *msg == '\'' || *msg == '\"' ) ){
             bInQuotes = 1;
             msg++; /* Move past the quote */
-        }
-        
+        }  
         if ( bInQuotes ){
             while (*msg && isascii(*msg) && ++cnt < BUFFER_LEN && 
                    !(*msg == '\'' || *msg == '\"' )) 
@@ -4239,8 +4240,34 @@ parse_connect(const char *msg, char *command, char *user, char *pass)
         }
         else {
             /* Unquoted name, just treat as normal */
-            while (*msg && isascii(*msg) && !isspace(*msg))
-                *p++ = *msg++;
+            /* Unquoted name, find the last space in the input
+               and assume everything after that is password. */
+            cnt = 0;
+            start = msg;
+            while (*msg && isascii(*msg) && cnt < BUFFER_LEN){
+                if (isspace(*msg)){
+                    lastSpace = cnt;
+                }
+                cnt++;
+                msg++;
+            }
+            if (lastSpace == -1){
+                /* No space found, assume no password */
+                lastSpace = cnt;
+            }
+
+            /* At this point, last_space should point to the last
+               space in the input. Everything in msg before it
+               is name, everything after it is password */
+            msg = start;
+            cnt = 0; 
+            /* copying over name */
+            while (*msg && isascii(*msg) && cnt < lastSpace) {
+                *p = *msg;    
+                ++msg;
+                ++p;
+                ++cnt;
+            }
             *p = '\0';
         }
     }
@@ -6503,10 +6530,8 @@ mccp_start(struct descriptor_data *d, int version)
     struct mccp *m;
     int opt = 0;
 
-#ifdef USE_SSL
     if (d->type == CT_SSL)
-        return;
-#endif
+        return; 
    
     m = (struct mccp *) malloc(sizeof(struct mccp));
     m->z = NULL;
