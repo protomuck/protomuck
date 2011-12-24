@@ -446,6 +446,9 @@ extern int has_suffix_char(const char *, char);
 extern bool isascii_str(const char *str);
 extern char* strcatn(char* buf, size_t bufsize, const char* src);
 extern char* strcpyn(char* buf, size_t bufsize, const char* src);
+typedef char nat_char;
+extern int strnatcmp(nat_char const *a, nat_char const *b);
+extern int strnatcasecmp(nat_char const *a, nat_char const *b);
 
 /* Lazy macros to simplify writing MUSH formatting hooks in notify prims */
 #define strcpy_mush(x,y) (strcpy(x, mushformat_substitute(y)))

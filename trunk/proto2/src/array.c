@@ -35,7 +35,7 @@
 #define AVL_LF(x)  (x->left)
 #endif
 #define AVL_KEY(x) (&(x->key))
-#define AVL_COMPARE(x,y) array_tree_compare(x,y,0, 0)
+#define AVL_COMPARE(x,y) array_tree_compare(x,y,0,0,0)
 #define valid_obj(a) (a > -1 && a < db_top)
 
 
@@ -46,8 +46,9 @@
  * The 'int objname' parameter toggles this behavior. When it is 0
  * dbrefs are sorted by number instead of the object name. -Akari
  */
+/* natural = 1 performs a "natural" numeric sort on strings -Hinoserm */
 static int
-array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
+array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname, bool natural)
 {
     char pad_char[] = "";
 
@@ -80,9 +81,15 @@ array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
             char *bstr = (b->data.string) ? b->data.string->data : pad_char;
 
             if (case_sens) {
-                return strcmp(astr, bstr);
+				if (natural)
+					return strnatcmp(astr, bstr);
+				else
+					return strcmp(astr, bstr);
             } else {
-                return string_compare(astr, bstr);
+				if (natural)
+					return strnatcasecmp(astr, bstr);
+				else
+					return string_compare(astr, bstr);
             }
         } else if (a->type == PROG_STRING && b->type == PROG_OBJECT
                    && objname && valid_obj(b->data.objref)) {
@@ -90,10 +97,16 @@ array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
             char *bstr = (char *) NAME(b->data.objref);
 
             if (case_sens) {
-                return strcmp(astr, bstr);
+				if (natural)
+					return strnatcmp(astr, bstr);
+				else
+					return strcmp(astr, bstr);
             } else {
-                return string_compare(astr, bstr);
-            }
+				if (natural)
+					return strnatcasecmp(astr, bstr);
+				else
+					return string_compare(astr, bstr);
+			}
         }
         return (a->type - b->type);
     }
@@ -103,11 +116,17 @@ array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
         char *astr = (char *) NAME(a->data.objref);
         char *bstr = (char *) NAME(b->data.objref);
 
-        if (case_sens) {
-            return strcmp(astr, bstr);
-        } else {
-            return string_compare(astr, bstr);
-        }
+		if (case_sens) {
+			if (natural)
+				return strnatcmp(astr, bstr);
+			else
+				return strcmp(astr, bstr);
+		} else {
+			if (natural)
+				return strnatcasecmp(astr, bstr);
+			else
+				return string_compare(astr, bstr);
+		}
     }
     if (a->type == PROG_OBJECT) {
         if (a->data.objref > b->data.objref)
@@ -134,11 +153,17 @@ array_tree_compare(array_iter *a, array_iter *b, int case_sens, int objname)
         char *astr = (a->data.string) ? a->data.string->data : pad_char;
         char *bstr = (b->data.string) ? b->data.string->data : pad_char;
 
-        if (case_sens) {
-            return strcmp(astr, bstr);
-        } else {
-            return string_compare(astr, bstr);
-        }
+		if (case_sens) {
+			if (natural)
+				return strnatcmp(astr, bstr);
+			else
+				return strcmp(astr, bstr);
+		} else {
+			if (natural)
+				return strnatcasecmp(astr, bstr);
+			else
+				return string_compare(astr, bstr);
+		}
     } else if (a->type == PROG_ARRAY) {
         /* Sort arrays by memory address. */
         /* This is a bug, really. */
@@ -705,13 +730,13 @@ array_count(stk_array *arr)
 int
 array_idxcmp(array_iter *a, array_iter *b)
 {
-    return array_tree_compare(a, b, 0, 0);
+    return array_tree_compare(a, b, 0, 0, 0);
 }
 
 int
-array_idxcmp_case(array_iter *a, array_iter *b, int case_sens, int objnames)
+array_idxcmp_case(array_iter *a, array_iter *b, int case_sens, int objnames, bool natural)
 {
-    return array_tree_compare(a, b, case_sens, objnames);
+    return array_tree_compare(a, b, case_sens, objnames, natural);
 }
 
 int
@@ -756,7 +781,7 @@ array_contains_value(stk_array *arr, array_data *item)
             int i;
 
             for (i = arr->items; i-- > 0;) {
-                if (!array_tree_compare(&arr->data.packed[i], item, 0, 0)) {
+                if (!array_tree_compare(&arr->data.packed[i], item, 0, 0, 0)) {
                     return 1;
                 }
             }
@@ -770,7 +795,7 @@ array_contains_value(stk_array *arr, array_data *item)
             if (!p)
                 return 0;
             while (p) {
-                if (!array_tree_compare(&p->data, item, 0, 0)) {
+                if (!array_tree_compare(&p->data, item, 0, 0, 0)) {
                     return 1;
                 }
                 p = array_tree_next_node(arr->data.dict, &p->data);
@@ -1198,7 +1223,7 @@ array_getrange(stk_array *arr, array_iter *start, array_iter *end)
                     return new2;
                 }
             }
-            if (array_tree_compare(&s->key, &e->key, 0, 0) > 0) {
+            if (array_tree_compare(&s->key, &e->key, 0, 0, 0) > 0) {
                 return new2;
             }
             while (s) {
@@ -1437,7 +1462,7 @@ array_delrange(stk_array **harr, array_iter *start, array_iter *end)
                     return arr->items;
                 }
             }
-            if (array_tree_compare(&s->key, &e->key, 0, 0) > 0) {
+            if (array_tree_compare(&s->key, &e->key, 0, 0, 0) > 0) {
                 return arr->items;
             }
             if (arr->links > 1) {
@@ -1445,7 +1470,7 @@ array_delrange(stk_array **harr, array_iter *start, array_iter *end)
                 arr = *harr = array_decouple(arr);
             }
             copyinst(&s->key, &idx);
-            while (s && array_tree_compare(&s->key, &e->key, 0, 0) <= 0) {
+            while (s && array_tree_compare(&s->key, &e->key, 0, 0, 0) <= 0) {
                 arr->data.dict = array_tree_delete(&s->key, arr->data.dict);
                 arr->items--;
                 s = array_tree_next_node(arr->data.dict, &idx);

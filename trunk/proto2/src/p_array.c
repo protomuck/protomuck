@@ -939,6 +939,7 @@ prim_array_reverse(PRIM_PROTOTYPE)
 
 static int sortflag_caseinsens = 0;
 static int sortflag_descending = 0;
+static int sortflag_natural = 0;
 static struct inst *sortflag_index = NULL;
 
 int
@@ -966,7 +967,7 @@ sortcomp_generic(const void *x, const void *y)
             return 1;
         }
     }
-    return (array_idxcmp_case(a, b, (sortflag_caseinsens ? 0 : 1), 1));
+    return (array_idxcmp_case(a, b, (sortflag_caseinsens ? 0 : 1), 1, sortflag_natural));
 }
 
 
@@ -1017,7 +1018,7 @@ prim_array_sort(PRIM_PROTOTYPE)
 
     sortflag_caseinsens = (oper2->data.number & SORTTYPE_CASEINSENS) ? 1 : 0;
     sortflag_descending = (oper2->data.number & SORTTYPE_DESCENDING) ? 1 : 0;
-
+    sortflag_natural    = (oper2->data.number & SORTTYPE_NATURAL)    ? 1 : 0;
     sortflag_index = NULL;
 
     if ((oper2->data.number & SORTTYPE_SHUFFLE)) {
@@ -1087,6 +1088,7 @@ prim_array_sort_indexed(PRIM_PROTOTYPE)
 
     sortflag_caseinsens = (oper2->data.number & SORTTYPE_CASEINSENS) ? 1 : 0;
     sortflag_descending = (oper2->data.number & SORTTYPE_DESCENDING) ? 1 : 0;
+    sortflag_natural    = (oper2->data.number & SORTTYPE_NATURAL)    ? 1 : 0;
     sortflag_index = oper3;
 
     if ((oper2->data.number & SORTTYPE_SHUFFLE)) {

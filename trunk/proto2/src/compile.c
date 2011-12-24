@@ -487,6 +487,11 @@ include_internal_defs(COMPSTATE *cstat)
     insert_intdef(cstat, "sorttype_case_descend", SORTTYPE_CASE_DESCEND);
     insert_intdef(cstat, "sorttype_nocase_descend", SORTTYPE_NOCASE_DESCEND);
     insert_intdef(cstat, "sorttype_shuffle", SORTTYPE_SHUFFLE);
+    insert_intdef(cstat, "sorttype_natural_case_ascend", SORTTYPE_NATURAL_CASE_ASCEND);
+    insert_intdef(cstat, "sorttype_natural_nocase_ascend", SORTTYPE_NATURAL_NOCASE_ASCEND);
+    insert_intdef(cstat, "sorttype_natural_case_descend", SORTTYPE_NATURAL_CASE_DESCEND);
+    insert_intdef(cstat, "sorttype_natural_nocase_descend", SORTTYPE_NATURAL_NOCASE_DESCEND);
+
 
     insert_intdef(cstat, "filter_caseless",    FILTER_CASELESS);
 	insert_intdef(cstat, "filter_equal",       FILTER_EQUAL);
