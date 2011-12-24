@@ -8376,6 +8376,14 @@ the following inserver muf macro $defines:
     SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
     SORTTYPE_SHUFFLE         Randomize the order of the array elements.
 
+    The following settings can be used to perform a "natural" numeric
+     sort as similar to Windows Explorer, eg: 1 10 20 50 100
+
+    SORTTYPE_NATURAL_CASE_ASCEND  
+    SORTTYPE_NATURAL_NOCASE_ASCEND 
+    SORTTYPE_NATURAL_CASE_DESCEND  
+    SORTTYPE_NATURAL_NOCASE_DESCEND
+
 See: ARRAY PRIMS, SORT, ARRAY_SORT_INDEXED
 ~~~~~
 EVENT_WAITFOR
@@ -9533,6 +9541,14 @@ according to the contents of one of their index values as specified by the
     SORTTYPE_CASE_DESCEND    Case sensitive and descending order.
     SORTTYPE_NOCASE_DESCEND  Case insensitive and descending order.
     SORTTYPE_SHUFFLE         Randomize the order of the array elements.
+
+    The following settings can be used to perform a "natural" numeric
+     sort as similar to Windows Explorer, eg: 1 10 20 50 100             
+
+    SORTTYPE_NATURAL_CASE_ASCEND    
+    SORTTYPE_NATURAL_NOCASE_ASCEND
+    SORTTYPE_NATURAL_CASE_DESCEND
+    SORTTYPE_NATURAL_NOCASE_DESCEND
 
 Once the sorting is done, the contents of a2 will be a sequence of arrays
 sorted according to the element value corresponding to the index indicated
