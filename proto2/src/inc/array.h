@@ -35,7 +35,7 @@ stk_array *array_promote(stk_array * arr);
 
 int array_count(stk_array * arr);
 int array_idxcmp(array_iter * a, array_iter * b);
-int array_idxcmp_case(array_iter * a, array_iter * b, int case_sens, int objnames); 
+int array_idxcmp_case(array_iter * a, array_iter * b, int case_sens, int objnames, bool natural); 
 
  /**/ int array_keys_homogenous(stk_array * arr);
  /**/ int array_vals_homogenous(stk_array * arr);
