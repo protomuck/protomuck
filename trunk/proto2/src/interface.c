@@ -3481,7 +3481,11 @@ process_input(struct descriptor_data *d)
 
         d->raw_input_at = d->raw_input;
 #ifdef UTF8_SUPPORT
-        wcbuflen = 0;
+        if (d->encoding == 0) {
+            wcbuflen = -1; /* invalid UTF-8 */
+        } else {
+            wcbuflen = 0;
+        }
     } else {
         wcbuflen = d->raw_input_wclen;
 #endif
