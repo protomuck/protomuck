@@ -35,6 +35,8 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
             *p++ = 'Q';
         if (FLAGS(thing) & CHOWN_OK)
             *p++ = 'C';
+        if (FLAGS(thing) & F256COLOR)
+            *p++ = '&';
         if (FLAGS(thing) & HAVEN)
             *p++ = 'H';
         if (FLAGS(thing) & ABODE)
@@ -71,8 +73,6 @@ unparse_flags(dbref thing, char buf[BUFFER_LEN])
             *p++ = '#';
         if (FLAG2(thing) & F2PUEBLO)
             *p++ = '$';
-        if (FLAG2(thing) & F2HTML)
-            *p++ = '&';
         if (FLAG2(thing) & F2MOBILE)
             *p++ = '?';
         if (FLAG2(thing) & F2IMMOBILE)

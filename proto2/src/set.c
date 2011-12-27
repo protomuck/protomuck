@@ -1524,6 +1524,8 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("CHOWN_OK", p) || string_prefix("COLOR_ANSI", p)
                || string_prefix("COLOR_ON", p)) {
         f = CHOWN_OK;
+    } else if (string_prefix("256COLOR", p) || string_prefix("&", p)){
+        f = F256COLOR;
 #ifdef CONTROLS_SUPPORT
     } else if (string_prefix("CONTROLS", p) || string_prefix("~", p)) {
         f2 = F2CONTROLS;
@@ -1611,14 +1613,23 @@ do_set(int descr, dbref player, const char *name, const char *flag)
             FLAGS(thing) &= ~f;
             DBDIRTY(thing);
             anotify_nolisten2(player, CSUCC "Flag reset.");
+            if ( f == F256COLOR ) {
+                /* Clear desrc flag from all player connections */
+                propagate_descr_flag(player, DF_256COLOR, 0);
+            }
         } else {
             /* set the flag */
             ts_modifyobject(player, thing);
             FLAGS(thing) |= f;
             DBDIRTY(thing);
             anotify_nolisten2(player, CSUCC "Flag set.");
+            if ( f == F256COLOR ) {
+                /* We have to set the related descr flag on
+                   all connections this player has */
+                propagate_descr_flag(player, DF_256COLOR, 1);
+            }
         }
-    return;
+        return;
     }
     if (f2) { /* New f(l)ags */
         /* check for restricted flag */

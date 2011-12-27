@@ -13,6 +13,250 @@
 
 #define DOWNCASE(x) (tolower(x))
 
+/* Hash table of color names->numeric color index lookup */
+static hash_tab color_list[COLOR_HASH_SIZE];
+
+int init_color_hash()
+{
+    add_hash_int("XT/BLACK", 16, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/STATOS", 17, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/NAVYBLUE", 18, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DARKBLUE", 19, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DARKBLUE2", 20, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BLUE", 21, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CAMARONE", 22, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BLUESTONE", 23, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ORIENT", 24, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ENDEAVOUR", 25, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SCIENCEBLUE", 26, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BLUERIBBON", 27, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/JAPANESELAUREL", 28, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DEEPSEA", 29, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TEAL", 30, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DEEPCERULEAN", 31, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LOCHMARA", 32, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AZURERADIANCE", 33, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/JAPANESELAUREL2", 34, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/JADE", 35, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PERSIANGREEN", 36, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BONDIBLUE", 37, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CERULEAN", 38, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AZURERADIANCE2", 39, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GREEN", 40, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MALACHITE", 41, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CARIBBEANGREEN", 42, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CARIBBEANGREEN2", 43, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ROBINSEGGBLUE", 44, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AQUA", 45, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GREEN2", 46, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SPRINGGREEN", 47, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SPRINGGREEN2", 48, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SPRINGGREEN3", 49, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BRIGHTTURQUOISE", 50, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CYAN", 51, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ROSEWOOD", 52, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/POMPADOUR", 53, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PIGMENTINDIGO", 54, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/VERDUNGREEN", 58, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SCORPION", 59, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/COMET", 60, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SCAMPI", 61, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/INDIGO", 62, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CORNFLOWERBLUE", 63, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LIMEADE", 64, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GLADEGREEN", 65, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/JUNIPER", 66, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HIPPIEBLUE", 67, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HAVELOCKBLUE", 68, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CORNFLOWERBLUE2", 69, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LIMEADE2", 70, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FERN", 71, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SILVERTREE", 72, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TRADEWIND", 73, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SHAKESPEARE", 74, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MALIBU", 75, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BRIGHTGREEN", 76, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PASTELGREEN", 77, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PASTELGREEN2", 78, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DOWNY", 79, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/VIKING", 80, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MALIBU2", 81, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BRIGHTGREEN2", 82, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SCREAMINGREEN", 83, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SCREAMINGREEN2", 84, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AQUAMARINE", 85, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AQUAMARINE2", 86, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AQUAMARINE3", 87, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MAROON", 88, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FRESHEGGPLANT", 89, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FRESHEGGPLANT2", 90, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PURPLE", 91, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ELECTRICVIOLET", 92, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BROWN", 94, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/COPPERROSE", 95, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/STRIKEMASTER", 96, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DELUGE", 97, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MEDIUMPURPLE", 98, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HELIOTROPE", 99, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/OLIVE", 100, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CLAYCREEK", 101, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GRAY", 102, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/WILDBLUEYONDER", 103, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CHETWODEBLUE", 104, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MALIBU3", 105, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LIMEADE3", 106, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CHELSEACUCUMBER", 107, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BAYLEAF", 108, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GULFSTREAM", 109, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/POLOBLUE", 110, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MALIBU4", 111, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PISTACHIO", 112, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PASTELGREEN3", 113, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FEIJOA", 114, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/VISTABLUE", 115, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BERMUDA", 116, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ANAKIWA", 117, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CHARTREUSE", 118, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SCREAMINGREEN3", 119, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MINTGREEN", 120, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MINTGREEN2", 121, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AQUAMARINE4", 122, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ANAKIWA2", 123, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BRIGHTRED", 124, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FLIRT", 125, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FLIRT2", 126, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FLIRT3", 127, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ELECTRICVIOLET2", 128, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ROSEOFSHARON", 130, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MATRIX", 131, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TAPESTRY", 132, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FUCHSIAPINK", 133, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MEDIUMPURPLE2", 134, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HELIOTROPE2", 135, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PIRATEGOLD", 136, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MUESLI", 137, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PHARLAP", 138, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BOUQUET", 139, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LAVENDER", 140, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HELIOTROPE3", 141, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BUDDHAGOLD", 142, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/OLIVEGREEN", 143, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HILLARY", 144, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SILVERCHALICE", 145, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/WISTFUL", 146, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MELROSE", 147, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/RIOGRANDE", 148, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CONIFER", 149, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FEIJOA2", 150, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PIXIEGREEN", 151, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/JUNGLEMIST", 152, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ANAKIWA3", 153, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LIME", 154, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GREENYELLOW", 155, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MINTGREEN3", 156, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MINTGREEN4", 157, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/AEROBLUE", 158, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FRENCHPASS", 159, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GUARDSMANRED", 160, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/RAZZMATAZZ", 161, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HOLLYWOODCERISE", 162, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HOLLYWOODCERISE2", 163, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PURPLEPIZZAZZ", 164, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ELECTRICVIOLET3", 165, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TENN", 166, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ROMAN", 167, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CRANBERRY", 168, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HOPBUSH", 169, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ORCHID", 170, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HELIOTROPE4", 171, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MANGOTANGO", 172, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/COPPERFIELD", 173, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MYPINK", 174, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CANCAN", 175, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LIGHTORCHID", 176, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HELIOTROPE5", 177, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CORN", 178, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TACHA", 179, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TAN", 180, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CLAMSHELL", 181, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/THISTLE", 182, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MAUVE", 183, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CORN2", 184, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TACHA2", 185, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DECO", 186, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GREENMIST", 187, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ALTO", 188, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FOG", 189, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CHARTREUSEYELLOW", 190, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CANARY", 191, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HONEYSUCKLE", 192, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/REEF", 193, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SNOWYMINT", 194, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/OYSTERBAY", 195, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/RED", 196, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ROSE", 197, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ROSE2", 198, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HOLLYWOODCERISE3", 199, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PURPLEPIZZAZZ2", 200, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MAGENTA", 201, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BLAZEORANGE", 202, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BITTERSWEET", 203, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/WILDWATERMELON", 204, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HOTPINK", 205, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HOTPINK2", 206, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PINKFLAMINGO", 207, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/FLUSHORANGE", 208, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SALMON", 209, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/VIVIDTANGERINE", 210, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PINKSALMON", 211, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LAVENDERROSE", 212, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BLUSHPINK", 213, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/YELLOWSEA", 214, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TEXASROSE", 215, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/HITPINK", 216, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SUNDOWN", 217, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/COTTONCANDY", 218, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LAVENDERROSE2", 219, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GOLD", 220, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DANDELION", 221, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GRANDIS", 222, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CARAMEL", 223, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/COSMOS", 224, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PINKLACE", 225, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/YELLOW", 226, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LASERLEMON", 227, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DOLLY", 228, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PORTAFINO", 229, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CUMULUS", 230, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/WHITE", 231, color_list, COLOR_HASH_SIZE);    
+    add_hash_int("XT/BLACKHOLE", 232, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/OUTERSPACE", 233, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/OBSIDIAN", 234, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TAR", 235, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CATBLACK", 236, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/CHARCOAL", 237, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/RAVEN", 238, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SLATE", 239, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/TIMBERWOLF", 240, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DIMGRAY", 241, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DARKGRAY", 242, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ULTRAGRAY", 243, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/LIGHTGRAY", 244, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/STEEL", 245, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/GRANITE", 246, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/INDUSTRIAL", 247, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/BATTLESHIP", 248, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/SILVER", 249, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DUSKY", 250, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/ASHEN", 251, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/MOONROCK", 252, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/OYSTER", 253, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/PEARL", 254, color_list, COLOR_HASH_SIZE);
+    add_hash_int("XT/DOVE", 255, color_list, COLOR_HASH_SIZE);
+
+    return 1;
+}
+
 /*
  * routine to be used instead of strcasecmp() in a sorting routine
  * Sorts alphabetically or numerically as appropriate.
@@ -808,10 +1052,16 @@ strdecrypt(const char *data, const char *key)
  */
 const char *
 color_lookup(dbref player, const char *color, const char *defcolor,
-             int intrecurse)
+             int intrecurse, char *color_buffer)
 {
     const char *tempcolor;
     char buf[BUFFER_LEN];
+    int index = 0;
+    hash_data *hd = NULL; 
+    char temp_buffer[8];
+    int search_more = 1; /* Set to false to block unnecessary searches */
+    color_buffer[0] = '\0';
+    temp_buffer[0] = '\0';
 
     if ((!color) || (!*color))
         return defcolor;
@@ -822,7 +1072,7 @@ color_lookup(dbref player, const char *color, const char *defcolor,
                 tempcolor = GETMESG(OWNER(player), "_/COLORS/SUCC");
             if (!tempcolor)
                 tempcolor = GETMESG(0, "_/COLORS/SUCC");
-            if (!tempcolor)
+            if (!tempcolor) 
                 tempcolor = CCSUCC;
             color = tempcolor;
         } else if (!strcasecmp("FAIL", color) || !strcasecmp("CFAIL", color)) {
@@ -831,7 +1081,7 @@ color_lookup(dbref player, const char *color, const char *defcolor,
                 tempcolor = GETMESG(OWNER(player), "_/COLORS/FAIL");
             if (!tempcolor)
                 tempcolor = GETMESG(0, "_/COLORS/FAIL");
-            if (!tempcolor)
+            if (!tempcolor) 
                 tempcolor = CCFAIL;
             color = tempcolor;
         } else if (!strcasecmp("INFO", color) || !strcasecmp("CINFO", color)) {
@@ -861,8 +1111,7 @@ color_lookup(dbref player, const char *color, const char *defcolor,
             if (!tempcolor)
                 tempcolor = CCMOVE;
             color = tempcolor;
-        }
-        {
+        } else {
             strcpy(buf, "_/COLORS/");
             strcat(buf, color);
             tempcolor = GETMESG(player, buf);
@@ -872,11 +1121,14 @@ color_lookup(dbref player, const char *color, const char *defcolor,
                 tempcolor = GETMESG(0, buf);
             if (tempcolor)
                 color = tempcolor;
+            else
+                search_more = 0; 
         }
 
-        if (intrecurse < 5) {
+        if (intrecurse < 5 && search_more) {
             (void) intrecurse++;
-            return color_lookup(player, color, defcolor, intrecurse);
+            return color_lookup(player, color, defcolor, intrecurse, 
+                                color_buffer );
         }
     }                           /* End of player != NOTHING check. Too lazy to indent all that. */
 
@@ -978,9 +1230,34 @@ color_lookup(dbref player, const char *color, const char *defcolor,
         return ANSIHCYAN;
     } else if (!strcasecmp("HWHITE", color) || !strcasecmp("HGRAY", color)) {
         return ANSIHWHITE;
-    } else {
-        return defcolor;
+    } else if (!strcasecmp("STRIKE", color)) {
+        return ANSI_STRIKE;
+    } else if ( (hd = find_hash(color, color_list, COLOR_HASH_SIZE)) ){
+       /* Color found in color lookup table */
+        sprintf( temp_buffer, "%d", hd->ival);
+        if (intrecurse < 5) {
+            intrecurse++;
+            return color_lookup(player, temp_buffer, defcolor, intrecurse,
+                                color_buffer);
+        }
+    } else if ( number(color) ) {
+        /* we have received a 256 color index */
+        index = atoi(color);
+        if ( index >= 0 && index < 256 ) {
+            /* Index is 0 - 255,  forground */
+            sprintf(color_buffer, "\033[38;5;%dm", index);
+            return ANSI_256;
+        } else if ( index >= 300 && index < 556 ) {
+            /* Index is 300 - 555, i.e., background (0-255) */
+            sprintf(color_buffer, "\033[48;5;%dm", index - 300);
+            return ANSI_256;
+        } else if ( index == 256 ) {
+            /* Special case */
+            return ANSI_256_RESET;
+        } 
     }
+
+    return defcolor;
 }
 
 /* parse_ansi: Converts Neon ANSI tags into standard ANSI for
@@ -990,6 +1267,8 @@ char *
 parse_ansi(dbref player, char *buf, const char *from, const char *defcolor)
 {
     char *to, *color, cbuf[BUFFER_LEN + 2];
+    char *color_ptr = NULL;
+    char color_buffer[64];
     const char *ansi;
 
     to = buf;
@@ -1003,9 +1282,20 @@ parse_ansi(dbref player, char *buf, const char *from, const char *defcolor)
             if (*from)
                 from++;
             if (*cbuf) {
-                if ((ansi = color_lookup(player, cbuf, defcolor, 1)))
-                    while (*ansi)
-                        *(to++) = (*(ansi++));
+                if ((ansi = color_lookup(player, cbuf, defcolor, 1, 
+                      color_buffer ))) {
+                    if (!strcmp(ansi, ANSI_256)) {
+                        /* Copy 256 color from buffer */
+                        color_ptr = color_buffer;
+                        while (*color_ptr) {
+                            *(to++) = (*(color_ptr++));
+                        } 
+                    } else {
+                        /* Otherwise, 'ansi' contains the color code */
+                        while (*ansi)
+                            *(to++) = (*(ansi++));
+                    }
+                }
             } else
                 *(to++) = '^';
         } else
@@ -1092,6 +1382,38 @@ strip_ansi(char *buf, const char *input)
     }
     *os = '\0';
 
+    return buf;
+}
+
+/* This strips 256 COLOR ansi. I.e., \[[38;5;* codes will be removed.  */
+char *
+strip_256_ansi(char *buf, const char *input)
+{
+    const char *is = input;
+    char *os = buf;
+    buf[0] = '\0';
+   
+    while (*is) {
+        if ( *is == ESCAPE_CHAR ) {
+            if ( string_prefix(is, "\033[38;5;" ) || 
+                 string_prefix(is, "\033[48;5;") ) {
+                /* strip this code */
+                is++;
+                is++;
+                while ( isdigit(*is) || *is == ';')
+                    is++;
+                if (*is == 'm')
+                    is++;
+           } else {
+               *os++ = *is++;
+           }
+        } else {
+           *os++ = *is++;
+        }
+    }
+ 
+    *os = '\0';
+ 
     return buf;
 }
 

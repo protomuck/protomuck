@@ -526,6 +526,8 @@ flag_description(dbref thing)
         if (FLAGS(thing) & CHOWN_OK)
             strcat(buf,
                    (Typeof(thing) == TYPE_PLAYER) ? " COLOR_ON" : " CHOWN_OK");
+        if (FLAGS(thing) & F256COLOR)
+            strcat(buf, " 256COLOR");
 #ifdef CONTROLS_SUPPORT
         if (FLAG2(thing) & F2CONTROLS)
             strcat(buf, " CONTROLS");

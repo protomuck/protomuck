@@ -235,6 +235,8 @@ extern unsigned hash(const char *s, unsigned hash_size);
 extern hash_data *find_hash(register const char *s, hash_tab *table, unsigned size);
 extern hash_entry *add_hash(register const char *name, hash_data data, hash_tab *table,
                             unsigned size);
+extern hash_entry *add_hash_int(register const char *name, int value,
+                                hash_tab *table, unsigned size);
 extern int free_hash(register const char *name, hash_tab *table, unsigned size);
 extern void kill_hash(hash_tab *table, unsigned size, int freeptrs);
 
@@ -432,6 +434,8 @@ extern char *unparse_ansi(char *buf, const char *from);
 extern char *tct(const char *in, char out[BUFFER_LEN]);
 extern char *strip_ansi(char *buf, const char *input);
 extern char *strip_bad_ansi(char *buf, const char *input);
+extern int  init_color_hash();
+extern char *strip_256_ansi(char *buf, const char *input);
 extern char *escape_ansi(char *buf, const char *input);
 extern char *parse_mush_ansi(char *buf, char *from);
 extern char *unparse_mush_ansi(char *buf, char *from);

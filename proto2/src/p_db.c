@@ -67,6 +67,8 @@ check_flag1(char *flag)
     if (string_prefix("chown_ok", flag) || string_prefix("color_on", flag)
         || string_prefix("ansi", flag))
         return CHOWN_OK;
+    if (string_prefix("256color", flag) || string_prefix("&", flag))
+        return F256COLOR;
     if (string_prefix("haven", flag) || string_prefix("harduid", flag)
         || string_prefix("hide", flag))
         return HAVEN;

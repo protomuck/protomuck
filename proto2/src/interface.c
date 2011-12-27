@@ -414,6 +414,7 @@ main(int argc, char **argv)
     time(&current_systime);
     init_descriptor_lookup();
     init_descr_count_lookup();
+    init_color_hash();
 
     nomore_options = 0;
     sanity_skip = 0;
@@ -1170,17 +1171,23 @@ queue_ansi(struct descriptor_data *d, const char *msg)
 
     if (!msg || !*msg)
         return 0;
+
     if (d->connected) {
-        if (FLAGS(d->player) & CHOWN_OK) {
+        if (DR_RAW_FLAGS(d, DF_256COLOR) && (FLAGS(d->player) & CHOWN_OK)) {
             strip_bad_ansi(buf, msg);
+        } else if (FLAGS(d->player) & CHOWN_OK) {
+            strip_256_ansi(buf, msg);
         } else {
             strip_ansi(buf, msg);
         }
     } else {
-        if (DR_RAW_FLAGS(d, DF_COLOR))
+        if (DR_RAW_FLAGS(d, DF_256COLOR) && DR_RAW_FLAGS(d, DF_COLOR)) {
             strip_bad_ansi(buf, msg);
-        else
+        } else if (DR_RAW_FLAGS(d, DF_COLOR)) {
+            strip_256_ansi(buf, msg);
+        } else {
             strip_ansi(buf, msg);
+        }
     }
 #ifdef MCP_SUPPORT
     mcp_frame_output_inband(&d->mcpframe, buf);
@@ -4314,6 +4321,11 @@ check_connect(struct descriptor_data *d, const char *msg)
                     FLAG2(player) &= ~F2PUEBLO;
                 }
 
+                /* If player has enabled 256 color, set the descr flag */
+                if (FLAGS(player) & F256COLOR) {
+                    DR_RAW_ADD_FLAGS(d, DF_256COLOR);
+                }
+
                 /* cks: someone has to initialize this somewhere. */
                 DBFETCH(d->player)->sp.player.block = 0;
                 if (d->player == NOTHING)
@@ -4566,6 +4578,8 @@ descr_flag_description(int descr)
         strcat(dbuf, " DF_INTERACTIVE");
     if (DR_RAW_FLAGS(d, DF_COLOR))
         strcat(dbuf, " DF_COLOR");
+    if (DR_RAW_FLAGS(d, DF_256COLOR))
+        strcat(dbuf, " DF_256COLOR");
 #ifdef USE_SSL
     if (DR_RAW_FLAGS(d, DF_SSL))
         strcat(dbuf, " DF_SSL");
@@ -6525,6 +6539,26 @@ help_user(struct descriptor_data *d)
             queue_ansi(d, buf);
         }
         fclose(f);
+    }
+}
+
+/* Any time we need to propagate a descr flag on every connection
+ * a player has, this function will take care of it */
+void propagate_descr_flag(dbref player, object_flag_type flag, int set)
+{
+    struct descriptor_data *d = NULL;
+    int *darr = NULL;
+    int dcount = 0;
+    int i = 0;  
+    
+    darr = get_player_descrs(player, &dcount);
+    for (i = 0; i < dcount; ++i ) {
+        d = descrdata_by_index(darr[i]);
+        if ( set ) {
+            DR_RAW_ADD_FLAGS(d, flag);
+        } else {
+            DR_RAW_REM_FLAGS(d, flag);
+        }
     }
 }
 
