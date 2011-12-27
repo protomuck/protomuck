@@ -104,7 +104,9 @@ void
 prim_force(PRIM_PROTOTYPE)
 {
     int nFrameIndex = -1; /* -1 means it hasn't been set */
-    int nCurFr = 0; /* Loop iterator */ 
+    int nCurFr = 0; /* Loop iterator */
+    int wclen = -2;
+    int len;
     /* d s -- */
     CHECKOP(2);
     oper1 = POP();              /* string to @force */
@@ -130,6 +132,10 @@ prim_force(PRIM_PROTOTYPE)
         abort_interp("Cannot force the man (1)");
 
     strcpy(buf, oper1->data.string->data);
+    len = oper1->data.string->length;
+#ifdef UTF8_SUPPORT
+    wclen = oper1->data.string->wclength;
+#endif
     CLEAR(oper1);
     CLEAR(oper2);
     nargs -= 2;
@@ -155,7 +161,7 @@ prim_force(PRIM_PROTOTYPE)
 
     fr->level++;
     interp_set_depth(fr);
-    process_command(dbref_first_descr(ref), ref, buf);
+    process_command(dbref_first_descr(ref), ref, buf, len, wclen);
     fr->level--;
     interp_set_depth(fr);
     force_level--;

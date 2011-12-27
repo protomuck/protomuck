@@ -17,6 +17,10 @@
 #ifndef NAN
 #include "nan.h"
 #endif
+#ifdef JSON_SUPPORT
+#include <jansson.h> /* for encoding/decoding flag defs */
+#endif /* JSON_SUPPORT */
+ 
 
 /* This file contains code for doing "byte-compilation" of
    mud-forth programs.  As such, it contains many internal
@@ -736,6 +740,11 @@ include_internal_defs(COMPSTATE *cstat)
 #else
     insert_def(cstat, "HAVE_PCRE", "0");
 #endif
+#ifdef JSON_SUPPORT
+    insert_def(cstat, "HAVE_JSON", "1");
+#else
+    insert_def(cstat, "HAVE_JSON", "0");
+#endif
 
 /*
 #ifdef IGNORE_SUPPORT
@@ -783,6 +792,31 @@ include_internal_defs(COMPSTATE *cstat)
 
 		m = m->prev;
 	};
+#endif
+
+#ifdef JSON_SUPPORT
+    /*** ENCODING FLAGS ***/
+    sprintf(buf, "%d", JSON_INDENT(4));
+    insert_def(cstat, "JSON_INDENT4", buf);
+    sprintf(buf, "%d", JSON_INDENT(2));
+    insert_def(cstat, "JSON_INDENT2", buf);
+    sprintf(buf, "%d", JSON_COMPACT);
+    insert_def(cstat, "JSON_COMPACT", buf);
+    /* do not implement JSON_ENSURE_ASCII, we need UTF-8 for dbref types */
+    sprintf(buf, "%d", JSON_SORT_KEYS);
+    insert_def(cstat, "JSON_SORT_KEYS", buf);
+    sprintf(buf, "%d", JSON_PRESERVE_ORDER);
+    insert_def(cstat, "JSON_PRESERVE_ORDER", buf);
+    /* do not implement JSON_ENCODE_ANY, our code assumes RFC compliance and
+       that the root node can be mapped to a MUF array */
+
+    /*** DECODING FLAGS ***/
+    sprintf(buf, "%d", JSON_REJECT_DUPLICATES);
+    insert_def(cstat, "JSON_REJECT_DUPLICATES", buf);
+    /* we'll allow JSON_DISABLE_EOF_CHECKS, but it's up to the user to figure
+       out how to not blow the post-EOF data away on overwrite */
+    sprintf(buf, "%d", JSON_SORT_KEYS);
+    insert_def(cstat, "JSON_DISABLE_EOF_CHECK", buf);
 #endif
 
 }

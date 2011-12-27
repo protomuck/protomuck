@@ -22,15 +22,16 @@ extern void *CrT_realloc(void *p, size_t size, const char *whatfile, int whatlin
 extern void CrT_free(void *p, const char *whatfile, int whatline);
 extern char *CrT_string_dup(const char *, const char *, int);
 extern char *CrT_alloc_string(const char *, const char *, int);
-extern struct shared_string *CrT_alloc_prog_string(const char *, const char *, int);
+extern struct shared_string *CrT_alloc_prog_string(const char *, const char *, int, int, int);
 
-#define malloc(x)            CrT_malloc(      x,      __FILE__, __LINE__)
-#define calloc(x,y)          CrT_calloc(      x, y,   __FILE__, __LINE__)
-#define realloc(x,y)         CrT_realloc(     x, y,   __FILE__, __LINE__)
-#define free(x)              CrT_free(        x,      __FILE__, __LINE__)
-#define string_dup(x)        CrT_string_dup(  x,      __FILE__, __LINE__)
-#define alloc_string(x)      CrT_alloc_string(x,      __FILE__, __LINE__)
-#define alloc_prog_string(x) CrT_alloc_prog_string(x, __FILE__, __LINE__)
+#define malloc(x)                      CrT_malloc(      x,      __FILE__, __LINE__)
+#define calloc(x,y)                    CrT_calloc(      x, y,   __FILE__, __LINE__)
+#define realloc(x,y)                   CrT_realloc(     x, y,   __FILE__, __LINE__)
+#define free(x)                        CrT_free(        x,      __FILE__, __LINE__)
+#define string_dup(x)                  CrT_string_dup(  x,      __FILE__, __LINE__)
+#define alloc_string(x)                CrT_alloc_string(x,      __FILE__, __LINE__)
+#define alloc_prog_string_exact(x,y,z) CrT_alloc_prog_string(x, __FILE__, __LINE__, y, z)
+#define alloc_prog_string(x)           alloc_prog_string_exact(x, -2, -2)
 
 #endif /* _CRT_MALLOC_H */
 

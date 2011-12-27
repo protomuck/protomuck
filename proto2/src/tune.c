@@ -362,6 +362,7 @@ int tp_autolinking = 1;
 int tp_spaces_in_playernames = 0;
 int tp_mush_format_escapes = 0;
 int tp_strict_mush_escapes = 0;
+int tp_ascii_descrs = 0;
 int tp_muf_profiling       = 0;
 
 /* int tp_require_has_mpi_arg = 0; */
@@ -464,6 +465,7 @@ struct tune_bool_entry tune_bool_list[] = {
     {"Database", "spaces_in_playernames", &tp_spaces_in_playernames, LBOY, LMUF},
     {"System", "mush_format_escapes", &tp_mush_format_escapes, LBOY, LMUF},
     {"System", "strict_mush_escapes", &tp_strict_mush_escapes, LBOY, LMUF},
+    {"System", "ascii_descrs", &tp_ascii_descrs, LBOY, LMUF},
 /*    {"MPI", "require_has_mpi_arg", &tp_require_has_mpi_arg, LARCH, LMUF}, */
 #ifdef NEWHTTPD
     {"HTTPD", "web_allow_players", &tp_web_allow_players, LARCH, LMUF},

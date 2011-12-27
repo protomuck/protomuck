@@ -3187,3 +3187,68 @@ prim_base64decode(PRIM_PROTOTYPE)
             PushString(buf);
     }
 }
+
+#ifdef UTF8_SUPPORT
+/* refer to comments for wcharlen in stringutil.c */
+
+void
+prim_wcharlen(PRIM_PROTOTYPE) {
+    int result = 0;
+
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (oper1->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    if (!oper1->data.string) {
+        CLEAR(oper1);
+        PushInt(result);
+        return;
+    }
+
+    result = wcharlen(oper1->data.string);
+
+    if (result == -1) {
+        /* Let's abort for now, just to see how often we get these. */
+        abort_interp("Illegal multibyte character detected.");
+    }
+
+    CLEAR(oper1);
+    PushInt(result);
+}
+
+void
+prim_wcharlen_slice(PRIM_PROTOTYPE) {
+    int result = 0;
+
+    CHECKOP(2);
+    oper1 = POP();
+    oper2 = POP();
+
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument. (2)");
+    if (oper2->type != PROG_STRING)
+        abort_interp("Non-string argument. (1)");
+
+    if (!oper2->data.string) {
+        CLEAR(oper1);
+        CLEAR(oper2);
+        PushInt(result);
+        return;
+    }
+
+    result = wcharlen_slice(DoNullInd(oper2->data.string),
+                            oper1->data.number,
+                            oper2->data.string->length);
+
+    if (result == -1) {
+        /* Let's abort for now, just to see how often we get these. */
+        abort_interp("Illegal multibyte character detected.");
+    }
+
+    CLEAR(oper1);
+    PushInt(result);
+}
+#endif /* UTF8_SUPPORT */
+

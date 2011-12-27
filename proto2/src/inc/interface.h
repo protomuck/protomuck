@@ -52,7 +52,10 @@
 /* structures */
 
 struct text_block {
-    int     nchars;
+    int     nchars;  /* number of bytes */
+#ifdef UTF8_SUPPORT
+    int     nwchars; /* number of encoded wide characters */
+#endif
     struct text_block *nxt;
     char   *start;
     char   *buf;
@@ -156,6 +159,9 @@ struct descriptor_data {
     struct text_queue        input;
     char                    *raw_input;
     char                    *raw_input_at;
+#ifdef UTF8_SUPPORT
+    int                      raw_input_wclen; /* number of wide characters present in raw_input */
+#endif
     int                      inIAC;         /* Used for telnet negotiation */
     time_t                   last_time;
     time_t                   connected_at;
@@ -170,6 +176,8 @@ struct descriptor_data {
     int                      type;          /* Connection type */
     int                      cport;         /* Connected on this port if inbound, text, pueblo, web, etc. */
     int                      idletime_set;  /* Time [in minutes] until the IDLE flag must be set */
+    int                      encoding;      /* filter type: 0 = raw, 1 = ASCII, 2 = UTF-8 */
+    int                      filter_tab;    /* '\t' -> ' ' conversion. */
     object_flag_type         flags;         /* The descriptor flags */
     dbref                    mufprog;       /* If it is one of the MUF-type ports, then this points to the program. -- UNIMPLEMENTED */
     struct descriptor_data  *next;          /* Next descriptor information */
@@ -265,7 +273,7 @@ extern void notify_descriptor_char(int d, char c);
 extern void anotify_descriptor(int descr, const char *msg);
 extern int anotify(dbref player, const char *msg);
 extern int notify_html(dbref player, const char *msg);
-extern void add_to_queue(struct text_queue *q, const char *b, int n); /* hinoserm */
+extern void add_to_queue(struct text_queue *q, const char *b, int len, int wclen); /* hinoserm */
 extern int queue_write(struct descriptor_data *d, const char *b, int n);  /* hinoserm */
 extern int queue_string(struct descriptor_data *d, const char *s);
 extern int notify_nolisten(dbref player, const char *msg, int isprivate);
@@ -364,7 +372,7 @@ extern long descr_sendfile(struct descriptor_data *d, int start, int stop, const
 
 /* the following symbols are provided by game.c */
 
-extern void process_command(int descr, dbref player, char *command);
+extern void process_command(int descr, dbref player, char *command, int len, int wclen);
 
 extern dbref create_player(dbref creator, const char *name, const char *password);
 extern dbref connect_player(const char *name, const char *password);

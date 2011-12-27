@@ -532,6 +532,11 @@ struct boolexp {
 #define HOME ((dbref) -3)	/* virtual room, represents mover's home */
 #define NIL ((dbref) -4)	/* virtual room, represents NULL, a linkable-do-nothing destination */
 
+/* JSON boolean representations - valid on the stack, but should not be made
+   prop-safe or given any other meaning */
+#define JFALSE ((dbref) -10) /* JSON's "false" value */
+#define JTRUE ((dbref) -11)  /* JSON's "true" type */
+
 /* editor data structures */
 
 /* Line data structure */
@@ -595,6 +600,7 @@ struct line {
 struct shared_string {		    /* for sharing strings in programs */
     int     links;		        /* number of pointers to this struct */
     int     length;		        /* length of string data */
+    int     wclength;
     char    data[1];		    /* shared string data */
 };
 
@@ -1112,7 +1118,10 @@ extern void write_program(struct line * first, dbref i);
 extern void log_program_text(struct line * first, dbref player, dbref i);
 
 #ifndef MALLOC_PROFILING
-extern struct shared_string *alloc_prog_string(const char *);
+/* alloc_prog_string is now a macro, works exactly the way it used to. */
+//extern struct shared_string *alloc_prog_string(const char *);
+#define alloc_prog_string(x) alloc_prog_string_exact(x, -2, -2)
+extern struct shared_string *alloc_prog_string_exact(const char *, int length, int wclength);
 #endif
 
 extern dbref new_object(dbref player);	/* return a new object */

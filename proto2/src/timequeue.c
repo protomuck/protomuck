@@ -384,7 +384,7 @@ read_event_notify(int descr, dbref player, const char *cmd)
 
 void
 handle_read_event(int descr, dbref player, const char *command,
-                  struct timenode *event)
+                  struct timenode *event, int len, int wclen)
 {
     struct frame *fr;
     timequeue ptr, lastevent;
@@ -506,10 +506,18 @@ handle_read_event(int descr, dbref player, const char *command,
 
             /* Everything looks okay.  Lets stuff the input line
              * on the program's argument stack as a string item.
+             *
+             * len and wclen are calculated inside of process_input.
+             * process_input -> save_command -> add_to_queue -> make_text_block.
+             * process_commands -> do_command -> process_command ->
+             *                     interactive -> handle_read_event.
+             * 
+             * -brevantes
              */
             fr->argument.st[fr->argument.top].type = PROG_STRING;
             fr->argument.st[fr->argument.top++].data.string =
-                alloc_prog_string(command ? command : "");
+                alloc_prog_string_exact(command ? command : "", len, wclen);
+                //alloc_prog_string(command ? command : "");
             if (typ == TQ_MUF_TREAD) {
                 if (nothing_flag) {
                     fr->argument.st[fr->argument.top].type = PROG_INTEGER;
@@ -644,7 +652,7 @@ next_timequeue_event(void)
                     event->fr->timercount--;
                     muf_event_add(event->fr, event->called_data, &temp, 0);
                 } else if (event->subtyp == TQ_MUF_TREAD) {
-                    handle_read_event(event->descr, event->uid, NULL, event);
+                    handle_read_event(event->descr, event->uid, NULL, event, 0, 0);
                 } else {
                     strcpy(match_args,
                            event->called_data ? event->called_data : "");
