@@ -80,6 +80,9 @@ void (*prim_func[]) (PRIM_PROTOTYPE) = {
 #ifdef NEWHTTPD
         PRIMS_HTTP_FUNCS,       /* hinoserm */
 #endif
+#ifdef JSON_SUPPORT
+        PRIMS_JSON_FUNCS,
+#endif
 PRIMS_INTERNAL_FUNCS, NULL};
 
 struct localvars *

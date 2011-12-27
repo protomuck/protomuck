@@ -41,14 +41,14 @@ void toggle_numbers(dbref player, int arg[], int argc);
    space each time a program is run.
    */
 void
-interactive(int descr, dbref player, const char *command)
+interactive(int descr, dbref player, const char *command, int len, int wclen)
 {
     if (FLAGS(player) & READMODE) {
         /*
          * process command, push onto stack, and return control to forth
          * program
          */
-        handle_read_event(descr, player, command, NULL);
+        handle_read_event(descr, player, command, NULL, len, wclen);
     } else {
         editor(descr, player, command);
     }

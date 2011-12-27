@@ -456,7 +456,9 @@ do_force(int descr, dbref player, const char *what, char *command)
      */
     /* force victim to do command */
     force_level++;
-    process_command(dbref_first_descr(victim), victim, command);
+    /* strlen of command could probably be determined inside of process_command,
+     * but all of that buffer nonsense makes this simpler for now. -brevantes */
+    process_command(dbref_first_descr(victim), victim, command, strlen(command), -2);
     force_level--;
 }
 

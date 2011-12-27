@@ -1571,7 +1571,8 @@ mfn_force(MFUNARGS)
             *nxt++ = '\0';
         force_level++;
         if (*ptr)
-            process_command(dbref_first_descr(obj), obj, ptr);
+            // TODO: see if this strlen is avoidable -brevantes
+            process_command(dbref_first_descr(obj), obj, ptr, strlen(ptr), -2);
         force_level--;
         ptr = nxt;
     } while (ptr);

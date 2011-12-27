@@ -591,16 +591,37 @@ alloc_string(const char *string)
     return s;
 }
 
+/* Allocate a shared_string struct. alloc_prog_string(x) is a macro for
+ * alloc_prog_string_exact(x,-2,-2). While using this function directly is more
+ * efficient when you know your string length already, it's also dangerous if
+ * you introduce off-by-one errors. As a general rule, stick to using
+ * alloc_prog_string unless you're passing in low-level I/O or something that
+ * is similarly specialized, and verify your math in a C debugger before commit.
+ *
+ * wclength is directly assigned. -2 means unknown length, -1 is a UTF-8 coding
+ * convetion indicates that the string contains invalid multi-byte characters.
+ * Use -2 if you don't know what a "wide character" is and it'll work just fine.
+ * We do not calculate wclength automatically for the user; this is done on
+ * demand inside of the "wclength" function when the stored value is -2.
+ *
+ * length is automatically caulcuated with strlen if the passed in value is <0,
+ * but -2 is preferred because it matches the meaning of wclength. Use -2 unless
+ * you're absolutely sure that your string match is accurate. (or better yet,
+ * stick to using the alloc_prog_string(x) macro)
+ *
+ * Direct hate mail at brevantes.
+ */
 struct shared_string *
-alloc_prog_string(const char *s)
+alloc_prog_string_exact(const char *s, int length, int wclength)
 {
     struct shared_string *ss;
-    int length;
 
-    if (s == NULL || *s == '\0')
+    if (s == NULL || *s == '\0' || length == 0)
         return (NULL);
 
-    length = strlen(s);
+    if (length < 0) {
+        length = strlen(s);
+    }
     if ((ss = (struct shared_string *)
          malloc(sizeof(struct shared_string) + length)) == NULL) {
         fprintf(stderr, "PANIC: alloc_prog_string() Out of Memory.\n");
@@ -608,6 +629,9 @@ alloc_prog_string(const char *s)
     }
     ss->links = 1;
     ss->length = length;
+#ifdef UTF8_SUPPORT
+    ss->wclength = wclength;
+#endif
     bcopy(s, ss->data, ss->length + 1);
     return (ss);
 }
@@ -1874,4 +1898,59 @@ int strnatcmp(nat_char const *a, nat_char const *b) {
 int strnatcasecmp(nat_char const *a, nat_char const *b) {
      return strnatcmp0(a, b, 1);
 }
+
+
+#ifdef UTF8_SUPPORT
+/* mbstowcs and mblen take a passed in locale parameter under Windows, and
+   that's not something I can research and test. Fix this if you need it.
+   -brevantes */
+
+/* Fetch the number of wide characters in a shared string. Only useful if the
+   system locale supports multi-byte string characters. (such as UTF-8)
+   If the string contains an illegal multi-byte string, this will return a
+   value of -1. */
+int
+wcharlen(struct shared_string *ss)
+{
+    if (ss->wclength == -2) {
+        /* -2 is uninitialized. */
+        ss->wclength = mbstowcs(NULL, DoNullInd(ss), 0);
+    }
+    return ss->wclength;
+}
+
+
+/* count the number of bytes representing 'slice' wide characters in 'buf'.
+   'buflen' is the strlen of buf, passed in to avoid recalculation. */
+int
+wcharlen_slice(char *buf, int slice, int buflen)
+{
+    char *cursor;
+    int iter = 0;
+    int result;
+    size_t wcharlen = 0;
+
+    cursor = buf;
+
+    /* initialize shift state */
+    mblen(NULL, 0);
+
+    while ( iter != slice && *cursor != '\0'  ) {
+        iter++;
+        result = mblen(cursor, buflen - wcharlen);
+
+        if (result == -1) {
+            /* Illegal multibyte character detected. Return -1, let the caller
+               figure out what to do. */
+            return -1;
+        }
+
+        wcharlen = wcharlen + result;
+
+        cursor = buf + (sizeof(char) * wcharlen);
+    }
+
+    return wcharlen;
+}
+#endif /* UTF8_SUPPORT */
 

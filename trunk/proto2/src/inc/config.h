@@ -28,6 +28,9 @@
  are compiled in.
  ************************************************************************/
 
+/* UTF8_SUPPORT support will be moved to ./configure, it lives here for now. */
+#undef UTF8_SUPPORT
+
 /* Alynna - Lets make something so that later on it will see the CYGWIN 
  * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN
  * will be detected.  If not, define me.
@@ -565,6 +568,7 @@
 
 #undef DETACH
 #undef IPV6
+#undef UTF8_SUPPORT
 #define socklen_t int
 #define snprintf _snprintf
 # define  errnosocket WSAGetLastError()

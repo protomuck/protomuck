@@ -116,7 +116,7 @@ extern stk_array *get_pids(dbref ref);
 extern stk_array *get_pidinfo(int pid);
 extern int scan_instances(dbref program);
 extern void handle_read_event(int descr, dbref player, const char *command,
-                              struct timenode *event);
+                              struct timenode *event, int len, int wclen);
 extern int add_muf_read_event(int descr, dbref player, dbref prog,
                               struct frame *fr);
 extern int add_muf_tread_event(int descr, dbref player, dbref prog,
@@ -449,6 +449,10 @@ extern char* strcpyn(char* buf, size_t bufsize, const char* src);
 typedef char nat_char;
 extern int strnatcmp(nat_char const *a, nat_char const *b);
 extern int strnatcasecmp(nat_char const *a, nat_char const *b);
+#ifdef UTF8_SUPPORT
+extern int wcharlen(struct shared_string* ss);
+extern int wcharlen_slice(char* buf, int slice, int buflen);
+#endif
 
 /* Lazy macros to simplify writing MUSH formatting hooks in notify prims */
 #define strcpy_mush(x,y) (strcpy(x, mushformat_substitute(y)))
@@ -525,7 +529,7 @@ extern void init_compress(void);
 extern const char *puncompress(const char *);
 
 /* From edit.c */
-extern void interactive(int descr, dbref player, const char *command);
+extern void interactive(int descr, dbref player, const char *command, int len, int wclen);
 
 /* From compile.c */
 /* extern void kill_def(const char *defname); */
