@@ -37,6 +37,8 @@ check_descr_flag(char *dflag)
         return DF_TRUEIDLE;
     if (string_prefix("df_color", dflag))
         return DF_COLOR;
+    if (string_prefix("df_256color", dflag))
+        return DF_256COLOR;
     if (string_prefix("df_interactive", dflag))
         return DF_INTERACTIVE;
 #ifdef USE_SSL

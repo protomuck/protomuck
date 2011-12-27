@@ -285,7 +285,7 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define GENDER_FEMALE	    0x2	/* for women */
 #define GENDER_MALE 	    0x3 /* for men */
 
-#define UNDEF_FLAG_1	 0x4000	/* This used to be the KILL_OK flag. */
+#define F256COLOR 	 0x4000	/* Indicates player wants 256 Color. */
 #define W4               0x8000 /* W4 flag */
 
 #define HAVEN		0x10000	/* can't kill here */
@@ -1092,6 +1092,7 @@ typedef struct t_hash_entry hash_entry;
 typedef hash_entry *hash_tab;
 
 #define PLAYER_HASH_SIZE   (1024)	/* Table for player lookups */
+#define COLOR_HASH_SIZE    (512)    /* Lookup table for extended colors */
 #define COMP_HASH_SIZE     (256)    /* Table for compiler keywords */
 #define DEFHASHSIZE        (256)    /* Table for compiler $defines */
 

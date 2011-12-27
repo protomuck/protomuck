@@ -218,6 +218,7 @@ struct descriptor_data {
 #define DF_COMPRESS    0x800 /* Indicates that this connection is MCCP-enabled -hinoserm */
 #define DF_MISC       0x8000 /* You can play with this */
 #define DF_IPV6      0x10000 /* Achievement Unlocked: Bleeding Edge - You are connected using IPv6! */
+#define DF_256COLOR  0x20000 /* This descriptor is accepting 256 color */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
@@ -361,6 +362,7 @@ extern struct in6_addr str2ip6(const char *ipstr);
 extern int str2ip(const char *ipstr);
 extern int index_descr(int index);
 extern void close_sockets(const char *msg);
+extern void propagate_descr_flag(dbref player, object_flag_type flag, int set);
 #ifdef IGNORE_SUPPORT
 extern char ignorance(dbref src, dbref tgt);
 extern void init_ignore(dbref tgt);
@@ -507,12 +509,15 @@ extern int udp_count;
 /* ANSI attributes and color codes for FB6 style ansi routines */
 
 #define ANSI_RESET	"\033[0m"
+#define ANSI_256_RESET  "\033[38;5;0m"
+#define ANSI_256        "256" /* Special code used in color_lookup */
 
 #define ANSI_BOLD       "\033[1m"
 #define ANSI_DIM      	"\033[2m"
 #define ANSI_UNDERLINE	"\033[4m"
 #define ANSI_FLASH	"\033[5m"
 #define ANSI_REVERSE	"\033[7m"
+#define ANSI_STRIKE     "\033[9m"
 
 #define ANSI_FG_BLACK	"\033[30m"
 #define ANSI_FG_RED	"\033[31m"

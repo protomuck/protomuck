@@ -75,6 +75,43 @@ add_hash(register const char *name, hash_data data,
     return hp;
 }
 
+/* add_hash_int: Add a string:int pair to the hash table
+ * without the hassle of needing to setup the hash data externally
+ * from the function.
+ */
+hash_entry *
+add_hash_int(register const char *name, int value, 
+             hash_tab *table, unsigned size)
+{
+    register hash_entry *hp;
+    register unsigned int hashval;
+    hash_data hd;
+    hd.ival = value;
+    
+    hashval = hash(name, size);
+ 
+    for (hp = table[hashval]; hp; hp = hp->next)
+        if (string_compare(name, hp->name) == 0)
+            break;
+ 
+    /* If not found, set up a new entry */
+    if ( !hp ) {
+        hp = (hash_entry *)malloc(sizeof(*hp));
+        if (!hp ) {
+            /* Out of memory? */
+            return NULL;
+        }
+        hp->next = table[hashval];
+        table[hashval] = hp;
+        hp->name = (char *) string_dup(name);
+    }
+ 
+    /* store the data */
+    hp->dat = hd;
+    
+    return hp;
+}
+
 /* free_hash:  free a hash table entry
  *
  * frees the dynamically allocated hash table entry associated with
