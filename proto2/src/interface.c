@@ -1168,6 +1168,7 @@ int
 queue_ansi(struct descriptor_data *d, const char *msg)
 {
     char buf[BUFFER_LEN + 5];
+    char buf2[BUFFER_LEN + 5];
 
     if (!msg || !*msg)
         return 0;
@@ -1176,7 +1177,8 @@ queue_ansi(struct descriptor_data *d, const char *msg)
         if (DR_RAW_FLAGS(d, DF_256COLOR) && (FLAGS(d->player) & CHOWN_OK)) {
             strip_bad_ansi(buf, msg);
         } else if (FLAGS(d->player) & CHOWN_OK) {
-            strip_256_ansi(buf, msg);
+            strip_256_ansi(buf2, msg);
+            strip_bad_ansi(buf, buf2);
         } else {
             strip_ansi(buf, msg);
         }
@@ -1184,7 +1186,8 @@ queue_ansi(struct descriptor_data *d, const char *msg)
         if (DR_RAW_FLAGS(d, DF_256COLOR) && DR_RAW_FLAGS(d, DF_COLOR)) {
             strip_bad_ansi(buf, msg);
         } else if (DR_RAW_FLAGS(d, DF_COLOR)) {
-            strip_256_ansi(buf, msg);
+            strip_256_ansi(buf2, msg);
+            strip_bad_ansi(buf, buf2);
         } else {
             strip_ansi(buf, msg);
         }
