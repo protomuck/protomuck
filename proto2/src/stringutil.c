@@ -1475,9 +1475,13 @@ color_lookup(dbref player, const char *color, const char *defcolor,
             return color_lookup(player, temp_buffer, defcolor, intrecurse,
                                 color_buffer);
         }
-    } else if ( number(color) ) {
+    } else if ( number(color) || (!strncasecmp("B",color,1) && number(color+1)) ) {
         /* we have received a 256 color index */
-        index = atoi(color);
+        if (!strncasecmp("B",color,1) && number(color+1))
+            index = atoi(color+1)+300;
+        else 
+            index = atoi(color);
+
         if ( index >= 0 && index < 256 ) {
             /* Index is 0 - 255,  forground */
             sprintf(color_buffer, "\033[38;5;%dm", index);
