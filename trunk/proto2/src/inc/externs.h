@@ -391,6 +391,8 @@ extern void do_unlink_quiet(int, dbref, const char *);
 extern void do_flags(int descr, dbref player, const char *args);
 extern void lflags_update();
 
+extern void do_encoding(int descr, dbref player, const char *arg);
+
 /* From speech.c */
 extern void do_pose(int descr, dbref player, const char *message);
 extern void do_whisper(int descr, dbref player, const char *arg1,

@@ -1917,3 +1917,62 @@ do_flags(int descr, dbref player, const char *args)
     free(orig[0]); free(orig[1]);
     return;
 }
+
+void
+do_encoding(int descr, dbref player, const char *arg) {
+
+    struct descriptor_data *d = descrdata_by_descr(descr);
+
+    if (!arg || arg[0] == '\0') {
+        anotify(player, CINFO "Current character encoding:");
+        if (d->encoding == 1) {
+            anotify(player, CINFO "ASCII");
+#ifdef UTF8_SUPPORT
+        } else if (d->encoding == 2) {
+            anotify(player, CINFO "UTF-8");
+#endif
+        } else if (d->encoding == 0) {
+            anotify(player, CFAIL "RAW");
+        } else {
+            anotify(player, CFAIL "UNKNOWN!");
+        }
+        return;
+    }
+
+    if (!string_compare(arg, "ASCII") || !string_compare(arg, "ANSI") ||
+        !string_compare(arg, "1") ) { 
+        d->encoding = 1;
+        anotify(player, CSUCC "Encoding set.");
+#ifdef UTF8_SUPPORT
+    } else if ( !string_compare(arg, "UTF-8")   || !string_compare(arg, "UTF8") ||
+                !string_compare(arg, "UNICODE") || !string_compare(arg, "2") ) {
+        d->encoding = 2;
+        anotify(player, CSUCC "Encoding set.");
+#endif
+    } else if ( !string_compare(arg, "RAW") || !string_compare(arg, "0") ) {
+        d->encoding = 0;
+        anotify(player, CSUCC "Encoding set.");
+        anotify(player, CFAIL "Warning: Your terminal may render garbage in this mode.");
+    } else { /* unrecognized, show help */
+        anotify(player, CFAIL "Unrecognized encoding type.");
+        anotify(player, CINFO "Supported encodings:");
+#ifdef UTF8_SUPPORT
+        if (d->encoding == 2) {
+            anotify(player, CINFO "    UTF-8 (current)");
+        } else {
+            anotify(player, CINFO "    UTF-8");
+        }
+#endif
+        if (d->encoding == 1) {
+            anotify(player, CINFO "    ASCII (current)");
+        } else {
+            anotify(player, CINFO "    ASCII");
+        }
+        if (d->encoding == 0) {
+            anotify(player, CINFO "      RAW (current)");
+        } else {
+            anotify(player, CINFO "      RAW (not recommended)");
+        }
+
+    }
+}
