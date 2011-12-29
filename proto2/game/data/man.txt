@@ -662,9 +662,17 @@ the color they are defining. The choices are as follows:
 More than one instruction can follow the initial \[[, for example:
 \[[1;37;4;41m = Bold, underline, white text over red background.
 
+Support has been added to transmit XTerm style 256 color codes to players that
+have the DF_256COLOR descriptor flag. The typical syntax for these codes is:
+\[[38;5;<index>m for foreground and
+\[[48;5;<index>m for background.
+
+Index is a value between 0 and 255. You can reference online XTerm color
+charts to see which indices correspond with what colors.  
+
 See: NEON ANSI, MUSH ANSI, TILDE ANSI
 ~~~~
-NEON ANSI|NEONANSI|NEON COLORS|ANSI
+NEON ANSI|NEONANSI|NEON COLORS|ANSI|256COLOR|256 COLOR
 
 NeonANSI is done by putting a color code between two ^ signs.
 Example: ^RED^ would turn all the following text red.
@@ -693,7 +701,112 @@ as well as in the muck. These can all be customized in-muck with:
     _/colors/fail          _/colors/succ          _/colors/info
     _/colors/note          _/colors/move
 
-See: MUSH ANSI, STANDARD ANSI, TILDE ANSI, NEON ANSI2, and ANSI PRIMS
+The NEON ANSI color set has been extended to support the 256 color XTerm
+style ANSI codes as well. As long as a player's descriptor has the 
+DF_256COLOR flag, they will be able to receive these extended color codes.
+
+These colors can be accessed by index or by name. To access by index,
+simply enclose a number between 0-255 or 300-555 between the standard ^ marks.
+For example, ^200^. 
+
+The range of 0-255 is for foreground colors. The range of 300-555 is for 
+background colors. You can also use ^B<index>^ for background colors. 
+
+256 acts as a ANSI reset, but the standard ^NORMAL^ code 
+will work just as well. 
+
+To access by name, see 256 COLOR NAMES for the full listing. 
+
+See: MUSH ANSI, STANDARD ANSI, TILDE ANSI, NEON ANSI2, ANSI PRIMS,
+     and 256 COLOR NAMES
+~~~
+256 COLOR NAMES|256COLORS|256 COLORS
+256 COLOR NAMES
+---------------
+XT/BLACK (16)             XT/STATOS (17)            XT/NAVYBLUE (18)          
+XT/DARKBLUE (19)          XT/DARKBLUE2 (20)         XT/BLUE (21)              
+XT/CAMARONE (22)          XT/BLUESTONE (23)         XT/ORIENT (24)            
+XT/ENDEAVOUR (25)         XT/SCIENCEBLUE (26)       XT/BLUERIBBON (27)        
+XT/JAPANESELAUREL (28)    XT/DEEPSEA (29)           XT/TEAL (30)              
+XT/DEEPCERULEAN (31)      XT/LOCHMARA (32)          XT/AZURERADIANCE (33)     
+XT/JAPANESELAUREL2 (34)   XT/JADE (35)              XT/PERSIANGREEN (36)      
+XT/BONDIBLUE (37)         XT/CERULEAN (38)          XT/AZURERADIANCE2 (39)    
+XT/GREEN (40)             XT/MALACHITE (41)         XT/CARIBBEANGREEN (42)    
+XT/CARIBBEANGREEN2 (43)   XT/ROBINSEGGBLUE (44)     XT/AQUA (45)              
+XT/GREEN2 (46)            XT/SPRINGGREEN (47)       XT/SPRINGGREEN2 (48)      
+XT/SPRINGGREEN3 (49)      XT/BRIGHTTURQUOISE (50)   XT/CYAN (51)              
+XT/ROSEWOOD (52)          XT/POMPADOUR (53)         XT/PIGMENTINDIGO (54)     
+XT/VERDUNGREEN (58)       XT/SCORPION (59)          XT/COMET (60)             
+XT/SCAMPI (61)            XT/INDIGO (62)            XT/CORNFLOWERBLUE (63)    
+XT/LIMEADE (64)           XT/GLADEGREEN (65)        XT/JUNIPER (66)           
+XT/HIPPIEBLUE (67)        XT/HAVELOCKBLUE (68)      XT/CORNFLOWERBLUE2 (69)   
+XT/LIMEADE2 (70)          XT/FERN (71)              XT/SILVERTREE (72)        
+XT/TRADEWIND (73)         XT/SHAKESPEARE (74)       XT/MALIBU (75)            
+XT/BRIGHTGREEN (76)       XT/PASTELGREEN (77)       XT/PASTELGREEN2 (78)      
+XT/DOWNY (79)             XT/VIKING (80)            XT/MALIBU2 (81)           
+XT/BRIGHTGREEN2 (82)      XT/SCREAMINGREEN (83)     XT/SCREAMINGREEN2 (84)    
+XT/AQUAMARINE (85)        XT/AQUAMARINE2 (86)       XT/AQUAMARINE3 (87)       
+XT/MAROON (88)            XT/FRESHEGGPLANT (89)     XT/FRESHEGGPLANT2 (90)    
+XT/PURPLE (91)            XT/ELECTRICVIOLET (92)    XT/BROWN (94)             
+XT/COPPERROSE (95)        XT/STRIKEMASTER (96)      XT/DELUGE (97)            
+XT/MEDIUMPURPLE (98)      XT/HELIOTROPE (99)        XT/OLIVE (100)            
+XT/CLAYCREEK (101)        XT/GRAY (102)             XT/WILDBLUEYONDER (103)   
+XT/CHETWODEBLUE (104)     XT/MALIBU3 (105)          XT/LIMEADE3 (106)         
+XT/CHELSEACUCUMBER (107)  XT/BAYLEAF (108)          XT/GULFSTREAM (109)       
+XT/POLOBLUE (110)         XT/MALIBU4 (111)          XT/PISTACHIO (112)        
+XT/PASTELGREEN3 (113)     XT/FEIJOA (114)           XT/VISTABLUE (115)        
+XT/BERMUDA (116)          XT/ANAKIWA (117)          XT/CHARTREUSE (118)       
+XT/SCREAMINGREEN3 (119)   XT/MINTGREEN (120)        XT/MINTGREEN2 (121)       
+XT/AQUAMARINE4 (122)      XT/ANAKIWA2 (123)         XT/BRIGHTRED (124)        
+XT/FLIRT (125)            XT/FLIRT2 (126)           XT/FLIRT3 (127)           
+XT/ELECTRICVIOLET2 (128)  XT/ROSEOFSHARON (130)     XT/MATRIX (131)           
+XT/TAPESTRY (132)         XT/FUCHSIAPINK (133)      XT/MEDIUMPURPLE2 (134)    
+XT/HELIOTROPE2 (135)      XT/PIRATEGOLD (136)       XT/MUESLI (137)           
+XT/PHARLAP (138)          XT/BOUQUET (139)          XT/LAVENDER (140)         
+XT/HELIOTROPE3 (141)      XT/BUDDHAGOLD (142)       XT/OLIVEGREEN (143)       
+XT/HILLARY (144)          XT/SILVERCHALICE (145)    XT/WISTFUL (146)          
+XT/MELROSE (147)          XT/RIOGRANDE (148)        XT/CONIFER (149)          
+XT/FEIJOA2 (150)          XT/PIXIEGREEN (151)       XT/JUNGLEMIST (152)       
+XT/ANAKIWA3 (153)         XT/LIME (154)             XT/GREENYELLOW (155)      
+XT/MINTGREEN3 (156)       XT/MINTGREEN4 (157)       XT/AEROBLUE (158)         
+XT/FRENCHPASS (159)       XT/GUARDSMANRED (160)     XT/RAZZMATAZZ (161)       
+XT/HOLLYWOODCERISE (162)  XT/HOLLYWOODCERISE2 (163) XT/PURPLEPIZZAZZ (164)    
+XT/ELECTRICVIOLET3 (165)  XT/TENN (166)             XT/ROMAN (167)            
+XT/CRANBERRY (168)        XT/HOPBUSH (169)          XT/ORCHID (170)           
+XT/HELIOTROPE4 (171)      XT/MANGOTANGO (172)       XT/COPPERFIELD (173)      
+XT/MYPINK (174)           XT/CANCAN (175)           XT/LIGHTORCHID (176)      
+XT/HELIOTROPE5 (177)      XT/CORN (178)             XT/TACHA (179)            
+XT/TAN (180)              XT/CLAMSHELL (181)        XT/THISTLE (182)          
+XT/MAUVE (183)            XT/CORN2 (184)            XT/TACHA2 (185)           
+XT/DECO (186)             XT/GREENMIST (187)        XT/ALTO (188)             
+XT/FOG (189)              XT/CHARTREUSEYELLOW (190) XT/CANARY (191)           
+XT/HONEYSUCKLE (192)      XT/REEF (193)             XT/SNOWYMINT (194)        
+XT/OYSTERBAY (195)        XT/RED (196)              XT/ROSE (197)             
+XT/ROSE2 (198)            XT/HOLLYWOODCERISE3 (199) XT/PURPLEPIZZAZZ2 (200)   
+XT/MAGENTA (201)          XT/BLAZEORANGE (202)      XT/BITTERSWEET (203)      
+XT/WILDWATERMELON (204)   XT/HOTPINK (205)          XT/HOTPINK2 (206)         
+XT/PINKFLAMINGO (207)     XT/FLUSHORANGE (208)      XT/SALMON (209)           
+XT/VIVIDTANGERINE (210)   XT/PINKSALMON (211)       XT/LAVENDERROSE (212)     
+XT/BLUSHPINK (213)        XT/YELLOWSEA (214)        XT/TEXASROSE (215)        
+XT/HITPINK (216)          XT/SUNDOWN (217)          XT/COTTONCANDY (218)      
+XT/LAVENDERROSE2 (219)    XT/GOLD (220)             XT/DANDELION (221)        
+XT/GRANDIS (222)          XT/CARAMEL (223)          XT/COSMOS (224)           
+XT/PINKLACE (225)         XT/YELLOW (226)           XT/LASERLEMON (227)       
+XT/DOLLY (228)            XT/PORTAFINO (229)        XT/CUMULUS (230)          
+XT/WHITE (231)            XT/BLACKHOLE (232)        XT/OUTERSPACE (233)       
+XT/NINJA (234)            XT/OBSIDIAN (235)         XT/CATBLACK (236)         
+XT/CHARCOAL (237)         XT/RAVEN (238)            XT/SLATE (239)            
+XT/TIMBERWOLF (240)       XT/DIMGRAY (241)          XT/DARKGRAY (242)         
+XT/ULTRAGRAY (243)        XT/LIGHTGRAY (244)        XT/STEEL (245)            
+XT/GRANITE (246)          XT/INDUSTRIAL (247)       XT/BATTLESHIP (248)       
+XT/SILVER (249)           XT/DUSKY (250)            XT/ASHEN (251)            
+XT/MOONROCK (252)         XT/OYSTER (253)           XT/PEARL (254)            
+XT/DOVE (255)             
+
+Note that the above colors can be used to set backgrounds by using
+XTB/ instead of XT/, or using indices ^300^ - ^555^, or using
+^B0^ - ^B255^. 
+
 ~~~
 MATH OPERATORS|+|-|*|/|%|MODULO|ADD|SUBTRACT|MULTIPLY|DIVIDE
 
@@ -1012,6 +1125,7 @@ LOGWALL                 (!)     MUFCOUNT                (+)
 PROTECT                 (*)     PARENT/PROG_DEBUG       (%)
 HIDDEN                  (#)     MOBILE                  (?)
 CONTROLS                (~)     IMMOBILE                (|)
+256COLOR                (&)
 
 Non-Settable Flags:
 EXIT                    (E)     FORTH PROGRAM           (F)
@@ -1019,8 +1133,7 @@ TRUEIDLE                        PLAYER                  (P)
 ROOM                    (R)     THING                   (T)
 UNLINKED                (U)     LISTENER
 COMMAND                 (N/A)   PUEBLO                  ($)
-HTML                    (&)     UNUSED/OLD              (@)
-INTERNAL                
+UNUSED/OLD              (@)     INTERNAL                
 
 Permissions Bits:
 MEEPER                  (M)     MUCKER1                 (M1)
@@ -1725,7 +1838,6 @@ HIDDEN = "hidden"
 GUEST = "guest"
 LOGWALL = "logwall"
 PUEBLO = "pueblo"
-HTML = "html"
 PARENT = "parent"
 PROTECT = "protect"
 MEEPER = "m"
@@ -1744,7 +1856,6 @@ Only W3 or higher can set the HIDDEN flag.
 Only W3 or higher can set the LOGWALL flag.
 Only W1 or higher can set the GUEST flag.
 Only W1 or higher can set the PUEBLO flag.
-Only W1 or higher can set the HTML flag.
 If a player is set = Z, they cannot use set to set Z flags.
 Set cannot be used to set a program = AUTOSTART
 Set cannot be used to set X flags, or M or W bits.
