@@ -3306,7 +3306,7 @@ queue_string(struct descriptor_data *d, const char *s)
 
     *fp = '\0';
 
-    result = queue_write(d, filtered, fp - filtered + 1);
+    result = queue_write(d, filtered, fp - filtered);
 
     free(filtered);
 
