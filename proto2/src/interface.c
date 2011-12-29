@@ -3275,6 +3275,7 @@ queue_string(struct descriptor_data *d, const char *s)
                 *fp++ = *sp;
             }
         }
+#ifdef UTF8_SUPPORT
     } else if (d->encoding == 2) { /* UTF-8 */
         /* each invalid byte of s potentially maps to three UTF-8 bytes */
         filtered = (char *) malloc( (len*3) + 1);
@@ -3297,6 +3298,7 @@ queue_string(struct descriptor_data *d, const char *s)
                 *fp++ = '\xbd';
             }
         }
+#endif
     } else { /* RAW */
         result = queue_write(d, s, len);
         return result;
