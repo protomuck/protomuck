@@ -52,6 +52,23 @@ prim_pdup(PRIM_PROTOTYPE)
 }
 
 void
+prim_ndup(PRIM_PROTOTYPE)
+{
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Non-integer argument. (1)");
+    CHECKOP_READONLY(1);
+    CHECKOFLOW(oper1->data.number);
+
+    for (result = oper1->data.number; result > 0; result--) {
+        copyinst(&arg[*top - 1], &arg[*top]);
+        (*top)++;
+    }
+}
+
+void
 prim_dupn(PRIM_PROTOTYPE)
 {
     int i;
