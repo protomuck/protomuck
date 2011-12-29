@@ -3082,9 +3082,6 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
         queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
         queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
         queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
-#if defined(UTF_SUPPORT) && !defined(WIN_VC)
-        quote_write(d, "\xFF\xFD\x42",       3); /* IAC DO CHARSET */
-#endif
         announce_login(d); 
         welcome_user(d);
     }
@@ -3254,12 +3251,64 @@ queue_write(struct descriptor_data *d, const char *b, int n)
     return n;
 }
 
-/* Basically a wrapper around queue_write and strlen. Use queue_write if you
- * know your string length. This should really be a macro. -brevantes */
 int
 queue_string(struct descriptor_data *d, const char *s)
 {
-    return queue_write(d, s, strlen(s));
+    wchar_t wctmp;
+    int wclen, result;
+
+    int len = strlen(s);
+    const char *send = s + len - 1;
+    const char *sp;
+
+    char *filtered, *fp, *fend;
+
+
+
+    if (d->encoding == 1) { /* ASCII */
+        filtered = (char *) malloc(len + 1);
+        fp = filtered;
+        fend = filtered + len;
+
+        for (sp = s; *sp != '\0'; sp++) {
+            if (isascii(*sp)) {
+                *fp++ = *sp;
+            }
+        }
+    } else if (d->encoding == 2) { /* UTF-8 */
+        /* each invalid byte of s potentially maps to three UTF-8 bytes */
+        filtered = (char *) malloc( (len*3) + 1);
+        fp = filtered;
+        fend = filtered + (len*3);
+
+        for (sp = s; *sp != '\0'; sp++) {
+            wclen = mbtowc(&wctmp, sp, send - sp + 1);
+            if (wclen != -1) {
+                /* no check for overrun, we can hold the max size. */
+                memcpy(fp, sp, wclen);
+                fp += wclen;
+                /* the loop itself adds 1 */
+                sp += wclen - 1;
+            }
+            if (wclen == -1) {
+                /* invalid byte, insert U+FFFD */
+                *fp++ = '\xef';
+                *fp++ = '\xbf';
+                *fp++ = '\xbd';
+            }
+        }
+    } else { /* RAW */
+        result = queue_write(d, s, len);
+        return result;
+    }
+
+    *fp = '\0';
+
+    result = queue_write(d, filtered, fp - filtered + 1);
+
+    free(filtered);
+
+    return result;
 }
 
 int
@@ -6713,8 +6762,10 @@ mccp_start(struct descriptor_data *d, int version)
     struct mccp *m;
     int opt = 0;
 
+#ifdef USE_SSL
     if (d->type == CT_SSL)
         return; 
+#endif
    
     m = (struct mccp *) malloc(sizeof(struct mccp));
     m->z = NULL;

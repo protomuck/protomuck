@@ -1146,6 +1146,11 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
                         case 'h':
                         case 'H':
                             switch (command[3]) {
+                                case 'a':
+                                case 'A':
+                                    Matched("@charset");
+                                    do_encoding(descr, player, arg1);
+                                    break;
                                 case 'l':
                                 case 'L':
                                     Matched("@chlock");
@@ -1266,8 +1271,20 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
                             break;
                         case 'n':
                         case 'N':
-                            Matched("@entrances");
-                            do_entrances(descr, player, arg1, arg2);
+                            switch (command[3]) {
+                                case 'c':
+                                case 'C':
+                                    Matched("@encoding");
+                                    do_encoding(descr, player, arg1);
+                                    break;
+                                case 't':
+                                case 'T':
+                                    Matched("@entrances");
+                                    do_entrances(descr, player, arg1, arg2);
+                                    break;
+                                default:
+                                    goto bad;
+                            }
                             break;
                         case 'x':
                         case 'X':
