@@ -148,6 +148,7 @@ LOGWALL                 (!)     MUFCOUNT                (+)
 PROTECT                 (*)     PARENT/PROG_DEBUG       (%)
 HIDDEN                  (#)     MOBILE                  (?)
 CONTROLS                (~)     IMMOBILE                (|)
+256COLOR                (&)
 
 Type 'help <flag>' to get more help on a flag.
 
@@ -161,8 +162,7 @@ TRUEIDLE                        PLAYER                  (P)
 ROOM                    (R)     THING                   (T)
 UNLINKED                (U)     LISTENER
 COMMAND                 (N/A)   PUEBLO                  ($)
-HTML                    (&)     UNUSED/OLD              (@)
-INTERNAL
+UNUSED/OLD              (@)     INTERNAL
 
 Permissions Bits:
 MEEPER                  (M)     MUCKER1                 (M1) 
@@ -247,7 +247,8 @@ DF_MUF         (Unimplemented)
 DF_IDLE        (Set at the same time as the IDLE flag is)
 DF_TRUEIDLE    (Set as the same time as the TRUEIDLE flag is)
 DF_INTERACTIVE (Set at the same time as the INTERACTIVE flag is)
-DF_COLOR       (Currently does nothing. Settable via DESCR_SET prim)
+DF_COLOR       (Allows ANSI to be sent to unloggedin descriptor)
+DF_256COLOR    (Set automatically on players that have 256COLOR flag)
 DF_SSL         (Set if connection is SSL-encrypted)
 DF_COMPRESS    (Set if MCCP is currently in use)
 
@@ -2053,13 +2054,26 @@ on the Pueblo port of the MUCK, and removed when they connect via
 a non Pueblo port. Pueblo is a multimedia MU* client for which 
 support worked its way into NeonMUCK.
 ~
-HTML|&
-HTML (&)
---------
+HTML|
+HTML
+-----
 The HTML flag signafies that someone has somewhat HTML capability, but
 not on the level of what Pueblo has support for. It is set automatically
 on players that connect via the webserver port, and removed whenever 
 they connect via another port. It cannot be manually set or unset.
+
+NOTE: This flag is obsolete and no longer does anything relevant. 
+~
+256COLOR|&
+256COLOR (&)
+-------------
+This flag indicates that the player is willing to receive 256 Color ANSI
+codes. By itself, it doesn't actually determine whether or not these codes
+are transmitted, but setting it or clearing it automatically sets the
+corresponding DF_256COLOR descriptor flag that will make that determination.
+Once a player object has this flag, all new descriptors logged into that
+player will have the DF_256COLOR flag set automatically. This flag is only
+valid on player objects. 
 ~
 ANTIPROTECT|K
 ANTIPROTECT (K)
