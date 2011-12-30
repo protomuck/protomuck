@@ -23,9 +23,11 @@
 #include "interp.h"
 #include "newhttp.h"            /* hinoserm */
 #include "netresolve.h"         /* hinoserm */
-#include <locale.h>
-#include <nl_types.h>
-#include <langinfo.h>
+#ifdef UTF8_SUPPORT
+# include <locale.h>
+# include <nl_types.h>
+# include <langinfo.h>
+#endif
 
 /* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
