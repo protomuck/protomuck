@@ -12,5 +12,7 @@ extern int   reg_email_is_a_jerk(const char *);
 extern int   name_is_bad(const char *);
 extern const char *reg_user_is_suspended(int);
 extern const char *reg_site_welcome(int);
+extern const char *strcasestr2(const char *, const char *);
+
 
 #endif /* INCLUDED_REG_H */

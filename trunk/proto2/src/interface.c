@@ -11,6 +11,7 @@
 #include "tune.h"
 #include "props.h"
 #include "match.h"
+#include "reg.h"
 #ifdef MCP_SUPPORT
 # include "mcp.h"
 # include "mcpgui.h"
@@ -3082,6 +3083,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
         queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
         queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
         queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
+        queue_write(d, "\xFF\xFD\052",       3); /* IAC DO CHARSET */
         announce_login(d); 
         welcome_user(d);
     }
@@ -3498,8 +3500,10 @@ int
 process_input(struct descriptor_data *d)
 {
     char buf[MAX_COMMAND_LEN * 2];
-    int got;
+    char buf2[MAX_COMMAND_LEN];
+    int got, accepted_charsets, spos, dpos;
     char *p, *pend, *q, *qend;
+    char sep;
 
 #ifdef UTF8_SUPPORT
     wchar_t wctmp[1];      /* stores a single decoded wide character */
@@ -3707,6 +3711,54 @@ process_input(struct descriptor_data *d)
                               /* This is where we would implement other sub-negotiation types. */
                          /* } */
                             break;
+#ifdef UTF8_SUPPORT
+                        case TELOPT_CHARSET: /* Check if the remote end says they can handle utf8 */
+                            accepted_charsets = 0;
+                            //log_status("DBUG: (%d) IAC SB CHARSET REQUEST %x %x %s -- len: %d\n",
+                            //    d->descriptor,d->telopt.sb_buf[1],d->telopt.sb_buf[2],d->telopt.sb_buf+3,d->telopt.sb_buf_len);
+                            if (d->telopt.sb_buf_len < 3) /* By now we better have CHARSET REQUEST SEP */
+                                break;
+                            if (d->telopt.sb_buf[1] != '\001') /* REQUEST */
+                                break;
+                            if (d->telopt.sb_buf[2]) /* store the requested charset delimiter */
+                                sep = d->telopt.sb_buf[2];
+                            else break;
+                            //log_status("DBUG: (%d) CHARSET REQUEST, buffer valid, sep is 0x%x\n",d->descriptor,sep);
+                            spos = 3; dpos = 4;
+                            strncpy(buf2,"\xFF\xFA\x2A\x02",dpos);  /* IAC SB CHARSET ACCEPTED */
+                            /* I just love, scanning for lifeforms */
+                            while (d->telopt.sb_buf[spos]) {
+                                while (!(d->telopt.sb_buf[spos]==sep)) {
+                                        buf2[dpos] = d->telopt.sb_buf[spos];
+                                        dpos++; spos++;      
+                                        if (!d->telopt.sb_buf[spos]) break;
+                                }
+                                /* should now be IAC SB CHARSET ACCEPTED <charset> IAC SE */
+                                buf2[dpos] = '\xFF'; buf2[dpos+1] = '\xF0'; buf2[dpos+2] = '\0'; dpos++; dpos++;
+                                //log_status("DBUG: (%d) Found charset, created buffer %s\n",d->descriptor,buf2);
+                                /* if utf8 is mentioned in this charset, enable unicode on this descr 
+                                   OBTW: if both ASCII and UNICODE re requested, prefer unicode.
+                                */
+                                if (strcasestr2(buf2,"ascii") || strcasestr2(buf2, "ANSI_X3.4-1968") || strcasestr2(buf2,"UTF-8")) {
+                                    if ((d->encoding < 2) && ((strcasestr2(buf2,"ascii")) || strcasestr2(buf2,"ANSI_X3.4-1968")))
+                                        d->encoding = 1;
+                                    else
+                                        d->encoding = 2;
+                                }
+                                queue_write(d, buf2, dpos+1);
+                                accepted_charsets++;
+                                //log_status("DBUG: (%d) IAC SB CHARSET ACCEPTED %s IAC SE, accepted: %d\n",
+                                //    d->descriptor,buf2,accepted_charsets);
+                                spos++; dpos = 4; // Reuse this buffer  
+                            }
+                            if (!accepted_charsets) {
+                                /* IAC SB CHARSET REJECTED IAC SE */
+                                queue_write(d, "\xFF\xFA\x2A\x03\xFF\xF0", 6);
+                                //log_status("DBUG: (%d) IAC SB CHARSET REJECTED IAC SE, accepted: %d\n",
+                                //    d->descriptor,accepted_charsets);
+                            }
+                        break;
+#endif
                         default:
                             break;
                     }
@@ -3730,6 +3782,9 @@ process_input(struct descriptor_data *d)
                 mssp_send(d);
             } else if (*q == TELOPT_NAWS) {
                 /* queue_write(d, "\xFF\xFD\x1F", 3); */ /* Oops, infinite loop */
+            } else if (*q == TELOPT_CHARSET) {
+                //log_status("DBUG: (%d) IAC WILL CHARSET\n",d->descriptor);
+                /* Just have to wait for the DO now. */
             } else {
                 /* send back DONT option in all other cases */
                 queue_write(d, "\377\376", 2);
@@ -4710,7 +4765,9 @@ do_dinfo(dbref player, const char *arg)
         /* need to print out the flags */
         anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
 
-	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s", (d->telopt.termtype ? d->telopt.termtype : "<unknown>"));
+	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s    Encoding: %s", 
+	    (d->telopt.termtype ? d->telopt.termtype : "<unknown>"),
+	    (d->encoding ? (d->encoding==1 ? "ASCII-7" : "UTF-8") : "RAW" ));
 
     if (Arch(player))
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
