@@ -1,0 +1,7 @@
+#summary This is a sidebar. It is a distant cousin of the facehugger.
+
+= User Documentation =
+Stuff for users.
+
+= Contributing =
+Stuff for people who want to contribute.
