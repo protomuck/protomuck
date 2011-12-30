@@ -160,6 +160,13 @@
 /* Central data structure: a blocklist with one entry  */
 /* for each textually distinct [mc]alloc() call:       */
 
+#if defined(HAVE_PTHREAD_H)
+/* this should allow CrT to run thread-safe */
+pthread_mutex_t CrTmutex;
+#define LOCKCRT() { pthread_mutex_lock(&CrTmutex); }
+#define UNLOCKCRT() { pthread_mutex_unlock(&CrTmutex); }
+#endif
+
 struct CrT_block_rec {
     const char *file;
     int line;
@@ -534,8 +541,14 @@ summarize_notify(char *t)
 void
 CrT_summarize(dbref player)
 {
+#if defined(HAVE_PTHREAD_H)
+	LOCKCRT();
+#endif
     summarize_player = player;
     summarize(summarize_notify);
+#if defined(HAVE_PTHREAD_H)
+	UNLOCKCRT();
+#endif
 }
 
 /* }}} */
@@ -552,6 +565,9 @@ summarize_to_file(char *t)
 void
 CrT_summarize_to_file(const char *file, const char *comment)
 {
+#if defined(HAVE_PTHREAD_H)
+	LOCKCRT();
+#endif
     if ((summarize_fd = fopen(file, "a")) == 0)
         return;
     if (comment && *comment) {
@@ -566,6 +582,9 @@ CrT_summarize_to_file(const char *file, const char *comment)
     summarize(summarize_to_file);
 
     fclose(summarize_fd);
+#if defined(HAVE_PTHREAD_H)
+	UNLOCKCRT();
+#endif
 }
 
 /* }}} */
@@ -665,6 +684,9 @@ CrT_check_everything(const char *file, int line)
 void *
 CrT_malloc(size_t size, const char *file, int line)
 {
+#if defined(HAVE_PTHREAD_H)
+	LOCKCRT();
+#endif
     Block b = block_find(file, line);
 
     Header m = (Header) malloc(size + CRT_OVERHEAD_BYTES);
@@ -709,7 +731,9 @@ CrT_malloc(size_t size, const char *file, int line)
     }
     if (b->live_blocks > b->max_blocks)
         b->max_blocks = b->live_blocks;
-
+#if defined(HAVE_PTHREAD_H)
+	UNLOCKCRT();
+#endif
     return (void *) (m + 1);
 }
 
@@ -719,6 +743,9 @@ CrT_malloc(size_t size, const char *file, int line)
 void *
 CrT_calloc(size_t num, size_t siz, const char *file, int line)
 {
+#if defined(HAVE_PTHREAD_H)
+	LOCKCRT();
+#endif
     size_t size = siz * num;
     Block b = block_find(file, line);
     Header m = (Header) calloc(size + CRT_OVERHEAD_BYTES, 1);
@@ -765,7 +792,9 @@ CrT_calloc(size_t num, size_t siz, const char *file, int line)
     }
     if (b->live_blocks > b->max_blocks)
         b->max_blocks = b->live_blocks;
-
+#if defined(HAVE_PTHREAD_H)
+	UNLOCKCRT();
+#endif
     return (void *) (m + 1);
 }
 
@@ -775,6 +804,9 @@ CrT_calloc(size_t num, size_t siz, const char *file, int line)
 void *
 CrT_realloc(void *p, size_t size, const char *file, int line)
 {
+#if defined(HAVE_PTHREAD_H)
+	LOCKCRT();
+#endif
     Header m = ((Header) p) - 1;
     Block b = m->b;
 
@@ -834,7 +866,9 @@ CrT_realloc(void *p, size_t size, const char *file, int line)
         b->max_bytes = b->live_bytes;
         b->max_bytes_time = time(NULL);
     }
-
+#if defined(HAVE_PTHREAD_H)
+	UNLOCKCRT();
+#endif
     return (void *) (m + 1);
 }
 
@@ -844,6 +878,9 @@ CrT_realloc(void *p, size_t size, const char *file, int line)
 void
 CrT_free(void *p, const char *file, int line)
 {
+#if defined(HAVE_PTHREAD_H)
+	LOCKCRT();
+#endif
     Header m = ((Header) p) - 1;
     Block b = m->b;
 
@@ -880,6 +917,9 @@ CrT_free(void *p, const char *file, int line)
     b->live_blocks--;
 
     free(m);
+#if defined(HAVE_PTHREAD_H)
+	UNLOCKCRT();
+#endif
 }
 
 /* }}} */
@@ -937,6 +977,25 @@ CrT_string_dup(const char *s, const char *file, int line)
         strcpy(p, s);
     return (p);
 }
+
+/* }}} */
+
+#if defined(HAVE_PTHREAD_H)
+
+/* {{{ CrT_pthread_init  						*/
+
+void
+CrT_pthread_init(void)
+{
+	/* initialize the mutex */
+	pthread_mutexattr_t myMutexAttr;
+
+	pthread_mutexattr_init(&myMutexAttr);
+	pthread_mutexattr_settype(&myMutexAttr, PTHREAD_MUTEX_RECURSIVE_NP);
+	pthread_mutex_init(&CrTmutex, &myMutexAttr);
+	pthread_mutexattr_destroy(&myMutexAttr);
+}
+#endif
 
 /* }}} */
 
