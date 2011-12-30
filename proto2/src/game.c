@@ -868,6 +868,10 @@ const char version_line2[] = SYSGREEN "Compile-time Options: " SYSNORMAL
     "MCCP "
 #endif
 
+#ifdef UTF8_SUPPORT
+    "UTF8 "
+#endif
+
 #ifdef UDP_SOCKETS
     "MUF:UDP " 
 #endif

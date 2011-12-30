@@ -29,7 +29,7 @@
  ************************************************************************/
 
 /* UTF8_SUPPORT support will be moved to ./configure, it lives here for now. */
-#undef UTF8_SUPPORT
+#define UTF8_SUPPORT
 
 /* Alynna - Lets make something so that later on it will see the CYGWIN 
  * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN

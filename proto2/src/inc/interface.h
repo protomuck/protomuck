@@ -44,6 +44,7 @@
 #define TELOPT_MSSP     '\x46'
 #define TELOPT_MSSP_VAR '\x01'
 #define TELOPT_MSSP_VAL '\x02'
+#define TELOPT_CHARSET  '\x2A'
 
 #ifdef MCCP_ENABLED
 #define COMPRESS_BUF_SIZE 16384 /* This will use 16k for every descriptor that has MCCP enabled */
