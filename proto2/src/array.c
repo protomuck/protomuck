@@ -336,6 +336,7 @@ array_tree_balance_node(array_tree *a)
     return a;
 }
 
+/* cake */
 array_tree *
 array_tree_alloc_node(array_iter *key)
 {
