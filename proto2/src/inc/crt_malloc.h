@@ -23,6 +23,9 @@ extern void CrT_free(void *p, const char *whatfile, int whatline);
 extern char *CrT_string_dup(const char *, const char *, int);
 extern char *CrT_alloc_string(const char *, const char *, int);
 extern struct shared_string *CrT_alloc_prog_string(const char *, const char *, int, int, int);
+#if defined(HAVE_PTHREAD_H)
+extern void CrT_pthread_init(void);
+#endif
 
 #define malloc(x)                      CrT_malloc(      x,      __FILE__, __LINE__)
 #define calloc(x,y)                    CrT_calloc(      x, y,   __FILE__, __LINE__)

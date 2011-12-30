@@ -412,6 +412,11 @@ main(int argc, char **argv)
     }
 #endif
 
+#if defined(MALLOC_PROFILING) && defined(HAVE_PTHREAD_H)
+	/* initializing the mutex lock for CrT */
+	CrT_pthread_init();
+#endif
+
     strcpy(restart_message, "\r\nServer restarting, be back in a few!\r\n");
     strcpy(shutdown_message, "\r\nServer shutting down, be back in a few!\r\n");
     time(&current_systime);
@@ -1715,6 +1720,78 @@ extern void purge_free_frames(void);
 time_t current_systime = 0;
 time_t startup_systime = 0;
 
+#ifdef EXPERIMENTAL_THREADING
+
+#ifdef WIN_VC
+DWORD WINAPI threaded_output_handler(void *ptr)
+#else
+void *threaded_output_handler(void *ptr)
+#endif
+{
+	fd_set output_set;
+    struct timeval timeout;
+	struct descriptor_data *d, *dnext;
+    struct descriptor_data *newd;
+    int avail_descriptors;
+
+    while (shutdown_flag == 0) { /* Game Loop */
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100000;
+
+        FD_ZERO(&output_set);
+
+        for (d = descriptor_list; d; d = dnext) {
+            dnext = d->next;
+			if (d->output.head) /* Prepare write pool */
+				FD_SET(d->descriptor, &output_set);
+#ifdef MCCP_ENABLED /* If MCCP is enabled, and data is waiting to be sent out of the compression buffer */
+			else if (d->mccp && COMPRESS_BUF_SIZE - d->mccp->z->avail_out)
+				FD_SET(d->descriptor, &output_set);
+#endif
+			
+#ifdef USE_SSL
+			if (d->ssl_session) {
+				/* SSL may want to write even if the output queue is empty */
+				if (!SSL_is_init_finished(d->ssl_session))
+					FD_CLR(d->descriptor, &output_set);
+				if (SSL_want_write(d->ssl_session))
+					FD_SET(d->descriptor, &output_set);
+			}
+#endif
+		}
+
+		if (select(maxd, (fd_set *) 0, &output_set, (fd_set *) 0, &timeout) < 0) {
+            if (errnosocket != EINTR) { /* select() returned crit error */
+                perror("select");
+                //return;
+            }
+        } else {                /* select returned >= 0 */
+			for (d = descriptor_list; d; d = dnext) {
+                dnext = d->next;
+                if (FD_ISSET(d->descriptor, &output_set)) {
+                    if (!process_output(d)) /* send text */
+                        d->booted = 1; /* connection lost */
+#ifdef MCCP_ENABLED
+                    else if (!mccp_process_compressed(d))
+                        d->booted = 1;
+#endif
+                }
+			}
+		}
+	}
+#ifdef WIN_VC
+# ifndef __cplusplus
+	/* Supposedly, when using C++ and WINAPI, you just return from the thread function. */
+	ExitThread(0);
+# endif
+#else
+    pthread_exit(NULL);
+#endif
+	return NULL;
+}
+#endif /* EXPERIMENTAL_THREADING */
+
+
 void
 shovechars(void)
 {
@@ -1731,13 +1808,19 @@ shovechars(void)
     int openfiles_max;
     int i;
     char buf[2048], buf2[256];
-
 #ifdef USE_SSL
     int ssl_status_ok = 1;
 #endif
 #ifdef MUF_SOCKETS
     extern struct muf_socket_queue *socket_list;
     struct muf_socket_queue *curr = socket_list;
+#endif
+#ifdef EXPERIMENTAL_THREADING
+# ifndef WIN_VC
+    int result;
+    pthread_t thread1;
+    pthread_attr_t attr;
+# endif
 #endif
 
     time(&startup_systime);
@@ -1809,6 +1892,22 @@ shovechars(void)
     printf("\n");
 
     avail_descriptors = max_open_files() - 10;
+#ifdef EXPERIMENTAL_THREADING
+# ifdef WIN_VC
+    CreateThread(NULL, 0, threaded_output_handler, NULL, 0, NULL);
+# else
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    result = pthread_create(&thread1, &attr, threaded_output_handler, NULL);
+ 
+    pthread_attr_destroy(&attr);
+
+    if (result) {
+		perror("Unable to start output thread");
+    }
+# endif
+#endif /* EXPERIMENTAL_THREADING */
 
     while (shutdown_flag == 0) { /* Game Loop */
         gettimeofday(&current_time, (struct timezone *) 0);
@@ -1899,12 +1998,14 @@ shovechars(void)
             else
                 FD_SET(d->descriptor, &input_set);
 
+#ifndef EXPERIMENTAL_THREADING
             if (d->output.head) /* Prepare write pool */
                 FD_SET(d->descriptor, &output_set);
-#ifdef MCCP_ENABLED /* If MCCP is enabled, and data is waiting to be sent out of the compression buffer */
+# ifdef MCCP_ENABLED /* If MCCP is enabled, and data is waiting to be sent out of the compression buffer */
             else if (d->mccp && COMPRESS_BUF_SIZE - d->mccp->z->avail_out)
                 FD_SET(d->descriptor, &output_set);
-#endif
+# endif
+#endif /* EXPERIMENTAL_THREADING */
 #ifdef USE_SSL
             if (d->ssl_session) {
                 /* SSL may want to write even if the output queue is empty */
