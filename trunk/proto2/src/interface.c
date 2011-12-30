@@ -3258,16 +3258,10 @@ queue_write(struct descriptor_data *d, const char *b, int n)
 int
 queue_string(struct descriptor_data *d, const char *s)
 {
-    wchar_t wctmp;
-    int wclen, result;
-
-    int len = strlen(s);
+    int result, len = strlen(s);
     const char *send = s + len - 1;
     const char *sp;
-
     char *filtered, *fp, *fend;
-
-
 
     if (d->encoding == 1) { /* ASCII */
         filtered = (char *) malloc(len + 1);
@@ -3281,7 +3275,10 @@ queue_string(struct descriptor_data *d, const char *s)
         }
 #ifdef UTF8_SUPPORT
     } else if (d->encoding == 2) { /* UTF-8 */
-        /* each invalid byte of s potentially maps to three UTF-8 bytes */
+		/* each invalid byte of s potentially maps to three UTF-8 bytes */
+		wchar_t wctmp;
+		int wclen;
+        
         filtered = (char *) malloc( (len*3) + 1);
         fp = filtered;
         fend = filtered + (len*3);
