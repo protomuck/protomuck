@@ -322,17 +322,21 @@ http_sendheader(struct descriptor_data *d, int statcode,
 
     f = http_fieldlookup(d, "Accept-Encoding");
     
+#ifdef MCCP_ENABLED
     /* if (f && f->data && equalstr("*gzip*", f->data)) {
         iscompressed = 1;
         queue_text(d, "Content-Encoding: gzip\r\n");
     } */
+#endif
 
     queue_text(d, "\r\n");
 
-    if (iscompressed) {
-       process_output(d);
-       mccp_start(d, 0);
-    }
+#ifdef MCCP_ENABLED
+    //if (iscompressed) {
+    //   process_output(d);
+    //   mccp_start(d, 0);
+    //}
+#endif
 }
 
 void
