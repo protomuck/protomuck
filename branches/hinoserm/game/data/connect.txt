@@ -1,0 +1,23 @@
+ 
+* connect user pass
+  logs in
+ 
+* connect guest guest
+  logs in as a guest
+ 
+* request <user> <email> <your name>
+  requests a character
+ 
+* ch user pass
+  logs in hidden, if you are a wizard
+ 
+* HELP
+  Shows the help screen
+ 
+* WHO
+  Shows who's online
+ 
+* QUIT
+  Disconnects
+ 
+
