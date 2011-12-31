@@ -30,9 +30,9 @@ oper1 = POP();
 oper2 = POP();
 }}}
   * Every item from the stack you `POP()` *must* be fed to `CLEAR(struct *inst)` before the function exits. Failure to do so introduces memory leaks to the server!
+  * Call `CHECKOFLOW(#)` after your last `POP()` if you are going to return more items to the stack than you are taking away. This generates an abort if it would be illegal for you to push the items. It's preferable to do this *before* the main body of your code begins; if you wait until you're ready to push, you're just wasting processing time.
   * Type check the `->type` of every `oper` you `POP()` from the stack and `abort_interp("someerror (#)")` if you get something you don't expect. The error message should indicate the input parameter with the invalid data type, and it should number them from left to right. (number 1 would be the *last* stack item you `POP()`'d) 
   * Use the `DoNullInd(struct *shared_string)` macro to safely retrieve the value of `oper->data.string` when the `->type` is `PROG_STRING`. This returns an empty string instead of a null pointer (which you should never dereference) if the string is empty.
-  * Call `CHECKOFLOW(#)` after your last `POP()` if you are going to return more items to the stack than you are taking away. This generates an abort if it would be illegal for you to push the items. It's preferable to do this *before* the main body of your code begins; if you wait until you're ready to push, you're just wasting processing time.
   * If your primitive returns data to the stack (most should), this should done via one of the following macros:
   {{{
 PushObject(int dbref)
