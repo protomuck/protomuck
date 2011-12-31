@@ -1,0 +1,28 @@
+#summary Anatomy of "instructions", the building blocks of MUF.
+
+Instructions are C structs of type `struct inst`. They have three members:
+{{{
+struct inst {                   /* instruction */
+    short   type;
+    short   line;
+    union {
+        ....
+    } data
+}
+}}}
+
+`type` is the most important member. It contains contains the interpreter hint for how the `data` member should be accessed and interacted with. Accessing members of `data` that do not correspond to the current `type` will return uninitialized data and is broken behavior.
+
+==Static Types==
+These types do not contain pointers. This is not to say that the `inst` won't contain a hint to something that has to be dereferenced, but in such a case the memory will be freed in such a way that doesn't require tracking a link count.
+
+|| *Type*       || *#* || *Wiki Page*  || *Description* ||
+|| PROG_INTEGER ||   2 || ProgInteger  || data.number contains a standard C int. ||
+
+
+==Pointer Types==
+These data types contain memory pointers and maintain a link count. Passing the `inst` through `CLEAR()` will reduce the link count by 1; when the link count reaches zero, the referenced memory will be freed. Failure to pass the `inst` through `CLEAR()` before a primitive finishes will result in memory leaks.
+
+|| *Type*       || *#* || *Wiki Page*  || *Description* ||
+|| PROG_STRING  ||   9 || ProgString   || Pointer to a stack string. ||
+
