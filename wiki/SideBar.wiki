@@ -4,4 +4,4 @@
 Stuff for users.
 
 == Contributing ==
-Stuff for people who want to contribute.
+WritingPrimitives
