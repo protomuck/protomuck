@@ -29,4 +29,4 @@ struct shared_string {              /* for sharing strings in programs */
     * If -1, `data` will contain byte sequences that are not legal UTF-8. This can be used to avoid wasting any cycles on trying to treat it like valid UTF-8. This is a cached value, and further calls to `wcharlen` will not attempt to calculate the UTF-8 length.
     * If `(length == wclength || wclength == 0)`, the string is both valid ASCII-7 and valid UTF-8.
     * If `(length > wclength)`, the string is valid UTF-8 but not valid ASCII-7.
-  * Despite being `data` being defined as a 1-byte array, the game will actually `malloc` (length + 1) bytes beginning the memory space pointed to by `data`. If you need to extend `struct shared_string`, you *must not* add additional members after `data`.
+  * Despite being `data` being defined as a 1-byte array, the game will actually `malloc` (length + 1) bytes beginning at the memory space pointed to by `data`. If you need to extend `struct shared_string`, you *must not* add additional members after `data`.
