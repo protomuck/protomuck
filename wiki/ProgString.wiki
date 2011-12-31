@@ -22,7 +22,7 @@ struct shared_string {              /* for sharing strings in programs */
 }}}
 
 
-  * ``oper->data.string->data`` is the pointer to the actual C string.
+  * `oper->data.string->data` is the pointer to the actual C string.
   * The C string should be fetched via `DoNullInd(struct shared_string *ss)` more often than not. string->data should contain a null pointer in the event of an empty string; `DoNullInd(oper->data.string)` will return an empty string (technically `'\0'`) in such a circumstance, preventing a NULL pointer from being accidentally dereferenced.
   * wclength is the cached UTF-8 length hint. It should always be accessed via the `wcharlen(struct shared_string *ss)` function.
     * If -2, the wclength is uncached and `wcharlen` will look it up.
