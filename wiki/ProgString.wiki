@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Anatomy of PROG_STRING
 
 {{{
 struct inst {                   /* instruction */
