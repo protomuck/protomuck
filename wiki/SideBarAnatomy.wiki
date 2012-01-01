@@ -7,14 +7,14 @@ Stuff for users.
 WritingPrimitives
 
 InstAnatomy
-*  ProgInteger
-*  ProgFloat
-*  ProgObject
-*  ProgVar
-*  ProgLvar
-*  ProgSvar
-*  ProgString
-*  ProgArray
-*  ProgDictionary
-*  ProgSocket
-*  ProgMysql
+  * ProgInteger
+  * ProgFloat
+  * ProgObject
+  * ProgVar
+  * ProgLvar
+  * ProgSvar
+  * ProgString
+  * ProgArray
+  * ProgDictionary
+  * ProgSocket
+  * ProgMysql
