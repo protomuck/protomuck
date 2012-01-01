@@ -17,14 +17,16 @@ struct inst {                   /* instruction */
 ==Static Types==
 These types do not contain pointers. This is not to say that the `inst` won't contain a hint to something that has to be dereferenced, but in such a case the memory will be freed in such a way that doesn't require tracking a link count.
 
-|| *Type*       || *#* || *Wiki Page*  || *Description* ||
-|| PROG_CLEARED ||   0 || ProgCleared  || Contains no initialized data at all. The result of using `CLEAR()` on an inst. ||
-|| PROG_INTEGER ||   2 || ProgInteger  || data.number contains a standard C int. ||
-|| PROG_FLOAT   ||   3 || ProgFloat    || data.number contains a standard C long. ||
-|| PROG_OBJECT  ||   4 || ProgObject   || data.objref contains a `dbref` type, which is a `typedef`'d C integer. ||
-|| PROG_VAR     ||   5 || ProgVar      || ||
-|| PROG_LVAR    ||   6 || ProgLvar     || ||
-|| PROG_SVAR    ||   7 || ProgSvar     || ||
+These types do not have their own pages, and documentation can be found on the StaticInst page.
+
+|| *Type*       || *#* || *Description* ||
+|| PROG_CLEARED ||   0 || Contains no initialized data at all. The result of using `CLEAR()` on an inst. ||
+|| PROG_INTEGER ||   2 || data.number contains a standard C int. ||
+|| PROG_FLOAT   ||   3 || data.number contains a standard C long. ||
+|| PROG_OBJECT  ||   4 || data.objref contains a `dbref` type, which is a `typedef`'d C integer. ||
+|| PROG_VAR     ||   5 || ||
+|| PROG_LVAR    ||   6 || ||
+|| PROG_SVAR    ||   7 || ||
 
 
 ==Pointer Types==
