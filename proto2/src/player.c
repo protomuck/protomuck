@@ -13,10 +13,12 @@ static hash_tab player_list[PLAYER_HASH_SIZE];
 bool
 check_password(dbref player, const char *check_pw)
 {
+    const char *password = NULL;
+
     if (player == NOTHING)
         return 0;
 
-    const char *password = DBFETCH(player)->sp.player.password;
+    password = DBFETCH(player)->sp.player.password;
 
     /* We now do this smartly based on the DB_NEWPASSES */
     /*  database flag. -Hinoserm                        */
@@ -49,6 +51,9 @@ check_password(dbref player, const char *check_pw)
 bool
 set_password(dbref player, const char *password)
 {
+    int res = 0;
+    char hashbuf[BUFFER_LEN];
+
     if (player == NOTHING)
         return 0;
 
@@ -56,9 +61,12 @@ set_password(dbref player, const char *password)
         if (DBFETCH(player)->sp.player.password)
             free((void *) DBFETCH(player)->sp.player.password);
 
-        char hashbuf[BUFFER_LEN];
+        if (!db_hash_passwords) {
+            DBFETCH(player)->sp.player.password = NULL;
+            return 1;
+        }
 
-        int res = db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
+        res = db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
 
         if (!res)
             return 0;
@@ -75,7 +83,7 @@ set_password(dbref player, const char *password)
     if (db_hash_passwords) {
         char hashbuf[BUFFER_LEN];
 
-        int res = db_hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
+        res = db_hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
 
         if (!res)
             return 0;
