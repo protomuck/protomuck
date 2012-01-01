@@ -1,4 +1,5 @@
 #summary Anatomy of PROG_STRING
+#sidebar SideBarAnatomy
 
 {{{
 struct inst {                   /* instruction */
