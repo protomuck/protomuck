@@ -7,12 +7,7 @@ Stuff for users.
 WritingPrimitives
 
 InstAnatomy
-  * ProgInteger
-  * ProgFloat
-  * ProgObject
-  * ProgVar
-  * ProgLvar
-  * ProgSvar
+  * StaticInst
   * ProgString
   * ProgArray
   * ProgDictionary
