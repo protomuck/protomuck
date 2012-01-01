@@ -1,0 +1,20 @@
+#summary This is a the sidebar for Anatomy entriess.
+
+== User Documentation ==
+Stuff for users.
+
+== Contributing ==
+WritingPrimitives
+
+InstAnatomy
+*  ProgInteger
+*  ProgFloat
+*  ProgObject
+*  ProgVar
+*  ProgLvar
+*  ProgSvar
+*  ProgString
+*  ProgArray
+*  ProgDictionary
+*  ProgSocket
+*  ProgMysql
