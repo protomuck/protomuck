@@ -12,7 +12,6 @@ struct inst {                   /* instruction */
         ....
     } data;
 };
-}}}
 
 #ifdef SQL_SUPPORT
 struct muf_sql { /* struct for MUF SQL connections */
@@ -22,5 +21,6 @@ struct muf_sql { /* struct for MUF SQL connections */
     int links;         /* number of instances of this connection */
 };
 #endif
+}}}
 
   * The `MYSQL` type is defined by MySQL's C API. <mysql.h>
