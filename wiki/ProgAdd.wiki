@@ -18,4 +18,4 @@ struct prog_addr {              /* for 'addres references */
 };
 }}}
 
-* It has nothing to do with addition. Honest.
+  * It has nothing to do with addition. Honest.
