@@ -1,4 +1,5 @@
 #summary Anatomy of "instructions", the building blocks of MUF.
+#sidebar SideBarAnatomy
 
 Instructions are C structs of type `struct inst`. They have three members:
 {{{
@@ -38,4 +39,5 @@ You should always try to `dup` these types on the stack wherever possible for ma
 || PROG_ADD        ||  12 || ProgAdd        || data.addr contains a pointer to a MUF function. ||
 || PROG_ARRAY      ||  16 || ProgArray      || ||
 || PROG_DICTIONARY ||  17 || ProgDictionary || ||
+|| PROG_SOCKET     ||  18 || ProgSocket     || data.muf_socket contains a pointer to a MUF socket. ||
 || PROG_MYSQL      ||  27 || ProgMysql      || ||
