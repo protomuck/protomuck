@@ -13,9 +13,9 @@ struct inst {                   /* instruction */
 
 struct muf_proc_data {
     char *procname;
-        int vars;
-        int args;
-        const char **varnames;
+    int vars;
+    int args;
+    const char **varnames;
 };
 
 }}}
