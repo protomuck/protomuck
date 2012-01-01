@@ -11,7 +11,6 @@ struct inst {                   /* instruction */
     } data;
 };
 
-
 struct boolexp {
     boolexp_type type;
     struct boolexp *sub1;
@@ -41,4 +40,4 @@ union pdata_u {
 
 }}}
 
-  * You are wise to stay away from locks if you value your sanity. None of us will blame you.
+  * You are wise to stay away from the internals of locks if you value your sanity. None of us will blame you.
