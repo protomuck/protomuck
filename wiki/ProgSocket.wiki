@@ -7,7 +7,6 @@ struct inst {                   /* instruction */
     short   line;
     union {
         ....
-
         struct muf_socket *sock;        /* A ProtoMUCK socket               */
         ....
     } data;
