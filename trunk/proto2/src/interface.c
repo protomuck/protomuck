@@ -25,8 +25,6 @@
 #include "netresolve.h"         /* hinoserm */
 #ifdef UTF8_SUPPORT
 # include <locale.h>
-# include <nl_types.h>
-# include <langinfo.h>
 #endif
 
 /* Cynbe stuff added to help decode corefiles:
@@ -4019,10 +4017,10 @@ process_input(struct descriptor_data *d)
                             *p++ = '\xbd';
                         } else {
                             /* Not enough buffer space for U+FFFD, fill the rest
-                             * of the buffer with question marks (leaving room
+                             * of the buffer with whitespace (leaving room for
                              * for the newline) */
                             while (p < pend) {
-                                *p++ = '?';
+                                *p++ = ' ';
                             }
                         }
                     }
