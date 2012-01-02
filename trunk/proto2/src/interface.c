@@ -3133,6 +3133,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     d->raw_input_wclen = 0;
 #endif
     d->inIAC = 0;
+    d->truncate = 0;
     d->quota = tp_command_burst_size;
     d->commands = 0;
     d->last_time = d->connected_at;
@@ -3670,6 +3671,7 @@ process_input(struct descriptor_data *d)
 #endif /* NEWHTTPD */
         if (*q == '\n') {
             *p = '\0';
+            d->truncate = 0;
             if (p > d->raw_input) {
 #ifdef NEWHTTPD
                 if (d->type == CT_HTTP) { /* hinoserm */
@@ -3938,7 +3940,7 @@ process_input(struct descriptor_data *d)
         } else if (*q == '\377') {
             /* Got TELNET IAC, store for next byte */
             d->inIAC = 1;
-        } else if (p < pend) {
+        } else if (p < pend && !d->truncate) {
             if ((*q == '\t')
                 & (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = ' ';
@@ -4016,12 +4018,8 @@ process_input(struct descriptor_data *d)
                             *p++ = '\xbf';
                             *p++ = '\xbd';
                         } else {
-                            /* Not enough buffer space for U+FFFD, fill the rest
-                             * of the buffer with whitespace (leaving room for
-                             * for the newline) */
-                            while (p < pend) {
-                                *p++ = ' ';
-                            }
+                            /* Not enough buffer space for U+FFFD, truncate. */
+                            d->truncate = 1;
                         }
                     }
                     wcbuflen++;
