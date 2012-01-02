@@ -3371,6 +3371,8 @@ queue_string(struct descriptor_data *d, const char *s)
         for (sp = s; *sp != '\0'; sp++) {
             if (isascii(*sp)) {
                 *fp++ = *sp;
+            } else {
+                *fp++ = '?';
             }
         }
 #ifdef UTF8_SUPPORT
