@@ -960,7 +960,7 @@ prim_regfind_array(PRIM_PROTOTYPE)
     const char *name;
     stk_array *nw;
     muf_re* re;
-    char* text;
+    char* text = NULL;
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;
