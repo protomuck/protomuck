@@ -4002,6 +4002,7 @@ process_input(struct descriptor_data *d)
                             /* advance q by wclen-1 bytes. we subtract 1 because
                              * the loop itself already advances it by 1. */
                             q = q + (wclen - 1);
+                            wcbuflen++;
                         } else {
                             /* d->raw_input can't hold the next UTF-8 character.
                              * Deleting characters during conversion when we
@@ -4019,12 +4020,12 @@ process_input(struct descriptor_data *d)
                             *p++ = '\xef';
                             *p++ = '\xbf';
                             *p++ = '\xbd';
+                            wcbuflen++;
                         } else {
                             /* Not enough buffer space for U+FFFD, truncate. */
                             d->truncate = 1;
                         }
                     }
-                    wcbuflen++;
 #endif
                 } else { /* RAW */
                     /* any text from a raw source goes straight into the game,
