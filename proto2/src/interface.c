@@ -6597,7 +6597,8 @@ partial_pmatch(const char *name)
     d = descriptor_list;
     while (d) {
         if (d->connected && (last != d->player) &&
-            string_prefix(NAME(d->player), name)) {
+            (string_prefix(NAME(d->player), name) ||
+             lookup_alias(name,1) != NOTHING) ) {
             if (last != NOTHING) {
                 last = AMBIGUOUS;
                 break;
