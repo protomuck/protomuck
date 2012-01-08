@@ -293,6 +293,9 @@ create_player(dbref creator, const char *name, const char *password)
     if (!ok_player_name(name) || !ok_password(password) || tp_db_readonly)
         return NOTHING;
 
+    /* remove any existing alias with this name */
+    clear_alias(0, name);
+
     /* else he doesn't already exist, create him */
     player = new_object(creator);
     newp = DBFETCH(player);
@@ -398,6 +401,11 @@ delete_player(dbref who)
     int result;
 
     result = free_hash(NAME(who), player_list, PLAYER_HASH_SIZE);
+
+    /* Nuke the alias managed by this dbref. This will not remove any aliases
+     * that were manually set on #0, but they should auto-clean as the lookups
+     * are attempted. */
+    rotate_alias(who, 1);
 
     if (result) {
         int i;

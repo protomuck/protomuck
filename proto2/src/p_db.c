@@ -839,6 +839,9 @@ prim_setname(PRIM_PROTOTYPE)
                        && !ok_player_name(b)) {
                 abort_interp("You can't give a player that name");
             }
+            /* remove any existing alias with this name */
+            clear_alias(0, b);
+
             /* everything ok, notify */
             delete_player(ref);
             if (NAME(ref))
