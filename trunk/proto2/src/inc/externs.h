@@ -299,7 +299,12 @@ extern void recycle(int descr, dbref player, dbref thing);
 
 /* From player.c */
 extern void clear_players(void);
+extern dbref lookup_alias(const char *name, int checkname);
+extern int rotate_alias(dbref target, int killold);
+extern void clear_alias(dbref target, const char *alias);
+extern int set_alias(dbref target, const char *alias, int rotate);
 extern dbref lookup_player(const char *name);
+extern dbref lookup_player_noalias(const char *name);
 extern void do_password(dbref player, const char *old, const char *newobj);
 extern void add_player(dbref who);
 extern void delete_player(dbref who);
@@ -391,6 +396,8 @@ extern void do_unlink_quiet(int, dbref, const char *);
 extern void do_flags(int descr, dbref player, const char *args);
 extern void lflags_update();
 
+extern void do_alias(dbref player, const char *arg1, const char *arg2,
+                     int delimited);
 extern void do_encoding(int descr, dbref player, const char *arg);
 
 /* From speech.c */
