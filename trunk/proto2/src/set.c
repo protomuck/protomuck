@@ -163,6 +163,10 @@ do_name(int descr, dbref player, const char *name, char *newname)
             /* everything ok, notify */
             log_status("NAME: %s(%d) to %s by %s\n",
                        NAME(thing), thing, newname, NAME(player));
+
+            /* remove alias sharing the new name, if present. */
+            clear_alias(0, newname);
+
             strcpy(oldName, NAME(thing));
             strcpy(nName, newname);
             delete_player(thing);
