@@ -4379,7 +4379,7 @@ check_connect(struct descriptor_data *d, const char *msg)
     char msgargs[BUFFER_LEN];
     char buf[BUFFER_LEN];
     char *p = NULL;
-    int len;
+    int len = 0;
 
     parse_connect(msg, command, user, password);
     for (xref = 0; command[xref]; xref++)
