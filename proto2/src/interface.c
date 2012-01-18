@@ -4379,6 +4379,7 @@ check_connect(struct descriptor_data *d, const char *msg)
     char msgargs[BUFFER_LEN];
     char buf[BUFFER_LEN];
     char *p = NULL;
+    int len;
 
     parse_connect(msg, command, user, password);
     for (xref = 0; command[xref]; xref++)
@@ -4407,10 +4408,12 @@ check_connect(struct descriptor_data *d, const char *msg)
 
     if (d->interactive == 2) {
         p = buf;
-        while (*msg && (isprint(*msg)))
+        while (*msg && (isprint(*msg))) {
             *p++ = *msg++;
+            len++;
+        }
         *p = '\0';
-        handle_read_event(d->descriptor, NOTHING, buf, NULL, 0, 0);
+        handle_read_event(d->descriptor, NOTHING, buf, NULL, len, -2);
         return;
     }
 
