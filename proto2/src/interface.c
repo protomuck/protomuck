@@ -3164,7 +3164,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     if (remember_descriptor(d) < 0)
         d->booted = 1;          /* Drop the connection ASAP */
 
-    if (ctype == CT_MUCK && tp_ascii_descrs) {
+    if ((ctype == CT_MUCK || CT_SSL || CT_PUEBLO) && tp_ascii_descrs) {
         d->encoding = 1; /* ASCII I/O */
     } else {
         d->encoding = 0; /* RAW I/O */
@@ -4342,7 +4342,11 @@ do_command(struct descriptor_data *d, struct text_block *t)
                 queue_write(d, "\r\n", 2);
             }
         } else {
-            check_connect(d, command);
+            if (d->interactive == 2) {
+                handle_read_event(d->descriptor, NOTHING, command, NULL, len, wclen);
+            } else {
+                check_connect(d, command);
+            }
         }
     }
     (d->commands)++;
@@ -4395,7 +4399,7 @@ check_connect(struct descriptor_data *d, const char *msg)
            
        If you want to debug strings passed to the connection handler, define
        DEBUGLOGINS somewhere. This should not be done in "live" environments,
-       as it makes hashing your player passwords pointless. -brevantes */
+       as it makes hashing your player passwords pointless. -davin */
 
 #ifndef DEBUGLOGINS
     if (tp_log_connects &&
@@ -4406,6 +4410,7 @@ check_connect(struct descriptor_data *d, const char *msg)
 #endif
         log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg);
 
+    /* do_command will no longer reach this point. -davin */
     if (d->interactive == 2) {
         p = buf;
         while (*msg && (isprint(*msg))) {
