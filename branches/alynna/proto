@@ -1,0 +1,18 @@
+#!/bin/sh -f
+# Enter up to 10 extra ports here. Refer to the documentation for MOREPORTS
+# in the restart script, or just use that instead.
+PORTS="";
+
+# Start/stop the netmuck server.
+
+HOME=$HOME
+
+case "$1" in
+start)	$HOME/proto/game/restart $PORTS ;;
+on)	$HOME/proto/game/restart $PORTS ;;
+stop)	kill `cat $HOME/proto/game/protomuck.pid` ;;
+off)	kill `cat $HOME/proto/game/protomuck.pid` ;;
+*)	echo "Usage: $0 start|stop"; exit 1 ;;
+esac
+exit 0
+
