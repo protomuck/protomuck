@@ -607,10 +607,10 @@ prim_getpidinfo(PRIM_PROTOTYPE)
     /* int */
     CHECKOP(1);
     oper1 = POP();
-    if (mlev < LARCH)
-        abort_interp("Archwizard prim.");
     if (oper1->type != PROG_INTEGER)
         abort_interp("Non-integer argument (1)");
+    if (mlev < LARCH && !(oper1->data.number == fr->pid))
+        abort_interp("Only ARCHWIZARD (W3) Can GETPIDINFO other programs.");
 
     /* This is kind of hacky. Basically, if we are getting the 
      * current program's info, we need to do it here, since it
@@ -674,6 +674,13 @@ prim_getpidinfo(PRIM_PROTOTYPE)
         temp1.data.string = alloc_prog_string("DESCR");
         temp2.type = PROG_INTEGER;
         temp2.data.number = fr->descr;
+        array_setitem(&nw, &temp1, &temp2);
+        CLEAR(&temp1);
+        CLEAR(&temp2);
+        temp1.type = PROG_STRING; /* DESCR */
+        temp1.data.string = alloc_prog_string("MLEVEL");
+        temp2.type = PROG_INTEGER;
+        temp2.data.number = mlev;
         array_setitem(&nw, &temp1, &temp2);
         CLEAR(&temp1);
         CLEAR(&temp2);

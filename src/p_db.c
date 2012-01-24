@@ -125,7 +125,7 @@ check_flag2(char *flag, int *nbol)
 #endif
     if (string_prefix("immobile", flag) || string_prefix("|", flag))
         return F2IMMOBILE;
-    if (string_prefix("hidden", flag) || string_prefix("#", flag))
+    if (string_prefix("extperms", flag) || string_prefix("hidden", flag) || string_prefix("#", flag))
         return F2HIDDEN;
     if (string_prefix("suspect", flag))
         return F2SUSPECT;
@@ -227,7 +227,7 @@ flag_check_perms(dbref ref, int flag, int mlev)
 int
 flag_check_perms2(dbref ref, int flag, int mlev)
 {
-    if (flag == F2HIDDEN && mlev < LWIZ)
+    if ((flag == F2HIDDEN && mlev < LWIZ) || (Typeof(ref)==TYPE_PROGRAM && mlev < LM1))
         return 0;
     if (flag == F2LOGWALL && mlev < LWIZ)
         return 0;
@@ -253,7 +253,7 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
         return 0;
     if (flag == XFORCIBLE && Typeof(ref) != TYPE_PROGRAM && mlev < LARCH)
         return 0;
-    if (flag == QUELL && Typeof(ref) != TYPE_THING)
+    if (flag == QUELL && (Typeof(ref) == TYPE_PROGRAM && mlev < LARCH) && (Typeof(ref) != TYPE_THING))
         return 0;
     if (flag == BUILDER && mlev < LARCH)
         return 0;
@@ -270,7 +270,7 @@ flag_set_perms(dbref ref, int flag, int mlev, dbref prog)
 int
 flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
 {
-    if (flag == F2HIDDEN && mlev < LARCH)
+    if ((flag == F2HIDDEN && mlev < LARCH) || (Typeof(ref)==TYPE_PROGRAM && mlev < LM1))
         return 0;
     if (flag == F2GUEST && mlev < LMAGE)
         return 0;
@@ -1117,11 +1117,15 @@ prim_mlevel(PRIM_PROTOTYPE)
 {
     CHECKOP(1);
     oper1 = POP();
-    if (!valid_object(oper1))
-        abort_interp("Invalid object");
-    ref = oper1->data.objref;
-    CHECKREMOTE(ref);
-    result = MLevel(ref);
+    if (oper1->data.objref == NOTHING) {
+        result = mlev;
+    } else {
+        if (!valid_object(oper1))
+            abort_interp("Invalid object");
+        ref = oper1->data.objref;
+        CHECKREMOTE(ref);
+        result = MLevel(ref);
+    }
     CLEAR(oper1);
     PushInt(result);
 }

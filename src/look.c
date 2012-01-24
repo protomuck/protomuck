@@ -573,7 +573,7 @@ flag_description(dbref thing)
                          Typeof(thing) ==
                          TYPE_PROGRAM) ? " PROG_DEBUG" : " PARENT");
         if (FLAG2(thing) & F2HIDDEN)
-            strcat(buf, " HIDDEN");
+            strcat(buf, (Typeof(thing) == TYPE_PROGRAM ? " EXTPERMS" : " HIDDEN"));
         if (FLAG2(thing) & F2NO_COMMAND)
             strcat(buf,
                    (Typeof(thing) ==
