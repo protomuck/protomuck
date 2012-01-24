@@ -2467,29 +2467,34 @@ find_mlev(dbref prog, struct frame *fr, int st)
 {
     int maxmlev =
         (POWERS(OWNER(prog)) & POW_ALL_MUF_PRIMS) ? LBOY : MLevel(OWNER(prog));
-    int mlev;
+    int mlev, mtmp;
 
     if (!tp_compatible_muf_perms) { /* Do it the proto/neon way */
-        if ((FLAGS(prog) & STICKY) && (FLAGS(prog) & HAVEN)
-            && ((st > 1) && (TMage(OWNER(prog))))) {
-            mlev = find_mlev(fr->caller.st[st - 1], fr, st - 1);
-        } else {
-            if ((FLAGS(prog) & HAVEN) && ((st > 1) && (TMage(OWNER(prog))))) {
-                mlev = MLevel(OWNER(fr->caller.st[st - 1]));
-            } else {
-                if ((FLAGS(prog) & QUELL) && (FLAGS(prog) & HAVEN)) {
-                    mlev = MLevel(prog);
-                } else {
-                    if ((FLAGS(prog) & QUELL)
-                        && (((fr->player > 0) && (fr->player < db_top))
-                            && (TMage(OWNER(prog))))) {
-                        mlev = QLevel(OWNER(fr->player));
-                    } else {
-                        mlev =
-                            (POWERS(OWNER(prog)) & POW_ALL_MUF_PRIMS) ? LBOY :
-                            MLevel(OWNER(prog));
-                    }
-                }
+    /* Alynna: New and hopefully saner permissions model.  We do each test.
+        and then reduce ourselves to the mlevel of the lowest given permissions.
+        We no longer require HARDUID to invoke the other tests.
+        The new & Flag set on a program enhances these permissions somewhat.
+        A program set &H can also inherit permissions from the action calling it.
+        A program set &S can inherit permissions from the owner of the action.
+        A program set &Q will cease to function when the program owner is quelled.
+    */
+        mlev = maxmlev;  // Default -- Owner of program
+        // STICKY: MLevel of trigger, including actions if set &
+        if ((FLAGS(prog) & STICKY) && ((FLAG2(prog) & F2HIDDEN) || (st > 1))) {
+            // mtmp = find_mlev(fr->caller.st[st - 1], fr, st - 1);
+            mtmp = MLevel(fr->caller.st[st - 1]);
+            if (mtmp < mlev) mlev = mtmp;
+        }
+        // HARDUID: MLevel of trigger owner, including actions if set &
+        if ((FLAGS(prog) & HAVEN) && ((FLAG2(prog) & F2HIDDEN) || (st > 1))) {
+            mtmp = MLevel(OWNER(fr->caller.st[st - 1]));
+            if (mtmp < mlev) mlev = mtmp;
+        }
+        // QUELL: MLevel of program, or 0 if set & and program owner is QUELL
+        if (FLAGS(prog) & QUELL) {
+            if (MLevel(prog) < mlev) mlev = MLevel(prog);
+            if (!(FLAG2(prog) & F2HIDDEN)) {
+                if (FLAGS(OWNER(prog)) & QUELL) mlev = 0;
             }
         }
     } else {                    /* do it the FB6/Glow way */

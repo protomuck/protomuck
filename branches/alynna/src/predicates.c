@@ -504,11 +504,15 @@ restricted2(dbref player, dbref thing, object_flag_type flag)
             break;
         case F2LOGWALL:
             return (!Arch(OWNER(player)));
-        case F2HIDDEN:         /* can only be set on players currently */
-            if (Typeof(thing) == TYPE_PLAYER)
-                return (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE));
-            else
-                return 1;
+        case F2HIDDEN: /* HIDDEN is now also EXTPERMS for programs */
+            if (Typeof(thing) == TYPE_PROGRAM) {
+                return !controls(player, thing);
+            } else { 
+                if (Typeof(thing) == TYPE_PLAYER)
+                    return (!Arch(OWNER(player)) && !(POWERS(player) & POW_HIDE));
+                else
+                    return 1;
+            }
         case F2ANTIPROTECT:
             if (Typeof(thing) == TYPE_PLAYER)
                 return (!Boy(OWNER(player)));
