@@ -1,0 +1,394 @@
+************************
+Updates from ProtoMUCK 1.03 to ProtoMUCK 1.04: 
+
+Internal: 
+Fixed the broken puppet listening from 1.03. 
+Fixed a malloc crasher in alloc_prog_string. 
+************************
+Updates from ProtoMUCK 1.02 to ProtoMUCK 1.03: 
+
+Internal: 
+Fixed a major bug in the descriptor support that was left over from the FB5.xx updates, so because of that we updated to the FB6a33 descriptor support and fixed the problems that are caused with it when @toading or @frobbing an online user. 
+Changed {idle} and {ontime} to work with the least idle connection. (FB6 Idea)
+************************
+Updates from ProtoMUCK 1.01 to ProtoMUCK 1.02: 
+
+Internal: 
+Removed MCP completly.  No more need for the MCP source files.  Sometime down the road we will add something in its place. 
+Added proplist_int_counter, proplist_counter_fmt, proplist_entry_fmt to sysparms.txt 
+Added an fbupgrade script for upgrading from FB5.xx systems. We are not saying that you should upgrade of course, but if someone wishes to then we do wish to make it easier and painless to do just that. 
+
+MUF: 
+Fixed a big bug with the ++ and -- MUF primitives. They actually work properly now. 
+************************
+Updates from ProtoMUCK 1.00 to ProtoMUCK 1.01: 
+
+Internal: 
+Started on the road of removing MCP in favor of another language.  Nobody ever uses MCP anyways. 
+Changed WebServer MUF calls back to PREEMPT mode. 
+Removed max instruction count limits for W levels other than mage(Neon bug). 
+Changed the <hr> footers on webserver pages to <META> tags that are not displayed. 
+Fixed messages with ':' being ignored at the login screen. 
+Fixed status log spam from webserver. 
+Added quiet_connects to @tune 
+Added pcreate_copy_props to @tune 
+Added quit_prog to @tune 
+Added proplist_int_counter @tune ( FB6 Idea )
+Added proplist_counter_fmt @tune ( FB6 Idea )
+Added proplist_entry_fmt @tune   ( FB6 Idea )
+Warning! The top three @tune params only work with array_put_proplist... for now. 
+Brought rest of MUCK code in line with FB5.67 (With a lack of the multiple listener ports): 
+Bug fixed with ONLINE and CONCOUNT being incorrect with _Disconnect/ propdirs 
+Fixed multiple Descriptor bugs 
+Fixed MPI crasher bug when ran from #0 
+Fixed crasher bug with MPI and @PS 
+Added LOG_INTERACTIVE @tune for logging muf READs ( FB6 Idea )
+Changed calls to time() to an internal variable for less system calls ( FB6 Idea )
+Changed connection-calls, descriptor-calls, and player-descriptor-calls to 0(1) from 0(n) (FB6 Idea )
+Fixed MALLOC_PROFILING bug 
+Bug fixes for multiple MPI functions 
+Crasher bug fixes for INTERP, DESCR_SETUSER, DUP and ONLINE muf prims 
+Changed search restrictions for MPI macros: ( FB6 Idea )
+       1) Check the owner of the trigger 
+       2) Check the trigger itself 
+       3) Check each object down the enviroment from the trigger 
+          that is owned by the same player as the trigger, is set 
+          wizbit, or has ~mpi_macros_ok set 
+       4) Check #0 
+MPI {store} and MUF property setting no longer works for _msgmacs/ unless either have wizard perms ( GlowMUCK Idea )
+Fixed crasher for 63 & 64 char names in data/info dir ( FB6 Fix )
+Added @muftops/@mpitops/@tops support ( FB6 Idea )
+Fixed crasher with debugger doing a pop on an empty stack ( FB6 Fix )
+Fixed multiple memory leaks, uninitialized vars, and array bounds problems ( FB6 Fix )
+Fixed dequeueing and double freeing bugs in the timequeue ( FB6 Fix )
+
+MUF: 
+Fixed array_get_reflist and array_put_reflist - They work now 
+Changed to FB6's MUF compiler since it is better, faster, and more powerful 
+Changed the way MUF lvars work. Each program has its own set now. They work like C's static vars.  (FB6 Idea )
+Optimised CLEAR() and RCLEAR() to use a switch statement  ( FB6 Idea )
+Optimised copyinst() to use a switch statement ( FB6 Idea )
+Added internal primitives for one-inst SVAR get/set ( FB6 Idea )
+Addition of function headers. ( From FB6 )
+Ie. : myproc[ str:mystr arr:myarr int:ibol -- str:strarr ] 
+  = : myproc var! mystr var! myarr var! ibol
+Fixed STRIPSPACES $def - It now works! 
+Made SOCKOPEN as a $def for compatability with new non-blocking sockets 
+Added prims: 
+SETPASSWORD ( d s1 s2 -- ) 
+NEWPASSWORD ( d s -- ) 
+NEXT_FLAG ( d1 s -- d2 ) 
+NEXTOWNED_FLAG ( d1 s -- d2 ) 
+NEXTPLAYER_FLAG ( d1 s -- d2 ) 
+NEXTTHING_FLAG ( d1 s -- d2 ) 
+DESCR_LOGOUT ( i -- ) 
+MOTD_NOTIFY ( d -- ) 
+EXPLODE_ARRAY ( s1 s2 -- a ) 
+NEXTPROGRAM ( d1 -- d2 ) 
+NEXTEXIT ( d1 -- d2 ) 
+NEXTROOM ( d1 -- d2 ) 
+NEXTTHING ( d1 -- d2 ) 
+NEXTENTRANCE ( d1 -- d2 ) 
+NBSOCKOPEN ( d1 -- d2 ) 
+SOCKCHECK ( socket -- i ) 
+VAR! ( x var! <name> -- ) = ( x var <name> <name> ! -- )
+*************************************
+Updates from NeonMUCK 2.17 to ProtoMUCK 1.00: 
+
+Internal changes: 
+Added a new set of Neon/Glow ansi tags: 
+^UNDERLINE^ for underlineing the text, ^BOLD^ for making the test lighter. 
+^CBLACK^, ^CRED^, ^CGREEN^, ^CBLUE^, ^CYELLOW^, ^CPURPLE^, ^CWHITE^ is for simple color changes without making the text bold nor dark. 
+
+^CFAIL^, ^SUCC^, ^CINFO, ^CNOTE^, and ^CMOVE^ are to get the default colors. A later version will let players change them (like GlowMUCK does) 
+
+Object names now allow the '&' character to be in them and can also be named 'home'. 
+
+Examine now shows the @descs, @idescs, @ansidescs, @iansidescs, @htmldescs, and @ihtmldescs. This will make it so that you don't have to scan through your properties to find the descriptions. Also, internal actions/commands have been added for the ANSI and HTML descriptions. (@ansidescribe, @iansidescribe, @htmldescribe, @ihtmldescribe) 
+
+Examine now shoes the destinations for the exits that are on the object that was examined. ( 'Neon3' idea ) 
+
+Logs and LOGWALL flag no longer reveal the players password no matter what the reason; now players do not have to be nervous about wizards easily finding out their passwords. 
+
+The string buffer (for poses, pages, etc) has been increased by three times the size. 
+
+Internal wizchat was made to be in ANSI color for the heck of it. ( GlowMUCK )
+
+The internal @credits and @version was rewritten in order to reflect the change 
+
+The MUF manual has been completly rewritten, and so has the edit-help.txt file for the editor. The MPI manual and help file have been updated for ProtoMUCK as well. 
+
+The MAN now always is shown to have the power of god, as he should, and is shown as W5 for the heck of it. However, the W5 flag can not be set/unset on any object, nor god him/herself. 
+
+Real good descriptor support now; pretty much every main function know what descriptor is running what. This will help out in a lot of the new options we added.  (FB6 Idea )
+
+If a custom WHO program is added then it will be ran in INTERACTIVE mode now. After all, the custom WHO program must be set with a wizbit to work anyways. 
+
+Added @tune help message and a @tune total count. This will help people understand what the heck each option is for. Also wrote a sysparm.txt to go along with this ( Concept from GlowMUCK )
+
+Puppets with their owners set C will now show ansi colors. No more dull normal colors anymore. 
+
+Renamed all of the filenames and pathnames to reflect the new server. 
+
+Two new shortcut/prefix commands were added: | and \\ are shortcuts for 'spoof', if the action exits. So you can type |there once was a muck called Proto. This will translate to: spoof there once was a muck called Proto. 
+
+Fixed up the login screen commands so that they no longer allow just about anything to run them. Ie. Before you could type 'cooiekrokt <user> <password>' to connect to your character, but now it has to be connect <user> <password>. Although, 'co <user> <password>' still works. 
+
+Disabled the @hopper registeration due to instability. This should be fixed in a bugfix release of ProtoMUCK. 
+
+Added internal cron-daemon support via @tune: First you have to set the cycle time for how long you want the program to wait for until the cron daemon runs with the new @tune option 'cron_interval' (Defaults to: 0d 0:15:00) and then set the @tune option 'cron_prog' to what MUF program you wish to run at that time (Defaults to: #-1). The trigger for the cron-daemon program is #-4. 
+
+Added 'processor_timer_limit' for the MUF timers. This limits the number of timers that are allowed with each program (Defaults to: 4) 
+
+Added log_sockets and log_files to @tune to allow logging of the new file and socket primitives. (Defaults to: no) 
+
+Added the login_who_prog @tune option so that wizards can replace the WHO command on the login screen to a MUF program (Defaults to: #-1) Be warned: The me @ variable comes out as #-1, so you will have to use the 'descr' primitive and notify that descriptor in order to tell the user anything. The MUF programs work the same way with the new login_huh_command @tune option as well (Defaults to: #-1) which allows you to run a MUF program if a bad command is ran on the login screen instead of redisplaying it to the user. The trigger for these programs is #-5. 
+
+If an attempt is made to login to a user with a bad password ProtoMUCK will set the host of the user that failed in its attempt onto the @/failed/host prop on the player object, and increase the number of failed attempts on the @/failed/count property, and lastly it will set the last failed attempts time onto the @/failed/time property. 
+
+Added support to change the wwwport and puebloport in @tune. If you are upgrading: Make sure that you set them in config.h or else they will change! 
+
+Added the expanded_debug to @tune (Defaulted to: no) that will expand the strings and arrays in the debugger if it is turned on. In a later version of ProtoMUCK this might be changed to a flag instead. ( The Array expansion idea is from FB6 )
+
+The huh_mesg (The message shown if a bad/non-existant command is ran), the noperm_mesg (The message shown if the user has no permission to do something), and the noguest_mesg (Guests are blocked out message) can now be changed via @tune. 
+
+The allow_home (Defaults to: yes) @tune option has been added to allow a wizard to turn off the 'home' command... Just in case the administration wishes to replace it, or not have it at all. 
+
+A quiet_moves (Defaults to: no) @tune option has been added so admin can shut off the '%n has arrived/departed' messages. 
+
+Added a huh_command (Defaults to: #-1) so that the administration can have a program ran if a bad/non-existant command is ran instead of the huh_mesg being shown. This allows for programs like a MUX-style comsys program (which has already been made prior to the release of the MUCK server itself). If a program runs off of this then the trigger ends up as #-4. 
+
+Removed the path_prog @tune option and any of the stuff that run the old paths setup; it wasn't finished in NeonMUCK beforehand, and we were deffinetly never going to use it, so we chose to remove it from ProtoMUCK. 
+
+Added the @destroy and @toad commands to the command processing cycle. @destroy is an alias to @recycle to make things easier for MUSH/MUX users while @toad was added as an alias to @frob for backwards compatability reasons. 
+
+&<property> <object>=<string> was added to ProtoMUCK for MUSH/MUX style &<prop> setting. It works exactly like the MUSH/MUX version. 
+
+Floating point number support has been added to properties. If you wish to add a floating point number property, type: @propset <object>=float:<property>:<floating point number> An example is: @propset me=float:_ifloat:5.47e-32 ( FB6 Code )
+
+For logins, a new command 'ch <char> <pass>' has been added. This is for wizards only, but it automaticaly sets the new HIDDEN flag on login, and otherwise works exactly like the 'connect' command on the login screen. 
+
+Bug Fixes: 
+The ansi_notify primitive now notifies the listeners, as it should of from the start. Beforehand it wouldn't. 
+
+@m* commands run properly now. Ie. Before you could type '@mieorktoska' and it would do absolutly nothing unless an action/exit was made by that name somewhere down the enviroment. Now it'll run through the huh_mesg/huh_command cycle, as it should of from the start. 
+The code compiles cleaner now; no more warnings in the code, except for with the 'gets' command but that is pretty safe anyways. 
+
+Socket primitives from the old NeonMUCK servers will no longer crash the muck. The missing first character bug in SOCKRECV was fixed as well. 
+
+W2's can no longer @force other wizards that have a higher wizard level. 
+
+The descr_setuser primitive now works on the login screen; if the user is not connected then he/she will go through the normal connection cycle to connect as the player that he/she was supposed to, according to descr_setuser. 
+
+The notify_html_from_echo() function in the interface.c file did not parse the HTML codes when notifying the player. That is fixed now. 
+
+Flag Additions: 
+HIDE: This is an alias for the HAVEN flag; it is meant to hide the contents of a container object. 
+LIGHT: This is an alias for the LINK_OK flag; it is meant to counteract against the DARK flag and effects non-room/non-program objects. 
+HIDDEN: A new DARK concept. The HIDDEN flag can only be set on players by wizards; it automaticaly removes on connect. 
+PROTECT: This flag is a little more complex than the others. Here is an expanded help: 
+The PROTECT flag is a bit complicated but it is used to keep your objects 
+protected, or for W4 admin to keep things of theirs from being viewed by 
+others. See help protect.
+If the PROTECT flag is set on basicly anyones object it will not be able 
+to be changed in any way unless a MUF program is used to do so (and the 
+MUF program is owned by someone of a higher or equal Wizard level, if 
+you are a wizard). The only change a normal player can make is unsetting 
+or resetting the PROTECT flag. 
+If the PROTECT flag is set on a W4 admins object than no lower wizard 
+level can access the objects information in any form. W3 or lower admin 
+can not even @list the program unless it has a VIEWABLE flag set on it. 
+If the PROTECT flag is set on a W4 admin himself then no object can be 
+@chowned away or to the level in order to make sure that nobody abuses 
+the powers that the admin may have. 
+
+There is a way to counter-attack against the PROTECT flag: If a wizard 
+is set ANTIPROTECT then he/she can make programs that will not be effected 
+by this flag.
+
+ANTIPROTECT: The ANTIPROTECT flag on a wizard allows him/her to make programs that ar uneffected by the PROTECT flag. 
+
+EXAMINE_OK: The EXAMINE_OK flag on an object allows anyone to 'examine' it. 
+
+W4 (BOY): The new W4 flag is meant for co-head wizards and server admin only. Do not give this flag out to most administration since it gives the power of char #1/god to anyone that has this flag set on themselves. ( Concept based on GlowMUCK )
+
+Programming Changes: 
+The flag? and set primitives in MAN now accept the new flags that have been added to ProtoMUCK along with the second flag set that existed in NeonMUCK. 
+
+The ansi_notify primitive notifies listeners now. 
+
+Floating point support has been added to MUF (support both floating point numbers ant integers): [Thanks to the FB6 crew] 
+CEIL [ f - f ] 
+FLOOR [ f - f ] 
+FLOAT [ i - f ] 
+SQRT [ f - f ] 
+POW [ f f - f ] 
+^ [ f f - f ] 
+FRAND [ - f ] 
+SIN [ f - f ] 
+COS [ f - f ] 
+TAN [ f - f ] 
+ASIN [ f - f ] 
+ACOS [ f - f ] 
+ATAN [ f - f ] 
+ATAN2 [ f - f ] 
+EXP [ f - f ] 
+LOG [ f - f ] 
+LOG10 [ f - f ] 
+FABS [ f - f ] 
+STRTOF [ s - f ] 
+FTOSTR [ f - s ] 
+FMOD [ f f - f ] 
+MODF [ f - f f ] 
+PI [ - f ] 
+INF [ - f ] 
+XYZ_TO_POLAR [ nx ny nz -- fr ft fp ] 
+POLAR_TO_XYZ [ nr nt np -- fx fy fz ] 
+DIST3D [ nx ny nz -- f ] 
+ROUND [ f - f ] 
+GETPROPFVAL [ d s - f ] 
+FLOAT? [ ? - i ] 
+CLEAR [ - ] 
+CLEAR_ERROR [ s|i - i ] 
+ERROR? [ - i ] 
+SET_ERROR [ s|i - i ] 
+IS_SET? [ s|i - i ] 
+ERROR_STR [ s|i - s ] 
+ERROR_NAME [ i - s ] 
+ERROR_BIT [ s - i ] 
+ERROR_NUM [ - i ]
+The math primitives were also made to support floating point numbers. 
+
+True array support added [Thanks to the FB6 crew]: 
+ARRAY_MAKE ( {?} -- a ) Makes a list array from a stackrange. 
+ARRAY_MAKE_DICT ( {@ ?} -- a ) Makes a dictionary associative array from a stackrange of index/value pairs. 
+ARRAY_EXPLODE ( a -- {@ ?} ) Explodes array into stackrange of index/value pairs. ie: "idx0" "val0" "idx1" "val1" 2 
+ARRAY_KEYS ( a -- {@} ) Returns the keys of an array in a stackrange. 
+ARRAY_VALS ( a -- {?} ) Returns the vals of an array in a stackrange. 
+ARRAY_COUNT ( a -- i ) Returns count of items in array 
+ARRAY_FIRST ( a -- @ i ) Returns first index in array, and a boolean. Bool is false if no items are in array. 
+ARRAY_LAST ( a -- @ i ) Returns last index in array, and a boolean. Bool is false if no items are in array. 
+ARRAY_PREV ( a @ -- @ i ) Returns previous index in array, & a boolean. Bool is false if no items left. 
+ARRAY_NEXT ( a @ -- @ i ) Returns next index in array, and a boolean. Bool is false if no items left. 
+ARRAY_GETITEM ( a @ -- ? ) Gets a given item from an array. 
+ARRAY_DELITEM ( a @ -- a' ) Removes a given item from an array. 
+ARRAY_SETITEM ( ? a @ -- a') Overwrites a given array item with value 
+ARRAY_INSERTITEM ( ? a @ -- a') Inserts a given value into an array. 
+ARRAY_GETRANGE ( a @ @ -- a' ) Gets range between two indexes (inclusive) from an array, returning it as an array. 
+ARRAY_DELRANGE ( a @ @ -- a' ) Deletes a range of items from an array, between two indexes, inclusive. Returns the resulting array. 
+ARRAY_SETRANGE (a1 @ a2 -- a') Sets items in list a1 to vals from list a2, starting at the given index. Returns the resulting array. 
+ARRAY_INSERTRANGE (a1 @ a2 -- a') Inserts items from array a2 into a1, starting at the given index. Returns the resulting array. 
+ARRAY? ( ? -- i ) to test if a stack item is an array. 
+DICTIONARY? ( ? -- i ) to test if a stack item is a dictionary array. 
+ARRAY_NINTERSECT ({a} -- a) prim, to return a list array, containing the intersection of all the given arrays. Multiple arrays are consecutively processed against the results of the previous intersection, from the top of the stack down. 
+ARRAY_NUNION ({a} -- a) MUF prim, to return a list array, containing the union of values of all the given arrays. 
+ARRAY_NOTIFY (a1 a2 -- ) muf primitive. a1 is an array of strings to notify to all the dbrefs in array a2. 
+[] (a @ -- ?) Defined to be the same as array_getitem 
+[..] (a @1 @2 -- a') Defined to be the same as array_getrange 
+}LIST ( mark ?n ... ?i -- array ) MUF primitive. This takes all the stack items above the topmost stack marker, and makes a list from them, a la array_make. In fact, this is implemented as an inserver macro with a definition of '} array_make'. 
+}DICT ( mark @n ?n ... @1 ?1 -- dict ) This takes all the pairs of names (@s) and values (?s) between the top of the stack and the topmost stack marker, and makes them into a dictionary, a la the array_make_dict primitive. In fact, this is implemented as an inserver macro with a definition of '} 2 / array_make_dict'. 
+ONLINE_ARRAY ( -- a) This is the same as the ONLINE primitive, except it returns a single stack item which is an array of dbrefs instead of pushing every dbref separately onto the stack. 
+DESCR_ARRAY (d -- a) This returns an array of descriptors that are associated with the given dbref. This is effectively the same as the sequence 'descriptors array_make'. 
+ARRAY_REVERSE (a -- a') MUF prim many versions ago, but forgot to note it here before. Takes a list array and reverses its order. 
+ARRAY_PUT_PROPLIST ( d s a -- ) MUF prim. Takes the values in the given list array, and stores them in the given propdir on the given object as a sequential proplist. 
+ARRAY_GET_PROPLIST ( d s -- a ) MUF prim. Reads in properties from a classic style proplist, and returns them in a dictionary, keyed by propname. 
+ARRAY_GET_REFLIST ( d s -- a ) MUF prim. Reads in list of space delimited dbrefs from a string property, and returns them as a list array of dbrefs. 
+ARRAY_PUT_REFLIST ( d s a -- ) MUF prim. Takes a list array of dbrefs, and stores them in a property as a space delimited string of dbrefs. ie: "#1234 #6646 #1026 #7104" 
+ARRAY_PUT_PROPVALS ( d s a -- ) MUF prim. Takes the values in the given dictionary, and stores them in the given propdir on the given object. Each dictionary entry will be saved into a property with the key as the name, and the value as the property value. Be aware that dictionary entries with keys starting with one of @ ~ _ or . may require special permissions to save. 
+ARRAY_GET_PROPVALS ( d s -- a ) MUF prim. Reads in properties from a propdir, and returns them in a dictionary, keyed by propname. Sub- propdirs in the given propdir that do not have any value of their own, are left out of the returned dictionary. Properties that the program doesn't have perms to read are also left out. Reads up to 511 props maximum. (ML3 required.) 
+ARRAY_GET_PROPDIRS( d s -- a ) MUF prim. Returns a list array containing the names of all the sub-propdirs contained within the given propdir. Any propdirs the program wouldn't be able to read, are left out. (ML3 required.) 
+ARRAY_EXCLUDEVAL (a1 ? -- a2) MUF prim. Returns a list array containing the keys of every element in the array a1 whose values did NOT match the given value. 
+ARRAY_FINDVAL (a1 ? -- a2) MUF prim. Returns a list array containing the keys of every element in the array a1 whose values match the given value. 
+ARRAY_APPENDITEM ( ? a -- a') MUF prim. Appends the given item to the given list array.
+Added support for FB6/Standard style ansi support using \[ as the escape code. Also added the FB6/Standard ansi primitives: ansi_strlen ( s -- i ), ansi_strcut ( s i -- s s ), and ansi_strip ( s -- s ) 
+Added three new ANSI primitives: 
+PARSEANSI ( s i -- s ) Will parse the ansi format of your choice [i: 0 = FB6/Standard, 1 = Neon/Glow, and 2 = Mush ] 
+UNPARSEANSI ( s i -- s ) Will remove all ansi codes for the string [i: 0 = FB6/Standard, 1 = Neon/Glow, and 2 = Mush ] 
+ESCAPEANSI ( s i -- s ) Will prevent the ansi code from showing up in a regular notify or parsing in one parseansi [i: 0 = FB6/Standard, 1 = Neon/Glow, and 2 = Mush]
+Removed the old NeonMUCK-style arrays since it wasn't 'true' array support and nobody used them anyways. 
+MUF markers added: { sticks a marker onto the stack, } will pop off the marker and return how many items were from the marker to the top of the stack. And, 'mark?' will return 1 if there is a marker on the top of the stack and 0 if there isn't. Plus, 'mark?' *will* remove the marker if it isn't 'dupped'. 
+New pmatch primitive added to replace the old $def/pmatch. Player matching in the speedy C code! 
+Added an 'Exiting insert mode' message to the editor. 
+Made ++ and -- defs work with integers, floating point numbers, and dbrefs. 
+interp() in interp.c now returns a frame instead of an instruction. Don't know why FB6 made this change but one of the aims of Proto is to bring the Fuzzball part of the code in line with the newer versions of FB6 and FB5.xx. 
+Made sure that the debugger for MUF code does not parse the ansi codes by making it change the escape code to \[. 
+Raised the number of variables per program from 74 to 104; this is only for bigger programs, not for laziness. 
+Brought over scoped variable support from FB6; it allows you to declare variables inside of procedures with the 'var' command, and these variables are only local to the specific procedure. 
+
+Added new set of primitives: File i/o support: ( Concept Provided by Noda, taken from his plans for MakoMUCK )
+FWRITE ( s1 s2 i1 -- i2 ) 
+FREAD ( s1 i -- s2 ) 
+FREADN ( s1 i1 i2 -- s2 ) 
+FAPPEND ( s1 s2 -- i ) 
+FCR ( s -- i ) 
+BWRITE ( i1 s i2 -- i3 ) 
+BREAD ( s1 i1 -- i2 ) 
+BAPPEND ( i1 s -- i2 ) 
+FPUBLISH ( s -- i ) 
+FSINFO ( -- i1 i2 i3 i4 i5 i6 i7 i8 ) 
+CURID ( -- i1 i2 ) 
+FSIZE ( s -- i ) 
+FRM ( s -- i ) 
+FREN ( s -- i )
+Added loads of new primitives/defs: 
+IDESC ( d -- s ) 
+SETIDESC ( d -- s ) 
+ANSIDESC ( d -- s ) 
+SETANSIDESC ( d -- s ) 
+IANSIDESC ( d -- s ) 
+SETIANSIDESC ( d -- s ) 
+HTMLDESC ( d -- s ) 
+SETHTMLDESC ( d -- s ) 
+IHTMLDESC ( d -- s ) 
+SETIHTMLDESC ( d -- s ) 
+CASE, WHEN, END, DEFAULT, ENDCASE (case statements from old $lib/case) 
+NEXTOWNED ( d -- d ) 
+NEXTPLAYER ( d -- d ) 
+PMATCH ( s -- d ) 
+NEWPLAYER ( s s -- d ) 
+COPYPLAYER ( d s s -- d ) 
+TOADPLAYER ( d d -- i ) 
+SPLIT ( s1 s2 -- s3 s4 ) 
+RSPLIT ( s1 s2 -- s3 s4 ) 
+CTOI ( s -- i ) 
+ITOC ( i -- s ) 
+STOD ( s -- d ) 
+DTOS ( d -- s ) 
+MIDSTR ( s1 i1 i2 -- s2 ) 
+STRIPSPACES ( s1 -- s2 ) 
+__PROTO ( -- s ) 
+OBJMEM ( d -- i ) 
+PROPQUEUE ( d1 s1 d2 s2 -- ) 
+ENVPROPQUEUE ( d1 s1 d2 s2 -- ) 
+ISLOCKED? ( d1 d2 s -- i ) 
+CANCALL? ( d s -- i ) 
+SETSYSPARM ( s1 s2 -- ) 
+FMTSTRING ( ?1..?i s ) 
+MOVEPENNIES ( d1 d2 i -- ) 
+GETLINKS ( d -- d1..di i ) 
+SRAND ( -- i ) 
+GETSEED ( -- s) 
+SETSEED ( s -- ) 
+TOKENSPLIT ( s1 s2 s3 -- s4 s5 s6 ) 
+WIZCALL function (works like PUBLIC) 
+DESCR ( -- i ) 
+DESCRFLUSH ( i -- ) 
+DESCR_HTML? ( i1 -- i2 ) 
+DESCR_PUEBLO? ( i1 -- i2 ) 
+DESCR_WELCOME_USER ( i -- ) 
+DESCR? ( i1 -- i2 ) 
+FOR loops ( i1 i2 i3 -- i4 ) 
+FOREACH loops ( a -- @ ? ) 
+EVENT_WAIT ( -- s1 s2 ) 
+EVENT_SEND ( i s ? -- ) 
+TREAD ( i1 -- s i2 ) 
+TIMER_START ( i s -- ) 
+TIMER_STOP ( s -- )
+Made {max} and {min} MPI functions accept more than two arguments (the max is now 10 arguments) 
+{tell}, {otell}, {ansi}, {html}, and {ohtml} now notify the listeners 
+Added {oansi} which works a lot like {otell} but parses the Neon/Glow ansi codes 
+Added {pmatch} and {match} for matching to players or objects 
+{lmatch} was added to MPI; it works exactly like {lmember} except it allows partial matching. 
+Fixed {parse} so it properly deals with a null output separator 
+Changed {list} and {lexec} to return empty strings instead of aborting the code if the list does not exist. 
+Made the \[ code translate to an escape code for FB6/Standard ansi support in MPI. 

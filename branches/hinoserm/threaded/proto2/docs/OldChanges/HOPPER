@@ -1,0 +1,47 @@
+The Quick Guide On Setting Up The Hopper
+----
+The @hopper is fully functional, now.  To use the automated e-mail,
+do the following:
+
+@tune mailserver=<name or IP of an SMTP server you can use>
+@tune servername=<name of the host your MUCK runs on>
+@tune reg_email=<email address of char wizard>
+
+@tuneing servername is recommended anyway, since HTMuf programs
+for the webserver will probably begin to use this instead.
+
+You must then create an lsedit list on #0, called @new-user-mail, e.g.:
+
+lsedit #0=@new-user-mail
+
+This is the body of the message that will be sent to a new user.
+You can use %user% for the username, and %pass% for the password.
+
+For example:
+
+lsedit #0=@new-user-mail
+Welcome to MyHappyMuck!
+ 
+Your user, %user%, has been created with password %pass%.
+
+We hope to see you aboard soon!
+.end
+
+
+Then, you have to @tune online_registration=yes
+
+Now users can 'request <charname> <email> <real name>' and be put in a
+'hopper'.  When you use the @hopper command to verify and create users,
+they will be pcreated with a randomly generated password and sent a copy
+of that mail (with %user% and %pass% replaced with their user and
+password).
+
+If you're a really open MUCK, you can @tune fast_registration=yes
+
+Then the @hopper only records who has used request, because the users
+will be created immediately upon request of a char (and mailed that
+letter).
+
+Enjoy! 
+
+
