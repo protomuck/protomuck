@@ -3164,7 +3164,11 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     if (remember_descriptor(d) < 0)
         d->booted = 1;          /* Drop the connection ASAP */
 
-    if ((ctype == CT_MUCK || ctype == CT_SSL || ctype == CT_PUEBLO)
+    if ((ctype == CT_MUCK ||
+#ifdef USE_SSL
+         ctype == CT_SSL ||
+#endif
+         ctype == CT_PUEBLO)
             && tp_ascii_descrs) {
         d->encoding = 1; /* ASCII I/O */
     } else {

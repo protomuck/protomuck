@@ -369,7 +369,7 @@ array_tree_free_node(array_tree *p)
 }
 
 
-static array_tree *
+array_tree *
 array_tree_insert(array_tree **avl, array_iter *key)
 {
     array_tree *ret;

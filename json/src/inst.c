@@ -46,6 +46,9 @@ const char *base_inst[] = {
 #ifdef MUF_EDIT_PRIMS
     PRIMS_MUFEDIT_NAMES,
 #endif
+#ifdef JSON_SUPPORT
+    PRIMS_JSON_NAMES,
+#endif
 #ifdef NEWHTTPD
     PRIMS_HTTP_NAMES,           /* hinoserm */
 #endif

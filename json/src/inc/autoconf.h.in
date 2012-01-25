@@ -26,6 +26,9 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* Defined if jansson.h exists. */
+#undef HAVE_JANSSON_H
+
 /* Define to 1 if you have the `dl' library (-ldl). */
 #undef HAVE_LIBDL
 
@@ -161,6 +164,9 @@
 
 /* Defined to compile for ipv6 */
 #undef IPV6
+
+/* Defined to enable JSON support */
+#undef JSON_SUPPORT
 
 /* Defined to enable modular support */
 #undef MODULAR_SUPPORT

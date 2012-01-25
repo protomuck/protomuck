@@ -33,6 +33,8 @@ stk_array *new_array_packed(int size);
 void array_free(stk_array * arr);
 stk_array *array_promote(stk_array * arr);
 
+array_tree *array_tree_insert(array_tree **avl, array_iter *key);
+
 int array_count(stk_array * arr);
 int array_idxcmp(array_iter * a, array_iter * b);
 int array_idxcmp_case(array_iter * a, array_iter * b, int case_sens, int objnames, bool natural); 
