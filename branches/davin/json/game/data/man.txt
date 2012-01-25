@@ -3009,7 +3009,10 @@ s = That dbref after being unparsed.
 Returns the name-and-flag string for an object.  It always has the dbref and
 flag string after the name, even if the player doesn't control the object.
 For example: "One(#1PW5)"
-If d is #-1, will return "*NOTHING*" to the stack. If d is #-3, will return "*HOME*" to the stack. If d is #-4, will return "*NIL*" to the stack. If d is any other negative dbref, or any dbref higher than DBTOP, will return "*INVALID(#???)*" with the question marks replaced by the dbref in question.
+If d is #-1, will return "*NOTHING*" to the stack. If d is #-3, will return
+"*HOME*" to the stack. If d is #-4, will return "*NIL*" to the stack. If d
+is any other negative dbref, or any dbref higher than DBTOP, will return
+"*INVALID(#???)*" with the question marks replaced by the dbref in question.
 
 See: ANSI_UNPARSEOJB
 ~
@@ -8298,7 +8301,12 @@ s1 = string containing a package name.
 s2 = string containing a specific message.
 a  = A function address.
 
-Binds a specific message, so if it is received, the given function is called. The callback function is assumed to accept the args: ( intDescr dictArgs -- ) where dictArgs is a dictionary array contain- ing key-value pairs that represent the arguments of the message. Each argument can either have a string value, or a list array of strings, where the list array is used for multi-line values. 
+Binds a specific message, so if it is received, the given function is called.
+The callback function is assumed to accept the args: ( intDescr dictArgs -- )
+where dictArgs is a dictionary array contain- ing key-value pairs that
+represent the arguments of the message. Each argument can either have a string
+value, or a list array of strings, where the list array is used for multi-line
+values. 
 
 See: MCP PRIMS
 ~~~~~ 
@@ -11585,4 +11593,80 @@ FILTER_SMATCH
 
 FILTER_CASELESS
   Match strings with caseless checks
+
+~~~
+ARRAY_JENCODE
+
+array_jencode ( a i -- s )
+------------------------
+a - any array
+i - JSON encoding flags (man JSON FLAGS)
+s - Serialized string (JSON)
+
+Takes an input array and serializes it to a string that can be converted back
+into an array later. The output format is RFC-compliant JSON suitable for
+parsing by external applications.
+
+Only prop-safe array items (help @propset) can be serialized. All other stack
+types will be serialized as a string containing an error.
+
+See: JSON FLAGS, JSON PRIMS
+~~~
+ARRAY_JDECODE
+
+array_jdecode ( a1 i -- a2 a3 )
+-------------------------------
+a1 - array of strings
+i  - JSON decoding flags (man JSON FLAGS)
+a2 - decoded array (or empty)
+a3 - dictionary containing decoder errors (or empty)
+
+Treat input text a1 as a serialized array, and attempt to decode it into an
+array on the stack (a2). a1 must parse as RFC-compliant JSON. If the parser
+encounters any errors during the decode, a3 will be a dictionary containing
+the errors and a2 will evaluate as false (empty array); otherwise a3 will
+evaluate as false and a2 will be the successfully decoded array.
+
+a2 will be either a list-style array or a dictionary. The type depends on
+the kind of array serialized in the strings.
+
+See: JSON FLAGS, JSON ERRORS, JSON PRIMS
+~~~
+JDECODE_FILE
+
+jdecode_file ( s i -- a1 a2 )
+-----------------------------
+s  - path to the file to decode
+i  - JSON decoding flags (man JSON FLAGS)
+a1 - decoded array (or empty)
+a2 - dictionary containing decoder errors (or empty)
+
+Decode file s as a text file containing a serialized array, and attempt to
+decode it into an array on the stack (a1). a1 must parse as RFC-compliant JSON.
+If the parser encounters any errors during the decode, a2 will be a dictionary
+containing the errors and a1 will evaluate as false (empty array); otherwise a2
+will evaluate as false and a1 will be the successfully decoded array.
+
+a1 will be either a list-style array or a dictionary. The type depends on
+the kind of array serialized in the file.
+
+See: JSON FLAGS, JSON ERRORS, JSON PRIMS
+~~~
+JENCODE_FILE
+
+jencode_file ( a s i1 -- i2 )
+--------------------------
+a  - any array
+s  - destination file path
+i1 - JSON encoding flags (man JSON FLAGS)
+i2 - success status
+
+Takes an input array and serializes it to destination file s. This file can be
+loaded with jdecode_file and converted back to an array. The output format is
+RFC-compliant JSON suitable for parsing by external applications.
+
+Only prop-safe array items (help @propset) can be serialized. All other stack
+types will be serialized as a string containing an error.
+
+See: JSON FLAGS, JSON PRIMS
 

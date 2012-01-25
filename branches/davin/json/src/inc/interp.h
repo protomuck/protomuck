@@ -194,6 +194,7 @@ extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
 # include "p_muf.h"
 # include "p_regex.h"
 # include "p_http.h" /* hinoserm */
+# include "p_json.h" /* davin */
 #endif
 
 #endif
