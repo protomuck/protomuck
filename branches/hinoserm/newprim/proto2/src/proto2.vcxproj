@@ -1,0 +1,320 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EE40A35B-83C0-4637-B88B-3D7F8DF4E8EE}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>proto2</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include;C:\Program Files (x86)\GnuWin32\include;C:\openssl-0.9.8g_win32\include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>ssleay32.lib;libeay32.lib;zlib.lib;mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>128000</StackCommitSize>
+      <StackReserveSize>16000000</StackReserveSize>
+      <AdditionalOptions>/NODEFAULTLIB:library %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\lib\debug;C:\openssl-0.9.8g_win32\lib\</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>LIBCMTD.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>inc;C:\Program File\MySQL\MySQL Connector C 6.0.2\include</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <CompileAs>CompileAsCpp</CompileAs>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StackCommitSize>128000</StackCommitSize>
+      <StackReserveSize>16000000</StackReserveSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OmitFramePointers>true</OmitFramePointers>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>inc;C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\include;C:\Program Files (x86)\GnuWin32\include</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <StackReserveSize>16000000</StackReserveSize>
+      <StackCommitSize>128000</StackCommitSize>
+      <AdditionalDependencies>zlib.lib;mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
+      <AdditionalLibraryDirectories>C:\Program Files (x86)\MySQL\MySQL Connector C 6.0.2\lib\opt</AdditionalLibraryDirectories>
+      <IgnoreAllDefaultLibraries>
+      </IgnoreAllDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OmitFramePointers>true</OmitFramePointers>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <AdditionalIncludeDirectories>inc;C:\Program Files\MySQL\MySQL Connector C 6.0.2\include</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <StackReserveSize>16000000</StackReserveSize>
+      <StackCommitSize>128000</StackCommitSize>
+      <AdditionalDependencies>mysqlclient.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="inc\array.h" />
+    <ClInclude Include="inc\autoconf.h" />
+    <ClInclude Include="inc\cgi.h" />
+    <ClInclude Include="inc\config.h" />
+    <ClInclude Include="inc\copyright.h" />
+    <ClInclude Include="inc\crt_malloc.h" />
+    <ClInclude Include="inc\db.h" />
+    <ClInclude Include="inc\dbsearch.h" />
+    <ClInclude Include="inc\defaults.h" />
+    <ClInclude Include="inc\dirent_win.h" />
+    <ClInclude Include="inc\externs.h" />
+    <ClInclude Include="inc\inst.h" />
+    <ClInclude Include="inc\interface.h" />
+    <ClInclude Include="inc\interp.h" />
+    <ClInclude Include="inc\maillib.h" />
+    <ClInclude Include="inc\match.h" />
+    <ClInclude Include="inc\mcp.h" />
+    <ClInclude Include="inc\mcpgui.h" />
+    <ClInclude Include="inc\mcppkg.h" />
+    <ClInclude Include="inc\mfun.h" />
+    <ClInclude Include="inc\mfunlist.h" />
+    <ClInclude Include="inc\mpi.h" />
+    <ClInclude Include="inc\msgparse.h" />
+    <ClInclude Include="inc\mufevent.h" />
+    <ClInclude Include="inc\nan.h" />
+    <ClInclude Include="inc\netresolve.h" />
+    <ClInclude Include="inc\newhttp.h" />
+    <ClInclude Include="inc\oldcopyright.h" />
+    <ClInclude Include="inc\params.h" />
+    <ClInclude Include="inc\parser.h" />
+    <ClInclude Include="inc\patchlevel.h" />
+    <ClInclude Include="inc\props.h" />
+    <ClInclude Include="inc\p_array.h" />
+    <ClInclude Include="inc\p_connects.h" />
+    <ClInclude Include="inc\p_db.h" />
+    <ClInclude Include="inc\p_error.h" />
+    <ClInclude Include="inc\p_file.h" />
+    <ClInclude Include="inc\p_float.h" />
+    <ClInclude Include="inc\p_http.h" />
+    <ClInclude Include="inc\p_math.h" />
+    <ClInclude Include="inc\p_mcp.h" />
+    <ClInclude Include="inc\p_misc.h" />
+    <ClInclude Include="inc\p_muf.h" />
+    <ClInclude Include="inc\p_mysql.h" />
+    <ClInclude Include="inc\p_props.h" />
+    <ClInclude Include="inc\p_regex.h" />
+    <ClInclude Include="inc\p_socket.h" />
+    <ClInclude Include="inc\p_stack.h" />
+    <ClInclude Include="inc\p_strings.h" />
+    <ClInclude Include="inc\p_system.h" />
+    <ClInclude Include="inc\reg.h" />
+    <ClInclude Include="inc\sha1.h" />
+    <ClInclude Include="inc\strings.h" />
+    <ClInclude Include="inc\tune.h" />
+    <ClInclude Include="inc\version.h" />
+    <ClInclude Include="inc\winconf.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="array.c" />
+    <ClCompile Include="boolexp.c" />
+    <ClCompile Include="case.c" />
+    <ClCompile Include="cgi.c" />
+    <ClCompile Include="compile.c" />
+    <ClCompile Include="compress.c" />
+    <ClCompile Include="copyright.c" />
+    <ClCompile Include="create.c" />
+    <ClCompile Include="crt_malloc.c" />
+    <ClCompile Include="db.c" />
+    <ClCompile Include="debugger.c" />
+    <ClCompile Include="disassem.c" />
+    <ClCompile Include="diskprop.c" />
+    <ClCompile Include="edit.c" />
+    <ClCompile Include="events.c" />
+    <ClCompile Include="game.c" />
+    <ClCompile Include="hashtab.c" />
+    <ClCompile Include="help.c" />
+    <ClCompile Include="inst.c" />
+    <ClCompile Include="interface.c" />
+    <ClCompile Include="interp.c" />
+    <ClCompile Include="log.c" />
+    <ClCompile Include="look.c" />
+    <ClCompile Include="match.c" />
+    <ClCompile Include="mcp.c" />
+    <ClCompile Include="mcpgui.c" />
+    <ClCompile Include="mcppkgs.c" />
+    <ClCompile Include="mfuns.c" />
+    <ClCompile Include="mfuns2.c" />
+    <ClCompile Include="mfuns3.c" />
+    <ClCompile Include="move.c" />
+    <ClCompile Include="msgparse.c" />
+    <ClCompile Include="mufevent.c" />
+    <ClCompile Include="netresolve.c" />
+    <ClCompile Include="newhttp.c" />
+    <ClCompile Include="oldcompress.c" />
+    <ClCompile Include="player.c" />
+    <ClCompile Include="predicates.c" />
+    <ClCompile Include="propdirs.c" />
+    <ClCompile Include="property.c" />
+    <ClCompile Include="props.c" />
+    <ClCompile Include="p_array.c" />
+    <ClCompile Include="p_connects.c" />
+    <ClCompile Include="p_db.c" />
+    <ClCompile Include="p_error.c" />
+    <ClCompile Include="p_file.c" />
+    <ClCompile Include="p_float.c" />
+    <ClCompile Include="p_html.c" />
+    <ClCompile Include="p_http.c" />
+    <ClCompile Include="p_math.c" />
+    <ClCompile Include="p_mcp.c" />
+    <ClCompile Include="p_misc.c" />
+    <ClCompile Include="p_muf.c" />
+    <ClCompile Include="p_mysql.c" />
+    <ClCompile Include="p_props.c" />
+    <ClCompile Include="p_regex.c" />
+    <ClCompile Include="p_socket.c" />
+    <ClCompile Include="p_stack.c" />
+    <ClCompile Include="p_strings.c" />
+    <ClCompile Include="p_system.c" />
+    <ClCompile Include="random.c" />
+    <ClCompile Include="reg.c" />
+    <ClCompile Include="rob.c" />
+    <ClCompile Include="sanity.c" />
+    <ClCompile Include="set.c" />
+    <ClCompile Include="sha1.c" />
+    <ClCompile Include="signal.c" />
+    <ClCompile Include="smatch.c" />
+    <ClCompile Include="speech.c" />
+    <ClCompile Include="strftime.c" />
+    <ClCompile Include="stringutil.c" />
+    <ClCompile Include="timequeue.c" />
+    <ClCompile Include="timestamp.c" />
+    <ClCompile Include="tune.c" />
+    <ClCompile Include="unparse.c" />
+    <ClCompile Include="utils.c" />
+    <ClCompile Include="version.c" />
+    <ClCompile Include="wiz.c" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
