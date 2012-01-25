@@ -83,9 +83,3 @@ do_credits(dbref player)
         anotify_nolisten2(player, infotext[i]);
     }
 }
-
-void
-get_branch(char *buf) 
-{
-    ; // Alynna: todo -- later, but this routine will return a null string for trunk, or the name of the branch.
-}
