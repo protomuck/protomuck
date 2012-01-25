@@ -21,7 +21,11 @@ const char *version = PATCHLEVEL;
 const char *infotext[] =
 {
     " ",
-    SYSRED "ProtoMUCK " PROTOBASE " " SYSWHITE "-- " SYSCRIMSON VERSION,
+    SYSRED "ProtoMUCK " PROTOBASE 
+#ifdef BRANCH
+    "-" BRANCH
+#endif
+    " " SYSWHITE "-- " SYSCRIMSON VERSION,
 #if defined(WIN32) || defined(WIN_VC)
     SYSYELLOW "WINDOWS" SYSBROWN
 # ifdef WIN_VC
