@@ -52,6 +52,9 @@ const char *infotext[] =
 #  endif
 # endif
 #endif
+#ifdef BRANCH
+    "-" BRANCH
+#endif
     " ",
     SYSCYAN "Based on the original code written by these programmers:",
     "  " SYSAQUA "David Applegate    James Aspnes    Timothy Freeman    Bennet Yee",
