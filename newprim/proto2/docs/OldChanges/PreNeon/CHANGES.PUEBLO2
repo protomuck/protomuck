@@ -1,0 +1,50 @@
+PuebloMUCK 1.1.0 Changes
+------------------------
+
+Note that not all of these changes are in effect as of 1.0.9, some are in 
+remark blocks to prevent them from crashing due to bugs in Pueblo 1.07 
+which will be resolved by 1.10
+
+Note that the MUCK name has changed.  I'm doing so much modification that 
+calling this TinyMUCK 2.2fb5.47 Pueblo x.y.z seemed a bit clunky.  So now 
+we're just PuebloMUCK x.y.z, where x.y is the Pueblo protocol we're 
+designed around, and z is the revision within that.
+
+Unless specifically stated otherwise, the data in 'info pueblo' is still 
+valid.
+
+--- MUF Changes ---
+
+Two new commands:
+
+html_nocr (d s -- )
+html_exclude_nocr (d s -- )
+
+These work like notify_html and notify_html_exclude except that they 
+don't have a carriage return on the end of the line.
+
+--- MPI Changes ---
+
+None as yet.  Got suggestions?  Tell me.
+
+--- Server changes ---
+*** THESE ARE BOTH DISABLED IN 1.0.9!! ***
+
+@pedit <program>
+
+A new version of @edit which uses Pueblo to create a GUI interface.  This 
+interface can be left up to edit a program, and allows a debug window and 
+some other nice features.  Note that this mode is highly experimental and 
+has NOT been tested at ALL because Pueblo does not support the features 
+needed to run it yet.
+
+@led <object>=<listname>
+
+A new lsedit replacement, built into the server.  led creates a Pueblo 
+pane that allows you to easily edit existing lists, simply scroll through 
+the list and edit as needed, a'la Notepad or a similar basic text 
+editor.  Again, the features needed to use this are not in place yet so 
+this has not been tested and is currently disabled.
+
+----
+Loki <ranma@eskimo.com> / <jeremy@adobe.chaco.com>
