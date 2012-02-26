@@ -192,6 +192,9 @@
 /* DANGEROUS: Defined to allow file prims and webserver to run as root */
 #undef PROTO_AS_ROOT
 
+/* Branch of source code in the repo, used by version.h. */
+#undef PROTO_BRANCH
+
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE
 
