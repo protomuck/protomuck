@@ -293,6 +293,7 @@ WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
 EXCEPTION HANDLING - Notes on exception handling in MUF.
 INTERRUPTS         - Explanation and examples of MUF interrupt support.
 MUF OPTIMIZING     - What the new byte code optimizer actually does. 
+@ALIAS             - Inserver player aliasing.
 CREDITS            - Who to blame this mess on!
 ~~~~
 MATH PRIMS|MATHPRIMS
@@ -10389,6 +10390,36 @@ and
 "" stringcmp not if into simply 'not' 
 There's a bunch of others too.
 floating point number optimizing. 
+~~~
+ALIAS SUPPORT|@ALIASES|@ALIAS|ALIASES|ALIAS
+
+Alias Support
+-------------
+
+Alias support is managed by the @alias propdir on #0. There are two subdirs:
+
+@alias/names/ - The actual aliases. Stores aliasname:dbref pairs. Non-dbref
+                props are removed as they're detected.
+@alias/last/  - The last alias managed for a given dbref via the @alias
+                command. This is where the single alias managed by the @alias
+                command is tracked. Stores refnum:aliasname pairs. Non-string
+                props are removed as they're detected.
+
+Players interact with aliases via the @alias command. They are allowed to
+manage a single entry in the @alias/names/ propdir. Whenever they change
+their alias via the command, the @alias/last/(dbref) prop is looked up to
+obtain their previous alias. The corresponding key is then removed from the
+@alias/names/ propdir, and the new entry is added to both.
+
+Entries are automatically killed in @alias/names/ based on @pcreates, @frobs,
+and @names. Entries in @alias/last/ are killed based on @frobs. Any entries
+manually applied to @alias/names/ via @propset have to be manually removed.
+They will be unavailable for players to set/clear and only the automated
+cleanups will remove them.
+
+In addition to the usual restrictions on player names, aliases cannot contain
+the characters '/' or ':' as these would let alias names escape the boundary
+of the @alias/names/ propdir.
 ~~~
 ITOH
  
