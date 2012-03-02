@@ -3182,7 +3182,8 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
         http_initstruct(d);     /* hinoserm */
 #endif /* NEWHTTPD */
 
-    if (welcome
+    if (welcome &&
+        DR_RAW_FLAGS(d, DF_TELOPT)
 #ifdef NEWHTTPD
         && ctype != CT_HTTP
 #endif /* NEWHTTPD */
