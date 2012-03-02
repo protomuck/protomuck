@@ -616,7 +616,7 @@ ok_player_name(const char *name)
         return 0;
 
     /* lookup name to avoid conflicts */
-    return (lookup_player_noalias(name) == NOTHING);
+    return (lookup_player(name) == NOTHING);
 }
 
 bool

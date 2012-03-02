@@ -164,7 +164,6 @@ struct descriptor_data {
     int                      raw_input_wclen; /* number of wide characters present in raw_input */
 #endif
     int                      inIAC;         /* Used for telnet negotiation */
-    int                      truncate;      /* cease appending to d->raw_input until \n is reached */
     time_t                   last_time;
     time_t                   connected_at;
 /*  int                      hostaddr;  */  /* HEX host address */     /* use: hu->h->a */

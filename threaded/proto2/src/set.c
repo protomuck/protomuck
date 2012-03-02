@@ -163,10 +163,6 @@ do_name(int descr, dbref player, const char *name, char *newname)
             /* everything ok, notify */
             log_status("NAME: %s(%d) to %s by %s\n",
                        NAME(thing), thing, newname, NAME(player));
-
-            /* remove alias sharing the new name, if present. */
-            clear_alias(0, newname);
-
             strcpy(oldName, NAME(thing));
             strcpy(nName, newname);
             delete_player(thing);
@@ -1919,92 +1915,6 @@ do_flags(int descr, dbref player, const char *args)
     anotify_fmt(player, SYSGREEN "Local flag %d was named %s and given an mlevel of %d.", lflag, lname, lmlev);
 
     free(orig[0]); free(orig[1]);
-    return;
-}
-
-/* Alias support is managed by the @alias propdir on #0. There are two subdirs:
- *
- * @alias/names/ - The actual aliases. Stores aliasname:dbref pairs. Non-dbref
- *                 props are removed as they're detected.
- * @alias/last/  - The last alias managed for a given dbref via the @alias
- *                 command. This is where the single alias managed by the @alias
- *                 command is tracked. Stores refnum:aliasname pairs. Non-string
- *                 props are removed as they're detected.
- *
- * Players interact with aliases via the @alias command. They are allowed to
- * manage a single entry in the @alias/names/ propdir. Whenever they change
- * their alias via the command, the @alias/last/(dbref) prop is looked up to
- * obtain their previous alias. The corresponding key is then removed from the
- * @alias/names/ propdir, and the new entry is added to both.
- *
- * Entries are automatically killed in @alias/names/ based on @pcreates, @frobs,
- * and @names. Entries in @alias/last/ are killed based on @frobs. Any entries
- * manually applied to @alias/names/ via @propset have to be manually removed.
- * They will be unavailable for players to set/clear and only the automated
- * cleanups will remove them.
- *
- * In addition to the usual restrictions on player names, aliases cannot contain
- * the characters '/' or ':' as these would let alias names escape the boundary
- * of the @alias/names/ propdir.
- */
-void
-do_alias(dbref player, const char *arg1, const char *arg2, int delimited) {
-    dbref target = player;
-    const char *name, *alias;
-
-    if (*arg2 == '\0' && !delimited) {
-        /* indicates "@alias foo" syntax */
-        name = arg2;
-        alias = arg1;
-    } else {
-        /* indicates "@alias foo=" or "@alias foo=bar" syntax */
-        name = arg1;
-        alias = arg2;
-    }
-
-    if (!Mage(player)) {
-        /* stop players from setting an @alias when they're @tuned off - note
-         * that this won't stop them from clearing one they've already set. */
-        if (!tp_player_aliasing && alias) {
-            anotify_nolisten2(player, CFAIL
-                              "The @alias command is disabled on this site, sorry.");
-            return;
-        }
-
-        if (*name != '\0' &&
-            string_compare(name, "me")) {
-            anotify_nolisten2(player, CFAIL
-                              "Only mages can specify the name of a player.");
-            return;
-        }
-    }
-
-    /* validate target - re-aliasing a player using their old alias is fine. */
-    if (*name != '\0' && strcmp(name, "me") &&
-            ((target = lookup_player(name)) == NOTHING) ) {
-        anotify_nolisten2(player, CINFO "Who?");
-        return;
-    }
-
-    if (*alias == '\0') {
-        clear_alias(target, NULL);
-        anotify_nolisten2(player, CSUCC "Alias cleared.");
-        return;
-    } else {
-        switch (set_alias(target, alias, 1)) {
-            case (NOTHING):
-                anotify_nolisten2(player, CFAIL "Illegal alias name.");
-                break;
-            case (AMBIGUOUS):
-                anotify_nolisten2(player, CFAIL "That alias is already taken.");
-                break;
-            default:
-                anotify_nolisten2(player, CSUCC "Alias set.");
-                break;
-        }
-    }
-    
-
     return;
 }
 

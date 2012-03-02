@@ -39,12 +39,6 @@
 #include "mufevent.h"
 #include "netresolve.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-
 struct muf_socket_queue *socket_list = NULL; /* 1 way linked-list */
 
 /* add_socket_to_queue will add a new MUF socket to the queue 
@@ -228,9 +222,9 @@ handle_ssl_error(struct muf_socket *mufSock, int *IOreturn)
         }
         /* The IO return will be <=0 after the failed operation, need to set it
          * to something more compliant with how nbsockrecv is documented. */
-        if (oper1->data.sock->connected == 1)
+        /* if (oper1->data.sock->connected == 1) //What?  oper1 is nowhere to be found here. -Hino
             *IOreturn = 1;
-        else
+        else */
             *IOreturn = 0;
     /* Return 1 if we handled a fatal error, otherwise 0. */
         return 1;
@@ -266,6 +260,9 @@ ssl_write_loop(struct muf_socket *mufSock, int *result, char *buf)
 void
 prim_socksend(PRIM_PROTOTYPE)
 {
+	int result;
+	char buf[BUFFER_LEN];
+
     /* socket string<message> */
     CHECKOP(2);
     oper2 = POP();              /* string */
@@ -348,6 +345,7 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
     struct timeval t_val;
     int charCount = 0;
     int ssl_buffer = 0;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     /* socket -- */
@@ -566,6 +564,8 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
 void
 prim_sockclose(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     /* socket */
     oper1 = POP();
@@ -608,6 +608,8 @@ prim_sockclose(PRIM_PROTOTYPE)
 void
 prim_sockshutdown(PRIM_PROTOTYPE)
 {
+	int tmp, result;
+
     CHECKOP(2);                 /* socket int */
     oper2 = POP();
     oper1 = POP();
@@ -860,7 +862,7 @@ prim_socksecure(PRIM_PROTOTYPE)
 #if !defined(SSL_SOCKETS) || !defined(USE_SSL)
     abort_interp("MUF SSL sockets not supported.");
 #else
-    int ssl_error;
+    int ssl_error, result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -949,6 +951,8 @@ void
 prim_sockcheck(PRIM_PROTOTYPE)
 {
     /* socket -- i */
+	int result;
+
     CHECKOP(1);
     oper1 = POP();              /* socket */
     if (mlev < LARCH)
@@ -1575,6 +1579,8 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     char pad_char[] = "";
     struct muf_socket *theSock;
     struct descriptor_data *d;
+	dbref ref;
+	int result;
 
     /* (SOCKET) ref pass -- bool */
     CHECKOP(3);
@@ -1709,7 +1715,7 @@ prim_socktodescr(PRIM_PROTOTYPE)
 void
 prim_set_sockopt(PRIM_PROTOTYPE)
 {
-    int flag = 0;
+    int flag = 0, result;
     struct muf_socket *theSock;
 
     /* socket flag -- i */
@@ -1822,7 +1828,7 @@ prim_udpopen(PRIM_PROTOTYPE)
  struct sockaddr_in6 sa6;
  int yes = 1;
 #endif
- int tmp; 
+ int tmp, result;
 
 
  CHECKOP(1);
@@ -1893,7 +1899,7 @@ prim_udpopen(PRIM_PROTOTYPE)
 void
 prim_udpclose(PRIM_PROTOTYPE)
 {
-
+int result;
  CHECKOP(1);
  oper1 = POP(); /* What port to unlisten for UDP events on? */
 
@@ -1925,7 +1931,8 @@ prim_udpsend(PRIM_PROTOTYPE)
 
  struct hostent *myhost;
  struct sockaddr_in sa;
- unsigned int tmp; 
+ unsigned int tmp;
+ int result;
  
  CHECKOP(3);
  oper3 = POP(); /* port number */
@@ -2040,6 +2047,7 @@ prim_dns(PRIM_PROTOTYPE)
  struct hostent *myhost;
  char bufip[16], bufname[256];
  struct in_addr sa;
+ char buf[BUFFER_LEN];
   
  CHECKOP(1);
  oper1 = POP(); /* hostname */

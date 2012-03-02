@@ -14,12 +14,6 @@
 #include "strings.h"
 #include "interp.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-
 void
 copyobj(dbref player, dbref old, dbref nw)
 {
@@ -358,7 +352,7 @@ has_flagp(dbref ref, char *flag, int mlev)
 int
 check_power(char *power)
 {
-    tmp = 0;
+    int tmp = 0;
 
     while (*power == '!') {
         power++;
@@ -412,6 +406,9 @@ check_power(char *power)
 void
 prim_addpennies(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -618,6 +615,8 @@ prim_moveto(PRIM_PROTOTYPE)
 void
 prim_pennies(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -641,6 +640,8 @@ prim_pennies(PRIM_PROTOTYPE)
 void
 prim_dbcomp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -655,6 +656,8 @@ prim_dbcomp(PRIM_PROTOTYPE)
 void
 prim_dbref(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -667,6 +670,8 @@ prim_dbref(PRIM_PROTOTYPE)
 void
 prim_contents(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -686,6 +691,8 @@ prim_contents(PRIM_PROTOTYPE)
 void
 prim_exits(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -712,6 +719,8 @@ prim_exits(PRIM_PROTOTYPE)
 void
 prim_next(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -732,6 +741,8 @@ prim_truename(PRIM_PROTOTYPE)
     const char *msg;
     char *msg2, *tempstr;
     char buf2[BUFFER_LEN];
+	char buf[BUFFER_LEN];
+	dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -773,6 +784,9 @@ prim_truename(PRIM_PROTOTYPE)
 void
 prim_name(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -796,6 +810,8 @@ void
 prim_setname(PRIM_PROTOTYPE)
 {
     char *password;
+	char buf[BUFFER_LEN];
+	dbref ref;
 
     CHECKOP(2);
     oper1 = POP();
@@ -839,9 +855,6 @@ prim_setname(PRIM_PROTOTYPE)
                        && !ok_player_name(b)) {
                 abort_interp("You can't give a player that name");
             }
-            /* remove any existing alias with this name */
-            clear_alias(0, b);
-
             /* everything ok, notify */
             delete_player(ref);
             if (NAME(ref))
@@ -867,6 +880,8 @@ prim_setname(PRIM_PROTOTYPE)
 void
 prim_match(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -880,6 +895,7 @@ prim_match(PRIM_PROTOTYPE)
     {
         char tmppp[BUFFER_LEN];
         struct match_data md;
+		char buf[BUFFER_LEN];
 
         (void) strcpy(buf, match_args);
         (void) strcpy(tmppp, match_cmdname);
@@ -911,6 +927,8 @@ prim_match(PRIM_PROTOTYPE)
 void
 prim_rmatch(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -925,6 +943,7 @@ prim_rmatch(PRIM_PROTOTYPE)
     CHECKREMOTE(oper2->data.objref);
     {
         char tmppp[BUFFER_LEN];
+		char buf[BUFFER_LEN];
         struct match_data md;
 
         (void) strcpy(buf, match_args);
@@ -945,6 +964,8 @@ prim_rmatch(PRIM_PROTOTYPE)
 void
 prim_copyobj(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -975,7 +996,8 @@ prim_copyobj(PRIM_PROTOTYPE)
 void
 prim_isflagp(PRIM_PROTOTYPE)
 {
-    int tmp;
+    int tmp, result;
+
     oper1 = POP();
     if (oper1->type != PROG_STRING)
         abort_interp("String expected.");
@@ -995,9 +1017,9 @@ prim_set(PRIM_PROTOTYPE)
     int tmp4 = 0;
     char *flag;
     int tWiz = 0;
-    int i;
+    int i, tmp, result = 0;
+	dbref ref;
 
-    result = 0;
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1115,6 +1137,9 @@ void
 prim_mlevel(PRIM_PROTOTYPE)
 /* MLEVEL */
 {
+	dbref ref;
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -1130,6 +1155,9 @@ void
 prim_flagp(PRIM_PROTOTYPE)
 /* FLAG? */
 {
+	dbref ref;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1160,8 +1188,8 @@ void
 prim_powerp(PRIM_PROTOTYPE)
 {
     int pow = 0;
+    int result = 0;
 
-    result = 0;
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1186,6 +1214,7 @@ void
 prim_ispowerp(PRIM_PROTOTYPE)
 {
     int pow = 0;
+	int result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -1202,6 +1231,9 @@ prim_ispowerp(PRIM_PROTOTYPE)
 void
 prim_playerp(PRIM_PROTOTYPE)
 {
+	int result;
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -1220,6 +1252,9 @@ prim_playerp(PRIM_PROTOTYPE)
 void
 prim_thingp(PRIM_PROTOTYPE)
 {
+	int result;
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -1238,6 +1273,9 @@ prim_thingp(PRIM_PROTOTYPE)
 void
 prim_roomp(PRIM_PROTOTYPE)
 {
+	int result;
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -1256,6 +1294,9 @@ prim_roomp(PRIM_PROTOTYPE)
 void
 prim_programp(PRIM_PROTOTYPE)
 {
+	int result;
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -1274,6 +1315,9 @@ prim_programp(PRIM_PROTOTYPE)
 void
 prim_exitp(PRIM_PROTOTYPE)
 {
+	int result;
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -1292,6 +1336,8 @@ prim_exitp(PRIM_PROTOTYPE)
 void
 prim_okp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (valid_object(oper1));
@@ -1301,6 +1347,8 @@ prim_okp(PRIM_PROTOTYPE)
 void
 prim_location(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -1314,6 +1362,8 @@ prim_location(PRIM_PROTOTYPE)
 void
 prim_owner(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -1327,6 +1377,8 @@ prim_owner(PRIM_PROTOTYPE)
 void
 prim_controls(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1343,6 +1395,8 @@ prim_controls(PRIM_PROTOTYPE)
 void
 prim_truecontrols(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1359,6 +1413,8 @@ prim_truecontrols(PRIM_PROTOTYPE)
 void
 prim_getlink(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -1392,7 +1448,7 @@ void
 prim_getlinks(PRIM_PROTOTYPE)
 {
     int i, count;
-    dbref ref2;
+    dbref ref2, ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -1477,6 +1533,8 @@ prog_can_link_to(int mlev, dbref who, object_flag_type what_type, dbref where)
 void
 prim_setlink(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(2);
     oper1 = POP();              /* dbref: destination */
     oper2 = POP();              /* dbref: source */
@@ -1555,6 +1613,8 @@ prim_setlink(PRIM_PROTOTYPE)
 void
 prim_setown(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(2);
     oper1 = POP();              /* dbref: new owner */
     oper2 = POP();              /* dbref: what */
@@ -1597,6 +1657,8 @@ prim_setown(PRIM_PROTOTYPE)
 void
 prim_newobject(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(2);
     oper1 = POP();              /* string: name */
     oper2 = POP();              /* dbref: location */
@@ -1653,6 +1715,8 @@ prim_newobject(PRIM_PROTOTYPE)
 void
 prim_newroom(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(2);
     oper1 = POP();              /* string: name */
     oper2 = POP();              /* dbref: location */
@@ -1696,6 +1760,8 @@ prim_newroom(PRIM_PROTOTYPE)
 void
 prim_newexit(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(2);
     oper1 = POP();              /* string: name */
     oper2 = POP();              /* dbref: location */
@@ -1751,6 +1817,8 @@ prim_newexit(PRIM_PROTOTYPE)
 void
 prim_recycle(PRIM_PROTOTYPE)
 {
+	int result;
+
     /* d -- */
     CHECKOP(1);
     oper1 = POP();              /* object dbref to recycle */
@@ -1789,6 +1857,9 @@ prim_recycle(PRIM_PROTOTYPE)
 void
 prim_setlockstr(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1813,6 +1884,8 @@ prim_setlockstr(PRIM_PROTOTYPE)
 void
 prim_getlockstr(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
@@ -1855,6 +1928,8 @@ prim_checkpassword(PRIM_PROTOTYPE)
 {
     char *ptr;
     char pad_char[] = "";
+	dbref ref;
+	int result;
 
     CHECKOP(2);
     oper2 = POP();
@@ -1989,6 +2064,8 @@ prim_nextentrance(PRIM_PROTOTYPE)
 void
 prim_newplayer(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -2120,12 +2197,12 @@ prim_toadplayer(PRIM_PROTOTYPE)
     victim = oper1->data.objref;
     if (mlev < LARCH)
         abort_interp("Arch prim.");
-    if ((ref != NOTHING && !valid_player(oper1)) || ref == NOTHING)
+    if ((victim != NOTHING && !valid_player(oper1)) || victim == NOTHING)
         abort_interp("Player dbref expected for player to be toaded (1)");
     recipient = oper2->data.objref;
-    if ((recipient != NOTHING && !valid_player(oper2)) || ref == NOTHING)
+    if ((recipient != NOTHING && !valid_player(oper2)) || recipient == NOTHING)
         abort_interp("Player dbref expected for recipient (2)");
-    CHECKREMOTE(ref);
+    CHECKREMOTE(victim);
     CHECKREMOTE(recipient);
 
     if (Typeof(victim) != TYPE_PLAYER) {
@@ -2208,6 +2285,7 @@ void
 prim_objmem(PRIM_PROTOTYPE)
 {
     int i;
+	dbref ref;
 
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -2223,8 +2301,8 @@ prim_objmem(PRIM_PROTOTYPE)
 void
 prim_movepennies(PRIM_PROTOTYPE)
 {
-    int result2;
-    dbref ref2;
+    int result2, result;
+    dbref ref2, ref;
 
     CHECKOP(3);
     oper1 = POP();
@@ -2314,6 +2392,7 @@ prim_instances(PRIM_PROTOTYPE)
 {
     unsigned short a = 0;
     int b = 0;
+	dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -2334,6 +2413,8 @@ prim_instances(PRIM_PROTOTYPE)
 void
 prim_compiledp(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -2354,6 +2435,7 @@ prim_setpassword(PRIM_PROTOTYPE)
 {
     char *ptr, *ptr2;
     char pad_char[] = "";
+	dbref ref;
 
     CHECKOP(3);
     oper1 = POP();
@@ -2391,6 +2473,7 @@ prim_newpassword(PRIM_PROTOTYPE)
 {
     char *ptr2;
     char pad_char[] = "";
+	dbref ref;
 
     CHECKOP(2);
     oper1 = POP();
@@ -2427,6 +2510,7 @@ prim_findnext(PRIM_PROTOTYPE)
     struct flgchkdat check;
     dbref who, item, ref, i;
     const char *name;
+	char buf[BUFFER_LEN];
 
     CHECKOP(4);
     oper4 = POP();              /* str:flags */
@@ -2497,6 +2581,8 @@ prim_findnext(PRIM_PROTOTYPE)
 void
 prim_newprogram(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -2521,7 +2607,7 @@ extern struct line *read_program(dbref prog);
 void
 prim_compile(PRIM_PROTOTYPE)
 {
-    /* dbref ref; */
+    dbref ref;
     struct line *tmpline;
 
     CHECKOP(2);
@@ -2553,7 +2639,7 @@ prim_compile(PRIM_PROTOTYPE)
 void
 prim_uncompile(PRIM_PROTOTYPE)
 {
-    /* dbref ref; */
+    dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -2575,6 +2661,7 @@ prim_contents_array(PRIM_PROTOTYPE)
     struct inst temp1, temp2;
     stk_array *nw;
     int count = 0;
+	dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -2605,6 +2692,7 @@ prim_exits_array(PRIM_PROTOTYPE)
     struct inst temp1, temp2;
     stk_array *nw;
     int count = 0;
+	dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -2689,6 +2777,8 @@ array_getlinks(dbref obj)
 void
 prim_getlinks_array(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -2707,6 +2797,7 @@ prim_getobjinfo(PRIM_PROTOTYPE)
     double fresult;
     struct inst temp1, temp2;
     stk_array *nw;
+	dbref ref;
 
     if (mlev < LM3)
         abort_interp(tp_noperm_mesg);
@@ -2919,6 +3010,8 @@ prim_find_array(PRIM_PROTOTYPE)
     dbref ref, who;
     const char *name;
     stk_array *nw;
+	int result;
+	char buf[BUFFER_LEN];
 
     CHECKOP(3);
     oper3 = POP();              /* str:flags */
@@ -2960,7 +3053,7 @@ void
 prim_entrances_array(PRIM_PROTOTYPE)
 {
     stk_array *nw;
-    dbref i, j;
+    dbref i, j, ref;
 
     CHECKOP(1);
     oper1 = POP();

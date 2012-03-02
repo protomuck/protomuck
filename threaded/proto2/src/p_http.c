@@ -19,12 +19,6 @@
 #include "cgi.h"
 #include "newhttp.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-
 #if defined(FILE_PRIMS) && defined(SECURE_FILE_PRIMS)
 extern char *set_directory(char *filename);
 extern int valid_name(char *filename);
@@ -55,6 +49,7 @@ void
 prim_body_getchar(PRIM_PROTOTYPE)
 {
     struct descriptor_data *d;
+	int result;
 
     CHECKOP(2);
     oper1 = POP();              /* (i) char  */
@@ -88,6 +83,7 @@ void
 prim_body_nextchar(PRIM_PROTOTYPE)
 {
     struct descriptor_data *d;
+	int result, tmp;
 
     CHECKOP(1);
     oper1 = POP();              /* (i) descr */
@@ -121,6 +117,7 @@ void
 prim_body_prevchar(PRIM_PROTOTYPE)
 {
     struct descriptor_data *d;
+	int result, tmp;
 
     CHECKOP(1);
     oper1 = POP();              /* (i) descr */

@@ -14,12 +14,6 @@
 #include "strings.h"
 #include "interp.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-
 extern struct line *read_program(dbref i);
 extern int tune_setparm(const dbref player, const char *parmname,
                         const char *val);
@@ -29,6 +23,7 @@ void
 prim_time(PRIM_PROTOTYPE)
 {
     struct tm *time_tm;
+	int result;
 
     CHECKOP(0);
     CHECKOFLOW(3);
@@ -51,6 +46,7 @@ void
 prim_date(PRIM_PROTOTYPE)
 {
     struct tm *time_tm;
+	int result;
 
     CHECKOP(0);
     CHECKOFLOW(3);
@@ -71,6 +67,8 @@ prim_date(PRIM_PROTOTYPE)
 void
 prim_gmtoffset(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     CHECKOFLOW(1);
     result = (int)get_tz_offset();
@@ -80,6 +78,8 @@ prim_gmtoffset(PRIM_PROTOTYPE)
 void
 prim_systime(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     result = (int)time(NULL);
     CHECKOFLOW(1);
@@ -91,6 +91,7 @@ void
 prim_timesplit(PRIM_PROTOTYPE)
 {
     struct tm *time_tm;
+	int result;
     time_t tt;
 
     CHECKOP(1);
@@ -124,6 +125,7 @@ void
 prim_timefmt(PRIM_PROTOTYPE)
 {
     struct tm *time_tm;
+	char buf[BUFFER_LEN];
     time_t tt;
 
     CHECKOP(2);
@@ -150,6 +152,7 @@ void
 prim_queue(PRIM_PROTOTYPE)
 {
     dbref temproom;
+	int result;
 
     /* int dbref string -- */
     CHECKOP(3);
@@ -189,6 +192,7 @@ void
 prim_enqueue(PRIM_PROTOTYPE)
 {
     dbref temproom;
+	int result;
 
     /* int dbref string -- */
     CHECKOP(4);
@@ -239,6 +243,8 @@ void
 prim_kill(PRIM_PROTOTYPE)
 {
     /* i -- i */
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -261,6 +267,9 @@ prim_kill(PRIM_PROTOTYPE)
 void
 prim_timestamps(PRIM_PROTOTYPE)
 {
+	int result;
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LM2)
@@ -286,6 +295,9 @@ prim_timestamps(PRIM_PROTOTYPE)
 void
 prim_refstamps(PRIM_PROTOTYPE)
 {
+	int result;
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LM2)
@@ -309,6 +321,8 @@ prim_refstamps(PRIM_PROTOTYPE)
 void
 prim_touch(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LM3)
@@ -326,6 +340,8 @@ prim_touch(PRIM_PROTOTYPE)
 void
 prim_use(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LWIZ)
@@ -347,7 +363,7 @@ struct tryvars *copy_trys(struct tryvars *);
 void
 prim_fork(PRIM_PROTOTYPE)
 {
-    int i;
+    int i, result;
     struct frame *tmpfr;
 
     CHECKOP(0);
@@ -466,6 +482,8 @@ prim_fork(PRIM_PROTOTYPE)
 void
 prim_pid(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     CHECKOFLOW(1);
     result = fr->pid;
@@ -476,6 +494,8 @@ prim_pid(PRIM_PROTOTYPE)
 void
 prim_stats(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     /* A WhiteFire special. :) */
     CHECKOP(1);
     oper1 = POP();
@@ -531,6 +551,8 @@ prim_stats(PRIM_PROTOTYPE)
 void
 prim_abort(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -543,6 +565,7 @@ prim_abort(PRIM_PROTOTYPE)
 void
 prim_ispidp(PRIM_PROTOTYPE)
 {
+	int result;
     int nCurFr = 0; 
     /* i -- i */
     CHECKOP(1);
@@ -575,6 +598,7 @@ void
 prim_getpids(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	struct inst temp1;
 
     CHECKOP(1);
     oper1 = POP();
@@ -785,6 +809,8 @@ prim_prettylock(PRIM_PROTOTYPE)
 void
 prim_cancallp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper2 = POP();              /* string: public function name */
     oper1 = POP();              /* dbref: Program dbref to check */
@@ -875,6 +901,8 @@ prim_timer_stop(PRIM_PROTOTYPE)
 void
 prim_event_exists(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();              /* str: eventID to look for */
 
@@ -890,6 +918,8 @@ prim_event_exists(PRIM_PROTOTYPE)
 void
 prim_event_count(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOFLOW(1);
     result = muf_event_count(fr);
     PushInt(result);
@@ -902,6 +932,8 @@ prim_event_send(PRIM_PROTOTYPE)
     struct frame *destfr;
     stk_array *arr;
     struct inst temp1;
+	char buf[BUFFER_LEN];
+
 
     CHECKOP(3);
     oper3 = POP();              /* any: data to pass */
@@ -946,6 +978,8 @@ prim_event_send(PRIM_PROTOTYPE)
 void
 prim_pnameokp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -962,6 +996,8 @@ prim_pnameokp(PRIM_PROTOTYPE)
 void
 prim_nameokp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -1040,6 +1076,8 @@ prim_read_wants_blanks(PRIM_PROTOTYPE)
 void
 prim_get_read_wants_blanks(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOFLOW(1);
 	result = (int)fr->wantsblanks;
     PushInt(result);
@@ -1086,6 +1124,8 @@ void
 prim_debug_line(PRIM_PROTOTYPE)
 {
     if (!(FLAGS(program) & DARK) && controls(PSafe, program)) {
+		char buf[BUFFER_LEN];
+
         char *mesg = debug_inst(fr, 0, pc, fr->pid, arg, buf, sizeof(buf),
                                 *top, program);
 
@@ -1109,6 +1149,8 @@ prim_systime_precise(PRIM_PROTOTYPE)
 void
 prim_htoi(PRIM_PROTOTYPE)
 {
+	int result, tmp;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -1135,6 +1177,8 @@ prim_htoi(PRIM_PROTOTYPE)
 void
 prim_itoh(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)

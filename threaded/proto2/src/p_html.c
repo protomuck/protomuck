@@ -14,15 +14,6 @@
 #include "interp.h"
 #include "cgi.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-
-/* struct tm *time_tm; */
-/* extern struct descriptor_data *descriptor_list; */
-
 char *
 p_commandtext(dbref player, char *command, char *text)
 {
@@ -67,6 +58,8 @@ p_stopmidi(dbref player)
 void
 prim_stopmidi(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -80,6 +73,7 @@ prim_stopmidi(PRIM_PROTOTYPE)
 void
 prim_playmidi(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
     char buf3[5];
 
@@ -106,6 +100,7 @@ prim_playmidi(PRIM_PROTOTYPE)
 void
 prim_commandtext(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
     char buf3[BUFFER_LEN];
 
@@ -132,6 +127,8 @@ prim_commandtext(PRIM_PROTOTYPE)
 void
 prim_unescape_url(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -152,6 +149,8 @@ prim_unescape_url(PRIM_PROTOTYPE)
 void
 prim_escape_url(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)

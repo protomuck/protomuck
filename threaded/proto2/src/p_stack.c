@@ -15,14 +15,6 @@
 
 /* We'll put the external temp vars here */
 
-struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-struct inst temp1, temp2, temp3;
-struct inst arrayvar;
-int result, tmp;
-double fresult;
-dbref ref;
-char buf[BUFFER_LEN];
-
 void
 prim_pop(PRIM_PROTOTYPE)
 {
@@ -54,6 +46,8 @@ prim_pdup(PRIM_PROTOTYPE)
 void
 prim_ndup(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -71,7 +65,7 @@ prim_ndup(PRIM_PROTOTYPE)
 void
 prim_dupn(PRIM_PROTOTYPE)
 {
-    int i;
+    int i, result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -93,7 +87,7 @@ prim_dupn(PRIM_PROTOTYPE)
 void
 prim_ldup(PRIM_PROTOTYPE)
 {
-    int i;
+    int i, result;
 
     CHECKOP_READONLY(1);
     nargs = 0;
@@ -130,6 +124,7 @@ prim_nip(PRIM_PROTOTYPE)
 void
 prim_tuck(PRIM_PROTOTYPE)
 {
+	struct inst temp2;
     CHECKOP(2);
     CHECKOFLOW(1);
     oper1 = POP();
@@ -143,6 +138,8 @@ prim_tuck(PRIM_PROTOTYPE)
 void
 prim_at(PRIM_PROTOTYPE)
 {
+	struct inst temp1;
+
     CHECKOP(1);
     temp1 = *(oper1 = POP());
     if ((temp1.type != PROG_VAR) && (temp1.type != PROG_LVAR)
@@ -208,6 +205,8 @@ prim_bang(PRIM_PROTOTYPE)
 void
 prim_var(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -220,6 +219,8 @@ prim_var(PRIM_PROTOTYPE)
 void
 prim_localvar(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -232,6 +233,8 @@ prim_localvar(PRIM_PROTOTYPE)
 void
 prim_variablep(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_LVAR || oper1->type == PROG_VAR
@@ -243,6 +246,8 @@ prim_variablep(PRIM_PROTOTYPE)
 void
 prim_swap(PRIM_PROTOTYPE)
 {
+	struct inst temp2;
+
     CHECKOP(2);
     oper1 = POP();
     temp2 = *(oper2 = POP());
@@ -263,6 +268,8 @@ prim_over(PRIM_PROTOTYPE)
 void
 prim_pick(PRIM_PROTOTYPE)
 {
+	struct inst temp1;
+
     CHECKOP_READONLY(1);
     temp1 = *(oper1 = POP());
     if (temp1.type != PROG_INTEGER || temp1.data.number <= 0)
@@ -275,6 +282,8 @@ prim_pick(PRIM_PROTOTYPE)
 void
 prim_put(PRIM_PROTOTYPE)
 {
+	int tmp;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -291,6 +300,8 @@ prim_put(PRIM_PROTOTYPE)
 void
 prim_rot(PRIM_PROTOTYPE)
 {
+	struct inst temp3;
+
     CHECKOP(3);
     oper1 = POP();
     oper2 = POP();
@@ -303,6 +314,8 @@ prim_rot(PRIM_PROTOTYPE)
 void
 prim_popn(PRIM_PROTOTYPE)
 {
+	int tmp;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -442,6 +455,7 @@ void
 prim_sort(PRIM_PROTOTYPE)
 {
     int (*comparator) (const void *, const void *);
+	int tmp, result;
 
     CHECKOP(2);
     oper1 = POP();              /* Sort type */
@@ -491,6 +505,9 @@ prim_sort(PRIM_PROTOTYPE)
 void
 prim_rotate(PRIM_PROTOTYPE)
 {
+	int tmp;
+	struct inst temp2;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -514,6 +531,7 @@ prim_rotate(PRIM_PROTOTYPE)
 void
 prim_dbtop(PRIM_PROTOTYPE)
 {
+	dbref ref;
     CHECKOP(0);
     ref = (dbref) db_top;
     CHECKOFLOW(1);
@@ -523,6 +541,8 @@ prim_dbtop(PRIM_PROTOTYPE)
 void
 prim_depth(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     result = *top;
     CHECKOFLOW(1);
@@ -532,6 +552,8 @@ prim_depth(PRIM_PROTOTYPE)
 void
 prim_prog(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(0);
     ref = (dbref) program;
     CHECKOFLOW(1);
@@ -541,6 +563,8 @@ prim_prog(PRIM_PROTOTYPE)
 void
 prim_trig(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(0);
     ref = (dbref) fr->trig;
     CHECKOFLOW(1);
@@ -550,6 +574,8 @@ prim_trig(PRIM_PROTOTYPE)
 void
 prim_caller(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(0);
     ref = (dbref) fr->caller.st[fr->caller.top - 1];
     CHECKOFLOW(1);
@@ -559,6 +585,8 @@ prim_caller(PRIM_PROTOTYPE)
 void
 prim_intp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_INTEGER);
@@ -569,6 +597,8 @@ prim_intp(PRIM_PROTOTYPE)
 void
 prim_floatp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_FLOAT);
@@ -579,6 +609,8 @@ prim_floatp(PRIM_PROTOTYPE)
 void
 prim_arrayp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_ARRAY);
@@ -589,6 +621,8 @@ prim_arrayp(PRIM_PROTOTYPE)
 void
 prim_dictionaryp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_ARRAY && oper1->data.array &&
@@ -600,6 +634,8 @@ prim_dictionaryp(PRIM_PROTOTYPE)
 void
 prim_stringp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_STRING);
@@ -610,6 +646,8 @@ prim_stringp(PRIM_PROTOTYPE)
 void
 prim_dbrefp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_OBJECT);
@@ -620,6 +658,8 @@ prim_dbrefp(PRIM_PROTOTYPE)
 void
 prim_addressp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_ADD);
@@ -630,6 +670,8 @@ prim_addressp(PRIM_PROTOTYPE)
 void
 prim_lockp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_LOCK);
@@ -640,6 +682,8 @@ prim_lockp(PRIM_PROTOTYPE)
 void
 prim_socketp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_SOCKET);
@@ -652,6 +696,8 @@ prim_socketp(PRIM_PROTOTYPE)
 void
 prim_sqlp(PRIM_PROTOTYPE)
 {
+	int result;
+	 
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_MYSQL);
@@ -662,6 +708,8 @@ prim_sqlp(PRIM_PROTOTYPE)
 void
 prim_markp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = (oper1->type == PROG_MARK);
@@ -678,12 +726,15 @@ prim_checkargs(PRIM_PROTOTYPE)
 {
     int currpos, stackpos;
     int rngstktop = 0;
+	int tmp, result;
     enum {
         itsarange, itsarepeat
     } rngstktyp[MaxComplexity];
     int rngstkpos[MaxComplexity];
     int rngstkcnt[MaxComplexity];
     char zbuf[BUFFER_LEN];
+	char buf[BUFFER_LEN];
+	dbref ref;
 
     CHECKOP(1);
     oper1 = POP();              /* string argument */
@@ -917,6 +968,8 @@ prim_checkargs(PRIM_PROTOTYPE)
 void
 prim_mode(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     result = fr->multitask;
     CHECKOFLOW(1);
@@ -926,6 +979,8 @@ prim_mode(PRIM_PROTOTYPE)
 void
 prim_setmode(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -1017,6 +1072,7 @@ void
 prim_findmark(PRIM_PROTOTYPE)
 {
     int depth, height, count;
+	struct inst temp2;
 
     CHECKOP(0);
     depth = 1;
@@ -1059,7 +1115,8 @@ prim_trypop(PRIM_PROTOTYPE)
 void
 prim_reverse(PRIM_PROTOTYPE)
 {
-    int i;
+    int i, tmp;
+	struct inst temp2;
 
     CHECKOP(1);
     oper1 = POP();
@@ -1083,7 +1140,8 @@ prim_reverse(PRIM_PROTOTYPE)
 void
 prim_lreverse(PRIM_PROTOTYPE)
 {
-    int i;
+    int i, tmp;
+	struct inst temp2;
 
     CHECKOP(1);
     oper1 = POP();
@@ -1176,6 +1234,7 @@ prim_foreach(PRIM_PROTOTYPE)
 void
 prim_foriter(PRIM_PROTOTYPE)
 {
+	int result, tmp;
     CHECKOP(0);
 
     if (!fr->fors.st)

@@ -17,11 +17,7 @@
 #include "interp.h"
 #include "netresolve.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
+/* mutex? -hinoserm */
 extern struct frame* aForceFrameStack[9];
 
 extern struct line *read_program(dbref i);
@@ -51,6 +47,8 @@ prim_sysparm(PRIM_PROTOTYPE)
 void
 prim_setsysparm(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();              /* string: new parameter value */
     oper2 = POP();              /* string: parameter to tune */
@@ -103,10 +101,13 @@ prim_version(PRIM_PROTOTYPE)
 void
 prim_force(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
     int nFrameIndex = -1; /* -1 means it hasn't been set */
     int nCurFr = 0; /* Loop iterator */
     int wclen = -2;
     int len;
+	dbref ref;
+
     /* d s -- */
     CHECKOP(2);
     oper1 = POP();              /* string to @force */
@@ -180,6 +181,8 @@ prim_force_level(PRIM_PROTOTYPE)
 void
 prim_logstatus(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LARCH)

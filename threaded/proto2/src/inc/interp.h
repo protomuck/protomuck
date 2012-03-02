@@ -155,7 +155,9 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
 
 #define PRIM_PROTOTYPE dbref player, dbref program, int mlev, \
                        struct inst *pc, struct inst *arg, int *top, \
-                       struct frame *fr
+                       struct frame *fr, struct inst *oper1, struct inst *oper2, \
+                       struct inst *oper3, struct inst *oper4, struct inst *oper5, \
+                       struct inst *oper6
 
 #define SORTTYPE_CASEINSENS     0x1 
 #define SORTTYPE_DESCENDING     0x2 

@@ -16,12 +16,6 @@
 #include "interp.h"
 #include "msgparse.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-
 int
 prop_read_perms(dbref player, dbref obj, const char *name, int mlev)
 { 
@@ -105,6 +99,8 @@ prim_getpropfval(PRIM_PROTOTYPE)
 void 
 prim_getpropval(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -155,6 +151,7 @@ prim_getprop(PRIM_PROTOTYPE)
 {
     PropPtr prptr;
     dbref obj2;
+	int result;
 
     CHECKOP(2);
     oper1 = POP();
@@ -234,6 +231,7 @@ void
 prim_getpropstr(PRIM_PROTOTYPE)
 {
     const char *temp;
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     oper1 = POP();
@@ -315,6 +313,8 @@ prim_getpropstr(PRIM_PROTOTYPE)
 void 
 prim_remove_prop(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -359,6 +359,7 @@ void
 prim_envprop(PRIM_PROTOTYPE)
 {
     double fresult;
+	int result;
 
     CHECKOP(2);
     oper1 = POP();
@@ -375,7 +376,7 @@ prim_envprop(PRIM_PROTOTYPE)
     {
 	char   *type;
 	char    tname[BUFFER_LEN];
-	dbref   what;
+	dbref   what, ref;
 	PropPtr ptr;
 
 	type = oper1->data.string->data;
@@ -454,6 +455,7 @@ prim_envpropstr(PRIM_PROTOTYPE)
 	dbref   what;
 	PropPtr ptr;
 	const char *temp;
+	char buf[BUFFER_LEN];
 
 	type = oper1->data.string->data;
 	while ((type = index(type, PROPDIR_DELIMITER)))
@@ -673,6 +675,8 @@ prim_nextprop(PRIM_PROTOTYPE)
     /* dbref pname -- pname */
     char   *pname;
     char    exbuf[BUFFER_LEN];
+	char    buf[BUFFER_LEN];
+	dbref ref;
 
     CHECKOP(2);
     oper2 = POP();		/* pname */
@@ -727,6 +731,10 @@ void
 prim_propdirp(PRIM_PROTOTYPE)
 {
     /* dbref dir -- int */
+	dbref ref;
+	int result;
+	char buf[BUFFER_LEN];
+
     CHECKOP(2);
     oper2 = POP();		/* prop name */
     oper1 = POP();		/* dbref */
@@ -760,8 +768,8 @@ prim_parsempi(PRIM_PROTOTYPE)
 {
     const char *temp;
     char *ptr;
-    struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL; 
     char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(4);
     oper4 = POP();  /* int */
@@ -811,8 +819,8 @@ prim_parseprop(PRIM_PROTOTYPE)
 {
     const char *temp;
     char *ptr;
-    struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL; 
     char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(4);
     oper4 = POP();  /* int */
@@ -891,7 +899,6 @@ prim_parseprop(PRIM_PROTOTYPE)
 void
 prim_propqueue(PRIM_PROTOTYPE)
 {
-   struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
    if (mlev < LARCH)
       abort_interp("Archwizards or above only.");
    CHECKOP(3);
@@ -938,7 +945,6 @@ prim_propqueue(PRIM_PROTOTYPE)
 void
 prim_envpropqueue(PRIM_PROTOTYPE)
 {
-   struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
    if (mlev < LARCH)
       abort_interp("Archwizards or above only.");
    CHECKOP(3);
@@ -986,6 +992,8 @@ void
 prim_testlock(PRIM_PROTOTYPE)
 {
     /* d d - i */
+	int result;
+
     CHECKOP(2);
     oper1 = POP();              /* boolexp lock */
     oper2 = POP();              /* player dbref */
@@ -1016,7 +1024,9 @@ prim_testlock(PRIM_PROTOTYPE)
 void 
 prim_lockedp(PRIM_PROTOTYPE)
 {   
-    dbref ref2;
+    dbref ref2, ref;
+	int result;
+
     /* d d - i */
     CHECKOP(2);
     oper1 = POP();              /* objdbref */
@@ -1052,7 +1062,9 @@ prim_islockedp(PRIM_PROTOTYPE)
     /* d d s - i */
 
     char  *tmpptr;
-    dbref ref2;
+    dbref ref2, ref;
+	char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(3);
     oper1 = POP();
@@ -1106,7 +1118,9 @@ prim_checklock(PRIM_PROTOTYPE)
     /* This is just a copy and paste of the islocked? code. The only
      * difference is that it will try MUF called from the lock. */
     char  *tmpptr;
-    dbref ref2;
+    dbref ref2, ref;
+	char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(3);
 
@@ -1165,6 +1179,8 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
     char* pat;
     char* prop;
     const char* ptr;
+	dbref ref;
+
     CHECKOP(3);
     oper3 = POP();    /* str     pattern */
     oper2 = POP();    /* str     propname */
@@ -1225,7 +1241,10 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 	int val_int = 0;
 	double val_flt = 0.0;
 	dbref val_ref = 0;
-	char val_str[BUFFER_LEN];	
+	char val_str[BUFFER_LEN];
+	dbref ref;
+	int result;
+
 	CHECKOP(4);
     oper1 = POP(); /* x1 */
 	oper2 = POP(); /* s1 - propname */
@@ -1267,8 +1286,8 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 				sprintf(val_str, "%d", oper1->data.number);
 				break;
 			case PROG_FLOAT:
-				val_int = oper1->data.fnumber;
-				val_ref = oper1->data.fnumber;
+				val_int = (int)oper1->data.fnumber;
+				val_ref = (dbref)oper1->data.fnumber;
 				val_flt = oper1->data.fnumber;
 				sprintf(val_str, "%#.15g", oper1->data.fnumber);
 				break;
@@ -1413,6 +1432,8 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 void
 prim_reflist_find(PRIM_PROTOTYPE)
 {
+	int result;
+
 	CHECKOP(3);
 	oper3 = POP();   /* dbref */
 	oper2 = POP();   /* propname */
@@ -1500,6 +1521,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
     char *buffers = NULL;
     char buf[BUFFER_LEN];
     int mvarcnt = 0, novars, hashow = 0, i;
+	int result;
 
     CHECKOP(4);
     /* ref:Object str:Prop dict:Vars int:Private */
@@ -1722,6 +1744,8 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
 void
 prim_copyprops(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(5);
     oper1 = POP(); /* Recurse          (INT) */
     oper2 = POP(); /* Dest Prop(dir)   (STR) */

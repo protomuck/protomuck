@@ -13,10 +13,6 @@
 #include "strings.h"
 #include "interp.h"
 
-static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-static int result;
-static char buf[BUFFER_LEN];
-
 union error_mask {
     struct {
         unsigned int div_zero:1; /* Divide by zero */
@@ -76,6 +72,8 @@ prim_clear(PRIM_PROTOTYPE)
 void
 prim_error_num(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     CHECKOFLOW(1);
     result = ERROR_NUM;
@@ -85,7 +83,8 @@ prim_error_num(PRIM_PROTOTYPE)
 void
 prim_clear_error(PRIM_PROTOTYPE)
 {
-    int loop;
+    int loop, result;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -130,7 +129,8 @@ prim_clear_error(PRIM_PROTOTYPE)
 void
 prim_set_error(PRIM_PROTOTYPE)
 {
-    int loop;
+    int loop, result;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -175,7 +175,8 @@ prim_set_error(PRIM_PROTOTYPE)
 void
 prim_is_set(PRIM_PROTOTYPE)
 {
-    int loop;
+    int loop, result;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -219,7 +220,8 @@ prim_is_set(PRIM_PROTOTYPE)
 void
 prim_error_str(PRIM_PROTOTYPE)
 {
-    int loop;
+    int loop, result;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -264,6 +266,8 @@ prim_error_str(PRIM_PROTOTYPE)
 void
 prim_error_name(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -286,7 +290,8 @@ prim_error_name(PRIM_PROTOTYPE)
 void
 prim_error_bit(PRIM_PROTOTYPE)
 {
-    int loop;
+    int loop, result;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -319,6 +324,8 @@ prim_error_bit(PRIM_PROTOTYPE)
 void
 prim_is_error(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     CHECKOFLOW(1);
     result = ((fr->error.is_flags) != 0);

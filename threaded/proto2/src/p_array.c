@@ -14,12 +14,6 @@
 #include "interp.h"
 #include "props.h"
 
-static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-static struct inst temp1, temp2, temp3;
-static int result;
-static dbref ref;
-static char buf[BUFFER_LEN];
-
 extern int prop_read_perms(dbref player, dbref obj, const char *name, int mlev);
 extern int prop_write_perms(dbref player, dbref obj, const char *name,
                             int mlev);
@@ -27,8 +21,9 @@ extern int prop_write_perms(dbref player, dbref obj, const char *name,
 void
 prim_array_make(PRIM_PROTOTYPE)
 {
+	struct inst temp1;
     stk_array *nw;
-    int i;
+    int i, result;
 
     CHECKOP(1);
     oper1 = POP();              /* integer - stackrange count */
@@ -62,7 +57,7 @@ void
 prim_array_make_dict(PRIM_PROTOTYPE)
 {
     stk_array *nw;
-    int i;
+    int i, result;
 
     CHECKOP(1);
     oper1 = POP();              /* integer - stackrange count */
@@ -100,6 +95,8 @@ void
 prim_array_explode(PRIM_PROTOTYPE)
 {
     stk_array *arr;
+	struct inst temp1, temp2;
+	int result;
 
     CHECKOP(1);                 /* array */
     oper1 = POP();
@@ -130,6 +127,8 @@ void
 prim_array_vals(PRIM_PROTOTYPE)
 {
     stk_array *arr;
+	struct inst temp1, temp2;
+	int result;
 
     CHECKOP(1);
     oper1 = POP();              /* array */
@@ -159,7 +158,8 @@ void
 prim_array_keys(PRIM_PROTOTYPE)
 {
     stk_array *arr;
-    struct inst temp1;
+    struct inst temp1, temp2;
+	int result;
 
     CHECKOP(1);
     oper1 = POP();              /* array */
@@ -186,6 +186,8 @@ prim_array_keys(PRIM_PROTOTYPE)
 void
 prim_array_count(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();              /* array */
     if (oper1->type != PROG_ARRAY)
@@ -201,6 +203,9 @@ prim_array_count(PRIM_PROTOTYPE)
 void
 prim_array_first(PRIM_PROTOTYPE)
 {
+	struct inst temp1;
+	int result;
+
     CHECKOP(1);
     oper1 = POP();              /* arr  Array */
     if (oper1->type != PROG_ARRAY)
@@ -225,6 +230,9 @@ prim_array_first(PRIM_PROTOTYPE)
 void
 prim_array_last(PRIM_PROTOTYPE)
 {
+	struct inst temp1;
+	int result;
+
     CHECKOP(1);
     oper1 = POP();              /* arr  Array */
     if (oper1->type != PROG_ARRAY)
@@ -249,6 +257,9 @@ prim_array_last(PRIM_PROTOTYPE)
 void
 prim_array_prev(PRIM_PROTOTYPE)
 {
+	struct inst temp1;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();              /* ???  previous index */
     oper2 = POP();              /* arr  Array */
@@ -278,6 +289,8 @@ prim_array_prev(PRIM_PROTOTYPE)
 void
 prim_array_next(PRIM_PROTOTYPE)
 {
+	struct inst temp1;
+	int result;
 
     CHECKOP(2);
     oper1 = POP();              /* ???  previous index */
@@ -342,6 +355,7 @@ void
 prim_array_setitem(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	int result;
 
     CHECKOP(3);
     oper1 = POP();              /* ???  index to store at */
@@ -381,6 +395,7 @@ void
 prim_array_appenditem(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	int result;
 
     CHECKOP(2);
     oper2 = POP();              /* arr  Array to store in */
@@ -408,6 +423,7 @@ void
 prim_array_insertitem(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	int result;
 
     CHECKOP(3);
     oper1 = POP();              /* ???  index to store at */
@@ -467,6 +483,7 @@ void
 prim_array_setrange(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	int result;
 
     CHECKOP(3);
     oper1 = POP();              /* arr  array to insert */
@@ -484,7 +501,7 @@ prim_array_setrange(PRIM_PROTOTYPE)
         abort_interp("Index out of array bounds. (2)");
 
     nw = oper3->data.array;
-    oper3->data.array = NULL;;
+    oper3->data.array = NULL;
 
     CLEAR(oper1);
     CLEAR(oper2);
@@ -498,6 +515,7 @@ void
 prim_array_insertrange(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	int result;
 
     CHECKOP(3);
     oper1 = POP();              /* arr  array to insert */
@@ -530,6 +548,7 @@ void
 prim_array_delitem(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	int result;
 
     CHECKOP(2);
     oper1 = POP();              /* int  item to delete */
@@ -556,6 +575,7 @@ void
 prim_array_delrange(PRIM_PROTOTYPE)
 {
     stk_array *nw;
+	int result;
 
     CHECKOP(3);
     oper1 = POP();              /* int  range end item */
@@ -593,7 +613,7 @@ prim_array_n_union(PRIM_PROTOTYPE)
 {
     stk_array *new_union;
     stk_array *new_mash;
-    int num_arrays;
+    int num_arrays, result;
 
     CHECKOP(1);
     oper1 = POP();              /* integer - stackrange count */
@@ -634,7 +654,7 @@ prim_array_n_intersection(PRIM_PROTOTYPE)
 {
     stk_array *new_union;
     stk_array *new_mash;
-    int num_arrays;
+    int num_arrays, result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -675,7 +695,7 @@ prim_array_n_difference(PRIM_PROTOTYPE)
 {
     stk_array *new_union;
     stk_array *new_mash;
-    int num_arrays;
+    int num_arrays, result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -727,8 +747,9 @@ prim_array_notify(PRIM_PROTOTYPE)
 {
     stk_array *strarr;
     stk_array *refarr;
-    struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
     struct inst temp1, temp2;
+	char buf[BUFFER_LEN];
+
 
     CHECKOP(2);
     oper2 = POP();
@@ -789,9 +810,9 @@ prim_array_ansi_notify(PRIM_PROTOTYPE)
 {
     stk_array *strarr;
     stk_array *refarr;
-    struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
     struct inst temp1, temp2;
     char buf2[BUFFER_LEN * 2];
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     oper2 = POP();
@@ -852,9 +873,9 @@ prim_array_notify_html(PRIM_PROTOTYPE)
 {
     stk_array *strarr;
     stk_array *refarr;
-    struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL;
     struct inst temp1, temp2;
     char buf2[BUFFER_LEN * 2];
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     oper2 = POP();
@@ -912,7 +933,8 @@ prim_array_reverse(PRIM_PROTOTYPE)
 {
     stk_array *arr;
     stk_array *nw;
-    int i;
+    int i, result;
+	struct inst temp1, temp2;
 
     CHECKOP(1);
     oper1 = POP();              /* arr  Array   */
@@ -993,6 +1015,7 @@ prim_array_sort(PRIM_PROTOTYPE)
     int count, i;
     int (*comparator) (const void *, const void *);
     struct inst **tmparr = NULL;
+	struct inst temp1;
 
     CHECKOP(2);
     oper2 = POP();              /* int  sort_type   */
@@ -1057,6 +1080,7 @@ prim_array_sort_indexed(PRIM_PROTOTYPE)
     int count, i;
     int (*comparator) (const void *, const void *);
     struct inst **tmparr = NULL;
+	struct inst temp1;
 
     CHECKOP(3);
     oper3 = POP();              /* idx  index_key   */
@@ -1123,6 +1147,9 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
     PropPtr prptr;
     int count = 0;
     int len = 0;
+	dbref ref;
+	char buf[BUFFER_LEN];
+	struct inst temp1, temp2;
 
     /* dbref strPropDir -- array */
     CHECKOP(2);
@@ -1184,6 +1211,9 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
     char dir[BUFFER_LEN];
     PropPtr propadr, pptr;
     PropPtr prptr;
+	dbref ref;
+	struct inst temp1, temp2;
+	char buf[BUFFER_LEN];
 
     /* dbref strPropDir -- array */
     CHECKOP(2);
@@ -1273,6 +1303,8 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
     char dir[BUFFER_LEN];
     PropPtr prptr;
     int lines = 0, i;
+	dbref ref;
+	struct inst temp2;
 
     /* dbref strPropDir -- array */
     CHECKOP(2);
@@ -1380,6 +1412,8 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
     char propname[BUFFER_LEN];
     stk_array *arr;
     PData pdat;
+	dbref ref;
+	struct inst temp1;
 
     /* dbref strPropDir array -- */
     CHECKOP(3);
@@ -1468,9 +1502,11 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
     int dirlen;
     int count;
     PData pdat;
-
-
-    /* dbref strPropDir array -- */
+	dbref ref;
+	struct inst temp1;
+	char buf[BUFFER_LEN];
+	
+	/* dbref strPropDir array -- */
     CHECKOP(3);
     oper3 = POP();
     oper2 = POP();
@@ -1615,6 +1651,9 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
     const char *rawstr;
     char dir[BUFFER_LEN];
     int count = 0;
+	int result;
+	dbref ref;
+	struct inst temp1, temp2;
 
     /* dbref strPropDir -- array */
     CHECKOP(2);
@@ -1681,6 +1720,9 @@ prim_array_put_reflist(PRIM_PROTOTYPE)
     char *out;
     int len;
     PData pdat;
+	dbref ref;
+	char buf[BUFFER_LEN];
+	struct inst temp1;
 
     /* dbref strPropDir array -- */
     CHECKOP(3);
@@ -1781,6 +1823,7 @@ prim_array_excludeval(PRIM_PROTOTYPE)
     stk_array *arr;
     stk_array *nw;
     int found = 0;
+	struct inst temp1;
 
     CHECKOP(2);
     oper2 = POP();              /* ???  index */
@@ -1811,6 +1854,8 @@ prim_explode_array(PRIM_PROTOTYPE)
     stk_array *nu;
     char *tempPtr;
     char *lastPtr;
+	struct inst temp1, temp2, temp3;
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     temp1 = *(oper1 = POP());
@@ -1875,6 +1920,8 @@ prim_array_join(PRIM_PROTOTYPE)
     char *delim;
     int tmplen;
     int done;
+	struct inst temp1;
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     oper2 = POP();              /* str  joinstr */
@@ -1951,6 +1998,8 @@ prim_array_interpret(PRIM_PROTOTYPE)
     char outbuf[BUFFER_LEN];
     char *ptr;
     const char *text;
+	struct inst temp1;
+	char buf[BUFFER_LEN];
 
     /* char *delim; */
     int tmplen;
@@ -2054,6 +2103,7 @@ prim_array_matchkey(PRIM_PROTOTYPE)
     struct inst *in;
     stk_array *arr;
     stk_array *nw;
+	struct inst temp1;
 
     CHECKOP(2);
     oper2 = POP();              /* str  pattern */
@@ -2089,6 +2139,7 @@ prim_array_matchval(PRIM_PROTOTYPE)
     struct inst *in;
     stk_array *arr;
     stk_array *nw;
+	struct inst temp1;
 
     CHECKOP(2);
     oper2 = POP();              /* str  pattern */
@@ -2131,6 +2182,7 @@ prim_array_extract(PRIM_PROTOTYPE)
     stk_array *arr;
     stk_array *karr;
     stk_array *nw;
+	struct inst temp1;
 
     CHECKOP(2);
     oper2 = POP();              /* arr  indexes */
@@ -2169,6 +2221,7 @@ prim_array_cut(PRIM_PROTOTYPE)
     struct inst temps;
     struct inst tempc;
     struct inst tempe;
+	int result;
 
     CHECKOP(2);
     oper2 = POP();              /* int  position */
@@ -2218,7 +2271,8 @@ prim_array_compare(PRIM_PROTOTYPE)
     struct inst *val2;
     stk_array *arr1;
     stk_array *arr2;
-    int res1, res2;
+    int res1, res2, result;
+	struct inst temp1, temp2;
 
     CHECKOP(2);
     oper2 = POP();              /* arr  Array */
@@ -2276,6 +2330,7 @@ prim_array_filter_flags(PRIM_PROTOTYPE)
     struct flgchkdat check;
     stk_array *nw, *arr;
     struct inst *in;
+	struct inst temp1;
 
     CHECKOP(2);
     oper2 = POP();              /* str:flags */
@@ -2314,6 +2369,7 @@ prim_array_nested_get(PRIM_PROTOTYPE)
     struct inst temp;
     stk_array *idxarr;
     int i, idxcnt;
+	struct inst temp1;
 
     idx = NULL;
     CHECKOP(2);
@@ -2515,6 +2571,7 @@ prim_array_sum(PRIM_PROTOTYPE)
     int tiacc;
     int done;
     register int floaty;
+	struct inst temp1;
 
     CHECKOP(1);
     oper1 = POP();              /* arr  Array */
@@ -2565,6 +2622,8 @@ prim_array_string_fragment(PRIM_PROTOTYPE)
     int nChunkSize = 0;
     int nCount = 0; 
     int nStrLen = 0;   
+	struct inst temp1, temp2, temp3;
+	static char buf[BUFFER_LEN];
 
     CHECKOP(2);
     temp1 = *(oper1 = POP());
