@@ -14,11 +14,6 @@
 #include "interp.h"
 #include "netresolve.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-
 int
 check_descr_flag(char *dflag)
 {
@@ -134,6 +129,9 @@ has_descr_flag(int descr, char *dFlag, int mLev)
 void
 prim_awakep(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (!valid_object(oper1))
@@ -152,6 +150,9 @@ prim_awakep(PRIM_PROTOTYPE)
 void
 prim_online(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	int result;
+
     CHECKOP(0);
     if (mlev < LM3)
         abort_interp("M3 prim");
@@ -169,6 +170,8 @@ prim_online(PRIM_PROTOTYPE)
 void
 prim_online_array(PRIM_PROTOTYPE)
 {
+	struct inst temp1, temp2;
+    int result;
     stk_array *nw;
     int i;
 
@@ -195,6 +198,8 @@ prim_online_array(PRIM_PROTOTYPE)
 void
 prim_concount(PRIM_PROTOTYPE)
 {
+    int result;
+
     /* -- int */
     CHECKOP(0);
     result = pcount();
@@ -205,6 +210,8 @@ prim_concount(PRIM_PROTOTYPE)
 void
 prim_condbref(PRIM_PROTOTYPE)
 {
+	int result; 
+
     /* int -- dbref */
     CHECKOP(1);
     oper1 = POP();
@@ -225,6 +232,8 @@ prim_condbref(PRIM_PROTOTYPE)
 void
 prim_conidle(PRIM_PROTOTYPE)
 {
+	int result;
+
     /* int -- int */
     CHECKOP(1);
     oper1 = POP();
@@ -245,6 +254,8 @@ prim_conidle(PRIM_PROTOTYPE)
 void
 prim_contime(PRIM_PROTOTYPE)
 {
+	int result;
+
     /* int -- int */
     CHECKOP(1);
     oper1 = POP();
@@ -264,6 +275,7 @@ prim_contime(PRIM_PROTOTYPE)
 void
 prim_conhost(PRIM_PROTOTYPE)
 {
+	int result;
     /* int -- char * */
     char *pname;
 
@@ -286,6 +298,7 @@ void
 prim_conuser(PRIM_PROTOTYPE)
 {
     /* int -- char * */
+	int result;
     char *pname;
 
     CHECKOP(1);
@@ -308,6 +321,7 @@ prim_conipnum(PRIM_PROTOTYPE)
 {
     /* int -- char * */
     char *pname;
+	int result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -329,6 +343,7 @@ prim_conport(PRIM_PROTOTYPE)
 {
     /* int -- char * */
     char *pname;
+	int result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -349,6 +364,8 @@ void
 prim_conboot(PRIM_PROTOTYPE)
 {
     /* int --  */
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -369,6 +386,8 @@ void
 prim_connotify(PRIM_PROTOTYPE)
 {
     /* int string --  */
+	int result;
+
     CHECKOP(2);
     oper2 = POP();              /* string */
     oper1 = POP();              /* int */
@@ -392,6 +411,8 @@ void
 prim_condescr(PRIM_PROTOTYPE)
 {
     /* int -- int */
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LM3)
@@ -411,6 +432,8 @@ void
 prim_descrcon(PRIM_PROTOTYPE)
 {
     /* int -- int */
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LM3)
@@ -427,6 +450,8 @@ void
 prim_nextdescr(PRIM_PROTOTYPE)
 {
     /* int -- int */
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < LMAGE)
@@ -448,6 +473,8 @@ prim_descriptors(PRIM_PROTOTYPE)
     int mycount = 0;
     int di, dcount, descr;
     int *darr;
+	dbref ref;
+	int result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -490,7 +517,9 @@ prim_descr_array(PRIM_PROTOTYPE)
     stk_array *newarr;
     int *darr;
     int di, dcount, descr;
-    int i;
+    int i, result;
+	dbref ref;
+	struct inst temp1, temp2;
 
     CHECKOP(1);
     oper1 = POP();
@@ -541,6 +570,8 @@ prim_descr_setuser(PRIM_PROTOTYPE)
 {
     char *ptr;
     char pad_char[] = "";
+	dbref ref;
+	int tmp, result;
 
     CHECKOP(3);
     oper3 = POP();
@@ -593,6 +624,8 @@ prim_descr_setuser(PRIM_PROTOTYPE)
 void
 prim_descr_setuser_nopass(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	int tmp, result;
 
     CHECKOP(2);
     oper2 = POP();
@@ -631,6 +664,8 @@ prim_descr_setuser_nopass(PRIM_PROTOTYPE)
 void
 prim_suid(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -639,7 +674,7 @@ prim_suid(PRIM_PROTOTYPE)
         abort_interp("W4 permissions required.");
     if (oper1->type != PROG_OBJECT)
         abort_interp("DBref expected. (1)");
-    if (ref != NOTHING && !valid_player(oper1))
+    if (oper1->data.objref != NOTHING && !valid_player(oper1))
         abort_interp("Player dbref expected (1)");
 
     if (oper2->type != PROG_INTEGER)
@@ -667,6 +702,8 @@ void
 prim_descr(PRIM_PROTOTYPE)
 {
     /* -- int */
+	int result;
+
     CHECKOP(0);
     result = fr->descr;
     CHECKOFLOW(1);
@@ -679,6 +716,8 @@ prim_firstdescr(PRIM_PROTOTYPE)
     /* ref -- int */
     int *darr;
     int dcount;
+	dbref ref;
+	int result;
 
     CHECKOP(1);
     oper2 = POP();
@@ -712,6 +751,8 @@ prim_lastdescr(PRIM_PROTOTYPE)
     /* ref -- int */
     int *darr;
     int dcount;
+	dbref ref;
+	int result;
 
     CHECKOP(1);
     oper2 = POP();
@@ -742,6 +783,8 @@ prim_lastdescr(PRIM_PROTOTYPE)
 void
 prim_descrflush(PRIM_PROTOTYPE)
 {
+	int tmp, result;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -757,6 +800,8 @@ prim_descrflush(PRIM_PROTOTYPE)
 void
 prim_descr_htmlp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -778,6 +823,8 @@ prim_descr_htmlp(PRIM_PROTOTYPE)
 void
 prim_descr_pueblop(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -799,6 +846,8 @@ prim_descr_pueblop(PRIM_PROTOTYPE)
 void
 prim_descr_sslp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -841,6 +890,8 @@ prim_welcome_user(PRIM_PROTOTYPE)
 void
 prim_descrp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -859,6 +910,8 @@ prim_descrp(PRIM_PROTOTYPE)
 void
 prim_motd_notify(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < 3)
@@ -893,6 +946,7 @@ void
 prim_descrdbref(PRIM_PROTOTYPE)
 {
     struct descriptor_data *dr;
+	dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -1059,6 +1113,9 @@ prim_descrconport(PRIM_PROTOTYPE)
 void
 prim_descrleastidle(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	int result;
+
     CHECKOP(1);
     oper2 = POP();
     if (oper2->type != PROG_OBJECT)
@@ -1075,6 +1132,9 @@ prim_descrleastidle(PRIM_PROTOTYPE)
 void
 prim_descrmostidle(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	int result;
+
     CHECKOP(1);
     oper2 = POP();
 
@@ -1469,6 +1529,8 @@ void
 prim_descrbufsize(PRIM_PROTOTYPE)
 {
     /* int -- int */
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (mlev < 3)
@@ -1493,6 +1555,8 @@ void
 prim_mccp_start(PRIM_PROTOTYPE)
 {
     struct descriptor_data *d;
+	int tmp;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -1513,6 +1577,8 @@ void
 prim_mccp_end(PRIM_PROTOTYPE)
 {
     struct descriptor_data *d;
+	int tmp;
+
     CHECKOP(1);
     oper1 = POP();
 

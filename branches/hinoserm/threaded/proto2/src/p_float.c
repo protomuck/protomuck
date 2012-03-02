@@ -17,11 +17,6 @@
 #include "strings.h"
 #include "interp.h"
 
-static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-static int result;
-static double fresult;
-static char buf[BUFFER_LEN];
-
 #define no_good(x) ((x == INF) || (x == NINF) || (x == NAN))
 #define ISINF(x) ((x == INF) || (x == NINF))
 #define ISNAN(x) (x == NAN)
@@ -29,6 +24,8 @@ static char buf[BUFFER_LEN];
 void
 prim_ceil(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_FLOAT)
@@ -46,6 +43,8 @@ prim_ceil(PRIM_PROTOTYPE)
 void
 prim_floor(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_FLOAT)
@@ -63,6 +62,8 @@ prim_floor(PRIM_PROTOTYPE)
 void
 prim_sqrt(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -94,6 +95,8 @@ prim_sqrt(PRIM_PROTOTYPE)
 void
 prim_pi(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(0);
     fresult = F_PI;
     CHECKOFLOW(1);
@@ -103,6 +106,8 @@ prim_pi(PRIM_PROTOTYPE)
 void
 prim_epsilon(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     fresult = DBL_EPSILON;
     CHECKOFLOW(1);
     PushFloat(fresult);
@@ -111,7 +116,7 @@ prim_epsilon(PRIM_PROTOTYPE)
 void
 prim_round(PRIM_PROTOTYPE)
 {
-    double temp, tshift, tnum, fstore;
+    double temp, tshift, tnum, fstore, fresult;
 
     CHECKOP(2);
     oper1 = POP();
@@ -152,6 +157,8 @@ prim_round(PRIM_PROTOTYPE)
 void
 prim_sin(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -174,6 +181,8 @@ prim_sin(PRIM_PROTOTYPE)
 void
 prim_cos(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -195,6 +204,8 @@ prim_cos(PRIM_PROTOTYPE)
 void
 prim_tan(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -227,6 +238,8 @@ prim_tan(PRIM_PROTOTYPE)
 void
 prim_asin(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -248,6 +261,8 @@ prim_asin(PRIM_PROTOTYPE)
 void
 prim_acos(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -269,6 +284,8 @@ prim_acos(PRIM_PROTOTYPE)
 void
 prim_atan(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -289,6 +306,8 @@ prim_atan(PRIM_PROTOTYPE)
 void
 prim_atan2(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(2);
     oper2 = POP();
     oper1 = POP();
@@ -464,6 +483,8 @@ prim_polar_to_xyz(PRIM_PROTOTYPE)
 void
 prim_exp(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -488,6 +509,8 @@ prim_exp(PRIM_PROTOTYPE)
 void
 prim_log(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -512,6 +535,8 @@ prim_log(PRIM_PROTOTYPE)
 void
 prim_log10(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -536,6 +561,8 @@ prim_log10(PRIM_PROTOTYPE)
 void
 prim_fabs(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -558,6 +585,8 @@ prim_fabs(PRIM_PROTOTYPE)
 void
 prim_float(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -570,6 +599,8 @@ prim_float(PRIM_PROTOTYPE)
 void
 prim_pow(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -605,7 +636,8 @@ prim_pow(PRIM_PROTOTYPE)
 void
 prim_frand(PRIM_PROTOTYPE)
 {
-    double tresult;
+    double tresult, fresult;
+	int result;
 
     CHECKOP(0);
     result = rand();
@@ -627,6 +659,8 @@ prim_frand(PRIM_PROTOTYPE)
 void
 prim_fmod(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -657,7 +691,7 @@ void
 prim_modf(PRIM_PROTOTYPE)
 {
     double tresult;
-    double dresult;
+    double dresult, fresult;
 
     CHECKOP(1);
     oper1 = POP();
@@ -684,6 +718,8 @@ prim_modf(PRIM_PROTOTYPE)
 void
 prim_strtof(PRIM_PROTOTYPE)
 {
+	double fresult;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -702,6 +738,8 @@ prim_strtof(PRIM_PROTOTYPE)
 void
 prim_ftostr(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {
@@ -718,6 +756,8 @@ prim_ftostr(PRIM_PROTOTYPE)
 void
 prim_ftostrc(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type == PROG_INTEGER) {

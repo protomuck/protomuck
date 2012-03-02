@@ -19,8 +19,6 @@
 #include "interp.h"
 #include "p_mysql.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-
 /* Prim for connecting to a SQL database */
 void
 prim_sqlconnect(PRIM_PROTOTYPE)

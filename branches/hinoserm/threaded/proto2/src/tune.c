@@ -364,7 +364,6 @@ int tp_mush_format_escapes = 0;
 int tp_strict_mush_escapes = 0;
 int tp_ascii_descrs = 0;
 int tp_muf_profiling       = 0;
-int tp_player_aliasing = 1;
 
 /* int tp_require_has_mpi_arg = 0; */
 
@@ -467,7 +466,6 @@ struct tune_bool_entry tune_bool_list[] = {
     {"System", "mush_format_escapes", &tp_mush_format_escapes, LBOY, LMUF},
     {"System", "strict_mush_escapes", &tp_strict_mush_escapes, LBOY, LMUF},
     {"System", "ascii_descrs", &tp_ascii_descrs, LBOY, LMUF},
-    {"Commands", "player_aliasing", &tp_player_aliasing, LARCH, LMUF},
 /*    {"MPI", "require_has_mpi_arg", &tp_require_has_mpi_arg, LARCH, LMUF}, */
 #ifdef NEWHTTPD
     {"HTTPD", "web_allow_players", &tp_web_allow_players, LARCH, LMUF},

@@ -84,10 +84,6 @@
 #define NUMBER_COMMAND 'n'
 #define PUBLICS_COMMAND 'p'
 
-/* @alias stuff */
-#define ALIASDIR_CUR  "/@alias/names/"
-#define ALIASDIR_LAST "/@alias/last/"
-
 /* maximum number of arguments */
 #define MAX_ARG  2
 

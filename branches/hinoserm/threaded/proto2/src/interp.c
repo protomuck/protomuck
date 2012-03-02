@@ -2203,14 +2203,17 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         /* NOTREACHED */
                         break;
                     default:
-                        nargs = 0;
-                        reload(fr, atop, stop);
-                        tmp = atop;
-                        prim_func[pc->data.number - 1] (player, program, mlev,
-                                                        pc, arg, &tmp, fr);
-                        atop = tmp;
-                        pc++;
-                        break;
+						{
+							struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL, *oper5 = NULL, *oper6 = NULL;
+							nargs = 0;
+							reload(fr, atop, stop);
+							tmp = atop;
+							prim_func[pc->data.number - 1] (player, program, mlev,
+															pc, arg, &tmp, fr, oper1, oper2, oper3, oper4, oper5, oper6);
+							atop = tmp;
+							pc++;
+							break;
+						}
                 }               /* switch */
                 break;
             case PROG_LABEL:

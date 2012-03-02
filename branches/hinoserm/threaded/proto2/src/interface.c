@@ -25,6 +25,8 @@
 #include "netresolve.h"         /* hinoserm */
 #ifdef UTF8_SUPPORT
 # include <locale.h>
+# include <nl_types.h>
+# include <langinfo.h>
 #endif
 
 /* Cynbe stuff added to help decode corefiles:
@@ -3133,7 +3135,6 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     d->raw_input_wclen = 0;
 #endif
     d->inIAC = 0;
-    d->truncate = 0;
     d->quota = tp_command_burst_size;
     d->commands = 0;
     d->last_time = d->connected_at;
@@ -3164,12 +3165,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     if (remember_descriptor(d) < 0)
         d->booted = 1;          /* Drop the connection ASAP */
 
-    if ((ctype == CT_MUCK ||
-#ifdef USE_SSL
-         ctype == CT_SSL ||
-#endif
-         ctype == CT_PUEBLO)
-            && tp_ascii_descrs) {
+    if (ctype == CT_MUCK && tp_ascii_descrs) {
         d->encoding = 1; /* ASCII I/O */
     } else {
         d->encoding = 0; /* RAW I/O */
@@ -3376,8 +3372,6 @@ queue_string(struct descriptor_data *d, const char *s)
         for (sp = s; *sp != '\0'; sp++) {
             if (isascii(*sp)) {
                 *fp++ = *sp;
-            } else {
-                *fp++ = '?';
             }
         }
 #ifdef UTF8_SUPPORT
@@ -3678,7 +3672,6 @@ process_input(struct descriptor_data *d)
 #endif /* NEWHTTPD */
         if (*q == '\n') {
             *p = '\0';
-            d->truncate = 0;
             if (p > d->raw_input) {
 #ifdef NEWHTTPD
                 if (d->type == CT_HTTP) { /* hinoserm */
@@ -3947,7 +3940,7 @@ process_input(struct descriptor_data *d)
         } else if (*q == '\377') {
             /* Got TELNET IAC, store for next byte */
             d->inIAC = 1;
-        } else if (p < pend && !d->truncate) {
+        } else if (p < pend) {
             if ((*q == '\t')
                 & (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = ' ';
@@ -4007,7 +4000,6 @@ process_input(struct descriptor_data *d)
                             /* advance q by wclen-1 bytes. we subtract 1 because
                              * the loop itself already advances it by 1. */
                             q = q + (wclen - 1);
-                            wcbuflen++;
                         } else {
                             /* d->raw_input can't hold the next UTF-8 character.
                              * Deleting characters during conversion when we
@@ -4025,12 +4017,16 @@ process_input(struct descriptor_data *d)
                             *p++ = '\xef';
                             *p++ = '\xbf';
                             *p++ = '\xbd';
-                            wcbuflen++;
                         } else {
-                            /* Not enough buffer space for U+FFFD, truncate. */
-                            d->truncate = 1;
+                            /* Not enough buffer space for U+FFFD, fill the rest
+                             * of the buffer with question marks (leaving room
+                             * for the newline) */
+                            while (p < pend) {
+                                *p++ = '?';
+                            }
                         }
                     }
+                    wcbuflen++;
 #endif
                 } else { /* RAW */
                     /* any text from a raw source goes straight into the game,
@@ -4347,11 +4343,7 @@ do_command(struct descriptor_data *d, struct text_block *t)
                 queue_write(d, "\r\n", 2);
             }
         } else {
-            if (d->interactive == 2) {
-                handle_read_event(d->descriptor, NOTHING, command, NULL, len, wclen);
-            } else {
-                check_connect(d, command);
-            }
+            check_connect(d, command);
         }
     }
     (d->commands)++;
@@ -4388,7 +4380,6 @@ check_connect(struct descriptor_data *d, const char *msg)
     char msgargs[BUFFER_LEN];
     char buf[BUFFER_LEN];
     char *p = NULL;
-    int len = 0;
 
     parse_connect(msg, command, user, password);
     for (xref = 0; command[xref]; xref++)
@@ -4404,7 +4395,7 @@ check_connect(struct descriptor_data *d, const char *msg)
            
        If you want to debug strings passed to the connection handler, define
        DEBUGLOGINS somewhere. This should not be done in "live" environments,
-       as it makes hashing your player passwords pointless. -davin */
+       as it makes hashing your player passwords pointless. -brevantes */
 
 #ifndef DEBUGLOGINS
     if (tp_log_connects &&
@@ -4415,15 +4406,12 @@ check_connect(struct descriptor_data *d, const char *msg)
 #endif
         log2filetime(CONNECT_LOG, "%2d: %s\r\n", d->descriptor, msg);
 
-    /* do_command will no longer reach this point. -davin */
     if (d->interactive == 2) {
         p = buf;
-        while (*msg && (isprint(*msg))) {
+        while (*msg && (isprint(*msg)))
             *p++ = *msg++;
-            len++;
-        }
         *p = '\0';
-        handle_read_event(d->descriptor, NOTHING, buf, NULL, len, -2);
+        handle_read_event(d->descriptor, NOTHING, buf, NULL, 0, 0);
         return;
     }
 
@@ -6610,8 +6598,7 @@ partial_pmatch(const char *name)
     d = descriptor_list;
     while (d) {
         if (d->connected && (last != d->player) &&
-            (string_prefix(NAME(d->player), name) ||
-             lookup_alias(name,1) != NOTHING) ) {
+            string_prefix(NAME(d->player), name)) {
             if (last != NOTHING) {
                 last = AMBIGUOUS;
                 break;

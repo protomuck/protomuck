@@ -20,7 +20,6 @@
 extern void do_compress(dbref player, int descr, const char *msg);
 #endif /* MCCP_ENABLED */
 
-extern struct inst temp1;
 /* declarations */
 static const char *dumpfile = 0;
 
@@ -125,6 +124,8 @@ do_delta(dbref player)
 void
 do_delayed_shutdown(dbref player)
 {
+	struct inst temp1;
+
     if (tp_shutdown_delay < 1) {
         /* This should only happen if someone is messing around with the caller
          * functions that use us. */
@@ -473,6 +474,8 @@ dump_database(bool dofork)
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
 
     if (tp_db_events) {
+		struct inst temp1;
+
         temp1.type = PROG_INTEGER;
         temp1.data.number = current_systime;
 
@@ -514,6 +517,8 @@ fork_and_dump(bool dofork)
     log_status("DUMP: %s.#%d#\n", dumpfile, epoch);
 
     if (tp_db_events) {
+		struct inst temp1;
+
         temp1.type = PROG_INTEGER;
         temp1.data.number = current_systime;
 
@@ -599,6 +604,8 @@ dump_warning(void)
 #endif
     }
     if (tp_db_events) {
+		struct inst temp1;
+
         temp1.type = PROG_INTEGER;
         temp1.data.number = current_systime + tp_dump_warntime;
 
@@ -938,8 +945,6 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
     /* char cbuf[BUFFER_LEN]; char *c; int csharp; */
     int isOverride = 0;
 
-    int delimited = 0;
-
     if (command == 0) {
         fprintf(stderr, "PANIC: Null command passed to process_command.\n");
         abort();
@@ -1079,10 +1084,8 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
         *p = '\0';
 
     /* go past delimiter if present */
-    if (*arg2) {
-        delimited = 1;
+    if (*arg2)
         *arg2++ = '\0';
-    }
     while (*arg2 && isspace(*arg2))
         arg2++;
 
@@ -1102,26 +1105,6 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
         if (prop_command(descr, player, command, full_command, "_ocommand", 0))
             return;
     }
-
-    /* The main command processing switch starts here. At this point the
-     * initial 'command' variable will have been truncated at the first block of
-     * whitespace (and no longer contains the string it initially stored when
-     * this function was invoked).
-     *
-     * Use the following variables. Don't use xbuf, ybuf, zbuf, etc.
-     *
-     * descr        = ID# of invoking descriptor, -1 for a @force
-     * player       = dbref of invoking object (NOT invoking descriptor)
-     * command      = player input before first block of whitespace, unless EOL
-     *                was encountered first. 
-     * arg1         = player input between first block of whitespace and first
-     *                '=' char; this will be all of the args if there is no '='.
-     * arg2         = player input after first '=' char, otherwise '\0'.
-     * delimited    = '@cmd foo' and '@cmd foo=' both return an arg2 of '\0';
-     *                delimited will return 1 in the latter case.
-     * full_command = everything after first block of whitespace; useful when you
-     *                need more than 2 args or similarly specialized processing.
-     */
     switch (command[0]) {
         case '@':
             switch (command[1]) {
@@ -1133,11 +1116,6 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
                         case 'C':
                             Matched("@action");
                             do_action(descr, player, arg1, arg2);
-                            break;
-                        case 'l':
-                        case 'L':
-                            Matched("@alias");
-                            do_alias(player, arg1, arg2, delimited);
                             break;
                         case 'r':
                         case 'R':

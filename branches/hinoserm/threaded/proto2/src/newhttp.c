@@ -299,7 +299,7 @@ http_sendheader(struct descriptor_data *d, int statcode,
                 const char *content_type, int content_length)
 {
     struct http_field *f;
-    //int iscompressed=0;
+    int iscompressed=0;
 
     char tbuf[BUFFER_LEN];
     time_t t = time(NULL) + get_tz_offset();

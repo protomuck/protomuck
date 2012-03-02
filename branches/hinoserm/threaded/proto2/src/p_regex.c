@@ -29,16 +29,9 @@
 
 #define MUF_RE_CACHE_ITEMS 64
 
-extern dbref ref;
-extern int result;
 extern int prop_read_perms(dbref player, dbref obj, const char *name, int mlev);
 extern int prop_write_perms(dbref player, dbref obj, const char *name,
                             int mlev);
-
-static struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-static struct inst temp1, temp2;
-static char buf[BUFFER_LEN];
-
 /*
    Non-PCRE regex was deprecated in FBMUCK and we have followed suit. While
    it would be nice to support both PCRE and non-PCRE flavored regexps, this
@@ -960,7 +953,7 @@ prim_regfind_array(PRIM_PROTOTYPE)
     const char *name;
     stk_array *nw;
     muf_re* re;
-    char* text = NULL;
+    char* text;
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;

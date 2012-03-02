@@ -14,13 +14,6 @@
 #include "interp.h"
 #include "newhttp.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-char *pname;
-
 /* FMTTOKEN defines the start of a variable formatting string insertion */
 #define FMTTOKEN '%'
 
@@ -30,7 +23,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
     int slen, scnt, tstop, tlen, tnum, i;
     int slrj, spad1, spad2, slen1, slen2, temp;
     char sstr[BUFFER_LEN], sfmt[255], hold[256], tbuf[BUFFER_LEN];
+	char buf[BUFFER_LEN];
     char *ptr, *begptr;
+	int result, tmp;
+	dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -497,6 +493,9 @@ void
 prim_split(PRIM_PROTOTYPE)
 {
     char *temp = NULL;
+	char buf[BUFFER_LEN];
+	char *pname;
+	int result;
 
     CHECKOP(2);
     oper1 = POP();
@@ -550,6 +549,8 @@ void
 prim_rsplit(PRIM_PROTOTYPE)
 {
     char *temp = NULL, *hold = NULL;
+	char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(2);
     oper1 = POP();
@@ -617,6 +618,7 @@ void
 prim_ctoi(PRIM_PROTOTYPE)
 {
     unsigned char c;
+	int result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -635,6 +637,8 @@ prim_ctoi(PRIM_PROTOTYPE)
 void
 prim_itoc(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if ((oper1->type != PROG_INTEGER) || (oper1->data.number < 0))
@@ -667,6 +671,8 @@ prim_itoc(PRIM_PROTOTYPE)
 void
 prim_stod(PRIM_PROTOTYPE)
 {
+	dbref ref;
+
     CHECKOP(1);
     oper1 = POP();
 
@@ -704,6 +710,8 @@ prim_stod(PRIM_PROTOTYPE)
 void
 prim_dtos(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -716,7 +724,8 @@ prim_dtos(PRIM_PROTOTYPE)
 void
 prim_midstr(PRIM_PROTOTYPE)
 {
-    int start, range;
+    int start, range, result;
+	char buf[BUFFER_LEN];
 
     CHECKOP(3);
     oper1 = POP();
@@ -762,6 +771,8 @@ prim_midstr(PRIM_PROTOTYPE)
 void
 prim_numberp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING || !oper1->data.string)
@@ -775,6 +786,8 @@ prim_numberp(PRIM_PROTOTYPE)
 void
 prim_stringcmp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -796,6 +809,8 @@ prim_stringcmp(PRIM_PROTOTYPE)
 void
 prim_strcmp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -816,6 +831,8 @@ prim_strcmp(PRIM_PROTOTYPE)
 void
 prim_strncmp(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(3);
     oper1 = POP();
     oper2 = POP();
@@ -840,6 +857,9 @@ prim_strncmp(PRIM_PROTOTYPE)
 void
 prim_strcut(PRIM_PROTOTYPE)
 {
+	struct inst temp1, temp2;
+	char buf[BUFFER_LEN];
+
     CHECKOP(2);
     temp1 = *(oper1 = POP());
     temp2 = *(oper2 = POP());
@@ -877,6 +897,8 @@ prim_strcut(PRIM_PROTOTYPE)
 void
 prim_strlen(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -893,6 +915,7 @@ void
 prim_strcat(PRIM_PROTOTYPE)
 {
     struct shared_string *string;
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     oper1 = POP();
@@ -924,6 +947,8 @@ prim_strcat(PRIM_PROTOTYPE)
 void
 prim_atoi(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING || !oper1->data.string)
@@ -1031,7 +1056,6 @@ prim_notify_descriptor_char(PRIM_PROTOTYPE)
 void
 prim_notify(PRIM_PROTOTYPE)
 {
-    struct inst *oper1 = NULL, *oper2 = NULL;
     char buf[BUFFER_LEN * 2];
 
     CHECKOP(2);
@@ -1069,7 +1093,6 @@ prim_notify(PRIM_PROTOTYPE)
 void
 prim_notify_html(PRIM_PROTOTYPE)
 {
-    struct inst *oper1 = NULL, *oper2 = NULL;
     char buf[BUFFER_LEN * 2];
 
     CHECKOP(2);
@@ -1112,7 +1135,7 @@ prim_notify_html(PRIM_PROTOTYPE)
 void
 prim_notify_html_nocr(PRIM_PROTOTYPE)
 {
-    struct inst *oper1 = NULL, *oper2 = NULL;
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     oper1 = POP();
@@ -1191,6 +1214,7 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
+	int result, tmp;
 
     CHECKOP(2);
     oper1 = POP();
@@ -1275,6 +1299,7 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
+	int result, tmp;
 
     CHECKOP(2);
     oper1 = POP();
@@ -1365,6 +1390,7 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
+	int result, tmp;
 
     CHECKOP(2);
     oper1 = POP();
@@ -1456,6 +1482,7 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
+	int result, tmp;
 
     CHECKOP(2);
     oper1 = POP();
@@ -1544,6 +1571,7 @@ void
 prim_intostr(PRIM_PROTOTYPE)
 {
     char *ptr = NULL;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -1564,6 +1592,10 @@ prim_intostr(PRIM_PROTOTYPE)
 void
 prim_explode(PRIM_PROTOTYPE)
 {
+	struct inst temp1, temp2;
+	int result;
+	char buf[BUFFER_LEN];
+
     CHECKOP(2);
     temp1 = *(oper1 = POP());
     temp2 = *(oper2 = POP());
@@ -1611,6 +1643,8 @@ prim_explode(PRIM_PROTOTYPE)
 void
 prim_subst(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(3);
     oper1 = POP();
     oper2 = POP();
@@ -1661,6 +1695,8 @@ prim_subst(PRIM_PROTOTYPE)
 void
 prim_instr(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1695,6 +1731,8 @@ prim_instr(PRIM_PROTOTYPE)
 void
 prim_rinstr(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1731,6 +1769,8 @@ prim_rinstr(PRIM_PROTOTYPE)
 void
 prim_pronoun_sub(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();              /* oper1 is a string, oper2 a dbref */
@@ -1752,6 +1792,9 @@ prim_pronoun_sub(PRIM_PROTOTYPE)
 void
 prim_toupper(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+	int ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -1770,6 +1813,9 @@ prim_toupper(PRIM_PROTOTYPE)
 void
 prim_tolower(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+	int ref;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -1789,6 +1835,8 @@ void
 prim_unparseobj(PRIM_PROTOTYPE)
 {
     char tbuf[BUFFER_LEN];
+	char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -1822,6 +1870,8 @@ void
 prim_smatch(PRIM_PROTOTYPE)
 {
     char xbuf[BUFFER_LEN];
+	char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(2);
     oper1 = POP();
@@ -1839,7 +1889,10 @@ prim_smatch(PRIM_PROTOTYPE)
 
 void
 prim_striplead(PRIM_PROTOTYPE)
-{                               /* string -- string' */
+{                               
+	/* string -- string' */
+	char buf[BUFFER_LEN];
+	char *pname;
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -1853,6 +1906,8 @@ prim_striplead(PRIM_PROTOTYPE)
 void
 prim_striptail(PRIM_PROTOTYPE)
 {                               /* string -- string' */
+	char buf[BUFFER_LEN];
+	int result;
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -1868,6 +1923,8 @@ prim_striptail(PRIM_PROTOTYPE)
 void
 prim_stringpfx(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -1935,6 +1992,7 @@ prim_tokensplit(PRIM_PROTOTYPE)
     char esc;
     char escisdel;
     char outbuf[BUFFER_LEN];
+	char buf[BUFFER_LEN];
 
     CHECKOP(3);
     oper3 = POP();
@@ -2224,6 +2282,7 @@ prim_ansi_strcut(PRIM_PROTOTYPE)
     char outbuf1[BUFFER_LEN];
     char outbuf2[BUFFER_LEN];
     int loc;
+	char buf[BUFFER_LEN];
 
     CHECKOP(2);
     oper2 = POP();
@@ -2299,6 +2358,8 @@ prim_ansi_strcut(PRIM_PROTOTYPE)
 void
 prim_ansi_strip(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -2320,6 +2381,7 @@ void
 prim_ansi_midstr(PRIM_PROTOTYPE)
 {
     int loc, start, range;
+	char buf[BUFFER_LEN];
     const char *ptr;
     char *op;
 
@@ -2530,6 +2592,7 @@ prim_flag_2char(PRIM_PROTOTYPE)
     int n = 0;
     char flag_char;
     char *flag_str;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -2562,6 +2625,7 @@ prim_power_2char(PRIM_PROTOTYPE)
     int n = 0;
     char power_char;
     char *power_str;
+	char buf[BUFFER_LEN];
 
     CHECKOP(1);
     oper1 = POP();
@@ -2600,6 +2664,10 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
 	stk_array *arr = NULL;
 	stk_array *arr2 = NULL;
 	stk_array *nu = NULL;
+	int tmp, result;
+	char buf[BUFFER_LEN];
+	struct inst temp1, temp2, temp3;
+	dbref ref;
 
 	CHECKOP(2);
 	oper2 = POP();
@@ -3068,6 +3136,8 @@ void
 prim_ansi_unparseobj(PRIM_PROTOTYPE)
 {
     char tbuf[BUFFER_LEN], tbuf2[BUFFER_LEN];
+	char buf[BUFFER_LEN];
+	int result;
 
     CHECKOP(1);
     oper1 = POP();
@@ -3104,6 +3174,9 @@ prim_ansi_unparseobj(PRIM_PROTOTYPE)
 void
 prim_ansi_name(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -3126,6 +3199,9 @@ prim_ansi_name(PRIM_PROTOTYPE)
 void
 prim_unparse_flags(PRIM_PROTOTYPE)
 {
+	dbref ref;
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_OBJECT)
@@ -3147,6 +3223,8 @@ prim_unparse_flags(PRIM_PROTOTYPE)
 void
 prim_base64encode(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)
@@ -3168,6 +3246,9 @@ prim_base64encode(PRIM_PROTOTYPE)
 void
 prim_base64decode(PRIM_PROTOTYPE)
 {
+	char buf[BUFFER_LEN];
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_STRING)

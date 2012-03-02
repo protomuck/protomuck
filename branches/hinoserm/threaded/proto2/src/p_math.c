@@ -16,13 +16,6 @@
 #include "strings.h"
 #include "interp.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-static double tl;
-static double fresult, tf1, tf2;
-
 #ifndef WIN_VC
 # define MAXINT ~(1<<((sizeof(int)*8)-1))
 # define MININT (1<<((sizeof(int)*8)-1))
@@ -54,6 +47,9 @@ arith_type(struct inst *op1, struct inst *op2)
 void
 prim_add(PRIM_PROTOTYPE)
 {
+	double fresult, tf1, tf2, tl;
+	int tmp, result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -99,6 +95,9 @@ prim_add(PRIM_PROTOTYPE)
 void
 prim_subtract(PRIM_PROTOTYPE)
 {
+	double fresult, tf1, tf2, tl;
+	int tmp, result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -144,6 +143,9 @@ prim_subtract(PRIM_PROTOTYPE)
 void
 prim_multiply(PRIM_PROTOTYPE)
 {
+	double fresult, tf1, tf2, tl;
+	int tmp, result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -189,6 +191,9 @@ prim_multiply(PRIM_PROTOTYPE)
 void
 prim_divide(PRIM_PROTOTYPE)
 {
+	double fresult, tf1, tf2;
+	int result, tmp;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -246,6 +251,8 @@ prim_divide(PRIM_PROTOTYPE)
 void
 prim_mod(PRIM_PROTOTYPE)
 {
+	int result, tmp;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -265,6 +272,8 @@ prim_mod(PRIM_PROTOTYPE)
 void
 prim_bitor(PRIM_PROTOTYPE)
 {
+	int result, tmp;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -281,6 +290,8 @@ prim_bitor(PRIM_PROTOTYPE)
 void
 prim_bitxor(PRIM_PROTOTYPE)
 {
+	int result, tmp;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -297,6 +308,8 @@ prim_bitxor(PRIM_PROTOTYPE)
 void
 prim_bitand(PRIM_PROTOTYPE)
 {
+	int result, tmp;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -313,6 +326,8 @@ prim_bitand(PRIM_PROTOTYPE)
 void
 prim_bitshift(PRIM_PROTOTYPE)
 {
+	int result, tmp;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -334,6 +349,8 @@ prim_bitshift(PRIM_PROTOTYPE)
 void
 prim_and(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -346,6 +363,8 @@ prim_and(PRIM_PROTOTYPE)
 void
 prim_or(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -358,6 +377,8 @@ prim_or(PRIM_PROTOTYPE)
 void
 prim_xor(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -374,6 +395,8 @@ prim_xor(PRIM_PROTOTYPE)
 void
 prim_not(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     result = logical_false(oper1);
@@ -390,7 +413,10 @@ comp_t(struct inst *op)
 
 void
 prim_lessthan(PRIM_PROTOTYPE)
-{
+{	
+	double tf1, tf2;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -420,6 +446,9 @@ prim_lessthan(PRIM_PROTOTYPE)
 void
 prim_greathan(PRIM_PROTOTYPE)
 {
+	double tf1, tf2;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -449,6 +478,9 @@ prim_greathan(PRIM_PROTOTYPE)
 void
 prim_equal(PRIM_PROTOTYPE)
 {
+	double tf1, tf2;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -477,6 +509,9 @@ prim_equal(PRIM_PROTOTYPE)
 void
 prim_noteq(PRIM_PROTOTYPE)
 {
+	double tf1, tf2;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -505,6 +540,9 @@ prim_noteq(PRIM_PROTOTYPE)
 void
 prim_lesseq(PRIM_PROTOTYPE)
 {
+	double tf1, tf2;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -534,6 +572,9 @@ prim_lesseq(PRIM_PROTOTYPE)
 void
 prim_greateq(PRIM_PROTOTYPE)
 {
+	double tf1, tf2;
+	int result;
+
     CHECKOP(2);
     oper1 = POP();
     oper2 = POP();
@@ -562,7 +603,7 @@ prim_greateq(PRIM_PROTOTYPE)
 void
 prim_random(PRIM_PROTOTYPE)
 {
-    result = RANDOM();
+    int result = RANDOM();
     CHECKOFLOW(1);
     PushInt(result);
 }
@@ -570,6 +611,8 @@ prim_random(PRIM_PROTOTYPE)
 void
 prim_srand(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(0);
     CHECKOFLOW(1);
     if (!(fr->rndbuf)) {
@@ -641,6 +684,8 @@ prim_setseed(PRIM_PROTOTYPE)
 void
 prim_int(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (!(oper1->type == PROG_OBJECT || oper1->type == PROG_VAR ||
@@ -666,10 +711,12 @@ void
 prim_plusplus(PRIM_PROTOTYPE)
 {
     struct inst *tmp;
-    int vnum;
+    int vnum, result;
+	double fresult;
+	struct inst temp1, temp2;
 
-    CHECKOP(1)
-        temp1 = *(oper1 = POP());
+    CHECKOP(1);
+    temp1 = *(oper1 = POP());
 
     if (oper1->type == PROG_VAR || oper1->type == PROG_SVAR
         || oper1->type == PROG_LVAR)
@@ -761,7 +808,9 @@ void
 prim_minusminus(PRIM_PROTOTYPE)
 {
     struct inst *tmp;
-    int vnum;
+    int vnum, result;
+	double fresult;
+	struct inst temp1, temp2;
 
     CHECKOP(1)
         temp1 = *(oper1 = POP());
@@ -855,6 +904,8 @@ prim_minusminus(PRIM_PROTOTYPE)
 void
 prim_abs(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)
@@ -869,6 +920,8 @@ prim_abs(PRIM_PROTOTYPE)
 void
 prim_sign(PRIM_PROTOTYPE)
 {
+	int result;
+
     CHECKOP(1);
     oper1 = POP();
     if (oper1->type != PROG_INTEGER)

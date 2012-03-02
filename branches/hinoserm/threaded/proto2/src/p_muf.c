@@ -14,13 +14,6 @@
 #include "strings.h"
 #include "interp.h"
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
-struct tm *time_tm;
-
 /* Some externs to functions elsewhere in the code. */
 extern int kill_macro(const char *, dbref, struct macrotable **);
 
@@ -29,6 +22,7 @@ prim_kill_macro(PRIM_PROTOTYPE)
 {
     /* name -- result */
     char tmp[BUFFER_LEN];
+	int result;
 
     result = 0;
     CHECKOP(1);
@@ -114,6 +108,8 @@ void
 prim_program_linecount(PRIM_PROTOTYPE)
 {
     struct line *curr;
+	dbref ref;
+	int result;
 
     /* dbref -- int */
     CHECKOP(1);
@@ -157,6 +153,7 @@ prim_program_getlines(PRIM_PROTOTYPE)
     struct line *curr;          /* current line */
     struct line *first;         /* first line in program */
     struct line *segment;       /* starting line in our segment of interest */
+	dbref ref;
 
     /* dbref start stop -- arr */
     CHECKOP(3);

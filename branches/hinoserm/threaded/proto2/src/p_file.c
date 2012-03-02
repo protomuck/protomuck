@@ -15,11 +15,6 @@
 #include "strings.h"
 #include "interp.h"
 
-
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
 char *tempc = NULL;
 char *directory = (char *)"$";
 
