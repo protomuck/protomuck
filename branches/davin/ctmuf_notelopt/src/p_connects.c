@@ -1242,6 +1242,24 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
+    temp1.type = PROG_STRING;
+    temp1.data.string = alloc_prog_string("TERMTYPES");
+    temp2.type = PROG_ARRAY;
+    if (d->telopt.ttypes)
+        temp2.data.array = d->telopt.ttypes;
+    else
+        temp2.data.array = new_array_packed(0);
+    array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    temp2.data.array = NULL; /* davin: avoid a double free */
+    CLEAR(&temp2);
+    temp1.type = PROG_STRING;
+    temp1.data.string = alloc_prog_string("MTTS");
+    temp2.type = PROG_INTEGER;
+    temp2.data.number = d->telopt.mtts;
+    array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    CLEAR(&temp2);
 #ifdef IPV6
     temp1.type = PROG_STRING;
     temp1.data.string = alloc_prog_string("IPV6");
@@ -1529,6 +1547,36 @@ prim_mccp_end(PRIM_PROTOTYPE)
 #endif
 }
 
+void
+prim_descr_telopts(PRIM_PROTOTYPE)
+{
+    struct descriptor_data *d;
+    CHECKOP(1);
+    oper1 = POP();
+
+    if (mlev < LMAGE)
+        abort_interp("Requires W1 or better.");
+    if (oper1->type != PROG_INTEGER)
+        abort_interp("Integer descriptor number expected.");
+    tmp = oper1->data.number;
+    CLEAR(oper1);
+    if (!(d = descrdata_by_descr(tmp))) {
+        abort_interp("Invalid descriptor.");
+    }
+    if (DR_RAW_FLAGS(d, DF_TELOPTS)) {
+        result = 0;
+        PushInt(result);
+    } else {
+        DR_RAW_ADD_FLAGS(d, DF_TELOPTS);
+        queue_write(d, "\xFF\xFB\x46",       3); /* IAC WILL MSSP */
+        queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
+        queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
+        queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
+        queue_write(d, "\xFF\xFD\052",       3); /* IAC DO CHARSET */
+        result = 1;
+        PushInt(result);
+    }
+}
 
 void
 prim_descr_sendfile(PRIM_PROTOTYPE)

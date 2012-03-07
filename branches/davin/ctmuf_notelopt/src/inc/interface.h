@@ -134,11 +134,27 @@ struct telopt {
     unsigned char           *sb_buf;        /* hinoserm: Used by SD request/response system, init to NULL */
     size_t                   sb_buf_len;    /* hinoserm: Used by SD request/response system, init to 0 */
     char                    *termtype;      /* hinoserm: Indicates the client's TERMINAL TYPE info, or NULL */
+    stk_array               *ttypes;        /* davin: A linked list of all reported TTYPE strings. The first
+                                             * list item should point to the same address as *termtype. */
+//    int                      ttype_done;    /* davin: Number of items stored in *ttypes. */
+    long int                 mtts;          /* davin: If the third list item contained in *termtypes can be
+                                             * interpreted as an integer, it is treated as a MTTS capability
+                                             * list and the converted value is stored here. Defaults to 0. */
     signed char              mccp;          /* hinoserm: Indicates that client is able/willing to compress */
     unsigned short           width;         /* hinoserm: for NAWS */
     unsigned short           height;        /* hinoserm: for NAWS */
 };
 
+#define MAX_TTYPES           10
+
+#define MTTS_ANSI            1
+#define MTTS_VT100           2
+#define MTTS_UTF8            4
+#define MTTS_256COLOR        8
+#define MTTS_MOUSE           16
+#define MTTS_OSCPAL          32
+#define MTTS_READER          64
+#define MTTS_PROXY           128
 
 struct descriptor_data {
     int                      descriptor;    /* Descriptor number */
@@ -221,7 +237,8 @@ struct descriptor_data {
 #define DF_MISC       0x8000 /* You can play with this */
 #define DF_IPV6      0x10000 /* Achievement Unlocked: Bleeding Edge - You are connected using IPv6! */
 #define DF_256COLOR  0x20000 /* This descriptor is accepting 256 color */
-#define DF_TELOPT    0x40000 /* This descriptor should process telnet options */
+#define DF_TELOPTS   0x40000 /* This descriptor should process telnet options (TELOPTs) -davin */
+#define DF_TTYPEDONE 0x80000 /* This descriptor should not process additional TTYPE data -davin */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)

@@ -3171,7 +3171,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
          ctype == CT_PUEBLO)
             && tp_ascii_descrs) {
         d->encoding = 1; /* ASCII I/O */
-        DR_RAW_ADD_FLAGS(d, DF_TELOPT); /* Process telnet options */
+        DR_RAW_ADD_FLAGS(d, DF_TELOPTS); /* Process telnet options */
     } else {
         d->encoding = 0; /* RAW I/O */
     }
@@ -3182,18 +3182,19 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
         http_initstruct(d);     /* hinoserm */
 #endif /* NEWHTTPD */
 
-    if (welcome &&
-        DR_RAW_FLAGS(d, DF_TELOPT)
+    if (welcome
 #ifdef NEWHTTPD
         && ctype != CT_HTTP
 #endif /* NEWHTTPD */
         ) {
-        queue_write(d, "\xFF\xFB\x46",       3); /* IAC WILL MSSP */
-        queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
-        queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
-        queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
-        queue_write(d, "\xFF\xFD\052",       3); /* IAC DO CHARSET */
-        announce_login(d); 
+        if (DR_RAW_FLAGS(d, DF_TELOPTS)) {
+            queue_write(d, "\xFF\xFB\x46",       3); /* IAC WILL MSSP */
+            queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
+            queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
+            queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
+            queue_write(d, "\xFF\xFD\052",       3); /* IAC DO CHARSET */
+        }
+        announce_login(d);
         welcome_user(d);
     }
     return d;
@@ -3607,6 +3608,10 @@ save_command(struct descriptor_data *d, const char *command, int len, int wclen)
 int
 check_telopt(struct descriptor_data *d, char *p, char *q)
 {
+    char *ttype_new;
+    char *ttype_tail;
+    struct inst temp1;
+
     if (d->inIAC == 1) {
         switch (*q) {
             case '\361':   /* NOP */
@@ -3695,18 +3700,64 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                             */
                             queue_write(d, "\xFF\xFA\x00ProtoMUCK\xFF\xF0", 14);
                         } else if (!d->telopt.sb_buf[1]) {
-                            if (d->telopt.termtype)
-                                free((void *) d->telopt.termtype);
+                            //if (d->telopt.termtype)
+                            //    free((void *) d->telopt.termtype);
+                            if (DR_RAW_FLAGS(d, DF_TTYPEDONE)) {
+                                break;
+                            }
 
-                            if (d->telopt.sb_buf_len < 3) {
+                            if (!d->telopt.ttypes && d->telopt.sb_buf_len < 3) {
                                 /* If the other end sent a blank termtype, don't bother allocating it. */
-                                d->telopt.termtype = NULL;
+                                //d->telopt.termtype = NULL;
+                                DR_RAW_ADD_FLAGS(d, DF_TTYPEDONE);
                             } else {
-                                d->telopt.termtype = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
+                                //d->telopt.termtype = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
+                                ttype_new = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
 
                                 /* Move the data into the termtype string, making sure to add a null at the end. */
-                                memcpy(d->telopt.termtype, d->telopt.sb_buf + 2, d->telopt.sb_buf_len-2);
-                                d->telopt.termtype[d->telopt.sb_buf_len-2] = '\0';
+                                memcpy(ttype_new, d->telopt.sb_buf + 2, d->telopt.sb_buf_len-2);
+                                //d->telopt.termtype[d->telopt.sb_buf_len-2] = '\0';
+                                ttype_new[d->telopt.sb_buf_len-2] = '\0';
+
+                                if (!d->telopt.ttypes) {
+                                    /* first TTYPE sent by client */
+                                    queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
+                                    d->telopt.ttypes = new_array_packed(0);
+                                    temp1.type = PROG_STRING;
+                                    temp1.data.string = alloc_prog_string(ttype_new);
+                                    array_appenditem(&(d->telopt.ttypes), &temp1);
+                                    d->telopt.termtype = temp1.data.string->data;
+                                    CLEAR(&temp1);
+                                } else {
+                                    /* Only append to the list if it hasn't gotten excessive. */
+                                    if ( !(array_count(d->telopt.ttypes) >= MAX_TTYPES) ) {
+                                        /* A dupe signifies end of list. */
+                                        if (!strcmp(ttype_new,
+                                                    d->telopt.ttypes->data.packed[d->telopt.ttypes->items - 1].data.string->data) ) {
+                                            /* All unprompted TTYPE lines from the client are OOB. */
+                                            DR_RAW_ADD_FLAGS(d, DF_TTYPEDONE);
+                                            //d->telopt.ttype_done = 1;
+                                        } else {
+                                            queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
+                                            temp1.type = PROG_STRING;
+                                            temp1.data.string = alloc_prog_string(ttype_new);
+                                            array_appenditem(&(d->telopt.ttypes), &temp1);
+                                            CLEAR(&temp1);
+                                            /* check for MTTS, it should never appear on first poll. */
+                                            if (string_prefix(ttype_new, "MTTS ")) {
+                                                d->telopt.mtts = strtol(ttype_new + 5, &ttype_tail, 10);
+                                                if (*ttype_tail || d->telopt.mtts < 0) {
+                                                    /* Trailing data present after integer conversion, or <0. */
+                                                    d->telopt.mtts = 0;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                free(ttype_new);
+
+                                        
+
 #ifdef MCCP_ENABLED
                                 /* Due to SimpleMU, we need to determine the termtype before we can enable MCCP. */
                                 if (d->telopt.mccp && !d->mccp)
@@ -3966,7 +4017,7 @@ process_input(struct descriptor_data *d)
             }
             p = d->raw_input;
         /* Check for telnet options if we're watching for them. */
-        } else if (DR_RAW_FLAGS(d, DF_TELOPT) && check_telopt(d, p, q)) {
+        } else if (DR_RAW_FLAGS(d, DF_TELOPTS) && check_telopt(d, p, q)) {
             /* If check_telopt returned true, go back to the top. */
             continue;
         } else if (p < pend && !d->truncate) {
@@ -4814,8 +4865,8 @@ descr_flag_description(int descr)
         strcat(dbuf, " DF_PUEBLO");
     if (DR_RAW_FLAGS(d, DF_MUF))
         strcat(dbuf, " DF_MUF");
-    if (DR_RAW_FLAGS(d, DF_TELOPT))
-        strcat(dbuf, " DF_TELOPT");
+    if (DR_RAW_FLAGS(d, DF_TELOPTS))
+        strcat(dbuf, " DF_TELOPTS");
     if (DR_RAW_FLAGS(d, DF_IDLE))
         strcat(dbuf, " DF_IDLE");
     if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
@@ -4840,6 +4891,8 @@ descr_flag_description(int descr)
     if (DR_RAW_FLAGS(d, DF_COMPRESS))
         strcat(dbuf, " DF_COMPRESS");
 #endif /* MCCP_ENABLED */
+    if (DR_RAW_FLAGS(d, DF_TTYPEDONE))
+        strcat(dbuf, " DF_TTYPEDONE");
     return dbuf;
 }
 
@@ -6345,8 +6398,13 @@ pset_user2(int c, dbref who)
     else
         result = plogin_user(d, who);
     d->booted = 0;
-    if (d->type == CT_MUF)
+    if (d->type == CT_MUF) {
         d->type = CT_MUCK;
+        /* Switch from a raw encoding to ASCII-7 if @tune is set. */
+        if (d->encoding == 0 &&
+                tp_ascii_descrs )
+            d->encoding = 1;
+    }
     return result;
 }
 
@@ -7067,6 +7125,9 @@ telopt_init(struct telopt *t)
     t->sb_buf = NULL;
     t->sb_buf_len = 0;
     t->termtype = NULL;
+    t->ttypes = NULL;
+    //t->ttype_done = 0;
+    t->mtts = 0;
     t->width = 0;
     t->height = 0;
 }
@@ -7081,10 +7142,17 @@ telopt_clean(struct telopt *t)
     t->sb_buf_len = 0;
     t->width = 0;
     t->height = 0;
+    t->mtts = 0;
 
-    if (t->termtype)
-        free((void *)t->termtype);
+    /* t->termtype shares a pointer with the first item of t->ttypes, so this
+     * should not be freed twice. -davin */
+    //if (t->termtype)
+    //    free((void *)t->termtype);
     t->termtype = NULL;
+
+    if (t->ttypes) {
+        array_free(t->ttypes);
+    }
 }
 
 void
