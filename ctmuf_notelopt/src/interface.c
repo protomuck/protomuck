@@ -3090,6 +3090,19 @@ mcpframe_to_user(McpFrame *ptr)
 
 #endif
 
+/* Advertise telnet options. This probably shouldn't be called more than once
+ * per client connection. */
+void
+telopt_advertise(struct descriptor_data *d)
+{
+    queue_write(d, "\xFF\xFB\x46",       3); /* IAC WILL MSSP */
+    queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
+    queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
+    queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
+    queue_write(d, "\xFF\xFD\052",       3); /* IAC DO CHARSET */
+
+}
+
 struct descriptor_data *
 initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
 {
@@ -3170,10 +3183,10 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
 #endif
          ctype == CT_PUEBLO)
             && tp_ascii_descrs) {
-        d->encoding = 1; /* ASCII I/O */
-        DR_RAW_ADD_FLAGS(d, DF_TELOPTS); /* Process telnet options */
+        d->encoding = ENC_ASCII7; /* ASCII I/O */
     } else {
-        d->encoding = 0; /* RAW I/O */
+        DR_RAW_ADD_FLAGS(d, DF_NOTELOPTS); /* Do not process telnet options */
+        d->encoding = ENC_RAW; /* RAW I/O */
     }
     /* UTF-8 is a channel upgrade - never a default */
 
@@ -3187,12 +3200,8 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
         && ctype != CT_HTTP
 #endif /* NEWHTTPD */
         ) {
-        if (DR_RAW_FLAGS(d, DF_TELOPTS)) {
-            queue_write(d, "\xFF\xFB\x46",       3); /* IAC WILL MSSP */
-            queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
-            queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
-            queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
-            queue_write(d, "\xFF\xFD\052",       3); /* IAC DO CHARSET */
+        if (!DR_RAW_FLAGS(d, DF_NOTELOPTS)) {
+            telopt_advertise(d);
         }
         announce_login(d);
         welcome_user(d);
@@ -3371,7 +3380,7 @@ queue_string(struct descriptor_data *d, const char *s)
     const char *sp;
     char *filtered, *fp, *fend;
 
-    if (d->encoding == 1) { /* ASCII */
+    if (d->encoding == ENC_ASCII7) { /* ASCII */
         filtered = (char *) malloc(len + 1);
         fp = filtered;
         fend = filtered + len;
@@ -3384,7 +3393,7 @@ queue_string(struct descriptor_data *d, const char *s)
             }
         }
 #ifdef UTF8_SUPPORT
-    } else if (d->encoding == 2) { /* UTF-8 */
+    } else if (d->encoding == ENC_UTF8) { /* UTF-8 */
 		/* each invalid byte of s potentially maps to three UTF-8 bytes */
 		wchar_t wctmp;
 		int wclen;
@@ -3702,14 +3711,15 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                         } else if (!d->telopt.sb_buf[1]) {
                             //if (d->telopt.termtype)
                             //    free((void *) d->telopt.termtype);
-                            if (DR_RAW_FLAGS(d, DF_TTYPEDONE)) {
+                            if (d->telopt.ttypes && !DR_RAW_FLAGS(d, DF_TTYPEPOLL)) {
+                                /* Unsolicited message. */
                                 break;
                             }
 
                             if (!d->telopt.ttypes && d->telopt.sb_buf_len < 3) {
-                                /* If the other end sent a blank termtype, don't bother allocating it. */
-                                //d->telopt.termtype = NULL;
-                                DR_RAW_ADD_FLAGS(d, DF_TTYPEDONE);
+                                /* If the other end sent a blank termtype, don't bother allocating it.
+                                 * We won't ask them for it again either. */
+                                d->telopt.termtype = NULL;
                             } else {
                                 //d->telopt.termtype = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
                                 ttype_new = (char *)malloc(sizeof(char) * (d->telopt.sb_buf_len-1));
@@ -3728,29 +3738,43 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                     array_appenditem(&(d->telopt.ttypes), &temp1);
                                     d->telopt.termtype = temp1.data.string->data;
                                     CLEAR(&temp1);
+                                    DR_RAW_ADD_FLAGS(d, DF_TTYPEPOLL);
                                 } else {
-                                    /* Only append to the list if it hasn't gotten excessive. */
-                                    if ( !(array_count(d->telopt.ttypes) >= MAX_TTYPES) ) {
-                                        /* A dupe signifies end of list. */
-                                        if (!strcmp(ttype_new,
-                                                    d->telopt.ttypes->data.packed[d->telopt.ttypes->items - 1].data.string->data) ) {
-                                            /* All unprompted TTYPE lines from the client are OOB. */
-                                            DR_RAW_ADD_FLAGS(d, DF_TTYPEDONE);
-                                            //d->telopt.ttype_done = 1;
-                                        } else {
-                                            queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
-                                            temp1.type = PROG_STRING;
-                                            temp1.data.string = alloc_prog_string(ttype_new);
-                                            array_appenditem(&(d->telopt.ttypes), &temp1);
-                                            CLEAR(&temp1);
-                                            /* check for MTTS, it should never appear on first poll. */
-                                            if (string_prefix(ttype_new, "MTTS ")) {
-                                                d->telopt.mtts = strtol(ttype_new + 5, &ttype_tail, 10);
-                                                if (*ttype_tail || d->telopt.mtts < 0) {
-                                                    /* Trailing data present after integer conversion, or <0. */
-                                                    d->telopt.mtts = 0;
-                                                }
+                                    /* Only append to the list if it hasn't gotten excessive.
+                                     * A duplicate indicates end of list. */
+                                    if ( (array_count(d->telopt.ttypes) >= MAX_TTYPES) ||
+                                         !(strcmp(ttype_new,
+                                                    d->telopt.ttypes->data.packed[d->telopt.ttypes->items - 1].data.string->data)) ) {
+                                            DR_RAW_REM_FLAGS(d, DF_TTYPEPOLL);
+                                    } else {
+                                        queue_write(d, "\xFF\xFA\x18\x01\xFF\xF0", 6); /* IAC SB TERMTYPE SEND IAC SE */
+                                        temp1.type = PROG_STRING;
+                                        temp1.data.string = alloc_prog_string(ttype_new);
+                                        array_appenditem(&(d->telopt.ttypes), &temp1);
+                                        CLEAR(&temp1);
+                                        /* Check for terminal capability hints. These shouldn't be seen on first poll. */
+                                        if (string_prefix(ttype_new, "XTERM") ||
+                                                has_suffix(ttype_new, "-256COLOR")) {
+                                            DR_RAW_ADD_FLAGS(d, DF_256COLOR);
+                                        }
+                                        if (string_prefix(ttype_new, "MTTS ")) {
+                                            d->telopt.mtts = strtol(ttype_new + 5, &ttype_tail, 10);
+                                            if (*ttype_tail || d->telopt.mtts < 0) {
+                                                /* Trailing data present after integer conversion, or <0. */
+                                                d->telopt.mtts = 0;
                                             }
+                                            if (d->telopt.mtts & MTTS_256COLOR) {
+                                                DR_RAW_ADD_FLAGS(d, DF_256COLOR);
+                                            }
+#ifdef UTF8_SUPPORT
+                                            if (d->telopt.mtts & MTTS_UTF8) {
+                                                d->encoding = ENC_UTF8;
+                                            } else if (d->encoding == ENC_UTF8) {
+                                                /* If the client negotiated Unicode support but didn't negotiate
+                                                 * the UTF-8 MTTS flag, the user doesn't want it. */
+                                                d->encoding = ENC_ASCII7;
+                                            }
+#endif
                                         }
                                     }
                                 }
@@ -3803,10 +3827,10 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                    OBTW: if both ASCII and UNICODE re requested, prefer unicode.
                                 */
                                 if (strcasestr2(buf2,"ascii") || strcasestr2(buf2, "ANSI_X3.4-1968") || strcasestr2(buf2,"UTF-8")) {
-                                    if ((d->encoding < 2) && ((strcasestr2(buf2,"ascii")) || strcasestr2(buf2, "ANSI_X3.4-1968")))
-                                        d->encoding = 1;
+                                    if ((d->encoding < ENC_UTF8) && ((strcasestr2(buf2,"ascii")) || strcasestr2(buf2, "ANSI_X3.4-1968")))
+                                        d->encoding = ENC_ASCII7;
                                     else
-                                        d->encoding = 2;
+                                        d->encoding = ENC_UTF8;
                                 }
                                 queue_write(d, buf2, dpos+1);
                                 accepted_charsets++;
@@ -3961,7 +3985,7 @@ process_input(struct descriptor_data *d)
 
         d->raw_input_at = d->raw_input;
 #ifdef UTF8_SUPPORT
-        if (d->encoding == 0) {
+        if (d->encoding == ENC_RAW) {
             wcbuflen = -1; /* invalid UTF-8 */
         } else {
             wcbuflen = 0;
@@ -4017,7 +4041,7 @@ process_input(struct descriptor_data *d)
             }
             p = d->raw_input;
         /* Check for telnet options if we're watching for them. */
-        } else if (DR_RAW_FLAGS(d, DF_TELOPTS) && check_telopt(d, p, q)) {
+        } else if (!DR_RAW_FLAGS(d, DF_NOTELOPTS) && check_telopt(d, p, q)) {
             /* If check_telopt returned true, go back to the top. */
             continue;
         } else if (p < pend && !d->truncate) {
@@ -4047,7 +4071,7 @@ process_input(struct descriptor_data *d)
                      * indiscriminately overwritten since it was already
                      * validated when we accepted the input. */
 
-                    if (!isascii(*p) && d->encoding == 2) { /* UTF-8 */
+                    if (!isascii(*p) && d->encoding == ENC_UTF8) { /* UTF-8 */
                         do {
                             p--;
                         } while ( (*p >= '\x80') && (*p <= '\xbf') );
@@ -4056,7 +4080,7 @@ process_input(struct descriptor_data *d)
 #endif
                 }
             } else if (*q != 13) {
-                if (d->encoding == 1) { /* ASCII */
+                if (d->encoding == ENC_ASCII7) { /* ASCII */
                     if (isascii(*q)) {
                         *p++ = *q;
 #ifdef UTF8_SUPPORT
@@ -4065,7 +4089,7 @@ process_input(struct descriptor_data *d)
 
                     }
 #ifdef UTF8_SUPPORT
-                } else if (d->encoding == 2) { /* UTF-8 */
+                } else if (d->encoding == ENC_UTF8) { /* UTF-8 */
                     wclen = mbtowc(wctmp, q, qend - q);
 
                     /* TODO: Consider filtering private use and block specifier
@@ -4865,8 +4889,8 @@ descr_flag_description(int descr)
         strcat(dbuf, " DF_PUEBLO");
     if (DR_RAW_FLAGS(d, DF_MUF))
         strcat(dbuf, " DF_MUF");
-    if (DR_RAW_FLAGS(d, DF_TELOPTS))
-        strcat(dbuf, " DF_TELOPTS");
+    if (DR_RAW_FLAGS(d, DF_NOTELOPTS))
+        strcat(dbuf, " DF_NOTELOPTS");
     if (DR_RAW_FLAGS(d, DF_IDLE))
         strcat(dbuf, " DF_IDLE");
     if (DR_RAW_FLAGS(d, DF_TRUEIDLE))
@@ -4891,8 +4915,8 @@ descr_flag_description(int descr)
     if (DR_RAW_FLAGS(d, DF_COMPRESS))
         strcat(dbuf, " DF_COMPRESS");
 #endif /* MCCP_ENABLED */
-    if (DR_RAW_FLAGS(d, DF_TTYPEDONE))
-        strcat(dbuf, " DF_TTYPEDONE");
+    if (DR_RAW_FLAGS(d, DF_TTYPEPOLL))
+        strcat(dbuf, " DF_TTYPEPOLL");
     return dbuf;
 }
 
@@ -4957,7 +4981,7 @@ do_dinfo(dbref player, const char *arg)
 
 	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s    Encoding: %s", 
 	    (d->telopt.termtype ? d->telopt.termtype : "<unknown>"),
-	    (d->encoding ? (d->encoding==1 ? "ASCII-7" : "UTF-8") : "RAW" ));
+	    (d->encoding ? (d->encoding==ENC_ASCII7 ? "ASCII-7" : "UTF-8") : "RAW" ));
 
     if (Arch(player))
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
@@ -6401,9 +6425,14 @@ pset_user2(int c, dbref who)
     if (d->type == CT_MUF) {
         d->type = CT_MUCK;
         /* Switch from a raw encoding to ASCII-7 if @tune is set. */
-        if (d->encoding == 0 &&
+        if (d->encoding == ENC_RAW &&
                 tp_ascii_descrs )
-            d->encoding = 1;
+            d->encoding = ENC_ASCII7;
+        if (DR_RAW_FLAGS(d, DF_NOTELOPTS)) {
+            /* enable telopt processing now that we're connected */
+            DR_RAW_REM_FLAGS(d, DF_NOTELOPTS);
+            telopt_advertise(d);
+        }
     }
     return result;
 }
