@@ -3753,11 +3753,7 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                         array_appenditem(&(d->telopt.ttypes), &temp1);
                                         CLEAR(&temp1);
                                         /* Check for terminal capability hints. These shouldn't be seen on first poll. */
-                                        if (string_prefix(ttype_new, "XTERM") ||
-                                                has_suffix(ttype_new, "-256COLOR")) {
-                                            DR_RAW_ADD_FLAGS(d, DF_256COLOR);
-                                        }
-                                        if (string_prefix(ttype_new, "MTTS ")) {
+                                        if ((d->mtts == 0) && string_prefix(ttype_new, "MTTS ")) {
                                             d->telopt.mtts = strtol(ttype_new + 5, &ttype_tail, 10);
                                             if (*ttype_tail || d->telopt.mtts < 0) {
                                                 /* Trailing data present after integer conversion, or <0. */
@@ -3775,6 +3771,11 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                                 d->encoding = ENC_ASCII7;
                                             }
 #endif
+                                        } else if (d->mtts == 0) { /* skip these methods if we have MTTS */
+                                            if (string_prefix(ttype_new, "XTERM") ||
+                                                    has_suffix(ttype_new, "-256COLOR")) {
+                                                DR_RAW_ADD_FLAGS(d, DF_256COLOR);
+                                            }
                                         }
                                     }
                                 }
