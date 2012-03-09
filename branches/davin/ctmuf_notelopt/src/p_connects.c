@@ -1563,16 +1563,12 @@ prim_descr_telopts(PRIM_PROTOTYPE)
     if (!(d = descrdata_by_descr(tmp))) {
         abort_interp("Invalid descriptor.");
     }
-    if (DR_RAW_FLAGS(d, DF_TELOPTS)) {
+    if (!DR_RAW_FLAGS(d, DF_NOTELOPTS)) {
         result = 0;
         PushInt(result);
     } else {
-        DR_RAW_ADD_FLAGS(d, DF_TELOPTS);
-        queue_write(d, "\xFF\xFB\x46",       3); /* IAC WILL MSSP */
-        queue_write(d, "\377\373\126\012",   4); /* IAC WILL TELOPT_COMPRESS2 (MCCP v2) */
-        queue_write(d, "\xFF\xFD\x18",       3); /* IAC DO TERMTYPE */
-        queue_write(d, "\xFF\xFD\x1F",       3); /* IAC DO NAWS */
-        queue_write(d, "\xFF\xFD\052",       3); /* IAC DO CHARSET */
+        DR_RAW_REM_FLAGS(d, DF_NOTELOPTS);
+        telopt_advertise(d);
         result = 1;
         PushInt(result);
     }

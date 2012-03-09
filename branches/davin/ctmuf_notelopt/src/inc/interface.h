@@ -237,8 +237,8 @@ struct descriptor_data {
 #define DF_MISC       0x8000 /* You can play with this */
 #define DF_IPV6      0x10000 /* Achievement Unlocked: Bleeding Edge - You are connected using IPv6! */
 #define DF_256COLOR  0x20000 /* This descriptor is accepting 256 color */
-#define DF_TELOPTS   0x40000 /* This descriptor should process telnet options (TELOPTs) -davin */
-#define DF_TTYPEDONE 0x80000 /* This descriptor should not process additional TTYPE data -davin */
+#define DF_NOTELOPTS 0x40000 /* This descriptor should not process telnet options (TELOPTs) -davin */
+#define DF_TTYPEPOLL 0x80000 /* This descriptor has started to negotiate TTYPEs but not finished -davin */
 
 #define DR_FLAGS(x,y)         ((descrdata_by_descr(x))->flags & y)
 #define DR_CON_FLAGS(x,y)     ((descrdata_by_index(x))->flags & y)
@@ -265,6 +265,11 @@ struct descriptor_data {
 #define CT_SSL          7 /* alynna */
 #endif
 
+/* Descriptor encodings */
+#define ENC_RAW    0
+#define ENC_ASCII7 1
+#define ENC_UTF8   2
+
 /* these symbols must be defined by the interface */
 
 #define check_maxd(x) { if (x >= maxd) maxd = x + 1; }
@@ -283,6 +288,7 @@ extern unsigned int bytesIn;
 extern unsigned int bytesOut;
 extern unsigned int commandTotal;
 extern void shutdownsock(struct descriptor_data *d);
+extern void telopt_advertise(struct descriptor_data *d);
 extern struct descriptor_data * initializesock(int s, struct huinfo *hu, int ctyp, int cport, int welcome);
 extern struct descriptor_data* descrdata_by_index(int index);
 extern struct descriptor_data* descrdata_by_descr(int i);
