@@ -3753,6 +3753,10 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                         array_appenditem(&(d->telopt.ttypes), &temp1);
                                         CLEAR(&temp1);
 
+                                        /* Kludge: If the terminal is new enough to send more than one TERMTYPE, assume
+                                         * that it supports basic 16 color mode. Blob will probably shoot me for this. -dav */
+                                        DR_RAW_ADD_FLAGS(d, DF_COLOR);
+
                                         /* Check for terminal capability hints. These shouldn't be seen on first poll. */
                                         if ((d->telopt.mtts == 0) && string_prefix(ttype_new, "MTTS ")) {
                                             d->telopt.mtts = strtol(ttype_new + 5, &ttype_tail, 10);

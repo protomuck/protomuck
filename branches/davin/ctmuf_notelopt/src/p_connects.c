@@ -35,30 +35,36 @@ check_descr_flag(char *dflag)
         return DF_IDLE;
     if (string_prefix("df_trueidle", dflag))
         return DF_TRUEIDLE;
-    if (string_prefix("df_color", dflag))
-        return DF_COLOR;
-    if (string_prefix("df_256color", dflag))
-        return DF_256COLOR;
     if (string_prefix("df_interactive", dflag))
         return DF_INTERACTIVE;
+    if (string_prefix("df_color", dflag))
+        return DF_COLOR;
+    if (string_prefix("df_halfclose", dflag))
+        return DF_HALFCLOSE;
 #ifdef USE_SSL
     if (string_prefix("df_ssl", dflag))
         return DF_SSL;
-#endif /* USE_SSL */
-#ifdef IPV6
-    if (string_prefix("df_ipv6", dflag))
-        return DF_IPV6;
 #endif /* USE_SSL */
     if (string_prefix("df_suid", dflag))
         return DF_SUID;
     if (string_prefix("df_webclient", dflag))
         return DF_WEBCLIENT;
-    if (string_prefix("df_misc", dflag))
-        return DF_MISC;
 #ifdef MCCP_ENABLED
     if (string_prefix("df_compress", dflag))
         return DF_COMPRESS;
 #endif /* MCCP_ENABLED */
+    if (string_prefix("df_misc", dflag))
+        return DF_MISC;
+#ifdef IPV6
+    if (string_prefix("df_ipv6", dflag))
+        return DF_IPV6;
+#endif /* USE_SSL */
+    if (string_prefix("df_256color", dflag))
+        return DF_256COLOR;
+    if (string_prefix("df_notelopts", dflag))
+        return DF_NOTELOPTS;
+    if (string_prefix("df_ttypepoll", dflag))
+        return DF_TTYPEPOLL;
     return 0;
 }
 
@@ -1257,6 +1263,19 @@ prim_getdescrinfo(PRIM_PROTOTYPE)
     temp1.data.string = alloc_prog_string("MTTS");
     temp2.type = PROG_INTEGER;
     temp2.data.number = d->telopt.mtts;
+    array_setitem(&nw, &temp1, &temp2);
+    CLEAR(&temp1);
+    CLEAR(&temp2);
+    temp1.type = PROG_STRING;
+    temp1.data.string = alloc_prog_string("COLORS");
+    temp2.type = PROG_INTEGER;
+    if (DR_RAW_FLAGS(d, DF_256COLOR)) {
+        temp2.data.number = 256;
+    } else if (DR_RAW_FLAGS(d, DF_COLOR)) {
+        temp2.data.number = 16;
+    } else {
+        temp2.data.number = 0;
+    }
     array_setitem(&nw, &temp1, &temp2);
     CLEAR(&temp1);
     CLEAR(&temp2);
