@@ -3717,7 +3717,7 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                             }
 
                             if (!d->telopt.ttypes && d->telopt.sb_buf_len < 3) {
-                                /* If the other end sent a blank termtype, don't bother allocating it.
+                                /* If the other end sent a blank termtype on first poll, don't bother allocating it.
                                  * We won't ask them for it again either. */
                                 d->telopt.termtype = NULL;
                             } else {
@@ -3728,6 +3728,15 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                 memcpy(ttype_new, d->telopt.sb_buf + 2, d->telopt.sb_buf_len-2);
                                 //d->telopt.termtype[d->telopt.sb_buf_len-2] = '\0';
                                 ttype_new[d->telopt.sb_buf_len-2] = '\0';
+
+                                /* Scan every TERMTYPE for a 256 color hint if we don't have MTTS yet. */
+                                if (!(DR_RAW_FLAGS(d, DF_256COLOR)) &&
+                                     (d->telopt.mtts == 0) && 
+                                    (string_prefix(ttype_new, "XTERM") ||
+                                        has_suffix(ttype_new, "-256COLOR"))) {
+                                    DR_RAW_ADD_FLAGS(d, DF_COLOR);
+                                    DR_RAW_ADD_FLAGS(d, DF_256COLOR);
+                                }
 
                                 if (!d->telopt.ttypes) {
                                     /* first TTYPE sent by client */
@@ -3740,7 +3749,8 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                     CLEAR(&temp1);
                                     DR_RAW_ADD_FLAGS(d, DF_TTYPEPOLL);
                                 } else {
-                                    /* Only append to the list if it hasn't gotten excessive.
+                                    /* Termtypes seen after the first.
+                                     * Only append to the list if it hasn't gotten excessive.
                                      * A duplicate indicates end of list. */
                                     if ( (array_count(d->telopt.ttypes) >= MAX_TTYPES) ||
                                          !(strcmp(ttype_new,
@@ -3757,7 +3767,7 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                          * that it supports basic 16 color mode. Blob will probably shoot me for this. -dav */
                                         DR_RAW_ADD_FLAGS(d, DF_COLOR);
 
-                                        /* Check for terminal capability hints. These shouldn't be seen on first poll. */
+                                        /* Check for MTTS. This shouldn't be seen on first poll. */
                                         if ((d->telopt.mtts == 0) && string_prefix(ttype_new, "MTTS ")) {
                                             d->telopt.mtts = strtol(ttype_new + 5, &ttype_tail, 10);
                                             if (*ttype_tail || d->telopt.mtts < 0) {
@@ -3776,11 +3786,6 @@ check_telopt(struct descriptor_data *d, char *p, char *q)
                                                 d->encoding = ENC_ASCII7;
                                             }
 #endif
-                                        } else if (d->telopt.mtts == 0) { /* skip these methods if we have MTTS */
-                                            if (string_prefix(ttype_new, "XTERM") ||
-                                                    has_suffix(ttype_new, "-256COLOR")) {
-                                                DR_RAW_ADD_FLAGS(d, DF_256COLOR);
-                                            }
                                         }
                                     }
                                 }
