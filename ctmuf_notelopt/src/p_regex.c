@@ -149,7 +149,22 @@ const char* muf_re_error(int err)
         case PCRE_ERROR_NOSUBSTRING:    return "No substring.";
         case PCRE_ERROR_MATCHLIMIT:     return "Match recursion limit exceeded.";
         case PCRE_ERROR_CALLOUT:        return "Internal error: callout error.";
-        default:            return "Unknown error";
+        /* If you get compiler errors here, report them to: davin@protomuck.org */
+        case PCRE_ERROR_BADUTF8:        return "PCRE_ERROR_BADUTF8";
+        case PCRE_ERROR_BADUTF8_OFFSET: return "PCRE_ERROR_BADUTF8_OFFSET";
+        case PCRE_ERROR_PARTIAL:        return "Internal error: PCRE_ERROR_PARTIAL";
+        case PCRE_ERROR_BADPARTIAL:     return "Internal error: PCRE_ERROR_BADPARTIAL";
+        case PCRE_ERROR_INTERNAL:       return "Internal error: PCRE_ERROR_INTERNAL";
+        case PCRE_ERROR_BADCOUNT:       return "Internal error: PCRE_ERROR_BADCOUNT";
+        case PCRE_ERROR_DFA_UITEM:      return "Internal error: PCRE_ERROR_DFA_UITEM";
+        case PCRE_ERROR_DFA_UCOND:      return "Internal error: PCRE_ERROR_DFA_UCOND";
+        case PCRE_ERROR_DFA_UMLIMIT:    return "Internal error: PCRE_ERROR_DFA_UMLIMIT";
+        case PCRE_ERROR_DFA_WSSIZE:     return "Internal error: PCRE_ERROR_DFA_WSSIZE";
+        case PCRE_ERROR_DFA_RECURSE:    return "Internal error: PCRE_ERROR_DFA_RECURSE";
+        case PCRE_ERROR_RECURSIONLIMIT: return "Internal error: PCRE_ERROR_RECURSIONLIMIT";
+        case PCRE_ERROR_NULLWSLIMIT:    return "Internal error: PCRE_ERROR_NULLWSLIMIT";
+        case PCRE_ERROR_BADNEWLINE:     return "Internal error: PCRE_ERROR_BADNEWLINE";
+        default:                        return "Unknown error";
     }
 }
 
@@ -182,11 +197,23 @@ prim_regexp(PRIM_PROTOTYPE)
         abort_interp("Non-integer argument (3)");
     if (!oper2->data.string)
         abort_interp("Empty string argument (2)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper1->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (1)");
+    if (wcharlen(oper2->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (2)");
 
+
+    if ((wcharlen(oper1->data.string) > 0) || (wcharlen(oper2->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
     if (oper3->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
     if (oper3->data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
+
 
     if ((re = muf_re_get(oper2->data.string, flags, &errstr)) == NULL)
         abort_interp(errstr);
@@ -327,7 +354,23 @@ prim_regsub(PRIM_PROTOTYPE)
         abort_interp("Non-integer argument (4)");
     if (!oper2->data.string)
         abort_interp("Empty string argument (2)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper1->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (1)");
+    if (wcharlen(oper2->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (2)");
+    if (wcharlen(oper3->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (3)");
 
+
+    /* We make sure that the replacement text doesn't contain garbage for
+     * sanity's sake, but it doesn't decide whether our PCRE operation uses
+     * UTF-8 mode or not. -davin */
+    if ((wcharlen(oper1->data.string) > 0) || (wcharlen(oper2->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
     if (oper4->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
     if (oper4->data.number & MUF_RE_EXTENDED)
@@ -500,7 +543,23 @@ prim_array_regsub(PRIM_PROTOTYPE)
         abort_interp("Non-integer argument (4)");
     if (!oper2->data.string)
         abort_interp("Empty string argument (2)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper1->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (1)");
+    if (wcharlen(oper2->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (2)");
+    if (wcharlen(oper3->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (3)");
 
+
+    /* We make sure that the replacement text doesn't contain garbage for
+     * sanity's sake, but it doesn't decide whether our PCRE operation uses
+     * UTF-8 mode or not. -davin */
+    if ((wcharlen(oper1->data.string) > 0) || (wcharlen(oper2->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
     if (oper4->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
     if (oper4->data.number & MUF_RE_EXTENDED)
@@ -662,7 +721,7 @@ prim_regmatch(PRIM_PROTOTYPE)
 {
     muf_re*     re;
     char*       text;
-    int         flags;
+    int         flags = 0;
     int         matchcnt = 0;
     const char* errstr = NULL;
     int         result = 0;
@@ -678,6 +737,18 @@ prim_regmatch(PRIM_PROTOTYPE)
         abort_interp("Non-string argument (2)");
     if (oper3->type != PROG_INTEGER)
         abort_interp("Non-integer argument (3)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper1->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (1)");
+    if (wcharlen(oper2->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (2)");
+
+
+    if ((wcharlen(oper1->data.string) > 0) || (wcharlen(oper2->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
 
     /* This primitive is for matching, not capturing. Using user-supplied
      * parenthesis for anything other than grouping purposes is therefore a
@@ -687,7 +758,7 @@ prim_regmatch(PRIM_PROTOTYPE)
      * default option to optimize the majority of lazy user input.
      * -brevantes */
 
-    flags = PCRE_NO_AUTO_CAPTURE;
+    flags |= PCRE_NO_AUTO_CAPTURE;
 
     if (oper3->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
@@ -725,7 +796,7 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
     stk_array *nw;
     muf_re* re;
     char* text;
-    int flags;
+    int flags = 0;
     int matchcnt = 0;
     const char* errstr = NULL;
 
@@ -739,8 +810,20 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
         abort_interp("Argument not a string pattern. (2)");
     if (oper3->type != PROG_INTEGER)
         abort_interp("Non-integer argument (3)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper1->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (1)");
+    if (wcharlen(oper2->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (2)");
 
-    flags = PCRE_NO_AUTO_CAPTURE;
+
+    if ((wcharlen(oper1->data.string) > 0) || (wcharlen(oper2->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
+
+    flags |= PCRE_NO_AUTO_CAPTURE;
 
     if (oper3->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
@@ -793,7 +876,7 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
     stk_array *nw;
     muf_re* re;
     char* text;
-    int flags;
+    int flags = 0;
     int matchcnt = 0;
     const char* errstr = NULL;
 
@@ -807,8 +890,20 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
         abort_interp("Argument not a string pattern. (2)");
     if (oper3->type != PROG_INTEGER)
         abort_interp("Non-integer argument (3)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper1->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (1)");
+    if (wcharlen(oper2->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (2)");
 
-    flags = PCRE_NO_AUTO_CAPTURE;
+
+    if ((wcharlen(oper1->data.string) > 0) || (wcharlen(oper2->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
+
+    flags |= PCRE_NO_AUTO_CAPTURE;
 
     if (oper3->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
@@ -872,7 +967,7 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
     char* prop;
     const char* ptr;
     muf_re* re;
-    int flags;
+    int flags = 0;
     int matchcnt = 0;
     const char* errstr = NULL;
 
@@ -892,6 +987,17 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
         abort_interp("Argument not a string pattern. (3)");
     if (oper4->type != PROG_INTEGER)
         abort_interp("Non-integer argument (4)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper3->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (1)");
+
+
+    if ((wcharlen(oper3->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        /* We do NOT set PCRE_NO_UTF8_CHECK here because any of the strings
+         * we're iterating over may contain garbage. */
+    }
+#endif
 
 
     ptr = oper2->data.string->data;
@@ -901,7 +1007,7 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
     nu = new_array_packed(0);
     arr = oper1->data.array;
 
-    flags = PCRE_NO_AUTO_CAPTURE;
+    flags |= PCRE_NO_AUTO_CAPTURE;
 
     if (oper4->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
@@ -961,7 +1067,7 @@ prim_regfind_array(PRIM_PROTOTYPE)
     stk_array *nw;
     muf_re* re;
     char* text = NULL;
-    int flags;
+    int flags = 0;
     int matchcnt = 0;
     const char* errstr = NULL;
 
@@ -983,9 +1089,19 @@ prim_regfind_array(PRIM_PROTOTYPE)
         abort_interp("Expected dbref argument. (1)");
     if (oper1->data.objref < NOTHING || oper1->data.objref >= db_top)
         abort_interp("Bad object. (1)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper2->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (2)");
 
 
-    flags = PCRE_NO_AUTO_CAPTURE;
+    if ((wcharlen(oper2->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
+
+
+    flags |= PCRE_NO_AUTO_CAPTURE;
 
     if (oper4->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
@@ -1046,7 +1162,7 @@ prim_regfindnext(PRIM_PROTOTYPE)
     const char *name;
     muf_re* re;
     char* text;
-    int flags;
+    int flags = 0;
     int matchcnt = 0;
     const char* errstr = NULL;
 
@@ -1074,6 +1190,16 @@ prim_regfindnext(PRIM_PROTOTYPE)
     if (oper2->data.objref != NOTHING &&
         Typeof(oper2->data.objref) == TYPE_GARBAGE)
         abort_interp("Owner dbref is garbage. (2)");
+#ifdef UTF8_SUPPORT
+    if (wcharlen(oper3->data.string) == -1)
+        abort_interp("Garbage (illegal for UTF-8) characters detected (3)");
+
+
+    if ((wcharlen(oper3->data.string) > 0)) {
+        flags |= PCRE_UTF8;
+        flags |= PCRE_NO_UTF8_CHECK; /* strings are pre-validated */
+    }
+#endif
 
     item = oper1->data.objref;
     who = oper2->data.objref;
@@ -1092,7 +1218,7 @@ prim_regfindnext(PRIM_PROTOTYPE)
         }
     }
 
-    flags = PCRE_NO_AUTO_CAPTURE;
+    flags |= PCRE_NO_AUTO_CAPTURE;
 
     if (oper5->data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
