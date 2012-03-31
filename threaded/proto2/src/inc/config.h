@@ -84,7 +84,7 @@
  * (make resolver) and put it in the directory that the protomuck program is
  * run from.
  */
-#undef SPAWN_HOST_RESOLVER
+#define SPAWN_HOST_RESOLVER
 
 /* If this is defined, the resolver will try to restart itself if killed. */
 #define RESTART_RESOLVER
@@ -149,7 +149,7 @@
  * want to undef this.
  */
 
-#define FILE_PRIMS
+#undef FILE_PRIMS
 
 /* ACHTUNG!  PELIGRO!  DANGER!
  * DO NOT DEFINE UNDER PENALTY OF LAW.  This define is DANGEROUS.
@@ -510,7 +510,7 @@
 
 /* This gives some debug Bmalloc profiling, but also eats some overhead,
    so only define if your using it. */
-#undef MALLOC_PROFILING
+#define MALLOC_PROFILING
 #undef CRT_DEBUG_ALSO
 
 /************************************************************************/

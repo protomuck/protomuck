@@ -160,6 +160,7 @@ prim_regexp(PRIM_PROTOTYPE)
     int         len, i;
     int         matchcnt = 0;
     const char* errstr;
+    char buf[BUFFER_LEN];
 
     CHECKOP(3);
 
@@ -295,6 +296,7 @@ prim_regsub(PRIM_PROTOTYPE)
 {
     int         matches[MATCH_ARR_SIZE];
     int         flags       = 0;
+    char buf[BUFFER_LEN];
     char*       write_ptr   = buf;
     int         write_left  = BUFFER_LEN - 1;
     muf_re*     re;
@@ -466,6 +468,7 @@ prim_array_regsub(PRIM_PROTOTYPE)
     stk_array *nw;
     int         matches[MATCH_ARR_SIZE];
     int         flags       = 0;
+    char buf[BUFFER_LEN];
     char*       write_ptr   = buf;
     int         write_left  = BUFFER_LEN - 1;
     muf_re*     re;
@@ -473,6 +476,8 @@ prim_array_regsub(PRIM_PROTOTYPE)
     char*       textstart;
     const char* errstr;
     int         matchcnt, len;
+    struct inst temp1;
+    struct inst temp2;
 
     CHECKOP(4);
 
@@ -721,6 +726,8 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;
+    struct inst temp1;
+
 
     CHECKOP(3);
     oper3 = POP();              /* int  pcreflags */
@@ -789,6 +796,7 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;
+struct inst temp1;
 
     CHECKOP(3);
     oper3 = POP();              /* int  pcreflags */
@@ -868,6 +876,8 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;
+    struct inst temp1;
+    dbref ref;
 
     CHECKOP(4);
     oper4 = POP();    /* int     pcreflags */
@@ -953,7 +963,7 @@ prim_regfind_array(PRIM_PROTOTYPE)
     const char *name;
     stk_array *nw;
     muf_re* re;
-    char* text;
+    char* text = NULL;
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;
@@ -1010,7 +1020,7 @@ prim_regfind_array(PRIM_PROTOTYPE)
         if (((who == NOTHING) ? 1 : (OWNER(ref) == who)) &&
             checkflags(ref, check) && NAME(ref)) {
             if (!*name)
-                result = array_appendref(&nw, ref);
+                array_appendref(&nw, ref);
             else
                 text = (char *)NAME(ref);
                 if ((matchcnt = regmatch_exec(re, text)) < 0)
@@ -1018,7 +1028,7 @@ prim_regfind_array(PRIM_PROTOTYPE)
                     if (matchcnt != PCRE_ERROR_NOMATCH)
                         abort_interp(muf_re_error(matchcnt));
                 } else {
-                    result = array_appendref(&nw, ref);
+                    array_appendref(&nw, ref);
                 }
         }
     }

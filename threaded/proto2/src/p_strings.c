@@ -43,7 +43,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
     slen = strlen(oper1->data.string->data);
     scnt = 0;
     tstop = 0;
-    strcpy(sstr, oper1->data.string->data);
+    strcpyn(sstr, sizeof(sstr), oper1->data.string->data);
     CLEAR(oper1);
     while ((scnt < slen) && (result < BUFFER_LEN)) {
         CHECKOP(0);
@@ -257,7 +257,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         strcat(sfmt, "s");
                         switch (oper2->type) {
                             case PROG_OBJECT:
-                                strcpy(hold, "OBJECT");
+                                strcpyn(hold, sizeof(hold), "OBJECT");
                                 break;
                             case PROG_FLOAT:
                                 strcpy(hold, "FLOAT");

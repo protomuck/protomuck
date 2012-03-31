@@ -1604,7 +1604,8 @@ prim_descr_sendfile(PRIM_PROTOTYPE)
 #else /* FILE_PRIMS && DESCRFILE_SUPPORT */
     struct descriptor_data *d;
     char *filename;
-
+    int result;
+  
     CHECKOP(4);
     oper1 = POP();              /* (s) file  */
     oper2 = POP();              /* (i) end   */

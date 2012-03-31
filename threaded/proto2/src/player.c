@@ -9,14 +9,19 @@
 #include "externs.h"
 
 static hash_tab player_list[PLAYER_HASH_SIZE];
+/* alias buffer - always has enough space to store @alias related prop paths */
+static char abuf[BUFFER_LEN + ( sizeof(ALIASDIR_CUR) > sizeof(ALIASDIR_LAST) ?
+                                sizeof(ALIASDIR_CUR) : sizeof(ALIASDIR_LAST) ) ];
 
 bool
 check_password(dbref player, const char *check_pw)
 {
+    const char *password = NULL;
+
     if (player == NOTHING)
         return 0;
 
-    const char *password = DBFETCH(player)->sp.player.password;
+    password = DBFETCH(player)->sp.player.password;
 
     /* We now do this smartly based on the DB_NEWPASSES */
     /*  database flag. -Hinoserm                        */
@@ -49,6 +54,9 @@ check_password(dbref player, const char *check_pw)
 bool
 set_password(dbref player, const char *password)
 {
+    int res = 0;
+    char hashbuf[BUFFER_LEN];
+
     if (player == NOTHING)
         return 0;
 
@@ -56,9 +64,12 @@ set_password(dbref player, const char *password)
         if (DBFETCH(player)->sp.player.password)
             free((void *) DBFETCH(player)->sp.player.password);
 
-        char hashbuf[BUFFER_LEN];
+        if (!db_hash_passwords) {
+            DBFETCH(player)->sp.player.password = NULL;
+            return 1;
+        }
 
-        int res = db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
+        res = db_hash_password(HTYPE_NONE, hashbuf, NULL, NULL);
 
         if (!res)
             return 0;
@@ -75,7 +86,7 @@ set_password(dbref player, const char *password)
     if (db_hash_passwords) {
         char hashbuf[BUFFER_LEN];
 
-        int res = db_hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
+        res = db_hash_password(HTYPE_CURRENT, hashbuf, password, NULL);
 
         if (!res)
             return 0;
@@ -85,6 +96,143 @@ set_password(dbref player, const char *password)
 
     DBSTORE(player, sp.player.password, alloc_string(password));
     return 1;
+}
+
+dbref
+lookup_alias(const char *name, int checkname)
+{
+    dbref alias;
+    PropPtr pptr;
+
+    /* It's important to make sure that an alias lookup based on the name of an
+     * existing target never succeeds. This should *only* be possible if an
+     * admin manually set the prop on #0 (via @propset or a program), but things
+     * can get pretty weird fast if cases of this behavior slip through.
+     *
+     * Most callers to this function will have already attempted to match the
+     * exact target name, and this can be skipped. 'checkname' is used to signal
+     * whether or not it's safe to skip this check.
+     */
+    if (checkname &&
+        find_hash(name, player_list, PLAYER_HASH_SIZE) != NULL) {
+        return NOTHING;
+    }
+
+    sprintf(abuf, ALIASDIR_CUR "%s", name);
+    if (*name != '\0' &&
+        (pptr = get_property(0, abuf)) &&
+        PropType(pptr) == PROP_REFTYP) {
+        alias = PropDataRef(pptr);
+        if (Typeof(alias) == TYPE_PLAYER) {
+            return alias;
+        } else {
+            /* bogus prop, kill it */
+            remove_property(0, abuf); 
+        }
+    }
+    
+    return NOTHING;
+}
+
+/* killold probably isn't necessary, but there's no sense in clearing the old
+ * alias hint if it's going to get overwritten by the caller anyway. */
+int
+rotate_alias(dbref target, int killold) {
+    const char *oldalias = NULL;
+    PropPtr pptr;
+    int valid;
+
+    sprintf(abuf, ALIASDIR_LAST "%d", (int) target);
+    pptr = get_property(0, abuf);
+    if (pptr) {
+        if ((valid = PropType(pptr) == PROP_STRTYP)) {
+            oldalias = PropDataUNCStr(pptr);
+        }
+
+        if (killold || !valid) {
+            /* kill the old 'last' hint if we were asked to, or if it's bogus */
+            remove_property(0, abuf);
+        }
+        if (oldalias) {
+            /* kill the old alias. */
+            sprintf(abuf, ALIASDIR_CUR "%s", oldalias);
+            remove_property(0, abuf);
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void
+clear_alias(dbref target, const char *alias) {
+    if (target) {
+        rotate_alias(target, 1);
+        return;
+    }
+    if (alias) {
+        sprintf(abuf, ALIASDIR_CUR "%s", alias);
+        remove_property(0, abuf);
+        return;
+    }
+
+    /* should not be reached */
+    return;
+}
+
+int
+set_alias(dbref target, const char *alias, int rotate) {
+    PData pdat;
+    const char *p = alias;
+
+    /* is the new alias legal? */
+    while (*p && *p != ':' && *p != PROPDIR_DELIMITER) p++;
+    if (*p || !ok_player_name(alias)) {
+        return NOTHING;
+    }
+
+    /* is the new alias actually available? */
+    if (lookup_alias(alias, 0) != NOTHING) {
+        return AMBIGUOUS;
+    }
+    
+    /* set the new alias */
+    sprintf(abuf, ALIASDIR_CUR "%s", alias);
+    pdat.flags = PROP_REFTYP;
+    pdat.data.ref = target;
+    set_property(0, abuf, &pdat);
+    
+    if (rotate) {
+        rotate_alias(target, 0);
+        /* set the "last alias" hint */
+        sprintf(abuf, ALIASDIR_LAST "%d", (int) target);
+        add_property(0, abuf, alias, 0);
+    }
+
+    return 0;
+}
+
+dbref
+lookup_player_noalias(const char *name)
+{
+    hash_data *hd;
+
+    if (*name == '#') {
+        name++;
+        if (!OkObj(atoi(name)) || Typeof(atoi(name)) != TYPE_PLAYER)
+            return NOTHING;
+        else
+            return atoi(name);
+    } else {
+        if (*name == '*')
+            name++;
+
+        if ((hd = find_hash(name, player_list, PLAYER_HASH_SIZE)) == NULL) {
+            return NOTHING;
+        } else {
+            return (hd->dbval);
+        }
+    }
 }
 
 dbref
@@ -102,10 +250,13 @@ lookup_player(const char *name)
         if (*name == '*')
             name++;
 
-        if ((hd = find_hash(name, player_list, PLAYER_HASH_SIZE)) == NULL)
-            return NOTHING;
-        else
+        if ((hd = find_hash(name, player_list, PLAYER_HASH_SIZE)) == NULL) {
+            /* secondary check - is there an exact @alias? this will return
+             * NOTHING if no alias was found. */
+            return lookup_alias(name, 0);
+        } else {
             return (hd->dbval);
+        }
     }
 }
 
@@ -141,6 +292,9 @@ create_player(dbref creator, const char *name, const char *password)
 
     if (!ok_player_name(name) || !ok_password(password) || tp_db_readonly)
         return NOTHING;
+
+    /* remove any existing alias with this name */
+    clear_alias(0, name);
 
     /* else he doesn't already exist, create him */
     player = new_object(creator);
@@ -247,6 +401,11 @@ delete_player(dbref who)
     int result;
 
     result = free_hash(NAME(who), player_list, PLAYER_HASH_SIZE);
+
+    /* Nuke the alias managed by this dbref. This will not remove any aliases
+     * that were manually set on #0, but they should auto-clean as the lookups
+     * are attempted. */
+    rotate_alias(who, 1);
 
     if (result) {
         int i;

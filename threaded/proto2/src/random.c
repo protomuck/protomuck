@@ -415,7 +415,6 @@ base64tohex(char *dest, int olen, const char *orig, int ilen)
     int j, k;
     for (j=0, k=0; (j<tlen) && (k<olen); j++, k+=2) {
         i = tmp[j];
-        if (i==0) break;
         sprintf(dest+k, "%.2X", i);
     }
     free((void *)tmp);

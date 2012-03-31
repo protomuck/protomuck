@@ -943,7 +943,7 @@ host_load(void)
         h->links = 0;
         h->uses = 0;
         h->wupd = 0;
-        h->thread_start = 0;
+        //h->thread_start = 0;
         h->a = (int) ip;
         h->name = alloc_string(name);
         h->prev = NULL;
