@@ -25,8 +25,6 @@
 #include "netresolve.h"         /* hinoserm */
 #ifdef UTF8_SUPPORT
 # include <locale.h>
-# include <nl_types.h>
-# include <langinfo.h>
 #endif
 
 /* Cynbe stuff added to help decode corefiles:
@@ -3135,6 +3133,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
     d->raw_input_wclen = 0;
 #endif
     d->inIAC = 0;
+    d->truncate = 0;
     d->quota = tp_command_burst_size;
     d->commands = 0;
     d->last_time = d->connected_at;
@@ -3372,6 +3371,8 @@ queue_string(struct descriptor_data *d, const char *s)
         for (sp = s; *sp != '\0'; sp++) {
             if (isascii(*sp)) {
                 *fp++ = *sp;
+            } else {
+                *fp++ = '?';
             }
         }
 #ifdef UTF8_SUPPORT
@@ -3672,6 +3673,7 @@ process_input(struct descriptor_data *d)
 #endif /* NEWHTTPD */
         if (*q == '\n') {
             *p = '\0';
+            d->truncate = 0;
             if (p > d->raw_input) {
 #ifdef NEWHTTPD
                 if (d->type == CT_HTTP) { /* hinoserm */
@@ -3940,7 +3942,7 @@ process_input(struct descriptor_data *d)
         } else if (*q == '\377') {
             /* Got TELNET IAC, store for next byte */
             d->inIAC = 1;
-        } else if (p < pend) {
+        } else if (p < pend && !d->truncate) {
             if ((*q == '\t')
                 & (d->type == CT_MUCK || d->type == CT_PUEBLO)) {
                 *p++ = ' ';
@@ -4000,6 +4002,7 @@ process_input(struct descriptor_data *d)
                             /* advance q by wclen-1 bytes. we subtract 1 because
                              * the loop itself already advances it by 1. */
                             q = q + (wclen - 1);
+                            wcbuflen++;
                         } else {
                             /* d->raw_input can't hold the next UTF-8 character.
                              * Deleting characters during conversion when we
@@ -4017,16 +4020,12 @@ process_input(struct descriptor_data *d)
                             *p++ = '\xef';
                             *p++ = '\xbf';
                             *p++ = '\xbd';
+                            wcbuflen++;
                         } else {
-                            /* Not enough buffer space for U+FFFD, fill the rest
-                             * of the buffer with question marks (leaving room
-                             * for the newline) */
-                            while (p < pend) {
-                                *p++ = '?';
-                            }
+                            /* Not enough buffer space for U+FFFD, truncate. */
+                            d->truncate = 1;
                         }
                     }
-                    wcbuflen++;
 #endif
                 } else { /* RAW */
                     /* any text from a raw source goes straight into the game,
@@ -6598,7 +6597,8 @@ partial_pmatch(const char *name)
     d = descriptor_list;
     while (d) {
         if (d->connected && (last != d->player) &&
-            string_prefix(NAME(d->player), name)) {
+            (string_prefix(NAME(d->player), name) ||
+             lookup_alias(name,1) != NOTHING) ) {
             if (last != NOTHING) {
                 last = AMBIGUOUS;
                 break;

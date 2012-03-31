@@ -22,12 +22,6 @@
 #include "newhttp.h"            /* hinoserm */
 #include "netresolve.h"         /* hinoserm */
 
-extern struct inst *oper1, *oper2, *oper3, *oper4, *oper5, *oper6;
-extern struct inst temp1, temp2, temp3;
-extern double fresult;
-extern int tmp, result;
-extern dbref ref;
-extern char buf[BUFFER_LEN];
                              /* NAME       DESCRIPTION                             VERSION   DEPENDANCIES */
 static struct mod_info minfo = {"libtest", "This module is for testing purposes.", 8,        NULL};
 
@@ -39,6 +33,9 @@ void __prim_nuku_rp_getstatus_1(PRIM_PROTOTYPE)
     char dir[BUFFER_LEN];
 	char cstr[BUFFER_LEN];
 	char dstr[BUFFER_LEN];
+        char buf[BUFFER_LEN];
+        double fresult;
+
 
     PropPtr propadr, pptr;
     PropPtr prptr;
@@ -197,6 +194,9 @@ void __prim_funcprof_array(PRIM_PROTOTYPE)
 {
 	int i;
 	stk_array *nw;
+        struct inst temp1;
+        struct inst temp2;
+        char buf[BUFFER_LEN];
 
 	CHECKOP(1);
     oper1 = POP();
@@ -417,11 +417,11 @@ void __prim_mod_runprim(PRIM_PROTOTYPE)
 
 	if (m) {
 		int i;
-		result = 0;
+		int result = 0;
 
 		for (i = 0; m->prims[i].name; i++) {
 			if (!string_compare(m->prims[i].name, DoNullInd(oper1->data.string))) {
-				m->prims[i].func(player, program, mlev, pc, arg, &tmp, fr);
+				m->prims[i].func(player, program, mlev, pc, arg, &top, fr, oper1, oper2, oper3, oper4, oper5, oper6);
 				result = 1;
 				break;
 			}

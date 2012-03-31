@@ -1871,7 +1871,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         if (stop >= ADDR_SIZE)
                             abort_loop("System Stack Overflow", temp1, temp2);
                         sys[stop].progref = program;
-                        sys[stop++].offset = pc + 1;
+                        sys[stop].offset = pc + 1;
                         if (!temp2) {
                             pc = DBFETCH(temp1->data.objref)->sp.program.start;
                         } else {
@@ -1900,9 +1900,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 									("SELFCALL Violation: Function called from outside containing program. (2)",
 									 temp2, temp2);
                             pc = pbs->addr.ptr;
-
-							pbs->usecount++;
+                            pbs->usecount++;
                         }
+
+                        stop++;
 
                         if (temp1->data.objref != program) {
                             calc_profile_timing(program, fr);
@@ -1923,7 +1924,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 						muf_funcprof_exit(fr, program);
 
                         if (stop > 1 && program != sys[stop - 1].progref) {
-                            if (sys[stop - 1].progref > db_top ||
+                            if (sys[stop - 1].progref >= db_top ||
                                 sys[stop - 1].progref < 0 ||
                                 (Typeof(sys[stop - 1].progref) != TYPE_PROGRAM))
                                 abort_loop_hard
@@ -2208,8 +2209,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 							nargs = 0;
 							reload(fr, atop, stop);
 							tmp = atop;
-							prim_func[pc->data.number - 1] (player, program, mlev,
-															pc, arg, &tmp, fr, oper1, oper2, oper3, oper4, oper5, oper6);
+							prim_func[pc->data.number - 1] (player, program, mlev, pc, arg, &tmp, fr, oper1, oper2, oper3, oper4, oper5, oper6);
 							atop = tmp;
 							pc++;
 							break;

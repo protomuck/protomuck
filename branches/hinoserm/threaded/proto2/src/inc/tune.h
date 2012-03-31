@@ -207,6 +207,7 @@ extern int tp_mush_format_escapes;
 extern int tp_strict_mush_escapes;
 extern int tp_ascii_descrs;
 extern int tp_muf_profiling;
+extern int tp_player_aliasing;
 
 /* extern int tp_require_has_mpi_arg; */
 #ifdef NEWHTTPD                         /* hinoserm */

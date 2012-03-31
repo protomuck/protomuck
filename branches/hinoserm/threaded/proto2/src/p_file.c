@@ -219,6 +219,7 @@ prim_fwrite(PRIM_PROTOTYPE)
     char *filename;
     char *writestring, *buf3;
     double offset;
+    int result;
 
     CHECKOP(3);
     oper1 = POP();
@@ -287,6 +288,7 @@ prim_fappend(PRIM_PROTOTYPE)
     FILE *fh;
     char *filename;
     char *writestring, *buf3;
+    int result;
 
     CHECKOP(2);
     oper1 = POP();
