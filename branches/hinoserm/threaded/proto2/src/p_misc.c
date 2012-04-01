@@ -250,7 +250,7 @@ prim_kill(PRIM_PROTOTYPE)
     if (oper1->type != PROG_INTEGER)
         abort_interp("Non-integer argument (1)");
     if (oper1->data.number == fr->pid) {
-        do_abort_silent();
+        do_abort_silent(fr);
     } else {
         if (mlev < LMAGE) {
             if (!control_process(ProgUID, oper1->data.number)) {

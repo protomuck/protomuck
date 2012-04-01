@@ -648,6 +648,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->errorinst = NULL;
     fr->errorprog = NOTHING;
     fr->errorline = 0;
+    fr->err = 0;
 
     fr->fors.top = 0;
     fr->fors.st = NULL;
@@ -744,7 +745,6 @@ interp(int descr, dbref player, dbref location, dbref program,
     return fr;
 }
 
-static int err;
 int already_created;
 
 struct forvars *
@@ -1066,9 +1066,9 @@ prog_clean(struct frame *fr)
     muf_interrupt_clean(fr);
     /* muf_event_dequeue_frame(fr); */
     fr->pid = 0;                /* cleared to keep socket events from hitting it again */
+    fr->err = 0;
     fr->next = free_frames_list;
     free_frames_list = fr;
-    err = 0;
 
 	while (fr->fprofile) {
 		fpr = fr->fprofile->next;
@@ -1221,7 +1221,8 @@ do_abort_loop(dbref player, dbref program, const char *msg,
 /*
     if (fr->trys.top) {
         fr->errorstr = string_dup(msg);
-        err++;
+        if (!fr->err)
+           fr->err++;
     } else {
         if (pc) {
             calc_profile_timing(program, fr);
@@ -1235,7 +1236,8 @@ do_abort_loop(dbref player, dbref program, const char *msg,
                        (fr, 0, pc, buffer, sizeof(buffer), 30, program));
         fr->errorline = pc->line;
         fr->errorprog = program;
-        err++;
+        if (!fr->err)        
+            fr->err++;
     } else {
         if (pc) {
             calc_profile_timing(program, fr);
@@ -1250,7 +1252,7 @@ do_abort_loop(dbref player, dbref program, const char *msg,
     fr->pc = pc;
     if (!fr->trys.top) {
         if (pc) {
-            interp_err(OWNER(PSafe), program, pc, fr->argument.st,
+            interp_err(fr, OWNER(PSafe), program, pc, fr->argument.st,
                        fr->argument.top, fr->caller.st[1], insttotext(fr, 0, pc,
                                                                       buffer,
                                                                       sizeof
@@ -1347,7 +1349,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         DBFETCH(program)->sp.program.instances++;
     }
     ts_useobject(player, program);
-    err = 0;
+    fr->err = 0;
 
     instr_count = 0;
     mlev = ProgMLevel(program);
@@ -1744,14 +1746,14 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 CLEAR(temp1);
                 break;
 #ifdef MODULAR_SUPPORT
-			case PROG_MODPRIM:
-				nargs = 0;
-				reload(fr, atop, stop);
-				tmp = atop;
-				pc->data.modprim->func(player, program, mlev, pc, arg, &tmp, fr);
-				atop = tmp;
-				pc++;
-				break;
+		case PROG_MODPRIM:
+			nargs = 0;
+			reload(fr, atop, stop);
+			tmp = atop;
+			pc->data.modprim->func(player, program, mlev, pc, arg, &tmp, fr);
+			atop = tmp;
+			pc++;
+			break;
 #endif /* MODULAR_SUPPORT */
             case PROG_PRIMITIVE:
                 /*
@@ -2228,14 +2230,17 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                     ("Program internal error. Program erroneously freed from memory.",
                      NULL, NULL);
             default:
+                fprintf(stderr,
+                        "Attempt to execute unknown instruction type %d line %hd in program %d\n",
+                        pc->data.number, pc->line, program);
                 pc = NULL;
                 abort_loop_hard
                     ("Program internal error. Unknown instruction type.", NULL,
                      NULL);
         }                       /* switch */
 
-        if (err) {
-            if (fr->trys.top) {
+        if (fr->err) {
+            if (fr->err > 0 && fr->trys.top) {
                 while (fr->trys.st->call_level < stop) {
                     if (stop > 1 && program != sys[stop - 1].progref) {
                         if (!OkObj(sys[stop - 1].progref) ||
@@ -2254,7 +2259,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 }
 
                 pc = fr->trys.st->addr;
-                err = 0;
+                fr->err = 0;
             } else {
                 reload(fr, atop, stop);
                 prog_clean(fr);
@@ -2311,7 +2316,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 
 
 void
-interp_err(dbref player, dbref program, struct inst *pc,
+interp_err(struct frame *fr, dbref player, dbref program, struct inst *pc,
            struct inst *arg, int atop, dbref origprog, const char *msg1,
            const char *msg2, int pid)
 {
@@ -2320,7 +2325,9 @@ interp_err(dbref player, dbref program, struct inst *pc,
     time_t lt;
     char tbuf[40];
 
-    err++;
+    if (!fr->err)
+       fr->err++;
+
     if (OkObj(player) && OWNER(origprog) == player) {
         strcpy(buf,
                "Program Error.  Your program just got the following error.");
@@ -2578,12 +2585,13 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
                        (fr, 0, pc, buffer, sizeof(buffer), 30, program));
         fr->errorline = pc->line;
         fr->errorprog = program;
-        err++;
+        if (!fr->err)           
+           fr->err++;
     } else {
         fr->pc = pc;
         fr->aborted = 1;
         calc_profile_timing(program, fr);
-        interp_err(player, program, pc, arg, atop, fr->caller.st[1],
+        interp_err(fr, player, program, pc, arg, atop, fr->caller.st[1],
                    insttotext(fr, 0, pc, buffer, sizeof(buffer), 30, program),
                    msg, fr->pid);
         if (OkObj(player) && controls(player, program))
@@ -2617,9 +2625,9 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
 
 
 void
-do_abort_silent(void)
+do_abort_silent(struct frame *fr)
 {
     /* WORK:  killing this program's pid may not exit, but instead will
      * be caught in a TRY-CATCH block.  This may be undesirable. */
-    err++;
+    fr->err = -1; /* Setting to -1 causes a silent abort without triggering try-catch. -hinoserm */
 }

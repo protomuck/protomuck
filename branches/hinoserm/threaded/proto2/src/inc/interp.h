@@ -19,7 +19,7 @@ typedef void * voidptr;
 
 #define DoNullInd(x) ((x) ? (x) -> data : "")
   
-extern void do_abort_silent(void);
+extern void do_abort_silent(struct frame *fr);
 
 extern void RCLEAR(struct inst *oper, const char *file, int line);
 
@@ -69,7 +69,7 @@ extern void do_abort_loop(dbref player, dbref program, const char *msg,
                           int atop, int stop, struct inst *clinst1,
                           struct inst *clinst2);
   
-extern void interp_err(dbref player, dbref program, struct inst *pc,
+extern void interp_err(struct frame *fr, dbref player, dbref program, struct inst *pc,
                        struct inst *arg, int atop, dbref origprog,
                        const char *msg1, const char *msg2, int pid);
   
