@@ -27,6 +27,20 @@
 #include "interp.h"
 #include "props.h"
 
+#ifdef MALLOC_PROFILING
+    void
+    *CrT_pcre_malloc(size_t memsize) {
+        return CrT_malloc(memsize, __FILE__, __LINE__);
+    }
+
+    void
+    CrT_pcre_free(void *ptr) {
+        CrT_free(ptr, __FILE__, __LINE__);
+    }
+    void (*pcre_free)(void *) = &CrT_pcre_free;
+    void *(*pcre_malloc)(size_t) = &CrT_pcre_malloc;
+#endif
+
 #define MUF_RE_CACHE_ITEMS 64
 
 extern int prop_read_perms(dbref player, dbref obj, const char *name, int mlev);
@@ -102,7 +116,8 @@ muf_re* muf_re_get(struct shared_string* pattern, int flags, const char** errmsg
         if ((flags != re->flags) || strcmp(DoNullInd(pattern), DoNullInd(re->pattern)))
         {
             pcre_free(re->re);
-            free(re->extra);
+            if (re->extra)
+                pcre_free(re->extra);
 
             if (re->pattern && (--re->pattern->links == 0))
                 free((void *)re->pattern);

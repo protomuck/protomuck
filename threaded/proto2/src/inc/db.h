@@ -928,6 +928,7 @@ struct frame {
     char    *errorinst;                 /* the instruction name that threw an error */
     dbref   errorprog;                  /* the program that threw an error */
     int     errorline;                  /* the program line that threw an error */
+    int     err;                        /* has the program errored?  Setting to -1 causes silent abort (no try-catch) */
     int     aborted;                    /* indicates program aborted */
     int     descr;                      /* Descriptor of running player */
     int     shutdown_seen;              /* Queues SHUTDOWN events during delayed shutdown */
