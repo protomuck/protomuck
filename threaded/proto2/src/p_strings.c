@@ -671,7 +671,7 @@ prim_itoc(PRIM_PROTOTYPE)
 void
 prim_stod(PRIM_PROTOTYPE)
 {
-	dbref ref;
+    dbref ref;
 
     CHECKOP(1);
     oper1 = POP();
@@ -717,6 +717,8 @@ prim_dtos(PRIM_PROTOTYPE)
     if (oper1->type != PROG_OBJECT)
         abort_interp("No Object Dbref was passed as an argment.");
     sprintf(buf, "#%d", oper1->data.objref);
+
+    CLEAR(oper1);
     PushString(buf);
 }
 

@@ -110,6 +110,7 @@ muf_re* muf_re_get(struct shared_string* pattern, int flags, const char** errmsg
     int     idx = (hash(DoNullInd(pattern), MUF_RE_CACHE_ITEMS) + flags) % MUF_RE_CACHE_ITEMS;
     muf_re* re  = &muf_re_cache[idx];
     int     erroff;
+    const char* errstr;
 
     if (re->pattern)
     {
@@ -123,6 +124,12 @@ muf_re* muf_re_get(struct shared_string* pattern, int flags, const char** errmsg
                 free((void *)re->pattern);
         } else {
             re->hits++;
+            if (!re->extra && re->hits > 2) {
+                re->extra = pcre_study(re->re, 0, &errstr);
+                if (errstr) {
+                    //abort_interp(errstr);
+                }
+            }
             return re;
         }
     }
