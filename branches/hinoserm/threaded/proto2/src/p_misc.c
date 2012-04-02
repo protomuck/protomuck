@@ -250,6 +250,7 @@ prim_kill(PRIM_PROTOTYPE)
     if (oper1->type != PROG_INTEGER)
         abort_interp("Non-integer argument (1)");
     if (oper1->data.number == fr->pid) {
+        CLEAR(oper1);
         do_abort_silent(fr);
     } else {
         if (mlev < LMAGE) {
@@ -258,8 +259,8 @@ prim_kill(PRIM_PROTOTYPE)
             }
         }
         result = dequeue_process(oper1->data.number);
+        CLEAR(oper1);
     }
-    CLEAR(oper1);
     PushInt(result);
 }
 

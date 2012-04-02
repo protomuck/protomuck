@@ -41,7 +41,9 @@ prim_array_make(PRIM_PROTOTYPE)
     temp1.type = PROG_INTEGER;
     temp1.line = 0;
     nw = new_array_packed(result);
+
     for (i = result; i-- > 0;) {
+        CHECKOP(1);
         temp1.data.number = i;
         oper1 = POP();
         array_setitem(&nw, &temp1, oper1);
@@ -71,10 +73,10 @@ prim_array_make_dict(PRIM_PROTOTYPE)
 
     if (*top < (2 * result))
         abort_interp("Stack underflow.");
-    nargs = 2;
 
     nw = new_array_dictionary();
     for (i = result; i-- > 0;) {
+        CHECKOP(2);
         oper1 = POP();          /* val */
         oper2 = POP();          /* key */
         if (oper2->type != PROG_INTEGER && oper2->type != PROG_STRING) {
@@ -548,7 +550,6 @@ void
 prim_array_delitem(PRIM_PROTOTYPE)
 {
     stk_array *nw;
-	int result;
 
     CHECKOP(2);
     oper1 = POP();              /* int  item to delete */
@@ -558,7 +559,7 @@ prim_array_delitem(PRIM_PROTOTYPE)
     if (oper2->type != PROG_ARRAY)
         abort_interp("Argument not an array. (1)");
 
-    result = array_delitem(&oper2->data.array, oper1);
+    array_delitem(&oper2->data.array, oper1);
 
     nw = oper2->data.array;
     oper2->data.array = NULL;
@@ -652,42 +653,50 @@ prim_array_n_union(PRIM_PROTOTYPE)
 void
 prim_array_n_intersection(PRIM_PROTOTYPE)
 {
-    stk_array *new_union;
-    stk_array *new_mash;
-    int num_arrays, result;
+	stk_array *new_union;
+	stk_array *new_mash;
+	stk_array *temp_mash;
+	int num_arrays;
+        int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
-        abort_interp("Invalid item count.");
-    result = oper1->data.number;
-    if (result < 0)
-        abort_interp("Item count must be positive.");
-    CLEAR(oper1);
-    nargs = 0;
+	CHECKOP(1);
+	oper1 = POP();
+	if (oper1->type != PROG_INTEGER)
+		abort_interp("Invalid item count.");
+	result = oper1->data.number;
+	if (result < 0)
+		abort_interp("Item count must be positive.");
+	CLEAR(oper1);
+	nargs = 0;
 
-    if (*top < result)
-        abort_interp("Stack underflow.");
+	if (*top < result)
+		abort_interp("Stack underflow.");
 
-    if (result > 0) {
-        new_mash = new_array_dictionary();
-        for (num_arrays = 0; num_arrays < result; num_arrays++) {
-            CHECKOP(1);
-            oper1 = POP();
-            if (oper1->type != PROG_ARRAY) {
-                array_free(new_mash);
-                abort_interp("Arguement not an array.");
-            }
-            array_mash(oper1->data.array, &new_mash, 1);
-            CLEAR(oper1);
-        }
-        new_union = array_demote_only(new_mash, result);
-        array_free(new_mash);
-    } else {
-        new_union = new_array_packed(0);
-    }
+	if (result > 0) {
+		new_mash = new_array_dictionary();
+		for (num_arrays = 0; num_arrays < result; num_arrays++) {
+			oper1 = POP();
+			if (oper1->type != PROG_ARRAY) {
+				array_free(new_mash);
+				abort_interp("Argument not an array.");
+			}
+			temp_mash = new_array_dictionary();
+			array_mash(oper1->data.array, &temp_mash, 1);
+			CLEAR(oper1);
+			new_union = array_demote_only(temp_mash, 1);
+			array_free(temp_mash);
+			PushArrayRaw(new_union);
+			oper1 = POP();
+			array_mash(oper1->data.array, &new_mash, 1);
+			CLEAR(oper1);
+		}
+		new_union = array_demote_only(new_mash, result);
+		array_free(new_mash);
+	} else {
+		new_union = new_array_packed(0);
+	}
 
-    PushArrayRaw(new_union);
+	PushArrayRaw(new_union);
 }
 
 void
