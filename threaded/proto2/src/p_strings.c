@@ -82,9 +82,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         scnt++;
                         
                         oper2 = POP();
-                        if (oper2->type != PROG_INTEGER)
-                            abort_interp
-                                ("Format specified integer argument not found.");
+                        if (oper2->type != PROG_INTEGER) {
+							CLEAR(oper2);
+                            abort_interp("Format specified integer argument not found.");
+						}
                         slen1 = oper2->data.number;
                         CLEAR(oper2);
                     } else {
@@ -102,15 +103,18 @@ prim_fmtstring(PRIM_PROTOTYPE)
                             scnt++;
                             
                             oper2 = POP();
-                            if (oper2->type != PROG_INTEGER)
-                                abort_interp
-                                    ("Format specified integer argument not found.");
-                            if (oper2->data.number < 0)
-                                abort_interp
-                                    ("Dynamic precision value must be a positive integer.");
+                            if (oper2->type != PROG_INTEGER) {
+								CLEAR(oper2);
+                                abort_interp("Format specified integer argument not found.");
+							}
+                            if (oper2->data.number < 0) {
+								CLEAR(oper2);
+                                abort_interp("Dynamic precision value must be a positive integer.");
+							}
                             slen2 = oper2->data.number;
                             CLEAR(oper2);
                         } else {
+							CLEAR(oper2);
                             abort_interp("Invalid format string.");
                         }
                     }
@@ -147,8 +151,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         };
                     }
                 }
-                if ((slen1 > 0) && ((abs(slen1) + result) > BUFFER_LEN))
+                if ((slen1 > 0) && ((abs(slen1) + result) > BUFFER_LEN)) {
+					CLEAR(oper2);
                     abort_interp("Specified format field width too large.");
+				}
                 sfmt[0] = '%';
                 sfmt[1] = '\0';
                 if (slrj == 1)
@@ -194,9 +200,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                 switch (sstr[scnt]) {
                     case 'i':
                         strcat(sfmt, "d");
-                        if (oper2->type != PROG_INTEGER)
-                            abort_interp
-                                ("Format specified integer argument not found.");
+                        if (oper2->type != PROG_INTEGER) {
+							CLEAR(oper2);
+                            abort_interp("Format specified integer argument not found.");
+						}
                         sprintf(tbuf, sfmt, oper2->data.number);
                         tlen = strlen(tbuf);
                         if (slrj == 2) {
@@ -211,9 +218,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                                     tbuf[i] = ' ';
                             }
                         }
-                        if (tlen + result > BUFFER_LEN)
-                            abort_interp
-                                ("Resultant string would overflow buffer.");
+                        if (tlen + result > BUFFER_LEN) {
+							CLEAR(oper2);
+                            abort_interp("Resultant string would overflow buffer.");
+						}
                         buf[result] = '\0';
                         strcat(buf, tbuf);
                         result += tlen;
@@ -222,9 +230,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                     case 'S':
                     case 's':
                         strcat(sfmt, "s");
-                        if (oper2->type != PROG_STRING)
-                            abort_interp
-                                ("Format specified string argument not found.");
+                        if (oper2->type != PROG_STRING) {
+							CLEAR(oper2);
+                            abort_interp("Format specified string argument not found.");
+						}
                         sprintf(tbuf, sfmt,
                                 ((oper2->data.string) ? oper2->data.string->
                                  data : ""));
@@ -241,9 +250,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                                     tbuf[i] = ' ';
                             }
                         }
-                        if (strlen(tbuf) + result > BUFFER_LEN)
-                            abort_interp
-                                ("Resultant string would overflow buffer.");
+                        if (strlen(tbuf) + result > BUFFER_LEN) {
+							CLEAR(oper2);
+                            abort_interp("Resultant string would overflow buffer.");
+						}
                         buf[result] = '\0';
                         strcat(buf, tbuf);
                         result += strlen(tbuf);
@@ -311,9 +321,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                                     tbuf[i] = ' ';
                             }
                         }
-                        if (strlen(tbuf) + result > BUFFER_LEN)
-                            abort_interp
-                                ("Resultant string would overflow buffer.");
+                        if (strlen(tbuf) + result > BUFFER_LEN) {
+							CLEAR(oper2);
+                            abort_interp("Resultant string would overflow buffer.");
+						}
                         buf[result] = '\0';
                         strcat(buf, tbuf);
                         result += strlen(tbuf);
@@ -321,8 +332,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         break;
                     case 'd':
                         strcat(sfmt, "s");
-                        if (oper2->type != PROG_OBJECT)
+                        if (oper2->type != PROG_OBJECT) {
+							CLEAR(oper2);
                             abort_interp("Format specified object not found.");
+						}
                         sprintf(hold, "#%d", oper2->data.objref);
                         sprintf(tbuf, sfmt, hold);
                         tlen = strlen(tbuf);
@@ -338,9 +351,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                                     tbuf[i] = ' ';
                             }
                         }
-                        if (strlen(tbuf) + result > BUFFER_LEN)
-                            abort_interp
-                                ("Resultant string would overflow buffer.");
+                        if (strlen(tbuf) + result > BUFFER_LEN) {
+							CLEAR(oper2);
+                            abort_interp("Resultant string would overflow buffer.");
+						}
                         buf[result] = '\0';
                         strcat(buf, tbuf);
                         result += strlen(tbuf);
@@ -348,10 +362,14 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         break;
                     case 'D':
                         strcat(sfmt, "s");
-                        if (oper2->type != PROG_OBJECT)
+                        if (oper2->type != PROG_OBJECT) {
+							CLEAR(oper2);
                             abort_interp("Format specified object not found.");
-                        if (!valid_object(oper2))
+						}
+                        if (!valid_object(oper2)) {
+							CLEAR(oper2);
                             abort_interp("Format specified object not valid.");
+						}
                         ref = oper2->data.objref;
                         CHECKREMOTE(ref);
                         if ((Typeof(ref) != TYPE_PLAYER)
@@ -376,9 +394,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                                     tbuf[i] = ' ';
                             }
                         }
-                        if (strlen(tbuf) + result > BUFFER_LEN)
-                            abort_interp
-                                ("Resultant string would overflow buffer.");
+                        if (strlen(tbuf) + result > BUFFER_LEN) {
+							CLEAR(oper2);
+                            abort_interp("Resultant string would overflow buffer.");
+						}
                         buf[result] = '\0';
                         strcat(buf, tbuf);
                         result += strlen(tbuf);
@@ -386,8 +405,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         break;
                     case 'l':
                         strcat(sfmt, "s");
-                        if (oper2->type != PROG_LOCK)
+                        if (oper2->type != PROG_LOCK) {
+							CLEAR(oper2);
                             abort_interp("Format specified lock not found.");
+						}
                         strcpy(hold,
                                unparse_boolexp(ProgUID, oper2->data.lock, 1));
                         sprintf(tbuf, sfmt, hold);
@@ -404,9 +425,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                                     tbuf[i] = ' ';
                             }
                         }
-                        if (strlen(tbuf) + result > BUFFER_LEN)
-                            abort_interp
-                                ("Resultant string would overflow buffer.");
+                        if (strlen(tbuf) + result > BUFFER_LEN) {
+							CLEAR(oper2);
+                            abort_interp("Resultant string would overflow buffer.");
+						}
                         buf[result] = '\0';
                         strcat(buf, tbuf);
                         result += strlen(tbuf);
@@ -418,8 +440,10 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         strcat(sfmt, "l");
                         sprintf(hold, "%c", sstr[scnt]);
                         strcat(sfmt, hold);
-                        if (oper2->type != PROG_FLOAT)
+                        if (oper2->type != PROG_FLOAT) {
+							CLEAR(oper2);
                             abort_interp("Format specified float not found.");
+						}
                         sprintf(tbuf, sfmt, oper2->data.fnumber);
                         tlen = strlen(tbuf);
                         if (slrj == 2) {
@@ -434,15 +458,17 @@ prim_fmtstring(PRIM_PROTOTYPE)
                                     tbuf[i] = ' ';
                             }
                         }
-                        if (strlen(tbuf) + result > BUFFER_LEN)
-                            abort_interp
-                                ("Resultant string would overflow buffer.");
+                        if (strlen(tbuf) + result > BUFFER_LEN) {
+							CLEAR(oper2);
+                            abort_interp("Resultant string would overflow buffer.");
+						}
                         buf[result] = '\0';
                         strcat(buf, tbuf);
                         result += strlen(tbuf);
                         CLEAR(oper2);
                         break;
                     default:
+						CLEAR(oper2);
                         abort_interp("Invalid format string.");
                         break;
                 }
@@ -1859,7 +1885,7 @@ prim_striplead(PRIM_PROTOTYPE)
 
 void
 prim_striptail(PRIM_PROTOTYPE)
-{                               /* string -- string' */
+{   /* string -- string' */
 	char buf[BUFFER_LEN];
 	int result;
     
