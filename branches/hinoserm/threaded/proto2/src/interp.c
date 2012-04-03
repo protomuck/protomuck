@@ -455,7 +455,6 @@ void push(struct inst *stack, int *top, int type, voidptr res);
 int valid_object(struct inst *oper);
 
 int top_pid = 1;
-int nargs = 0;
 
 static struct frame *free_frames_list = NULL;
 
@@ -1766,7 +1765,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 break;
 #ifdef MODULAR_SUPPORT
 		case PROG_MODPRIM:
-			nargs = 0;
+			//nargs = 0;
 			reload(fr, atop, stop);
 			tmp = atop;
 			pc->data.modprim->func(player, program, mlev, pc, arg, &tmp, fr);
@@ -2226,7 +2225,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         break;
                     default:
 						{
-						    int i;
+						    int i, nargt;
 
 							if (mlev < primlist[pc->data.number - 1].mlev) {
                                 char errstr[1024];
@@ -2234,15 +2233,17 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 								abort_loop(errstr, NULL, NULL);
                             }
 
-							fr->nargs = primlist[pc->data.number - 1].nargs;
+							if ((nargt = primlist[pc->data.number - 1].nargs)) {
+								if (atop < nargt)
+									abort_loop("Stack underflow.", NULL, NULL);
 
-                            if (atop < fr->nargs) {
-								fr->nargs = 0;
-                                abort_loop("Stack underflow.", NULL, NULL);
+								if (fr->trys.top && atop - fr->trys.st->depth < nargt) 
+									abort_loop("Stack protection fault.", NULL, NULL);
+
+								for (i = 0; i < nargt; i++)
+								   fr->oper[i] = arg[--atop];
+                                fr->nargs = nargt;
                             }
-
-                            for (i = 0; i < fr->nargs; i++)
-                               fr->oper[i] = arg[--atop];
 
 							reload(fr, atop, stop);
 							tmp = atop;
