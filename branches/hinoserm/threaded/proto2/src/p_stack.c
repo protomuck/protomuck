@@ -18,9 +18,7 @@
 void
 prim_pop(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    oper1 = POP();
-    CLEAR(oper1);
+
 }
 
 void
@@ -48,13 +46,9 @@ prim_ndup(PRIM_PROTOTYPE)
 {
     int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument. (1)");
-    result = oper1->data.number-1;
-    CLEAR(oper1);
+    result = oper[0].data.number-1;
     CHECKOP_READONLY(1);
     CHECKOFLOW(result);
 
@@ -70,16 +64,14 @@ prim_dupn(PRIM_PROTOTYPE)
 {
     int i, result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Operand is not an integer.");
-    result = oper1->data.number;
+    result = oper[0].data.number;
     if (result < 0)
         abort_interp("Operand is negative.");
-    CLEAR(oper1);
+
     CHECKOP(result);
-    nargs = 0;
+
     CHECKOFLOW(result);
     for (i = result; i > 0; i--) {
         copyinst(&arg[*top - result], &arg[*top]);
@@ -93,7 +85,6 @@ prim_ldup(PRIM_PROTOTYPE)
     int i, result;
 
     CHECKOP_READONLY(1);
-    nargs = 0;
 
     if (arg[*top - 1].type != PROG_INTEGER)
         abort_interp("Operand is not an integer.");
@@ -105,7 +96,6 @@ prim_ldup(PRIM_PROTOTYPE)
 
     result++;
     CHECKOP_READONLY(result);
-    nargs = 0;
     CHECKOFLOW(result);
 
     for (i = result; i > 0; i--) {
@@ -117,25 +107,16 @@ prim_ldup(PRIM_PROTOTYPE)
 void
 prim_nip(PRIM_PROTOTYPE)
 {
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    CLEAR(oper2);
-    arg[(*top)++] = *oper1;
+	copyinst(&oper[0],&arg[(*top)++]);
 }
 
 void
 prim_tuck(PRIM_PROTOTYPE)
 {
-	struct inst temp2;
-    CHECKOP(2);
     CHECKOFLOW(1);
-    oper1 = POP();
-    temp2 = *(oper2 = POP());
-    arg[(*top)++] = *oper1;
-    arg[(*top)++] = temp2;
-    copyinst(&arg[*top - 2], &arg[*top]);
-    (*top)++;
+    copyinst(&oper[0],&arg[(*top)++]);
+	copyinst(&oper[1],&arg[(*top)++]);
+	copyinst(&oper[0],&arg[(*top)++]);
 }
 
 void
@@ -143,8 +124,7 @@ prim_at(PRIM_PROTOTYPE)
 {
 	struct inst temp1;
 
-    CHECKOP(1);
-    temp1 = *(oper1 = POP());
+    temp1 = fr->oper[0];
     if ((temp1.type != PROG_VAR) && (temp1.type != PROG_LVAR)
         && (temp1.type != PROG_SVAR))
         abort_interp("Non-variable argument.");
@@ -167,42 +147,36 @@ prim_at(PRIM_PROTOTYPE)
             abort_interp("Scoped variable number out of range.");
         copyinst(tmp, &arg[(*top)++]);
     }
-    CLEAR(&temp1);
 }
 
 void
 prim_bang(PRIM_PROTOTYPE)
 {
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if ((oper1->type != PROG_VAR) && (oper1->type != PROG_LVAR)
-        && (oper1->type != PROG_SVAR))
+    if ((oper[0].type != PROG_VAR) && (oper[0].type != PROG_LVAR)
+        && (oper[0].type != PROG_SVAR))
         abort_interp("Non-variable argument (2)");
-    if (oper1->data.number >= MAX_VAR || oper1->data.number < 0)
+    if (oper[0].data.number >= MAX_VAR || oper[0].data.number < 0)
         abort_interp("Variable number out of range. (2)");
-    if (oper1->type == PROG_LVAR) {
+    if (oper[0].type == PROG_LVAR) {
         /* LOCALVAR */
         struct localvars *tmp = localvars_get(fr, program);
 
-        CLEAR(&(tmp->lvars[oper1->data.number]));
-        copyinst(oper2, &(tmp->lvars[oper1->data.number]));
-    } else if (oper1->type == PROG_VAR) {
+        CLEAR(&(tmp->lvars[oper[0].data.number]));
+        copyinst(&oper[1],&(tmp->lvars[oper[0].data.number]));
+    } else if (oper[0].type == PROG_VAR) {
         /* GLOBALVAR */
-        CLEAR(&(fr->variables[oper1->data.number]));
-        copyinst(oper2, &(fr->variables[oper1->data.number]));
+        CLEAR(&(fr->variables[oper[0].data.number]));
+        copyinst(&oper[1],&(fr->variables[oper[0].data.number]));
     } else {
         /* SCOPEDVAR */
         struct inst *tmp;
 
-        tmp = scopedvar_get(fr, 0, oper1->data.number);
+        tmp = scopedvar_get(fr, 0, oper[0].data.number);
         if (!tmp)
             abort_interp("Scoped variable number out of range.");
         CLEAR(tmp);
-        copyinst(oper2, tmp);
+        copyinst(&oper[1],tmp);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
 }
 
 void
@@ -210,12 +184,9 @@ prim_var(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument");
-    result = oper1->data.number;
-    CLEAR(oper1);
+    result = oper[0].data.number;
     push(arg, top, PROG_VAR, MIPSCAST & result);
 }
 
@@ -224,12 +195,10 @@ prim_localvar(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument");
-    result = oper1->data.number;
-    CLEAR(oper1);
+    result = oper[0].data.number;
+
     push(arg, top, PROG_LVAR, MIPSCAST & result);
 }
 
@@ -238,25 +207,17 @@ prim_variablep(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_LVAR || oper1->type == PROG_VAR
-              || oper1->type == PROG_SVAR);
-    CLEAR(oper1);
+    result = (oper[0].type == PROG_LVAR || oper[0].type == PROG_VAR
+              || oper[0].type == PROG_SVAR);
+
     PushInt(result);
 }
 
 void
 prim_swap(PRIM_PROTOTYPE)
 {
-	struct inst temp2;
-
-    CHECKOP(2);
-    oper1 = POP();
-    temp2 = *(oper2 = POP());
-    arg[(*top)++] = *oper1;
-    arg[(*top)++] = temp2;
-    /* don't clean! */
+	copyinst(&oper[0],&arg[(*top)++]);
+	copyinst(&oper[1],&arg[(*top)++]);
 }
 
 void
@@ -271,14 +232,12 @@ prim_over(PRIM_PROTOTYPE)
 void
 prim_pick(PRIM_PROTOTYPE)
 {
-	struct inst temp1;
-
     CHECKOP_READONLY(1);
-    temp1 = *(oper1 = POP());
-    if (temp1.type != PROG_INTEGER || temp1.data.number <= 0)
+
+    if (oper[0].type != PROG_INTEGER || oper[0].data.number <= 0)
         abort_interp("Operand not a positive integer");
-    CHECKOP_READONLY(temp1.data.number);
-    copyinst(&arg[*top - temp1.data.number], &arg[*top]);
+    CHECKOP_READONLY(oper[0].data.number);
+    copyinst(&arg[*top - oper[0].data.number], &arg[*top]);
     (*top)++;
 }
 
@@ -287,31 +246,20 @@ prim_put(PRIM_PROTOTYPE)
 {
 	int tmp;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_INTEGER || oper1->data.number <= 0)
+    if (oper[0].type != PROG_INTEGER || oper[0].data.number <= 0)
         abort_interp("Operand not a positive integer");
-    tmp = oper1->data.number;
+    tmp = oper[0].data.number;
     CHECKOP(tmp);
     CLEAR(&arg[*top - tmp]);
-    copyinst(oper2, &arg[*top - tmp]);
-    CLEAR(oper1);
-    CLEAR(oper2);
+    copyinst(&oper[1],&arg[*top - tmp]);
 }
 
 void
 prim_rot(PRIM_PROTOTYPE)
 {
-	struct inst temp3;
-
-    CHECKOP(3);
-    oper1 = POP();
-    oper2 = POP();
-    temp3 = *(oper3 = POP());
-    arg[(*top)++] = *oper2;
-    arg[(*top)++] = *oper1;
-    arg[(*top)++] = temp3;
+	copyinst(&oper[1],&arg[(*top)++]);
+	copyinst(&oper[0],&arg[(*top)++]);
+	copyinst(&oper[2],&arg[(*top)++]);
 }
 
 void
@@ -319,19 +267,14 @@ prim_popn(PRIM_PROTOTYPE)
 {
 	int tmp;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument.");
-    tmp = oper1->data.number;
+    tmp = oper[0].data.number;
     if (tmp < 0 || tmp >= STACK_SIZE)
         abort_interp("Invalid popn quantity.");
     CHECKOP(tmp);
-    for (; tmp > 0; tmp--) {
-        CLEAR(oper1);
-        oper1 = POP();
-    }
-    CLEAR(oper1);
+    for (; tmp > 0; tmp--)
+        CLEAR(POP());
 }
 
 int
@@ -460,23 +403,19 @@ prim_sort(PRIM_PROTOTYPE)
     int (*comparator) (const void *, const void *);
 	int tmp, result;
 
-    CHECKOP(2);
-    oper1 = POP();              /* Sort type */
-    oper2 = POP();              /* {s} size */
-
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type. (1)");
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("Invalid argument type. (2)");
 
-    tmp = oper2->data.number;   /* {s} size */
+    tmp = oper[1].data.number;   /* {s} size */
     if ((tmp < 0) || (tmp >= STACK_SIZE - 2))
         abort_interp("Invalid array size.");
     CHECKOP(tmp);
 
-    tmp = oper2->data.number;
+    tmp = oper[1].data.number;
 
-    switch (oper1->data.number) {
+    switch (oper[0].data.number) {
         case 1:
             comparator = sort1;
             break;
@@ -498,9 +437,7 @@ prim_sort(PRIM_PROTOTYPE)
     }
 
     qsort(&arg[*top - tmp], tmp, sizeof(arg[0]), comparator);
-    result = oper2->data.number;
-    CLEAR(oper1);
-    CLEAR(oper2);
+    result = oper[1].data.number;
     CHECKOFLOW(1);
     PushInt(result);
 }
@@ -511,11 +448,9 @@ prim_rotate(PRIM_PROTOTYPE)
 	int tmp;
 	struct inst temp2;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type");
-    tmp = oper1->data.number;   /* Depth on stack */
+    tmp = oper[0].data.number;   /* Depth on stack */
     CHECKOP(abs(tmp));
     if (tmp > 0) {
         temp2 = arg[*top - tmp];
@@ -524,19 +459,16 @@ prim_rotate(PRIM_PROTOTYPE)
         arg[*top - 1] = temp2;
     } else if (tmp < 0) {
         temp2 = arg[*top - 1];
-        for (tmp = -1; tmp > oper1->data.number; tmp--)
+        for (tmp = -1; tmp > oper[0].data.number; tmp--)
             arg[*top + tmp] = arg[*top + tmp - 1];
         arg[*top + tmp] = temp2;
     }
-    CLEAR(oper1);
 }
 
 void
 prim_dbtop(PRIM_PROTOTYPE)
 {
-	dbref ref;
-    CHECKOP(0);
-    ref = (dbref) db_top;
+	dbref ref = (dbref) db_top;
     CHECKOFLOW(1);
     PushObject(ref);
 }
@@ -544,10 +476,7 @@ prim_dbtop(PRIM_PROTOTYPE)
 void
 prim_depth(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(0);
-    result = *top;
+	int result = *top;
     CHECKOFLOW(1);
     PushInt(result);
 }
@@ -555,10 +484,7 @@ prim_depth(PRIM_PROTOTYPE)
 void
 prim_prog(PRIM_PROTOTYPE)
 {
-	dbref ref;
-
-    CHECKOP(0);
-    ref = (dbref) program;
+	dbref ref = (dbref) program;
     CHECKOFLOW(1);
     PushObject(ref);
 }
@@ -566,10 +492,7 @@ prim_prog(PRIM_PROTOTYPE)
 void
 prim_trig(PRIM_PROTOTYPE)
 {
-	dbref ref;
-
-    CHECKOP(0);
-    ref = (dbref) fr->trig;
+	dbref ref = (dbref) fr->trig;
     CHECKOFLOW(1);
     PushObject(ref);
 }
@@ -577,10 +500,7 @@ prim_trig(PRIM_PROTOTYPE)
 void
 prim_caller(PRIM_PROTOTYPE)
 {
-	dbref ref;
-
-    CHECKOP(0);
-    ref = (dbref) fr->caller.st[fr->caller.top - 1];
+	dbref ref = (dbref) fr->caller.st[fr->caller.top - 1];
     CHECKOFLOW(1);
     PushObject(ref);
 }
@@ -588,135 +508,80 @@ prim_caller(PRIM_PROTOTYPE)
 void
 prim_intp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_INTEGER);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_INTEGER);
     PushInt(result);
 }
 
 void
 prim_floatp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_FLOAT);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_FLOAT);
     PushInt(result);
 }
 
 void
 prim_arrayp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_ARRAY);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_ARRAY);
     PushInt(result);
 }
 
 void
 prim_dictionaryp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_ARRAY && oper1->data.array &&
-              oper1->data.array->type == ARRAY_DICTIONARY);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_ARRAY && oper[0].data.array &&
+              oper[0].data.array->type == ARRAY_DICTIONARY);
     PushInt(result);
 }
 
 void
 prim_stringp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_STRING);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_STRING);
     PushInt(result);
 }
 
 void
 prim_dbrefp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_OBJECT);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_OBJECT);
     PushInt(result);
 }
 
 void
 prim_addressp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_ADD);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_ADD);
     PushInt(result);
 }
 
 void
 prim_lockp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_LOCK);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_LOCK);
     PushInt(result);
 }
 
 void
 prim_socketp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_SOCKET);
-    if (result && oper1->data.sock->listening)
+	int result = (oper[0].type == PROG_SOCKET);
+    if (result && oper[0].data.sock->listening)
         result = -1;            /* return -1 for listening sockets */
-    CLEAR(oper1);
     PushInt(result);
 }
 
 void
 prim_sqlp(PRIM_PROTOTYPE)
 {
-	int result;
-	 
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_MYSQL);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_MYSQL);
     PushInt(result);
 }
 
 void
 prim_markp(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(1);
-    oper1 = POP();
-    result = (oper1->type == PROG_MARK);
-    CLEAR(oper1);
+	int result = (oper[0].type == PROG_MARK);
     PushInt(result);
 }
 
@@ -739,16 +604,13 @@ prim_checkargs(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	dbref ref;
 
-    CHECKOP(1);
-    oper1 = POP();              /* string argument */
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non string argument");
-    if (!oper1->data.string) {
+    if (!oper[0].data.string) {
         /* if null string, then no args expected. */
-        CLEAR(oper1);
         return;
     }
-    strcpy(buf, oper1->data.string->data); /* copy into local buffer */
+    strcpy(buf, oper[0].data.string->data); /* copy into local buffer */
     currpos = strlen(buf) - 1;
     stackpos = *top - 1;
 
@@ -963,18 +825,13 @@ prim_checkargs(PRIM_PROTOTYPE)
     if (rngstktop > 0)
         abort_interp("Badly formed argument expression");
     /* Oops. still haven't finished a range or repeat expression. */
-
-    CLEAR(oper1);               /* clear link to shared string */
 }
 
 
 void
 prim_mode(PRIM_PROTOTYPE)
 {
-	int result;
-
-    CHECKOP(0);
-    result = fr->multitask;
+	int result = fr->multitask;
     CHECKOFLOW(1);
     PushInt(result);
 }
@@ -984,11 +841,9 @@ prim_setmode(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type");
-    result = oper1->data.number;
+    result = oper[0].data.number;
     switch (result) {
         case BACKGROUND:
             fr->been_background = 1;
@@ -1005,7 +860,6 @@ prim_setmode(PRIM_PROTOTYPE)
             break;
     }
     fr->multitask = result;
-    CLEAR(oper1);
 }
 
 
@@ -1016,40 +870,31 @@ prim_interp(PRIM_PROTOTYPE)
     char buf[BUFFER_LEN];
     struct frame *tmpfr;
 
-    CHECKOP(3);
-    oper3 = POP();              /* string -- top stack argument */
-    oper2 = POP();              /* dbref  --  trigger */
-    oper1 = POP();              /* dbref  --  Program to run */
-
-    if (!valid_object(oper1) || Typeof(oper1->data.objref) != TYPE_PROGRAM)
+    if (!valid_object(&oper[2]) || Typeof(oper[2].data.objref) != TYPE_PROGRAM)
         abort_interp("Bad program reference. (1)");
-    if (!valid_object(oper2))
+    if (!valid_object(&oper[1]))
         abort_interp("Bad object. (2)");
-    if (oper3->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Need string arguement. (3)");
-    if (!permissions(mlev, ProgUID, oper2->data.objref))
+    if (!permissions(mlev, ProgUID, oper[1].data.objref))
         abort_interp(tp_noperm_mesg);
     if (fr->level > 64)
         abort_interp("Maximum interp loop recursion exceeded. (64)");
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
 
     strcpy(buf, match_args);
-    strcpy(match_args, oper3->data.string ? oper3->data.string->data : "");
+    strcpy(match_args, oper[0].data.string ? oper[0].data.string->data : "");
     fr->level++;
     interp_set_depth(fr);
     tmpfr = interp(fr->descr, player, DBFETCH(player)->location,
-                   oper1->data.objref, oper2->data.objref, PREEMPT,
+                   oper[2].data.objref, oper[1].data.objref, PREEMPT,
                    STD_HARDUID, 0);
     if (tmpfr) {
-        rv = interp_loop(player, oper1->data.objref, tmpfr, 1);
+        rv = interp_loop(player, oper[2].data.objref, tmpfr, 1);
     }
     fr->level--;
     interp_set_depth(fr);
     strcpy(match_args, buf);
-
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
 
     if (rv) {
         if (rv->type < PROG_STRING) {
@@ -1066,7 +911,6 @@ prim_interp(PRIM_PROTOTYPE)
 void
 prim_mark(PRIM_PROTOTYPE)
 {
-    CHECKOP(0);
     CHECKOFLOW(1);
     PushMark();
 }
@@ -1077,7 +921,6 @@ prim_findmark(PRIM_PROTOTYPE)
     int depth, height, count;
 	struct inst temp2;
 
-    CHECKOP(0);
     depth = 1;
     height = *top - 1;
     while (height >= 0 && arg[height].type != PROG_MARK) {
@@ -1093,8 +936,7 @@ prim_findmark(PRIM_PROTOTYPE)
             arg[*top - depth] = arg[*top - depth + 1];
         arg[*top - 1] = temp2;
     }
-    oper1 = POP();
-    CLEAR(oper1);
+    CLEAR(POP());
     PushInt(count);
 }
 
@@ -1105,8 +947,6 @@ struct tryvars *pop_try(struct tryvars *);
 void
 prim_trypop(PRIM_PROTOTYPE)
 {
-    CHECKOP(0);
-
     if (!(fr->trys.top))
         abort_interp("Internal error; TRY stack underflow.");
 
@@ -1121,11 +961,9 @@ prim_reverse(PRIM_PROTOTYPE)
     int i, tmp;
 	struct inst temp2;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type.");
-    tmp = oper1->data.number;   /* Depth on stack */
+    tmp = oper[0].data.number;   /* Depth on stack */
     if (tmp < 0)
         abort_interp("Argument must be positive.");
     CHECKOP(tmp);
@@ -1136,7 +974,6 @@ prim_reverse(PRIM_PROTOTYPE)
             arg[*top - (i + 1)] = temp2;
         }
     }
-    CLEAR(oper1);
 }
 
 
@@ -1146,11 +983,9 @@ prim_lreverse(PRIM_PROTOTYPE)
     int i, tmp;
 	struct inst temp2;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type.");
-    tmp = oper1->data.number;   /* Depth on stack */
+    tmp = oper[0].data.number;   /* Depth on stack */
     if (tmp < 0)
         abort_interp("Argument must be positive.");
     CHECKOP(tmp);
@@ -1161,7 +996,6 @@ prim_lreverse(PRIM_PROTOTYPE)
             arg[*top - (i + 1)] = temp2;
         }
     }
-    CLEAR(oper1);
     PushInt(tmp);
 }
 
@@ -1175,43 +1009,31 @@ struct forvars *pop_for(struct forvars *);
 void
 prim_for(PRIM_PROTOTYPE)
 {
-    CHECKOP(3);
-    oper3 = POP();              /* step */
-    oper2 = POP();              /* end */
-    oper1 = POP();              /* start */
-
-    if (oper1->type != PROG_INTEGER)
+    if (oper[2].type != PROG_INTEGER)
         abort_interp("Starting count expected. (1)");
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("Ending count expected. (2)");
-    if (oper3->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Step count expected. (3)");
     if (fr->fors.top >= STACK_SIZE)
         abort_interp("Too many nested FOR loops.");
 
     fr->fors.top++;
     fr->fors.st = push_for(fr->fors.st);
-    copyinst(oper1, &fr->fors.st->cur);
-    copyinst(oper2, &fr->fors.st->end);
-    fr->fors.st->step = oper3->data.number;
+    copyinst(&oper[2],&fr->fors.st->cur);
+    copyinst(&oper[1],&fr->fors.st->end);
+    fr->fors.st->step = oper[0].data.number;
     fr->fors.st->didfirst = 0;
 
     if (fr->trys.st)
         fr->trys.st->for_count++;
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
 }
 
 
 void
 prim_foreach(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    oper1 = POP();
-
-    if (oper1->type != PROG_ARRAY)
+    if (oper[0].type != PROG_ARRAY)
         abort_interp("Array argument expected. (1)");
     if (fr->fors.top >= STACK_SIZE)
         abort_interp("Too many nested FOR loops.");
@@ -1226,11 +1048,9 @@ prim_foreach(PRIM_PROTOTYPE)
     if (fr->trys.st)
         fr->trys.st->for_count++;
 
-    copyinst(oper1, &fr->fors.st->end);
+    copyinst(&oper[0],&fr->fors.st->end);
     fr->fors.st->step = 0;
     fr->fors.st->didfirst = 0;
-
-    CLEAR(oper1);
 }
 
 
@@ -1238,7 +1058,6 @@ void
 prim_foriter(PRIM_PROTOTYPE)
 {
 	int result, tmp;
-    CHECKOP(0);
 
     if (!fr->fors.st)
         abort_interp("Internal error; FOR stack underflow.");
@@ -1293,8 +1112,6 @@ prim_foriter(PRIM_PROTOTYPE)
 void
 prim_forpop(PRIM_PROTOTYPE)
 {
-    CHECKOP(0);
-
     if (!(fr->fors.top))
         abort_interp("Internal error; FOR stack underflow.");
 

@@ -11,12 +11,17 @@ extern void prim_restart(PRIM_PROTOTYPE);
 extern void prim_armageddon(PRIM_PROTOTYPE);
 extern void prim_sysparm_array(PRIM_PROTOTYPE);
 
-#define PRIMS_SYSTEM_FUNCS prim_sysparm, prim_setsysparm, prim_version, \
-    prim_force, prim_force_level, prim_logstatus, prim_dump, prim_delta,\
-    prim_shutdown, prim_restart, prim_armageddon, prim_sysparm_array
-
-#define PRIMS_SYSTEM_NAMES "SYSPARM", "SETSYSPARM", "VERSION", \
-   "FORCE", "FORCE_LEVEL", "LOGSTATUS", "DUMP", "DELTA",       \
-   "SHUTDOWN", "RESTART", "ARMAGEDDON", "SYSPARM_ARRAY"
+#define PRIMLIST_SYSTEM { "SYSPARM",        LM1,   1, prim_sysparm       }, \
+                        { "SETSYSPARM",     LARCH, 2, prim_setsysparm    }, \
+                        { "VERSION",        LM1,   0, prim_version       }, \
+                        { "FORCE",          LARCH, 2, prim_force         }, \
+                        { "FORCE_LEVEL",    LM1,   0, prim_force_level   }, \
+                        { "LOGSTATUS",      LARCH, 1, prim_logstatus     }, \
+                        { "DUMP",           LARCH, 0, prim_dump          }, \
+                        { "DELTA",          LARCH, 0, prim_delta         }, \
+                        { "SHUTDOWN",       LBOY,  1, prim_shutdown      }, \
+                        { "RESTART",        LBOY,  1, prim_restart       }, \
+                        { "ARMAGEDDON",     LBOY,  1, prim_armageddon    }, \
+                        { "SYSPARM_ARRAY",  LM1,   1, prim_sysparm_array }
 
 #define PRIMS_SYSTEM_CNT 12

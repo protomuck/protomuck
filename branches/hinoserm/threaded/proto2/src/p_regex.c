@@ -184,30 +184,24 @@ prim_regexp(PRIM_PROTOTYPE)
     const char* errstr;
     char buf[BUFFER_LEN];
 
-    CHECKOP(3);
-
-    oper3 = POP(); /* int:Flags */
-    oper2 = POP(); /* str:Pattern */
-    oper1 = POP(); /* str:Text */
-
-    if (oper1->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (oper3->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (3)");
-    if (!oper2->data.string)
+    if (!oper[1].data.string)
         abort_interp("Empty string argument (2)");
 
-    if (oper3->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper3->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    if ((re = muf_re_get(oper2->data.string, flags, &errstr)) == NULL)
+    if ((re = muf_re_get(oper[1].data.string, flags, &errstr)) == NULL)
         abort_interp(errstr);
 
-    text    = (char *)DoNullInd(oper1->data.string);
+    text    = (char *)DoNullInd(oper[2].data.string);
     len     = strlen(text);
 
     if ((matchcnt = pcre_exec(re->re, re->extra, text, len, 0, 0, matches, MATCH_ARR_SIZE)) < 0)
@@ -305,10 +299,6 @@ prim_regexp(PRIM_PROTOTYPE)
         }
     }
 
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
-
     PushArrayRaw(nu_val);
     PushArrayRaw(nu_idx);
 }
@@ -327,33 +317,26 @@ prim_regsub(PRIM_PROTOTYPE)
     const char* errstr;
     int         matchcnt, len;
 
-    CHECKOP(4);
-
-    oper4 = POP(); /* int:Flags */
-    oper3 = POP(); /* str:Replace */
-    oper2 = POP(); /* str:Pattern */
-    oper1 = POP(); /* str:Text */
-
-    if (oper1->type != PROG_STRING)
+    if (oper[3].type != PROG_STRING)
         abort_interp("Non-string argument (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (oper3->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (3)");
-    if (oper4->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (4)");
-    if (!oper2->data.string)
+    if (!oper[2].data.string)
         abort_interp("Empty string argument (2)");
 
-    if (oper4->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper4->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    if ((re = muf_re_get(oper2->data.string, flags, &errstr)) == NULL)
+    if ((re = muf_re_get(oper[2].data.string, flags, &errstr)) == NULL)
         abort_interp(errstr);
 
-    if (!re->extra && (oper4->data.number & MUF_RE_ALL)) {
+    if (!re->extra && (oper[0].data.number & MUF_RE_ALL)) {
         /* User requested a recursive pattern search. This generally means
          * pcre_exec will be called at least twice unless the pattern doesn't
          * exist in the string at all. Presence of this option suggests that
@@ -365,7 +348,7 @@ prim_regsub(PRIM_PROTOTYPE)
     }
 
 
-    textstart = text = (char *)DoNullInd(oper1->data.string);
+    textstart = text = (char *)DoNullInd(oper[3].data.string);
 
     len = strlen(textstart);
     while((*text != '\0') && (write_left > 0))
@@ -391,7 +374,7 @@ prim_regsub(PRIM_PROTOTYPE)
             int         allend      = matches[1];
             int         substart    = -1;
             int         subend      = -1;
-            char*       read_ptr    = (char *)DoNullInd(oper3->data.string);
+            char*       read_ptr    = (char *)DoNullInd(oper[1].data.string);
             int         count;
 
             for(count = allstart-(text-textstart); (write_left > 0) && (*text != '\0') && (count > 0); count--)
@@ -456,7 +439,7 @@ prim_regsub(PRIM_PROTOTYPE)
             }
         }
 
-        if ((oper4->data.number & MUF_RE_ALL) == 0)
+        if ((oper[0].data.number & MUF_RE_ALL) == 0)
         {
             while((write_left > 0) && (*text != '\0'))
             {
@@ -472,11 +455,6 @@ prim_regsub(PRIM_PROTOTYPE)
         abort_interp("Operation would result in overflow");
 
     *write_ptr = '\0';
-
-    CLEAR(oper4);
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
 
     PushString(buf);
 }
@@ -501,41 +479,34 @@ prim_array_regsub(PRIM_PROTOTYPE)
     struct inst temp1;
     struct inst temp2;
 
-    CHECKOP(4);
-
-    oper4 = POP(); /* int:Flags */
-    oper3 = POP(); /* str:Replace */
-    oper2 = POP(); /* str:Pattern */
-    oper1 = POP(); /* str:Text */
-
-    if (oper1->type != PROG_ARRAY)
+    if (oper[3].type != PROG_ARRAY)
         abort_interp("Argument not an array of strings. (1)");
-    if (!array_is_homogenous(oper1->data.array, PROG_STRING))
+    if (!array_is_homogenous(oper[3].data.array, PROG_STRING))
         abort_interp("Argument not an array of strings. (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (oper3->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (3)");
-    if (oper4->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (4)");
-    if (!oper2->data.string)
+    if (!oper[2].data.string)
         abort_interp("Empty string argument (2)");
 
-    if (oper4->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper4->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    if ((re = muf_re_get(oper2->data.string, flags, &errstr)) == NULL)
+    if ((re = muf_re_get(oper[2].data.string, flags, &errstr)) == NULL)
         abort_interp(errstr);
 
 
 
     nw = new_array_dictionary();
-    arr = oper1->data.array;
+    arr = oper[3].data.array;
 
     if (!re->extra
-        && ((oper4->data.number & MUF_RE_ALL ) || array_count(arr) > 2)) {
+        && ((oper[0].data.number & MUF_RE_ALL ) || array_count(arr) > 2)) {
         /* Study the pattern if the user requested recursive substitution, or
          * if the input array contains at least three items. */
         re->extra = pcre_study(re->re, 0, &errstr);
@@ -577,7 +548,7 @@ prim_array_regsub(PRIM_PROTOTYPE)
                     int         allend      = matches[1];
                     int         substart    = -1;
                     int         subend      = -1;
-                    char*       read_ptr    = (char *)DoNullInd(oper3->data.string);
+                    char*       read_ptr    = (char *)DoNullInd(oper[1].data.string);
                     int         count;
 
                     for(count = allstart-(text-textstart);
@@ -644,7 +615,7 @@ prim_array_regsub(PRIM_PROTOTYPE)
                     }
                 }
 
-                if ((oper4->data.number & MUF_RE_ALL) == 0)
+                if ((oper[0].data.number & MUF_RE_ALL) == 0)
                 {
                     while((write_left > 0) && (*text != '\0'))
                     {
@@ -668,12 +639,6 @@ prim_array_regsub(PRIM_PROTOTYPE)
             CLEAR(&temp2);
         } while (array_next(arr, &temp1));
     }
-
-    CLEAR(oper4);
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
-
     PushArrayRaw(nw);
 }
 
@@ -687,16 +652,11 @@ prim_regmatch(PRIM_PROTOTYPE)
     const char* errstr = NULL;
     int         result = 0;
 
-    CHECKOP(3);
-    oper3 = POP(); /* int:Flags */
-    oper2 = POP(); /* str:Pattern */
-    oper1 = POP(); /* str:Text */
-
-    if (oper1->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (oper3->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (3)");
 
     /* This primitive is for matching, not capturing. Using user-supplied
@@ -709,16 +669,16 @@ prim_regmatch(PRIM_PROTOTYPE)
 
     flags = PCRE_NO_AUTO_CAPTURE;
 
-    if (oper3->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper3->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    re = regmatch_re_get(oper2->data.string, flags, &errstr);
+    re = regmatch_re_get(oper[1].data.string, flags, &errstr);
     if (errstr)
         abort_interp(errstr)
 
-    text    = (char *)DoNullInd(oper1->data.string);
+    text    = (char *)DoNullInd(oper[2].data.string);
 
     if ((matchcnt = regmatch_exec(re, text)) < 0) {
         if (matchcnt != PCRE_ERROR_NOMATCH)
@@ -729,10 +689,6 @@ prim_regmatch(PRIM_PROTOTYPE)
     else
         /* Returning matchcnt isn't useful in match-only mode. */
         result = 1;
-    
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
 
     PushInt(result);
 }
@@ -750,31 +706,26 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
     const char* errstr = NULL;
     struct inst temp1;
 
-
-    CHECKOP(3);
-    oper3 = POP();              /* int  pcreflags */
-    oper2 = POP();              /* str  pattern */
-    oper1 = POP();              /* arr  Array */
-    if (oper1->type != PROG_ARRAY)
+    if (oper[2].type != PROG_ARRAY)
         abort_interp("Argument not an array. (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Argument not a string pattern. (2)");
-    if (oper3->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (3)");
 
     flags = PCRE_NO_AUTO_CAPTURE;
 
-    if (oper3->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper3->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    re = regmatch_re_get(oper2->data.string, flags, &errstr);
+    re = regmatch_re_get(oper[1].data.string, flags, &errstr);
     if (errstr)
         abort_interp(errstr)
 
     nw = new_array_dictionary();
-    arr = oper1->data.array;
+    arr = oper[2].data.array;
 
     if (re && !re->extra && array_count(arr) > 2) {
         /* This pattern is getting used 3 or more times, let's study it. A null
@@ -799,11 +750,6 @@ prim_array_regmatchkey(PRIM_PROTOTYPE)
             }
         } while (array_next(arr, &temp1));
     }
-
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
-
     PushArrayRaw(nw);
 }
 
@@ -818,32 +764,28 @@ prim_array_regmatchval(PRIM_PROTOTYPE)
     int flags;
     int matchcnt = 0;
     const char* errstr = NULL;
-struct inst temp1;
+    struct inst temp1;
 
-    CHECKOP(3);
-    oper3 = POP();              /* int  pcreflags */
-    oper2 = POP();              /* str  pattern */
-    oper1 = POP();              /* arr  Array */
-    if (oper1->type != PROG_ARRAY)
+    if (oper[2].type != PROG_ARRAY)
         abort_interp("Argument not an array. (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Argument not a string pattern. (2)");
-    if (oper3->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (3)");
 
     flags = PCRE_NO_AUTO_CAPTURE;
 
-    if (oper3->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper3->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    re = regmatch_re_get(oper2->data.string, flags, &errstr);
+    re = regmatch_re_get(oper[1].data.string, flags, &errstr);
     if (errstr)
         abort_interp(errstr)
 
     nw = new_array_dictionary();
-    arr = oper1->data.array;
+    arr = oper[2].data.array;
 
     if (re && !re->extra && array_count(arr) > 2) {
         /* This pattern is getting used 3 or more times, let's study it. A null
@@ -875,12 +817,6 @@ struct inst temp1;
             }
         } while (array_next(arr, &temp1));
     }
-
-
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
-
     PushArrayRaw(nw);
 }
 
@@ -901,39 +837,33 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
     struct inst temp1;
     dbref ref;
 
-    CHECKOP(4);
-    oper4 = POP();    /* int     pcreflags */
-    oper3 = POP();    /* str     pattern */
-    oper2 = POP();    /* str     propname */
-    oper1 = POP();    /* refarr  Array */
-
-    if (oper1->type != PROG_ARRAY)
+    if (oper[3].type != PROG_ARRAY)
         abort_interp("Argument not an array. (1)");
-    if (!array_is_homogenous(oper1->data.array, PROG_OBJECT))
+    if (!array_is_homogenous(oper[3].data.array, PROG_OBJECT))
         abort_interp("Argument not an array of dbrefs. (1)");
-    if (oper2->type != PROG_STRING || !oper2->data.string)
+    if (oper[2].type != PROG_STRING || !oper[2].data.string)
         abort_interp("Argument not a non-null string. (2)");
-    if (oper3->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Argument not a string pattern. (3)");
-    if (oper4->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (4)");
 
 
-    ptr = oper2->data.string->data;
+    ptr = oper[2].data.string->data;
     while ((ptr = index(ptr, PROPDIR_DELIMITER)))
         if (!(*(++ptr)))
             abort_interp("Cannot access a propdir directly.");
     nu = new_array_packed(0);
-    arr = oper1->data.array;
+    arr = oper[3].data.array;
 
     flags = PCRE_NO_AUTO_CAPTURE;
 
-    if (oper4->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper4->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    re = regmatch_re_get(oper3->data.string, flags, &errstr);
+    re = regmatch_re_get(oper[1].data.string, flags, &errstr);
     if (errstr)
         abort_interp(errstr)
 
@@ -945,7 +875,7 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
             abort_interp(errstr);
     }
 
-    prop = (char *) DoNullInd(oper2->data.string);
+    prop = (char *) DoNullInd(oper[2].data.string);
     if (array_first(arr, &temp1)) {
         do {
             in = array_getitem(arr, &temp1);
@@ -968,12 +898,6 @@ prim_array_regfilter_prop(PRIM_PROTOTYPE)
             }
         } while (array_next(arr, &temp1));
     }
-
-
-    CLEAR(oper4);
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
     PushArrayRaw(nu);
 }
 
@@ -990,34 +914,26 @@ prim_regfind_array(PRIM_PROTOTYPE)
     int matchcnt = 0;
     const char* errstr = NULL;
 
-    CHECKOP(4);
-    oper4 = POP();              /* int:pcreflags */
-    oper3 = POP();              /* str:objflags */
-    oper2 = POP();              /* str:namepattern */
-    oper1 = POP();              /* ref:owner */
-
-    if (mlev < LMAGE)
-        abort_interp("MAGE prim.");
-    if (oper4->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (4)");
-    if (oper3->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Expected string argument. (3)");
-    if (oper2->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Expected string argument. (2)");
-    if (oper1->type != PROG_OBJECT)
+    if (oper[3].type != PROG_OBJECT)
         abort_interp("Expected dbref argument. (1)");
-    if (oper1->data.objref < NOTHING || oper1->data.objref >= db_top)
+    if (oper[3].data.objref < NOTHING || oper[3].data.objref >= db_top)
         abort_interp("Bad object. (1)");
 
 
     flags = PCRE_NO_AUTO_CAPTURE;
 
-    if (oper4->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper4->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    re = regmatch_re_get(oper2->data.string, flags, &errstr);
+    re = regmatch_re_get(oper[2].data.string, flags, &errstr);
     if (errstr)
         abort_interp(errstr)
 
@@ -1029,10 +945,10 @@ prim_regfind_array(PRIM_PROTOTYPE)
             abort_interp(errstr);
     }
 
-    who = oper1->data.objref;
-    name = DoNullInd(oper2->data.string);
+    who = oper[3].data.objref;
+    name = DoNullInd(oper[2].data.string);
 
-    init_checkflags(PSafe, DoNullInd(oper3->data.string), &check);
+    init_checkflags(PSafe, DoNullInd(oper[1].data.string), &check);
     nw = new_array_packed(0);
 
     /* The "result = array_appendref" stuff was copied from find_array. I'm
@@ -1055,11 +971,6 @@ prim_regfind_array(PRIM_PROTOTYPE)
         }
     }
 
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
-    CLEAR(oper4);
     PushArrayRaw(nw);
 }
 
@@ -1075,34 +986,27 @@ prim_regfindnext(PRIM_PROTOTYPE)
     int matchcnt = 0;
     const char* errstr = NULL;
 
-    CHECKOP(5);
-    oper5 = POP();              /* int:pcreflags */
-    oper4 = POP();              /* str:objflags */
-    oper3 = POP();              /* str:namepattern */
-    oper2 = POP();              /* ref:owner */
-    oper1 = POP();              /* ref:currobj */
-
-    if (oper5->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (5)");
-    if (oper4->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Expected string argument. (4)");
-    if (oper3->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Expected string argument. (3)");
-    if (oper2->type != PROG_OBJECT)
+    if (oper[3].type != PROG_OBJECT)
         abort_interp("Expected dbref argument. (2)");
-    if (oper2->data.objref < NOTHING || oper2->data.objref >= db_top)
+    if (oper[3].data.objref < NOTHING || oper[3].data.objref >= db_top)
         abort_interp("Bad object. (2)");
-    if (oper1->type != PROG_OBJECT)
+    if (oper[4].type != PROG_OBJECT)
         abort_interp("Expected dbref argument. (1)");
-    if (oper1->data.objref < NOTHING || oper1->data.objref >= db_top)
+    if (oper[4].data.objref < NOTHING || oper[4].data.objref >= db_top)
         abort_interp("Bad object. (1)");
-    if (oper2->data.objref != NOTHING &&
-        Typeof(oper2->data.objref) == TYPE_GARBAGE)
+    if (oper[3].data.objref != NOTHING &&
+        Typeof(oper[3].data.objref) == TYPE_GARBAGE)
         abort_interp("Owner dbref is garbage. (2)");
 
-    item = oper1->data.objref;
-    who = oper2->data.objref;
-    name = DoNullInd(oper3->data.string);
+    item = oper[4].data.objref;
+    who = oper[3].data.objref;
+    name = DoNullInd(oper[2].data.string);
 
     if (mlev < 2)
         abort_interp("Permission denied.  Requires at least Mucker Level 2.");
@@ -1119,12 +1023,12 @@ prim_regfindnext(PRIM_PROTOTYPE)
 
     flags = PCRE_NO_AUTO_CAPTURE;
 
-    if (oper5->data.number & MUF_RE_ICASE)
+    if (oper[0].data.number & MUF_RE_ICASE)
         flags |= PCRE_CASELESS;
-    if (oper5->data.number & MUF_RE_EXTENDED)
+    if (oper[0].data.number & MUF_RE_EXTENDED)
         flags |= PCRE_EXTENDED;
 
-    re = regmatch_re_get(oper3->data.string, flags, &errstr);
+    re = regmatch_re_get(oper[2].data.string, flags, &errstr);
     if (errstr)
         abort_interp(errstr)
 
@@ -1143,7 +1047,7 @@ prim_regfindnext(PRIM_PROTOTYPE)
     }
 
     ref = NOTHING;
-    init_checkflags(PSafe, DoNullInd(oper4->data.string), &check);
+    init_checkflags(PSafe, DoNullInd(oper[1].data.string), &check);
     for (i = item; i < db_top; i++) {
         if ((who == NOTHING || OWNER(i) == who) &&
             checkflags(i, check) && NAME(i)) {
@@ -1162,13 +1066,6 @@ prim_regfindnext(PRIM_PROTOTYPE)
             }
         }
     }
-
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
-    CLEAR(oper4);
-    CLEAR(oper5);
 
     PushObject(ref);
 }

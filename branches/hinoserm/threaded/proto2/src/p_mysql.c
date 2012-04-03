@@ -31,46 +31,31 @@ prim_sqlconnect(PRIM_PROTOTYPE)
     unsigned int timeout, notConnected, *timeoutPtr;
     MYSQL *result, *tempsql;
 
-    CHECKOP(5);
-    oper5 = POP();              /* timeout INT */
-    oper4 = POP();              /* database STR */
-    oper3 = POP();              /* password STR */
-    oper2 = POP();              /* username STR */
-    oper1 = POP();              /* hostname STR */
-
-    if (mlev < LARCH)
-        abort_interp("MYSQL connections are ArchWiz level prims.");
-    if (oper5->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Timeout must be an integer.");
-    if (oper5->data.number < 1)
-        oper5->data.number = 1; /* avoiding 0 or negative timeouts */
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING ||
-        oper3->type != PROG_STRING || oper4->type != PROG_STRING)
+    if (oper[0].data.number < 1)
+        oper[0].data.number = 1; /* avoiding 0 or negative timeouts */
+    if (oper[4].type != PROG_STRING || oper[3].type != PROG_STRING ||
+        oper[2].type != PROG_STRING || oper[1].type != PROG_STRING)
         abort_interp("Login arguments must be strings.");
-    if (!oper2->data.string)
+    if (!oper[3].data.string)
         abort_interp("Username cannot be an empty string.");
     /* copy data over */
-    if (oper1->data.string)     /* null host is assumed to be localhost */
-        strcpy(hostname, oper1->data.string->data);
+    if (oper[4].data.string)     /* null host is assumed to be localhost */
+        strcpy(hostname, oper[4].data.string->data);
     else
         strcpy(hostname, "");
-    strcpy(username, oper2->data.string->data);
-    if (oper3->data.string)     /* null passwords are possible. */
-        strcpy(password, oper3->data.string->data);
+    strcpy(username, oper[3].data.string->data);
+    if (oper[2].data.string)     /* null passwords are possible. */
+        strcpy(password, oper[2].data.string->data);
     else
         strcpy(password, "");
-    if (oper4->data.string)     /* null databases are possible. */
-        strcpy(database, oper4->data.string->data);
+    if (oper[1].data.string)     /* null databases are possible. */
+        strcpy(database, oper[1].data.string->data);
     else
         strcpy(database, "");
-    timeout = oper5->data.number;
+    timeout = oper[0].data.number;
     timeoutPtr = &timeout;      /* mysql_options wants a pointer to an int */
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
-    CLEAR(oper4);
-    CLEAR(oper5);
 
     tempsql = (MYSQL *)malloc(sizeof(MYSQL));
     /* Making this error abort because it's a rare critical error 
@@ -92,7 +77,7 @@ prim_sqlconnect(PRIM_PROTOTYPE)
         newsql->data.mysql = (struct muf_sql *) malloc(sizeof(struct muf_sql));
         newsql->data.mysql->mysql_conn = tempsql;
         newsql->data.mysql->connected = 1;
-        newsql->data.mysql->timeout = oper5->data.number;
+        newsql->data.mysql->timeout = oper[0].data.number;
         newsql->data.mysql->links = 1; /* 1 instance so far */
         copyinst(newsql, &arg[(*top)++]);
         CLEAR(newsql);
@@ -125,37 +110,26 @@ prim_sqlquery(PRIM_PROTOTYPE)
     stk_array *fieldsList;
     char errbuf[BUFFER_LEN];
 
-    nargs = 1;
-
-    CHECKOP(2);                 /* SQL string */
-    oper1 = POP();              /* the query */
-    oper2 = POP();              /* the SQL connectin */
-
-    if (mlev < LARCH)
-        abort_interp("SQL prims are ArchWiz level.");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("String argument expected for query. (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
         abort_interp("The query cannot be an empty string. (2)");
-    if (oper2->type != PROG_MYSQL)
+    if (oper[1].type != PROG_MYSQL)
         abort_interp("MySQL connection expected. (1)");
-    if (!oper2->data.mysql->connected)
+    if (!oper[1].data.mysql->connected)
         abort_interp("This MySQL connection is closed.");
 
-    strcpy(query, oper1->data.string->data);
-    CLEAR(oper1);
-    tempsql = oper2->data.mysql->mysql_conn;
+    strcpy(query, oper[0].data.string->data);
+    tempsql = oper[1].data.mysql->mysql_conn;
     if (mysql_query(tempsql, query)) { /* Query failed */
         errno = -1;
 
         strcpy(errbuf, mysql_error(tempsql));
-        CLEAR(oper2);
         PushString(errbuf);
         PushInt(errno);
         return;                 /* Push error string, and -1, and return */
     }
     res = mysql_store_result(tempsql);
-    CLEAR(oper2);
     num_rows = 0;
     if (res) {                  /* there IS a result */
         /* tmp = malloc(BUFFER_LEN); */
@@ -202,19 +176,12 @@ prim_sqlquery(PRIM_PROTOTYPE)
 void
 prim_sqlclose(PRIM_PROTOTYPE)
 {
-    CHECKOP(1);
-    /* MYSQL */
-    oper1 = POP();
-
-    if (mlev < LARCH)
-        abort_interp("MySQL prims are ArchWiz.");
-    if (oper1->type != PROG_MYSQL)
+    if (oper[0].type != PROG_MYSQL)
         abort_interp("MySQL connection expected.");
-    if (oper1->data.mysql->connected) {
-        mysql_close(oper1->data.mysql->mysql_conn);
-        oper1->data.mysql->connected = 0;
+    if (oper[0].data.mysql->connected) {
+        mysql_close(oper[0].data.mysql->mysql_conn);
+        oper[0].data.mysql->connected = 0;
     }
-    CLEAR(oper1);
 }
 
 void
@@ -222,23 +189,16 @@ prim_sqlping(PRIM_PROTOTYPE)
 {
     int result = 0;
 
-    CHECKOP(1);
-    /* MYSQL */
-    oper1 = POP();
-
-    if (mlev < LARCH)
-        abort_interp("MySQL prims are ArchWiz level.");
-    if (oper1->type != PROG_MYSQL)
+    if (oper[0].type != PROG_MYSQL)
         abort_interp("MySQL connection expected.");
 
-    if (oper1->data.mysql->connected) {
-        result = mysql_ping(oper1->data.mysql->mysql_conn);
+    if (oper[0].data.mysql->connected) {
+        result = mysql_ping(oper[0].data.mysql->mysql_conn);
         if (!result)
             result = 1;
         else
-            oper1->data.mysql->connected = 0;
+            oper[0].data.mysql->connected = 0;
     }
-    CLEAR(oper1);
     PushInt(result);
 }
 

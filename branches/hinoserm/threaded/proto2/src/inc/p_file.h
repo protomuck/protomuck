@@ -19,17 +19,27 @@ extern void prim_getdir(PRIM_PROTOTYPE);
 extern void prim_mkdir(PRIM_PROTOTYPE);
 extern void prim_rmdir(PRIM_PROTOTYPE);
 
-#define PRIMS_FILE_FUNCS prim_fwrite, prim_fappend, prim_fread,     \
-        prim_freadn, prim_fcr, prim_fpublish, prim_bread,           \
-        prim_bwrite, prim_bappend, prim_fsize, prim_fstats,         \
-        prim_curid, prim_fsinfo, prim_frm, prim_fren, prim_freadto, \
-        prim_fnameokp, prim_getdir, prim_mkdir, prim_rmdir
-
-#define PRIMS_FILE_NAMES "FWRITE", "FAPPEND", "FREAD", "FREADN",  \
-        "FCR", "FPUBLISH", "BREAD", "BWRITE", "BAPPEND", "FSIZE", \
-        "FSTATS", "CURID", "FSINFO", "FRM", "FREN", "FREADTO",    \
-        "FNAME-OK?", "GETDIR", "MKDIR", "RMDIR"
-
+#define PRIMLIST_FILE { "FWRITE",      LBOY,  3, prim_fwrite     }, \
+                      { "FAPPEND",     LBOY,  2, prim_fappend    }, \
+                      { "FREAD",       LBOY,  2, prim_fread      }, \
+                      { "FREADN",      LBOY,  3, prim_freadn     }, \
+                      { "FCR",         LBOY,  1, prim_fcr        }, \
+                      { "FPUBLISH",    LBOY,  1, prim_fpublish   }, \
+                      { "BREAD",       LBOY,  2, prim_bread      }, \
+                      { "BWRITE",      LBOY,  3, prim_bwrite     }, \
+                      { "BAPPEND",     LBOY,  2, prim_bappend    }, \
+                      { "FSIZE",       LBOY,  1, prim_fsize      }, \
+                      { "FSTATS",      LBOY,  1, prim_fstats     }, \
+                      { "CURID",       LBOY,  0, prim_curid      }, \
+                      { "FSINFO",      LBOY,  0, prim_fsinfo     }, \
+                      { "FRM",         LBOY,  1, prim_frm        }, \
+                      { "FREN",        LBOY,  2, prim_fren       }, \
+                      { "FREADTO",     LBOY,  3, prim_freadto    }, \
+                      { "FNAME-OK?",   LBOY,  1, prim_fnameokp   }, \
+                      { "GETDIR",      LBOY,  1, prim_getdir     }, \
+                      { "MKDIR",       LBOY,  1, prim_mkdir      }, \
+                      { "RMDIR",       LBOY,  1, prim_rmdir      }
+ 
 #if defined(FILE_PRIMS) && !defined(WIN_VC)
 #define PRIMS_FILE_CNT 20
 #else

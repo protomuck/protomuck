@@ -53,46 +53,41 @@ prim_getpropfval(PRIM_PROTOTYPE)
 {
 	double fresult;
 
-	CHECKOP(2);
-	oper1 = POP();
-	oper2 = POP();
-	if (oper1->type != PROG_STRING)
+	if (oper[0].type != PROG_STRING)
 		abort_interp("Non-string argument (2)");
-	if (!oper1->data.string)
+	if (!oper[0].data.string)
 		abort_interp("Empty string argument (2)");
-        if (oper2->type != PROG_OBJECT)
+        if (oper[1].type != PROG_OBJECT)
                 abort_interp("Arguement (2) is not a dbref.");
-	if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+	if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 		abort_interp("Non-object argument (1)");
-	CHECKREMOTE(oper2->data.objref);
+	CHECKREMOTE(oper[1].data.objref);
 	{
 		char *type;
 
-		type = oper1->data.string->data;
+		type = oper[0].data.string->data;
 		while ((type = index(type, PROPDIR_DELIMITER)))
 			if (!(*(++type)))
 				abort_interp("Cannot access a propdir directly.");
 	}
 
-	if (!prop_read_perms(ProgUID, oper2->data.objref, oper1->data.string->data, mlev))
+	if (!prop_read_perms(ProgUID, oper[1].data.objref, oper[0].data.string->data, mlev))
 		abort_interp(tp_noperm_mesg);
 
 	{
 		char type[BUFFER_LEN];
 
-		strcpy(type, oper1->data.string->data);
-		fresult = get_property_fvalue(oper2->data.objref, type);
+		strcpy(type, oper[0].data.string->data);
+		fresult = get_property_fvalue(oper[1].data.objref, type);
 
 #ifdef LOG_PROPS
 		log2file("props.log", "#%d (%d) GETPROPFVAL: o=%d n=\"%s\" v=%d",
-				 program, pc->line, oper2->data.objref, type, result);
+				 program, pc->line, oper[1].data.objref, type, result);
 #endif
 
-		/* if (Typeof(oper2->data.objref) != TYPE_PLAYER)
-		   ts_lastuseobject(oper2->data.objref); */
+		/* if (Typeof(oper[1].data.objref) != TYPE_PLAYER)
+		   ts_lastuseobject(oper[1].data.objref); */
 	}
-	CLEAR(oper1);
-	CLEAR(oper2);
 	PushFloat(fresult);
 }
 
@@ -101,47 +96,42 @@ prim_getpropval(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
 	abort_interp("Empty string argument (2)");
-    if (oper2->type != PROG_OBJECT)
+    if (oper[1].type != PROG_OBJECT)
         abort_interp("Arguement (2) is not a dbref.");
-    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
     {
 	char   *type;
 
-	type = oper1->data.string->data;
+	type = oper[0].data.string->data;
 	while ((type = index(type, PROPDIR_DELIMITER)))
 	    if (!(*(++type)))
 		abort_interp("Cannot access a propdir directly");
     }
 
-    if (!prop_read_perms(ProgUID, oper2->data.objref,
-			 oper1->data.string->data, mlev))
+    if (!prop_read_perms(ProgUID, oper[1].data.objref,
+			 oper[0].data.string->data, mlev))
 	abort_interp(tp_noperm_mesg);
 
     {
 	char   type[BUFFER_LEN];
 
-	strcpy(type, oper1->data.string->data);
-	result = get_property_value(oper2->data.objref, type);
+	strcpy(type, oper[0].data.string->data);
+	result = get_property_value(oper[1].data.objref, type);
 
 #ifdef LOG_PROPS
 	log2file("props.log", "#%d (%d) GETPROPVAL: o=%d n=\"%s\" v=%d",
-		 program, pc->line, oper2->data.objref, type, result);
+		 program, pc->line, oper[1].data.objref, type, result);
 #endif
 
-	/* if (Typeof(oper2->data.objref) != TYPE_PLAYER)
-	    ts_lastuseobject(oper2->data.objref); */
+	/* if (Typeof(oper[1].data.objref) != TYPE_PLAYER)
+	    ts_lastuseobject(oper[1].data.objref); */
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
     PushInt(result);
 }
 
@@ -153,40 +143,35 @@ prim_getprop(PRIM_PROTOTYPE)
     dbref obj2;
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
 	abort_interp("Empty string argument (2)");
-    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
     {
 	char   type[BUFFER_LEN];
 	char  *tmpptr;
 
-	tmpptr = oper1->data.string->data;
+	tmpptr = oper[0].data.string->data;
 	while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
 	    if (!(*(++tmpptr)))
 		abort_interp("Cannot access a propdir directly");
 
-	if (!prop_read_perms(ProgUID, oper2->data.objref,
-			     oper1->data.string->data, mlev))
+	if (!prop_read_perms(ProgUID, oper[1].data.objref,
+			     oper[0].data.string->data, mlev))
 	    abort_interp(tp_noperm_mesg);
 
-	strcpy(type, oper1->data.string->data);
-	obj2 = oper2->data.objref;
+	strcpy(type, oper[0].data.string->data);
+	obj2 = oper[1].data.objref;
 	prptr = get_property(obj2, type);
 
 #ifdef LOG_PROPS
 	log2file("props.log", "#%d (%d) GETPROP: o=%d n=\"%s\"",
-		 program, pc->line, oper2->data.objref, type);
+		 program, pc->line, oper[1].data.objref, type);
 #endif
 
-	CLEAR(oper1);
-	CLEAR(oper2);
 	if (prptr) {
 #ifdef DISKBASE
 	    propfetch(obj2, prptr);
@@ -221,8 +206,8 @@ prim_getprop(PRIM_PROTOTYPE)
 	    PushInt(result);
 	}
 
-	/* if (Typeof(oper2->data.objref) != TYPE_PLAYER)
-	    ts_lastuseobject(oper2->data.objref); */
+	/* if (Typeof(oper[1].data.objref) != TYPE_PLAYER)
+	    ts_lastuseobject(oper[1].data.objref); */
     }
 }
 
@@ -233,39 +218,36 @@ prim_getpropstr(PRIM_PROTOTYPE)
     const char *temp;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
 	abort_interp("Empty string argument (2)");
-    if (oper2->type != PROG_OBJECT)
+    if (oper[1].type != PROG_OBJECT)
         abort_interp("Arguement (2) is not a dbref.");
-    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
     {
 	char   type[BUFFER_LEN];
 	char  *tmpptr;
 	PropPtr ptr;
 
-	tmpptr = oper1->data.string->data;
+	tmpptr = oper[0].data.string->data;
 	while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
 	    if (!(*(++tmpptr)))
 		abort_interp("Cannot access a propdir directly");
 
-	if (!prop_read_perms(ProgUID, oper2->data.objref,
-			     oper1->data.string->data, mlev))
+	if (!prop_read_perms(ProgUID, oper[1].data.objref,
+			     oper[0].data.string->data, mlev))
 	    abort_interp(tp_noperm_mesg);
 
-	strcpy(type, oper1->data.string->data);
-	ptr = get_property(oper2->data.objref, type);
+	strcpy(type, oper[0].data.string->data);
+	ptr = get_property(oper[1].data.objref, type);
 	if (!ptr) {
 	    temp = "";
 	} else {
 #ifdef DISKBASE
-	    propfetch(oper2->data.objref, ptr);
+	    propfetch(oper[1].data.objref, ptr);
 #endif
 	    switch(PropType(ptr)) {
 		case PROP_STRTYP:
@@ -298,14 +280,13 @@ prim_getpropstr(PRIM_PROTOTYPE)
 
 #ifdef LOG_PROPS
 	log2file("props.log", "#%d (%d) GETPROPSTR: o=%d n=\"%s\" s=\"%s\"",
-		 program, pc->line, oper2->data.objref, type, temp);
+		 program, pc->line, oper[1].data.objref, type, temp);
 #endif
 
-	/* if (Typeof(oper2->data.objref) != TYPE_PLAYER)
-	 *     ts_lastuseobject(oper2->data.objref); */
+	/* if (Typeof(oper[1].data.objref) != TYPE_PLAYER)
+	 *     ts_lastuseobject(oper[1].data.objref); */
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+
     PushString(temp);
 }
 
@@ -315,18 +296,15 @@ prim_remove_prop(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!valid_object(oper2))
+    if (!valid_object(&oper[1]))
 	abort_interp("Non-object argument (1)");
     if (tp_db_readonly)
         abort_interp(DBRO_MESG);
 
-    CHECKREMOTE(oper2->data.objref);
-    strncpy(buf, DoNullInd(oper1->data.string), BUFFER_LEN);
+    CHECKREMOTE(oper[1].data.objref);
+    strncpy(buf, DoNullInd(oper[0].data.string), BUFFER_LEN);
     buf[BUFFER_LEN - 1] = '\0';
     {
         int len = strlen(buf);
@@ -338,20 +316,17 @@ prim_remove_prop(PRIM_PROTOTYPE)
     if (!*buf)
         abort_interp("Can't remove root propdir. (2)");
 
-    if (!prop_write_perms(ProgUID, oper2->data.objref, buf, mlev))
+    if (!prop_write_perms(ProgUID, oper[1].data.objref, buf, mlev))
 	abort_interp(tp_noperm_mesg);
 
-    remove_property(oper2->data.objref, buf);
+    remove_property(oper[1].data.objref, buf);
 
 #ifdef LOG_PROPS
 	log2file("props.log", "#%d (%d) REMOVEPROP: o=%d n=\"%s\"",
-		 program, pc->line, oper1->data.objref, buf);
+		 program, pc->line, oper[0].data.objref, buf);
 #endif
 
-	ts_modifyobject(program, oper2->data.objref);
-    
-    CLEAR(oper1);
-    CLEAR(oper2);
+	ts_modifyobject(program, oper[1].data.objref);
 }
 
 
@@ -361,37 +336,32 @@ prim_envprop(PRIM_PROTOTYPE)
     double fresult;
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
 	abort_interp("Empty string argument (2)");
-    if (oper2->type != PROG_OBJECT)
+    if (oper[1].type != PROG_OBJECT)
         abort_interp("Arguement (2) is not a dbref.");
-    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
     {
 	char   *type;
 	char    tname[BUFFER_LEN];
 	dbref   what, ref;
 	PropPtr ptr;
 
-	type = oper1->data.string->data;
+	type = oper[0].data.string->data;
 	while ((type = index(type, PROPDIR_DELIMITER)))
 	    if (!(*(++type)))
 		abort_interp("Cannot access a propdir directly");
-	strcpy(tname, oper1->data.string->data);
-	what = oper2->data.objref;
+	strcpy(tname, oper[0].data.string->data);
+	what = oper[1].data.objref;
 	ptr = envprop(&what, tname, 0);
 	if (what != NOTHING) {
-	    if (!prop_read_perms(ProgUID,what,oper1->data.string->data,mlev))
+	    if (!prop_read_perms(ProgUID,what,oper[0].data.string->data,mlev))
 		abort_interp(tp_noperm_mesg);
 	}
-	CLEAR(oper1);
-	CLEAR(oper2);
 	PushObject(what);
 
 	if (!ptr) {
@@ -437,18 +407,15 @@ prim_envprop(PRIM_PROTOTYPE)
 void 
 prim_envpropstr(PRIM_PROTOTYPE)
 {
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
 	abort_interp("Empty string argument (2)");
-    if (oper2->type != PROG_OBJECT)
+    if (oper[1].type != PROG_OBJECT)
         abort_interp("Arguement (2) is not a dbref.");
-    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 	abort_interp("Non-object argument (1)");
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
     {
 	char   *type;
 	char    tname[BUFFER_LEN];
@@ -457,12 +424,12 @@ prim_envpropstr(PRIM_PROTOTYPE)
 	const char *temp;
 	char buf[BUFFER_LEN];
 
-	type = oper1->data.string->data;
+	type = oper[0].data.string->data;
 	while ((type = index(type, PROPDIR_DELIMITER)))
 	    if (!(*(++type)))
 		abort_interp("Cannot access a propdir directly");
-	strcpy(tname, oper1->data.string->data);
-	what = oper2->data.objref;
+	strcpy(tname, oper[0].data.string->data);
+	what = oper[1].data.objref;
 	ptr = envprop(&what, tname, 0);
 	if (!ptr) {
 	    temp = "";
@@ -499,17 +466,15 @@ prim_envpropstr(PRIM_PROTOTYPE)
 
 #ifdef LOG_PROPS
 	log2file("props.log", "#%d (%d) ENVPROPSTR: o=%d so=%d n=\"%s\" s=\"%s\"",
-		 program, pc->line, what, oper2->data.objref, tname, temp);
+		 program, pc->line, what, oper[1].data.objref, tname, temp);
 #endif
 
 	if (what != NOTHING) {
-	    if (!prop_read_perms(ProgUID, what, oper1->data.string->data,mlev))
+	    if (!prop_read_perms(ProgUID, what, oper[0].data.string->data,mlev))
 		abort_interp(tp_noperm_mesg);
 	    /* if (Typeof(what) != TYPE_PLAYER)
 	     *     ts_lastuseobject(what); */
 	}
-	CLEAR(oper1);
-	CLEAR(oper2);
 	PushObject(what);
 	PushString(temp);
     }
@@ -522,111 +487,99 @@ prim_setprop(PRIM_PROTOTYPE)
 {
     PData pdat;
 
-    CHECKOP(3);
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
-    if ((oper1->type != PROG_STRING) &&
-	    (oper1->type != PROG_INTEGER) &&
-	    (oper1->type != PROG_LOCK) &&
-	    (oper1->type != PROG_OBJECT) &&
-          (oper1->type != PROG_FLOAT))
+    if ((oper[0].type != PROG_STRING) &&
+	    (oper[0].type != PROG_INTEGER) &&
+	    (oper[0].type != PROG_LOCK) &&
+	    (oper[0].type != PROG_OBJECT) &&
+          (oper[0].type != PROG_FLOAT))
 	abort_interp("Invalid argument type (3)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!oper2->data.string)
+    if (!oper[1].data.string)
 	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper3))
+    if (!valid_object(&oper[2]))
 	abort_interp("Non-object argument (1)");
     if (tp_db_readonly)
         abort_interp(DBRO_MESG);
-    CHECKREMOTE(oper3->data.objref);
+    CHECKREMOTE(oper[2].data.objref);
 
-    if ((mlev < LM2) && (!permissions(mlev, ProgUID, oper3->data.objref)))
+    if ((mlev < LM2) && (!permissions(mlev, ProgUID, oper[2].data.objref)))
 	abort_interp(tp_noperm_mesg);
 
-    if (!prop_write_perms(ProgUID, oper3->data.objref,
-			 oper2->data.string->data, mlev))
+    if (!prop_write_perms(ProgUID, oper[2].data.objref,
+			 oper[1].data.string->data, mlev))
 	abort_interp(tp_noperm_mesg);
 
     {
 	char   *tmpe;
 	char    tname[BUFFER_LEN];
 
-	tmpe = oper2->data.string->data;
+	tmpe = oper[1].data.string->data;
 	while (*tmpe && *tmpe != '\r' && *tmpe != ':' && *tmpe != '\n') tmpe++;
 	if (*tmpe)
 	    abort_interp("Illegal propname");
 
-	tmpe = oper2->data.string->data;
+	tmpe = oper[1].data.string->data;
 	while ((tmpe = index(tmpe, PROPDIR_DELIMITER)))
 	    if (!(*(++tmpe)))
 		abort_interp("Cannot access a propdir directly");
 
-	strcpy(tname, oper2->data.string->data);
+	strcpy(tname, oper[1].data.string->data);
 
-    switch (oper1->type) {
+    switch (oper[0].type) {
         case PROG_STRING:
             pdat.flags = PROP_STRTYP;
-            pdat.data.str = oper1->data.string ? oper1->data.string->data : NULL;
+            pdat.data.str = oper[0].data.string ? oper[0].data.string->data : NULL;
             break;
         case PROG_INTEGER:
             pdat.flags = PROP_INTTYP;
-            pdat.data.val = oper1->data.number;
+            pdat.data.val = oper[0].data.number;
             break;
         case PROG_FLOAT:
             pdat.flags = PROP_FLTTYP;
-            pdat.data.fval = oper1->data.fnumber;
+            pdat.data.fval = oper[0].data.fnumber;
             break;
         case PROG_OBJECT:
             pdat.flags = PROP_REFTYP;
-            pdat.data.ref = oper1->data.objref;
+            pdat.data.ref = oper[0].data.objref;
             break;
         case PROG_LOCK:
             pdat.flags = PROP_LOKTYP;
-            pdat.data.lok = copy_bool(oper1->data.lock);
+            pdat.data.lok = copy_bool(oper[0].data.lock);
             break;
     }
-    set_property(oper3->data.objref, tname, &pdat);
+    set_property(oper[2].data.objref, tname, &pdat);
 
 #ifdef LOG_PROPS
 	log2file("props.log", "#%d (%d) SETPROP: o=%d n=\"%s\"",
-		 program, pc->line, oper3->data.objref, tname);
+		 program, pc->line, oper[2].data.objref, tname);
 #endif
 
-	ts_modifyobject(program, oper3->data.objref);
+	ts_modifyobject(program, oper[2].data.objref);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
 }
 
 
 void 
 prim_addprop(PRIM_PROTOTYPE)
 {
-    CHECKOP(4);
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
-    oper4 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
 	abort_interp("Non-integer argument (4)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
 	abort_interp("Non-string argument (3)");
-    if (oper3->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
 	abort_interp("Non-string argument (2)");
-    if (!oper3->data.string)
+    if (!oper[2].data.string)
 	abort_interp("Empty string argument (2)");
-    if (!valid_object(oper4))
+    if (!valid_object(&oper[3]))
 	abort_interp("Non-object argument (1)");
-    CHECKREMOTE(oper4->data.objref);
+    CHECKREMOTE(oper[3].data.objref);
 
-    if ((mlev < LM2) && (!permissions(mlev, ProgUID, oper4->data.objref)))
+    if ((mlev < LM2) && (!permissions(mlev, ProgUID, oper[3].data.objref)))
 	abort_interp(tp_noperm_mesg);
 
-    if (!prop_write_perms(ProgUID, oper4->data.objref,
-			 oper3->data.string->data, mlev))
+    if (!prop_write_perms(ProgUID, oper[3].data.objref,
+			 oper[2].data.string->data, mlev))
 	abort_interp(tp_noperm_mesg);
 
     {
@@ -634,37 +587,33 @@ prim_addprop(PRIM_PROTOTYPE)
 	char   *tmpe;
 	char    tname[BUFFER_LEN];
 
-	temp = (oper2->data.string ? oper2->data.string->data : 0);
-	tmpe = oper3->data.string->data;
+	temp = (oper[1].data.string ? oper[1].data.string->data : 0);
+	tmpe = oper[2].data.string->data;
 	while (*tmpe && *tmpe != '\r') tmpe++;
 	if (*tmpe)
 	    abort_interp("CRs not allowed in propname");
 
-	tmpe = oper3->data.string->data;
+	tmpe = oper[2].data.string->data;
 
 	while ((tmpe = index(tmpe, PROPDIR_DELIMITER)))
 	    if (!(*(++tmpe)))
 		abort_interp("Cannot access a propdir directly");
 
-	strcpy(tname, oper3->data.string->data);
+	strcpy(tname, oper[2].data.string->data);
 
-	/* if ((temp) || (oper1->data.number)) */
+	/* if ((temp) || (oper[0].data.number)) */
 	{
-	    add_property(oper4->data.objref, tname, temp, oper1->data.number);
+	    add_property(oper[3].data.objref, tname, temp, oper[0].data.number);
 
 #ifdef LOG_PROPS
 	    log2file("props.log", "#%d (%d) ADDPROP: o=%d n=\"%s\" s=\"%s\" v=%d",
-		     program, pc->line, oper4->data.objref, tname, temp,
-		     oper1->data.number);
+		     program, pc->line, oper[3].data.objref, tname, temp,
+		     oper[0].data.number);
 #endif
 
-	    ts_modifyobject(program, oper4->data.objref);
+	    ts_modifyobject(program, oper[3].data.objref);
 	}
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
-    CLEAR(oper4);
 }
 
 
@@ -678,24 +627,16 @@ prim_nextprop(PRIM_PROTOTYPE)
 	char    buf[BUFFER_LEN];
 	dbref ref;
 
-    CHECKOP(2);
-    oper2 = POP();		/* pname */
-    oper1 = POP();		/* dbref */
-    if (mlev < LM2)
-	abort_interp("M2 prim");
-    if (oper2->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("String required (2)");
-    if (oper1->type != PROG_OBJECT)
+    if (oper[1].type != PROG_OBJECT)
 	abort_interp("Dbref required (1)");
-    if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 	abort_interp("Invalid dbref (1)");
 
-    ref = oper1->data.objref;
-    (void) strcpy(buf, ((oper2->data.string) && (oper2->data.string->data)) ?
-		  oper2->data.string->data : "");
-    CLEAR(oper1);
-    CLEAR(oper2);
-
+    ref = oper[1].data.objref;
+    (void) strcpy(buf, ((oper[0].data.string) && (oper[0].data.string->data)) ?
+		  oper[0].data.string->data : "");
     {
 	char   *tmpname;
 
@@ -735,23 +676,16 @@ prim_propdirp(PRIM_PROTOTYPE)
 	int result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    oper2 = POP();		/* prop name */
-    oper1 = POP();		/* dbref */
-    if (mlev < LM2)
-	abort_interp("M2 prim");
-    if (oper1->type != PROG_OBJECT)
+    if (oper[1].type != PROG_OBJECT)
 	abort_interp("Argument must be a dbref (1)");
-    if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
 	abort_interp("Invalid dbref (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
 	abort_interp("Argument not a string (2)");
-    if (!oper2->data.string)
+    if (!oper[0].data.string)
 	abort_interp("Null string not allowed (2)");
-    ref = oper1->data.objref;
-    (void) strcpy(buf, oper2->data.string->data ? oper2->data.string->data : "");
-    CLEAR(oper1);
-    CLEAR(oper2);
+    ref = oper[1].data.objref;
+    (void) strcpy(buf, oper[0].data.string->data ? oper[0].data.string->data : "");
 
     result = is_propdir(ref, buf);
 
@@ -771,45 +705,31 @@ prim_parsempi(PRIM_PROTOTYPE)
     char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(4);
-    oper4 = POP();  /* int */
-    oper2 = POP();  /* arg str */
-    oper1 = POP();  /* mpi str */
-    oper3 = POP();  /* object dbref */
-    if (mlev < LWIZ)
-        abort_interp("Wiz prim");
-    if (oper3->type != PROG_OBJECT)
+    if (oper[3].type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
-    if ((oper3->data.objref < 0) || (oper3->data.objref >= db_top))
+    if ((oper[3].data.objref < 0) || (oper[3].data.objref >= db_top))
         abort_interp("Invalid object (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("String expected (3)");
-    if (oper1->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("String expected (2)");
-    /* if (!oper1->data.string)
+    /* if (!oper[2].data.string)
         abort_interp("Empty string argument (2)"); */
-    if (oper4->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Integer expected (4)");
-    if (oper4->data.number < 0 || oper4->data.number > 1)
+    if (oper[0].data.number < 0 || oper[0].data.number > 1)
         abort_interp("Integer of 0 or 1 expected (4)");
-    CHECKREMOTE(oper3->data.objref);
+    CHECKREMOTE(oper[3].data.objref);
 
-    temp = (oper1->data.string)? oper1->data.string->data : (const char *) "";
-    ptr  = (char *) ((oper2->data.string)? (char *) oper2->data.string->data : "");
+    temp = (oper[2].data.string)? oper[2].data.string->data : (const char *) "";
+    ptr  = (char *) ((oper[1].data.string)? (char *) oper[1].data.string->data : "");
     if(temp && *temp && ptr) {
-	result = oper4->data.number & (~MPI_ISLISTENER);
-        ptr = do_parse_mesg(fr->descr, player, oper3->data.objref, temp,
+	result = oper[0].data.number & (~MPI_ISLISTENER);
+        ptr = do_parse_mesg(fr->descr, player, oper[3].data.objref, temp,
 			      ptr, buf, result);
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
-	CLEAR(oper4);
+
         PushString(buf); /* Was buf to remove unwanted \r's */
     } else {
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
-	CLEAR(oper4);
         PushNullStr;
     }
 }
@@ -822,75 +742,60 @@ prim_parseprop(PRIM_PROTOTYPE)
     char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(4);
-    oper4 = POP();  /* int */
-    oper2 = POP();  /* arg str */
-    oper1 = POP();  /* propname str */
-    oper3 = POP();  /* object dbref */
-    if (mlev < 3)
-        abort_interp("Mucker level 3 or greater required.");
-    if (oper3->type != PROG_OBJECT)
+    if (oper[3].type != PROG_OBJECT)
         abort_interp("Non-object argument. (1)");
-    if ((oper3->data.objref < 0) || (oper3->data.objref >= db_top))
+    if ((oper[3].data.objref < 0) || (oper[3].data.objref >= db_top))
         abort_interp("Invalid object. (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("String expected. (3)");
-    if (oper1->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("String expected. (2)");
-    if (!oper1->data.string)
+    if (!oper[2].data.string)
         abort_interp("Empty string argument (2)");
-    if (oper4->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Integer expected. (4)");
-    if (oper4->data.number < 0 || oper4->data.number > 1)
+    if (oper[0].data.number < 0 || oper[0].data.number > 1)
         abort_interp("Integer of 0 or 1 expected. (4)");
-    CHECKREMOTE(oper3->data.objref);
+    CHECKREMOTE(oper[3].data.objref);
     {
         char   type[BUFFER_LEN];
         char  *tmpptr;
 
-        tmpptr = oper1->data.string->data;
+        tmpptr = oper[2].data.string->data;
         while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
             if (!(*(++tmpptr)))
                 abort_interp("Cannot access a propdir directly.");
 
-	if (!prop_read_perms(ProgUID, oper3->data.objref,
-			     oper1->data.string->data, mlev))
+	if (!prop_read_perms(ProgUID, oper[3].data.objref,
+			     oper[2].data.string->data, mlev))
 	    abort_interp(tp_noperm_mesg);
 
-	if (mlev < 3 && !permissions(mlev, PSafe, oper3->data.objref) &&
-		prop_write_perms(ProgUID, oper3->data.objref,
-				 oper1->data.string->data, mlev))
+	if (mlev < 3 && !permissions(mlev, PSafe, oper[3].data.objref) &&
+		prop_write_perms(ProgUID, oper[3].data.objref,
+				 oper[2].data.string->data, mlev))
 	    abort_interp(tp_noperm_mesg);
 
-        strcpy(type, oper1->data.string->data);
-        temp = get_property_class(oper3->data.objref, type);
+        strcpy(type, oper[2].data.string->data);
+        temp = get_property_class(oper[3].data.objref, type);
 
 #ifdef LOG_PROPS
         log2file("props.log", "#%d (%d) GETPROPSTR: o=%d n=\"%s\" s=\"%s\"",
-                 program, pc->line, oper3->data.objref, type, temp);
+                 program, pc->line, oper[3].data.objref, type, temp);
 #endif
 
     }
-    ptr = (char *) ((oper2->data.string)? (char *) oper2->data.string->data : "");
+    ptr = (char *) ((oper[1].data.string)? (char *) oper[1].data.string->data : "");
     if(temp) {
-	result = oper4->data.number & (~MPI_ISLISTENER);
+	result = oper[0].data.number & (~MPI_ISLISTENER);
       if(tp_old_parseprop) {
-        ptr = do_parse_mesg_2(fr->descr, player, oper3->data.objref, (dbref)program, temp,
+        ptr = do_parse_mesg_2(fr->descr, player, oper[3].data.objref, (dbref)program, temp,
 			    ptr, buf, result);
       } else {
-        ptr = do_parse_mesg(fr->descr, player, oper3->data.objref, temp,
+        ptr = do_parse_mesg(fr->descr, player, oper[3].data.objref, temp,
 			    ptr, buf, result);
       }
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
-	CLEAR(oper4);
         PushString(ptr);
     } else {
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
-	CLEAR(oper4);
         PushNullStr;
     }
 }
@@ -899,41 +804,28 @@ prim_parseprop(PRIM_PROTOTYPE)
 void
 prim_propqueue(PRIM_PROTOTYPE)
 {
-   if (mlev < LARCH)
-      abort_interp("Archwizards or above only.");
-   CHECKOP(3);
-   oper1 = POP();
-   oper2 = POP();
-   oper3 = POP();
-   oper4 = POP();
-   if (oper1->type != PROG_STRING)
+   if (oper[0].type != PROG_STRING)
       abort_interp("String expected. (4)");
-   if (!oper1->data.string)
+   if (!oper[0].data.string)
       abort_interp("Empty string argument (4)");
-   if (oper2->type != PROG_OBJECT)
+   if (oper[1].type != PROG_OBJECT)
       abort_interp("Non-object argument. (3)");
-   if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+   if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
       abort_interp("Invalid object. (3)");
-   if (oper3->type != PROG_STRING)
+   if (oper[2].type != PROG_STRING)
       abort_interp("String expected. (2)");
-   if (!oper3->data.string)
+   if (!oper[2].data.string)
       abort_interp("Empty string argument (2)");
-   if (oper4->type != PROG_OBJECT)
+   if (oper[3].type != PROG_OBJECT)
       abort_interp("Non-object argument. (1)");
-   if (!valid_object(oper4))
+   if (!valid_object(&oper[3]))
       abort_interp("Invalid object. (1)");
    
    {
-      dbref obj1 = oper4->data.objref;
-      dbref obj2 = oper2->data.objref;
-      char *str1 = string_dup(oper3->data.string->data);
-      char *str2 = string_dup(oper1->data.string->data);
-
-      CLEAR(oper1);
-      CLEAR(oper2);
-      CLEAR(oper3);
-      CLEAR(oper4);
-
+      dbref obj1 = oper[3].data.objref;
+      dbref obj2 = oper[1].data.objref;
+      char *str1 = string_dup(oper[2].data.string->data);
+      char *str2 = string_dup(oper[0].data.string->data);
 
       propqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, obj1, obj2, NOTHING, str1, str2, 1, 1);
 
@@ -945,41 +837,28 @@ prim_propqueue(PRIM_PROTOTYPE)
 void
 prim_envpropqueue(PRIM_PROTOTYPE)
 {
-   if (mlev < LARCH)
-      abort_interp("Archwizards or above only.");
-   CHECKOP(3);
-   oper1 = POP();
-   oper2 = POP();
-   oper3 = POP();
-   oper4 = POP();
-   if (oper1->type != PROG_STRING)
+   if (oper[0].type != PROG_STRING)
       abort_interp("String expected. (4)");
-   if (!oper1->data.string)
+   if (!oper[0].data.string)
       abort_interp("Empty string argument (4)");
-   if (oper2->type != PROG_OBJECT)
+   if (oper[1].type != PROG_OBJECT)
       abort_interp("Non-object argument. (3)");
-   if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+   if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
       abort_interp("Invalid object. (3)");
-   if (oper3->type != PROG_STRING)
+   if (oper[2].type != PROG_STRING)
       abort_interp("String expected. (2)");
-   if (!oper3->data.string)
+   if (!oper[2].data.string)
       abort_interp("Empty string argument (2)");
-   if (oper4->type != PROG_OBJECT)
+   if (oper[3].type != PROG_OBJECT)
       abort_interp("Non-object argument. (1)");
-   if (!valid_object(oper4))
+   if (!valid_object(&oper[3]))
       abort_interp("Invalid object. (1)");
    
    {
-      dbref obj1 = oper4->data.objref;
-      dbref obj2 = oper2->data.objref;
-      char *str1 = string_dup(oper3->data.string->data);
-      char *str2 = string_dup(oper1->data.string->data);
-
-      CLEAR(oper1);
-      CLEAR(oper2);
-      CLEAR(oper3);
-      CLEAR(oper4);
-
+      dbref obj1 = oper[3].data.objref;
+      dbref obj2 = oper[1].data.objref;
+      char *str1 = string_dup(oper[2].data.string->data);
+      char *str2 = string_dup(oper[0].data.string->data);
 
       propqueue(fr->descr, player, OkObj(player) ? getloc(player) : -1, obj1, obj2, NOTHING, str1, str2, 1, 1);
 
@@ -994,30 +873,25 @@ prim_testlock(PRIM_PROTOTYPE)
     /* d d - i */
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();              /* boolexp lock */
-    oper2 = POP();              /* player dbref */
     if (fr->level > 8)
         abort_interp("Interp call loops not allowed");
-    if (!valid_object(oper2))
+    if (!valid_object(&oper[1]))
         abort_interp("Invalid argument (1).");
-    if (Typeof(oper2->data.objref) != TYPE_PLAYER &&
-        Typeof(oper2->data.objref) != TYPE_THING )
+    if (Typeof(oper[1].data.objref) != TYPE_PLAYER &&
+        Typeof(oper[1].data.objref) != TYPE_THING )
     {
         abort_interp("Invalid object type (1).");
     }
-    CHECKREMOTE(oper2->data.objref);
-    if (oper1->type != PROG_LOCK)
+    CHECKREMOTE(oper[1].data.objref);
+    if (oper[0].type != PROG_LOCK)
         abort_interp("Invalid argument (2)");
 
     interp_set_depth(fr);
-    result = eval_boolexp(fr->descr, oper2->data.objref, oper1->data.lock, 
+    result = eval_boolexp(fr->descr, oper[1].data.objref, oper[0].data.lock, 
                           PSafe);
     fr->level--;
     interp_set_depth(fr);
 
-    CLEAR(oper1);
-    CLEAR(oper2);
     PushInt(result);
 }
 
@@ -1027,27 +901,19 @@ prim_lockedp(PRIM_PROTOTYPE)
     dbref ref2, ref;
 	int result;
 
-    /* d d - i */
-    CHECKOP(2);
-    oper1 = POP();              /* objdbref */
-    oper2 = POP();              /* player dbref */
     if (fr->level > 8)
         abort_interp("Interp call loops not allowed");
-    if (!valid_object(oper2))
+    if (!valid_object(&oper[1]))
         abort_interp("invalid object (1)");
-    if (!valid_player(oper2) && Typeof(oper2->data.objref) != TYPE_THING)
+    if (!valid_player(&oper[1]) && Typeof(oper[1].data.objref) != TYPE_THING)
         abort_interp("Non-player argument (1)");
-    CHECKREMOTE(oper2->data.objref);
-    if (!valid_object(oper1))
+    CHECKREMOTE(oper[1].data.objref);
+    if (!valid_object(&oper[0]))
         abort_interp("invalid object (2)");
-    CHECKREMOTE(oper1->data.objref);
+    CHECKREMOTE(oper[0].data.objref);
 
-    ref = oper2->data.objref;
-    ref2 = oper1->data.objref;
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    nargs -= 2;
+    ref = oper[1].data.objref;
+    ref2 = oper[0].data.objref;
 
     interp_set_depth(fr);
     result = !could_doit(fr->descr, ref, ref2);
@@ -1066,37 +932,27 @@ prim_islockedp(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(3);
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
-
     if (fr->level > 8)
         abort_interp("Interp call loops not allowed");
 
-    if ((oper3->data.objref < 0) || (oper3->data.objref >= db_top))
+    if ((oper[2].data.objref < 0) || (oper[2].data.objref >= db_top))
         abort_interp("Invalid argument (1).");
-    if (Typeof(oper3->data.objref) != TYPE_PLAYER &&
-          Typeof(oper3->data.objref) != TYPE_THING )
+    if (Typeof(oper[2].data.objref) != TYPE_PLAYER &&
+          Typeof(oper[2].data.objref) != TYPE_THING )
         abort_interp("Invalid object type (1).");
 
-    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
         abort_interp("Invalid argument (2).");
 
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Invalid argument. (3)");
 
-     CHECKREMOTE(oper2->data.objref);
-     CHECKREMOTE(oper3->data.objref);
+     CHECKREMOTE(oper[1].data.objref);
+     CHECKREMOTE(oper[2].data.objref);
 
-     strcpy(buf, oper1->data.string->data);
-     ref = oper3->data.objref;
-     ref2 = oper2->data.objref;
-
-     CLEAR(oper1);
-     CLEAR(oper2);
-     CLEAR(oper3);
-     nargs -= 3;
+     strcpy(buf, oper[0].data.string->data);
+     ref = oper[2].data.objref;
+     ref2 = oper[1].data.objref;
 
      tmpptr = buf;
      while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
@@ -1122,38 +978,27 @@ prim_checklock(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(3);
-
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
-
     if (fr->level > 8)
         abort_interp("Interp call loops not allowed");
 
-    if ((oper3->data.objref < 0) || (oper3->data.objref >= db_top))
+    if ((oper[2].data.objref < 0) || (oper[2].data.objref >= db_top))
         abort_interp("Invalid argument (1).");
-    if (Typeof(oper3->data.objref) != TYPE_PLAYER &&
-          Typeof(oper3->data.objref) != TYPE_THING )
+    if (Typeof(oper[2].data.objref) != TYPE_PLAYER &&
+          Typeof(oper[2].data.objref) != TYPE_THING )
         abort_interp("Invalid object type (1).");
 
-    if ((oper2->data.objref < 0) || (oper2->data.objref >= db_top))
+    if ((oper[1].data.objref < 0) || (oper[1].data.objref >= db_top))
         abort_interp("Invalid argument (2).");
 
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Invalid argument. (3)");
 
-     CHECKREMOTE(oper2->data.objref);
-     CHECKREMOTE(oper3->data.objref);
+     CHECKREMOTE(oper[1].data.objref);
+     CHECKREMOTE(oper[2].data.objref);
 
-     strcpy(buf, oper1->data.string->data);
-     ref = oper3->data.objref;
-     ref2 = oper2->data.objref;
-
-     CLEAR(oper1);
-     CLEAR(oper2);
-     CLEAR(oper3);
-     nargs -= 3;
+     strcpy(buf, oper[0].data.string->data);
+     ref = oper[2].data.objref;
+     ref2 = oper[1].data.objref;
 
      tmpptr = buf;
      while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
@@ -1181,26 +1026,22 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
     const char* ptr;
 	dbref ref;
 
-    CHECKOP(3);
-    oper3 = POP();    /* str     pattern */
-    oper2 = POP();    /* str     propname */
-    oper1 = POP();    /* refarr  Array */
-    if (oper1->type != PROG_ARRAY)
+    if (oper[2].type != PROG_ARRAY)
         abort_interp("Argument not an array. (1)");
-    if (!array_is_homogenous(oper1->data.array, PROG_OBJECT))
+    if (!array_is_homogenous(oper[2].data.array, PROG_OBJECT))
         abort_interp("Argument not an array of dbrefs. (1)");
-    if (oper2->type != PROG_STRING || !oper2->data.string)
+    if (oper[1].type != PROG_STRING || !oper[1].data.string)
         abort_interp("Argument not a non-null string. (2)");
-    if (oper3->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Argument not a string pattern. (3)");
-    ptr = oper2->data.string->data;
+    ptr = oper[1].data.string->data;
     while ((ptr = index(ptr, PROPDIR_DELIMITER)))
         if (!(*(++ptr)))
             abort_interp("Cannot access a propdir directly.");
     nu = new_array_packed(0);
-    arr = oper1->data.array;
-    prop = (char *) DoNullInd(oper2->data.string);
-    pat = (char *) DoNullInd(oper3->data.string);
+    arr = oper[2].data.array;
+    prop = (char *) DoNullInd(oper[1].data.string);
+    pat = (char *) DoNullInd(oper[0].data.string);
     strcpy(buf2, pat);
     if (array_first(arr, &temp1)) {
         do {
@@ -1222,9 +1063,6 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
             }
         } while (array_next(arr, &temp1));
     }
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
     PushArrayRaw(nu);
 }
 
@@ -1244,23 +1082,17 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 	char val_str[BUFFER_LEN];
 	dbref ref;
 	int result;
-
-	CHECKOP(4);
-    oper1 = POP(); /* x1 */
-	oper2 = POP(); /* s1 - propname */
-	oper3 = POP(); /* i1 - flags */
-	oper4 = POP(); /* a1 - array */
 	
-	if (oper4->type != PROG_ARRAY)
+	if (oper[3].type != PROG_ARRAY)
         abort_interp("Argument not an array. (1)");
-    if (!array_is_homogenous(oper4->data.array, PROG_OBJECT))
+    if (!array_is_homogenous(oper[3].data.array, PROG_OBJECT))
         abort_interp("Argument not an array of dbrefs. (1)");
-    if (oper2->type != PROG_STRING || !oper2->data.string)
+    if (oper[1].type != PROG_STRING || !oper[1].data.string)
         abort_interp("Argument not a non-null string. (3)");
-    if (oper3->type != PROG_INTEGER)
+    if (oper[2].type != PROG_INTEGER)
         abort_interp("Argument not an integer. (2)");
 
-	fflags = oper3->data.number;
+	fflags = oper[2].data.number;
 
 	if (fflags & FILTER_PROPNAME_SMATCH)
 		abort_interp("FILTER_PROPNAME_SMATCH is not currently supported");
@@ -1269,10 +1101,10 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 
 	if (!(fflags & FILTER_PROP_EXISTS)) {
 		strcpy(val_str, "");
-		switch (oper1->type) {
+		switch (oper[0].type) {
 			case PROG_STRING:
-				if (oper1->data.string) {
-					strcpy(val_str, oper1->data.string->data);
+				if (oper[0].data.string) {
+					strcpy(val_str, oper[0].data.string->data);
 					val_int = atoi(val_str);
 					val_ref = (dbref)atoi(val_str);
 					if (ifloat(val_str))
@@ -1280,22 +1112,22 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 				}
 				break;
 			case PROG_INTEGER:
-				val_int = oper1->data.number;
-				val_ref = oper1->data.number;
-				val_flt = oper1->data.number;
-				sprintf(val_str, "%d", oper1->data.number);
+				val_int = oper[0].data.number;
+				val_ref = oper[0].data.number;
+				val_flt = oper[0].data.number;
+				sprintf(val_str, "%d", oper[0].data.number);
 				break;
 			case PROG_FLOAT:
-				val_int = (int)oper1->data.fnumber;
-				val_ref = (dbref)oper1->data.fnumber;
-				val_flt = oper1->data.fnumber;
-				sprintf(val_str, "%#.15g", oper1->data.fnumber);
+				val_int = (int)oper[0].data.fnumber;
+				val_ref = (dbref)oper[0].data.fnumber;
+				val_flt = oper[0].data.fnumber;
+				sprintf(val_str, "%#.15g", oper[0].data.fnumber);
 				break;
 			case PROG_OBJECT:
-				val_int = oper1->data.objref;
-				val_ref = oper1->data.objref;
-				val_flt = oper1->data.objref;
-				sprintf(val_str, "#%d", oper1->data.objref);
+				val_int = oper[0].data.objref;
+				val_ref = oper[0].data.objref;
+				val_flt = oper[0].data.objref;
+				sprintf(val_str, "#%d", oper[0].data.objref);
 				break;
 			default:
 				abort_interp("Unmatchable type specified (4)");
@@ -1303,15 +1135,15 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 		}
 	}
 
-    ptr = oper2->data.string->data;
+    ptr = oper[1].data.string->data;
     while ((ptr = index(ptr, PROPDIR_DELIMITER)))
         if (!(*(++ptr)))
             abort_interp("Cannot access a propdir directly.");
 
 
     nu = new_array_packed(0);
-    arr = oper4->data.array;
-    prop = (char *) DoNullInd(oper2->data.string);
+    arr = oper[3].data.array;
+    prop = (char *) DoNullInd(oper[1].data.string);
 
     if (array_first(arr, &temp1)) {
         do {
@@ -1330,7 +1162,7 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 							double fresult;
 							char *temp;
 #ifdef DISKBASE
-							propfetch(oper2->data.objref, prptr);
+							propfetch(oper[1].data.objref, prptr);
 #endif
 							switch(PropType(prptr)) {
 								case PROP_STRTYP:
@@ -1422,10 +1254,7 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
             }
         } while (array_next(arr, &temp1));
     }
-	CLEAR(oper4);
-    CLEAR(oper3);
-    CLEAR(oper2);
-    CLEAR(oper1);
+
     PushArrayRaw(nu);
 }
 
@@ -1434,80 +1263,57 @@ prim_reflist_find(PRIM_PROTOTYPE)
 {
 	int result;
 
-	CHECKOP(3);
-	oper3 = POP();   /* dbref */
-	oper2 = POP();   /* propname */
-	oper1 = POP();   /* propobj */
-	if (!valid_object(oper1))
+	if (!valid_object(&oper[2]))
 		abort_interp("Non-object argument (1)");
-	if (oper2->type != PROG_STRING)
+	if (oper[1].type != PROG_STRING)
 		abort_interp("Non-string argument (2)");
-	if (!oper2->data.string)
+	if (!oper[1].data.string)
 		abort_interp("Empty string argument (2)");
-	if (oper3->type != PROG_OBJECT)
+	if (oper[0].type != PROG_OBJECT)
 		abort_interp("Non-object argument (3)");
-	if (!prop_read_perms(ProgUID, oper1->data.objref, oper2->data.string->data, mlev))
+	if (!prop_read_perms(ProgUID, oper[2].data.objref, oper[1].data.string->data, mlev))
 		abort_interp("Permission denied.");
-	CHECKREMOTE(oper1->data.objref);
+	CHECKREMOTE(oper[2].data.objref);
 
-	result = reflist_find(oper1->data.objref, oper2->data.string->data, oper3->data.objref);
+	result = reflist_find(oper[2].data.objref, oper[1].data.string->data, oper[0].data.objref);
 
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
 	PushInt(result);
 }
 
 void
 prim_reflist_add(PRIM_PROTOTYPE)
 {
-	CHECKOP(3);
-	oper3 = POP();   /* dbref */
-	oper2 = POP();   /* propname */
-	oper1 = POP();   /* propobj */
-	if (!valid_object(oper1))
+	if (!valid_object(&oper[2]))
 		abort_interp("Non-object argument (1)");
-	if (oper2->type != PROG_STRING)
+	if (oper[1].type != PROG_STRING)
 		abort_interp("Non-string argument (2)");
-	if (!oper2->data.string)
+	if (!oper[1].data.string)
 		abort_interp("Empty string argument (2)");
-	if (oper3->type != PROG_OBJECT)
+	if (oper[0].type != PROG_OBJECT)
 		abort_interp("Non-object argument (3)");
-	if (!prop_write_perms(ProgUID, oper1->data.objref, oper2->data.string->data, mlev))
+	if (!prop_write_perms(ProgUID, oper[2].data.objref, oper[1].data.string->data, mlev))
 		abort_interp("Permission denied.");
-	CHECKREMOTE(oper1->data.objref);
+	CHECKREMOTE(oper[2].data.objref);
 
-	reflist_add(oper1->data.objref, oper2->data.string->data, oper3->data.objref);
-
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
+	reflist_add(oper[2].data.objref, oper[1].data.string->data, oper[0].data.objref);
 }
 
 void
 prim_reflist_del(PRIM_PROTOTYPE)
 {
-	CHECKOP(3);
-	oper3 = POP();   /* dbref */
-	oper2 = POP();   /* propname */
-	oper1 = POP();   /* propobj */
-	if (!valid_object(oper1))
+	if (!valid_object(&oper[2]))
 		abort_interp("Non-object argument (1)");
-	if (oper2->type != PROG_STRING)
+	if (oper[1].type != PROG_STRING)
 		abort_interp("Non-string argument (2)");
-	if (!oper2->data.string)
+	if (!oper[1].data.string)
 		abort_interp("Empty string argument (2)");
-	if (oper3->type != PROG_OBJECT)
+	if (oper[0].type != PROG_OBJECT)
 		abort_interp("Non-object argument (3)");
-	if (!prop_write_perms(ProgUID, oper1->data.objref, oper2->data.string->data, mlev))
+	if (!prop_write_perms(ProgUID, oper[2].data.objref, oper[1].data.string->data, mlev))
 		abort_interp("Permission denied.");
-	CHECKREMOTE(oper1->data.objref);
+	CHECKREMOTE(oper[2].data.objref);
 
-	reflist_del(oper1->data.objref, oper2->data.string->data, oper3->data.objref);
-
-	CLEAR(oper1);
-	CLEAR(oper2);
-	CLEAR(oper3);
+	reflist_del(oper[2].data.objref, oper[1].data.string->data, oper[0].data.objref);
 }
 
 void
@@ -1523,45 +1329,35 @@ prim_parsepropex(PRIM_PROTOTYPE)
     int mvarcnt = 0, novars, hashow = 0, i;
 	int result;
 
-    CHECKOP(4);
-    /* ref:Object str:Prop dict:Vars int:Private */
-    oper4 = POP(); /* int:Private */
-    oper3 = POP(); /* dict:Vars */
-    oper2 = POP(); /* str:Prop */
-    oper1 = POP(); /* ref:Object */
-
-    if (mlev < LMAGE)
-        abort_interp("W1 or greater required.");
-
-    if (oper1->type != PROG_OBJECT)
+    if (oper[3].type != PROG_OBJECT)
         abort_interp("Non-object argument. (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument. (2)");
-    if (oper3->type != PROG_ARRAY)
+    if (oper[1].type != PROG_ARRAY)
         abort_interp("Non-array argument. (3)");
-    if (oper3->data.array && (oper3->data.array->type != ARRAY_DICTIONARY))
+    if (oper[1].data.array && (oper[1].data.array->type != ARRAY_DICTIONARY))
         abort_interp("Dictionary array expected. (3)");
-    if (oper4->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument. (4)");
 
-    if (!valid_object(oper1))
+    if (!valid_object(&oper[3]))
         abort_interp("Invalid object.(1)");
-    if (!oper2->data.string)
+    if (!oper[2].data.string)
         abort_interp("Empty string argument. (2)");
-    if (oper4->data.number != 0 && oper4->data.number != 1)
+    if (oper[0].data.number != 0 && oper[0].data.number != 1)
         abort_interp("Integer of 1 or 0 expected. (4)");
 
-    CHECKREMOTE(oper1->data.objref);
+    CHECKREMOTE(oper[3].data.objref);
 
-    if (has_suffix_char(oper2->data.string->data, PROPDIR_DELIMITER))
+    if (has_suffix_char(oper[2].data.string->data, PROPDIR_DELIMITER))
         abort_interp("Cannot access a propdir directly.");
 
-    if (!prop_read_perms(ProgUID, oper1->data.objref, oper2->data.string->data,
+    if (!prop_read_perms(ProgUID, oper[3].data.objref, oper[2].data.string->data,
                           mlev))
         abort_interp("Permission denied.");
 
-    mpi = get_property_class(oper1->data.objref, oper2->data.string->data);
-    vars = oper3->data.array;
+    mpi = get_property_class(oper[3].data.objref, oper[2].data.string->data);
+    vars = oper[1].data.array;
     novars = array_count(vars);
 
     if (check_mvar_overflow(novars))
@@ -1646,12 +1442,12 @@ prim_parsepropex(PRIM_PROTOTYPE)
 
         result = 0;
 
-        if (oper4->data.number)
+        if (oper[0].data.number)
             result |= MPI_ISPRIVATE;
         if (hashow)
             result |= MPI_NOHOW;
 
-        str = do_parse_mesg(fr->descr, player, oper1->data.objref, mpi,
+        str = do_parse_mesg(fr->descr, player, oper[3].data.objref, mpi,
                             "(parsepropex)", buf, result);
        
         if (novars > 0) {
@@ -1672,12 +1468,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
         }
     }
 
-    oper3->data.array = NULL;
-
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
-    CLEAR(oper4);
+    oper[1].data.array = NULL;
 
     PushArrayRaw(vars);
     PushString(str);
@@ -1746,40 +1537,26 @@ prim_copyprops(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(5);
-    oper1 = POP(); /* Recurse          (INT) */
-    oper2 = POP(); /* Dest Prop(dir)   (STR) */
-    oper3 = POP(); /* Dest Object      (REF) */
-    oper4 = POP(); /* Source Prop(dir) (STR) */
-    oper5 = POP(); /* Source Object    (REF) */ 
-
-    if (mlev < LARCH)
-        abort_interp("Arch prim");
-
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (5)");
 
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (4)");
-    if (!oper2->data.string)
+    if (!oper[1].data.string)
         abort_interp("Empty string argument (4)");
 
-    if (!(valid_object(oper3)))
+    if (!(valid_object(&oper[2])))
         abort_interp("Invalid object argument (3)");
 
-    if (oper4->type != PROG_STRING)
+    if (oper[3].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (!oper4->data.string)
+    if (!oper[3].data.string)
         abort_interp("Empty string argument (2)");
 
-    if (!(valid_object(oper5)))
+    if (!(valid_object(&oper[4])))
         abort_interp("Invalid object argument (1)");
 
-    result = copy_props(oper5->data.objref, oper3->data.objref, oper4->data.string->data, oper2->data.string->data, oper1->data.number); 
-
-    CLEAR(oper1); CLEAR(oper2);
-    CLEAR(oper3); CLEAR(oper4);
-    CLEAR(oper5);
+    result = copy_props(oper[4].data.objref, oper[2].data.objref, oper[3].data.string->data, oper[1].data.string->data, oper[0].data.number); 
 
     CHECKOFLOW(1);
     PushInt(result);

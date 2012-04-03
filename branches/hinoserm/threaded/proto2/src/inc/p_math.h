@@ -39,7 +39,37 @@ extern void prim_sign(PRIM_PROTOTYPE);
     "OR",  "XOR",  "NOT",  "<",  ">",  "=",  "!=",  "<=", \
     ">=", "RANDOM", "INT", "SRAND", "SETSEED", "GETSEED", \
     "++", "--", "ABS", "SIGN"
- 
+    
+    
+#define PRIMLIST_MATH   { "+",         LM1, 2, prim_add },          \
+                        { "-",         LM1, 2, prim_subtract },     \
+                        { "*",         LM1, 2, prim_multiply },     \
+                        { "/",         LM1, 2, prim_divide },       \
+                        { "%",         LM1, 2, prim_mod },          \
+                        { "BITOR",     LM1, 2, prim_bitor },        \
+                        { "BITXOR",    LM1, 2, prim_bitxor },       \
+                        { "BITAND",    LM1, 2, prim_bitand },       \
+                        { "BITSHIFT",  LM1, 2, prim_bitshift },     \
+                        { "AND",       LM1, 2, prim_and },          \
+                        { "OR",        LM1, 2, prim_or },           \
+                        { "XOR",       LM1, 2, prim_xor },          \
+                        { "NOT",       LM1, 1, prim_not },          \
+                        { "<",         LM1, 2, prim_lessthan },     \
+                        { ">",         LM1, 2, prim_greathan },     \
+                        { "=",         LM1, 2, prim_equal },        \
+                        { "!=",        LM1, 2, prim_noteq },        \
+                        { "<=",        LM1, 2, prim_lesseq },       \
+                        { ">=",        LM1, 2, prim_greateq },      \
+                        { "RANDOM",    LM1, 0, prim_random },       \
+                        { "INT",       LM1, 1, prim_int },          \
+                        { "SRAND",     LM1, 0, prim_srand },        \
+                        { "SETSEED",   LM1, 1, prim_setseed },      \
+                        { "GETSEED",   LM1, 0, prim_getseed },      \
+                        { "++",        LM1, 1, prim_plusplus },     \
+                        { "--",        LM1, 1, prim_minusminus },   \
+                        { "ABS",       LM1, 1, prim_abs },          \
+                        { "SIGN",      LM1, 1, prim_sign }
+      
 #define PRIMS_MATH_CNT 28
 
 

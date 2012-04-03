@@ -930,6 +930,8 @@ struct frame {
     int     errorline;                  /* the program line that threw an error */
     int     err;                        /* has the program errored?  Setting to -1 causes silent abort (no try-catch) */
     int     aborted;                    /* indicates program aborted */
+	struct inst oper[6];                /* this replaces oper1,oper2,etc */
+    int     nargs;                      /* number of items initalized in oper array */
     int     descr;                      /* Descriptor of running player */
     int     shutdown_seen;              /* Queues SHUTDOWN events during delayed shutdown */
     void *rndbuf;                       /* buffer for seedable random */
