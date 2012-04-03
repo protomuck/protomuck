@@ -133,8 +133,6 @@ prim_queue(PRIM_PROTOTYPE)
 	struct inst *oper3;
     /* int dbref string -- */
     
-    if (mlev < LM3)
-        abort_interp("M3 prim");
     if (oper[2].type != PROG_INTEGER)
         abort_interp("Non-integer argument (1)");
     if (oper[1].type != PROG_OBJECT)
@@ -164,8 +162,6 @@ prim_enqueue(PRIM_PROTOTYPE)
 	struct inst *oper4;
     /* int dbref string -- */
     
-    if (mlev < LARCH)
-        abort_interp("W3 prim");
     if (oper[2].type != PROG_INTEGER && oper[2].type != PROG_STRING)
         abort_interp("Argument must be integer or string (1)");
     if (oper[1].type != PROG_OBJECT)
@@ -224,8 +220,6 @@ prim_timestamps(PRIM_PROTOTYPE)
 	int result;
 	dbref ref;
     
-    if (mlev < LM2)
-        abort_interp("M2 prim");
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
     ref = oper[0].data.objref;
@@ -249,8 +243,6 @@ prim_refstamps(PRIM_PROTOTYPE)
 	int result;
 	dbref ref;
     
-    if (mlev < LM2)
-        abort_interp("M2 prim");
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
     ref = oper[0].data.objref;
@@ -271,8 +263,6 @@ prim_touch(PRIM_PROTOTYPE)
 {
 	dbref ref;
     
-    if (mlev < LM3)
-        abort_interp("M3 prim");
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
     ref = oper[0].data.objref;
@@ -287,8 +277,6 @@ prim_use(PRIM_PROTOTYPE)
 {
 	dbref ref;
     
-    if (mlev < LWIZ)
-        abort_interp("W2 prim");
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
     ref = oper[0].data.objref;
@@ -308,8 +296,6 @@ prim_fork(PRIM_PROTOTYPE)
     struct frame *tmpfr;
     
     CHECKOFLOW(1);
-    if (mlev < LMAGE)
-        abort_interp("Mage prim.");
     fr->pc = pc;
     tmpfr = (struct frame *) calloc(1, sizeof(struct frame));
     tmpfr->next = NULL;
@@ -504,8 +490,6 @@ prim_getpids(PRIM_PROTOTYPE)
     stk_array *nw;
 	struct inst temp1;
     
-    if (mlev < LARCH)
-        abort_interp("Archwizard prim.");
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
     nw = get_pids(oper[0].data.objref);
@@ -528,9 +512,7 @@ prim_getpidinfo(PRIM_PROTOTYPE)
     time_t etime = 0;
     double pcnt = 0.0;
     /* int */
-    
-    if (mlev < LARCH)
-        abort_interp("Archwizard prim.");
+
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument (1)");
     /* This is kind of hacky. Basically, if we are getting the 
@@ -794,8 +776,6 @@ prim_event_send(PRIM_PROTOTYPE)
                   /* any: data to pass */
                   /* string: event id */
                   /* int: process id to send to */
-    if (mlev < 3)
-        abort_interp("Requires Mucker level 3 or better.");
     if (oper[2].type != PROG_INTEGER)
         abort_interp("Expected an integer process id. (1)");
     if (oper[1].type != PROG_STRING)
