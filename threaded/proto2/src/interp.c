@@ -43,47 +43,53 @@ p_null(PRIM_PROTOTYPE)
     return;
 }
 
-/* void    (*prim_func[]) (PRIM_PROTOTYPE) = */
-void (*prim_func[]) (PRIM_PROTOTYPE) = {
-    p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null, p_null,
-        p_null,
-        /* JMP, READ, TREAD, SLEEP,  CALL,   EXECUTE, RETURN, EVENT_WAITFOR, CATCH, CATCH_DETAILED */
-        PRIMS_CONNECTS_FUNCS,
-        PRIMS_DB_FUNCS,
-        PRIMS_MATH_FUNCS,
-        PRIMS_MISC_FUNCS,
-        PRIMS_PROPS_FUNCS,
-        PRIMS_STACK_FUNCS,
-        PRIMS_STRINGS_FUNCS,
-        PRIMS_FLOAT_FUNCS,
+struct prim_list primlist[] = {
+        { "JMP", 0, 0, p_null },
+        { "READ", 0, 0, p_null },
+        { "TREAD", 0, 0, p_null },
+        { "SLEEP", 0, 0, p_null },
+        { "CALL", 0, 0, p_null },
+        { "EXECUTE", 0, 0, p_null },
+        { "EXIT", 0, 0, p_null },
+        { "EVENT_WAITFOR", 0, 0, p_null },
+        { "CATCH", 0, 0, p_null },
+        { "CATCH_DETAILED", 0, 0, p_null },
+        PRIMLIST_CONNECTS,
+        PRIMLIST_DB,
+        PRIMLIST_MATH,
+        PRIMLIST_MISC,
+        PRIMLIST_PROPS,
+        PRIMLIST_STACK,
+        PRIMLIST_STRINGS,
+        PRIMLIST_FLOAT,
 #ifdef PCRE_SUPPORT
-		PRIMS_REGEX_FUNCS,
+		PRIMLIST_REGEX,
 #endif
-		PRIMS_ERROR_FUNCS,
+		PRIMLIST_ERROR,
 #ifdef FILE_PRIMS
-        PRIMS_FILE_FUNCS,
+        PRIMLIST_FILE,
 #endif
-        PRIMS_ARRAY_FUNCS,
+        PRIMLIST_ARRAY,
 #ifdef MCP_SUPPORT
-        PRIMS_MCP_FUNCS,
+        PRIMLIST_MCP,
 #endif
 #ifdef MUF_SOCKETS
-        PRIMS_SOCKET_FUNCS,
+        PRIMLIST_SOCKET,
 #endif
-        PRIMS_SYSTEM_FUNCS,
+        PRIMLIST_SYSTEM,
 #ifdef SQL_SUPPORT
-        PRIMS_MYSQL_FUNCS,
+        PRIMLIST_MYSQL,
 #endif
 #ifdef MUF_EDIT_PRIMS
-        PRIMS_MUFEDIT_FUNCS,
+        PRIMLIST_MUFEDIT,
 #endif
 #ifdef NEWHTTPD
-        PRIMS_HTTP_FUNCS,       /* hinoserm */
+        PRIMLIST_HTTP,       /* hinoserm */
 #endif
-#ifdef JSON_SUPPORT
-        PRIMS_JSON_FUNCS,
-#endif
-PRIMS_INTERNAL_FUNCS, NULL};
+        PRIMLIST_INTERNAL,
+        {NULL,-1,-1,NULL}
+};
+
 
 struct localvars *
 localvars_get(struct frame *fr, dbref prog)
@@ -434,6 +440,16 @@ RCLEAR(struct inst *oper, const char *file, int line)
     oper->type = PROG_CLEARED;
 }
 
+void muf_oper_clean(struct frame *fr, const char *file, int line)
+{
+	int i;
+
+	for (i = 0; i < fr->nargs; i++)
+		RCLEAR(&fr->oper[i], file, line);
+
+    fr->nargs = 0;
+}
+
 void push(struct inst *stack, int *top, int type, voidptr res);
 
 int valid_object(struct inst *oper);
@@ -724,6 +740,8 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->proftime.tv_usec = 0;
     fr->totaltime.tv_sec = 0;
     fr->totaltime.tv_usec = 0;
+
+	fr->nargs = 0;
 
     fr->variables[0].type = PROG_OBJECT;
     fr->variables[0].data.objref = player;
@@ -1067,6 +1085,7 @@ prog_clean(struct frame *fr)
     /* muf_event_dequeue_frame(fr); */
     fr->pid = 0;                /* cleared to keep socket events from hitting it again */
     fr->err = 0;
+    muf_oper_clean(fr, __FILE__, __LINE__);
     fr->next = free_frames_list;
     free_frames_list = fr;
 
@@ -2207,12 +2226,29 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         break;
                     default:
 						{
-							struct inst *oper1 = NULL, *oper2 = NULL, *oper3 = NULL, *oper4 = NULL, *oper5 = NULL, *oper6 = NULL;
-							nargs = 0;
+						    int i;
+
+							if (mlev < primlist[pc->data.number - 1].mlev) {
+                                char errstr[1024];
+								sprintf(errstr, "Insufficent MLEVEL.  (needed %d)", primlist[pc->data.number - 1].mlev);
+								abort_loop(errstr, NULL, NULL);
+                            }
+
+							fr->nargs = primlist[pc->data.number - 1].nargs;
+
+                            if (atop < fr->nargs) {
+								fr->nargs = 0;
+                                abort_loop("Stack underflow.", NULL, NULL);
+                            }
+
+                            for (i = 0; i < fr->nargs; i++)
+                               fr->oper[i] = arg[--atop];
+
 							reload(fr, atop, stop);
 							tmp = atop;
-							prim_func[pc->data.number - 1] (player, program, mlev, pc, arg, &tmp, fr, oper1, oper2, oper3, oper4, oper5, oper6);
+							primlist[pc->data.number - 1].func(player, program, mlev, pc, arg, &tmp, fr, fr->oper);
 							atop = tmp;
+							muf_oper_clean(fr, __FILE__, __LINE__);
 							pc++;
 							break;
 						}
@@ -2571,9 +2607,6 @@ find_uid(dbref player, struct frame *fr, int st, dbref program)
 void
 do_abort_interp(dbref player, const char *msg, struct inst *pc,
                 struct inst *arg, int atop, struct frame *fr,
-                struct inst *oper1, struct inst *oper2,
-                struct inst *oper3, struct inst *oper4,
-                struct inst *oper5, struct inst *oper6, int nargs,
                 dbref program, const char *file, int line)
 {
     char buffer[128];
@@ -2600,26 +2633,9 @@ do_abort_interp(dbref player, const char *msg, struct inst *pc,
         if (FLAG2(program) & F2PARENT && player != OWNER(program))
             muf_backtrace(OWNER(program), program, ADDR_SIZE, fr);
     }
-    switch (nargs) {
-        case 6:
-            if (oper6)
-                RCLEAR(oper6, file, line);
-        case 5:
-            if (oper5)
-                RCLEAR(oper5, file, line);
-        case 4:
-            if (oper4)
-                RCLEAR(oper4, file, line);
-        case 3:
-            if (oper3)
-                RCLEAR(oper3, file, line);
-        case 2:
-            if (oper2)
-                RCLEAR(oper2, file, line);
-        case 1:
-            if (oper1)
-                RCLEAR(oper1, file, line);
-    }
+
+    muf_oper_clean(fr, file, line);    
+
     return;
 }
 

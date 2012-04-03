@@ -8,11 +8,14 @@ extern void prim_error_name(PRIM_PROTOTYPE);
 extern void prim_error_bit(PRIM_PROTOTYPE);
 extern void prim_error_num(PRIM_PROTOTYPE);
 
-#define PRIMS_ERROR_FUNCS prim_clear, prim_clear_error, prim_is_error,    \
-        prim_set_error, prim_is_set, prim_error_str, prim_error_name,     \
-        prim_error_bit, prim_error_num
-
-#define PRIMS_ERROR_NAMES "CLEAR","CLEAR_ERROR","ERROR?","SET_ERROR",     \
-        "IS_SET?","ERROR_STR","ERROR_NAME","ERROR_BIT","ERROR_NUM"
+#define PRIMLIST_ERROR { "CLEAR",         LM1,    0, prim_clear         }, \
+                       { "CLEAR_ERROR",   LM1,    1, prim_clear_error   }, \
+                       { "ERROR?",        LM1,    0, prim_is_error      }, \
+                       { "SET_ERROR",     LM1,    1, prim_set_error     }, \
+                       { "IS_SET?",       LM1,    1, prim_is_set        }, \
+                       { "ERROR_STR",     LM1,    1, prim_error_str     }, \
+                       { "ERROR_NAME",    LM1,    1, prim_error_name    }, \
+                       { "ERROR_BIT",     LM1,    1, prim_error_bit     }, \
+                       { "ERROR_NUM",     LM1,    0, prim_error_num     }
 
 #define PRIMS_ERROR_CNT 9

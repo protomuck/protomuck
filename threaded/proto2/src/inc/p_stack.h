@@ -54,31 +54,59 @@ extern void prim_foriter(PRIM_PROTOTYPE);
 extern void prim_forpop(PRIM_PROTOTYPE);
 extern void prim_trypop(PRIM_PROTOTYPE);
 
-#define PRIMS_STACK_FUNCS prim_pop, prim_dup, prim_at, prim_bang, prim_var,  \
-    prim_localvar, prim_swap, prim_over, prim_pick, prim_put, prim_rot,      \
-    prim_rotate, prim_dbtop, prim_depth, prim_prog, prim_trig, \
-    prim_caller, prim_intp, prim_stringp, prim_dbrefp, prim_addressp,        \
-    prim_lockp, prim_checkargs, prim_mode, prim_setmode, prim_interp,	     \
-    prim_sort, prim_popn, prim_variablep, prim_mark, prim_findmark,          \
-    prim_floatp, prim_arrayp, prim_dictionaryp, prim_reverse, prim_lreverse, \
-    prim_dupn, prim_ldup, prim_for, prim_foreach, prim_socketp, prim_markp, \
-    prim_sqlp, prim_pdup, prim_nip, prim_tuck, prim_ndup
-
-#define PRIMS_STACK_NAMES "POP", "DUP", "@", "!", "VARIABLE",  \
-    "LOCALVAR", "SWAP", "OVER", "PICK", "PUT", "ROT",          \
-    "ROTATE", "DBTOP", "DEPTH",  "PROG", "TRIG",     \
-    "CALLER", "INT?", "STRING?", "DBREF?", "ADDRESS?",         \
-    "LOCK?", "CHECKARGS", "MODE", "SETMODE", "INTERP",	   \
-    "SORT", "POPN", "VARIABLE?", "{", "}", "FLOAT?", "ARRAY?", \
-    "DICTIONARY?", "REVERSE", "LREVERSE", "DUPN", "LDUP",      \
-    " FOR", " FOREACH", "SOCKET?", "MARK?", "SQL?", "?DUP",    \
-	"NIP", "TUCK", "NDUP"
-
+#define PRIMLIST_STACK  { "POP",         LM1, 1, prim_pop        },  \
+                        { "DUP",         LM1, 0, prim_dup        },  \
+                        { "@",           LM1, 1, prim_at         },  \
+                        { "!",           LM1, 2, prim_bang       },  \
+                        { "VARIABLE",    LM1, 1, prim_var        },  \
+                        { "LOCALVAR",    LM1, 1, prim_localvar   },  \
+                        { "SWAP",        LM1, 2, prim_swap       },  \
+                        { "OVER",        LM1, 0, prim_over       },  \
+                        { "PICK",        LM1, 1, prim_pick       },  \
+                        { "PUT",         LM1, 2, prim_put        },  \
+                        { "ROT",         LM1, 3, prim_rot        },  \
+                        { "ROTATE",      LM1, 1, prim_rotate     },  \
+                        { "DBTOP",       LM1, 0, prim_dbtop      },  \
+                        { "DEPTH",       LM1, 0, prim_depth      },  \
+                        { "PROG",        LM1, 0, prim_prog       },  \
+                        { "TRIG",        LM1, 0, prim_trig       },  \
+                        { "CALLER",      LM1, 0, prim_caller     },  \
+                        { "INT?",        LM1, 1, prim_intp       },  \
+                        { "STRING?",     LM1, 1, prim_stringp    },  \
+                        { "DBREF?",      LM1, 1, prim_dbrefp     },  \
+                        { "ADDRESS?",    LM1, 1, prim_addressp   },  \
+                        { "LOCK?",       LM1, 1, prim_lockp      },  \
+                        { "CHECKARGS",   LM1, 1, prim_checkargs  },  \
+                        { "MODE",        LM1, 0, prim_mode       },  \
+                        { "SETMODE",     LM1, 1, prim_setmode    },  \
+                        { "INTERP",      LM1, 3, prim_interp     },  \
+                        { "SORT",        LM1, 2, prim_sort       },  \
+                        { "POPN",        LM1, 1, prim_popn       },  \
+                        { "VARIABLE?",   LM1, 1, prim_variablep  },  \
+                        { "{",           LM1, 0, prim_mark       },  \
+                        { "}",           LM1, 0, prim_findmark   },  \
+                        { "FLOAT?",      LM1, 1, prim_floatp     },  \
+                        { "ARRAY?",      LM1, 1, prim_arrayp     },  \
+                        { "DICTIONARY?", LM1, 1, prim_dictionaryp},  \
+                        { "REVERSE",     LM1, 1, prim_reverse    },  \
+                        { "LREVERSE",    LM1, 1, prim_lreverse   },  \
+                        { "DUPN",        LM1, 1, prim_dupn       },  \
+                        { "LDUP",        LM1, 1, prim_ldup       },  \
+                        { " FOR",        LM1, 3, prim_for        },  \
+                        { " FOREACH",    LM1, 1, prim_foreach    },  \
+                        { "SOCKET?",     LM1, 1, prim_socketp    },  \
+                        { "MARK?",       LM1, 1, prim_markp      },  \
+                        { "SQL?",        LM1, 1, prim_sqlp       },  \
+                        { "?DUP",        LM1, 0, prim_pdup       },  \
+                        { "NIP",         LM1, 2, prim_nip        },  \
+                        { "TUCK",        LM1, 2, prim_tuck       },  \
+                        { "NDUP",        LM1, 1, prim_ndup       }                        
+                        
 #define PRIMS_STACK_CNT 47
 
-#define PRIMS_INTERNAL_FUNCS prim_foriter, prim_forpop, prim_trypop
-
-#define PRIMS_INTERNAL_NAMES " FORITER", " FORPOP", " TRYPOP"
+#define PRIMLIST_INTERNAL { " FORITER", LM1, 0, prim_foriter}, \
+                          { " FORPOP",  LM1, 0, prim_forpop},  \
+                          { " TRYPOP",  LM1, 0, prim_trypop}
 
 #define PRIMS_INTERNAL_CNT 3
 

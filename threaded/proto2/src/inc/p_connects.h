@@ -50,39 +50,58 @@ extern void prim_descrtype(PRIM_PROTOTYPE);
 extern void prim_suid(PRIM_PROTOTYPE);
 extern void prim_mccp_start(PRIM_PROTOTYPE);
 extern void prim_mccp_end(PRIM_PROTOTYPE);
-
-
-
-
-#define PRIMS_CONNECTS_FUNCS prim_awakep, prim_online, prim_concount,       \
-    prim_condbref, prim_conidle, prim_contime, prim_conhost, prim_conuser,  \
-    prim_conboot, prim_connotify, prim_condescr, prim_descrcon,             \
-    prim_nextdescr, prim_descriptors, prim_descr_setuser, prim_descr_setuser_nopass, \
-    prim_conipnum, prim_conport, prim_online_array, prim_descr_array,       \
-    prim_descrflush, prim_descr, prim_descr_htmlp, prim_descr_pueblop,      \
-    prim_welcome_user, prim_descrp, prim_motd_notify,                       \
-    prim_descr_logout, prim_descrdbref, prim_descridle, prim_descrtime,     \
-    prim_descrhost, prim_descruser, prim_descripnum, prim_descrport,        \
-    prim_descrconport, prim_firstdescr, prim_lastdescr,                     \
-    prim_descrleastidle, prim_descrmostidle, prim_descrboot,                \
-    prim_getdescrinfo, prim_descr_set, prim_descr_flagp, prim_bandwidth,    \
-    prim_descrbufsize, prim_descr_sslp, prim_descr_sendfile, prim_suid,     \
-    prim_descrtype, prim_mccp_start, prim_mccp_end
-
-#define PRIMS_CONNECTS_NAMES "AWAKE?", "ONLINE", "CONCOUNT",  \
-    "CONDBREF", "CONIDLE", "CONTIME", "CONHOST", "CONUSER",   \
-    "CONBOOT", "CONNOTIFY", "CONDESCR", "DESCRCON",           \
-    "NEXTDESCR", "DESCRIPTORS", "DESCR_SETUSER", "DESCR_SETUSER_NOPASS", \
-    "CONIPNUM", "CONPORT", "ONLINE_ARRAY", "DESCR_ARRAY",     \
-    "DESCRFLUSH", "DESCR", "DESCR_HTML?", "DESCR_PUEBLO?",    \
-    "DESCR_WELCOME_USER", "DESCR?", "MOTD_NOTIFY",            \
-    "DESCR_LOGOUT", "DESCRDBREF", "DESCRIDLE", "DESCRTIME",   \
-    "DESCRHOST", "DESCRUSER", "DESCRIPNUM", "DESCRPORT",      \
-    "DESCRCONPORT", "FIRSTDESCR", "LASTDESCR",                \
-    "DESCRLEASTIDLE", "DESCRMOSTIDLE", "DESCRBOOT",           \
-    "GETDESCRINFO", "DESCR_SET", "DESCR_FLAG?", "BANDWIDTH",  \
-    "DESCRBUFSIZE", "DESCR_SSL?", "DESCR_SENDFILE", "SUID",   \
-    "DESCRTYPE", "MCCP_START", "MCCP_END"
+    
+#define PRIMLIST_CONNECTS  { "AWAKE?",                LM1,     1, prim_awakep },                \
+                           { "ONLINE",                LM3,     0, prim_online },                \
+                           { "CONCOUNT",              LM1,     0, prim_concount },              \
+                           { "CONDBREF",              LM3,     1, prim_condbref },              \
+                           { "CONIDLE",               LM2,     1, prim_conidle },               \
+                           { "CONTIME",               LM2,     1, prim_contime },               \
+                           { "CONHOST",               LMAGE,   1, prim_conhost },               \
+                           { "CONUSER",               LARCH,   1, prim_conuser },               \
+                           { "CONBOOT",               LWIZ,    1, prim_conboot },               \
+                           { "CONNOTIFY",             LM3,     2, prim_connotify },             \
+                           { "CONDESCR",              LM3,     1, prim_condescr },              \
+                           { "DESCRCON",              LM3,     1, prim_descrcon },              \
+                           { "NEXTDESCR",             LMAGE,   1, prim_nextdescr },             \
+                           { "DESCRIPTORS",           LM3,     1, prim_descriptors },           \
+                           { "DESCR_SETUSER",         LWIZ,    3, prim_descr_setuser },         \
+                           { "DESCR_SETUSER_NOPASS",  LBOY,    2, prim_descr_setuser_nopass },  \
+                           { "CONIPNUM",              LMAGE,   1, prim_conipnum },              \
+                           { "CONPORT",               LARCH,   1, prim_conport },               \
+                           { "ONLINE_ARRAY",          LM3,     0, prim_online_array },          \
+                           { "DESCR_ARRAY",           LM3,     1, prim_descr_array },           \
+                           { "DESCRFLUSH",            LM3,     1, prim_descrflush },            \
+                           { "DESCR",                 LM1,     0, prim_descr },                 \
+                           { "DESCR_HTML?",           LM3,     1, prim_descr_htmlp },           \
+                           { "DESCR_PUEBLO?",         LM3,     1, prim_descr_pueblop },         \
+                           { "DESCR_WELCOME_USER",    LM3,     1, prim_welcome_user },          \
+                           { "DESCR?",                LM3,     1, prim_descrp },                \
+                           { "MOTD_NOTIFY",           LM3,     1, prim_motd_notify },           \
+                           { "DESCR_LOGOUT",          LARCH,   1, prim_descr_logout },          \
+                           { "DESCRDBREF",            LM3,     1, prim_descrdbref },            \
+                           { "DESCRIDLE",             LM2,     1, prim_descridle },             \
+                           { "DESCRTIME",             LM2,     1, prim_descrtime },             \
+                           { "DESCRHOST",             LMAGE,   1, prim_descrhost },             \
+                           { "DESCRUSER",             LARCH,   1, prim_descruser },             \
+                           { "DESCRIPNUM",            LM1,     1, prim_descripnum },            \
+                           { "DESCRPORT",             LARCH,   1, prim_descrport },             \
+                           { "DESCRCONPORT",          LARCH,   1, prim_descrconport },          \
+                           { "FIRSTDESCR",            LM1,     1, prim_firstdescr },            \
+                           { "LASTDESCR",             LM1,     1, prim_lastdescr },             \
+                           { "DESCRLEASTIDLE",        LM1,     1, prim_descrleastidle },        \
+                           { "DESCRMOSTIDLE",         LM1,     1, prim_descrmostidle },         \
+                           { "DESCRBOOT",             LARCH,   1, prim_descrboot },             \
+                           { "GETDESCRINFO",          LARCH,   1, prim_getdescrinfo },          \
+                           { "DESCR_SET",             LARCH,   2, prim_descr_set },             \
+                           { "DESCR_FLAG?",           LM1,     2, prim_descr_flagp },           \
+                           { "BANDWIDTH",             LMAGE,   0, prim_bandwidth },             \
+                           { "DESCRBUFSIZE",          LM3,     1, prim_descrbufsize },          \
+                           { "DESCR_SSL?",            LM3,     1, prim_descr_sslp },            \
+                           { "DESCR_SENDFILE",        LBOY,    4, prim_descr_sendfile },        \
+                           { "DESCRTYPE",             LM2,     1, prim_descrtype },             \
+                           { "MCCP_START",            LM3,     1, prim_mccp_start },            \
+                           { "MCCP_END",              LMAGE,   1, prim_mccp_end }
+    
 
 #define PRIMS_CONNECTS_CNT 52
-

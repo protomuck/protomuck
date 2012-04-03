@@ -76,5 +76,57 @@ extern void prim_escape_url(PRIM_PROTOTYPE);
     "ESCAPE_URL", "ONEVENT", "INTERRUPT_LEVEL", "REFSTAMPS",              \
     "TOUCH", "USE", "MD5HASH", "SHA1HASH", "ENQUEUE",                     \
 	"GET_READ_WANTS_BLANKS"
+   
+#define PRIMLIST_MISC   { "TIME",                  LM1,     0, prim_time },               \
+                        { "DATE",                  LM1,     0, prim_date },               \
+                        { "GMTOFFSET",             LM1,     0, prim_gmtoffset },          \
+                        { "SYSTIME",               LM1,     0, prim_systime },            \
+                        { "TIMESPLIT",             LM1,     1, prim_timesplit },          \
+                        { "TIMEFMT",               LM1,     2, prim_timefmt },            \
+                        { "QUEUE",                 LM3,     3, prim_queue },              \
+                        { "KILL",                  LM1,     1, prim_kill },               \
+                        { "TIMESTAMPS",            LM2,     1, prim_timestamps },         \
+                        { "FORK",                  LWIZ,    0, prim_fork },               \
+                        { "PID",                   LM1,     0, prim_pid },                \
+                        { "STATS",                 LM3,     1, prim_stats },              \
+                        { "ABORT",                 LM1,     1, prim_abort },              \
+                        { "ISPID?",                LM1,     1, prim_ispidp },             \
+                        { "PARSELOCK",             LM1,     1, prim_parselock },          \
+                        { "UNPARSELOCK",           LM1,     1, prim_unparselock },        \
+                        { "PRETTYLOCK",            LM1,     1, prim_prettylock },         \
+                        { "COMMANDTEXT",           LM1,     3, prim_commandtext },        \
+                        { "PLAYMIDI",              LM1,     3, prim_playmidi },           \
+                        { "STOPMIDI",              LM1,     1, prim_stopmidi },           \
+                        { "CANCALL?",              LM1,     2, prim_cancallp },           \
+                        { "TIMER_START",           LM1,     2, prim_timer_start },        \
+                        { "TIMER_STOP",            LM1,     1, prim_timer_stop },         \
+                        { "EVENT_COUNT",           LM1,     0, prim_event_count },        \
+                        { "EVENT_SEND",            LM3,     3, prim_event_send },         \
+                        { "PNAME-OK?",             LM1,     1, prim_pnameokp },           \
+                        { "NAME-OK?",              LM1,     1, prim_nameokp },            \
+                        { "EVENT_EXISTS",          LM1,     1, prim_event_exists },       \
+                        { "WATCHPID",              LM3,     1, prim_watchpid },           \
+                        { "GETPIDS",               LARCH,   1, prim_getpids },            \
+                        { "GETPIDINFO",            LARCH,   1, prim_getpidinfo },         \
+                        { "READ_WANTS_BLANKS",     LM1,     0, prim_read_wants_blanks },  \
+                        { "DEBUGGER_BREAK",        LM1,     0, prim_debugger_break },     \
+                        { "DEBUG_ON",              LM1,     0, prim_debug_on },           \
+                        { "DEBUG_OFF",             LM1,     0, prim_debug_off },          \
+                        { "DEBUG_LINE",            LM1,     0, prim_debug_line },         \
+                        { "SYSTIME_PRECISE",       LM1,     0, prim_systime_precise },    \
+                        { "HTOI",                  LM1,     1, prim_htoi },               \
+                        { "ITOH",                  LM1,     1, prim_itoh },               \
+                        { "UNESCAPE_URL",          LM1,     1, prim_unescape_url },       \
+                        { "ESCAPE_URL",            LM1,     1, prim_escape_url },         \
+                        { "ONEVENT",               LM1,     4, prim_onevent },            \
+                        { "INTERRUPT_LEVEL",       LM1,     0, prim_interrupt_level },    \
+                        { "REFSTAMPS",             LM2,     1, prim_refstamps },          \
+                        { "TOUCH",                 LM3,     1, prim_touch },              \
+                        { "USE",                   LWIZ,    1, prim_use },                \
+                        { "MD3HASH",               LM1,     1, prim_MD5hash },            \
+                        { "SHA1HASH",              LM1,     1, prim_SHA1hash },           \
+                        { "ENQUEUE",               LARCH,   4, prim_enqueue },            \
+                        { "GET_READ_WANTS_BLANKS", LM1,     0, prim_get_read_wants_blanks }
+   
 
 #define PRIMS_MISC_CNT 50

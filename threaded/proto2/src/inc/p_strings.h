@@ -57,94 +57,79 @@ extern void prim_ansi_unparseobj(PRIM_PROTOTYPE);
 extern void prim_ansi_name(PRIM_PROTOTYPE);
 extern void prim_base64encode(PRIM_PROTOTYPE);
 extern void prim_base64decode(PRIM_PROTOTYPE);
-
 #ifdef UTF8_SUPPORT
 extern void prim_wcharlen(PRIM_PROTOTYPE);
 extern void prim_wcharlen_slice(PRIM_PROTOTYPE);
+#endif
 
-#define PRIMS_STRINGS_FUNCS prim_numberp, prim_stringcmp, prim_strcmp,        \
-    prim_strncmp, prim_strcut, prim_strlen, prim_strcat, prim_atoi,           \
-    prim_ansi_notify, prim_notify, prim_notify_descriptor,                    \
-    prim_ansi_notify_descriptor,                                              \
-    prim_notify_exclude, prim_intostr,                                        \
-    prim_explode, prim_subst, prim_instr, prim_rinstr, prim_pronoun_sub,      \
-    prim_toupper, prim_tolower, prim_unparseobj, prim_smatch, prim_striplead, \
-    prim_striptail, prim_stringpfx, prim_strencrypt, prim_strdecrypt,         \
-    prim_notify_html, prim_notify_html_exclude, prim_notify_html_nocr,        \
-    prim_notify_html_exclude_nocr, prim_midstr, prim_ctoi, prim_itoc,         \
-    prim_stod, prim_split, prim_rsplit, prim_ansi_notify_exclude, prim_dtos,  \
-    prim_tokensplit, prim_fmtstring, prim_parse_ansi, prim_unparse_ansi,      \
-    prim_escape_ansi, prim_ansi_strlen, prim_ansi_strcut, prim_ansi_strip,    \
-    prim_ansi_midstr, prim_textattr, prim_parse_neon, prim_notify_descriptor, \
-    prim_flag_2char, prim_power_2char, prim_notify_descriptor_char,           \
-    prim_array_fmtstrings, prim_ansi_unparseobj, prim_ansi_name, prim_base64encode,    \
-    prim_base64decode, prim_wcharlen, prim_wcharlen_slice
-
-#define PRIMS_STRINGS_NAMES "NUMBER?", "STRINGCMP", "STRCMP",        \
-    "STRNCMP", "STRCUT", "STRLEN", "STRCAT", "ATOI",                 \
-    "ANSI_NOTIFY", "NOTIFY", "NOTIFY_DESCRIPTOR",                    \
-    "ANSI_NOTIFY_DESCRIPTOR", "NOTIFY_EXCLUDE",                      \
-    "INTOSTR", "EXPLODE", "SUBST", "INSTR", "RINSTR", "PRONOUN_SUB", \
-    "TOUPPER", "TOLOWER", "UNPARSEOBJ", "SMATCH", "STRIPLEAD",       \
-    "STRIPTAIL", "STRINGPFX", "STRENCRYPT", "STRDECRYPT",            \
-    "NOTIFY_HTML", "NOTIFY_HTML_EXCLUDE", "HTML_NOCR",               \
-    "HTML_EXCLUDE_NOCR", "MIDSTR", "CTOI", "ITOC", "STOD", "SPLIT",  \
-    "RSPLIT", "ANSI_NOTIFY_EXCLUDE", "DTOS", "TOKENSPLIT",           \
-    "FMTSTRING", "PARSE_ANSI", "UNPARSE_ANSI", "ESCAPE_ANSI",        \
-    "ANSI_STRLEN", "ANSI_STRCUT", "ANSI_STRIP", "ANSI_MIDSTR",       \
-    "TEXTATTR", "PARSE_NEON", "DESCRNOTIFY", "FLAG_2CHAR",           \
-    "POWER_2CHAR", "NOTIFY_DESCRIPTOR_CHAR", "ARRAY_FMTSTRINGS",     \
-    "ANSI_UNPARSEOBJ", "ANSI_NAME", "BASE64ENCODE", "BASE64DECODE",  \
-    "WCHARLEN", "WCHARLEN_SLICE"
-
-#define PRIMS_STRINGS_CNT 62
-
-#else /* UTF8_SUPPORT */
-
-#define PRIMS_STRINGS_FUNCS prim_numberp, prim_stringcmp, prim_strcmp,        \
-    prim_strncmp, prim_strcut, prim_strlen, prim_strcat, prim_atoi,           \
-    prim_ansi_notify, prim_notify, prim_notify_descriptor,                    \
-    prim_ansi_notify_descriptor,                                              \
-    prim_notify_exclude, prim_intostr,                                        \
-    prim_explode, prim_subst, prim_instr, prim_rinstr, prim_pronoun_sub,      \
-    prim_toupper, prim_tolower, prim_unparseobj, prim_smatch, prim_striplead, \
-    prim_striptail, prim_stringpfx, prim_strencrypt, prim_strdecrypt,         \
-    prim_notify_html, prim_notify_html_exclude, prim_notify_html_nocr,        \
-    prim_notify_html_exclude_nocr, prim_midstr, prim_ctoi, prim_itoc,         \
-    prim_stod, prim_split, prim_rsplit, prim_ansi_notify_exclude, prim_dtos,  \
-    prim_tokensplit, prim_fmtstring, prim_parse_ansi, prim_unparse_ansi,      \
-    prim_escape_ansi, prim_ansi_strlen, prim_ansi_strcut, prim_ansi_strip,    \
-    prim_ansi_midstr, prim_textattr, prim_parse_neon, prim_notify_descriptor, \
-    prim_flag_2char, prim_power_2char, prim_notify_descriptor_char,           \
-    prim_array_fmtstrings, prim_ansi_unparseobj, prim_ansi_name, prim_base64encode,    \
-    prim_base64decode
-
-#define PRIMS_STRINGS_NAMES "NUMBER?", "STRINGCMP", "STRCMP",        \
-    "STRNCMP", "STRCUT", "STRLEN", "STRCAT", "ATOI",                 \
-    "ANSI_NOTIFY", "NOTIFY", "NOTIFY_DESCRIPTOR",                    \
-    "ANSI_NOTIFY_DESCRIPTOR", "NOTIFY_EXCLUDE",                      \
-    "INTOSTR", "EXPLODE", "SUBST", "INSTR", "RINSTR", "PRONOUN_SUB", \
-    "TOUPPER", "TOLOWER", "UNPARSEOBJ", "SMATCH", "STRIPLEAD",       \
-    "STRIPTAIL", "STRINGPFX", "STRENCRYPT", "STRDECRYPT",            \
-    "NOTIFY_HTML", "NOTIFY_HTML_EXCLUDE", "HTML_NOCR",               \
-    "HTML_EXCLUDE_NOCR", "MIDSTR", "CTOI", "ITOC", "STOD", "SPLIT",  \
-    "RSPLIT", "ANSI_NOTIFY_EXCLUDE", "DTOS", "TOKENSPLIT",           \
-    "FMTSTRING", "PARSE_ANSI", "UNPARSE_ANSI", "ESCAPE_ANSI",        \
-    "ANSI_STRLEN", "ANSI_STRCUT", "ANSI_STRIP", "ANSI_MIDSTR",       \
-    "TEXTATTR", "PARSE_NEON", "DESCRNOTIFY", "FLAG_2CHAR",           \
-    "POWER_2CHAR", "NOTIFY_DESCRIPTOR_CHAR", "ARRAY_FMTSTRINGS",     \
-    "ANSI_UNPARSEOBJ", "ANSI_NAME", "BASE64ENCODE", "BASE64DECODE"
+#define PRIMLIST_STRINGS		{ "NUMBER?",				LM1, 1, prim_numberp },						\
+								{ "STRINGCMP",				LM1, 2, prim_stringcmp },					\
+								{ "STRCMP",					LM1, 2, prim_strcmp },						\
+								{ "STRNCMP",				LM1, 3, prim_strncmp },						\
+								{ "STRCUT",					LM1, 2, prim_strcut },						\
+								{ "STRLEN",					LM1, 1, prim_strlen },						\
+								{ "STRCAT",					LM1, 2, prim_strcat },						\
+								{ "ATOI",					LM1, 1, prim_atoi },						\
+								{ "ANSI_NOTIFY",			LM1, 2, prim_ansi_notify },					\
+								{ "NOTIFY",					LM1, 2, prim_notify },						\
+								{ "NOTIFY_DESCRIPTOR",		LMAGE, 2, prim_notify_descriptor },			\
+								{ "ANSI_NOTIFY_DESCRIPTOR",	LMAGE, 2, prim_ansi_notify_descriptor },	\
+								{ "NOTIFY_EXCLUDE",			LM1, 2, prim_notify_exclude },				\
+								{ "INTOSTR",				LM1, 1, prim_intostr },						\
+								{ "EXPLODE",				LM1, 2, prim_explode },						\
+								{ "SUBST",					LM1, 3, prim_subst },						\
+								{ "INSTR",					LM1, 2, prim_instr },						\
+								{ "RINSTR",					LM1, 2, prim_rinstr },						\
+								{ "PRONOUN_SUB",			LM1, 2, prim_pronoun_sub },					\
+								{ "TOUPPER",				LM1, 1, prim_toupper },						\
+								{ "TOLOWER",				LM1, 1, prim_tolower },						\
+								{ "UNPARSEOBJ",				LM1, 1, prim_unparseobj },					\
+								{ "SMATCH",					LM1, 2, prim_smatch },						\
+								{ "STRIPLEAD",				LM1, 1, prim_striplead },					\
+								{ "STRIPTAIL",				LM1, 1, prim_striptail },					\
+								{ "STRINGPFX",				LM1, 2, prim_stringpfx },					\
+								{ "STRENCRYPT",				LM1, 2, prim_strencrypt },					\
+								{ "STRDECRYPT",				LM1, 2, prim_strdecrypt },					\
+								{ "NOTIFY_HTML",			LM1, 2, prim_notify_html },					\
+								{ "NOTIFY_HTML_EXCLUDE",	LM1, 2, prim_notify_html_exclude },			\
+								{ "HTML_NOCR",				LM1, 1, prim_notify_html_nocr },			\
+								{ "HTML_EXCLUDE_NOCR",		LM1, 1, prim_notify_html_exclude_nocr },	\
+								{ "MIDSTR",					LM1, 3, prim_midstr },						\
+								{ "CTOI",					LM1, 1, prim_ctoi },						\
+								{ "ITOC",					LM1, 1, prim_itoc },						\
+								{ "STOD",					LM1, 1, prim_stod },						\
+								{ "SPLIT",					LM1, 2, prim_split },						\
+								{ "RSPLIT",					LM1, 2, prim_rsplit },						\
+								{ "ANSI_NOTIFY_EXCLUDE",	LM1, 2, prim_ansi_notify_exclude },			\
+								{ "DTOS",					LM1, 1, prim_dtos },						\
+								{ "TOKENSPLIT",				LM1, 3, prim_tokensplit },					\
+								{ "FMTSTRING",				LM1, 1, prim_fmtstring },					\
+								{ "PARSE_ANSI",				LM1, 2, prim_parse_ansi },					\
+								{ "UNPARSE_ANSI",			LM1, 2, prim_unparse_ansi },				\
+								{ "ESCAPE_ANSI",			LM1, 2, prim_escape_ansi },					\
+								{ "ANSI_STRLEN",			LM1, 1, prim_ansi_strlen },					\
+								{ "ANSI_STRCUT",			LM1, 2, prim_ansi_strcut },					\
+								{ "ANSI_STRIP",				LM1, 1, prim_ansi_strip },					\
+								{ "ANSI_MIDSTR",			LM1, 3, prim_ansi_midstr },					\
+								{ "TEXTATTR",				LM1, 2, prim_textattr },					\
+								{ "PARSE_NEON",				LM1, 3, prim_parse_neon },					\
+								{ "DESCRNOTIFY",			LMAGE, 2, prim_notify_descriptor },			\
+								{ "FLAG_2CHAR",				LM1, 1, prim_flag_2char },					\
+								{ "POWER_2CHAR",			LM1, 1, prim_power_2char },					\
+								{ "NOTIFY_DESCRIPTOR_CHAR",	LMAGE, 2, prim_notify_descriptor_char },	\
+								{ "ARRAY_FMTSTRINGS",		LM1, 2, prim_array_fmtstrings },			\
+								{ "ANSI_UNPARSEOBJ",		LM1, 1, prim_ansi_unparseobj },				\
+								{ "ANSI_NAME",				LM1, 1, prim_ansi_name },					\
+								{ "BASE64ENCODE",			LM1, 1, prim_base64encode },				\
+								{ "BASE64DECODE",			LM1, 1, prim_base64decode }
 
 #define PRIMS_STRINGS_CNT 60
 
+#ifdef UTF8_SUPPORT
 
-#endif /* WIN_VC */
+#define PRIMLIST_STRINGS_UTF8	{ "WCHARLEN",				LM1, 1, prim_wcharlen },					\
+								{ "WCHARLEN_SLICE",			LM1, 2, prim_wcharlen_slice }
 
+#define PRIMS_STRINGS_UTF8_CNT 2
 
-
-
-
-
-
-
-
+#endif

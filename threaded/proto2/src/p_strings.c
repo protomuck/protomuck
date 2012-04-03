@@ -25,28 +25,24 @@ prim_fmtstring(PRIM_PROTOTYPE)
     char sstr[BUFFER_LEN], sfmt[255], hold[256], tbuf[BUFFER_LEN];
 	char buf[BUFFER_LEN];
     char *ptr, *begptr;
-	int result, tmp;
+	int result;
 	dbref ref;
+	struct inst *oper2;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Top argument must be a string.");
-    if (!oper1->data.string) {
-        CLEAR(oper1);
+    if (!oper[0].data.string) {
         PushNullStr;
         return;
     }
     /* We now have the non-null format string, parse it */
     result = 0;                 /* End of current string, must be smaller than BUFFER_LEN */
-    tmp = 0;                    /* Number of props to search for/found */
-    slen = strlen(oper1->data.string->data);
+    slen = strlen(oper[0].data.string->data);
     scnt = 0;
     tstop = 0;
-    strcpyn(sstr, sizeof(sstr), oper1->data.string->data);
-    CLEAR(oper1);
+    strcpyn(sstr, sizeof(sstr), oper[0].data.string->data);
+
     while ((scnt < slen) && (result < BUFFER_LEN)) {
-        CHECKOP(0);
         if (sstr[scnt] == FMTTOKEN) {
             if (sstr[scnt + 1] == FMTTOKEN) {
                 buf[result++] = FMTTOKEN;
@@ -84,7 +80,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                 } else {
                     if (sstr[scnt] == '*') {
                         scnt++;
-                        CHECKOP(1);
+                        
                         oper2 = POP();
                         if (oper2->type != PROG_INTEGER)
                             abort_interp
@@ -104,7 +100,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                     } else {
                         if (sstr[scnt] == '*') {
                             scnt++;
-                            CHECKOP(1);
+                            
                             oper2 = POP();
                             if (oper2->type != PROG_INTEGER)
                                 abort_interp
@@ -122,7 +118,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                     slen2 = -1;
                 }
                 /* ANSI handling */
-                CHECKOP(1);
+                
                 oper2 = POP();
                 if (('s' == sstr[scnt]) && (PROG_STRING == oper2->type)
                     && (oper2->data.string)) {
@@ -479,7 +475,6 @@ prim_fmtstring(PRIM_PROTOTYPE)
             }
         }
     }
-    CHECKOP(0);
     if (result >= BUFFER_LEN)
         abort_interp("Resultant string would overflow buffer.");
     buf[result] = '\0';
@@ -497,32 +492,32 @@ prim_split(PRIM_PROTOTYPE)
 	char *pname;
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
         abort_interp("Null string split argument. (2)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
 
     *buf = '\0';
-    if (!oper2->data.string) {
+    if (!oper[1].data.string) {
         result = 0;
     } else {
-        strcpy(buf, oper2->data.string->data);
-        pname = strstr(buf, oper1->data.string->data);
+        strcpy(buf, oper[1].data.string->data);
+        pname = strstr(buf, oper[0].data.string->data);
         if (!pname) {
             result = -1;
         } else {
-            temp = pname + oper1->data.string->length;
+            temp = pname + oper[0].data.string->length;
             *pname = '\0';
             result = 1;
         }
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     if (result) {
         if (result == 1) {
             if (buf[0] == '\0') {
@@ -552,32 +547,32 @@ prim_rsplit(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (2)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
         abort_interp("Null string split argument. (2)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
 
     *buf = '\0';
-    if (!oper2->data.string) {
+    if (!oper[1].data.string) {
         result = 0;
     } else {
-        strcpy(buf, oper2->data.string->data);
-        if (oper1->data.string->length > oper2->data.string->length) {
+        strcpy(buf, oper[1].data.string->data);
+        if (oper[0].data.string->length > oper[1].data.string->length) {
             result = -1;
         } else {
             temp =
-                buf + (oper2->data.string->length - oper1->data.string->length);
+                buf + (oper[1].data.string->length - oper[0].data.string->length);
             hold = NULL;
             while ((temp != (buf - 1)) && (!hold)) {
-                if (*temp == *(oper1->data.string->data))
+                if (*temp == *(oper[0].data.string->data))
                     if (!strncmp
-                        (temp, oper1->data.string->data,
-                         oper1->data.string->length))
+                        (temp, oper[0].data.string->data,
+                         oper[0].data.string->length))
                         hold = temp;
                 temp--;
             }
@@ -585,13 +580,13 @@ prim_rsplit(PRIM_PROTOTYPE)
                 result = -1;
             } else {
                 *hold = '\0';
-                hold += oper1->data.string->length;
+                hold += oper[0].data.string->length;
                 result = 1;
             }
         }
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     if (result) {
         if (result == 1) {
             if (buf[0] == '\0') {
@@ -620,17 +615,17 @@ prim_ctoi(PRIM_PROTOTYPE)
     unsigned char c;
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
-    if (!oper1->data.string) {
+    if (!oper[0].data.string) {
         c = '\0';
     } else {
-        c = oper1->data.string->data[0];
+        c = oper[0].data.string->data[0];
     }
     result = c;
-    CLEAR(oper1);
+    
     PushInt(result);
 }
 
@@ -639,31 +634,31 @@ prim_itoc(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if ((oper1->type != PROG_INTEGER) || (oper1->data.number < 0))
+    
+    
+    if ((oper[0].type != PROG_INTEGER) || (oper[0].data.number < 0))
         abort_interp("Argument must be a positive integer. (1)");
     /* This protection makes no sense, given the fact that almost
        all of these codes are generatable other ways at M1. 
        It also stops regular users from generating unicode. -- Alynna 
-    if (((oper1->data.number > 127) && (mlev < LARCH))
-        || (!isprint((char) oper1->data.number) && (mlev < LARCH)
-            && ((char) oper1->data.number != '\n')
-            && ((char) oper1->data.number != '\r')
-            && ((char) oper1->data.number != ESCAPE_CHAR))) {
+    if (((oper[0].data.number > 127) && (mlev < LARCH))
+        || (!isprint((char) oper[0].data.number) && (mlev < LARCH)
+            && ((char) oper[0].data.number != '\n')
+            && ((char) oper[0].data.number != '\r')
+            && ((char) oper[0].data.number != ESCAPE_CHAR))) {
         result = 0;
     } else {
         result = 1;
-        buf[0] = (char) oper1->data.number;
+        buf[0] = (char) oper[0].data.number;
         buf[1] = '\0';
     }
-    CLEAR(oper1);
+    
     if (result) {
         PushString(buf);
     } else {
         PushNullStr;
     } */
-    buf[0] = (char) oper1->data.number;
+    buf[0] = (char) oper[0].data.number;
     buf[1] = '\0';
     PushString(buf);
 }
@@ -673,16 +668,16 @@ prim_stod(PRIM_PROTOTYPE)
 {
     dbref ref;
 
-    CHECKOP(1);
-    oper1 = POP();
+    
+    
 
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
 
-    if (!oper1->data.string) {
+    if (!oper[0].data.string) {
         ref = NOTHING;
     } else {
-        const char *ptr = oper1->data.string->data;
+        const char *ptr = oper[0].data.string->data;
         const char *nptr = NULL;
 
         while (isspace(*ptr))
@@ -703,7 +698,7 @@ prim_stod(PRIM_PROTOTYPE)
             ref = (dbref) atoi(ptr);
         }                       /* if */
     }
-    CLEAR(oper1);
+    
     PushObject(ref);
 }
 
@@ -712,13 +707,13 @@ prim_dtos(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_OBJECT)
+    
+    
+    if (oper[0].type != PROG_OBJECT)
         abort_interp("No Object Dbref was passed as an argment.");
-    sprintf(buf, "#%d", oper1->data.objref);
+    sprintf(buf, "#%d", oper[0].data.objref);
 
-    CLEAR(oper1);
+    
     PushString(buf);
 }
 
@@ -729,40 +724,40 @@ prim_midstr(PRIM_PROTOTYPE)
     int start, range, result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(3);
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
+    
+    
+    
+    
     result = 0;
-    if (oper3->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("Non-integer argument. (2)");
-    if (oper2->data.number < 1)
+    if (oper[1].data.number < 1)
         abort_interp("Data must be a positive integer. (2)");
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument. (3)");
-    if (oper1->data.number < 0)
+    if (oper[0].data.number < 0)
         abort_interp("Data must be a positive integer. (3)");
-    if (!oper3->data.string) {
+    if (!oper[2].data.string) {
         result = 1;
     } else {
-        if (oper2->data.number > oper3->data.string->length) {
+        if (oper[1].data.number > oper[2].data.string->length) {
             result = 1;
         } else {
-            start = oper2->data.number - 1;
-            if ((oper1->data.number + start) > oper3->data.string->length) {
-                range = oper3->data.string->length - start;
+            start = oper[1].data.number - 1;
+            if ((oper[0].data.number + start) > oper[2].data.string->length) {
+                range = oper[2].data.string->length - start;
             } else {
-                range = oper1->data.number;
+                range = oper[0].data.number;
             }
-            bcopy(oper3->data.string->data + start, buf, range);
+            bcopy(oper[2].data.string->data + start, buf, range);
             buf[range] = '\0';
         }
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
+    
+    
+    
     if (result) {
         PushNullStr;
     } else {
@@ -775,13 +770,13 @@ prim_numberp(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING || !oper1->data.string)
+    
+    
+    if (oper[0].type != PROG_STRING || !oper[0].data.string)
         result = 0;
     else
-        result = number(oper1->data.string->data);
-    CLEAR(oper1);
+        result = number(oper[0].data.string->data);
+    
     PushInt(result);
 }
 
@@ -790,21 +785,21 @@ prim_stringcmp(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING)
+    
+    
+    
+    if (oper[0].type != PROG_STRING || oper[1].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (oper1->data.string == oper2->data.string)
+    if (oper[0].data.string == oper[1].data.string)
         result = 0;
-    else if (!(oper2->data.string && oper1->data.string))
-        result = oper1->data.string ? -1 : 1;
+    else if (!(oper[1].data.string && oper[0].data.string))
+        result = oper[0].data.string ? -1 : 1;
     else {
         result =
-            string_compare(oper2->data.string->data, oper1->data.string->data);
+            string_compare(oper[1].data.string->data, oper[0].data.string->data);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushInt(result);
 }
 
@@ -813,20 +808,20 @@ prim_strcmp(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING)
+    
+    
+    
+    if (oper[0].type != PROG_STRING || oper[1].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (oper1->data.string == oper2->data.string)
+    if (oper[0].data.string == oper[1].data.string)
         result = 0;
-    else if (!(oper2->data.string && oper1->data.string))
-        result = oper1->data.string ? -1 : 1;
+    else if (!(oper[1].data.string && oper[0].data.string))
+        result = oper[0].data.string ? -1 : 1;
     else {
-        result = strcmp(oper2->data.string->data, oper1->data.string->data);
+        result = strcmp(oper[1].data.string->data, oper[0].data.string->data);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushInt(result);
 }
 
@@ -835,24 +830,24 @@ prim_strncmp(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(3);
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
-    if (oper1->type != PROG_INTEGER)
+    
+    
+    
+    
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument.");
-    if (oper2->type != PROG_STRING || oper3->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING || oper[2].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (oper2->data.string == oper3->data.string)
+    if (oper[1].data.string == oper[2].data.string)
         result = 0;
-    else if (!(oper3->data.string && oper2->data.string))
-        result = oper2->data.string ? -1 : 1;
+    else if (!(oper[2].data.string && oper[1].data.string))
+        result = oper[1].data.string ? -1 : 1;
     else
-        result = strncmp(oper3->data.string->data, oper2->data.string->data,
-                         oper1->data.number);
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
+        result = strncmp(oper[2].data.string->data, oper[1].data.string->data,
+                         oper[0].data.number);
+    
+    
+    
     PushInt(result);
 }
 
@@ -862,9 +857,9 @@ prim_strcut(PRIM_PROTOTYPE)
 	struct inst temp1, temp2;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    temp1 = *(oper1 = POP());
-    temp2 = *(oper2 = POP());
+    
+    temp1 = oper[0];
+    temp2 = oper[1];
     if (temp1.type != PROG_INTEGER)
         abort_interp("Non-integer argument (2)");
     if (temp1.data.number < 0)
@@ -892,8 +887,6 @@ prim_strcut(PRIM_PROTOTYPE)
             }
         }
     }
-    CLEAR(&temp1);
-    CLEAR(&temp2);
 }
 
 void
@@ -901,15 +894,15 @@ prim_strlen(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
         result = 0;
     else
-        result = oper1->data.string->length;
-    CLEAR(oper1);
+        result = oper[0].data.string->length;
+    
     PushInt(result);
 }
 
@@ -917,32 +910,29 @@ void
 prim_strcat(PRIM_PROTOTYPE)
 {
     struct shared_string *string;
-	char buf[BUFFER_LEN];
-
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING)
+	char buf[BUFFER_LEN];  
+    
+    if (oper[0].type != PROG_STRING || oper[1].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (!oper1->data.string && !oper2->data.string)
+    if (!oper[0].data.string && !oper[1].data.string)
         string = NULL;
-    else if (!oper2->data.string) {
-        oper1->data.string->links++;
-        string = oper1->data.string;
-    } else if (!oper1->data.string) {
-        oper2->data.string->links++;
-        string = oper2->data.string;
-    } else if (oper1->data.string->length + oper2->data.string->length
+    else if (!oper[1].data.string) {
+        oper[0].data.string->links++;
+        string = oper[0].data.string;
+    } else if (!oper[0].data.string) {
+        oper[1].data.string->links++;
+        string = oper[1].data.string;
+    } else if (oper[0].data.string->length + oper[1].data.string->length
                > (BUFFER_LEN) - 1) {
         abort_interp("Operation would result in overflow.");
     } else {
-        bcopy(oper2->data.string->data, buf, oper2->data.string->length);
-        bcopy(oper1->data.string->data, buf + oper2->data.string->length,
-              oper1->data.string->length + 1);
+        bcopy(oper[1].data.string->data, buf, oper[1].data.string->length);
+        bcopy(oper[0].data.string->data, buf + oper[1].data.string->length,
+              oper[0].data.string->length + 1);
         string = alloc_prog_string(buf);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushStrRaw(string);
 }
 
@@ -951,13 +941,13 @@ prim_atoi(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING || !oper1->data.string)
+    
+    
+    if (oper[0].type != PROG_STRING || !oper[0].data.string)
         result = 0;
     else
-        result = atoi(oper1->data.string->data);
-    CLEAR(oper1);
+        result = atoi(oper[0].data.string->data);
+    
     PushInt(result);
 }
 
@@ -966,31 +956,31 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN * 2];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
+    
+    
+    
     if (mlev < LMAGE)
         abort_interp("Mage primitive.");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("Descriptor integer expected. (1)");
-    if (!pdescrp(oper2->data.number)) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!pdescrp(oper[1].data.number)) {
+        
+        
         return;
     }
-    if (oper1->data.string) {
-        strcpy(buf, oper1->data.string->data);
+    if (oper[0].data.string) {
+        strcpy(buf, oper[0].data.string->data);
         if ( !tp_mush_format_escapes )
-            strcpy(buf, oper1->data.string->data);
+            strcpy(buf, oper[0].data.string->data);
         else
-            strcpy_mush(buf, oper1->data.string->data);
+            strcpy_mush(buf, oper[0].data.string->data);
         
-        notify_descriptor(oper2->data.number, buf);
+        notify_descriptor(oper[1].data.number, buf);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
 }
 
 void
@@ -1001,29 +991,29 @@ prim_ansi_notify_descriptor(PRIM_PROTOTYPE)
      */
     char buf[BUFFER_LEN * 2];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
+    
+    
+    
     if (mlev < LMAGE)
         abort_interp("Mage primitive.");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (2)");
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("Invalid descriptor arguement. (1)");
-    if (!pdescrp(oper2->data.number)) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!pdescrp(oper[1].data.number)) {
+        
+        
         return;
     }
-    if (oper1->data.string) {
+    if (oper[0].data.string) {
         if ( !tp_mush_format_escapes )
-            strcpy(buf, oper1->data.string->data);
+            strcpy(buf, oper[0].data.string->data);
         else
-            strcpy_mush(buf, oper1->data.string->data);
-        anotify_descriptor(oper2->data.number, buf);
+            strcpy_mush(buf, oper[0].data.string->data);
+        anotify_descriptor(oper[1].data.number, buf);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
 }
 
 void
@@ -1036,23 +1026,23 @@ prim_notify_descriptor_char(PRIM_PROTOTYPE)
 
     char theChar;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
+    
+    
+    
     if (mlev < LMAGE)
         abort_interp("Mage primitive.");
-    if (oper1->type != PROG_INTEGER || oper2->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER || oper[1].type != PROG_INTEGER)
         abort_interp("Requires integer arguements.");
-    if (!pdescrp(oper2->data.number)) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!pdescrp(oper[1].data.number)) {
+        
+        
         return;
     }
-    theChar = (char) oper1->data.number;
+    theChar = (char) oper[0].data.number;
 
-    notify_descriptor_char(oper2->data.number, theChar);
-    CLEAR(oper1);
-    CLEAR(oper2);
+    notify_descriptor_char(oper[1].data.number, theChar);
+    
+    
 }
 
 void
@@ -1060,36 +1050,36 @@ prim_notify(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN * 2];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING) {
+    
+    
+    
+    if (oper[0].type != PROG_STRING) {
         abort_interp("Non-string argument (2)");
     }
-    if (!valid_object(oper2)) {
+    if (!valid_object(&oper[1])) {
         abort_interp("Invalid object argument (1)");
     }
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
 
-    if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+    if (oper[0].data.string) {
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper[1].data.objref) {
             if ( !tp_mush_format_escapes )
-                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                                BUFFER_LEN, 1);
             else
-                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
                                     BUFFER_LEN, 1);
         } else {
             if ( !tp_mush_format_escapes )
-                strcpy(buf, oper1->data.string->data);
+                strcpy(buf, oper[0].data.string->data);
             else
-                strcpy_mush(buf, oper1->data.string->data);
+                strcpy_mush(buf, oper[0].data.string->data);
         }
-        notify_listeners(fr->descr, PSafe, program, oper2->data.objref,
+        notify_listeners(fr->descr, PSafe, program, oper[1].data.objref,
                          getloc(PSafe), buf, 1);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
 }
 
 void
@@ -1097,41 +1087,41 @@ prim_notify_html(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN * 2];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    
+    
+    
+    if (oper[0].type != PROG_STRING) {
+        
+        
         abort_interp("Non-string argument (2)");
     }
-    if (!valid_object(oper2)) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!valid_object(&oper[1])) {
+        
+        
         abort_interp("Invalid object argument (1)");
     }
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
 
-    if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+    if (oper[0].data.string) {
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper[1].data.objref) {
             if ( !tp_mush_format_escapes )
-                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                                BUFFER_LEN - 1, 1);
             else
-                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
                                BUFFER_LEN - 1, 1);
         } else {
             if ( !tp_mush_format_escapes )
-                strcpy(buf, oper1->data.string->data);
+                strcpy(buf, oper[0].data.string->data);
             else
-                strcpy_mush(buf, oper1->data.string->data);
+                strcpy_mush(buf, oper[0].data.string->data);
         }
         strcat(buf, "\r");
-        notify_html_listeners(fr->descr, PSafe, program, oper2->data.objref,
+        notify_html_listeners(fr->descr, PSafe, program, oper[1].data.objref,
                               getloc(PSafe), buf, 1);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
 }
 
 void
@@ -1139,40 +1129,40 @@ prim_notify_html_nocr(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    
+    
+    
+    if (oper[0].type != PROG_STRING) {
+        
+        
         abort_interp("Non-string argument (2)");
     }
-    if (!valid_object(oper2)) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!valid_object(&oper[1])) {
+        
+        
         abort_interp("Invalid object argument (1)");
     }
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
 
-    if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+    if (oper[0].data.string) {
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper[1].data.objref) {
             if ( !tp_mush_format_escapes )
-                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                                BUFFER_LEN, 1);
             else
-                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
                                BUFFER_LEN, 1);
         } else {
             if ( !tp_mush_format_escapes )
-                strcpy(buf, oper1->data.string->data);
+                strcpy(buf, oper[0].data.string->data);
             else
-                strcpy_mush(buf, oper1->data.string->data);
+                strcpy_mush(buf, oper[0].data.string->data);
         }
-        notify_html_listeners(fr->descr, PSafe, program, oper2->data.objref,
+        notify_html_listeners(fr->descr, PSafe, program, oper[1].data.objref,
                               getloc(PSafe), buf, 1);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
 }
 
 void
@@ -1180,34 +1170,34 @@ prim_ansi_notify(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN * 2];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (!valid_object(oper2))
+    if (!valid_object(&oper[1]))
         abort_interp("Invalid object argument (1)");
-    CHECKREMOTE(oper2->data.objref);
+    CHECKREMOTE(oper[1].data.objref);
 
-    if (oper1->data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper2->data.objref) {
+    if (oper[0].data.string) {
+        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper[1].data.objref) {
             if ( !tp_mush_format_escapes )
-                prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                                BUFFER_LEN, 1);
             else
-                prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+                prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         } else {
             if ( !tp_mush_format_escapes )
-                strcpy(buf, oper1->data.string->data);
+                strcpy(buf, oper[0].data.string->data);
             else
-                strcpy_mush(buf, oper1->data.string->data);
+                strcpy_mush(buf, oper[0].data.string->data);
         }
-        ansi_notify_listeners(fr->descr, PSafe, program, oper2->data.objref,
+        ansi_notify_listeners(fr->descr, PSafe, program, oper[1].data.objref,
                               getloc(PSafe), buf, 1);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
 }
 
 
@@ -1216,43 +1206,37 @@ prim_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-	int result, tmp;
+        int result, tmp;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("non-integer count argument (top-1)");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string message argument (top)");
 
-    if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && PSafe != oper2->data.objref) {
+    if (tp_m1_name_notify && oper[0].data.string &&
+        mlev < LM2 && PSafe != oper[1].data.objref) {
         if ( !tp_mush_format_escapes )
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+            prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         else
-            prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+            prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
                                 BUFFER_LEN, 1);
-    } else {
+    } else {               
         if ( !tp_mush_format_escapes )
-            strcpy(buf, DoNullInd(oper1->data.string));
-        else
-            strcpy_mush(buf, DoNullInd(oper1->data.string));
+            strcpy(buf, DoNullInd(oper[0].data.string));
+        else     
+            strcpy_mush(buf, DoNullInd(oper[0].data.string));     
     }
-
-    result = oper2->data.number;
-    CLEAR(oper1);
-    CLEAR(oper2);
+    result = oper[1].data.number;
     {
         dbref what, where, excluded[STACK_SIZE];
         int count, i;
-
-        CHECKOP(0);
-        count = i = result;
-        if (i >= STACK_SIZE || i < 0)
+		struct inst *oper1;
+      
+        count = i = result;   
+       if (i >= STACK_SIZE || i < 0)
             abort_interp("Count argument is out of range.");
-        while (i > 0) {
+        while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
             if (oper1->type != PROG_OBJECT)
@@ -1261,21 +1245,21 @@ prim_notify_exclude(PRIM_PROTOTYPE)
             CLEAR(oper1);
         }
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();              
         if (!valid_object(oper1))
             abort_interp("Non-object argument (1)");
         where = oper1->data.objref;
         if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
             Typeof(where) != TYPE_PLAYER)
             abort_interp("Invalid location argument (1)");
-        CHECKREMOTE(where);
+        CHECKREMOTE(where);   
         what = DBFETCH(where)->contents;
         CLEAR(oper1);
         if (*buf) {
-            while (what != NOTHING) {
-                if (Typeof(what) != TYPE_ROOM) {
+            while (what != NOTHING) {     
+                if (Typeof(what) != TYPE_ROOM) {      
                     for (tmp = 0, i = count; i-- > 0;) {
-                        if (excluded[i] == what)
+                        if (excluded[i] == what)           
                             tmp = 1;
                     }
                 } else {
@@ -1294,50 +1278,42 @@ prim_notify_exclude(PRIM_PROTOTYPE)
     }
 }
 
-
-
 void
 prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-	int result, tmp;
+        int result, tmp;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("non-integer count argument (top-1)");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string message argument (top)");
 
-    if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && PSafe != oper2->data.objref) {
+    if (tp_m1_name_notify && oper[0].data.string &&
+        mlev < LM2 && PSafe != oper[1].data.objref) {
         if ( !tp_mush_format_escapes )
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+            prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         else
-            prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+            prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
                                 BUFFER_LEN, 1);
-    } else {
+    } else {               
         if ( !tp_mush_format_escapes )
-            strcpy(buf, DoNullInd(oper1->data.string));
-        else
-            strcpy_mush(buf, DoNullInd(oper1->data.string));
+            strcpy(buf, DoNullInd(oper[0].data.string));
+        else     
+            strcpy_mush(buf, DoNullInd(oper[0].data.string));     
     }
-
-    result = oper2->data.number;
-    CLEAR(oper1);
-    CLEAR(oper2);
+    result = oper[1].data.number;
     {
         dbref what, where, excluded[STACK_SIZE];
         int count, i;
-
-        CHECKOP(0);
+		struct inst *oper1;    
+    
         count = i = result;
         if (i >= STACK_SIZE || i < 0)
             abort_interp("Count argument is out of range.");
-        while (i > 0) {
+        while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
             if (oper1->type != PROG_OBJECT)
@@ -1346,21 +1322,21 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
             CLEAR(oper1);
         }
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();              
         if (!valid_object(oper1))
             abort_interp("Non-object argument (1)");
         where = oper1->data.objref;
         if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
             Typeof(where) != TYPE_PLAYER)
             abort_interp("Invalid location argument (1)");
-        CHECKREMOTE(where);
+        CHECKREMOTE(where);   
         what = DBFETCH(where)->contents;
         CLEAR(oper1);
         if (*buf) {
-            while (what != NOTHING) {
-                if (Typeof(what) != TYPE_ROOM) {
+            while (what != NOTHING) {     
+                if (Typeof(what) != TYPE_ROOM) {      
                     for (tmp = 0, i = count; i-- > 0;) {
-                        if (excluded[i] == what)
+                        if (excluded[i] == what)           
                             tmp = 1;
                     }
                 } else {
@@ -1392,45 +1368,37 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-	int result, tmp;
+        int result, tmp;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("non-integer count argument (top-1)");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string message argument (top)");
 
-    if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && PSafe != oper2->data.objref) {
+    if (tp_m1_name_notify && oper[0].data.string &&
+        mlev < LM2 && PSafe != oper[1].data.objref) {
         if ( !tp_mush_format_escapes )
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+            prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         else
-            prefix_message_mush(buf, oper1->data.string->data, PNAME(PSafe),
+            prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
                                 BUFFER_LEN, 1);
-    } else {
+    } else {               
         if ( !tp_mush_format_escapes )
-            strcpy(buf, DoNullInd(oper1->data.string));
-        else
-            strcpy_mush(buf, DoNullInd(oper1->data.string));
+            strcpy(buf, DoNullInd(oper[0].data.string));
+        else     
+            strcpy_mush(buf, DoNullInd(oper[0].data.string));     
     }
-
-    strcat(buf, "\r");
-
-    result = oper2->data.number;
-    CLEAR(oper1);
-    CLEAR(oper2);
+    result = oper[1].data.number;
     {
         dbref what, where, excluded[STACK_SIZE];
         int count, i;
-
-        CHECKOP(0);
+		struct inst *oper1;    
+    
         count = i = result;
         if (i >= STACK_SIZE || i < 0)
             abort_interp("Count argument is out of range.");
-        while (i > 0) {
+        while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
             if (oper1->type != PROG_OBJECT)
@@ -1439,21 +1407,21 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
             CLEAR(oper1);
         }
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();              
         if (!valid_object(oper1))
             abort_interp("Non-object argument (1)");
         where = oper1->data.objref;
         if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
             Typeof(where) != TYPE_PLAYER)
             abort_interp("Invalid location argument (1)");
-        CHECKREMOTE(where);
+        CHECKREMOTE(where);   
         what = DBFETCH(where)->contents;
         CLEAR(oper1);
         if (*buf) {
-            while (what != NOTHING) {
-                if (Typeof(what) != TYPE_ROOM) {
+            while (what != NOTHING) {     
+                if (Typeof(what) != TYPE_ROOM) {      
                     for (tmp = 0, i = count; i-- > 0;) {
-                        if (excluded[i] == what)
+                        if (excluded[i] == what)           
                             tmp = 1;
                     }
                 } else {
@@ -1472,7 +1440,7 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
 //            if (tp_listeners_env) {
 //                what = DBFETCH(where)->location;
 //                for (; what != NOTHING; what = DBFETCH(what)->location)
-//                    notify_html_listeners(fr->descr, PSafe, program, what,
+//                    ansi_notify_listeners(fr->descr, PSafe, program, what,
 //                                          where, buf, 0);
 //            }
         }
@@ -1484,43 +1452,37 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 {
     /* roomD excludeDn ... excludeD1 nI messageS  -- */
     char buf[BUFFER_LEN * 2];
-	int result, tmp;
+        int result, tmp;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("non-integer count argument (top-1)");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string message argument (top)");
 
-    if (tp_m1_name_notify && oper1->data.string &&
-        mlev < LM2 && PSafe != oper2->data.objref) {
+    if (tp_m1_name_notify && oper[0].data.string &&
+        mlev < LM2 && PSafe != oper[1].data.objref) {
         if ( !tp_mush_format_escapes )
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
+            prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
                            BUFFER_LEN, 1);
         else
-            prefix_message(buf, oper1->data.string->data, PNAME(PSafe),
-                           BUFFER_LEN, 1);
-    } else {
+            prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
+                                BUFFER_LEN, 1);
+    } else {               
         if ( !tp_mush_format_escapes )
-            strcpy(buf, DoNullInd(oper1->data.string));
-        else
-            strcpy(buf, DoNullInd(oper1->data.string));
+            strcpy(buf, DoNullInd(oper[0].data.string));
+        else     
+            strcpy_mush(buf, DoNullInd(oper[0].data.string));     
     }
-
-    result = oper2->data.number;
-    CLEAR(oper1);
-    CLEAR(oper2);
+    result = oper[1].data.number;
     {
         dbref what, where, excluded[STACK_SIZE];
         int count, i;
-
-        CHECKOP(0);
+		struct inst *oper1;    
+    
         count = i = result;
         if (i >= STACK_SIZE || i < 0)
             abort_interp("Count argument is out of range.");
-        while (i > 0) {
+        while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
             if (oper1->type != PROG_OBJECT)
@@ -1529,21 +1491,21 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
             CLEAR(oper1);
         }
         CHECKOP(1);
-        oper1 = POP();
+        oper1 = POP();              
         if (!valid_object(oper1))
             abort_interp("Non-object argument (1)");
         where = oper1->data.objref;
         if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
             Typeof(where) != TYPE_PLAYER)
             abort_interp("Invalid location argument (1)");
-        CHECKREMOTE(where);
+        CHECKREMOTE(where);   
         what = DBFETCH(where)->contents;
         CLEAR(oper1);
         if (*buf) {
-            while (what != NOTHING) {
-                if (Typeof(what) != TYPE_ROOM) {
+            while (what != NOTHING) {     
+                if (Typeof(what) != TYPE_ROOM) {      
                     for (tmp = 0, i = count; i-- > 0;) {
-                        if (excluded[i] == what)
+                        if (excluded[i] == what)           
                             tmp = 1;
                     }
                 } else {
@@ -1562,7 +1524,7 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
 //            if (tp_listeners_env) {
 //                what = DBFETCH(where)->location;
 //                for (; what != NOTHING; what = DBFETCH(what)->location)
-//                    notify_html_listeners(fr->descr, PSafe, program, what,
+//                    ansi_notify_listeners(fr->descr, PSafe, program, what,
 //                                          where, buf, 0);
 //            }
         }
@@ -1575,19 +1537,17 @@ prim_intostr(PRIM_PROTOTYPE)
     char *ptr = NULL;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type == PROG_STRING) {
-        strcpy(buf, DoNullInd(oper1->data.string));
+    if (oper[0].type == PROG_STRING) {
+        strcpy(buf, DoNullInd(oper[0].data.string));
         ptr = buf;
-    } else if (oper1->type == PROG_FLOAT) {
-        sprintf(buf, "%.15g", oper1->data.fnumber);
+    } else if (oper[0].type == PROG_FLOAT) {
+        sprintf(buf, "%.15g", oper[0].data.fnumber);
         ptr = buf;
     } else {
-        sprintf(buf, "%d", oper1->data.number);
+        sprintf(buf, "%d", oper[0].data.number);
         ptr = buf;
     }
-    CLEAR(oper1);
+    
     PushString(ptr);
 }
 
@@ -1598,11 +1558,10 @@ prim_explode(PRIM_PROTOTYPE)
 	int result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    temp1 = *(oper1 = POP());
-    temp2 = *(oper2 = POP());
-    oper1 = &temp1;
-    oper2 = &temp2;
+    
+    temp1 = oper[0];
+    temp2 = oper[1];
+
     if (temp1.type != PROG_STRING)
         abort_interp("Non-string argument (2)");
     if (temp2.type != PROG_STRING)
@@ -1615,8 +1574,6 @@ prim_explode(PRIM_PROTOTYPE)
 
         if (!temp2.data.string) {
             result = 1;
-            CLEAR(&temp1);
-            CLEAR(&temp2);
             PushNullStr;
             PushInt(result);
             return;
@@ -1637,8 +1594,6 @@ prim_explode(PRIM_PROTOTYPE)
         }
     }
     CHECKOFLOW(1);
-    CLEAR(&temp1);
-    CLEAR(&temp2);
     PushInt(result);
 }
 
@@ -1647,17 +1602,17 @@ prim_subst(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(3);
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument (3)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (2)");
-    if (oper3->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument (1)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
         abort_interp("Empty string argument (3)");
     {
         int i = 0, j = 0, k = 0;
@@ -1666,18 +1621,18 @@ prim_subst(PRIM_PROTOTYPE)
         char xbuf[BUFFER_LEN];
 
         buf[0] = '\0';
-        if (oper3->data.string) {
-            bcopy(oper3->data.string->data, xbuf,
-                  oper3->data.string->length + 1);
-            match = oper1->data.string->data;
-            replacement = DoNullInd(oper2->data.string);
-            k = *replacement ? oper2->data.string->length : 0;
+        if (oper[2].data.string) {
+            bcopy(oper[2].data.string->data, xbuf,
+                  oper[2].data.string->length + 1);
+            match = oper[0].data.string->data;
+            replacement = DoNullInd(oper[1].data.string);
+            k = *replacement ? oper[1].data.string->length : 0;
             while (xbuf[i]) {
-                if (!strncmp(xbuf + i, match, oper1->data.string->length)) {
+                if (!strncmp(xbuf + i, match, oper[0].data.string->length)) {
                     if ((j + k + 1) > BUFFER_LEN)
                         abort_interp("Operation would result in overflow.");
                     strcat(buf, replacement);
-                    i += oper1->data.string->length;
+                    i += oper[0].data.string->length;
                     j += k;
                 } else {
                     if ((j + 1) > BUFFER_LEN)
@@ -1688,9 +1643,9 @@ prim_subst(PRIM_PROTOTYPE)
             }
         }
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
+    
+    
+    
     PushString(buf);
 }
 
@@ -1699,34 +1654,34 @@ prim_instr(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
+    if (!(oper[0].data.string))
         abort_interp("Empty string argument (2)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (1)");
-    if (!oper2->data.string) {
+    if (!oper[1].data.string) {
         result = 0;
     } else {
 
-        const char *remaining = oper2->data.string->data;
-        const char *match = oper1->data.string->data;
+        const char *remaining = oper[1].data.string->data;
+        const char *match = oper[0].data.string->data;
         int step = 1;
 
         result = 0;
         do {
-            if (!strncmp(remaining, match, oper1->data.string->length)) {
-                result = remaining - oper2->data.string->data + 1;
+            if (!strncmp(remaining, match, oper[0].data.string->length)) {
+                result = remaining - oper[1].data.string->data + 1;
                 break;
             }
             remaining += step;
-        } while (remaining >= oper2->data.string->data && *remaining);
+        } while (remaining >= oper[1].data.string->data && *remaining);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushInt(result);
 }
 
@@ -1735,36 +1690,36 @@ prim_rinstr(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Invalid argument type (2)");
-    if (!(oper1->data.string))
+    if (!(oper[0].data.string))
         abort_interp("Empty string argument (2)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument (1)");
-    if (!oper2->data.string) {
+    if (!oper[1].data.string) {
         result = 0;
     } else {
 
-        const char *remaining = oper2->data.string->data;
-        const char *match = oper1->data.string->data;
+        const char *remaining = oper[1].data.string->data;
+        const char *match = oper[0].data.string->data;
         int step = -1;
 
-        remaining += oper2->data.string->length - 1;
+        remaining += oper[1].data.string->length - 1;
 
         result = 0;
         do {
-            if (!strncmp(remaining, match, oper1->data.string->length)) {
-                result = remaining - oper2->data.string->data + 1;
+            if (!strncmp(remaining, match, oper[0].data.string->length)) {
+                result = remaining - oper[1].data.string->data + 1;
                 break;
             }
             remaining += step;
-        } while (remaining >= oper2->data.string->data && *remaining);
+        } while (remaining >= oper[1].data.string->data && *remaining);
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushInt(result);
 }
 
@@ -1773,21 +1728,21 @@ prim_pronoun_sub(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();              /* oper1 is a string, oper2 a dbref */
-    if (!valid_object(oper2))
+    
+    
+                  /* oper[0] is a string, oper[1] a dbref */
+    if (!valid_object(&oper[1]))
         abort_interp("Invalid argument (1)");
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Invalid argument (2)");
-    if (oper1->data.string) {
-        strcpy(buf, pronoun_substitute(fr->descr, oper2->data.objref,
-                                       oper1->data.string->data));
+    if (oper[0].data.string) {
+        strcpy(buf, pronoun_substitute(fr->descr, oper[1].data.objref,
+                                       oper[0].data.string->data));
     } else {
         buf[0] = '\0';
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushString(buf);
 }
 
@@ -1797,18 +1752,18 @@ prim_toupper(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int ref;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (oper1->data.string) {
-        strcpy(buf, oper1->data.string->data);
+    if (oper[0].data.string) {
+        strcpy(buf, oper[0].data.string->data);
     } else {
         buf[0] = '\0';
     }
     for (ref = 0; buf[ref]; ref++)
         buf[ref] = UPCASE(buf[ref]);
-    CLEAR(oper1);
+    
     PushString(buf);
 }
 
@@ -1818,18 +1773,18 @@ prim_tolower(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int ref;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (oper1->data.string) {
-        strcpy(buf, oper1->data.string->data);
+    if (oper[0].data.string) {
+        strcpy(buf, oper[0].data.string->data);
     } else {
         buf[0] = '\0';
     }
     for (ref = 0; buf[ref]; ref++)
         buf[ref] = DOWNCASE(buf[ref]);
-    CLEAR(oper1);
+    
     PushString(buf);
 }
 
@@ -1840,12 +1795,12 @@ prim_unparseobj(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_OBJECT)
+    
+    
+    if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument.");
     {
-        result = oper1->data.objref;
+        result = oper[0].data.objref;
         switch (result) {
             case NOTHING:
                 sprintf(buf, "*NOTHING*");
@@ -1863,7 +1818,7 @@ prim_unparseobj(PRIM_PROTOTYPE)
                     sprintf(buf, "%s(#%d%s)", RNAME(result), result,
                             unparse_flags(result, tbuf));
         }
-        CLEAR(oper1);
+        
         PushString(buf);
     }
 }
@@ -1875,17 +1830,14 @@ prim_smatch(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING || oper[1].type != PROG_STRING)
         abort_interp("Non-string argument.");
 
-    strcpy(buf, DoNullInd(oper1->data.string));
-    strcpy(xbuf, DoNullInd(oper2->data.string));
+    strcpy(buf, DoNullInd(oper[0].data.string));
+    strcpy(xbuf, DoNullInd(oper[1].data.string));
     result = equalstr(buf, xbuf);
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushInt(result);
 }
 
@@ -1895,13 +1847,13 @@ prim_striplead(PRIM_PROTOTYPE)
 	/* string -- string' */
 	char buf[BUFFER_LEN];
 	char *pname;
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Not a string argument.");
-    strcpy(buf, DoNullInd(oper1->data.string));
+    strcpy(buf, DoNullInd(oper[0].data.string));
     for (pname = buf; *pname && isspace(*pname); pname++) ;
-    CLEAR(oper1);
+    
     PushString(pname);
 }
 
@@ -1910,15 +1862,15 @@ prim_striptail(PRIM_PROTOTYPE)
 {                               /* string -- string' */
 	char buf[BUFFER_LEN];
 	int result;
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    
+    
+    if (oper[0].type != PROG_STRING)
         abort_interp("Not a string argument.");
-    strcpy(buf, DoNullInd(oper1->data.string));
+    strcpy(buf, DoNullInd(oper[0].data.string));
     result = strlen(buf);
     while ((result-- > 0) && isspace(buf[result]))
         buf[result] = '\0';
-    CLEAR(oper1);
+    
     PushString(buf);
 }
 
@@ -1927,20 +1879,17 @@ prim_stringpfx(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING || oper[1].type != PROG_STRING)
         abort_interp("Non-string argument.");
-    if (oper1->data.string == oper2->data.string)
+    if (oper[0].data.string == oper[1].data.string)
         result = 1;
     else {
         result =
-            string_prefix(DoNullInd(oper2->data.string),
-                          DoNullInd(oper1->data.string));
+            string_prefix(DoNullInd(oper[1].data.string),
+                          DoNullInd(oper[0].data.string));
     }
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushInt(result);
 }
 
@@ -1950,18 +1899,15 @@ prim_strencrypt(PRIM_PROTOTYPE)
 {
     const char *ptr;
 
-    CHECKOP(2);
-    oper2 = POP();
-    oper1 = POP();
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING) {
+    if (oper[1].type != PROG_STRING || oper[0].type != PROG_STRING) {
         abort_interp("Non-string argument.");
     }
-    if (!oper2->data.string || !*(oper2->data.string->data)) {
+    if (!oper[0].data.string || !*(oper[0].data.string->data)) {
         abort_interp("Key cannot be a null string. (2)");
     }
-    ptr = strencrypt(DoNullInd(oper1->data.string), oper2->data.string->data);
-    CLEAR(oper1);
-    CLEAR(oper2);
+    ptr = strencrypt(DoNullInd(oper[1].data.string), oper[0].data.string->data);
+    
+    
     PushString(ptr);
 }
 
@@ -1971,18 +1917,15 @@ prim_strdecrypt(PRIM_PROTOTYPE)
 {
     const char *ptr;
 
-    CHECKOP(2);
-    oper2 = POP();
-    oper1 = POP();
-    if (oper1->type != PROG_STRING || oper2->type != PROG_STRING) {
+    if (oper[1].type != PROG_STRING || oper[0].type != PROG_STRING) {
         abort_interp("Non-string argument.");
     }
-    if (!oper2->data.string || !*(oper2->data.string->data)) {
+    if (!oper[0].data.string || !*(oper[0].data.string->data)) {
         abort_interp("Key cannot be a null string. (2)");
     }
-    ptr = strdecrypt(DoNullInd(oper1->data.string), oper2->data.string->data);
-    CLEAR(oper1);
-    CLEAR(oper2);
+    ptr = strdecrypt(DoNullInd(oper[1].data.string), oper[0].data.string->data);
+    
+    
     PushString(ptr);
 }
 
@@ -1996,25 +1939,21 @@ prim_tokensplit(PRIM_PROTOTYPE)
     char outbuf[BUFFER_LEN];
 	char buf[BUFFER_LEN];
 
-    CHECKOP(3);
-    oper3 = POP();
-    oper2 = POP();
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Not a string argument. (1)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Not a string argument. (2)");
-    if (oper3->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Not a string argument. (3)");
-    if (!oper2->data.string || oper2->data.string->length < 1)
+    if (!oper[1].data.string || oper[1].data.string->length < 1)
         abort_interp("Invalid null delimiter string. (2)");
-    if (oper3->data.string) {
-        esc = oper3->data.string->data[0];
+    if (oper[0].data.string) {
+        esc = oper[0].data.string->data[0];
     } else {
         esc = '\0';
     }
-    escisdel = index(oper2->data.string->data, esc) != 0;
-    strcpy(buf, DoNullInd(oper1->data.string));
+    escisdel = index(oper[1].data.string->data, esc) != 0;
+    strcpy(buf, DoNullInd(oper[2].data.string));
     ptr = buf;
     out = outbuf;
     while (*ptr) {
@@ -2023,7 +1962,7 @@ prim_tokensplit(PRIM_PROTOTYPE)
             if (!*ptr)
                 break;
         } else {
-            delim = oper2->data.string->data;
+            delim = oper[1].data.string->data;
             while (*delim) {
                 if (*delim == *ptr)
                     break;
@@ -2035,9 +1974,9 @@ prim_tokensplit(PRIM_PROTOTYPE)
         *out++ = *ptr++;
     }
     *out = '\0';
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
+    
+    
+    
     if (ptr && *ptr) {
         char charbuf[2];
 
@@ -2062,27 +2001,23 @@ prim_parse_ansi(PRIM_PROTOTYPE)
     char buf4[BUFFER_LEN];
     int ctype;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument.");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Not a string argument.");
 
-    if (oper1->data.number < 0 || oper1->data.number > 3)
+    if (oper[0].data.number < 0 || oper[0].data.number > 3)
         abort_interp("Integer out of range of 0 - 3.");
-    if (!oper2->data.string || oper2->data.string->length < 1) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!oper[1].data.string || oper[1].data.string->length < 1) {
+        
+        
         PushNullStr;
     } else {
 
-        ctype = oper1->data.number;
-        sprintf(buf3, "%s", oper2->data.string->data);
-        CLEAR(oper1);
-        CLEAR(oper2);
+        ctype = oper[0].data.number;
+        sprintf(buf3, "%s", oper[1].data.string->data);
+        
+        
 
         if (ctype == 0)
             sprintf(buf4, "%s", buf3);
@@ -2106,35 +2041,30 @@ prim_parse_neon(PRIM_PROTOTYPE)
     char buf5[BUFFER_LEN];
     dbref ref;
 
-    CHECKOP(1);
-    oper1 = POP();
-    oper2 = POP();
-    oper3 = POP();
-
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Not a string argument. (3)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Not a string argument. (2)");
-    if (!valid_object(oper3))
+    if (!valid_object(&oper[2]))
         abort_interp("Invalid object. (1)");
 
-    ref = oper3->data.objref;
-    CLEAR(oper3);
+    ref = oper[2].data.objref;
+    
 
-    if (!oper1->data.string || oper1->data.string->length < 1) {
+    if (!oper[0].data.string || oper[0].data.string->length < 1) {
         sprintf(buf5, "%s", ANSINORMAL);
     } else {
-        sprintf(buf5, "%s", oper1->data.string->data);
+        sprintf(buf5, "%s", oper[0].data.string->data);
     }
 
-    if (!oper2->data.string || oper2->data.string->length < 1) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!oper[1].data.string || oper[1].data.string->length < 1) {
+        
+        
         PushNullStr;
     } else {
-        sprintf(buf3, "%s", oper2->data.string->data);
-        CLEAR(oper2);
-        CLEAR(oper1);
+        sprintf(buf3, "%s", oper[1].data.string->data);
+        
+        
         sprintf(buf4, "%s", parse_ansi(ref, buf, buf3, buf5));
         PushString(buf4);
     }
@@ -2148,30 +2078,26 @@ prim_unparse_ansi(PRIM_PROTOTYPE)
     char buf4[BUFFER_LEN];
     int ctype;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-
-    if (oper1->type != PROG_INTEGER)
+	if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument.");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Not a string argument.");
 
-    if (oper1->data.number < 0 || oper1->data.number > 3)
+    if (oper[0].data.number < 0 || oper[0].data.number > 3)
         abort_interp("Integer out of range of 0-3.");
-    if (!oper2->data.string || oper2->data.string->length < 1) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!oper[1].data.string || oper[1].data.string->length < 1) {
+        
+        
         PushNullStr;
     } else {
 
-        ctype = oper1->data.number;
+        ctype = oper[0].data.number;
         buf[0] = '\0';
         buf3[0] = '\0';
         buf4[0] = '\0';
-        sprintf(buf3, "%s", oper2->data.string->data);
-        CLEAR(oper1);
-        CLEAR(oper2);
+        sprintf(buf3, "%s", oper[1].data.string->data);
+        
+        
 
         if (ctype == 0) {
             strip_ansi(buf, buf3);
@@ -2196,27 +2122,23 @@ prim_escape_ansi(PRIM_PROTOTYPE)
     char buf4[BUFFER_LEN];
     int ctype;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument.");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Not a string argument.");
 
-    if (oper1->data.number < 0 || oper1->data.number > 3)
+    if (oper[0].data.number < 0 || oper[0].data.number > 3)
         abort_interp("Integer out of range of 0-3.");
-    if (!oper2->data.string || oper2->data.string->length < 1) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!oper[1].data.string || oper[1].data.string->length < 1) {
+        
+        
         PushNullStr;
     } else {
 
-        ctype = oper1->data.number;
-        sprintf(buf3, "%s", oper2->data.string->data);
-        CLEAR(oper1);
-        CLEAR(oper2);
+        ctype = oper[0].data.number;
+        sprintf(buf3, "%s", oper[1].data.string->data);
+        
+        
 
         if (ctype == 0)
             sprintf(buf4, "%s", escape_ansi(buf, buf3));
@@ -2239,13 +2161,11 @@ prim_ansi_strlen(PRIM_PROTOTYPE)
     char *ptr;
     int i;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Not a string argument.");
 
-    if (!oper1->data.string) {
-        CLEAR(oper1);
+    if (!oper[0].data.string) {
+        
         i = 0;
         PushInt(i);
         /* Weird PushInt() #define requires that. */
@@ -2254,7 +2174,7 @@ prim_ansi_strlen(PRIM_PROTOTYPE)
 
     i = 0;
 
-    ptr = oper1->data.string->data;
+    ptr = oper[0].data.string->data;
 
     while (*ptr) {
         if (*ptr++ == ESCAPE_CHAR) {
@@ -2272,7 +2192,7 @@ prim_ansi_strlen(PRIM_PROTOTYPE)
             i++;
         }
     }
-    CLEAR(oper1);
+    
     PushInt(i);
 }
 
@@ -2286,16 +2206,13 @@ prim_ansi_strcut(PRIM_PROTOTYPE)
     int loc;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(2);
-    oper2 = POP();
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Not a string argument. (1)");
-    if (oper2->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Not an integer argument. (2)");
-    if (!oper1->data.string) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!oper[1].data.string) {
+        
+        
         PushNullStr;
         PushNullStr;
         return;
@@ -2303,23 +2220,23 @@ prim_ansi_strcut(PRIM_PROTOTYPE)
 
     loc = 0;
 
-    if (oper2->data.number >= oper1->data.string->length) {
-        strcpy(buf, oper1->data.string->data);
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (oper[0].data.number >= oper[1].data.string->length) {
+        strcpy(buf, oper[1].data.string->data);
+        
+        
         PushString(buf);
         PushNullStr;
         return;
-    } else if (oper2->data.number <= 0) {
-        strcpy(buf, oper1->data.string->data);
-        CLEAR(oper1);
-        CLEAR(oper2);
+    } else if (oper[0].data.number <= 0) {
+        strcpy(buf, oper[1].data.string->data);
+        
+        
         PushNullStr;
         PushString(buf);
         return;
     }
 
-    ptr = oper1->data.string->data;
+    ptr = oper[1].data.string->data;
 
     *outbuf2 = '\0';
     op = outbuf1;
@@ -2338,17 +2255,17 @@ prim_ansi_strcut(PRIM_PROTOTYPE)
             }
         } else {
             loc++;
-            if (loc == oper2->data.number) {
+            if (loc == oper[0].data.number) {
                 break;
             }
         }
     }
     *op = '\0';
     memcpy((void *) outbuf2, (const void *) ptr,
-           oper1->data.string->length - (ptr - oper1->data.string->data) + 1);
+           oper[1].data.string->length - (ptr - oper[1].data.string->data) + 1);
 
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushString(outbuf1);
     if (!*outbuf2) {
         PushNullStr;
@@ -2362,19 +2279,17 @@ prim_ansi_strip(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument.");
 
-    if (!oper1->data.string) {
-        CLEAR(oper1);
+    if (!oper[0].data.string) {
+        
         PushNullStr;
         return;
     }
 
-    strip_ansi(buf, oper1->data.string->data);
-    CLEAR(oper1);
+    strip_ansi(buf, oper[0].data.string->data);
+    
     PushString(buf);
 }
 
@@ -2387,34 +2302,26 @@ prim_ansi_midstr(PRIM_PROTOTYPE)
     const char *ptr;
     char *op;
 
-    CHECKOP(3);
-    oper1 = POP();              /* length */
-    oper2 = POP();              /* begin */
-    oper3 = POP();              /* string */
-
-    if (oper3->type != PROG_STRING)
+    if (oper[2].type != PROG_STRING)
         abort_interp("Non-string argument! (3)");
-    if (oper2->type != PROG_INTEGER)
+    if (oper[1].type != PROG_INTEGER)
         abort_interp("Non-integer argument! (2)");
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument! (1)");
-    if (oper2->data.number < 1)
+    if (oper[1].data.number < 1)
         abort_interp("Data must be a positve integer. (2)");
-    if (oper1->data.number < 0)
+    if (oper[0].data.number < 0)
         abort_interp("Data must be a postive integer. (1)");
 
-    start = oper2->data.number - 1;
-    range = oper1->data.number;
+    start = oper[1].data.number - 1;
+    range = oper[0].data.number;
 
-    if (!oper3->data.string || start > oper3->data.string->length || range == 0) {
-        CLEAR(oper1);
-        CLEAR(oper2);
-        CLEAR(oper3);
+    if (!oper[2].data.string || start > oper[2].data.string->length || range == 0) { 
         PushNullStr;
         return;
     }
 
-    ptr = oper3->data.string->data;
+    ptr = oper[2].data.string->data;
     op = buf;
     loc = 0;
 
@@ -2463,9 +2370,9 @@ prim_ansi_midstr(PRIM_PROTOTYPE)
     }
     *op = '\0';
 
-    CLEAR(oper1);
-    CLEAR(oper2);
-    CLEAR(oper3);
+    
+    
+    
     PushString(buf);
 }
 
@@ -2480,21 +2387,18 @@ prim_textattr(PRIM_PROTOTYPE)
     char buf[BUFFER_LEN];
     char attr[BUFFER_LEN];
 
-    CHECKOP(2);
-    oper2 = POP();
-    oper1 = POP();
-    if (oper1->type != PROG_STRING) {
+    if (oper[1].type != PROG_STRING) {
         abort_interp("Non-string argument. (1)");
     }
-    if (oper2->type != PROG_STRING) {
+    if (oper[0].type != PROG_STRING) {
         abort_interp("Non-string argument. (2)");
     }
 
-    if (!oper1->data.string || !oper2->data.string) {
-        strcpy(buf, DoNullInd(oper1->data.string));
+    if (!oper[1].data.string || !oper[0].data.string) {
+        strcpy(buf, DoNullInd(oper[1].data.string));
     } else {
         *buf = '\0';
-        ptr = oper2->data.string->data;
+        ptr = oper[0].data.string->data;
         ptr2 = attr;
         while (!done) {
             switch (*ptr) {
@@ -2573,17 +2477,17 @@ prim_textattr(PRIM_PROTOTYPE)
             }
         }
         totallen = strlen(buf);
-        totallen += oper1->data.string->length;
+        totallen += oper[1].data.string->length;
         totallen += strlen(ANSI_RESET);
         if (totallen >= BUFFER_LEN) {
             abort_interp("Operation would result in too long of a string.");
         }
-        strcat(buf, oper1->data.string->data);
+        strcat(buf, oper[1].data.string->data);
     }
     strcat(buf, ANSI_RESET);
 
-    CLEAR(oper1);
-    CLEAR(oper2);
+    
+    
     PushString(buf);
 }
 
@@ -2596,21 +2500,19 @@ prim_flag_2char(PRIM_PROTOTYPE)
     char *flag_str;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Top argument must be a string. (1)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
         abort_interp("Empty string given. (1)");
-    flag_str = (char *)malloc(strlen(oper1->data.string->data) + 1);
-    strcpy(flag_str, oper1->data.string->data);
+    flag_str = (char *)malloc(strlen(oper[0].data.string->data) + 1);
+    strcpy(flag_str, oper[0].data.string->data);
     while (*flag_str == '!') {
         n = !n;
         (void) flag_str++;
     }
     flag_char = flag_2char(flag_str);
     free(flag_str);
-    CLEAR(oper1);
+    
     if (flag_char <= 0)
         abort_interp("Not a valid flag to convert to a character. (1)");
     if (n)
@@ -2629,21 +2531,19 @@ prim_power_2char(PRIM_PROTOTYPE)
     char *power_str;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Top argument must be a string. (1)");
-    if (!oper1->data.string)
+    if (!oper[0].data.string)
         abort_interp("Empty string given. (1)");
-    power_str = (char *)malloc(strlen(oper1->data.string->data) + 1);
-    strcpy(power_str, oper1->data.string->data);
+    power_str = (char *)malloc(strlen(oper[0].data.string->data) + 1);
+    strcpy(power_str, oper[0].data.string->data);
     while (*power_str == '!') {
         n = !n;
         (void) power_str++;
     }
     power_char = power_2char(power_str);
     free(power_str);
-    CLEAR(oper1);
+    
     if (power_char <= 0)
         abort_interp("Not a valid power to convert to a character. (1)");
     if (n)
@@ -2666,24 +2566,21 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
 	stk_array *arr = NULL;
 	stk_array *arr2 = NULL;
 	stk_array *nu = NULL;
-	int tmp, result;
+	int result;
 	char buf[BUFFER_LEN];
 	struct inst temp1, temp2, temp3;
+	struct inst *oper3;
 	dbref ref;
 
-	CHECKOP(2);
-	oper2 = POP();
-	oper1 = POP();
-
-	if (oper1->type != PROG_ARRAY)
+	if (oper[1].type != PROG_ARRAY)
 		abort_interp("Argument not an array of arrays. (1)");
-	if (!array_is_homogenous(oper1->data.array, PROG_ARRAY))
+	if (!array_is_homogenous(oper[1].data.array, PROG_ARRAY))
 		abort_interp("Argument not a homogenous array of arrays. (1)");
-	arr = oper1->data.array;
+	arr = oper[1].data.array;
 
-	if (oper2->type != PROG_STRING)
+	if (oper[0].type != PROG_STRING)
 		abort_interp("Expected string argument. (2)");
-	fmtstr = DoNullInd(oper2->data.string);
+	fmtstr = DoNullInd(oper[0].data.string);
 	slen = strlen(fmtstr);
 
 	nu = new_array_packed(0);
@@ -2691,7 +2588,6 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
 		do {
 			strcpyn(sstr, sizeof(sstr), fmtstr);
 			result = 0;		/* End of current string, must be smaller than BUFFER_LEN */
-			tmp = 0;		/* Number of props to search for/found */
 			scnt = 0;
 			tstop = 0;
 			/*   "%-20.19[name]s %6[dbref]d"   */
@@ -2777,7 +2673,6 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
 								temp3.data.string = NULL;
 								oper3 = &temp3;
 							}
-							nargs = 2;
 						} else {
 							abort_interp("Specified format field didn't have an array index.");
 						}
@@ -3088,7 +2983,6 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
 							abort_interp("Invalid format string.");
 							break;
 						}
-						nargs = 2;
 						scnt++;
 						tstop += strlen(tbuf);
 					}
@@ -3129,8 +3023,8 @@ prim_array_fmtstrings(PRIM_PROTOTYPE)
 		} while (array_next(arr, &temp1));
 	}
 
-	CLEAR(oper1);
-	CLEAR(oper2);
+	
+	
 	PushArrayRaw(nu);
 }
 
@@ -3141,12 +3035,10 @@ prim_ansi_unparseobj(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_OBJECT)
+    if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument.");
 
-    result = oper1->data.objref;
+    result = oper[0].data.objref;
 
     switch (result) {
         case NOTHING:
@@ -3169,7 +3061,6 @@ prim_ansi_unparseobj(PRIM_PROTOTYPE)
                         result, unparse_flags(result, tbuf2));
             }
     }
-    CLEAR(oper1);
     PushString(buf);
 }
 
@@ -3179,13 +3070,12 @@ prim_ansi_name(PRIM_PROTOTYPE)
 	dbref ref;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_OBJECT)
+
+    if (oper[0].type != PROG_OBJECT)
         abort_interp("Arguement (1) is not a dbref.");
-    if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
+    if ((oper[0].data.objref < 0) || (oper[0].data.objref >= db_top))
         abort_interp("Invalid argument type");
-    ref = oper1->data.objref;
+    ref = oper[0].data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
         ts_lastuseobject(program, ref);
@@ -3194,7 +3084,6 @@ prim_ansi_name(PRIM_PROTOTYPE)
     } else {
         buf[0] = '\0';
     }
-    CLEAR(oper1);
     PushString(buf);
 }
 
@@ -3204,20 +3093,16 @@ prim_unparse_flags(PRIM_PROTOTYPE)
 	dbref ref;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_OBJECT)
+    if (oper[0].type != PROG_OBJECT)
         abort_interp("Arguement (1) is not a dbref.");
-    if ((oper1->data.objref < 0) || (oper1->data.objref >= db_top))
+    if ((oper[0].data.objref < 0) || (oper[0].data.objref >= db_top))
         abort_interp("Invalid argument type");
-    ref = oper1->data.objref;
+    ref = oper[0].data.objref;
     CHECKREMOTE(ref);
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
         ts_lastuseobject(program, ref);
 
     unparse_flags(ref, buf);
-
-    CLEAR(oper1);
     PushString(buf);
 }
 
@@ -3227,20 +3112,16 @@ prim_base64encode(PRIM_PROTOTYPE)
 {
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
 
-    if (!oper1->data.string) {
-        CLEAR(oper1);
+    if (!oper[0].data.string) {
         PushNullStr;
     } else {
-        if (((oper1->data.string->length + 2) / 3 * 4) > BUFFER_LEN)
+        if (((oper[0].data.string->length + 2) / 3 * 4) > BUFFER_LEN)
             abort_interp("Operation would result in overflow.");
-        http_encode64(oper1->data.string->data, oper1->data.string->length,
+        http_encode64(oper[0].data.string->data, oper[0].data.string->length,
                       buf);
-        CLEAR(oper1);
         PushString(buf);
     }
 }
@@ -3251,19 +3132,15 @@ prim_base64decode(PRIM_PROTOTYPE)
 	char buf[BUFFER_LEN];
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
 
-    if (!oper1->data.string) {
-        CLEAR(oper1);
+    if (!oper[0].data.string) {
         PushNullStr;
     } else {
         result =
-            http_decode64(oper1->data.string->data, oper1->data.string->length,
+            http_decode64(oper[0].data.string->data, oper[0].data.string->length,
                           buf);
-        CLEAR(oper1);
         if (result < 0)
             PushNullStr;
         else
@@ -3278,26 +3155,21 @@ void
 prim_wcharlen(PRIM_PROTOTYPE) {
     int result = 0;
 
-    CHECKOP(1);
-    oper1 = POP();
-
-    if (oper1->type != PROG_STRING)
+	if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
 
-    if (!oper1->data.string) {
-        CLEAR(oper1);
+    if (!oper[0].data.string) {
         PushInt(result);
         return;
     }
 
-    result = wcharlen(oper1->data.string);
+    result = wcharlen(oper[0].data.string);
 
     if (result == -1) {
         /* Let's abort for now, just to see how often we get these. */
         abort_interp("Illegal multibyte character detected.");
     }
 
-    CLEAR(oper1);
     PushInt(result);
 }
 
@@ -3305,32 +3177,25 @@ void
 prim_wcharlen_slice(PRIM_PROTOTYPE) {
     int result = 0;
 
-    CHECKOP(2);
-    oper1 = POP();
-    oper2 = POP();
-
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Non-integer argument. (2)");
-    if (oper2->type != PROG_STRING)
+    if (oper[1].type != PROG_STRING)
         abort_interp("Non-string argument. (1)");
 
-    if (!oper2->data.string) {
-        CLEAR(oper1);
-        CLEAR(oper2);
+    if (!oper[1].data.string) {
         PushInt(result);
         return;
     }
 
-    result = wcharlen_slice(DoNullInd(oper2->data.string),
-                            oper1->data.number,
-                            oper2->data.string->length);
+    result = wcharlen_slice(DoNullInd(oper[1].data.string),
+                            oper[0].data.number,
+                            oper[1].data.string->length);
 
     if (result == -1) {
         /* Let's abort for now, just to see how often we get these. */
         abort_interp("Illegal multibyte character detected.");
     }
 
-    CLEAR(oper1);
     PushInt(result);
 }
 #endif /* UTF8_SUPPORT */

@@ -65,36 +65,69 @@ extern void prim_find_array(PRIM_PROTOTYPE);
 extern void prim_entrances_array(PRIM_PROTOTYPE);
 extern void prim_lflags_update(PRIM_PROTOTYPE);
 
-#define PRIMS_DB_FUNCS prim_addpennies, prim_moveto, prim_pennies,       \
-    prim_dbcomp, prim_dbref, prim_contents, prim_exits, prim_next,       \
-    prim_name, prim_setname, prim_match, prim_rmatch, prim_copyobj,      \
-    prim_set, prim_mlevel, prim_flagp, prim_playerp, prim_thingp,        \
-    prim_roomp, prim_programp, prim_exitp, prim_okp, prim_location,      \
-    prim_owner, prim_getlink, prim_setlink, prim_setown, prim_newobject, \
-    prim_newroom, prim_newexit,  prim_recycle, prim_truecontrols,        \
-    prim_setlockstr, prim_getlockstr, prim_part_pmatch, prim_controls,   \
-    prim_truename, prim_checkpassword, prim_pmatch, prim_newplayer,      \
-    prim_copyplayer, prim_toadplayer, prim_objmem, prim_getlinks,        \
-    prim_movepennies, prim_instances, prim_compiledp, prim_setpassword,  \
-    prim_newpassword, prim_nextentrance, prim_ispowerp, prim_powerp,     \
-    prim_newprogram, prim_compile, prim_uncompile, prim_contents_array,  \
-    prim_exits_array, prim_getlinks_array, prim_getobjinfo, prim_findnext,\
-    prim_find_array, prim_entrances_array, prim_isflagp, prim_lflags_update
-
-#define PRIMS_DB_NAMES "ADDPENNIES", "MOVETO", "PENNIES",    \
-    "DBCMP", "DBREF", "CONTENTS", "EXITS", "NEXT",           \
-    "NAME", "SETNAME", "MATCH", "RMATCH", "COPYOBJ",         \
-    "SET", "MLEVEL", "FLAG?", "PLAYER?", "THING?",           \
-    "ROOM?", "PROGRAM?", "EXIT?", "OK?", "LOCATION",         \
-    "OWNER", "GETLINK", "SETLINK", "SETOWN", "NEWOBJECT",    \
-    "NEWROOM", "NEWEXIT",  "RECYCLE", "TRUECONTROLS",        \
-    "SETLOCKSTR", "GETLOCKSTR", "PART_PMATCH", "CONTROLS",   \
-    "TRUENAME", "CHECKPASSWORD", "PMATCH", "NEWPLAYER",      \
-    "COPYPLAYER", "TOADPLAYER", "OBJMEM", "GETLINKS",        \
-    "MOVEPENNIES", "INSTANCES", "COMPILED?", "SETPASSWORD",  \
-    "NEWPASSWORD", "NEXTENTRANCE", "ISPOWER?", "POWER?",     \
-    "NEWPROGRAM", "COMPILE", "UNCOMPILE", "CONTENTS_ARRAY",  \
-    "EXITS_ARRAY", "GETLINKS_ARRAY", "GETOBJINFO", "FINDNEXT",\
-    "FIND_ARRAY", "ENTRANCES_ARRAY", "ISFLAG?", "LFLAGS_UPDATE"
+#define PRIMLIST_DB { "ADDPENNIES",         LM2, 2, prim_addpennies },      \
+                    { "MOVETO",             LM1, 2, prim_moveto },          \
+                    { "PENNIES",            LM1, 1, prim_pennies },         \
+                    { "DBCMP",              LM1, 2, prim_dbcomp },          \
+                    { "DBREF",              LM1, 1, prim_dbref },           \
+                    { "CONTENTS",           LM1, 1, prim_contents },        \
+                    { "EXITS",              LM1, 1, prim_exits },           \
+                    { "NEXT",               LM1, 1, prim_next },            \
+                    { "NAME",               LM1, 1, prim_name },            \
+                    { "SETNAME",            LM1, 2, prim_setname },         \
+                    { "MATCH",              LM1, 1, prim_match },           \
+                    { "RMATCH",             LM1, 2, prim_rmatch },          \
+                    { "COPYOBJ",            LM1, 1, prim_copyobj },         \
+                    { "SET",                LM1, 2, prim_set },             \
+                    { "MLEVEL",             LM1, 1, prim_mlevel },          \
+                    { "FLAG?",              LM1, 2, prim_flagp },           \
+                    { "PLAYER?",            LM1, 1, prim_playerp },         \
+                    { "THING?",             LM1, 1, prim_thingp },          \
+                    { "ROOM?",              LM1, 1, prim_roomp },           \
+                    { "PROGRAM?",           LM1, 1, prim_programp },        \
+                    { "EXIT?",              LM1, 1, prim_exitp },           \
+                    { "OK?",                LM1, 1, prim_okp },             \
+                    { "LOCATION",           LM1, 1  , prim_location },      \
+                    { "OWNER",              LM1, 1, prim_owner },           \
+                    { "GETLINK",            LM1, 1, prim_getlink },         \
+                    { "SETLINK",            LM1, 2, prim_setlink },         \
+                    { "SETOWN",             LM1, 2, prim_setown },          \
+                    { "NEWOBJECT",          LM2, 2, prim_newobject },       \
+                    { "NEWROOM",            LM2, 2, prim_newroom },         \
+                    { "NEWEXIT",            LMAGE, 2, prim_newexit },       \
+                    { "RECYCLE",            LM3, 1, prim_recycle },         \
+                    { "TRUECONTROLS",       LM1, 2, prim_truecontrols },    \
+                    { "SETLOCKSTR",         LM1, 2, prim_setlockstr },      \
+                    { "GETLOCKSTR",         LM1, 1, prim_getlockstr },      \
+                    { "PART_PMATCH",        LM1, 1, prim_part_pmatch },     \
+                    { "CONTROLS",           LM1, 2, prim_controls },        \
+                    { "TRUENAME",           LM1, 1, prim_truename },        \
+                    { "CHECKPASSWORD",      LARCH, 2, prim_checkpassword }, \
+                    { "PMATCH",             LM1, 1, prim_pmatch },          \
+                    { "NEWPLAYER",          LARCH, 2, prim_newplayer },     \
+                    { "COPYPLAYER",         LARCH, 3, prim_copyplayer },    \
+                    { "TOADPLAYER",         LARCH, 2, prim_toadplayer },    \
+                    { "OBJMEM",             LM1, 1, prim_objmem },          \
+                    { "GETLINKS",           LM1, 1, prim_getlinks },        \
+                    { "MOVEPENNIES",        LM2, 3, prim_movepennies },     \
+                    { "INSTANCES",          LM1, 1, prim_instances },       \
+                    { "COMPILED?",          LM1, 1, prim_compiledp },       \
+                    { "SETPASSWORD",        LMAGE, 3, prim_setpassword },   \
+                    { "NEWPASSWORD",        LARCH, 2, prim_newpassword },   \
+                    { "NEXTENTRANCE",       LMAGE, 2, prim_nextentrance },  \
+                    { "ISPOWER?",           LM1, 1, prim_ispowerp },        \
+                    { "POWER?",             LM1, 2, prim_powerp },          \
+                    { "NEWPROGRAM",         LBOY, 1, prim_newprogram },     \
+                    { "COMPILE",            LBOY, 2, prim_compile },        \
+                    { "UNCOMPILE",          LBOY, 1, prim_uncompile },      \
+                    { "CONTENTS_ARRAY",     LM1, 1, prim_contents_array },  \
+                    { "EXITS_ARRAY",        LM1, 1, prim_exits_array },     \
+                    { "GETLINKS_ARRAY",     LM1, 1, prim_getlinks_array },  \
+                    { "GETOBJINFO",         LM3, 1, prim_getobjinfo },      \
+                    { "FINDNEXT",           LM2, 4, prim_findnext },        \
+                    { "FIND_ARRAY",         LM2, 3, prim_find_array },      \
+                    { "ENTRANCES_ARRAY",    LM1, 1, prim_entrances_array }, \
+                    { "ISFLAG?",            LM1, 1, prim_isflagp },         \
+                    { "LFLAGS_UPDATE",      LARCH, 0, prim_lflags_update }
 
 #define PRIMS_DB_CNT 64

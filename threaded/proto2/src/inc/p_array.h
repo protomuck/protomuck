@@ -56,44 +56,56 @@ extern void prim_array_filter_flags(PRIM_PROTOTYPE);
 extern void prim_array_sum(PRIM_PROTOTYPE);
 extern void prim_array_string_fragment(PRIM_PROTOTYPE);
 
-#define PRIMS_ARRAY_FUNCS prim_array_make, prim_array_make_dict,              \
-        prim_array_explode, prim_array_vals, prim_array_keys,                 \
-        prim_array_first, prim_array_last, prim_array_next, prim_array_prev,  \
-        prim_array_count, prim_array_getitem, prim_array_setitem,             \
-        prim_array_insertitem, prim_array_getrange, prim_array_setrange,      \
-        prim_array_insertrange, prim_array_delitem, prim_array_delrange,      \
-        prim_array_n_union, prim_array_n_intersection,                        \
-        prim_array_n_difference, prim_array_notify, prim_array_reverse,       \
-        prim_array_get_propvals, prim_array_get_propdirs,                     \
-        prim_array_get_proplist, prim_array_put_propvals,                     \
-        prim_array_put_proplist, prim_array_get_reflist,                      \
-        prim_array_put_reflist, prim_array_appenditem, prim_array_findval,    \
-        prim_array_excludeval, prim_explode_array, prim_array_sort,           \
-        prim_array_ansi_notify, prim_array_notify_html, prim_array_join,      \
-        prim_array_matchkey, prim_array_matchval, prim_array_extract,         \
-        prim_array_cut, prim_array_compare, prim_array_sort_indexed,          \
-        prim_array_interpret, prim_array_filter_flags, prim_array_nested_get, \
-	prim_array_nested_set, prim_array_nested_del, prim_array_sum,         \
-        prim_array_string_fragment
-
-#define PRIMS_ARRAY_NAMES "ARRAY_MAKE", "ARRAY_MAKE_DICT",        \
-        "ARRAY_EXPLODE", "ARRAY_VALS", "ARRAY_KEYS",              \
-        "ARRAY_FIRST", "ARRAY_LAST", "ARRAY_NEXT", "ARRAY_PREV",  \
-        "ARRAY_COUNT", "ARRAY_GETITEM", "ARRAY_SETITEM",          \
-        "ARRAY_INSERTITEM", "ARRAY_GETRANGE", "ARRAY_SETRANGE",   \
-        "ARRAY_INSERTRANGE", "ARRAY_DELITEM", "ARRAY_DELRANGE",   \
-        "ARRAY_NUNION", "ARRAY_NINTERSECT",                       \
-        "ARRAY_NDIFF", "ARRAY_NOTIFY", "ARRAY_REVERSE",           \
-        "ARRAY_GET_PROPVALS", "ARRAY_GET_PROPDIRS",               \
-        "ARRAY_GET_PROPLIST", "ARRAY_PUT_PROPVALS",               \
-        "ARRAY_PUT_PROPLIST", "ARRAY_GET_REFLIST",                \
-        "ARRAY_PUT_REFLIST", "ARRAY_APPENDITEM", "ARRAY_FINDVAL", \
-        "ARRAY_EXCLUDEVAL", "EXPLODE_ARRAY", "ARRAY_SORT",        \
-        "ARRAY_ANSI_NOTIFY", "ARRAY_NOTIFY_HTML", "ARRAY_JOIN",   \
-        "ARRAY_MATCHKEY", "ARRAY_MATCHVAL", "ARRAY_EXTRACT",      \
-        "ARRAY_CUT", "ARRAY_COMPARE", "ARRAY_SORT_INDEXED",       \
-        "ARRAY_INTERPRET", "ARRAY_FILTER_FLAGS",                  \
-	"ARRAY_NESTED_GET", "ARRAY_NESTED_SET",                   \
-	"ARRAY_NESTED_DEL", "ARRAY_SUM", "ARRAY_STRING_FRAGMENT"
+#define PRIMLIST_ARRAY  { "ARRAY_MAKE",         LM1, 1, prim_array_make },            \
+                        { "ARRAY_MAKE_DICT",    LM1, 1, prim_array_make_dict },       \
+                        { "ARRAY_EXPLODE",      LM1, 1, prim_array_explode },         \
+                        { "ARRAY_VALS",         LM1, 1, prim_array_vals },            \
+                        { "ARRAY_KEYS",         LM1, 1, prim_array_keys },            \
+                        { "ARRAY_FIRST",        LM1, 1, prim_array_first },           \
+                        { "ARRAY_LAST",         LM1, 1, prim_array_last },            \
+                        { "ARRAY_NEXT",         LM1, 2, prim_array_next },            \
+                        { "ARRAY_PREV",         LM1, 2, prim_array_prev },            \
+                        { "ARRAY_COUNT",        LM1, 1, prim_array_count },           \
+                        { "ARRAY_GETITEM",      LM1, 2, prim_array_getitem },         \
+                        { "ARRAY_SETITEM",      LM1, 3, prim_array_setitem },         \
+                        { "ARRAY_INSERTITEM",   LM1, 3, prim_array_insertitem },      \
+                        { "ARRAY_GETRANGE",     LM1, 3, prim_array_getrange },        \
+                        { "ARRAY_SETRANGE",     LM1, 3, prim_array_setrange },        \
+                        { "ARRAY_INSERTRANGE",  LM1, 3, prim_array_insertrange },     \
+                        { "ARRAY_DELITEM",      LM1, 2, prim_array_delitem },         \
+                        { "ARRAY_DELRANGE",     LM1, 3, prim_array_delrange },        \
+                        { "ARRAY_NUNION",       LM1, 1, prim_array_n_union },         \
+                        { "ARRAY_NINTERSECT",   LM1, 1, prim_array_n_intersection },  \
+                        { "ARRAY_NDIFF",        LM1, 1, prim_array_n_difference },    \
+                        { "ARRAY_NOTIFY",       LM1, 2, prim_array_notify },          \
+                        { "ARRAY_REVERSE",      LM1, 1, prim_array_reverse },         \
+                        { "ARRAY_GET_PROPVALS", LM3, 2, prim_array_get_propvals },    \
+                        { "ARRAY_PUT_PROPVALS", LM1, 3, prim_array_put_propvals },    \
+                        { "ARRAY_GET_PROPDIRS", LM3, 2, prim_array_get_propdirs },    \
+                        { "ARRAY_GET_PROPLIST", LM1, 2, prim_array_get_proplist },    \
+                        { "ARRAY_PUT_PROPLIST", LM1, 3, prim_array_put_proplist },    \
+                        { "ARRAY_GET_REFLIST",  LM1, 2, prim_array_get_reflist },     \
+                        { "ARRAY_PUT_REFLIST",  LM1, 3, prim_array_put_reflist },     \
+                        { "ARRAY_APPENDITEM",   LM1, 2, prim_array_appenditem },      \
+                        { "ARRAY_FINDVAL",      LM1, 2, prim_array_findval },         \
+                        { "ARRAY_EXCLUDEVAL",   LM1, 2, prim_array_excludeval },      \
+                        { "EXPLODE_ARRAY",      LM1, 2, prim_explode_array },         \
+                        { "ARRAY_SORT",         LM1, 2, prim_array_sort },            \
+                        { "ARRAY_ANSI_NOTIFY",  LM1, 2, prim_array_ansi_notify },     \
+                        { "ARRAY_NOTIFY_HTML",  LM1, 2, prim_array_notify_html },     \
+                        { "ARRAY_JOIN",         LM1, 2, prim_array_join },            \
+                        { "ARRAY_MATCHKEY",     LM1, 2, prim_array_matchkey },        \
+                        { "ARRAY_MATCHVAL",     LM1, 2, prim_array_matchval },        \
+                        { "ARRAY_EXTRACT",      LM1, 2, prim_array_extract },         \
+                        { "ARRAY_CUT",          LM1, 2, prim_array_cut },             \
+                        { "ARRAY_COMPARE",      LM1, 2, prim_array_compare },         \
+                        { "ARRAY_SORT_INDEXED", LM1, 3, prim_array_sort_indexed },    \
+                        { "ARRAY_INTERPRET",    LM1, 1, prim_array_interpret },       \
+                        { "ARRAY_FILTER_FLAGS", LM1, 2, prim_array_filter_flags },    \
+                        { "ARRAY_NESTED_GET",   LM1, 2, prim_array_nested_get },      \
+                        { "ARRAY_NESTED_SET",   LM1, 3, prim_array_nested_set },      \
+                        { "ARRAY_NESTED_DEL",   LM1, 2, prim_array_nested_del },      \
+                        { "ARRAY_SUM",          LM1, 1, prim_array_sum },             \
+                        { "ARRAY_STRING_FRAGMENT", LM1, 2, prim_array_string_fragment }
 
 #define PRIMS_ARRAY_CNT 51

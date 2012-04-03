@@ -3,10 +3,10 @@ extern void prim_sqlconnect(PRIM_PROTOTYPE);
 extern void prim_sqlclose(PRIM_PROTOTYPE);
 extern void prim_sqlping(PRIM_PROTOTYPE);
 
-#define PRIMS_MYSQL_FUNCS prim_sqlquery, prim_sqlconnect, prim_sqlclose, \
-    prim_sqlping
-
-#define PRIMS_MYSQL_NAMES "SQLQUERY", "SQLCONNECT", "SQLCLOSE", "SQLPING"
+#define PRIMLIST_MYSQL { "SQLQUERY",     LARCH, 2, prim_sqlquery    }, \
+                       { "SQLCONNECT",   LARCH, 5, prim_sqlconnect  }, \
+                       { "SQLCLOSE",     LARCH, 1, prim_sqlclose    }, \
+                       { "SQLPING",      LARCH, 1, prim_sqlping     }
 
 #ifdef SQL_SUPPORT
 #define PRIMS_MYSQL_CNT 4

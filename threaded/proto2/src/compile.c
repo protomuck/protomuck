@@ -48,6 +48,7 @@ static int IN_FORPOP;
 static int IN_FOR;
 static int IN_TRYPOP;
 
+int BASE_MAX = 0;
 
 static hash_tab primitive_list[COMP_HASH_SIZE];
 
@@ -763,7 +764,7 @@ include_internal_defs(COMPSTATE *cstat)
 #endif
 
 	for (i = 0; i < BASE_MAX; i++) {
-		sprintf(buf,  "prim(%s)", base_inst[i]);
+		sprintf(buf,  "prim(%s)", primlist[i].name);
 		insert_def(cstat, buf, "\"system\"");
 	}
 
@@ -4770,7 +4771,7 @@ add_primitive(int val)
     hash_data hd;
 
     hd.ival = val;
-    if (add_hash(base_inst[val - BASE_MIN], hd, primitive_list, COMP_HASH_SIZE)
+    if (add_hash(primlist[val - BASE_MIN].name, hd, primitive_list, COMP_HASH_SIZE)
         == NULL)
         panic("Out of memory");
     else
@@ -4788,6 +4789,11 @@ void
 init_primitives(void)
 {
     int i;
+
+	for (i = 0; primlist[i].func; i++);
+	BASE_MAX = i;
+
+	printf("PRIM_CNT: %d\r\n", BASE_MAX);
 
     clear_primitives();
     for (i = BASE_MIN; i <= BASE_MAX; i++) {

@@ -65,7 +65,6 @@ init_err_val(void)
 void
 prim_clear(PRIM_PROTOTYPE)
 {
-    CHECKOP(0);
     fr->error.is_flags = 0;
 }
 
@@ -74,7 +73,6 @@ prim_error_num(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(0);
     CHECKOFLOW(1);
     result = ERROR_NUM;
     PushInt(result);
@@ -86,28 +84,26 @@ prim_clear_error(PRIM_PROTOTYPE)
     int loop, result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING && oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_STRING && oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type. (1)");
     if (!err_init)
         init_err_val();
-    if (oper1->type == PROG_INTEGER) {
-        if ((oper1->data.number < 0) || (oper1->data.number >= ERROR_NUM)) {
+    if (oper[0].type == PROG_INTEGER) {
+        if ((oper[0].data.number < 0) || (oper[0].data.number >= ERROR_NUM)) {
             result = 0;
         } else {
             fr->error.is_flags =
-                fr->error.is_flags & (~err_bits[oper1->data.number].is_flags);
+                fr->error.is_flags & (~err_bits[oper[0].data.number].is_flags);
             result = 1;
         }
     } else {
-        if (!oper1->data.string) {
+        if (!oper[0].data.string) {
             result = 0;
         } else {
             loop = 0;
-            result = strlen(oper1->data.string->data);
+            result = strlen(oper[0].data.string->data);
             for (loop = 0; loop < result; loop++)
-                buf[loop] = toupper(oper1->data.string->data[loop]);
+                buf[loop] = toupper(oper[0].data.string->data[loop]);
             result = 0;
             loop = 0;
             while (loop < ERROR_NUM) {
@@ -122,7 +118,6 @@ prim_clear_error(PRIM_PROTOTYPE)
             }
         }
     }
-    CLEAR(oper1);
     PushInt(result);
 }
 
@@ -132,28 +127,26 @@ prim_set_error(PRIM_PROTOTYPE)
     int loop, result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING && oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_STRING && oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type. (1)");
     if (!err_init)
         init_err_val();
-    if (oper1->type == PROG_INTEGER) {
-        if ((oper1->data.number < 0) || (oper1->data.number >= ERROR_NUM)) {
+    if (oper[0].type == PROG_INTEGER) {
+        if ((oper[0].data.number < 0) || (oper[0].data.number >= ERROR_NUM)) {
             result = 0;
         } else {
             fr->error.is_flags =
-                fr->error.is_flags | err_bits[oper1->data.number].is_flags;
+                fr->error.is_flags | err_bits[oper[0].data.number].is_flags;
             result = 1;
         }
     } else {
-        if (!oper1->data.string) {
+        if (!oper[0].data.string) {
             result = 0;
         } else {
             loop = 0;
-            result = strlen(oper1->data.string->data);
+            result = strlen(oper[0].data.string->data);
             for (loop = 0; loop < result; loop++)
-                buf[loop] = toupper(oper1->data.string->data[loop]);
+                buf[loop] = toupper(oper[0].data.string->data[loop]);
             result = 0;
             loop = 0;
             while (loop < ERROR_NUM) {
@@ -168,7 +161,6 @@ prim_set_error(PRIM_PROTOTYPE)
             }
         }
     }
-    CLEAR(oper1);
     PushInt(result);
 }
 
@@ -178,28 +170,26 @@ prim_is_set(PRIM_PROTOTYPE)
     int loop, result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING && oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_STRING && oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type. (1)");
     if (!err_init)
         init_err_val();
-    if (oper1->type == PROG_INTEGER) {
-        if ((oper1->data.number < 0) || (oper1->data.number >= ERROR_NUM)) {
+    if (oper[0].type == PROG_INTEGER) {
+        if ((oper[0].data.number < 0) || (oper[0].data.number >= ERROR_NUM)) {
             result = 0;
         } else {
             result =
-                ((fr->error.is_flags & err_bits[oper1->data.number].is_flags) !=
+                ((fr->error.is_flags & err_bits[oper[0].data.number].is_flags) !=
                  0);
         }
     } else {
-        if (!oper1->data.string) {
+        if (!oper[0].data.string) {
             result = 0;
         } else {
             loop = 0;
-            result = strlen(oper1->data.string->data);
+            result = strlen(oper[0].data.string->data);
             for (loop = 0; loop < result; loop++)
-                buf[loop] = toupper(oper1->data.string->data[loop]);
+                buf[loop] = toupper(oper[0].data.string->data[loop]);
             result = 0;
             loop = 0;
             while (loop < ERROR_NUM) {
@@ -213,7 +203,6 @@ prim_is_set(PRIM_PROTOTYPE)
             }
         }
     }
-    CLEAR(oper1);
     PushInt(result);
 }
 
@@ -223,26 +212,24 @@ prim_error_str(PRIM_PROTOTYPE)
     int loop, result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING && oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_STRING && oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type. (1)");
     if (!err_init)
         init_err_val();
-    if (oper1->type == PROG_INTEGER) {
-        if ((oper1->data.number < 0) || (oper1->data.number >= ERROR_NUM)) {
+    if (oper[0].type == PROG_INTEGER) {
+        if ((oper[0].data.number < 0) || (oper[0].data.number >= ERROR_NUM)) {
             result = -1;
         } else {
-            result = oper1->data.number;
+            result = oper[0].data.number;
         }
     } else {
-        if (!oper1->data.string) {
+        if (!oper[0].data.string) {
             result = -1;
         } else {
             loop = 0;
-            result = strlen(oper1->data.string->data);
+            result = strlen(oper[0].data.string->data);
             for (loop = 0; loop < result; loop++)
-                buf[loop] = toupper(oper1->data.string->data[loop]);
+                buf[loop] = toupper(oper[0].data.string->data[loop]);
             result = -1;
             loop = 0;
             while (loop < ERROR_NUM) {
@@ -255,7 +242,6 @@ prim_error_str(PRIM_PROTOTYPE)
             }
         }
     }
-    CLEAR(oper1);
     if (result == -1) {
         PushNullStr;
     } else {
@@ -268,18 +254,15 @@ prim_error_name(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_INTEGER)
+    if (oper[0].type != PROG_INTEGER)
         abort_interp("Invalid argument type. (1)");
     if (!err_init)
         init_err_val();
-    if ((oper1->data.number < 0) || (oper1->data.number >= ERROR_NUM)) {
+    if ((oper[0].data.number < 0) || (oper[0].data.number >= ERROR_NUM)) {
         result = -1;
     } else {
-        result = oper1->data.number;
+        result = oper[0].data.number;
     }
-    CLEAR(oper1);
     if (result == -1) {
         PushNullStr;
     } else {
@@ -293,19 +276,17 @@ prim_error_bit(PRIM_PROTOTYPE)
     int loop, result;
 	char buf[BUFFER_LEN];
 
-    CHECKOP(1);
-    oper1 = POP();
-    if (oper1->type != PROG_STRING)
+    if (oper[0].type != PROG_STRING)
         abort_interp("Invalid argument type. (1)");
     if (!err_init)
         init_err_val();
-    if (!oper1->data.string) {
+    if (!oper[0].data.string) {
         result = -1;
     } else {
         loop = 0;
-        result = strlen(oper1->data.string->data);
+        result = strlen(oper[0].data.string->data);
         for (loop = 0; loop < result; loop++)
-            buf[loop] = toupper(oper1->data.string->data[loop]);
+            buf[loop] = toupper(oper[0].data.string->data[loop]);
         result = -1;
         loop = 0;
         while (loop < ERROR_NUM) {
@@ -317,7 +298,6 @@ prim_error_bit(PRIM_PROTOTYPE)
             }
         }
     }
-    CLEAR(oper1);
     PushInt(result);
 }
 
@@ -326,7 +306,6 @@ prim_is_error(PRIM_PROTOTYPE)
 {
 	int result;
 
-    CHECKOP(0);
     CHECKOFLOW(1);
     result = ((fr->error.is_flags) != 0);
     PushInt(result);

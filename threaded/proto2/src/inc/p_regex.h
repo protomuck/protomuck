@@ -37,14 +37,15 @@ extern void prim_regfind_array(PRIM_PROTOTYPE);
 extern void prim_regfindnext(PRIM_PROTOTYPE);
 extern void prim_array_regsub(PRIM_PROTOTYPE);
 
-#define PRIMS_REGEX_FUNCS prim_regexp, prim_regsub, prim_regmatch, \
-                          prim_array_regmatchkey, prim_array_regmatchval, \
-                          prim_array_regfilter_prop, prim_regfind_array, \
-                          prim_regfindnext, prim_array_regsub
-
-#define PRIMS_REGEX_NAMES "REGEXP", "REGSUB", "REGMATCH", "ARRAY_REGMATCHKEY", \
-                          "ARRAY_REGMATCHVAL", "ARRAY_REGFILTER_PROP", \
-                          "REGFIND_ARRAY", "REGFINDNEXT", "ARRAY_REGSUB"
+#define PRIMLIST_REGEX { "REGEXP",                 LM1,   3,     prim_regexp               }, \
+                       { "REGSUB",                 LM1,   4,     prim_regsub               }, \
+                       { "REGMATCH",               LM1,   3,     prim_regmatch             }, \
+                       { "ARRAY_REGMATCHKEY",      LM1,   3,     prim_array_regmatchkey    }, \
+                       { "ARRAY_REGMATCHVAL",      LM1,   3,     prim_array_regmatchval    }, \
+                       { "ARRAY_REGFILTER_PROP",   LM1,   4,     prim_array_regfilter_prop }, \
+                       { "REGFIND_ARRAY",          LM2,   4,     prim_regfind_array        }, \
+                       { "REGFINDNEXT",            LM2,   5,     prim_regfindnext          }, \
+                       { "ARRAY_REGSUB",           LM1,   4,     prim_array_regsub         }
 
 #define PRIMS_REGEX_CNT 9
 

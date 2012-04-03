@@ -13,45 +13,6 @@
 
 #undef DEBUGARRAYS
 
-/* these arrays MUST agree with what's in inst.h */
-const char *base_inst[] = {
-    "JMP", "READ", "TREAD", "SLEEP", "CALL", "EXECUTE", "EXIT", "EVENT_WAITFOR",
-    "CATCH", "CATCH_DETAILED",
-    PRIMS_CONNECTS_NAMES,
-    PRIMS_DB_NAMES,
-    PRIMS_MATH_NAMES,
-    PRIMS_MISC_NAMES,
-    PRIMS_PROPS_NAMES,
-    PRIMS_STACK_NAMES,
-    PRIMS_STRINGS_NAMES,
-    PRIMS_FLOAT_NAMES,
-#ifdef PCRE_SUPPORT
-    PRIMS_REGEX_NAMES,
-#endif
-    PRIMS_ERROR_NAMES,
-#ifdef FILE_PRIMS
-    PRIMS_FILE_NAMES,
-#endif
-    PRIMS_ARRAY_NAMES,
-#ifdef MCP_SUPPORT
-    PRIMS_MCP_NAMES,
-#endif
-#ifdef MUF_SOCKETS
-    PRIMS_SOCKET_NAMES,
-#endif
-    PRIMS_SYSTEM_NAMES,
-#ifdef SQL_SUPPORT
-    PRIMS_MYSQL_NAMES,
-#endif
-#ifdef MUF_EDIT_PRIMS
-    PRIMS_MUFEDIT_NAMES,
-#endif
-#ifdef NEWHTTPD
-    PRIMS_HTTP_NAMES,           /* hinoserm */
-#endif
-    PRIMS_INTERNAL_NAMES
-};
-
 /* converts an instruction into a printable string, stores the string in
    an internal buffer and returns a pointer to it */
 char *
@@ -80,7 +41,7 @@ insttotext(struct frame *fr, int lev, struct inst *theinst, char *buffer,
         case PROG_PRIMITIVE:
             if (theinst->data.number >= BASE_MIN &&
                 theinst->data.number <= BASE_MAX)
-                strcpy(buffer, base_inst[theinst->data.number - BASE_MIN]);
+                strcpy(buffer, primlist[theinst->data.number - BASE_MIN].name);
             else
                 strcpy(buffer, "???");
             break;

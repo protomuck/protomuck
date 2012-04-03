@@ -90,18 +90,14 @@ extern void interp_set_depth(struct frame * fr);
   
 #define CHECKOP_READONLY(N) \
 { \
-    nargs = (N); \
-    if (*top < nargs) { \
-        nargs = 0; \
+    if (*top < N) \
         abort_interp("Stack underflow."); \
-    }\
 }
 
 #define CHECKOP(N) \
 { \
     CHECKOP_READONLY(N); \
-    if (fr->trys.top && *top - fr->trys.st->depth < nargs) {\
-        nargs = 0;\
+    if (fr->trys.top && *top - fr->trys.st->depth < N) {\
         abort_interp("Stack protection fault."); \
     }\
 }
@@ -110,17 +106,22 @@ extern void interp_set_depth(struct frame * fr);
   
 #define abort_interp(C) \
 { \
-  do_abort_interp(player, (C), pc, arg, *top, fr, oper1, oper2, oper3, oper4, \
-                  oper5, oper6, nargs, program, __FILE__, __LINE__); \
+  do_abort_interp(player, (C), pc, arg, *top, fr, program, __FILE__, __LINE__); \
   return; \
 }
 extern void do_abort_interp(dbref player, const char *msg, struct inst *pc,
-     struct inst *arg, int atop, struct frame *fr,
-     struct inst *oper1, struct inst *oper2, struct inst *oper3,
-     struct inst *oper4, struct inst *oper5, struct inst *oper6, 
-     int nargs, dbref program, const char *file, int line);
+     struct inst *arg, int atop, struct frame *fr, 
+     dbref program, const char *file, int line);
 
 
+struct prim_list {
+    const char *name;  /* The prim's name */
+    int mlev;          /* Minimum mlevel to use this prim */
+    int nargs;         /* Number of args input */
+    void (*func)();    /* The function to call */
+};
+
+extern struct prim_list primlist[];
 
 #define Min(x,y) ((x < y) ? x : y)
 #define ProgMLevel(x) (find_mlev(x, fr, fr->caller.top))
@@ -155,9 +156,7 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
 
 #define PRIM_PROTOTYPE dbref player, dbref program, int mlev, \
                        struct inst *pc, struct inst *arg, int *top, \
-                       struct frame *fr, struct inst *oper1, struct inst *oper2, \
-                       struct inst *oper3, struct inst *oper4, struct inst *oper5, \
-                       struct inst *oper6
+                       struct frame *fr, struct inst *oper
 
 #define SORTTYPE_CASEINSENS     0x1 
 #define SORTTYPE_DESCENDING     0x2 
@@ -175,7 +174,7 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
 #define SORTTYPE_SHUFFLE        0x4
 #define SORTTYPE_NATURAL        0x8
 
-extern int    nargs; /* DO NOT TOUCH THIS VARIABLE */
+/* extern int    nargs; */ /* DO NOT TOUCH THIS VARIABLE */ /* I'm touching it!  This is part of the frame now.  -hinoserm */
 
 #ifndef PROTOMUCK_MODULE
 # include "p_connects.h"
