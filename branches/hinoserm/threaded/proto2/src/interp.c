@@ -741,6 +741,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->totaltime.tv_usec = 0;
 
 	fr->nargs = 0;
+	mutex_init(fr->mutx);
 
     fr->variables[0].type = PROG_OBJECT;
     fr->variables[0].data.objref = player;
@@ -1078,6 +1079,8 @@ prog_clean(struct frame *fr)
     muf_dlog_purge(fr);
 #endif
 
+	mutex_free(fr->mutx);
+
     dequeue_timers(fr->pid, NULL);
     muf_event_purge(fr);
     muf_interrupt_clean(fr);
@@ -1375,8 +1378,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
     if (tp_msec_slice) {
         gettimeofday(&start_time, NULL);
         gettimeofday(&current_time, NULL);
-    }
-
+	}
 
     /* This is the 'natural' way to exit a function */
     while (stop) {
@@ -1433,16 +1435,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                NULL, NULL);
             }
         } else {
-            int lzn = 0;
-            if (tp_msec_slice && !(instr_count % tp_instr_slice))
-                gettimeofday(&current_time, (struct timezone *) 0);
-
             /* if in FOREGROUND or BACKGROUND mode, '0 sleep' every so often. */
-            if ((tp_msec_slice && ((lzn = msec_diff(current_time, start_time)) >= tp_msec_slice)) || (!tp_msec_slice && tp_instr_slice && ((fr->instcnt > tp_instr_slice * 4)
-                && (instr_count >= tp_instr_slice)))) {
-                 
-		//if (tp_msec_slice && lzn >= tp_msec_slice)
-                    //log_status("[TSLC] Made program %d wait (%dms, %ld inst, %d).\r\n", program, lzn, instr_count, pc->line);
+            if (tp_instr_slice > 0 && instr_count >= tp_instr_slice) {    
                 fr->pc = pc;
                 reload(fr, atop, stop);
                 if (OkObj(player)) {
@@ -2326,8 +2320,6 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
 /* End of TODO */
     if (atop) {
         struct inst *rv;
-
-
         if (rettyp) {
             copyinst(arg + atop - 1, &retval);
             rv = &retval;

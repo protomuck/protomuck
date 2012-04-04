@@ -162,6 +162,7 @@ int tp_playermax_limit = PLAYERMAX_LIMIT;
 int tp_process_timer_limit = 4;
 int tp_dump_copies = 10;
 int tp_min_progbreak_lev = 0;
+int tp_thread_count = 0;
 
 #ifdef MCP_SUPPORT
 int tp_mcp_muf_mlev = MCP_MUF_MLEV;
@@ -244,6 +245,7 @@ struct tune_val_entry tune_val_list[] = {
     {"HTTPD", "web_max_filesize", &tp_web_max_filesize, WBOY, LMUF}, /* hinoserm */
     {"HTTPD", "web_max_users", &tp_web_max_users, LARCH, LMUF}, /* hinoserm */
 #endif /* hinoserm */
+	{"System", "thread_count", &tp_thread_count, LBOY, LMUF},
     {NULL, NULL, NULL, 0, 0}
 };
 

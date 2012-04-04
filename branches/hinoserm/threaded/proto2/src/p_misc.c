@@ -372,11 +372,12 @@ prim_fork(PRIM_PROTOTYPE)
     tmpfr->waitees = NULL;
     tmpfr->dlogids = NULL;
     tmpfr->timercount = 0;
+	mutex_init(tmpfr->mutx);
     /* child process gets a 0 returned on the stack */
     result = 0;
     push(tmpfr->argument.st, &(tmpfr->argument.top), PROG_INTEGER,
          MIPSCAST & result);
-    result = add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
+	result = add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
                                  program, tmpfr, "BACKGROUND");
     /* parent process gets the child's pid returned on the stack */
     if (!result)

@@ -300,7 +300,7 @@ next_muckevent_time(void)
 void
 next_muckevent(void)
 {
-    next_timequeue_event();
+    //next_timequeue_event();
     check_dump_time();
     check_clean_time();
     check_cron_time();

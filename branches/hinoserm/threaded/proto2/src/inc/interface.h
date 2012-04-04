@@ -182,6 +182,7 @@ struct descriptor_data {
     int                      filter_tab;    /* '\t' -> ' ' conversion. */
     object_flag_type         flags;         /* The descriptor flags */
     dbref                    mufprog;       /* If it is one of the MUF-type ports, then this points to the program. -- UNIMPLEMENTED */
+	mutex                    mutx;          /* mutex for threading */
     struct descriptor_data  *next;          /* Next descriptor information */
     struct descriptor_data **prev;          /* Previous descriptor information */
 #ifdef USE_SSL

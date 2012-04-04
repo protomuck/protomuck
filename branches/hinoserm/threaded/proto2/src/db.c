@@ -17,6 +17,7 @@ dbref recyclable = NOTHING;
 int db_load_format = 0;
 bool db_hash_passwords = 0;
 int db_hash_ver = 0;
+mutex db_mutex;
 
 #ifndef DB_INITIAL_SIZE
 #define DB_INITIAL_SIZE 10000
@@ -119,6 +120,7 @@ db_grow(dbref newtop)
                 fprintf(stderr, "PANIC: Unable to allocate new object.\n");
                 abort();
             }
+			mutex_init(db_mutex);
         }
         /* maybe grow it */
         if (db_top > db_size) {
@@ -179,6 +181,7 @@ db_clear_object(dbref player, dbref i)
     o->exits = NOTHING;
     o->next = NOTHING;
     o->properties = 0;
+	mutex_init(o->mutx);
 
 #ifdef DISKBASE
     o->propsfpos = 0;
@@ -198,6 +201,8 @@ new_object(dbref player)
 {
     dbref newobj;
 
+	DBLOCK(-1);
+
     if (recyclable != NOTHING) {
         newobj = recyclable;
         recyclable = DBFETCH(newobj)->next;
@@ -210,6 +215,8 @@ new_object(dbref player)
     /* clear it out */
     db_clear_object(player, newobj);
     DBDIRTY(newobj);
+
+	DBUNLOCK(-1);
     return newobj;
 }
 
@@ -515,6 +522,8 @@ log_program_text(struct line *first, dbref player, dbref i)
     char fname[BUFFER_LEN], buf1[BUFFER_LEN], buf2[BUFFER_LEN];
     time_t lt = current_systime;
 
+	DBLOCK(i);
+
 #ifndef SANITY
     strcpy(fname, PROGRAM_LOG);
     f = fopen(fname, "ab");
@@ -539,6 +548,8 @@ log_program_text(struct line *first, dbref player, dbref i)
     fputs("\n\n\n", f);
     fclose(f);
 #endif
+
+    DBUNLOCK(i);
 }
 
 void
@@ -546,6 +557,8 @@ write_program(struct line *first, dbref i)
 {
     FILE *f;
     char fname[BUFFER_LEN];
+
+	DBLOCK(i);
 
     sprintf(fname, "muf/%d.m", (int) i);
     f = fopen(fname, "wb");
@@ -566,7 +579,9 @@ write_program(struct line *first, dbref i)
         }
         first = first->next;
     }
+
     fclose(f);
+	DBUNLOCK(i);
 }
 
 int
@@ -578,6 +593,8 @@ db_write_object(FILE * f, dbref i)
 #ifdef DISKBASE
     int tmppos;
 #endif
+
+	DBLOCK(i);
 
     putstring(f, NAME(i));
     putref(f, o->location);
@@ -643,6 +660,8 @@ db_write_object(FILE * f, dbref i)
             putref(f, OWNER(i));
             break;
     }
+
+	DBUNLOCK(i);
 
     return 0;
 }
@@ -1096,6 +1115,7 @@ db_free_object(dbref i)
 {
     struct object *o;
 
+	DBLOCK(i);
     o = DBFETCH(i);
     if (NAME(i) && Typeof(i) != TYPE_GARBAGE)
         free((void *) NAME(i));
@@ -1125,6 +1145,8 @@ db_free_object(dbref i)
         uncompile_program(i);
     }
 #endif
+	DBUNLOCK(i);
+	mutex_free(o->mutx);
     /* DBDIRTY(i); */
 }
 
@@ -1141,6 +1163,7 @@ db_free(void)
         db_top = 0;
     }
 
+	mutex_free(db_mutex);
     clear_players();
     clear_primitives();
     recyclable = NOTHING;

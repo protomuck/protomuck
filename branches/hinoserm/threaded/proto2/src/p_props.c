@@ -1489,6 +1489,8 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
     PData pdat;
 
     int propcount = 0;
+	DBLOCK(source);
+	DBLOCK(destination);
 
 #ifdef DISKBASE
     fetchprops(destination);
@@ -1527,7 +1529,10 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
 
         /* find next property in current dir */ 
         propadr = next_prop(pptr, propadr, propname);
-    } 
+    }
+
+	DBLOCK(destination);
+	DBLOCK(source);
 
     return propcount; 
 } 

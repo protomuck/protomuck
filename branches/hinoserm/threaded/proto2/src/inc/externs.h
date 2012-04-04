@@ -94,6 +94,7 @@ extern int auto_archive_now(void);
 
 typedef struct timenode {
     struct timenode *next;
+	struct timenode *prev;
     int typ;
     int subtyp;
     time_t when;
@@ -108,9 +109,12 @@ typedef struct timenode {
     struct frame *fr;
     struct inst *where;
     int eventnum;
+	int running;
+	struct thread_data *thread;
 } *timequeue;
 
 extern timequeue tqhead;
+extern mutex tq_mutex;
 
 extern stk_array *get_pids(dbref ref);
 extern stk_array *get_pidinfo(int pid);
@@ -142,7 +146,7 @@ extern int add_event(int event_type, int subtyp, int dtime, int descr,
 extern void listenqueue(int descr, dbref player, dbref where, dbref trigger,
                  dbref what, dbref xclude, const char *propname,
                  const char *toparg, int mlev, int mt, int mpi_p);
-extern void next_timequeue_event(void);
+extern void next_timequeue_event(struct thread_data *thread);
 extern int dequeue_prog_descr(int descr, int sleeponly);
 extern int in_timequeue(int pid);
 extern int in_timequeue_only(int pid);
@@ -164,6 +168,7 @@ extern void envpropqueue(int descr, dbref player, dbref where, dbref trigger,
                          dbref what, dbref xclude, const char *propname,
                          const char *toparg, int mlev, int mt);
 extern void free_timenode(timequeue ptr);
+void timequeue_init(void);
 
 /* From compress.c */
 extern void init_compress_from_file(FILE * dicto);

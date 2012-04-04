@@ -597,6 +597,46 @@ struct line {
 #define STACK_SIZE      1024 	/* maximum size of stack */
 #define ADDR_SIZE       256     /* maximum size of the system and call stacks */
 
+#ifdef EXPERIMENTAL_THREADING
+
+struct muf_mutex {
+# ifdef WIN_VC
+	HANDLE WinMutex;
+# endif
+};
+typedef struct muf_mutex mutex;
+
+extern mutex db_mutex;
+
+#ifdef WIN_VC
+# define mutex_init(x)   { (x).WinMutex = CreateMutex(NULL, FALSE, NULL); }
+# define mutex_free(x)   { CloseHandle((x).WinMutex); }
+# define mutex_lock(x)   { WaitForSingleObject((x).WinMutex, INFINITE); }
+# define mutex_unlock(x) { ReleaseMutex((x).WinMutex); }
+#endif
+
+#define DBLOCK(x)   { if (x < 0 || x >= db_top) { mutex_lock(db_mutex);   } else { mutex_lock((DBFETCH(x)->mutx)); }   }
+#define DBUNLOCK(x) { if (x < 0 || x >= db_top) { mutex_unlock(db_mutex); } else { mutex_unlock((DBFETCH(x)->mutx)); } }
+
+struct thread_data {
+# ifdef WIN_VC
+	HANDLE thread;
+#endif
+	int id;
+	time_t time_created;
+	struct thread_data *next;
+	struct thread_data *prev;
+};
+
+extern struct thread_data *threads; /* thread.c */
+extern mutex threads_mutex;        /* thread.c */
+extern int thread_count;
+
+extern void thread_first_init(void);
+extern void thread_checkup(void);
+
+#endif
+
 struct shared_string {		    /* for sharing strings in programs */
     int     links;		        /* number of pointers to this struct */
     int     length;		        /* length of string data */
@@ -734,6 +774,9 @@ struct module {
 struct inst {			/* instruction */
     short   type;
     short   line;
+#ifdef EXPERIMENTAL_THREADING
+	mutex   mutx;       /* for thread safety -hinoserm */
+#endif
     union {
         struct shared_string *string;   /* strings                          */
         struct boolexp *lock;           /* boolean lock expression          */
@@ -921,7 +964,7 @@ struct frame {
     dbref   prog;                       /* program dbref */
     dbref   player;                     /* person who ran the program */
     time_t  started;                    /* When this program started. */
-    unsigned int instcnt;               /* How many instructions have run. */
+    unsigned long long instcnt;         /* How many instructions have run. */
     int     timercount;                 /* How many timers currently exist. */
     int     pid;                        /* what is the process id? */
     char    *errorstr;                  /* the error string thrown */
@@ -943,6 +986,7 @@ struct frame {
     struct dlogidlist *dlogids;         /* List of dlogids this frame uses. */
     struct mufwatchpidlist *waiters;
     struct mufwatchpidlist *waitees;
+	mutex mutx;
     union {
             struct {
             unsigned int div_zero:1;	/* Divide by zero */
@@ -1050,6 +1094,7 @@ struct object {
     dbref   exits;
     dbref   next;		/* pointer to next in contents/exits chain */
     struct plist *properties;
+	mutex mutx;
 
 #ifdef DISKBASE
     int	    propsfpos;
