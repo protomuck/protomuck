@@ -391,7 +391,9 @@ fetchprops_priority(dbref obj, int mode)
 void
 fetchprops(dbref obj)
 {
+	DBLOCK(obj);
     fetchprops_priority(obj, 0);
+	DBUNLOCK(obj);
 }
 
 
@@ -400,8 +402,9 @@ dirtyprops(dbref obj)
 {
     if (DBFETCH(obj)->propsmode == PROPS_CHANGED)
         return;
-
+	DBLOCK(obj);
     addobject_ringqueue(obj, PROPS_CHANGED);
+	DBUNLOCK(obj);
 }
 
 void

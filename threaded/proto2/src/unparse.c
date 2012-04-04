@@ -8,7 +8,7 @@
 #include "interface.h"
 #include "props.h"
 
-static char upb[BUFFER_LEN];
+char upb[BUFFER_LEN];
 
 const char *
 unparse_flags(dbref thing, char buf[BUFFER_LEN])
@@ -317,6 +317,7 @@ const char *
 unparse_object(dbref player, dbref loc)
 {
     char tbuf[BUFFER_LEN];
+	static char upb[BUFFER_LEN];
 
     if (Typeof(player) != TYPE_PLAYER)
         player = OWNER(player);

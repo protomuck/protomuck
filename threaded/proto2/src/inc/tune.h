@@ -89,6 +89,7 @@ extern int tp_pause_min;
 extern int tp_free_frames_pool;
 extern int tp_max_output;
 extern int tp_rand_screens;
+extern int tp_thread_count;
 
 extern int tp_listen_mlev;
 extern int tp_wizhidden_access_bit;

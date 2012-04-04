@@ -159,10 +159,14 @@ set_property(dbref object, const char *pname, PData * dat)
 {
 #ifdef DISKBASE
     fetchprops(object);
+	DBLOCK(object);
     set_property_nofetch(object, pname, dat, 0);
+	DBUNLOCK(object);
     dirtyprops(object);
 #else
+	DBLOCK(object);
     set_property_nofetch(object, pname, dat, 0);
+	DBUNLOCK(object);
 #endif
     DBDIRTY(object);
 }
@@ -193,10 +197,14 @@ add_property(dbref player, const char *type, const char *pclass, int value)
 
 #ifdef DISKBASE
     fetchprops(player);
+	DBLOCK(player);
     add_prop_nofetch(player, type, pclass, value);
+	DBUNLOCK(player);
     dirtyprops(player);
 #else
+	DBLOCK(player);
     add_prop_nofetch(player, type, pclass, value);
+	DBUNLOCK(player);
 #endif
     DBDIRTY(player);
 }
@@ -306,13 +314,16 @@ void
 remove_property(dbref player, const char *type)
 {
 
-    /* if( tp_db_readonly ) return; *//* Why did we remove this? */
+    /* if( tp_db_readonly ) return; *//* Why did we remove this? *//* That is a good question. -Hinoserm 04-04-2012 */
+
 
 #ifdef DISKBASE
     fetchprops(player);
 #endif
 
+	DBLOCK(player);
     remove_property_nofetch(player, type);
+	DBUNLOCK(player);
 
 #ifdef DISKBASE
     dirtyprops(player);

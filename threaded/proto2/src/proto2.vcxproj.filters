@@ -257,9 +257,6 @@
     <ClCompile Include="inst.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="interface.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="interp.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -417,6 +414,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sha1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="interface.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="thread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

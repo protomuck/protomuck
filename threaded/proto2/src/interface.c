@@ -415,6 +415,8 @@ main(int argc, char **argv)
 	CrT_pthread_init();
 #endif
 
+	timequeue_init();
+
     strcpy(restart_message, "\r\nServer restarting, be back in a few!\r\n");
     strcpy(shutdown_message, "\r\nServer shutting down, be back in a few!\r\n");
     time(&current_systime);
@@ -900,9 +902,12 @@ notify_descriptor_raw(int descr, const char *msg, int length)
     for (d = descriptor_list; d && (d->descriptor != descr); d = d->next) ;
     if (!d || d->descriptor != descr)
         return;
+
+	mutex_lock(d->mutx);
     //add_to_queue(&d->output, msg, length);
     add_to_queue(&d->output, msg, length, -2);
     d->output_size += length;
+	mutex_unlock(d->mutx);
 }
 
 /* To go with the descriptor_notify_char prim, this has a singular
@@ -1720,8 +1725,7 @@ extern void purge_free_frames(void);
 time_t current_systime = 0;
 time_t startup_systime = 0;
 
-#ifdef EXPERIMENTAL_THREADING
-
+#ifdef EXPERIMENTAL_OUTPUT_THREADING
 #ifdef WIN_VC
 DWORD WINAPI threaded_output_handler(void *ptr)
 #else
@@ -1892,27 +1896,14 @@ shovechars(void)
     printf("\n");
 
     avail_descriptors = max_open_files() - 10;
-#ifdef EXPERIMENTAL_THREADING
-# ifdef WIN_VC
-    CreateThread(NULL, 0, threaded_output_handler, NULL, 0, NULL);
-# else
-    pthread_attr_init(&attr);
-    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-    result = pthread_create(&thread1, &attr, threaded_output_handler, NULL);
- 
-    pthread_attr_destroy(&attr);
-
-    if (result) {
-		perror("Unable to start output thread");
-    }
-# endif
-#endif /* EXPERIMENTAL_THREADING */
+	thread_first_init(); /* Start up threads and get them ready */
 
     while (shutdown_flag == 0) { /* Game Loop */
         gettimeofday(&current_time, (struct timezone *) 0);
         last_slice = update_quotas(last_slice, current_time);
 
+		thread_checkup();
         next_muckevent();       /* Process things in event.c */
         process_commands();     /* Process player commands in game.c */
         muf_event_process();    /* Process MUF events in mufevents.c */
@@ -1998,7 +1989,7 @@ shovechars(void)
             else
                 FD_SET(d->descriptor, &input_set);
 
-#ifndef EXPERIMENTAL_THREADING
+#ifndef EXPERIMENTAL_OUTPUT_THREADING
             if (d->output.head) /* Prepare write pool */
                 FD_SET(d->descriptor, &output_set);
 # ifdef MCCP_ENABLED /* If MCCP is enabled, and data is waiting to be sent out of the compression buffer */
@@ -2981,6 +2972,7 @@ clearstrings(struct descriptor_data *d)
 void
 shutdownsock(struct descriptor_data *d)
 {
+	mutex_lock(d->mutx);
 #ifdef NEWHTTPD
     if (d->type != CT_HTTP) {   /* hinoserm */
 #endif /* NEWHTTPD */
@@ -3055,6 +3047,9 @@ shutdownsock(struct descriptor_data *d)
 
 	telopt_clean(&d->telopt);
 
+	mutex_unlock(d->mutx);
+	mutex_free(d->mutx);
+
     FREE(d);
     ndescriptors--;
 }
@@ -3106,6 +3101,7 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
 
     telopt_init(&d->telopt);
 
+	mutex_init(d->mutx);
     d->descriptor = s;
     d->connected = 0;
     d->did_connect = 0;
@@ -3349,11 +3345,13 @@ queue_write(struct descriptor_data *d, const char *b, int n)
 {
     int space;
 
+	mutex_lock(d->mutx);
     space = tp_max_output - d->output_size - n;
     if (space < 0)
         d->output_size -= flush_queue(&d->output, -space);
     add_to_queue(&d->output, b, n, -2);
     d->output_size += n;
+	mutex_unlock(d->mutx);
     return n;
 }
 
@@ -3438,6 +3436,7 @@ process_output(struct descriptor_data *d)
         return 1;
     }
 
+	mutex_lock(d->mutx);
     for (qp = &d->output.head; (cur = *qp);) {
         cnt = sockwrite(d, cur->start, cur->nchars);
 
@@ -3446,6 +3445,7 @@ process_output(struct descriptor_data *d)
             fprintf(stderr, "process_output: write failed errno %d %s\n", errnosocket,
                     strerror(errnosocket));
 #endif
+			mutex_unlock(d->mutx);
             if (errnosocket == EWOULDBLOCK)
                 return 1;
             return 0;
@@ -3466,6 +3466,7 @@ process_output(struct descriptor_data *d)
         cur->start += cnt;
         break;
     }
+	mutex_unlock(d->mutx);
 
     return 1;
 }
@@ -4103,7 +4104,7 @@ process_commands(void)
             if (d->quota > 0 && (t = d->input.head)) {
                 /* Added in the is_interface_command to seperate out checking
                  * for things like @q, WHO, QUIT, etc. -Akari */
-                if ((d->connected && DBFETCH(d->player)->sp.player.block &&
+                if (0 && (d->connected && DBFETCH(d->player)->sp.player.block &&
                      !is_interface_command(t->start))
                     || (!d->connected && d->block)) {
                     char *tmp = t->start;
@@ -4119,8 +4120,7 @@ process_commands(void)
                      * the input. If tmp is an empty string, then we'll
                      * remove the empty line here. -Akari
                      */
-                    if (!read_event_notify(d->descriptor, d->player, tmp) &&
-                        !*tmp) {
+                    if (!read_event_notify(d->descriptor, d->player, tmp) && !*tmp) {
                         ++nprocessed;
                         d->input.head = t->nxt;
                         d->input.lines--;
@@ -5350,6 +5350,9 @@ time_format_2(time_t dt)
 {
     struct tm *delta;
     static char buf[64];
+
+	strcpy(buf, "x");
+	return buf;
 
     delta = gmtime(&dt);
 

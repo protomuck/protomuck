@@ -125,9 +125,9 @@ set_sigs_intern(int bail)
 #ifdef SIGSYS
     our_signal(SIGSYS, SET_BAIL);
 #endif
-    our_signal(SIGFPE, SET_BAIL);
-    our_signal(SIGSEGV, SET_BAIL);
-    our_signal(SIGTERM, SET_BAIL);
+    //our_signal(SIGFPE, SET_BAIL);
+    //our_signal(SIGSEGV, SET_BAIL);
+    //our_signal(SIGTERM, SET_BAIL);
 #ifdef SIGXCPU
     our_signal(SIGXCPU, SET_BAIL);
 #endif
@@ -147,8 +147,8 @@ set_sigs_intern(int bail)
 #endif
 
     /* standard termination signals */
-    our_signal(SIGINT, SET_SHUT);
-    our_signal(SIGTERM, SET_SHUT);
+    //our_signal(SIGINT, SET_SHUT);
+    //our_signal(SIGTERM, SET_SHUT);
 
     /* catch these because we might as well */
 #ifdef SIGQUIT

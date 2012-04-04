@@ -999,13 +999,13 @@ void
 recycle(int descr, dbref player, dbref thing)
 {
     extern dbref recyclable;
-    static int depth = 0;
     dbref first;
     dbref rest;
     char buf[2048];
     int looplimit;
 
-    depth++;
+	DBLOCK(thing);
+
     switch (Typeof(thing)) {
         case TYPE_ROOM:
             if (!Mage(OWNER(thing)))
@@ -1163,10 +1163,10 @@ recycle(int descr, dbref player, dbref thing)
         }
     }
 
+	DBLOCK(-1);
+	DBUNLOCK(thing);
 
     moveto(thing, NOTHING);
-
-    depth--;
 
     db_free_object(thing);
     db_clear_object(player, thing);
@@ -1179,4 +1179,5 @@ recycle(int descr, dbref player, dbref thing)
     DBFETCH(thing)->next = recyclable;
     recyclable = thing;
     DBDIRTY(thing);
+	DBUNLOCK(-1);
 }

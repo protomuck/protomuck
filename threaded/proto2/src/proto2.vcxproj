@@ -306,6 +306,7 @@
     <ClCompile Include="speech.c" />
     <ClCompile Include="strftime.c" />
     <ClCompile Include="stringutil.c" />
+    <ClCompile Include="thread.c" />
     <ClCompile Include="timequeue.c" />
     <ClCompile Include="timestamp.c" />
     <ClCompile Include="tune.c" />

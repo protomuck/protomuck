@@ -894,6 +894,8 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
 {
     struct muf_ainterrupt *a;
 
+	return 0; /* TODO -hinoserm */
+
     a = (struct muf_ainterrupt *) malloc(sizeof(struct muf_ainterrupt));
     a->interrupt = interrupt;
     a->ret = NULL;
@@ -976,6 +978,8 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
 static int
 muf_interrupt_requeue(struct muf_qitem *q)
 {
+	return q->type;
+
     switch (q->type) {
         case 1:
             /* for putting back mufevent queue items */
@@ -1056,6 +1060,8 @@ muf_interrupt_check_byevent(struct frame *fr, register const char *event,
 {
     register struct muf_interrupt *i;
     register int cnt = 0;
+
+	return 0;
 
     if (!fr->use_interrupts)
         return 0;

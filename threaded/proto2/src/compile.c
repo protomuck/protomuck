@@ -1585,6 +1585,8 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
     int instrCount = 0;
     COMPSTATE cstat;
 
+	DBLOCK(-1);
+
     /* set all compile state variables */
     cstat.force_err_display = force_err_display;
     cstat.descr = descr;
@@ -1657,6 +1659,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
         /* test for errors */
         if (cstat.compile_err) {
             free((void *) token);
+			DBUNLOCK(-1);
             return;
         }
 
@@ -1674,8 +1677,10 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
         free((void *) token);
     }
 
-    if (cstat.compile_err)
+    if (cstat.compile_err) {
+		DBUNLOCK(-1);
         return;                 /* Added to abort cleanly from directive errors. */
+	}
 
     if (cstat.curr_proc)
         v_abort_compile(&cstat, "Unexpected end of file.");
@@ -1771,6 +1776,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
         add_muf_queue_event(-1, OWNER(cstat.program), NOTHING, NOTHING,
                             cstat.program, "Startup", "Queued Event.", 0);
 
+	DBUNLOCK(-1);
 }
 
 struct LABEL_LIST *
