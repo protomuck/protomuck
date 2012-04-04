@@ -811,6 +811,14 @@ array_contains_value(stk_array *arr, array_data *item)
 }
 
 
+
+/*
+ * array_first() actually uses copyinst() which increases the link count for strings if it's
+ *  a dictionary MUF array with a string for an index, so it is important to CLEAR() the
+ *  output from array_first() when it will not be getting pushed back into an array or onto
+ *  the stack. -Hinoserm (April 4th 2012)
+*/
+
 int
 array_first(stk_array *arr, array_iter *item)
 {
