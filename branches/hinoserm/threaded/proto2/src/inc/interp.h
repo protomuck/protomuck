@@ -113,12 +113,17 @@ extern void do_abort_interp(dbref player, const char *msg, struct inst *pc,
      struct inst *arg, int atop, struct frame *fr, 
      dbref program, const char *file, int line);
 
+#define PRIM_PROTOTYPE dbref player, dbref program, int mlev, \
+                       struct inst *pc, struct inst *arg, int *top, \
+                       struct frame *fr, struct inst *oper
 
 struct prim_list {
     const char *name;  /* The prim's name */
     int mlev;          /* Minimum mlevel to use this prim */
     int nargs;         /* Number of args input */
-    void (*func)();    /* The function to call */
+    void (*func)(dbref player, dbref program, int mlev, \
+                       struct inst *pc, struct inst *arg, int *top, \
+                       struct frame *fr, struct inst *oper);    /* The function to call */
 };
 
 extern struct prim_list primlist[];
@@ -153,10 +158,6 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
 
 #define CHECKOFLOW(x) if((*top + (x - 1)) >= STACK_SIZE) \
 			  abort_interp("Stack Overflow!");
-
-#define PRIM_PROTOTYPE dbref player, dbref program, int mlev, \
-                       struct inst *pc, struct inst *arg, int *top, \
-                       struct frame *fr, struct inst *oper
 
 #define SORTTYPE_CASEINSENS     0x1 
 #define SORTTYPE_DESCENDING     0x2 

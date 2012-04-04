@@ -366,7 +366,7 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 }
 #endif
 
-#ifdef MALLOC_PROFILING
+//#ifdef MALLOC_PROFILING
 extern void free_old_macros(void);
 extern void purge_all_free_frames(void);
 extern void purge_mfns(void);
@@ -376,7 +376,7 @@ extern void tune_freeparms(void);
 #ifdef COMPRESS
 extern void free_compress_dictionary(void);
 #endif /* COMPRESS */
-#endif /* MALLOC_PROFILING */
+//#endif /* MALLOC_PROFILING */
 
 int
 main(int argc, char **argv)
@@ -628,6 +628,7 @@ main(int argc, char **argv)
 # endif /* TIOCNOTTY */
         }
 #endif /* DETACH */
+
     }
 
 
@@ -795,7 +796,6 @@ main(int argc, char **argv)
 #endif
 
 #ifdef MALLOC_PROFILING
-        db_free();
         free_old_macros();
         purge_all_free_frames();
         purge_timenode_free_pool();
@@ -804,8 +804,10 @@ main(int argc, char **argv)
         purge_try_pool();       /* 3rd time is needed to... oh... wait... */
         purge_try_pool();       /* 2nd time is needed to completely purge */
         purge_mfns();
+		db_free();
         cleanup_game();
         tune_freeparms();
+		clear_color_hash();
 #ifdef COMPRESS
         free_compress_dictionary();
 #endif /* COMPRESS */
@@ -5016,6 +5018,24 @@ do_armageddon(dbref player, const char *msg)
 #ifdef USE_RESLVD
     reslvd_close();
 #endif
+
+#ifdef MALLOC_PROFILING
+        free_old_macros();
+        purge_all_free_frames();
+        purge_timenode_free_pool();
+        purge_for_pool();
+        purge_for_pool();       /* 2nd time is needed to completely purge */
+        purge_try_pool();       /* 3rd time is needed to... oh... wait... */
+        purge_try_pool();       /* 2nd time is needed to completely purge */
+        purge_mfns();
+		db_free();
+        cleanup_game();
+        tune_freeparms();
+		clear_color_hash();
+#ifdef COMPRESS
+        free_compress_dictionary();
+#endif /* COMPRESS */
+#endif /* MALLOC_PROFILING */
 
     exit(1);
 }
