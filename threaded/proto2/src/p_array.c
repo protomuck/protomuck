@@ -2065,20 +2065,28 @@ prim_array_compare(PRIM_PROTOTYPE)
     if (!res1 && !res2) {
         result = 0;
     } else if (!res1) {
+		CLEAR(&temp2);
         result = -1;
     } else if (!res2) {
+		CLEAR(&temp1);
         result = 1;
     } else {
         do {
             result = array_idxcmp(&temp1, &temp2);
-            if (result)
+            if (result) {
+				CLEAR(&temp1);
+				CLEAR(&temp2);
                 break;
+			}
 
             val1 = array_getitem(arr1, &temp1);
             val2 = array_getitem(arr2, &temp2);
             result = array_idxcmp(val1, val2);
-            if (result)
+            if (result) {
+				CLEAR(&temp1);
+				CLEAR(&temp2);
                 break;
+			}
 
             res1 = array_next(arr1, &temp1);
             res2 = array_next(arr2, &temp2);

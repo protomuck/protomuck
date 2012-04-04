@@ -16,7 +16,14 @@
 /* Hash table of color names->numeric color index lookup */
 static hash_tab color_list[COLOR_HASH_SIZE];
 
-int init_color_hash()
+void
+clear_color_hash(void)
+{
+	kill_hash(color_list, COLOR_HASH_SIZE, 0);
+}
+
+int
+init_color_hash(void)
 {
     add_hash_int("XT/BLACK", 16, color_list, COLOR_HASH_SIZE);
     add_hash_int("XT/STATOS", 17, color_list, COLOR_HASH_SIZE);

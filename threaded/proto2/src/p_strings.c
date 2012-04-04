@@ -81,6 +81,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                     if (sstr[scnt] == '*') {
                         scnt++;
                         
+						CHECKOP(1);
                         oper2 = POP();
                         if (oper2->type != PROG_INTEGER) {
 							CLEAR(oper2);
@@ -102,6 +103,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                         if (sstr[scnt] == '*') {
                             scnt++;
                             
+							CHECKOP(1);
                             oper2 = POP();
                             if (oper2->type != PROG_INTEGER) {
 								CLEAR(oper2);
@@ -123,6 +125,7 @@ prim_fmtstring(PRIM_PROTOTYPE)
                 }
                 /* ANSI handling */
                 
+				CHECKOP(1);
                 oper2 = POP();
                 if (('s' == sstr[scnt]) && (PROG_STRING == oper2->type)
                     && (oper2->data.string)) {
@@ -1265,19 +1268,24 @@ prim_notify_exclude(PRIM_PROTOTYPE)
         while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
-            if (oper1->type != PROG_OBJECT)
+            if (oper1->type != PROG_OBJECT) {
+				CLEAR(oper1);
                 abort_interp("Invalid object argument.");
+			}
             excluded[--i] = oper1->data.objref;
             CLEAR(oper1);
         }
         CHECKOP(1);
         oper1 = POP();              
-        if (!valid_object(oper1))
+        if (!valid_object(oper1)) {
+			CLEAR(oper1);
             abort_interp("Non-object argument (1)");
+		}
         where = oper1->data.objref;
-        if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
-            Typeof(where) != TYPE_PLAYER)
+        if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING && Typeof(where) != TYPE_PLAYER) {
+			CLEAR(oper1);
             abort_interp("Invalid location argument (1)");
+		}
         CHECKREMOTE(where);   
         what = DBFETCH(where)->contents;
         CLEAR(oper1);
@@ -1342,15 +1350,19 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
         while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
-            if (oper1->type != PROG_OBJECT)
+            if (oper1->type != PROG_OBJECT) {
+				CLEAR(oper1);
                 abort_interp("Invalid object argument.");
+			}
             excluded[--i] = oper1->data.objref;
             CLEAR(oper1);
         }
         CHECKOP(1);
         oper1 = POP();              
-        if (!valid_object(oper1))
+        if (!valid_object(oper1)) {
+			CLEAR(oper1);
             abort_interp("Non-object argument (1)");
+		}
         where = oper1->data.objref;
         if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
             Typeof(where) != TYPE_PLAYER)
@@ -1427,19 +1439,25 @@ prim_notify_html_exclude(PRIM_PROTOTYPE)
         while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
-            if (oper1->type != PROG_OBJECT)
+            if (oper1->type != PROG_OBJECT) {
+				CLEAR(oper1);
                 abort_interp("Invalid object argument.");
+			}
             excluded[--i] = oper1->data.objref;
             CLEAR(oper1);
         }
         CHECKOP(1);
         oper1 = POP();              
-        if (!valid_object(oper1))
+        if (!valid_object(oper1)) {
             abort_interp("Non-object argument (1)");
+			CLEAR(oper1);
+		}
         where = oper1->data.objref;
         if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
-            Typeof(where) != TYPE_PLAYER)
+            Typeof(where) != TYPE_PLAYER) {
+				CLEAR(oper1);
             abort_interp("Invalid location argument (1)");
+		}
         CHECKREMOTE(where);   
         what = DBFETCH(where)->contents;
         CLEAR(oper1);
@@ -1511,19 +1529,25 @@ prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
         while (i > 0) {      
             CHECKOP(1);
             oper1 = POP();
-            if (oper1->type != PROG_OBJECT)
+            if (oper1->type != PROG_OBJECT) {
+				CLEAR(oper1);
                 abort_interp("Invalid object argument.");
+			}
             excluded[--i] = oper1->data.objref;
             CLEAR(oper1);
         }
         CHECKOP(1);
         oper1 = POP();              
-        if (!valid_object(oper1))
+        if (!valid_object(oper1)) {
+			CLEAR(oper1);
             abort_interp("Non-object argument (1)");
+		}
         where = oper1->data.objref;
         if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
-            Typeof(where) != TYPE_PLAYER)
+            Typeof(where) != TYPE_PLAYER) {
+				CLEAR(oper1);
             abort_interp("Invalid location argument (1)");
+		}
         CHECKREMOTE(where);   
         what = DBFETCH(where)->contents;
         CLEAR(oper1);

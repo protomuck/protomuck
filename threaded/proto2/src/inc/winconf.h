@@ -127,3 +127,7 @@
 #define HAVE_MYSQL_H 1
 #define SQL_SUPPORT  1
 #define HAVE_ZLIB 1
+#define HAVE_LIBPCRE 1
+#define PCRE_SUPPORT
+
+#include <vld.h>
