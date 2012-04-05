@@ -240,6 +240,7 @@ prim_program_insertlines(PRIM_PROTOTYPE)
     struct inst temp1;
     int endline = 0;
     int replacedFirst = 0;      /* this keeps us from inserting at first over */
+	char bufu[BUFFER_LEN];
     /* ref i<start> arr<lines> */
     
                   /* lines */
@@ -321,7 +322,7 @@ prim_program_insertlines(PRIM_PROTOTYPE)
         } while (array_next(lines, &temp1));
     }
     log_status("PROGRAM EDITED: %s by %s(%d)\n",
-               unparse_object(PSafe, theprog),
+               unparse_object(PSafe, theprog, bufu),
                OkObj(player) ? NAME(player) : "(login)", player);
     if (tp_log_programs)
         log_program_text(DBFETCH(theprog)->sp.program.first, player,

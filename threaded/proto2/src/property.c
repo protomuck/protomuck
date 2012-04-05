@@ -852,8 +852,11 @@ displayprop(dbref player, dbref obj, const char *name, char *buf)
                     tct(PropDataUNCStr(p), tbuf));
             break;
         case PROP_REFTYP:
-            sprintf(buf, SYSBROWN "ref " SYSGREEN "%s" SYSRED ":%s", mybuf,
-                    ansi_unparse_object(player, PropDataRef(p)));
+			{
+				char bufu[BUFFER_LEN];
+				sprintf(buf, SYSBROWN "ref " SYSGREEN "%s" SYSRED ":%s", mybuf,
+						ansi_unparse_object(player, PropDataRef(p), bufu));
+			}
             break;
         case PROP_INTTYP:
             sprintf(buf, SYSFOREST "int " SYSGREEN "%s" SYSRED ":" SYSYELLOW

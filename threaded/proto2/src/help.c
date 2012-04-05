@@ -212,12 +212,13 @@ index_file(dbref player, const char *onwhat, const char *file)
                         anotify_nolisten2(player, buf);
                         fclose(f);
                         if (tp_log_failedhelp) {
+							char bufu[BUFFER_LEN];
                             log2file(HELP_LOG,
                                      "%s tried to look up '%s' in: %s.",
-                                     unparse_object(player, player), onwhat,
+                                     unparse_object(player, player, bufu), onwhat,
                                      file);
                             sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
-                                    unparse_object(player, player), onwhat,
+                                    unparse_object(player, player, bufu), onwhat,
                                     file);
                             wall_logwizards(wallBuf);
                         }
@@ -231,12 +232,13 @@ index_file(dbref player, const char *onwhat, const char *file)
                         anotify_nolisten2(player, buf);
                         fclose(f);
                         if (tp_log_failedhelp) {
+							char bufu[BUFFER_LEN];
                             log2file(HELP_LOG,
                                      "%s tried to look up '%s' in: %s.",
-                                     unparse_object(player, player), onwhat,
+                                     unparse_object(player, player, bufu), onwhat,
                                      file);
                             sprintf(wallBuf, "%s tried to look up '%s' in: %s.",
-                                    unparse_object(player, player), onwhat,
+                                    unparse_object(player, player, bufu), onwhat,
                                     file);
                             wall_logwizards(wallBuf);
                         }

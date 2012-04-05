@@ -144,9 +144,11 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
                     if (!tmpfr)
                         return 0;
 
-                    rv = interp_loop(real_player, b->thing, tmpfr, 0);
+                    //rv = interp_loop(real_player, b->thing, tmpfr, 0, NULL);
+					//WARNING: Locks may be broken.
 
-                    return (rv != NULL);
+                    //return (rv != NULL);
+					return 0;
                 }
                 return (b->thing == player || b->thing == OWNER(player)
                         || member(b->thing, DBFETCH(player)->contents)

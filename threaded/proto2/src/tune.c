@@ -754,10 +754,11 @@ tune_show_refs(dbref player, char *name)
     while (tref->name) {
         strcpy(buf, tref->name);
         if (MLevel(OWNER(player)) >= tref->readmlev) {
+			char bufu[BUFFER_LEN];
             sprintf(buf, SYSYELLOW "(ref)  " SYSRED "%c" SYSGREEN "%-24s"
                     SYSRED " = %s",
                     (WLevel(OWNER(player)) >= tref->writemlev) ? ' ' : '-',
-                    tref->name, ansi_unparse_object(player, *tref->ref));
+                    tref->name, ansi_unparse_object(player, *tref->ref, bufu));
             anotify_nolisten2(player, buf);
             total++;
         }
@@ -850,10 +851,11 @@ tune_display_parms(dbref player, char *name)
         strcpy(buf, tref->name);
         if ((MLevel(OWNER(player)) >= tref->readmlev) &&
             (!*name || equalstr(name, buf))) {
+				char bufu[BUFFER_LEN];
             sprintf(buf, SYSYELLOW "(ref)  " SYSRED "%c" SYSGREEN "%-24s"
                     SYSRED " = %s",
                     (WLevel(OWNER(player)) >= tref->writemlev) ? ' ' : '-',
-                    tref->name, ansi_unparse_object(player, *tref->ref));
+                    tref->name, ansi_unparse_object(player, *tref->ref, bufu));
             lastname = tref->name;
             anotify_nolisten2(player, buf);
             total++;

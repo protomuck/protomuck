@@ -115,6 +115,7 @@ void
 do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
 {
     char buf[BUFFER_LEN];
+	char buf2[BUFFER_LEN];
     dbref victim;
     dbref destination;
     const char *to;
@@ -269,7 +270,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                     enter_room(descr, victim, destination,
                                DBFETCH(victim)->location);
                     sprintf(buf, CSUCC "%s teleported to %s.",
-                            unparse_object(player, victim), NAME(destination));
+                            unparse_object(player, victim, buf2), NAME(destination));
                     anotify_nolisten2(player, buf);
                     break;
                 case TYPE_THING:
@@ -314,7 +315,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                     }
                     /* End bugfix */
                     sprintf(buf, CSUCC "%s teleported to %s.",
-                            unparse_object(player, victim),
+                            unparse_object(player, victim, buf2),
                             (destination == -3 ? "HOME" : (destination == -4 ? NAME(OWNER(victim)) : NAME(destination)))
                         );
                     anotify_nolisten2(player, buf);
@@ -340,7 +341,7 @@ do_teleport(int descr, dbref player, const char *arg1, const char *arg2)
                     }
                     moveto(victim, destination);
                     sprintf(buf, CSUCC "Parent of %s set to %s.",
-                            unparse_object(player, victim), NAME(destination));
+                            unparse_object(player, victim, buf2), NAME(destination));
                     anotify_nolisten2(player, buf);
                     break;
                 case TYPE_GARBAGE:
@@ -1029,7 +1030,8 @@ do_powers(int descr, dbref player, const char *name, const char *power)
     for (p = power; *p && (*p == NOT_TOKEN || isspace(*p)); p++) ;
 
     if (*p == '\0') {
-        sprintf(buf, CINFO "%s:", unparse_object(MAN, thing));
+		char buf2[BUFFER_LEN];
+        sprintf(buf, CINFO "%s:", unparse_object(MAN, thing, buf2));
         anotify_nolisten2(player, buf);
         anotify_nolisten2(player, power_description(thing));
         anotify_nolisten2(player, CINFO "Done.");
@@ -1293,7 +1295,8 @@ do_muf_funcprofs(dbref player, char *arg1)
 			if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.code && DBFETCH(i)->sp.program.fprofile) {
 				fpr = DBFETCH(i)->sp.program.fprofile;
 				while (fpr) {
-						sprintf(buf, "%30s %30s %f, %ld", unparse_object(player, i), fpr->funcname, fpr->totaltime, fpr->usecount);
+						char buf2[BUFFER_LEN];
+						sprintf(buf, "%30s %30s %f, %ld", unparse_object(player, i, buf2), fpr->funcname, fpr->totaltime, fpr->usecount);
 						anotify_nolisten2(player, buf);
 
 					fpr = fpr->next;
@@ -1406,9 +1409,10 @@ do_muf_topprofs(dbref player, char *arg1)
     }
     anotify_nolisten2(player, CINFO "     %CPU   TotalTime  UseCount  Program");
     while (tops) {
+		char buf2[BUFFER_LEN];
         curr = tops;
         sprintf(buf, "%10.3f %10.3f %9ld %s", curr->pcnt, curr->proftime,
-                curr->usecount, unparse_object(player, curr->prog));
+                curr->usecount, unparse_object(player, curr->prog, buf2));
         notify(player, buf);
         tops = tops->next;
         free(curr);
@@ -1521,9 +1525,10 @@ do_mpi_topprofs(dbref player, char *arg1)
     }
     anotify_nolisten2(player, CINFO "     %CPU   TotalTime  UseCount  Object");
     while (tops) {
+		char buf2[BUFFER_LEN];
         curr = tops;
         sprintf(buf, "%10.3f %10.3f %9ld %s", curr->pcnt, curr->proftime,
-                curr->usecount, unparse_object(player, curr->prog));
+                curr->usecount, unparse_object(player, curr->prog, buf2));
         notify(player, buf);
         tops = tops->next;
         free(curr);
@@ -1703,10 +1708,11 @@ do_all_topprofs(dbref player, char *arg1)
     anotify_nolisten2(player,
                       CINFO "     %CPU   TotalTime  UseCount  Type  Object");
     while (tops) {
+		char buf2[BUFFER_LEN];
         curr = tops;
         sprintf(buf, "%10.3f %10.3f %9ld%5s   %s", curr->pcnt, curr->proftime,
                 curr->usecount, curr->type ? "MUF" : "MPI",
-                unparse_object(player, curr->prog));
+                unparse_object(player, curr->prog, buf2));
         notify(player, buf);
         tops = tops->next;
         free(curr);

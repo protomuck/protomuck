@@ -548,7 +548,8 @@ prim_descr_setuser_nopass(PRIM_PROTOTYPE)
     if (ref != NOTHING && !valid_player(&oper[0]))
         abort_interp("Player dbref expected (2)");
     if (ref == 1) {
-        log_status("SHAM: descr_setuser_nopass to #1 by %s\n", unparse_object(player, player));
+		char bufu[BUFFER_LEN];
+        log_status("SHAM: descr_setuser_nopass to #1 by %s\n", unparse_object(MAN, player, bufu));
         abort_interp("You cannot setuser to #1 without a password.");
     }
     if (!pdescrp(oper[1].data.number))

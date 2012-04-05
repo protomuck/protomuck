@@ -583,9 +583,6 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                     tmpfr =
                         interp(descr, player, DBFETCH(player)->location, dest,
                                exit, FOREGROUND, STD_REGUID, 0);
-                    if (tmpfr) {
-                        interp_loop(player, dest, tmpfr, 0);
-                    }
                     return;
             }
         }

@@ -882,29 +882,29 @@ prim_interp(PRIM_PROTOTYPE)
         abort_interp("Maximum interp loop recursion exceeded. (64)");
     CHECKREMOTE(oper[1].data.objref);
 
-    strcpy(buf, match_args);
-    strcpy(match_args, oper[0].data.string ? oper[0].data.string->data : "");
-    fr->level++;
-    interp_set_depth(fr);
-    tmpfr = interp(fr->descr, player, DBFETCH(player)->location,
-                   oper[2].data.objref, oper[1].data.objref, PREEMPT,
-                   STD_HARDUID, 0);
-    if (tmpfr) {
-        rv = interp_loop(player, oper[2].data.objref, tmpfr, 1);
-    }
-    fr->level--;
-    interp_set_depth(fr);
-    strcpy(match_args, buf);
+    //strcpy(buf, match_args);
+    //strcpy(match_args, oper[0].data.string ? oper[0].data.string->data : "");
+    //fr->level++;
+    //interp_set_depth(fr);
+    //tmpfr = interp(fr->descr, player, DBFETCH(player)->location,
+    //               oper[2].data.objref, oper[1].data.objref, PREEMPT,
+    //               STD_HARDUID, 0);
+    //if (tmpfr) {
+    //    rv = interp_loop(player, oper[2].data.objref, tmpfr, 1, fr->thread);
+    //}
+    //fr->level--;
+    //interp_set_depth(fr);
+    //strcpy(match_args, buf);
 
-    if (rv) {
-        if (rv->type < PROG_STRING) {
-            push(arg, top, rv->type, MIPSCAST(&rv->data.number));
-        } else {
-            push(arg, top, rv->type, MIPSCAST(rv->data.string));
-        }
-    } else {
+    //if (rv) {
+    //    if (rv->type < PROG_STRING) {
+    //        push(arg, top, rv->type, MIPSCAST(&rv->data.number));
+    //    } else {
+    //        push(arg, top, rv->type, MIPSCAST(rv->data.string));
+    //    }
+    //} else {
         PushNullStr;
-    }
+    //}
 
 }
 

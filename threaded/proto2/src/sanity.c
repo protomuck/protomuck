@@ -12,7 +12,6 @@
 #include "props.h"
 
 
-#define unparse(x) ( (char*)unparse_object(MAN, (x)) )
 #undef valid_obj
 int sanity_violated = 0;
 
@@ -42,15 +41,13 @@ SanPrint(dbref player, const char *format, ...)
     va_end(args);
 }
 
-
-
-
 void
 sane_dump_object(dbref player, const char *arg)
 {
     dbref d;
     int i;
     int result;
+	char bufu[BUFFER_LEN];
 
     if (player > 0) {
         if (!Arch(player)) {
@@ -70,14 +67,14 @@ sane_dump_object(dbref player, const char *arg)
     if (TYPEOF(d) == TYPE_GARBAGE) {
         SanPrint(player, "Object:         *GARBAGE* #%d", d);
     } else {
-        SanPrint(player, "Object:         %s", unparse(d));
+        SanPrint(player, "Object:         %s", unparse_object(MAN, d, bufu));
     }
 
-    SanPrint(player, "  Owner:          %s", unparse(OWNER(d)));
-    SanPrint(player, "  Location:       %s", unparse(LOCATION(d)));
-    SanPrint(player, "  Contents Start: %s", unparse(CONTENTS(d)));
-    SanPrint(player, "  Exits Start:    %s", unparse(EXITS(d)));
-    SanPrint(player, "  Next:           %s", unparse(NEXTOBJ(d)));
+    SanPrint(player, "  Owner:          %s", unparse_object(MAN,  OWNER(d),     bufu));
+    SanPrint(player, "  Location:       %s", unparse_object(MAN,  LOCATION(d),  bufu));
+    SanPrint(player, "  Contents Start: %s", unparse_object(MAN,  CONTENTS(d),  bufu));
+    SanPrint(player, "  Exits Start:    %s", unparse_object(MAN,  EXITS(d),     bufu));
+    SanPrint(player, "  Next:           %s", unparse_object(MAN,  NEXTOBJ(d),   bufu));
 
     if (TYPEOF(d) == TYPE_GARBAGE) {
         SanPrint(player, "Done.");
@@ -87,19 +84,19 @@ sane_dump_object(dbref player, const char *arg)
     switch (TYPEOF(d)) {
         case TYPE_THING:
             SanPrint(player, "  Home:           %s",
-                     unparse(DBFETCH(d)->sp.thing.home));
+                     unparse_object(MAN, DBFETCH(d)->sp.thing.home, bufu));
             SanPrint(player, "  Value:          %d",
                      DBFETCH(d)->sp.thing.value);
             break;
 
         case TYPE_ROOM:
             SanPrint(player, "  Drop-to:        %s",
-                     unparse(DBFETCH(d)->sp.room.dropto));
+                     unparse_object(MAN, DBFETCH(d)->sp.room.dropto, bufu));
             break;
 
         case TYPE_PLAYER:
             SanPrint(player, "  Home:           %s",
-                     unparse(DBFETCH(d)->sp.player.home));
+                     unparse_object(MAN, DBFETCH(d)->sp.player.home, bufu));
             SanPrint(player, "  Pennies:        %d",
                      DBFETCH(d)->sp.player.pennies);
             if (player < 0) {
@@ -112,7 +109,7 @@ sane_dump_object(dbref player, const char *arg)
             SanPrint(player, "  Links:");
             for (i = 0; i < DBFETCH(d)->sp.exit.ndest; i++)
                 SanPrint(player, "    %s",
-                         unparse(DBFETCH(d)->sp.exit.dest[i]));
+                         unparse_object(MAN, DBFETCH(d)->sp.exit.dest[i], bufu));
             break;
 
         case TYPE_PROGRAM:
@@ -123,13 +120,13 @@ sane_dump_object(dbref player, const char *arg)
     SanPrint(player, "Referring Objects:");
     for (i = 0; i < db_top; i++) {
         if (CONTENTS(i) == d) {
-            SanPrint(player, "  By contents field: %s", unparse(i));
+            SanPrint(player, "  By contents field: %s", unparse_object(MAN, i, bufu));
         }
         if (EXITS(i) == d) {
-            SanPrint(player, "  By exits field:    %s", unparse(i));
+            SanPrint(player, "  By exits field:    %s", unparse_object(MAN, i, bufu));
         }
         if (NEXTOBJ(i) == d) {
-            SanPrint(player, "  By next field:     %s", unparse(i));
+            SanPrint(player, "  By next field:     %s", unparse_object(MAN, i, bufu));
         }
     }
 
@@ -140,7 +137,8 @@ sane_dump_object(dbref player, const char *arg)
 void
 violate(dbref player, dbref i, const char *s)
 {
-    SanPrint(player, "Object \"%s\" %s!", unparse(i), s);
+	char bufu[BUFFER_LEN];
+    SanPrint(player, "Object \"%s\" %s!", unparse_object(MAN, i, bufu), s);
     sanity_violated = 1;
 }
 
@@ -560,11 +558,12 @@ san_fixed_log(char *format, int unparse, dbref ref1, dbref ref2)
     char buf2[4096];
 
     if (unparse) {
+		char bufu[BUFFER_LEN];
         if (ref1 >= 0) {
-            strcpy(buf1, unparse(ref1));
+            strcpy(buf1, unparse_object(MAN, ref1, bufu));
         }
         if (ref2 >= 0) {
-            strcpy(buf2, unparse(ref2));
+            strcpy(buf2, unparse_object(MAN, ref2, bufu));
         }
         log2file("logs/sanfixed", format, buf1, buf2);
     } else {
@@ -727,6 +726,7 @@ create_lostandfound(dbref *player, dbref *room)
 {
     char player_name[18] = "lost+found";
     int temp = 0;
+	char bufu[BUFFER_LEN];
 
     *room = new_object(*player);
     NAME(*room) = alloc_string("lost+found");
@@ -744,7 +744,7 @@ create_lostandfound(dbref *player, dbref *room)
     if (strlen(player_name) >= PLAYER_NAME_LIMIT) {
         log2file("logs/sanfixed",
                  "WARNING: Unable to get lost+found player, using %s",
-                 unparse(MAN)
+                 unparse_object(MAN, MAN, bufu)
             );
         *player = MAN;
     } else {
@@ -767,7 +767,7 @@ create_lostandfound(dbref *player, dbref *room)
         PUSH(*player, DBFETCH(*room)->contents);
         add_player(*player);
         log2file("logs/sanfixed", "Using %s (with password %s) to resolve "
-                 "unknown owner", unparse(*player),
+                 "unknown owner", unparse_object(MAN, *player, bufu),
                  DBFETCH(*player)->sp.player.password);
     }
     OWNER(*room) = *player;
@@ -1113,6 +1113,7 @@ sanechange(dbref player, const char *command)
     char value[1000];
     int *ip;
     int results;
+	char bufu[BUFFER_LEN];
 
     if (force_level) {
         anotify_nolisten2(player, CFAIL "Can't @force the use of @sanchange.");
@@ -1146,36 +1147,36 @@ sanechange(dbref player, const char *command)
     }
 
     if (!string_compare(field, "next")) {
-        strcpy(buf2, unparse(NEXTOBJ(d)));
+        strcpy(buf2, unparse_object(MAN, NEXTOBJ(d), bufu));
         NEXTOBJ(d) = v;
         DBDIRTY(d);
-        SanPrint(player, MARK "Setting #%d's next field to %s", d, unparse(v));
+        SanPrint(player, MARK "Setting #%d's next field to %s", d, unparse_object(MAN, v, bufu));
 
     } else if (!string_compare(field, "exits")) {
-        strcpy(buf2, unparse(EXITS(d)));
+        strcpy(buf2, unparse_object(MAN, EXITS(d), bufu));
         EXITS(d) = v;
         DBDIRTY(d);
         SanPrint(player, MARK "Setting #%d's Exits list start to %s", d,
-                 unparse(v));
+                 unparse_object(MAN, v, bufu));
 
     } else if (!string_compare(field, "contents")) {
-        strcpy(buf2, unparse(CONTENTS(d)));
+        strcpy(buf2, unparse_object(MAN, CONTENTS(d), bufu));
         CONTENTS(d) = v;
         DBDIRTY(d);
         SanPrint(player, MARK "Setting #%d's Contents list start to %s", d,
-                 unparse(v));
+                 unparse_object(MAN, v, bufu));
 
     } else if (!string_compare(field, "location")) {
-        strcpy(buf2, unparse(LOCATION(d)));
+        strcpy(buf2, unparse_object(MAN, LOCATION(d), bufu));
         LOCATION(d) = v;
         DBDIRTY(d);
-        SanPrint(player, MARK "Setting #%d's location to %s", d, unparse(v));
+        SanPrint(player, MARK "Setting #%d's location to %s", d, unparse_object(MAN, v, bufu));
 
     } else if (!string_compare(field, "owner")) {
-        strcpy(buf2, unparse(OWNER(d)));
+        strcpy(buf2, unparse_object(MAN, OWNER(d), bufu));
         OWNER(d) = v;
         DBDIRTY(d);
-        SanPrint(player, MARK "Setting #%d's owner to %s", d, unparse(v));
+        SanPrint(player, MARK "Setting #%d's owner to %s", d, unparse_object(MAN, v, bufu));
 
     } else if (!string_compare(field, "home")) {
         switch (TYPEOF(d)) {
@@ -1188,14 +1189,14 @@ sanechange(dbref player, const char *command)
                 break;
 
             default:
-                printf("%s has no home to set.\n", unparse(d));
+                printf("%s has no home to set.\n", unparse_object(MAN, d, bufu));
                 return;
         }
 
-        strcpy(buf2, unparse(*ip));
+        strcpy(buf2, unparse_object(MAN, *ip, bufu));
         *ip = v;
         DBDIRTY(d);
-        printf("Setting home to: %s\n", unparse(v));
+        printf("Setting home to: %s\n", unparse_object(MAN, v, bufu));
 
     } else {
         if (player > NOTHING) {
@@ -1331,37 +1332,38 @@ void
 extract_object(FILE * f, dbref d)
 {
     int i;
+	char bufu[BUFFER_LEN];
 
     fprintf(f, "  #%d\n", d);
-    fprintf(f, "  Object:         %s\n", unparse(d));
-    fprintf(f, "  Owner:          %s\n", unparse(OWNER(d)));
-    fprintf(f, "  Location:       %s\n", unparse(LOCATION(d)));
-    fprintf(f, "  Contents Start: %s\n", unparse(CONTENTS(d)));
-    fprintf(f, "  Exits Start:    %s\n", unparse(EXITS(d)));
-    fprintf(f, "  Next:           %s\n", unparse(NEXTOBJ(d)));
+    fprintf(f, "  Object:         %s\n", unparse_object(MAN, d, bufu));
+    fprintf(f, "  Owner:          %s\n", unparse_object(MAN, OWNER(d), bufu));
+    fprintf(f, "  Location:       %s\n", unparse_object(MAN, LOCATION(d), bufu));
+    fprintf(f, "  Contents Start: %s\n", unparse_object(MAN, CONTENTS(d), bufu));
+    fprintf(f, "  Exits Start:    %s\n", unparse_object(MAN, EXITS(d), bufu));
+    fprintf(f, "  Next:           %s\n", unparse_object(MAN, NEXTOBJ(d), bufu));
 
     switch (TYPEOF(d)) {
         case TYPE_THING:
             fprintf(f, "  Home:           %s\n",
-                    unparse(DBFETCH(d)->sp.thing.home));
+                    unparse_object(MAN, DBFETCH(d)->sp.thing.home, bufu));
             fprintf(f, "  Value:          %d\n", DBFETCH(d)->sp.thing.value);
             break;
 
         case TYPE_ROOM:
             fprintf(f, "  Drop-to:        %s\n",
-                    unparse(DBFETCH(d)->sp.room.dropto));
+                    unparse_object(MAN, DBFETCH(d)->sp.room.dropto, bufu));
             break;
 
         case TYPE_PLAYER:
             fprintf(f, "  Home:           %s\n",
-                    unparse(DBFETCH(d)->sp.player.home));
+                    unparse_object(MAN, DBFETCH(d)->sp.player.home, bufu));
             fprintf(f, "  Pennies:        %d\n", DBFETCH(d)->sp.player.pennies);
             break;
 
         case TYPE_EXIT:
             fprintf(f, "  Links:         ");
             for (i = 0; i < DBFETCH(d)->sp.exit.ndest; i++)
-                fprintf(f, " %s;", unparse(DBFETCH(d)->sp.exit.dest[i]));
+                fprintf(f, " %s;", unparse_object(MAN, DBFETCH(d)->sp.exit.dest[i], bufu));
             fprintf(f, "\n");
             break;
 
@@ -1548,12 +1550,14 @@ hack_it_up(void)
 void
 san_main(void)
 {
+	char bufu[BUFFER_LEN];
+
     printf("\nEntering the Interactive Sanity DB editor.\n");
     printf("Good luck!\n\n");
 
     printf("Number of objects in DB is: %d\n", db_top - 1);
-    printf("Global Environment is: %s\n", unparse(GLOBAL_ENVIRONMENT));
-    printf("The Man is: %s\n", unparse(MAN));
+    printf("Global Environment is: %s\n", unparse_object(MAN, GLOBAL_ENVIRONMENT, bufu));
+    printf("The Man is: %s\n", unparse_object(MAN, MAN, bufu));
     printf("\n");
 
     hack_it_up();

@@ -105,7 +105,7 @@ muf_mcp_callback(McpFrame *mfr, McpMesg *mesg, McpVer version, void *context)
             push(tmpfr->argument.st, &(tmpfr->argument.top), PROG_ARRAY,
                  MIPSCAST argarr);
             tmpfr->pc = ptr->addr;
-            interp_loop(user, obj, tmpfr, 0);
+            interp_loop(user, obj, tmpfr, 0, NULL, fr->thread);
         }
     }
 }

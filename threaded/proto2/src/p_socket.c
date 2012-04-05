@@ -310,10 +310,13 @@ prim_socksend(PRIM_PROTOTYPE)
 #endif
             result = writesocket(oper[1].data.sock->socknum, buf, strlen(buf));
 
-        if (tp_log_sockets)
+        if (tp_log_sockets) {
+			char bufu[BUFFER_LEN];
             log2filetime("logs/sockets", "#%d by %s SOCKSEND:  %d\n", program,
-                         unparse_object(PSafe, PSafe),
+                         unparse_object(PSafe, PSafe, bufu),
                          oper[1].data.sock->socknum);
+
+		}
 
         if (result < 1)
             result = 0;
@@ -468,9 +471,11 @@ prim_nbsockrecv(PRIM_PROTOTYPE)
         }
         oper[0].data.sock->readWaiting = 0;
         if (tp_log_sockets)
-            if (gotmessage)
+            if (gotmessage) {
+				char bufu[BUFFER_LEN];
                 log2filetime("logs/sockets", "#%d by %s SOCKRECV:  %d\n", program,
-                             unparse_object(PSafe, PSafe), sockval);
+                             unparse_object(PSafe, PSafe, bufu), sockval);
+			}
 
         CHECKOFLOW(2);
         PushInt(conRead);
@@ -526,9 +531,11 @@ prim_nbsockrecv_char(PRIM_PROTOTYPE)
     oper[0].data.sock->last_time = time(NULL); /* time of last command */
     oper[0].data.sock->readWaiting = 0;
     if (tp_log_sockets)
-        if (gotmessage)
+        if (gotmessage) {
+			char bufu[BUFFER_LEN];
             log2filetime("logs/sockets", "#%d by %s SOCKRECV:  %d\n", program,
-                         unparse_object(PSafe, PSafe), sockval);
+                         unparse_object(PSafe, PSafe, bufu), sockval);
+		}
     if (readme < 1)
         readme = 0;
     CHECKOFLOW(2);
@@ -563,10 +570,13 @@ prim_sockclose(PRIM_PROTOTYPE)
 #endif
         else
             result = 0;
-        if (tp_log_sockets)
+        if (tp_log_sockets) {
+			char bufu[BUFFER_LEN];
+
             log2filetime("logs/sockets", "#%d by %s SOCKCLOSE:  %d\n", program,
-                         unparse_object(PSafe, PSafe),
+                         unparse_object(PSafe, PSafe, bufu),
                          oper[0].data.sock->socknum);
+		}
         oper[0].data.sock->connected = 0;
         remove_socket_from_queue(oper[0].data.sock);
     }
@@ -597,10 +607,13 @@ prim_sockshutdown(PRIM_PROTOTYPE)
 #endif
         else
             result = 0;
-        if (tp_log_sockets)
+        if (tp_log_sockets) {
+			char bufu[BUFFER_LEN];
+
             log2filetime("logs/sockets", "#%d by %s SOCKSHUTDOWN:  %d\n",
-                         program, unparse_object(PSafe, PSafe),
+                         program, unparse_object(PSafe, PSafe, bufu),
                          oper[1].data.sock->socknum);
+		}
         if (tmp == 2) {
 #if defined(SSL_SOCKETS) && defined(USE_SSL)
             /* Alynna - Must be done twice to enact a bidirectional shutdown,
@@ -641,6 +654,8 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->type = PROG_INTEGER;
         result->data.number = 0;
     } else {
+		char bufu[BUFFER_LEN];
+
         name.sin_port = (int) htons(oper[0].data.number);
         name.sin_family = AF_INET;
         bcopy((char *) myhost->h_addr, (char *) &name.sin_addr,
@@ -679,7 +694,7 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->hostname = alloc_string(oper[1].data.string->data);
         result->data.sock->host = ntohl(name.sin_addr.s_addr);
         result->data.sock->username =
-            alloc_string(unparse_object(PSafe, PSafe));
+            alloc_string(unparse_object(PSafe, PSafe, bufu));
         result->data.sock->connected_at = time(NULL);
         result->data.sock->last_time = time(NULL);
         result->data.sock->usequeue = 0;
@@ -696,12 +711,15 @@ prim_nbsockopen(PRIM_PROTOTYPE)
         result->data.sock->sslError = NULL;
 #endif
         add_socket_to_queue(result->data.sock, fr);
-        if (tp_log_sockets)
+        if (tp_log_sockets) {
+			char bufu[BUFFER_LEN];
+
             log2filetime("logs/sockets",
                          "#%d by %s SOCKOPEN:  %s:%d -> %d\n", program,
-                         unparse_object(PSafe, PSafe),
+                         unparse_object(PSafe, PSafe, bufu),
                          oper[1].data.string->data, oper[0].data.number,
                          result->data.sock->socknum);
+		}
     }
 
     copyinst(result, &arg[(*top)++]);
@@ -998,11 +1016,14 @@ prim_lsockopen(PRIM_PROTOTYPE)
     result->data.sock->sslError = NULL;
 #endif
     add_socket_to_queue(result->data.sock, fr);
-    if (tp_log_sockets)
+    if (tp_log_sockets) {
+		char bufu[BUFFER_LEN];
+
         log2filetime("logs/sockets",
                      "#%d by %s LSOCKOPEN: Port:%d -> %d\n", program,
-                     unparse_object(PSafe, PSafe), oper[0].data.number,
+                     unparse_object(PSafe, PSafe, bufu), oper[0].data.number,
                      result->data.sock->socknum);
+	}
 
     copyinst(result, &arg[(*top)++]);
     PushString(myresult);
@@ -1240,11 +1261,14 @@ if (oper[0].data.sock->ipv6) {
     result->data.sock->sslError = NULL;
 #endif
     add_socket_to_queue(result->data.sock, fr);
-    if (tp_log_sockets)
+    if (tp_log_sockets) {
+		char bufu[BUFFER_LEN];
+
         log2filetime("logs/sockets",
                      "#%d by %s SOCKACCEPT: Port:%d -> %d\n", program,
-                     unparse_object(PSafe, PSafe), oper[0].data.number,
+                     unparse_object(PSafe, PSafe, bufu), oper[0].data.number,
                      result->data.sock->socknum);
+	}
     oper[0].data.sock->readWaiting = 0;
     copyinst(result, &arg[(*top)++]);
     CLEAR(result);
@@ -1531,12 +1555,15 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     /* d is now in the descriptor list and properly initialized. 
      * Now connect it to a player. */
     result = plogin_user(d, ref);
-    if (tp_log_connects && result)
+    if (tp_log_connects && result) {
+		char bufu[BUFFER_LEN];
+
         log2filetime(CONNECT_LOG,
                      "SOCKET_SETUSER: %2d %s %s(%s) %s P#%d\n",
-                     theSock->socknum, unparse_object(ref, ref),
+                     theSock->socknum, unparse_object(ref, ref, bufu),
                      theSock->hostname, theSock->username,
                      host_as_hex(theSock->host), theSock->port);
+	}
     if (result)
         theSock->is_player = 1;
     PushInt(result);
@@ -1577,10 +1604,13 @@ prim_socktodescr(PRIM_PROTOTYPE)
 
    
     /* now the descriptor is queued with the rest of the MUCK's d's */
-    if (tp_log_sockets)
+    if (tp_log_sockets) {
+		char bufu[BUFFER_LEN];
+
         log2filetime("logs/sockets",
                      "#%d by %s SOCKTODESCR: %d", program,
-                     unparse_object(PSafe, PSafe), theSock->socknum);
+                     unparse_object(PSafe, PSafe, bufu), theSock->socknum);
+	}
     theSock->is_player = -1;
     PushInt(d->descriptor);
 }

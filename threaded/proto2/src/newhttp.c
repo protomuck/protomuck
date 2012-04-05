@@ -450,6 +450,7 @@ http_parsedest(struct descriptor_data *d)
 {
     char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
+	char bufu[BUFFER_LEN];
     char *cgi, *dir = NULL;
     char *p, *q;
     const char *s;
@@ -516,7 +517,7 @@ http_parsedest(struct descriptor_data *d)
     d->http->rootobj = ref;
 
     /* http_log(d, 3, "URL:     '%s'\n", d->http->newdest); */
-    http_log(d, 4, "ROOTOBJ: '%s'\n", unparse_object(1, d->http->rootobj));
+    http_log(d, 4, "ROOTOBJ: '%s'\n", unparse_object(MAN, d->http->rootobj, bufu));
     http_log(d, 4, "ROOTDIR: '%s'\n", d->http->rootdir);
     if (cgi && *cgi)
         http_log(d, 5, "CGIDATA: '%s'\n", d->http->cgidata);
@@ -712,6 +713,10 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
     tmpfr =
         interp(d->descriptor, player, NOTHING, ref, d->http->rootobj,
                BACKGROUND, STD_HARDUID, 0);
+
+	if (tmpfr)
+		mutex_lock(tmpfr->mutx);
+
     if (tmpfr) {
         struct inst temp1;
         stk_array *nw = new_array_dictionary();
@@ -729,9 +734,10 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
         muf_event_add(tmpfr, "USER.SOCKINFO", &temp1, 0);
         CLEAR(&temp1);
 
-        interp_loop(player, ref, tmpfr, 1);
+        //interp_loop(player, ref, tmpfr, 1, NULL);
 
-        d->http->pid = tmpfr->pid;
+        //d->http->pid = tmpfr->pid;
+		mutex_unlock(tmpfr->mutx);
     }
     d->booted = 4;
     return 1;

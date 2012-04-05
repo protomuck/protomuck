@@ -42,9 +42,10 @@ void
 do_autoarchive(int descr, dbref player)
 {
     char timebuf[BUFFER_LEN];
+	char bufu[BUFFER_LEN];
 
     if (!(Boy(player))) {
-        log_status("SHAM: by %s\n", unparse_object(player, player));
+        log_status("SHAM: by %s\n", unparse_object(player, player, bufu));
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
         return;
     }
@@ -55,7 +56,7 @@ do_autoarchive(int descr, dbref player)
                     timebuf);
         return;
     }
-    log_status("ARCHIVE: by %s\n", unparse_object(player, player));
+    log_status("ARCHIVE: by %s\n", unparse_object(player, player, bufu));
     anotify(player, CSUCC "The site archiving script has been called.");
 }
 
@@ -166,10 +167,11 @@ cancel_delayed_shutdown(dbref player)
     char buf[BUFFER_LEN];
 
     if (delayed_shutdown) {
+		char bufu[BUFFER_LEN];
         restart_flag = 0;
         delayed_shutdown = 0;
 
-        log_status("Countdown aborted by %s\n", unparse_object(player, player));
+        log_status("Countdown aborted by %s\n", unparse_object(player, player, bufu));
 
         sprintf(buf, "%s%s%sShutdown cancelled.\r\n", SYSWHITE, MARK, SYSNORMAL);
         wall_and_flush(buf);
@@ -214,11 +216,13 @@ do_shutdown(dbref player, const char *muckname, const char *msg)
             return;
         }
         if (!nodelay && tp_shutdown_delay > 0) {
+			char bufu[BUFFER_LEN];
             log_status("SHUT: by %s (%lis delay)\n",
-                unparse_object(player, player), (long int)tp_shutdown_delay);
+                unparse_object(MAN, player, bufu), (long int)tp_shutdown_delay);
             do_delayed_shutdown(player);
         } else {
-            log_status("SHUT: by %s\n", unparse_object(player, player));
+			char bufu[BUFFER_LEN];
+            log_status("SHUT: by %s\n", unparse_object(MAN, player, bufu));
             shutdown_flag = 1;
         }
         restart_flag = 0;
@@ -228,8 +232,9 @@ do_shutdown(dbref player, const char *muckname, const char *msg)
             strcat(shutdown_message, "\r\n");
         }
     } else {
+		char bufu[BUFFER_LEN];
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-        log_status("SHAM: Shutdown by %s\n", unparse_object(player, player));
+        log_status("SHAM: Shutdown by %s\n", unparse_object(MAN, player, bufu));
     }
 }
 
@@ -260,11 +265,15 @@ do_restart(dbref player, const char *muckname, const char *msg)
             return;
         }
         if (!nodelay && tp_shutdown_delay > 0) {
+			char bufu[BUFFER_LEN];
+
             log_status("REST: by %s (%lis delay)\n",
-                unparse_object(player, player), (long int)tp_shutdown_delay);
+                unparse_object(MAN, player, bufu), (long int)tp_shutdown_delay);
             do_delayed_shutdown(player);
         } else {
-            log_status("REST: by %s\n", unparse_object(player, player));
+			char bufu[BUFFER_LEN];
+
+            log_status("REST: by %s\n", unparse_object(MAN, player, bufu));
             shutdown_flag = 1;
         }
         if (!nodelay && *msg != '\0') {
@@ -274,8 +283,10 @@ do_restart(dbref player, const char *muckname, const char *msg)
         }
         restart_flag = 1;
     } else {
+		char bufu[BUFFER_LEN];
+
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-        log_status("SHAM: Restart by %s\n", unparse_object(player, player));
+        log_status("SHAM: Restart by %s\n", unparse_object(MAN, player, bufu));
     }
 }
 
@@ -2292,9 +2303,6 @@ prop_command(int descr, dbref player, const char *command, const char *arg,
                 interp(descr, player,
                        (OkObj(player)) ? DBFETCH(player)->location : -1,
                        progRef, where, FOREGROUND, STD_HARDUID, 0);
-            if (tmpfr) {
-                interp_loop(player, progRef, tmpfr, 0);
-            }
             return 1;
         }
     }

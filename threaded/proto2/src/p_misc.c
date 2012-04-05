@@ -378,7 +378,7 @@ prim_fork(PRIM_PROTOTYPE)
     push(tmpfr->argument.st, &(tmpfr->argument.top), PROG_INTEGER,
          MIPSCAST & result);
 	result = add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
-                                 program, tmpfr, "BACKGROUND");
+                                 program, tmpfr, string_dup("BACKGROUND"));
     /* parent process gets the child's pid returned on the stack */
     if (!result)
         result = -1;

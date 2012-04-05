@@ -705,7 +705,8 @@ muf_event_process(void)
                     push(proc->fr->argument.st, &(proc->fr->argument.top),
                          PROG_STRING, MIPSCAST alloc_prog_string(ev->event));
 
-                    interp_loop(proc->player, proc->prog, proc->fr, 0);
+                    //interp_loop(proc->player, proc->prog, proc->fr, 0, proc->fr->thread);
+					add_muf_delay_event(0, proc->descr, proc->player, NOTHING, proc->fr->trig, proc->prog, proc->fr, (proc->fr->multitask == FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
 
                     if (!is_fg) {
                         if (OkObj(proc->player)) {
@@ -961,7 +962,7 @@ muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
 
         if (q->type) {
             add_muf_delay_event(0, fr->descr, fr->player, NOTHING, NOTHING,
-                                fr->prog, fr, "INTERRUPT");
+                                fr->prog, fr, string_dup("INTERRUPT"));
         } else {
             free((void *) q);
             fr->qitem = NULL;

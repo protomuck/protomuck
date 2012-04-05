@@ -8,10 +8,8 @@
 #include "interface.h"
 #include "props.h"
 
-char upb[BUFFER_LEN];
-
 const char *
-unparse_flags(dbref thing, char buf[BUFFER_LEN])
+unparse_flags(dbref thing, char *buf)
 {
     char *p;
     const char *type_codes = "R-EPFG";
@@ -314,22 +312,21 @@ power_2char(char *p)
 }
 
 const char *
-unparse_object(dbref player, dbref loc)
+unparse_object(dbref player, dbref loc, char *buf)
 {
     char tbuf[BUFFER_LEN];
-	static char upb[BUFFER_LEN];
 
     if (Typeof(player) != TYPE_PLAYER)
         player = OWNER(player);
     switch (loc) {
         case NOTHING:
-            return "*NOTHING*";
+            return strcpy(buf, "*NOTHING*");
         case AMBIGUOUS:
-            return "*AMBIGUOUS*";
+            return strcpy(buf, "*AMBIGUOUS*");
         case HOME:
-            return "*HOME*";
+            return strcpy(buf, "*HOME*");
         case NIL:
-            return "*NIL*";
+            return strcpy(buf, "*NIL*");
         default:
             if (loc < 0 || loc >= db_top)
 #ifdef SANITY
@@ -338,7 +335,7 @@ unparse_object(dbref player, dbref loc)
                 return upb;
             }
 #else
-                return "*INVALID*";
+                return strcpy(buf, "*INVALID*");
 #endif
 #ifndef SANITY
             if (!(FLAGS(player) & STICKY) &&
@@ -349,13 +346,13 @@ unparse_object(dbref player, dbref loc)
                 )) {
                 /* show everything */
 #endif
-                sprintf(upb, "%s(#%d%s)", NAME(loc), loc,
+                sprintf(buf, "%s(#%d%s)", NAME(loc), loc,
                         unparse_flags(loc, tbuf));
-                return upb;
+                return buf;
 #ifndef SANITY
             } else {
                 /* show only the name */
-                return NAME(loc);
+                return strcpy(buf, NAME(loc));
             }
 #endif
     }
@@ -393,7 +390,7 @@ ansiname(dbref loc, char buf[BUFFER_LEN])
 }
 
 const char *
-ansi_unparse_object(dbref player, dbref loc)
+ansi_unparse_object(dbref player, dbref loc, char *buf)
 {
     char tbuf[BUFFER_LEN], tbuf2[BUFFER_LEN];
 
@@ -401,17 +398,17 @@ ansi_unparse_object(dbref player, dbref loc)
         player = OWNER(player);
     switch (loc) {
         case NOTHING:
-            return SYSNORMAL "*NOTHING*";
+            return strcpy(buf, SYSNORMAL "*NOTHING*");
         case AMBIGUOUS:
-            return SYSPURPLE "*AMBIGUOUS*";
+            return strcpy(buf, SYSPURPLE "*AMBIGUOUS*");
         case HOME:
-            return SYSWHITE "*HOME*";
+            return strcpy(buf, SYSWHITE "*HOME*");
         case NIL:
-            return SYSCYAN "*NIL*";
+            return strcpy(buf, SYSCYAN "*NIL*");
         default:
             if (loc < 0 || loc >= db_top) {
-                sprintf(upb, SYSRED "*INVALID(#%d)*", loc);
-                return upb;
+                sprintf(buf, SYSRED "*INVALID(#%d)*", loc);
+                return buf;
             }
 #ifndef SANITY
             if (!(FLAGS(player) & STICKY) &&
@@ -423,13 +420,13 @@ ansi_unparse_object(dbref player, dbref loc)
                 )) {
 #endif
                 /* show everything */
-                sprintf(upb, "%s" SYSYELLOW "(#%d%s)",
+                sprintf(buf, "%s" SYSYELLOW "(#%d%s)",
                         ansiname(loc, tbuf), loc, unparse_flags(loc, tbuf2));
-                return upb;
+                return buf;
 #ifndef SANITY
             } else {
                 /* show only the name */
-                return ansiname(loc, upb);
+                return ansiname(loc, buf);
             }
 #endif
     }
@@ -478,7 +475,9 @@ unparse_boolexp1(dbref player, struct boolexp *b,
             case BOOLEXP_CONST:
                 if (fullname) {
 #ifndef SANITY
-                    strcpy(buftop, unparse_object(player, b->thing));
+					char bufu[BUFFER_LEN];
+
+                    strcpy(buftop, unparse_object(player, b->thing, bufu));
 #endif
                 } else {
                     sprintf(buftop, "#%d", b->thing);
