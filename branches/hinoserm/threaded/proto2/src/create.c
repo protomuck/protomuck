@@ -42,9 +42,10 @@ parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
     }
 
     if (!tp_teleport_to_player && Typeof(dobj) == TYPE_PLAYER) {
+		char bufu[BUFFER_LEN];
         sprintf(buf,
                 CFAIL "You can't link to players.  Destination %s ignored.",
-                unparse_object(player, dobj));
+                unparse_object(player, dobj, bufu));
         anotify_nolisten2(player, buf);
         return NOTHING;
     }
@@ -55,8 +56,10 @@ parse_linkable_dest(int descr, dbref player, dbref exit, const char *dest_name)
     }
 
     if (!can_link_to(player, Typeof(exit), dobj)) {
+		char bufu[BUFFER_LEN];
+
         sprintf(buf, CFAIL "You can't link to %s.",
-                unparse_object(player, dobj));
+                unparse_object(player, dobj, bufu));
         anotify_nolisten2(player, buf);
         return NOTHING;
     } else
@@ -154,6 +157,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
         return;
     } else {
         char buf[BUFFER_LEN];
+		char bufu[BUFFER_LEN];
 
         /* create the exit */
         exit = new_object(player);
@@ -172,7 +176,7 @@ do_open(int descr, dbref player, const char *direction, const char *linkto)
 
         /* and we're done */
         sprintf(buf, CSUCC "Exit %s created and opened.",
-                unparse_object(player, exit));
+                unparse_object(player, exit, bufu));
         anotify_nolisten2(player, buf);
 
         /* check second arg to see if we should do a link */
@@ -263,10 +267,12 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
             case TYPE_ROOM:
             case TYPE_PROGRAM:
                 if (prdest) {
+					char bufu[BUFFER_LEN];
+
                     sprintf(buf,
                             CFAIL
                             "One non-thing link allowed. Destination %s ignored.",
-                            unparse_object(player, dest));
+                            unparse_object(player, dest, bufu));
                     anotify_nolisten2(player, buf);
                     error = dryrun;
                     continue;
@@ -279,10 +285,12 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
                 break;
             case TYPE_EXIT:
                 if (exit_loop_check(exit, dest)) {
+					char bufu[BUFFER_LEN];
+
                     sprintf(buf,
                             CFAIL
                             "Destination %s would create a loop, ignored.",
-                            unparse_object(player, dest));
+                            unparse_object(player, dest, bufu));
                     anotify_nolisten2(player, buf);
                     error = dryrun;
                     continue;
@@ -298,11 +306,13 @@ _link_exit(int descr, dbref player, dbref exit, char *dest_name,
         }
 
         if (!dryrun) {
-            if (dest == HOME)
+            if (dest == HOME) {
                 anotify_nolisten2(player, CSUCC "Linked to HOME.");
-            else {
+			} else {
+				char bufu[BUFFER_LEN];
+
                 sprintf(buf, CSUCC "%s linked to %s.",
-                        NAME(exit), unparse_object(player, dest));
+                        NAME(exit), unparse_object(player, dest, bufu));
                 anotify_nolisten2(player, buf);
             }
         }
@@ -338,6 +348,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
     struct match_data md;
     char buf[BUFFER_LEN];
     dbref thing, dest;
+	char bufu[BUFFER_LEN];
 
     if (tp_db_readonly) {
         anotify_nolisten2(player, CFAIL DBRO_MESG);
@@ -465,7 +476,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             } else
                 DBFETCH(thing)->sp.player.home = dest;
             sprintf(buf, CSUCC "%s's home set to %s.",
-                    NAME(thing), unparse_object(player, dest));
+                    NAME(thing), unparse_object(player, dest, bufu));
             anotify_nolisten2(player, buf);
             break;
         case TYPE_ROOM:        /* room dropto's */
@@ -487,7 +498,7 @@ do_link(int descr, dbref player, const char *thing_name, const char *dest_name)
             } else {
                 DBFETCH(thing)->sp.room.dropto = dest; /* dropto */
                 sprintf(buf, CSUCC "%s's dropto set to %s.",
-                        NAME(thing), unparse_object(player, dest));
+                        NAME(thing), unparse_object(player, dest, bufu));
                 anotify_nolisten2(player, buf);
             }
 
@@ -522,6 +533,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     dbref room;
     struct match_data md;
     dbref parent;
+	char bufu[BUFFER_LEN];
 
     if (!Builder(player) && !tp_all_can_build_rooms) {
         anotify_nolisten2(player, CFAIL NOBBIT_MESG);
@@ -572,7 +584,7 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
     DBDIRTY(room);
     DBDIRTY(newparent);
 
-    sprintf(buf, CSUCC "Room %s created.", unparse_object(player, room));
+    sprintf(buf, CSUCC "Room %s created.", unparse_object(player, room, bufu));
     anotify_nolisten2(player, buf);
 
     strcpy(buf, pname);
@@ -603,9 +615,11 @@ do_dig(int descr, dbref player, const char *name, const char *pname)
                                   CFAIL
                                   "Permission denied.  Parent set to default.");
             } else {
+				char bufu[BUFFER_LEN];
+
                 moveto(room, parent);
                 sprintf(buf, CSUCC "Parent set to %s.",
-                        unparse_object(player, parent));
+                        unparse_object(player, parent, bufu));
                 anotify_nolisten2(player, buf);
             }
         }
@@ -667,6 +681,8 @@ do_prog(int descr, dbref player, const char *name)
         anotify_nolisten2(player, CINFO "I don't know which one you mean!");
         return;
     } else {
+		char bufu[BUFFER_LEN];
+
         if ((Typeof(i) != TYPE_PROGRAM) || !controls(player, i)) {
             anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
             return;
@@ -679,7 +695,7 @@ do_prog(int descr, dbref player, const char *name)
         FLAGS(i) |= INTERNAL;
         DBFETCH(player)->sp.player.curr_prog = i;
         anotify_fmt(player, CINFO "Entering editor for %s.",
-                    unparse_object(player, i));
+                    unparse_object(player, i, bufu));
         /* list current line */
         do_list(player, i, 0, 0, 0);
         DBDIRTY(i);
@@ -694,6 +710,7 @@ do_edit(int descr, dbref player, const char *name)
 {
     dbref i;
     struct match_data md;
+	char bufu[BUFFER_LEN];
 
     if (Typeof(player) != TYPE_PLAYER) {
         anotify_nolisten2(player, CFAIL "Only players can edit programs.");
@@ -730,7 +747,7 @@ do_edit(int descr, dbref player, const char *name)
     DBFETCH(i)->sp.program.first = read_program(i);
     DBFETCH(player)->sp.player.curr_prog = i;
     anotify_fmt(player, CINFO "Entering editor for %s.",
-                unparse_object(player, i));
+                unparse_object(player, i, bufu));
     /* list current line */
     do_list(player, i, 0, 0, 0);
     FLAGS(player) |= INTERACTIVE;
@@ -927,6 +944,8 @@ do_create(dbref player, char *name, char *acost)
         anotify_fmt(player, CFAIL "You don't have enough %s.", tp_pennies);
         return;
     } else {
+		char bufu[BUFFER_LEN];
+
         /* create the object */
         thing = new_object(player);
 
@@ -955,7 +974,7 @@ do_create(dbref player, char *name, char *acost)
         DBDIRTY(player);
 
         /* and we're done */
-        sprintf(buf, CSUCC "Object %s created.", unparse_object(player, thing));
+        sprintf(buf, CSUCC "Object %s created.", unparse_object(player, thing, bufu));
         anotify_nolisten2(player, buf);
         DBDIRTY(thing);
     }
@@ -1097,6 +1116,7 @@ do_action(int descr, dbref player, const char *action_name,
     static char buf[BUFFER_LEN];
     char buf2[BUFFER_LEN];
     char *rname, *qname;
+	char bufu[BUFFER_LEN];
 
     if (!Builder(player)) {
         anotify_nolisten2(player, CFAIL NOBBIT_MESG);
@@ -1146,7 +1166,7 @@ do_action(int descr, dbref player, const char *action_name,
 
     set_source(player, action, source);
     sprintf(buf, CSUCC "Action %s created and attached to %s.",
-            unparse_object(player, action), NAME(source));
+            unparse_object(player, action, bufu), NAME(source));
     anotify_nolisten2(player, buf);
     DBDIRTY(action);
 
@@ -1185,6 +1205,7 @@ do_attach(int descr, dbref player, const char *action_name,
     dbref loc;                  /* player's current location */
     struct match_data md;
     char buf[BUFFER_LEN];
+	char bufu[BUFFER_LEN];
 
     if ((loc = DBFETCH(player)->location) == NOTHING)
         return;
@@ -1224,7 +1245,7 @@ do_attach(int descr, dbref player, const char *action_name,
     }
     set_source(player, action, source);
     sprintf(buf, CSUCC "Action %s re-attached to %s.",
-            unparse_object(player, action), NAME(source));
+            unparse_object(player, action, bufu), NAME(source));
     anotify_nolisten2(player, buf);
     if (MLevel(action)) {
         SetMLevel(action, 0);

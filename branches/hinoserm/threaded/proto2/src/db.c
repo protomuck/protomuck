@@ -521,6 +521,7 @@ log_program_text(struct line *first, dbref player, dbref i)
     FILE *f;
     char fname[BUFFER_LEN], buf1[BUFFER_LEN], buf2[BUFFER_LEN];
     time_t lt = current_systime;
+	char bufu[BUFFER_LEN];
 
 	DBLOCK(i);
 
@@ -534,8 +535,8 @@ log_program_text(struct line *first, dbref player, dbref i)
 
     fprintf(f,
             "{{{ PROGRAM %s, SAVED AT %s BY %s\n",
-            strcpy(buf1, unparse_object(player, i)),
-            ctime(&lt), strcpy(buf2, unparse_object(player, player))
+            strcpy(buf1, unparse_object(player, i, bufu)),
+            ctime(&lt), strcpy(buf2, unparse_object(player, player, bufu))
         );
 
     while (first) {

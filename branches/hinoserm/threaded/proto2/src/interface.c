@@ -1961,9 +1961,9 @@ shovechars(void)
                     if (d->type == CT_HTTP) {
                         struct frame *tmpfr;
 
-                        if ((tmpfr = timequeue_pid_frame(d->http->pid))
-                            && tmpfr->descr == d->descriptor)
-                            dequeue_process(d->http->pid);
+                        //if ((tmpfr = timequeue_pid_frame(d->http->pid))
+                        //    && tmpfr->descr == d->descriptor)
+                        //    dequeue_process(d->http->pid);
                         dequeue_prog_descr(d->descriptor, 2);
                     }
                     if (!d->connected && (d->type != CT_HTTP)) /* quit from login screen (hinoserm changed) */
@@ -2972,6 +2972,8 @@ clearstrings(struct descriptor_data *d)
 void
 shutdownsock(struct descriptor_data *d)
 {
+	char bufu[BUFFER_LEN];
+
 	mutex_lock(d->mutx);
 #ifdef NEWHTTPD
     if (d->type != CT_HTTP) {   /* hinoserm */
@@ -2981,11 +2983,11 @@ shutdownsock(struct descriptor_data *d)
                 log2filetime(CONNECT_LOG,
                              "DISC: %2d %s %s(%s) %s, %d cmds P#%d\n",
                              d->descriptor, unparse_object(d->player,
-                                                           d->player),
+                                                           d->player, bufu),
                              d->hu->h->name, d->hu->u->user,
                              host_as_hex(d->hu->h->a), d->commands, d->cport);
             show_status("DISC: %2d %s %s(%s) %s, %d cmds P#%d\n", d->descriptor,
-                        unparse_object(d->player, d->player), d->hu->h->name,
+                        unparse_object(d->player, d->player,bufu), d->hu->h->name,
                         d->hu->u->user, host_as_hex(d->hu->h->a), d->commands,
                         d->cport);
             announce_disconnect(d);
@@ -4094,9 +4096,6 @@ process_commands(void)
                     strcpy(match_cmdname, "Queued Event.");
                     tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
                                    (dbref) 0, FOREGROUND, STD_HARDUID, 0);
-                    if (tmpfr) {
-                        interp_loop(NOTHING, mufprog, tmpfr, 1);
-                    }
                     d->booted = 3;
                     continue;
                 }
@@ -4160,9 +4159,6 @@ process_commands(void)
                                            DBFETCH(d->player)->location,
                                            tp_quit_prog, (dbref) -5, FOREGROUND,
                                            STD_REGUID, 0);
-                            if (tmpfr) {
-                                interp_loop(d->player, tp_quit_prog, tmpfr, 0);
-                            }
                         } else {
                             d->booted = 2;
                         }
@@ -4310,9 +4306,6 @@ do_command(struct descriptor_data *d, struct text_block *t)
                     strcpy(match_args, full_command);
                     tmpfr = interp(d->descriptor, -1, -1, tp_login_who_prog,
                                    (dbref) -5, FOREGROUND, STD_REGUID, 0);
-                    if (tmpfr) {
-                        interp_loop(-1, tp_login_who_prog, tmpfr, 0);
-                    }
                 } else {
                     dump_users(d, command + sizeof(WHO_COMMAND) - 1);
                 }
@@ -4381,6 +4374,7 @@ check_connect(struct descriptor_data *d, const char *msg)
     char msgargs[BUFFER_LEN];
     char buf[BUFFER_LEN];
     char *p = NULL;
+	char bufu[BUFFER_LEN];
 
     parse_connect(msg, command, user, password);
     for (xref = 0; command[xref]; xref++)
@@ -4443,6 +4437,7 @@ check_connect(struct descriptor_data *d, const char *msg)
                         host_as_hex(d->hu->h->a), d->cport);
 
         } else if ((why = reg_user_is_suspended(player))) {
+		    char bufu[BUFFER_LEN];
             queue_ansi(d, "\r\n");
             queue_ansi(d, "You are temporarily suspended: ");
             queue_ansi(d, why);
@@ -4452,11 +4447,11 @@ check_connect(struct descriptor_data *d, const char *msg)
             queue_ansi(d, " for assistance if needed.\r\n");
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "*LOK: %2d %s %s(%s) %s %s P#%d\n",
-                             d->descriptor, unparse_object(player, player),
+                             d->descriptor, unparse_object(player, player, bufu),
                              d->hu->h->name, d->hu->u->user,
                              host_as_hex(d->hu->h->a), why, d->cport);
             show_status("*LOK: %2d %s %s(%s) %s %s P#%d\n",
-                        d->descriptor, unparse_object(player, player),
+                        d->descriptor, unparse_object(player, player, bufu),
                         d->hu->h->name, d->hu->u->user,
                         host_as_hex(d->hu->h->a), why, d->cport);
             d->booted = 1;
@@ -4467,11 +4462,11 @@ check_connect(struct descriptor_data *d, const char *msg)
             queue_ansi(d, buf);
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "*BAN: %2d %s %s(%s) %s P#%d\n",
-                             d->descriptor, unparse_object(player, player),
+                             d->descriptor, unparse_object(player, player, bufu),
                              d->hu->h->name, d->hu->u->user,
                              host_as_hex(d->hu->h->a), d->cport);
             show_status("*BAN: %2d %s %s(%s) %s P#%d\n",
-                        d->descriptor, unparse_object(player, player),
+                        d->descriptor, unparse_object(player, player, bufu),
                         d->hu->h->name, d->hu->u->user,
                         host_as_hex(d->hu->h->a), d->cport);
             d->booted = 1;
@@ -4507,11 +4502,11 @@ check_connect(struct descriptor_data *d, const char *msg)
             } else {
                 if (tp_log_connects)
                     log2filetime(CONNECT_LOG, "CONN: %2d %s %s(%s) %s P#%d\n",
-                                 d->descriptor, unparse_object(player, player),
+                                 d->descriptor, unparse_object(player, player, bufu),
                                  d->hu->h->name, d->hu->u->user,
                                  host_as_hex(d->hu->h->a), d->cport);
                 show_status("CONN: %2d %s %s(%s) %s P#%d\n",
-                            d->descriptor, unparse_object(player, player),
+                            d->descriptor, unparse_object(player, player, bufu),
                             d->hu->h->name, d->hu->u->user,
                             host_as_hex(d->hu->h->a), d->cport);
                 d->connected = 1;
@@ -4815,6 +4810,7 @@ do_dinfo(dbref player, const char *arg)
     int who, descr;
     char *ctype = NULL;
     time_t now;
+	char bufu[BUFFER_LEN];
 
     if (!Wiz(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -4860,7 +4856,7 @@ do_dinfo(dbref player, const char *arg)
     }
 
     anotify_fmt(player, "%s" SYSAQUA " descr " SYSYELLOW "%d" SYSBLUE " (%s)",
-                d->connected ? ansi_unparse_object(player, d->player) : SYSGREEN
+                d->connected ? ansi_unparse_object(player, d->player, bufu) : SYSGREEN
                 "[Connecting]", d->descriptor, ctype);
 
     if (d->flags)
@@ -4887,7 +4883,7 @@ do_dinfo(dbref player, const char *arg)
 
     if (d->connected)
         anotify_fmt(player, SYSAQUA "Location: %s",
-                    ansi_unparse_object(player, DBFETCH(d->player)->location));
+                    ansi_unparse_object(player, DBFETCH(d->player)->location, bufu));
 }
 
 void
@@ -4996,10 +4992,11 @@ void
 do_armageddon(dbref player, const char *msg)
 {
     char buf[BUFFER_LEN];
+	char bufu[BUFFER_LEN];
 
     if (!Arch(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-        log_status("SHAM: Armageddon by %s\n", unparse_object(player, player));
+        log_status("SHAM: Armageddon by %s\n", unparse_object(player, player, bufu));
         return;
     }
     if (*msg == '\0' || strcmp(msg, tp_muckname)) {
@@ -6587,8 +6584,10 @@ pdescr_logout(int c)
 
     d = descrdata_by_descr(c);
     if (d && d->descriptor == c && d->player != NOTHING) {
+		char bufu[BUFFER_LEN];
+
         log_status("LOGOUT: %2d %s %s(%s) %s P#%d\n",
-                   d->descriptor, unparse_object(1, d->player),
+                   d->descriptor, unparse_object(MAN, d->player, bufu),
                    d->hu->h->name, d->hu->u->user,
                    host_as_hex(d->hu->h->a), d->cport);
         announce_disconnect(d);

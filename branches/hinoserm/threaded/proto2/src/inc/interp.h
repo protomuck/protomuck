@@ -51,8 +51,10 @@ extern void remove_socket_from_queue(struct muf_socket *oldSock);
   do_abort_loop(player, program, (S), fr, pc, atop, stop, (C1), (C2)); \
   if (fr && fr->trys.top) \
       break; \
-  else \
+  else { \
+      mutex_unlock(fr->mutx); \
       return 0; \
+  } \
 }
   
 #define abort_loop_hard(S, C1, C2) \
@@ -61,6 +63,7 @@ extern void remove_socket_from_queue(struct muf_socket *oldSock);
 	if (fr) { tmp = fr->trys.top; fr->trys.top = 0; } \
 	do_abort_loop(player, program, (S), fr, pc, atop, stop, (C1), (C2)); \
 	if (fr) fr->trys.top = tmp; \
+	if (fr) mutex_unlock(fr->mutx); \
 	return 0; \
 }
 

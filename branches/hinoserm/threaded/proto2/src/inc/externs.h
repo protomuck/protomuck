@@ -155,6 +155,7 @@ extern struct frame *timequeue_pid_frame(int pid);
 extern time_t next_event_time(void);
 extern void list_events(dbref program);
 extern int descr_running_queue(int descr);
+extern int dequeue_frame(struct frame *fr);
 extern int dequeue_prog(dbref program, int sleeponly);
 extern int dequeue_process(int procnum);
 extern int dequeue_timers(int pid, char *id);
@@ -531,12 +532,12 @@ extern void free_boolexp(struct boolexp *b);
 /* From unparse.c */
 extern char flag_2char(char *flag);
 extern char power_2char(char *flag);
-extern const char *unparse_flags(dbref thing, char buf[BUFFER_LEN]);
-extern const char *ansi_unparse_object(dbref player, dbref object);
-extern const char *unparse_object(dbref player, dbref object);
+extern const char *unparse_flags(dbref thing, char *buf);
+extern const char *ansi_unparse_object(dbref player, dbref object, char *buf);
+extern const char *unparse_object(dbref player, dbref object, char *buf);
 extern const char *unparse_boolexp(dbref player, struct boolexp *b,
                                    int fullname);
-extern const char *ansiname(dbref loc, char buf[BUFFER_LEN]);
+extern const char *ansiname(dbref loc, char *buf);
 
 /* From compress.c */
 #ifdef COMPRESS
@@ -565,7 +566,7 @@ extern void init_primitives(void);
 
 /* From interp.c */
 extern struct inst *interp_loop(dbref player, dbref program,
-                                struct frame *fr, int rettyp);
+                                struct frame *fr, int rettyp, struct thread_data *thread);
 extern struct frame *interp(int descr, dbref player, dbref location,
                             dbref program, dbref source, int nosleeping,
                             int whichperms, int forced_pid);

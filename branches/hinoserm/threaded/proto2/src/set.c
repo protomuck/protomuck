@@ -893,6 +893,7 @@ _do_unlink(int descr, dbref player, const char *name, int quiet)
     dbref exit;
     char destin[BUFFER_LEN];
     struct match_data md;
+	char bufu[BUFFER_LEN];
 
     if (tp_db_readonly)
         return;
@@ -930,16 +931,15 @@ _do_unlink(int descr, dbref player, const char *name, int quiet)
                         ts_modifyobject(player, exit);
                         DBSTORE(exit, sp.exit.ndest, 0);
                         if (DBFETCH(exit)->sp.exit.dest) {
-                            strcpy(destin,
-                                   unparse_object(player,
-                                                  DBFETCH(exit)->sp.exit.
-                                                  dest[0]));
+							
+
+                            strcpy(destin, unparse_object(player, DBFETCH(exit)->sp.exit.dest[0], bufu));
                             free((void *) DBFETCH(exit)->sp.exit.dest);
                             DBSTORE(exit, sp.exit.dest, NULL);
                         }
                         if (!quiet)
                             anotify_fmt(player, CSUCC "%s unlinked from %s.",
-                                        unparse_object(player, exit), destin);
+                                        unparse_object(player, exit, bufu), destin);
                         if (MLevel(exit)) {
                             SetMLevel(exit, 0);
                             if (!quiet)
@@ -953,7 +953,7 @@ _do_unlink(int descr, dbref player, const char *name, int quiet)
                         DBSTORE(exit, sp.room.dropto, NOTHING);
                         if (!quiet)
                             anotify_fmt(player, CSUCC "Dropto removed from %s.",
-                                        unparse_object(player, exit));
+                                        unparse_object(player, exit, bufu));
                         break;
                     case TYPE_THING:
                         ts_modifyobject(player, exit);
@@ -1118,6 +1118,7 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
     dbref owner;
     dbref oldOwner;
     struct match_data md;
+	char bufu[BUFFER_LEN];
 
     if (tp_db_readonly)
         return;
@@ -1193,17 +1194,17 @@ do_chown(int descr, dbref player, const char *name, const char *newowner)
     if (owner == player) {
         char buf[BUFFER_LEN], buf1[BUFFER_LEN];
 
-        strcpy(buf1, unparse_object(player, thing));
+        strcpy(buf1, unparse_object(player, thing, bufu));
         sprintf(buf, CSUCC "Owner of %s changed to you from %s.",
-                buf1, unparse_object(player, oldOwner));
+                buf1, unparse_object(player, oldOwner, bufu));
         anotify_nolisten2(player, buf);
     } else {
         char buf[BUFFER_LEN], buf1[BUFFER_LEN], buf2[BUFFER_LEN];
 
-        strcpy(buf1, unparse_object(player, thing));
-        strcpy(buf2, unparse_object(player, owner));
+        strcpy(buf1, unparse_object(player, thing, bufu));
+        strcpy(buf2, unparse_object(player, owner, bufu));
         sprintf(buf, CSUCC "Owner of %s changed to %s from %s.", buf1, buf2,
-                unparse_object(player, oldOwner));
+                unparse_object(player, oldOwner, bufu));
         anotify_nolisten2(player, buf);
     }
     DBDIRTY(thing);

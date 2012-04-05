@@ -987,6 +987,7 @@ struct frame {
     struct mufwatchpidlist *waiters;
     struct mufwatchpidlist *waitees;
 	mutex mutx;
+	struct thread_data *thread;
     union {
             struct {
             unsigned int div_zero:1;	/* Divide by zero */

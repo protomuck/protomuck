@@ -760,6 +760,9 @@ interp(int descr, dbref player, dbref location, dbref program,
     push(fr->argument.st, &(fr->argument.top), PROG_STRING, *match_args ?
          MIPSCAST alloc_prog_string(match_args) : 0);
 
+	//if (nosleeps != PREEMPT)
+       add_muf_delay_event(0, descr, player, location, source, program, fr, (fr->multitask == FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
+
     return fr;
 }
 
@@ -977,16 +980,19 @@ prog_clean(struct frame *fr)
     time_t now;
     struct funcprof *fpr;
 
-    now = current_systime;
+    now = time(NULL);
+
+	//dequeue_frame(fr);
 
     if (OkObj(fr->player) && (FLAG2(fr->player) & F2MUFCOUNT)
         && (controls(fr->player, fr->prog)
             || (Mage(fr->player)
                 && (OWNER(fr->prog) != MAN)))
-        ) {
-        notify_fmt(fr->player, "MUF> %d %s %ds", fr->instcnt,
-                   unparse_object(fr->player, fr->prog), (now - fr->started)
-            );
+        )
+	{
+		char bufu[BUFFER_LEN];
+
+		notify_fmt(fr->player, "MUF> %d %s %ds", fr->instcnt, unparse_object(fr->player, fr->prog, bufu), (now - fr->started));
     }
     if (FLAG2(fr->prog) & F2MUFCOUNT) {
         add_property(fr->prog, "~muf/count", NULL, fr->instcnt);
@@ -1292,7 +1298,7 @@ do_abort_loop(dbref player, dbref program, const char *msg,
         }
         fr->level--;
         fr->aborted = 1;
-        prog_clean(fr);
+        
         if (OkObj(player)) {
             DBSTORE(player, sp.player.block, 0);
         } else {
@@ -1302,6 +1308,9 @@ do_abort_loop(dbref player, dbref program, const char *msg,
                 DR_RAW_REM_FLAGS(curdescr, DF_INTERACTIVE);
             }
         }
+		if (!fr->err)
+			fr->err = 1;
+		//prog_clean(fr);
     }
 }
 
@@ -1316,7 +1325,7 @@ interp_set_depth(struct frame *fr)
 }
 
 struct inst *
-interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
+interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct thread_data *thread)
 {
     struct inst *pc;
     int atop;
@@ -1332,6 +1341,9 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
     char dbuf[BUFFER_LEN];
     struct timeval start_time, current_time;
     struct descriptor_data *curdescr = NULL;
+
+	mutex_lock(fr->mutx);
+	fr->thread = thread;
 
     if (interp_depth) {
         fr->level = interp_depth++;
@@ -1380,8 +1392,11 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
         gettimeofday(&current_time, NULL);
 	}
 
+	mutex_unlock(fr->mutx);
+
     /* This is the 'natural' way to exit a function */
     while (stop) {
+		mutex_lock(fr->mutx);
         /* Stores the time of the last shutdown processed instead of 1, just in
          * case I add the ability to cancel a delayed shutdown later. -brevantes */
         if (delayed_shutdown && (fr->shutdown_seen < delayed_shutdown)) {
@@ -1448,9 +1463,10 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
                                     program, fr,
                                     (fr->multitask ==
-                                     FOREGROUND) ? "FOREGROUND" : "BACKGROUND");
+                                     FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
                 fr->level--;
                 calc_profile_timing(program, fr);
+				mutex_unlock(fr->mutx);
                 return NULL;
             }
         }
@@ -1553,6 +1569,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                 notify_nolisten(player, buf, 1);
                             }
                             calc_profile_timing(program, fr);
+
+							mutex_unlock(fr->mutx);
                             return NULL;
                         }
                     }
@@ -1966,6 +1984,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                 fr->pc = pc;
                                 fr->level--;
                                 calc_profile_timing(program, fr);
+
+								mutex_unlock(fr->mutx);
                                 return NULL;
                             }
                             /* a queuetype change wasn't needed, so we'll just keep */
@@ -2122,6 +2142,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         CLEAR(temp1);
                         fr->level--;
                         calc_profile_timing(program, fr);
+
+						mutex_unlock(fr->mutx);
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2148,6 +2170,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         add_muf_read_event(fr->descr, player, program, fr);
                         fr->level--;
                         calc_profile_timing(program, fr);
+
+						mutex_unlock(fr->mutx);
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2185,6 +2209,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                             temp1->data.number);
                         fr->level--;
                         calc_profile_timing(program, fr);
+
+						mutex_unlock(fr->mutx);
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2204,7 +2230,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                                        NULL);
                         add_muf_delay_event(temp1->data.number, fr->descr,
                                             player, NOTHING, NOTHING, program,
-                                            fr, "SLEEPING");
+                                            fr, string_dup("SLEEPING"));
                         if (OkObj(player)) {
                             DBSTORE(player, sp.player.block,
                                     (!fr->been_background));
@@ -2214,6 +2240,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                         }
                         fr->level--;
                         calc_profile_timing(program, fr);
+
+						mutex_unlock(fr->mutx);
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2293,7 +2321,6 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 fr->err = 0;
             } else {
                 reload(fr, atop, stop);
-                prog_clean(fr);
                 if (OkObj(player)) {
                     DBSTORE(player, sp.player.block, 0);
                 } else {
@@ -2302,10 +2329,15 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 }
                 fr->level--;
                 calc_profile_timing(program, fr);
+				mutex_unlock(fr->mutx);
+				prog_clean(fr);
                 return NULL;
             }
         }
+		mutex_unlock(fr->mutx);
     }                           /* while */
+
+	mutex_lock(fr->mutx);
 
 /* TODO: We need to make it so that the checks below only
  *       happen if there are no other FOREGROUND programs
@@ -2330,16 +2362,20 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp)
                 rv = NULL;
             }
         }
+
         reload(fr, atop, stop);
-        prog_clean(fr);
+		calc_profile_timing(program, fr);
         fr->level--;
-        calc_profile_timing(program, fr);
+		mutex_unlock(fr->mutx);
+		prog_clean(fr);
+        
         return rv;
     }
     reload(fr, atop, stop);
-    prog_clean(fr);
     fr->level--;
     calc_profile_timing(program, fr);
+	mutex_unlock(fr->mutx);
+    prog_clean(fr);
     return NULL;
 }
 

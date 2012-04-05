@@ -847,7 +847,7 @@ void
 uncompile_program(dbref i)
 {
     /* free program */
-    (void) dequeue_prog(i, 1);
+    (void) dequeue_prog(i, 0);
     free_prog(i);
     cleanpubs(DBFETCH(i)->sp.program.pubs);
     DBFETCH(i)->sp.program.pubs = NULL;
@@ -895,6 +895,8 @@ do_proginfo(dbref player, const char *arg)
                              SYSBROWN "Name", 1);
             for (i = 0; i < db_top; i++) {
                 if (Typeof(i) == TYPE_PROGRAM && DBFETCH(i)->sp.program.siz) {
+					char bufu[BUFFER_LEN];
+
                     tcnt += ccnt = DBFETCH(i)->sp.program.instances;
                     tsize += csize = size_object(i, 0);
                     timem += cimem = size_prog(i);
@@ -902,7 +904,7 @@ do_proginfo(dbref player, const char *arg)
                     sprintf(buf, SYSCYAN "%4d %6d %6d %5d %s " SYSRED "by "
                             SYSGREEN "%s",
                             ccnt, csize, cimem, cinst,
-                            ansi_unparse_object(player, i), NAME(OWNER(i))
+                            ansi_unparse_object(player, i, bufu), NAME(OWNER(i))
                         );
                     anotify_nolisten(player, buf, 1);
                 }
@@ -4679,22 +4681,28 @@ free_prog(dbref prog)
 
     if (c) {
         if (DBFETCH(prog)->sp.program.instances) {
+			char bufu[BUFFER_LEN];
+
             fprintf(stderr, "Freeing program %s with %d instances reported\n",
-                    unparse_object(MAN, prog),
+                    unparse_object(MAN, prog, bufu),
                     DBFETCH(prog)->sp.program.instances);
         }
         i = scan_instances(prog);
 
         if (i) {
+			char bufu[BUFFER_LEN];
+
             fprintf(stderr, "Freeing program %s with %d instances found\n",
-                    unparse_object(GOD, prog), i);
+                    unparse_object(MAN, prog, bufu), i);
         }
         for (i = 0; i < siz; i++) {
             if (c[i].type == PROG_ADD) {
                 if (c[i].data.addr->links != 1) {
+					char bufu[BUFFER_LEN];
+
                     fprintf(stderr,
                             "Freeing address in %s with link count %d\n",
-                            unparse_object(MAN, prog), c[i].data.addr->links);
+                            unparse_object(MAN, prog, bufu), c[i].data.addr->links);
                 }
                 free(c[i].data.addr);
 #ifdef MODULAR_SUPPORT

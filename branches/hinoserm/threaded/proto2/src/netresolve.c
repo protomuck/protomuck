@@ -1194,9 +1194,12 @@ do_hostcache(dbref player, const char *args)
         if (hostdb_flushtime)
             anotify_fmt(player, "Last flush was:       %s",
                         time_format_3(hostdb_flushtime));
-        if (hostdb_flushplyr != NOTHING)
+        if (hostdb_flushplyr != NOTHING) {
+			char bufu[BUFFER_LEN];
+
             anotify_fmt(player, "  Initiated by:       %s",
-                        unparse_object(player, hostdb_flushplyr));
+                        unparse_object(player, hostdb_flushplyr, bufu));
+		}
         if (hostdb_flushtime)
             anotify_fmt(player, "  Entries flushed:    %ld", hostdb_flushed);
     }

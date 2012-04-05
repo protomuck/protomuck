@@ -195,9 +195,6 @@ check_cron_time(void)
             strcpy(match_cmdname, "Cron Event");
             tempfr = interp(-1, (dbref) -1, (dbref) -1, tp_cron_prog,
                             (dbref) -4, BACKGROUND, STD_REGUID, 0);
-            if (tempfr) {
-                interp_loop((dbref) -1, tp_cron_prog, tempfr, 0);
-            }
         }
     }
 }

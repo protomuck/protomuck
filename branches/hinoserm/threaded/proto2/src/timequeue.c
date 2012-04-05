@@ -127,10 +127,13 @@ free_timenode(timequeue ptr)
                         curdescr->block = 0;
                 }
             }
-			if (ptr->running)
+			if (ptr->running) {
 				ptr->fr->err = -1;
-			else
+				mutex_lock(ptr->fr->mutx);
+				mutex_unlock(ptr->fr->mutx);
+			} else
 				prog_clean(ptr->fr);
+
         }
         if (ptr->typ == TQ_MUF_TYP && (ptr->subtyp == TQ_MUF_READ ||
                                        ptr->subtyp == TQ_MUF_TREAD)) {
@@ -528,6 +531,9 @@ next_timequeue_event(struct thread_data *thread)
 		if (rtime >= event->when)
 			break;
 	}
+	
+	if (event)
+	remove_timenode(event);
 
 	mutex_unlock(tq_mutex);
 
@@ -587,7 +593,7 @@ next_timequeue_event(struct thread_data *thread)
                             tmpbl = curdescr->block;
                     }
                     tmpfg = (event->fr->multitask != BACKGROUND);
-                    interp_loop(event->uid, event->called_prog, event->fr, 0);
+                    interp_loop(event->uid, event->called_prog, event->fr, 0, thread);
                     if (!tmpfg) {
                         if (OkObj(event->uid)) {
                             //DBFETCH(event->uid)->sp.player.block = tmpbl;
@@ -612,16 +618,13 @@ next_timequeue_event(struct thread_data *thread)
                     tmpfr = interp(event->descr, event->uid, event->loc,
                                    event->called_prog, event->trig, BACKGROUND,
                                    STD_HARDUID, forced_pid);
-                    if (tmpfr) {
-                        interp_loop(event->uid, event->called_prog, tmpfr, 0);
-                    }
                 }
             }
         }
-		event->fr = NULL;
-
+		
 		mutex_lock(tq_mutex);
-		remove_timenode(event);
+		event->fr = NULL;
+		//remove_timenode(event);
 		free_timenode(event);
 
 		mutex_unlock(tq_mutex);
@@ -976,6 +979,30 @@ get_pidinfo(int pid)
     }
     return nw;
 }
+int
+dequeue_frame(struct frame *fr)
+{
+
+    timequeue event;
+	int count = 0;
+
+	mutex_lock(tq_mutex);
+
+    for (event = tqhead; event; event = event->next) {
+        if (event->fr == fr) {
+			event->fr = NULL;
+			timequeue tmp = event;
+			event = event->next;
+			remove_timenode(tmp);
+			free_timenode(tmp);
+			count++;
+		}
+	}
+
+	mutex_unlock(tq_mutex);
+
+	return count;
+}
 
 /*
  * Sleeponly values:
@@ -995,8 +1022,8 @@ dequeue_prog(dbref program, int sleeponly)
         if (event && ((event->called_prog == program) || has_refs(program, event) || (event->uid == program)) && ((event->fr) ? (!((event->fr->multitask == BACKGROUND) && (sleeponly == 2))) : (!sleeponly))) {
 			timequeue tmp = event;
 			event = event->next;
-			remove_timenode(event);
-			free_timenode(event);
+			remove_timenode(tmp);
+			free_timenode(tmp);
 			count++;
 		}
 	}
@@ -1410,9 +1437,6 @@ propqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
                     strcpy(match_cmdname, "Queued event.");
                     tmpfr = interp(descr, player, where, the_prog, trigger,
                                    BACKGROUND, STD_HARDUID, 0);
-                    if (tmpfr) {
-                        interp_loop(player, the_prog, tmpfr, 0);
-                    }
                 }
                 propq_level--;
             } else {
