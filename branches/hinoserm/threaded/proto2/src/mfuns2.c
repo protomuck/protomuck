@@ -19,12 +19,9 @@
 const char *
 mfn_match(MFUNARGS)
 {
-    char tmppp[BUFFER_LEN];
     struct match_data md;
     dbref ref;
 
-    (void) strcpy(buf, match_args);
-    (void) strcpy(tmppp, match_cmdname);
     init_match(descr, player, argv[0], NOTYPE, &md);
     if (argv[0][0] == REGISTERED_TOKEN) {
         match_registered(&md);
@@ -41,8 +38,7 @@ mfn_match(MFUNARGS)
         match_player(&md);
     }
     ref = match_result(&md);
-    (void) strcpy(match_args, buf);
-    (void) strcpy(match_cmdname, tmppp);
+
     sprintf(buf, "#%d", ref);
     return buf;
 }
@@ -1434,7 +1430,7 @@ mfn_kill(MFUNARGS)
             i = 0;
         }
     } else if (i == 0) {
-        i = dequeue_prog(perms, 0);
+        i = dequeue_prog(perms, 0, NULL);
     } else {
         ABORT_MPI("KILL", "Invalid process ID.");
     }
@@ -1466,15 +1462,14 @@ mfn_muf(MFUNARGS)
     if (++mpi_muf_call_levels > 18)
         ABORT_MPI("MUF", "Too many call levels.");
 
-    strcpy(match_args, argv[1]);
     ptr = get_mvar("how");
-    strcpy(match_cmdname, ptr);
-    strcat(match_cmdname, "(MPI)");
+    strcpy(buf, ptr);
+    strcat(buf, "(MPI)");
     tmpfr =
         interp(descr, player, DBFETCH(player)->location, obj, perms, PREEMPT,
-               STD_HARDUID, 0);
+               STD_HARDUID, 0, argv[1], buf, 0);
     if (tmpfr) {
-        rv = interp_loop(player, obj, tmpfr, 1, NULL);
+        rv = interp_loop(player, obj, tmpfr, 1, NULL, NULL, NULL);
     }
 
     mpi_muf_call_levels--;

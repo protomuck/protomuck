@@ -368,7 +368,6 @@ pem_passwd_cb(char *buf, int size, int rwflag, void *userdata)
 
 //#ifdef MALLOC_PROFILING
 extern void free_old_macros(void);
-extern void purge_all_free_frames(void);
 extern void purge_mfns(void);
 extern void cleanup_game(void);
 extern void tune_freeparms(void);
@@ -416,6 +415,8 @@ main(int argc, char **argv)
 #endif
 
 	timequeue_init();
+
+	//_CrtSetDbgFlag(_CRTDBG_CHECK_ALWAYS_DF);
 
     strcpy(restart_message, "\r\nServer restarting, be back in a few!\r\n");
     strcpy(shutdown_message, "\r\nServer shutting down, be back in a few!\r\n");
@@ -799,7 +800,6 @@ main(int argc, char **argv)
 
 #ifdef MALLOC_PROFILING
         free_old_macros();
-        purge_all_free_frames();
         purge_timenode_free_pool();
         purge_for_pool();
         purge_for_pool();       /* 2nd time is needed to completely purge */
@@ -1306,13 +1306,9 @@ notify_nolisten(dbref player, const char *msg, int isprivate)
                         prefix = GETPECHO(player);
 
                         if (prefix && *prefix) {
-                            char ch = *match_args;
-
-                            *match_args = '\0';
                             prefix = do_parse_mesg(-1, player, player, prefix,
                                                    "(@Pecho)", pbuf,
-                                                   MPI_ISPRIVATE);
-                            *match_args = ch;
+                                                   MPI_ISPRIVATE, "", "");
                         }
                         if (!prefix || !*prefix) {
                             prefix = NAME(player);
@@ -1404,13 +1400,9 @@ notify_html_nolisten(dbref player, const char *msg, int isprivate)
                         prefix = GETPECHO(player);
 
                         if (prefix && *prefix) {
-                            char ch = *match_args;
-
-                            *match_args = '\0';
                             prefix = do_parse_mesg(-1, player, player, prefix,
                                                    "(@Pecho)", pbuf,
-                                                   MPI_ISPRIVATE);
-                            *match_args = ch;
+                                                   MPI_ISPRIVATE, "", "");
                         }
                         if (!prefix || !*prefix) {
                             prefix = NAME(player);
@@ -1720,7 +1712,6 @@ idleboot_user(struct descriptor_data *d)
 
 static int con_players_max = 0; /* one of Cynbe's good ideas. */
 static int con_players_curr = 0; /* for playermax checks. */
-extern void purge_free_frames(void);
 
 time_t current_systime = 0;
 time_t startup_systime = 0;
@@ -1908,7 +1899,6 @@ shovechars(void)
         process_commands();     /* Process player commands in game.c */
         muf_event_process();    /* Process MUF events in mufevents.c */
 
-        purge_free_frames();
         untouchprops_incremental(1);
 
         if (delayed_shutdown && current_systime >= delayed_shutdown ) {
@@ -1959,7 +1949,7 @@ shovechars(void)
                     d->booted = 0;
 #ifdef NEWHTTPD
                     if (d->type == CT_HTTP) {
-                        struct frame *tmpfr;
+                        //struct frame *tmpfr;
 
                         //if ((tmpfr = timequeue_pid_frame(d->http->pid))
                         //    && tmpfr->descr == d->descriptor)
@@ -2053,13 +2043,15 @@ shovechars(void)
 	}
 #endif
 
-
-
         tmptq = next_muckevent_time();
         if ((tmptq >= 0L) && (timeout.tv_sec > tmptq)) {
             timeout.tv_sec = (long)tmptq + (tp_pause_min / 1000);
             timeout.tv_usec = (tp_pause_min % 1000) * 1000L;
         }
+		
+
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 100000;
         gettimeofday(&sel_in, NULL);
         if (select(maxd, &input_set, &output_set, (fd_set *) 0, &timeout) < 0) {
             if (errnosocket != EINTR) { /* select() returned crit error */
@@ -4092,10 +4084,8 @@ process_commands(void)
                     && (d->booted != 3)) {
                     struct frame *tmpfr;
 
-                    strcpy(match_args, "MUF");
-                    strcpy(match_cmdname, "Queued Event.");
                     tmpfr = interp(d->descriptor, NOTHING, NOTHING, mufprog,
-                                   (dbref) 0, FOREGROUND, STD_HARDUID, 0);
+                                   (dbref) 0, FOREGROUND, STD_HARDUID, 0, "MUF", "Queued Event.", 1);
                     d->booted = 3;
                     continue;
                 }
@@ -4146,7 +4136,6 @@ process_commands(void)
                             struct frame *tmpfr;
 
                             command = QUIT_COMMAND;
-                            strcpy(match_cmdname, QUIT_COMMAND);
                             strcpy(buf, command + sizeof(QUIT_COMMAND) - 1);
                             msg = buf;
                             full_command = strcpy(xbuf, msg);
@@ -4154,11 +4143,11 @@ process_commands(void)
                                  full_command++) ;
                             if (*full_command)
                                 full_command++;
-                            strcpy(match_args, full_command);
+
                             tmpfr = interp(d->descriptor, d->player,
                                            DBFETCH(d->player)->location,
                                            tp_quit_prog, (dbref) -5, FOREGROUND,
-                                           STD_REGUID, 0);
+                                           STD_REGUID, 0, full_command, QUIT_COMMAND, 1);
                         } else {
                             d->booted = 2;
                         }
@@ -4246,7 +4235,7 @@ do_command(struct descriptor_data *d, struct text_block *t)
         if (!d->connected || !OkObj(d->player)) {
             return 0;           /* don't bother dealing with #-1 READ programs, just QUIT */
         } else if (Wiz(d->player) || MLevel(d->player) >= tp_min_progbreak_lev) {
-            if (dequeue_prog(d->player, 2)) {
+            if (dequeue_prog(d->player, 2, NULL)) {
                 if (d->output_prefix) {
                     queue_ansi(d, d->output_prefix);
                     queue_write(d, "\r\n", 2);
@@ -4295,7 +4284,6 @@ do_command(struct descriptor_data *d, struct text_block *t)
                     && Typeof(tp_login_who_prog) == TYPE_PROGRAM) {
                     char *full_command, xbuf[BUFFER_LEN], *msg;
 
-                    strcpy(match_cmdname, WHO_COMMAND);
                     strcpy(buf, command + sizeof(WHO_COMMAND) - 1);
                     msg = buf;
                     full_command = strcpy(xbuf, msg);
@@ -4303,9 +4291,8 @@ do_command(struct descriptor_data *d, struct text_block *t)
                          full_command++) ;
                     if (*full_command)
                         full_command++;
-                    strcpy(match_args, full_command);
                     tmpfr = interp(d->descriptor, -1, -1, tp_login_who_prog,
-                                   (dbref) -5, FOREGROUND, STD_REGUID, 0);
+                                   (dbref) -5, FOREGROUND, STD_REGUID, 0, full_command, WHO_COMMAND, 1);
                 } else {
                     dump_users(d, command + sizeof(WHO_COMMAND) - 1);
                 }
@@ -5018,8 +5005,6 @@ do_armageddon(dbref player, const char *msg)
 
 #ifdef MALLOC_PROFILING
         free_old_macros();
-        purge_all_free_frames();
-        purge_timenode_free_pool();
         purge_for_pool();
         purge_for_pool();       /* 2nd time is needed to completely purge */
         purge_try_pool();       /* 3rd time is needed to... oh... wait... */
@@ -5486,7 +5471,7 @@ announce_disconnect(struct descriptor_data *d)
 
     total_loggedin_connects--;
 
-    if (dequeue_prog(player, 2))
+    if (dequeue_prog(player, 2, NULL))
         anotify(player, CINFO "Foreground program aborted.");
     if (!tp_quiet_connects) {
         if ((!Dark(player)) && (!Dark(loc)) && (!Hidden(player))) {

@@ -260,6 +260,7 @@ do_abort_compile(COMPSTATE *cstat, const char *c)
     cleanup(cstat);
     cleanpubs(cstat->currpubs);
     cstat->currpubs = NULL;
+	//dequeue_prog(cstat->program, 1);
     free_prog(cstat->program);
     cleanpubs(DBFETCH(cstat->program)->sp.program.pubs);
     DBFETCH(cstat->program)->sp.program.pubs = NULL;
@@ -847,7 +848,7 @@ void
 uncompile_program(dbref i)
 {
     /* free program */
-    (void) dequeue_prog(i, 0);
+    (void) dequeue_prog(i, 1, NULL);
     free_prog(i);
     cleanpubs(DBFETCH(i)->sp.program.pubs);
     DBFETCH(i)->sp.program.pubs = NULL;
@@ -1579,7 +1580,7 @@ OptimizeIntermediate(COMPSTATE *cstat)
 /* overall control code.  Does piece-meal tokenization parsing and
    backward checking.                                            */
 void
-do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
+do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, struct frame *exclude)
 {
     const char *token;
     struct INTERMEDIATE *new_word;
@@ -1638,7 +1639,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display)
     /* free old stuff */
     if (DBFETCH(cstat.program)->sp.program.siz)
         /* only dequeue if compiled */
-        (void) dequeue_prog(cstat.program, 0);
+        (void) dequeue_prog(cstat.program, 1, exclude);
     free_prog(cstat.program);
     cleanpubs(DBFETCH(cstat.program)->sp.program.pubs);
     DBFETCH(cstat.program)->sp.program.pubs = NULL;
@@ -2267,17 +2268,11 @@ do_directive(COMPSTATE *cstat, char *direct)
         if (!tmpname)
             abort_compile(cstat, "Unexpected end of file for ifcancall.");
         if (string_compare(tmpname, "this")) {
-            char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
-
-            strcpy(tempa, match_args);
-            strcpy(tempb, match_cmdname);
             init_match(cstat->descr, cstat->player, tmpname, NOTYPE, &md);
             match_registered(&md);
             match_absolute(&md);
             match_me(&md);
             i = (int) match_result(&md);
-            strcpy(match_args, tempa);
-            strcpy(match_cmdname, tempb);
         } else {
             i = cstat->program;
         }
@@ -2300,7 +2295,7 @@ do_directive(COMPSTATE *cstat, char *direct)
 
             tmpline = DBFETCH(i)->sp.program.first;
             DBFETCH(i)->sp.program.first = ((struct line *) read_program(i));
-            do_compile(cstat->descr, OWNER(i), i, 0);
+            do_compile(cstat->descr, OWNER(i), i, 0, NULL); //TODO: Potentially need to pass exclude here.  -hinoserm
             free_prog_text(DBFETCH(i)->sp.program.first);
             DBFETCH(i)->sp.program.first = tmpline;
         }
@@ -2351,17 +2346,11 @@ do_directive(COMPSTATE *cstat, char *direct)
             abort_compile(cstat,
                           "Unexpected end of file while doing $include.");
         if (string_compare(tmpname, "this")) {
-            char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
-
-            strcpy(tempa, match_args);
-            strcpy(tempb, match_cmdname);
             init_match(cstat->descr, cstat->player, tmpname, NOTYPE, &md);
             match_registered(&md);
             match_absolute(&md);
             match_me(&md);
             i = (int) match_result(&md);
-            strcpy(match_args, tempa);
-            strcpy(match_cmdname, tempb);
         } else {
             i = cstat->program;
         }
@@ -2422,17 +2411,11 @@ do_directive(COMPSTATE *cstat, char *direct)
         if (!tmpname)
             abort_compile(cstat, "Unexpected end of file while doing $ifver.");
         if (string_compare(tmpname, "this")) {
-            char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
-
-            strcpy(tempa, match_args);
-            strcpy(tempb, match_cmdname);
             init_match(cstat->descr, cstat->player, tmpname, NOTYPE, &md);
             match_registered(&md);
             match_absolute(&md);
             match_me(&md);
             i = (int) match_result(&md);
-            strcpy(match_args, tempa);
-            strcpy(match_cmdname, tempb);
         } else {
             i = cstat->program;
         }
@@ -2508,17 +2491,11 @@ do_directive(COMPSTATE *cstat, char *direct)
         if (!tmpname)
             abort_compile(cstat, "Unexpected end of file while doing $ifver.");
         if (string_compare(tmpname, "this")) {
-            char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
-
-            strcpy(tempa, match_args);
-            strcpy(tempb, match_cmdname);
             init_match(cstat->descr, cstat->player, tmpname, NOTYPE, &md);
             match_registered(&md);
             match_absolute(&md);
             match_me(&md);
             i = (int) match_result(&md);
-            strcpy(match_args, tempa);
-            strcpy(match_cmdname, tempb);
         } else {
             i = cstat->program;
         }
@@ -2636,17 +2613,11 @@ do_directive(COMPSTATE *cstat, char *direct)
             abort_compile(cstat,
                           "Unexpected end of file while doing $include.");
         {
-            char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
-
-            strcpy(tempa, match_args);
-            strcpy(tempb, match_cmdname);
             init_match(cstat->descr, cstat->player, tmpname, NOTYPE, &md);
             match_registered(&md);
             match_absolute(&md);
             match_me(&md);
             i = (int) match_result(&md);
-            strcpy(match_args, tempa);
-            strcpy(match_cmdname, tempb);
         }
         free(tmpname);
         if ((!OkObj(i)
@@ -2739,17 +2710,11 @@ do_directive(COMPSTATE *cstat, char *direct)
                           "Unexpected end of file while doing $include.");
         if (!number(tmpname)) {
             {
-                char tempa[BUFFER_LEN], tempb[BUFFER_LEN];
-
-                strcpy(tempa, match_args);
-                strcpy(tempb, match_cmdname);
                 init_match(cstat->descr, cstat->player, tmpname, NOTYPE, &md);
                 match_registered(&md);
                 match_absolute(&md);
                 match_me(&md);
                 i = (int) match_result(&md);
-                strcpy(match_args, tempa);
-                strcpy(match_cmdname, tempb);
             }
             free(tmpname);
             if (!OkObj(i)

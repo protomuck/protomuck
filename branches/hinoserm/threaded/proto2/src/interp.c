@@ -456,73 +456,6 @@ int valid_object(struct inst *oper);
 
 int top_pid = 1;
 
-static struct frame *free_frames_list = NULL;
-
-struct forvars *for_pool = NULL;
-struct forvars **last_for = &for_pool;
-struct tryvars *try_pool = NULL;
-struct tryvars **last_try = &try_pool;
-
-void
-purge_free_frames(void)
-{
-    struct frame *ptr, *ptr2;
-    int count = tp_free_frames_pool;
-
-    for (ptr = free_frames_list; ptr && --count > 0; ptr = ptr->next) ;
-    while (ptr && ptr->next) {
-        ptr2 = ptr->next;
-        ptr->next = ptr->next->next;
-        free(ptr2);
-    }
-}
-
-void
-purge_all_free_frames(void)
-{
-    struct frame *ptr;
-
-    while (free_frames_list) {
-        ptr = free_frames_list;
-        free_frames_list = ptr->next;
-        free(ptr);
-    }
-}
-
-void
-purge_for_pool(void)
-{
-    struct forvars *cur, *next;
-
-    cur = *last_for;
-    *last_for = NULL;
-    last_for = &for_pool;
-
-    while (cur) {
-        next = cur->next;
-        free(cur);
-        cur = next;
-    }
-}
-
-
-void
-purge_try_pool(void)
-{
-    struct tryvars *cur, *next;
-
-    cur = *last_try;
-    *last_try = NULL;
-    last_try = &try_pool;
-
-    while (cur) {
-        next = cur->next;
-        free(cur);
-        cur = next;
-    }
-}
-
-
 void
 muf_funcprof_enter(struct frame *fr, const char *funcname)
 {
@@ -598,7 +531,7 @@ muf_funcprof_exit(struct frame *fr, dbref prog)
  */
 struct frame *
 interp(int descr, dbref player, dbref location, dbref program,
-       dbref source, int nosleeps, int whichperms, int forced_pid)
+       dbref source, int nosleeps, int whichperms, int forced_pid, const char *match_args, const char *match_cmdname, int queueit)
 {
     struct frame *fr;
     int i;
@@ -620,24 +553,24 @@ interp(int descr, dbref player, dbref location, dbref program,
         anotify_nolisten(PSafe, CFAIL "Program call: Permission denied.", 1);
         return 0;
     }
-    if (free_frames_list) {
-        fr = free_frames_list;
-        free_frames_list = fr->next;
-    } else {
-        fr = (struct frame *) malloc(sizeof(struct frame));
-    }
+
+    if (!(fr = (struct frame *) malloc(sizeof(struct frame)))) {
+		log_status("COULD NOT ALLOCATE PROGRAM FRAME\r\n");
+		return NULL;
+	}
+
     fr->next = NULL;
     fr->pid = forced_pid ? forced_pid : top_pid++;
     fr->descr = descr;
     fr->multitask = nosleeps;
     fr->perms = whichperms;
-    fr->use_interrupts = 1;
+   /* fr->use_interrupts = 1;
     fr->interrupt_count = 0;
     fr->interrupts = NULL;
     fr->ainttop = NULL;
     fr->aintbot = NULL;
     fr->qitem = NULL;
-    fr->interrupted = 0;
+    fr->interrupted = 0;*/
     fr->already_created = 0;
     fr->been_background = (nosleeps == 2);
     fr->trig = source;
@@ -760,7 +693,10 @@ interp(int descr, dbref player, dbref location, dbref program,
     push(fr->argument.st, &(fr->argument.top), PROG_STRING, *match_args ?
          MIPSCAST alloc_prog_string(match_args) : 0);
 
-	//if (nosleeps != PREEMPT)
+	strcpy(fr->match_args, match_args);
+	strcpy(fr->match_cmdname, match_cmdname);
+
+	if (queueit)
        add_muf_delay_event(0, descr, player, location, source, program, fr, (fr->multitask == FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
 
     return fr;
@@ -777,15 +713,7 @@ copy_fors(struct forvars *forstack)
     struct forvars *last = NULL;
 
     for (in = forstack; in; in = in->next) {
-        if (!for_pool) {
-            nu = (struct forvars *)malloc(sizeof(struct forvars));
-        } else {
-            nu = for_pool;
-            if (*last_for == for_pool->next) {
-                last_for = &for_pool;
-            }
-            for_pool = nu->next;
-        }
+        nu = (struct forvars *)malloc(sizeof(struct forvars));
 
         nu->didfirst = in->didfirst;
         copyinst(&in->cur, &nu->cur);
@@ -809,15 +737,7 @@ push_for(struct forvars *forstack)
 {
     struct forvars *nw;
 
-    if (!for_pool) {
-        nw = (struct forvars *) malloc(sizeof(struct forvars));
-    } else {
-        nw = for_pool;
-        if (*last_for == for_pool->next) {
-            last_for = &for_pool;
-        }
-        for_pool = nw->next;
-    }
+    nw = (struct forvars *) malloc(sizeof(struct forvars));
     nw->next = forstack;
     return nw;
 }
@@ -828,11 +748,8 @@ pop_for(struct forvars *forstack)
     struct forvars *newstack;
 
     newstack = forstack->next;
-    forstack->next = for_pool;
-    for_pool = forstack;
-    if (last_for == &for_pool) {
-        last_for = &(for_pool->next);
-    }
+    free((void *)forstack);
+
     return newstack;
 }
 
@@ -845,16 +762,7 @@ copy_trys(struct tryvars *trystack)
     struct tryvars *last = NULL;
 
     for (in = trystack; in; in = in->next) {
-        if (!try_pool) {
-            nu = (struct tryvars *)malloc(sizeof(struct tryvars));
-        } else {
-            nu = try_pool;
-            if (*last_try == try_pool->next) {
-                last_try = &try_pool;
-            }
-            try_pool = nu->next;
-        }
-
+        nu = (struct tryvars *)malloc(sizeof(struct tryvars));
         nu->depth = in->depth;
         nu->call_level = in->call_level;
         nu->for_count = in->for_count;
@@ -878,15 +786,8 @@ push_try(struct tryvars *trystack)
 {
     struct tryvars *nu;
 
-    if (!try_pool) {
-        nu = (struct tryvars *) malloc(sizeof(struct tryvars));
-    } else {
-        nu = try_pool;
-        if (*last_try == try_pool->next) {
-            last_try = &try_pool;
-        }
-        try_pool = nu->next;
-    }
+    nu = (struct tryvars *) malloc(sizeof(struct tryvars));
+    
     nu->next = trystack;
     return nu;
 }
@@ -897,11 +798,7 @@ pop_try(struct tryvars *trystack)
     struct tryvars *newstack;
 
     newstack = trystack->next;
-    trystack->next = try_pool;
-    try_pool = trystack;
-    if (last_try == &try_pool) {
-        last_try = &(try_pool->next);
-    }
+	free((void *)trystack);
     return newstack;
 }
 
@@ -976,9 +873,10 @@ void
 prog_clean(struct frame *fr)
 {
     int i;
-    struct frame *ptr;
     time_t now;
     struct funcprof *fpr;
+
+	mutex_lock(fr->mutx);
 
     now = time(NULL);
 
@@ -1008,20 +906,6 @@ prog_clean(struct frame *fr)
 #endif
 #endif /* MUF_SOCKETS */
 
-    for (ptr = free_frames_list; ptr; ptr = ptr->next) {
-        if (ptr == fr) {
-            time_t lt;
-            char buf[40];
-
-            lt = time(NULL);
-            format_time(buf, 32, "%c", localtime(&lt));
-            fprintf(stderr, "%.32s:", buf);
-            fprintf(stderr,
-                    "prog_clean(): Tried to free an already freed program frame!\n");
-            abort();            /* abort, since this is a critical error */
-        }
-    }
-
     watchpid_process(fr);
 
     fr->system.top = 0;
@@ -1041,15 +925,13 @@ prog_clean(struct frame *fr)
         struct forvars **loop = &(fr->fors.st);
 
         while (*loop) {
-            CLEAR(&((*loop)->cur));
-            CLEAR(&((*loop)->end));
-            loop = &((*loop)->next);
+			struct forvars **tmpl = loop;
+			loop = &((*tmpl)->next);
+            CLEAR(&((*tmpl)->cur));
+            CLEAR(&((*tmpl)->end));
+			free((void *)*tmpl);
         }
-        *loop = for_pool;
-        if (last_for == &for_pool) {
-            last_for = loop;
-        }
-        for_pool = fr->fors.st;
+
         fr->fors.st = NULL;
         fr->fors.top = 0;
     }
@@ -1058,15 +940,10 @@ prog_clean(struct frame *fr)
         struct tryvars **loop = &(fr->trys.st);
 
         while (*loop) {
-            loop = &((*loop)->next);
+			struct tryvars **tmpl = loop;
+            loop = &((*tmpl)->next);
+			free((void *)*tmpl);
         }
-        *loop = try_pool;
-        if (last_try == &try_pool) {
-            last_try = loop;
-        }
-        try_pool = fr->trys.st;
-        fr->trys.st = NULL;
-        fr->trys.top = 0;
     }
 
     fr->argument.top = 0;
@@ -1085,25 +962,24 @@ prog_clean(struct frame *fr)
     muf_dlog_purge(fr);
 #endif
 
-	mutex_free(fr->mutx);
-
     dequeue_timers(fr->pid, NULL);
     muf_event_purge(fr);
-    muf_interrupt_clean(fr);
+    //muf_interrupt_clean(fr);
     /* muf_event_dequeue_frame(fr); */
     fr->pid = 0;                /* cleared to keep socket events from hitting it again */
-    fr->err = 0;
+    fr->err = -8;
     muf_oper_clean(fr, __FILE__, __LINE__);
-    fr->next = free_frames_list;
-    free_frames_list = fr;
-
 	while (fr->fprofile) {
 		fpr = fr->fprofile->next;
                 if (fr->fprofile->funcname)
 		    free((void *)fr->fprofile->funcname);
                 free((void *)fr->fprofile);
 		fr->fprofile = fpr;
-	}	
+	}
+
+	mutex_unlock(fr->mutx);
+	mutex_free(fr->mutx);
+	free((void *)fr);
 }
 
 void
@@ -1325,7 +1201,7 @@ interp_set_depth(struct frame *fr)
 }
 
 struct inst *
-interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct thread_data *thread)
+interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct thread_data *thread, int *err, timequeue event)
 {
     struct inst *pc;
     int atop;
@@ -1353,6 +1229,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
     }
 
     /* load everything into local stuff */
+	if (err)
+		*err = 1;
     pc = fr->pc;
     atop = fr->argument.top;
     stop = fr->system.top;
@@ -1367,7 +1245,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
 
         tmpline = DBFETCH(program)->sp.program.first;
         DBFETCH(program)->sp.program.first = read_program(program);
-        do_compile(-1, OWNER(program), program, 0);
+        do_compile(-1, OWNER(program), program, 0, fr);
         free_prog_text(DBFETCH(program)->sp.program.first);
         DBSTORE(program, sp.program.first, tmpline);
         pc = fr->pc = DBFETCH(program)->sp.program.start;
@@ -1392,11 +1270,9 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
         gettimeofday(&current_time, NULL);
 	}
 
-	mutex_unlock(fr->mutx);
-
     /* This is the 'natural' way to exit a function */
     while (stop) {
-		mutex_lock(fr->mutx);
+		//mutex_lock(fr->mutx);
         /* Stores the time of the last shutdown processed instead of 1, just in
          * case I add the ability to cancel a delayed shutdown later. -brevantes */
         if (delayed_shutdown && (fr->shutdown_seen < delayed_shutdown)) {
@@ -1410,23 +1286,23 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
         if (++instr_count < 0) instr_count = 0;
 
         /* if there's an interrupt in queue && it hasn't had it's return set yet... */
-        if (fr->ainttop && !fr->ainttop->ret) {
-            struct muf_ainterrupt *a = fr->ainttop;
-
-            sys[stop].progref = program;
-            sys[stop++].offset = pc; /* create return point for EXIT */
-            a->ret = pc;        /* store program's current execution point. */
-            pc = a->interrupt->addr; /* change program's current execution point */
-            fr->interrupted++;
-            fr->interrupt_count++;
-
-            copyinst(a->data, arg + atop);
-            arg[++atop].type = PROG_STRING;
-            arg[atop++].data.string = alloc_prog_string(a->eventid);
-            arg[atop].type = PROG_STRING;
-            arg[atop++].data.string = alloc_prog_string(a->interrupt->id);
-            /* log_status("muf_interrupt_interp():  %p\n", fr->ainttop); */ /* For debugging. */
-        }
+        //if (fr->ainttop && !fr->ainttop->ret) {
+        //    struct muf_ainterrupt *a = fr->ainttop;
+		//
+        //    sys[stop].progref = program;
+        //    sys[stop++].offset = pc; /* create return point for EXIT */
+        //    a->ret = pc;        /* store program's current execution point. */
+        //    pc = a->interrupt->addr; /* change program's current execution point */
+        //    fr->interrupted++;
+        //    fr->interrupt_count++;
+		//
+        //    copyinst(a->data, arg + atop);
+        //    arg[++atop].type = PROG_STRING;
+        //    arg[atop++].data.string = alloc_prog_string(a->eventid);
+        //    arg[atop].type = PROG_STRING;
+        //    arg[atop++].data.string = alloc_prog_string(a->interrupt->id);
+        //    /* log_status("muf_interrupt_interp():  %p\n", fr->ainttop); */ /* For debugging. */
+        //}
 	if (fr->level >= 64)
 	    abort_loop("Maximum interp depth exceeded. (64)", NULL, NULL);
         if (fr->preemptlimit)
@@ -1460,13 +1336,15 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                     if ((curdescr = get_descr(fr->descr, NOTHING)))
                         curdescr->block = !(fr->been_background);
                 }
-                add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
-                                    program, fr,
-                                    (fr->multitask ==
-                                     FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
+                //add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
+                //                    program, fr,
+                //                    (fr->multitask ==
+                //                     FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
                 fr->level--;
                 calc_profile_timing(program, fr);
 				mutex_unlock(fr->mutx);
+				if (err) 
+					*err = 0;
                 return NULL;
             }
         }
@@ -1536,7 +1414,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                                 program = sys[--stop].progref;
                                 pc = sys[stop].offset;
                             }
-                            add_muf_read_event(fr->descr, player, program, fr);
+
+                            alter_event(TQ_MUF_TYP, TQ_MUF_READ, -1, fr->descr, player, -1, fr->trig, program, fr, "READ", NULL, NULL);
                             reload(fr, atop, stop);
                             fr->pc = pc;
                             fr->brkpt.isread = 0;
@@ -1571,6 +1450,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                             calc_profile_timing(program, fr);
 
 							mutex_unlock(fr->mutx);
+							if (err) 
+								*err = 0;
                             return NULL;
                         }
                     }
@@ -1886,7 +1767,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                             DBFETCH(temp1->data.objref)->sp.program.first =
                                 read_program(temp1->data.objref);
                             do_compile(-1, OWNER(temp1->data.objref),
-                                       temp1->data.objref, 0);
+                                       temp1->data.objref, 0, NULL);
                             free_prog_text(DBFETCH(temp1->data.objref)->sp.
                                            program.first);
                             DBSTORE(temp1->data.objref, sp.program.first,
@@ -1972,25 +1853,27 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                         scopedvar_poplevel(fr);
                         pc = sys[--stop].offset;
 
-                        if (fr->ainttop && fr->ainttop->ret == pc) {
-                            if (muf_interrupt_exit(fr)) {
-                                /* if this function above returns a true value, it   */
-                                /*  means there was a timequeue item stored for this */
-                                /*  program, and it has already been restored into   */
-                                /*  the queue.  We need to stop program execution so */
-                                /*  that the new queue item can kick in next cycle.  */
+        //                if (fr->ainttop && fr->ainttop->ret == pc) {
+        //                    if (muf_interrupt_exit(fr)) {
+        //                        /* if this function above returns a true value, it   */
+        //                        /*  means there was a timequeue item stored for this */
+        //                        /*  program, and it has already been restored into   */
+        //                        /*  the queue.  We need to stop program execution so */
+        //                        /*  that the new queue item can kick in next cycle.  */
 
-                                reload(fr, atop, stop);
-                                fr->pc = pc;
-                                fr->level--;
-                                calc_profile_timing(program, fr);
+        //                        reload(fr, atop, stop);
+        //                        fr->pc = pc;
+        //                        fr->level--;
+        //                        calc_profile_timing(program, fr);
 
-								mutex_unlock(fr->mutx);
-                                return NULL;
-                            }
-                            /* a queuetype change wasn't needed, so we'll just keep */
-                            /*  running the program normally.                       */
-                        }
+								//mutex_unlock(fr->mutx);
+								//if (err) 
+								//	*err = 1;
+        //                        return NULL;
+        //                    }
+        //                    /* a queuetype change wasn't needed, so we'll just keep */
+        //                    /*  running the program normally.                       */
+        //                }
 
                         break;
 
@@ -2144,6 +2027,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                         calc_profile_timing(program, fr);
 
 						mutex_unlock(fr->mutx);
+						if (err) 
+							*err = 1;
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2167,11 +2052,13 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                                 curdescr->block = 0;
                             }
                         }
-                        add_muf_read_event(fr->descr, player, program, fr);
+						alter_event(TQ_MUF_TYP, TQ_MUF_READ, -1, fr->descr, player, -1, fr->trig, program, fr, "READ", NULL, NULL);
                         fr->level--;
                         calc_profile_timing(program, fr);
 
 						mutex_unlock(fr->mutx);
+						if (err) 
+							*err = 0;
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2205,12 +2092,13 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                                 DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
                             }
                         }
-                        add_muf_tread_event(fr->descr, player, program, fr,
-                                            temp1->data.number);
+						alter_event(TQ_MUF_TYP, TQ_MUF_TREAD, -1, fr->descr, player, temp1->data.number, fr->trig, program, fr, "TREAD", NULL, NULL);
                         fr->level--;
                         calc_profile_timing(program, fr);
 
 						mutex_unlock(fr->mutx);
+						if (err) 
+							*err = 0;
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2228,9 +2116,13 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                         if (temp1->data.number < 0)
                             abort_loop("Timetravel beyond scope of muf.", temp1,
                                        NULL);
-                        add_muf_delay_event(temp1->data.number, fr->descr,
-                                            player, NOTHING, NOTHING, program,
-                                            fr, string_dup("SLEEPING"));
+
+						alter_event(TQ_MUF_TYP, TQ_MUF_DELAY, temp1->data.number, fr->descr, player, temp1->data.number, fr->trig, program, fr, "SLEEPING", NULL, NULL);
+
+                        //add_muf_delay_event(temp1->data.number, fr->descr,
+                        //                    player, NOTHING, NOTHING, program,
+                        //                    fr, string_dup("SLEEPING"));
+
                         if (OkObj(player)) {
                             DBSTORE(player, sp.player.block,
                                     (!fr->been_background));
@@ -2242,6 +2134,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                         calc_profile_timing(program, fr);
 
 						mutex_unlock(fr->mutx);
+						if (err) 
+							*err = 1;
                         return NULL;
                         /* NOTREACHED */
                         break;
@@ -2329,15 +2223,18 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                 }
                 fr->level--;
                 calc_profile_timing(program, fr);
+				DBFETCH(program)->sp.program.instances--;
 				mutex_unlock(fr->mutx);
 				prog_clean(fr);
+				if (err) 
+					*err = 1;
                 return NULL;
             }
         }
-		mutex_unlock(fr->mutx);
+		//mutex_unlock(fr->mutx);
     }                           /* while */
 
-	mutex_lock(fr->mutx);
+	//mutex_lock(fr->mutx);
 
 /* TODO: We need to make it so that the checks below only
  *       happen if there are no other FOREGROUND programs
@@ -2368,7 +2265,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
         fr->level--;
 		mutex_unlock(fr->mutx);
 		prog_clean(fr);
-        
+        if (err)
+			*err = 1;
         return rv;
     }
     reload(fr, atop, stop);
@@ -2376,6 +2274,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
     calc_profile_timing(program, fr);
 	mutex_unlock(fr->mutx);
     prog_clean(fr);
+	if (err)
+		*err = 1;
     return NULL;
 }
 
@@ -2429,10 +2329,10 @@ interp_err(struct frame *fr, dbref player, dbref program, struct inst *pc,
     add_property(origprog, ".debug/lastplayer", NULL, (int) player);
     add_property(origprog, ".debug/lastcrashtime", tbuf, 0);
     add_property(origprog, ".debug/crashpid", NULL, (int) pid);
-    if (*match_cmdname)
-        add_property(origprog, ".debug/lastcmd", match_cmdname, 0);
-    if (*match_args)
-        add_property(origprog, ".debug/lastarg", match_args, 0);
+    if (*(fr->match_cmdname))
+        add_property(origprog, ".debug/lastcmd", fr->match_cmdname, 0);
+    if (*(fr->match_args))
+        add_property(origprog, ".debug/lastarg", fr->match_args, 0);
 
     if (origprog != program) {
         errcount = get_property_value(program, ".debug/errcount");

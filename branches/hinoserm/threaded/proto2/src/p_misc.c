@@ -294,10 +294,13 @@ prim_fork(PRIM_PROTOTYPE)
 {
     int i, result;
     struct frame *tmpfr;
-    
+	int err;
+
     CHECKOFLOW(1);
     fr->pc = pc;
-    tmpfr = (struct frame *) calloc(1, sizeof(struct frame));
+    if (!(tmpfr = (struct frame *) calloc(1, sizeof(struct frame))))
+		err = GetLastError();
+
     tmpfr->next = NULL;
     tmpfr->system.top = fr->system.top;
     for (i = 0; i < fr->system.top; i++)
@@ -695,7 +698,7 @@ prim_cancallp(PRIM_PROTOTYPE)
         tmpline = DBFETCH(oper[1].data.objref)->sp.program.first;
         DBFETCH(oper[1].data.objref)->sp.program.first =
             ((struct line *) read_program(oper[1].data.objref));
-        do_compile(fr->descr, OWNER(oper[1].data.objref), oper[1].data.objref, 0);
+        do_compile(fr->descr, OWNER(oper[1].data.objref), oper[1].data.objref, 0, fr);
         free_prog_text(DBFETCH(oper[1].data.objref)->sp.program.first);
         DBFETCH(oper[1].data.objref)->sp.program.first = tmpline;
     }
@@ -1029,7 +1032,7 @@ prim_onevent(PRIM_PROTOTYPE)
         abort_interp("Internal error.  Invalid address. (1)");
     if (program != oper[1].data.addr->progref)
         abort_interp("Destination address outside current program. (1)");
-    if ((e = muf_interrupt_find(fr, oper[2].data.string->data))) {
+ /*   if ((e = muf_interrupt_find(fr, oper[2].data.string->data))) {
         free((void *) e->event);
     } else {
         e = (struct muf_interrupt *) malloc(sizeof(struct muf_interrupt));
@@ -1042,7 +1045,7 @@ prim_onevent(PRIM_PROTOTYPE)
     }
     e->event = alloc_string(oper[3].data.string->data);
     e->addr = oper[1].data.addr->data;
-    e->keep = (oper[0].data.number != 0);
+    e->keep = (oper[0].data.number != 0);*/
     
 }
 void

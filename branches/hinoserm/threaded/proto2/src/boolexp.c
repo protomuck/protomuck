@@ -139,7 +139,7 @@ eval_boolexp_rec2(int descr, dbref player, struct boolexp *b, dbref thing,
                     tmpfr =
                         interp(descr, real_player,
                                DBFETCH(player)->location, b->thing, thing,
-                               PREEMPT, STD_HARDUID, 0);
+                               PREEMPT, STD_HARDUID, 0, "", "", 1);
 
                     if (!tmpfr)
                         return 0;

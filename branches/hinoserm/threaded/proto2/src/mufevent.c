@@ -492,8 +492,8 @@ muf_event_add(struct frame *fr, char *event, struct inst *val, int exclusive)
         return;
 
     /* check for and process interrupts */
-    if (muf_interrupt_check_byevent(fr, event, val))
-        return;
+    //if (muf_interrupt_check_byevent(fr, event, val))
+    //    return;
 
     newevent = (struct mufevent *) malloc(sizeof(struct mufevent));
     newevent->event = string_dup(event);
@@ -889,228 +889,234 @@ extern timequeue tqhead;        /* timequeue.c */
 /*   current queue items into fr->qitem for later requeueing.     */
 /*  If we didn't move the timequeue items like this, SLEEP and    */
 /*   EVENT_WAITFOR and READ would all break.  -Hinoserm           */
-static int
-muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
-                      const char *event, struct inst *val)
-{
-    struct muf_ainterrupt *a;
-
-	return 0; /* TODO -hinoserm */
-
-    a = (struct muf_ainterrupt *) malloc(sizeof(struct muf_ainterrupt));
-    a->interrupt = interrupt;
-    a->ret = NULL;
-    a->next = NULL;
-
-    /* log_status("muf_interrupt_process(): %p\n", a); */ /* for debugging */
-
-    if (!fr->ainttop)
-        fr->ainttop = a;
-
-    if (fr->aintbot)
-        fr->aintbot->next = a;
-    fr->aintbot = a;
-
-    if (fr->ainttop == a) {
-        struct mufevent_process *p;
-        struct muf_qitem *q =
-            (struct muf_qitem *) malloc(sizeof(struct muf_qitem));
-        q->type = 0;
-        fr->qitem = q;
-
-        /* this allows interrupt handler functions to use EVENT_WAITFOR */
-        for (p = mufevent_processes; p; p = p->next) {
-            if (p->fr == fr) {
-                if (p->next)
-                    p->next->prev = p->prev;
-                if (p->prev)
-                    p->prev->next = p->next;
-                else
-                    mufevent_processes = p->next;
-
-                p->prev = NULL;
-                p->next = NULL;
-
-                q->t.eq = p;
-                q->type = 1;
-                break;
-            }
-        }
-
-        if (!q->type) {
-            timequeue tmp, ptr;
-
-            tmp = ptr = tqhead;
-            while (ptr) {
-                if (fr == ptr->fr && ptr->typ == TQ_MUF_TYP
-                    && ptr->subtyp != TQ_MUF_TIMER) {
-                    q->type = 2;
-                    q->t.tq = ptr;
-                    if (tmp == ptr) {
-                        tqhead = tmp = tmp->next;
-                        ptr = tmp;
-                    } else {
-                        tmp->next = ptr->next;
-                        ptr = tmp->next;
-                    }
-                } else {
-                    tmp = ptr;
-                    ptr = ptr->next;
-                }
-            }
-        }
-
-        if (q->type) {
-            add_muf_delay_event(0, fr->descr, fr->player, NOTHING, NOTHING,
-                                fr->prog, fr, string_dup("INTERRUPT"));
-        } else {
-            free((void *) q);
-            fr->qitem = NULL;
-        }
-    }
-
-    a->data = (struct inst *) malloc(sizeof(struct inst));
-    copyinst(val, a->data);
-    a->eventid = string_dup(event);
-
-    return !(interrupt->keep);
-}
-
-static int
-muf_interrupt_requeue(struct muf_qitem *q)
-{
-	return q->type;
-
-    switch (q->type) {
-        case 1:
-            /* for putting back mufevent queue items */
-            if ((q->t.eq->next = mufevent_processes))
-                q->t.eq->next->prev = q->t.eq;
-            q->t.eq->prev = NULL;
-            mufevent_processes = q->t.eq;
-            break;
-        case 2:
-            /* for putting back standard timequeue items */
-            q->t.tq->next = tqhead;
-            tqhead = q->t.tq;
-            break;
-    }
-
-    return (int) q->type;
-}
-
-/* int muf_interrupt_exit():                                       */
-/*  Called from inside interp_loop() inside the EXIT prim, this    */
-/*   function is in charge of requeuing any previous timequeue     */
-/*   items, and also free()ing up the topmost active interrupt.    */
-/*  Returns 0 if the program can continue, otherwise q->type.      */
-int
-muf_interrupt_exit(struct frame *fr)
-{
-    struct muf_ainterrupt *a = fr->ainttop;
-    int qtype = 0;
-
-    if (!a)
-        return 0;
-
-    /* log_status("muf_interrupt_pop_act(): %p\n", a); */ /* for debugging */
-
-    if (!a->next) {
-        fr->interrupted = 0;
-        if (fr->qitem) {
-            qtype = muf_interrupt_requeue(fr->qitem);
-            free((void *) fr->qitem);
-            fr->qitem = NULL;
-        }
-    }
-
-    if (fr->aintbot == a)
-        fr->aintbot = a->next;
-    fr->ainttop = a->next;
-
-    CLEAR(a->data);
-    free((void *) a->eventid);
-    free((void *) a->data);
-    free((void *) a);
-
-    return qtype;
-}
-
-/* muf_interrupt muf_interrupt_find():                            */
-/*  This function searches through a program's interrupt list and */
-/*   returns it if found, NULL otherwise.  -Hinoserm              */
-struct muf_interrupt *
-muf_interrupt_find(struct frame *fr, const char *id)
-{
-    register struct muf_interrupt *e = fr->interrupts;
-
-    for (; e; e = e->next)
-        if (!strcmp(e->id, id))
-            return e;
-
-    return NULL;
-}
-
-/* int muf_interrupt_check_byevent():                             */
-/*  This function searches the frame's interrupt list and calls   */
-/*   muf_interrupt_process() if a match is found.  Returns the    */
-/*   number of interrupts thrown.  -Hinoserm */
-int
-muf_interrupt_check_byevent(struct frame *fr, register const char *event,
-                            struct inst *val)
-{
-    register struct muf_interrupt *i;
-    register int cnt = 0;
-
-	return 0;
-
-    if (!fr->use_interrupts)
-        return 0;
-
-    for (i = fr->interrupts; i; i = i->next)
-        if (equalstr(i->event, (char *) event))
-            cnt += muf_interrupt_process(fr, i, event, val);
-
-    return cnt;
-}
-
-/* void muf_interrupt_clean():                                    */
-/*  Called by prog_clean() to delete the frame's interrupt lists. */
-void
-muf_interrupt_clean(struct frame *fr)
-{
-    struct muf_interrupt *i = fr->interrupts, *tmp;
-    struct muf_ainterrupt *a = fr->ainttop, *atmp;
-    struct muf_qitem *q = fr->qitem;
-
-    while (i) {
-        tmp = i->next;
-        free((void *) i->id);
-        free((void *) i->event);
-        free((void *) i);
-        i = tmp;
-    }
-
-    while (a) {
-        atmp = a->next;
-        CLEAR(a->data);
-        free((void *) a->eventid);
-        free((void *) a->data);
-        free((void *) a);
-        a = atmp;
-    }
-
-    if (q) {
-        switch (q->type) {
-            case 1:
-                q->t.eq->fr = NULL;
-                muf_event_queue_pfree(q->t.eq);
-                break;
-            case 2:
-                q->t.tq->fr = NULL;
-                free_timenode(q->t.tq);
-                break;
-        }
-        free((void *) q);
-    }
-}
+//static int
+//muf_interrupt_process(struct frame *fr, struct muf_interrupt *interrupt,
+//                      const char *event, struct inst *val)
+//{
+//    struct muf_ainterrupt *a;
+//
+//	return 0; /* TODO -hinoserm */
+//
+//    a = (struct muf_ainterrupt *) malloc(sizeof(struct muf_ainterrupt));
+//    a->interrupt = interrupt;
+//    a->ret = NULL;
+//    a->next = NULL;
+//
+//    /* log_status("muf_interrupt_process(): %p\n", a); */ /* for debugging */
+//
+//    if (!fr->ainttop)
+//        fr->ainttop = a;
+//
+//    if (fr->aintbot)
+//        fr->aintbot->next = a;
+//    fr->aintbot = a;
+//
+//    if (fr->ainttop == a) {
+//        struct mufevent_process *p;
+//        struct muf_qitem *q =
+//            (struct muf_qitem *) malloc(sizeof(struct muf_qitem));
+//        q->type = 0;
+//        fr->qitem = q;
+//
+//        /* this allows interrupt handler functions to use EVENT_WAITFOR */
+//        for (p = mufevent_processes; p; p = p->next) {
+//            if (p->fr == fr) {
+//                if (p->next)
+//                    p->next->prev = p->prev;
+//                if (p->prev)
+//                    p->prev->next = p->next;
+//                else
+//                    mufevent_processes = p->next;
+//
+//                p->prev = NULL;
+//                p->next = NULL;
+//
+//                q->t.eq = p;
+//                q->type = 1;
+//                break;
+//            }
+//        }
+//
+//        if (!q->type) {
+//            timequeue tmp, ptr;
+//
+//            tmp = ptr = tqhead;
+//            while (ptr) {
+//                if (fr == ptr->fr && ptr->typ == TQ_MUF_TYP
+//                    && ptr->subtyp != TQ_MUF_TIMER) {
+//                    q->type = 2;
+//                    q->t.tq = ptr;
+//                    if (tmp == ptr) {
+//                        tqhead = tmp = tmp->next;
+//                        ptr = tmp;
+//                    } else {
+//                        tmp->next = ptr->next;
+//                        ptr = tmp->next;
+//                    }
+//                } else {
+//                    tmp = ptr;
+//                    ptr = ptr->next;
+//                }
+//            }
+//        }
+//
+//        if (q->type) {
+//            add_muf_delay_event(0, fr->descr, fr->player, NOTHING, NOTHING,
+//                                fr->prog, fr, string_dup("INTERRUPT"));
+//        } else {
+//            free((void *) q);
+//            fr->qitem = NULL;
+//        }
+//    }
+//
+//    a->data = (struct inst *) malloc(sizeof(struct inst));
+//    copyinst(val, a->data);
+//    a->eventid = string_dup(event);
+//
+//    return !(interrupt->keep);
+//}
+//
+//static int
+//muf_interrupt_requeue(struct muf_qitem *q)
+//{
+//	return q->type;
+//
+//    switch (q->type) {
+//        case 1:
+//            /* for putting back mufevent queue items */
+//            if ((q->t.eq->next = mufevent_processes))
+//                q->t.eq->next->prev = q->t.eq;
+//            q->t.eq->prev = NULL;
+//            mufevent_processes = q->t.eq;
+//            break;
+//        case 2:
+//            /* for putting back standard timequeue items */
+//            q->t.tq->next = tqhead;
+//            tqhead = q->t.tq;
+//            break;
+//    }
+//
+//    return (int) q->type;
+//}
+//
+///* int muf_interrupt_exit():                                       */
+///*  Called from inside interp_loop() inside the EXIT prim, this    */
+///*   function is in charge of requeuing any previous timequeue     */
+///*   items, and also free()ing up the topmost active interrupt.    */
+///*  Returns 0 if the program can continue, otherwise q->type.      */
+//int
+//muf_interrupt_exit(struct frame *fr)
+//{
+//    struct muf_ainterrupt *a = fr->ainttop;
+//    int qtype = 0;
+//
+//	return 0;
+//
+//    if (!a)
+//        return 0;
+//
+//    /* log_status("muf_interrupt_pop_act(): %p\n", a); */ /* for debugging */
+//
+//    if (!a->next) {
+//        fr->interrupted = 0;
+//        if (fr->qitem) {
+//            qtype = muf_interrupt_requeue(fr->qitem);
+//            free((void *) fr->qitem);
+//            fr->qitem = NULL;
+//        }
+//    }
+//
+//    if (fr->aintbot == a)
+//        fr->aintbot = a->next;
+//    fr->ainttop = a->next;
+//
+//    CLEAR(a->data);
+//    free((void *) a->eventid);
+//    free((void *) a->data);
+//    free((void *) a);
+//
+//    return qtype;
+//}
+//
+///* muf_interrupt muf_interrupt_find():                            */
+///*  This function searches through a program's interrupt list and */
+///*   returns it if found, NULL otherwise.  -Hinoserm              */
+//struct muf_interrupt *
+//muf_interrupt_find(struct frame *fr, const char *id)
+//{
+//    register struct muf_interrupt *e = fr->interrupts;
+//
+//	return;
+//
+//    for (; e; e = e->next)
+//        if (!strcmp(e->id, id))
+//            return e;
+//
+//    return NULL;
+//}
+//
+///* int muf_interrupt_check_byevent():                             */
+///*  This function searches the frame's interrupt list and calls   */
+///*   muf_interrupt_process() if a match is found.  Returns the    */
+///*   number of interrupts thrown.  -Hinoserm */
+//int
+//muf_interrupt_check_byevent(struct frame *fr, register const char *event,
+//                            struct inst *val)
+//{
+//    register struct muf_interrupt *i;
+//    register int cnt = 0;
+//
+//	return 0;
+//
+//    if (!fr->use_interrupts)
+//        return 0;
+//
+//    for (i = fr->interrupts; i; i = i->next)
+//        if (equalstr(i->event, (char *) event))
+//            cnt += muf_interrupt_process(fr, i, event, val);
+//
+//    return cnt;
+//}
+//
+///* void muf_interrupt_clean():                                    */
+///*  Called by prog_clean() to delete the frame's interrupt lists. */
+//void
+//muf_interrupt_clean(struct frame *fr)
+//{
+//    struct muf_interrupt *i = fr->interrupts, *tmp;
+//    struct muf_ainterrupt *a = fr->ainttop, *atmp;
+//    struct muf_qitem *q = fr->qitem;
+//
+//	return;
+//
+//    while (i) {
+//        tmp = i->next;
+//        free((void *) i->id);
+//        free((void *) i->event);
+//        free((void *) i);
+//        i = tmp;
+//    }
+//
+//    while (a) {
+//        atmp = a->next;
+//        CLEAR(a->data);
+//        free((void *) a->eventid);
+//        free((void *) a->data);
+//        free((void *) a);
+//        a = atmp;
+//    }
+//
+//    if (q) {
+//        switch (q->type) {
+//            case 1:
+//                q->t.eq->fr = NULL;
+//                muf_event_queue_pfree(q->t.eq);
+//                break;
+//            case 2:
+//                q->t.tq->fr = NULL;
+//                free_timenode(q->t.tq);
+//                break;
+//        }
+//        free((void *) q);
+//    }
+//}

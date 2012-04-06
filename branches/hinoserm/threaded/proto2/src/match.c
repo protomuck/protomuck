@@ -13,8 +13,8 @@
 
 #define DOWNCASE(x) (tolower(x))
 
-char match_cmdname[BUFFER_LEN]; /* triggering command */
-char match_args[BUFFER_LEN];    /* remaining text */
+//char match_cmdname[BUFFER_LEN]; /* triggering command */
+//char match_args[BUFFER_LEN];    /* remaining text */
 
 void
 init_match(int descr, dbref player, const char *name, int type,
@@ -31,6 +31,8 @@ init_match(int descr, dbref player, const char *name, int type,
     md->longest_match = 0;
     md->match_level = 0;
     md->block_equals = 0;
+	strcpy(md->match_args, "\0");
+	strcpy(md->match_cmdname, "\0");
 }
 
 void
@@ -378,19 +380,19 @@ match_exits(dbref first, struct match_data *md)
                             md->longest_match =
                                 strlen(md->match_name) - strlen(p);
                             if (*p == ' ') {
-                                strcpy(match_args, p + 1);
+                                strcpy(md->match_args, p + 1);
                                 {
                                     char *pp;
                                     int ip;
 
                                     for (ip = 0, pp = (char *) md->match_name;
                                          *pp && (pp != p); pp++)
-                                        match_cmdname[ip++] = *pp;
-                                    match_cmdname[ip] = '\0';
+                                        md->match_cmdname[ip++] = *pp;
+                                    md->match_cmdname[ip] = '\0';
                                 }
                             } else {
-                                *match_args = '\0';
-                                strcpy(match_cmdname, (char *) md->match_name);
+                                *(md->match_args) = '\0';
+                                strcpy(md->match_cmdname, (char *) md->match_name);
                             }
                         } else if ((strlen(md->match_name) - strlen(p)
                                     == md->longest_match)
@@ -407,7 +409,7 @@ match_exits(dbref first, struct match_data *md)
                             }
                             if (md->exact_match == exit) {
                                 if (*p == ' ') {
-                                    strcpy(match_args, p + 1);
+                                    strcpy(md->match_args, p + 1);
                                     {
                                         char *pp;
                                         int ip;
@@ -415,12 +417,12 @@ match_exits(dbref first, struct match_data *md)
                                         for (ip = 0, pp =
                                              (char *) md->match_name;
                                              *pp && (pp != p); pp++)
-                                            match_cmdname[ip++] = *pp;
-                                        match_cmdname[ip] = '\0';
+                                            md->match_cmdname[ip++] = *pp;
+                                        md->match_cmdname[ip] = '\0';
                                     }
                                 } else {
-                                    *match_args = '\0';
-                                    strcpy(match_cmdname,
+                                    *(md->match_args) = '\0';
+                                    strcpy(md->match_cmdname,
                                            (char *) md->match_name);
                                 }
                             }
@@ -543,8 +545,8 @@ match_all_exits(struct match_data *md)
     dbref loc;
     int limit = 88;
 
-    strcpy(match_args, "\0");
-    strcpy(match_cmdname, "\0");
+    strcpy(md->match_args, "\0");
+    strcpy(md->match_cmdname, "\0");
     if (md->match_from == NOTHING)
         return;
     if (md->match_from != NOTHING)

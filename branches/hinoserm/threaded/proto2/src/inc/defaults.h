@@ -137,12 +137,6 @@
  */
 #define PAUSE_MIN 100
 
-/* FREE_FRAMES_POOL is the number of program frames that are always
- *  available without having to allocate them.  Helps prevent memory
- *  fragmentation.
- */
-#define FREE_FRAMES_POOL 8
-
 #define PLAYER_START ((dbref) 0)  /* room number of player start location */
 
 /* Use gethostbyaddr() for hostnames in logs and the wizard WHO list. */

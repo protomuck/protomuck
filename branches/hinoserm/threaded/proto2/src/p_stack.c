@@ -867,8 +867,8 @@ void
 prim_interp(PRIM_PROTOTYPE)
 {
     struct inst *rv = NULL;
-    char buf[BUFFER_LEN];
-    struct frame *tmpfr;
+    //char buf[BUFFER_LEN];
+    //struct frame *tmpfr;
 
     if (!valid_object(&oper[2]) || Typeof(oper[2].data.objref) != TYPE_PROGRAM)
         abort_interp("Bad program reference. (1)");

@@ -19,12 +19,12 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms,
 
 extern char *
 do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
-	    const char *abuf, char *outbuf, int mesgtyp);
+	    const char *abuf, char *outbuf, int mesgtyp, const char *match_args, const char *match_cmdname);
 
 
 extern char *
 do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf,
-	    const char *abuf, char *outbuf, int mesgtyp);
+	    const char *abuf, char *outbuf, int mesgtyp, const char *match_args, const char *match_cmdname);
 
 #endif /* MPI_H */
 

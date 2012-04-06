@@ -86,7 +86,6 @@ extern int tp_instr_slice;
 extern int tp_msec_slice;
 extern int tp_mpi_max_commands;
 extern int tp_pause_min;
-extern int tp_free_frames_pool;
 extern int tp_max_output;
 extern int tp_rand_screens;
 extern int tp_thread_count;

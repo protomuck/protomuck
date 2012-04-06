@@ -45,8 +45,8 @@
 
 /* Prototypes for externs not defined elsewhere */
 
-extern char match_args[];
-extern char match_cmdname[];
+//extern char match_args[];
+//extern char match_cmdname[];
 
 /* From debugger.c */
 extern int muf_debugger(int descr, dbref player, dbref program,
@@ -146,6 +146,10 @@ extern int add_event(int event_type, int subtyp, int dtime, int descr,
 extern void listenqueue(int descr, dbref player, dbref where, dbref trigger,
                  dbref what, dbref xclude, const char *propname,
                  const char *toparg, int mlev, int mt, int mpi_p);
+extern int
+alter_event(timequeue event, int subtyp, int dtime, int descr, dbref player,
+          dbref loc, dbref trig, dbref program, struct frame *fr,
+          const char *strdata, const char *strcmd, const char *str3);
 extern void next_timequeue_event(struct thread_data *thread);
 extern int dequeue_prog_descr(int descr, int sleeponly);
 extern int in_timequeue(int pid);
@@ -156,7 +160,7 @@ extern time_t next_event_time(void);
 extern void list_events(dbref program);
 extern int descr_running_queue(int descr);
 extern int dequeue_frame(struct frame *fr);
-extern int dequeue_prog(dbref program, int sleeponly);
+extern int dequeue_prog(dbref program, int sleeponly, struct frame *exclude);
 extern int dequeue_process(int procnum);
 extern int dequeue_timers(int pid, char *id);
 extern int read_event_notify(int descr, dbref player, const char *cmd);
@@ -409,12 +413,12 @@ extern void do_encoding(int descr, dbref player, const char *arg);
 /* From speech.c */
 extern void do_pose(int descr, dbref player, const char *message);
 extern void do_whisper(int descr, dbref player, const char *arg1,
-                       const char *arg2);
+                       const char *arg2, const char *match_args, const char *match_cmdname);
 extern void do_wall(dbref player, const char *message);
 extern void do_gripe(dbref player, const char *message);
 extern void do_say(int descr, dbref player, const char *message);
 extern void do_page(int descr, dbref player, const char *arg1,
-                    const char *arg2);
+                    const char *arg2, const char *match_args, const char *match_cmdname);
 extern int notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                             dbref room, const char *msg, int isprivate);
 extern int ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
@@ -559,17 +563,19 @@ extern void do_uncompile(dbref player);
 extern void do_proginfo(dbref player, const char *arg);
 extern void free_unused_programs(void);
 extern void do_compile(int descr, dbref in_player, dbref in_program,
-                       int force_err_display);
+                       int force_err_display, struct frame *exclude);
 extern int get_primitive(const char *);
 extern void clear_primitives(void);
 extern void init_primitives(void);
 
 /* From interp.c */
 extern struct inst *interp_loop(dbref player, dbref program,
-                                struct frame *fr, int rettyp, struct thread_data *thread);
-extern struct frame *interp(int descr, dbref player, dbref location,
-                            dbref program, dbref source, int nosleeping,
-                            int whichperms, int forced_pid);
+                                struct frame *fr, int rettyp, struct thread_data *thread, int *err, timequeue event);
+extern struct frame *interp(int descr, dbref player, dbref location, dbref program,
+                            dbref source, int nosleeps, int whichperms, int forced_pid,
+							const char *match_args, const char *match_cmdname, int queueit);
+
+
 extern void prog_clean(struct frame *fr);
 
 /* From log.c */

@@ -64,8 +64,6 @@ exec_or_notify_2(int descr, dbref player, dbref thing,
     p = message;
 
     if (*p == EXEC_SIGNAL) {
-        char tmpcmd[BUFFER_LEN];
-        char tmparg[BUFFER_LEN];
         char *p2;
         char *p3;
         int i;
@@ -98,23 +96,17 @@ exec_or_notify_2(int descr, dbref player, dbref thing,
         } else {
             struct frame *tmpfr;
 
-            strcpy(tmparg, match_args);
-            strcpy(tmpcmd, match_cmdname);
             p = do_parse_mesg(descr, player, thing, p, whatcalled, buf,
-                              MPI_ISPRIVATE);
-            strcpy(match_args, p);
-            strcpy(match_cmdname, whatcalled);
+                              MPI_ISPRIVATE, p, whatcalled);
+
             tmpfr = interp(descr, player, DBFETCH(player)->location, i, thing,
-                           FOREGROUND, STD_HARDUID, 0);
+                           FOREGROUND, STD_HARDUID, 0, p, whatcalled, 1);
             //if (tmpfr)
             //    interp_loop(player, i, tmpfr, 0, NULL);
-
-            strcpy(match_args, tmparg);
-            strcpy(match_cmdname, tmpcmd);
         }
     } else {
         p = do_parse_mesg(descr, player, thing, p, whatcalled, buf,
-                          MPI_ISPRIVATE);
+                          MPI_ISPRIVATE, p, whatcalled);
         if (typ)
             notify(player, p);
         else
