@@ -440,7 +440,7 @@ http_parsempi(struct descriptor_data *d, dbref what, const char *yerf,
 
     if (yerf)
         return (do_parse_mesg
-                (d->descriptor, OWNER(what), what, yerf, "WWW", buf, 0));
+                (d->descriptor, OWNER(what), what, yerf, "WWW", buf, 0, "", ""));
     else
         return "";
 }
@@ -642,7 +642,7 @@ http_compile(struct descriptor_data *d, dbref player, dbref ref)
     if (!DBFETCH(ref)->sp.program.start) {
         tmpline = DBFETCH(ref)->sp.program.first;
         DBFETCH(ref)->sp.program.first = read_program(ref);
-        do_compile(d->descriptor, player, ref, 0);
+        do_compile(d->descriptor, player, ref, 0, NULL);
         free_prog_text(DBFETCH(ref)->sp.program.first);
         DBSTORE(ref, sp.program.first, tmpline);
     }
@@ -654,6 +654,7 @@ int
 http_dohtmuf(struct descriptor_data *d, const char *prop)
 {
     char buf[BUFFER_LEN];
+	char match_args[BUFFER_LEN];
     const char *m = NULL;
     struct frame *tmpfr;
     dbref ref, player;
@@ -709,10 +710,9 @@ http_dohtmuf(struct descriptor_data *d, const char *prop)
     /* Do it! */
     sprintf(match_args, "%d|%s|%s|%s", d->descriptor, d->hu->h->name,
             d->hu->u->user, d->http->cgidata);
-    strcpy(match_cmdname, "(WWW)");
     tmpfr =
         interp(d->descriptor, player, NOTHING, ref, d->http->rootobj,
-               BACKGROUND, STD_HARDUID, 0);
+               BACKGROUND, STD_HARDUID, 0, match_args, "(WWW)", 1);
 
 	if (tmpfr)
 		mutex_lock(tmpfr->mutx);

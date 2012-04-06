@@ -1135,7 +1135,7 @@ mesg_parse(int descr, dbref player, dbref what, dbref perms, const char *inbuf,
 
 char *
 do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
-                const char *inbuf, const char *abuf, char *outbuf, int mesgtyp)
+                const char *inbuf, const char *abuf, char *outbuf, int mesgtyp, const char *match_args, const char *match_cmdname)
 {
 
     char howvar[BUFFER_LEN];
@@ -1179,8 +1179,6 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
         mesg_rec_cnt = tmprec_cnt;
         mesg_instr_cnt = tmpinst_cnt;
 
-        strcpy(match_cmdname, tmpcmd);
-        strcpy(match_args, tmparg);
     } else
         strcpy(outbuf, inbuf);
 
@@ -1190,7 +1188,7 @@ do_parse_mesg_2(int descr, dbref player, dbref what, dbref perms,
 
 char *
 do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf,
-              const char *abuf, char *outbuf, int mesgtyp)
+              const char *abuf, char *outbuf, int mesgtyp, const char *match_args, const char *match_cmdname)
 {
     if (tp_do_mpi_parsing && (tp_mpi_needflag ? Meeper(what) : 1)) {
         char *tmp = NULL;
@@ -1199,7 +1197,7 @@ do_parse_mesg(int descr, dbref player, dbref what, const char *inbuf,
         gettimeofday(&st, NULL);
         tmp =
             do_parse_mesg_2(descr, player, what, what, inbuf, abuf, outbuf,
-                            mesgtyp);
+                            mesgtyp, match_args, match_cmdname);
         gettimeofday(&et, NULL);
 
         if (strcmp(tmp, inbuf)) {

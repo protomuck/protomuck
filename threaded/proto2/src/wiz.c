@@ -748,7 +748,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
         if (OWNER(stuff) == victim) {
             switch (Typeof(stuff)) {
                 case TYPE_PROGRAM:
-                    dequeue_prog(stuff, 0); /* dequeue player's progs */
+                    dequeue_prog(stuff, 0, NULL); /* dequeue player's progs */
                     FLAGS(stuff) &= ~(ABODE | W1 | W2 | W3);
                     SetMLevel(stuff, 0);
                 case TYPE_ROOM:
@@ -768,7 +768,7 @@ do_frob(int descr, dbref player, const char *name, const char *recip)
         free((void *) DBFETCH(victim)->sp.player.password);
         DBFETCH(victim)->sp.player.password = 0;
     }
-    dequeue_prog(victim, 0);    /* dequeue progs that player's running */
+    dequeue_prog(victim, 0, NULL);    /* dequeue progs that player's running */
 
     anotify_nolisten2(victim,
                       SYSBLUE "You have been frobbed!  Been nice knowing you.");

@@ -154,7 +154,6 @@ int tp_instr_slice = INSTR_SLICE;
 int tp_msec_slice = 200;
 int tp_mpi_max_commands = MPI_MAX_COMMANDS;
 int tp_pause_min = PAUSE_MIN;
-int tp_free_frames_pool = FREE_FRAMES_POOL;
 int tp_max_output = MAX_OUTPUT;
 int tp_rand_screens = 0;
 int tp_listen_mlev = LISTEN_MLEV;
@@ -222,7 +221,6 @@ struct tune_val_entry tune_val_list[] = {
     {"MUF", "msec_slice", &tp_msec_slice, LARCH, LMUF},
     {"MPI", "mpi_max_commands", &tp_mpi_max_commands, LARCH, LMUF},
     {"System", "pause_min", &tp_pause_min, LARCH, LMUF},
-    {"MUF", "free_frames_pool", &tp_free_frames_pool, LARCH, LMUF},
     {"System", "max_output", &tp_max_output, LARCH, LMUF},
     {"System", "rand_screens", &tp_rand_screens, LARCH, LMUF},
     {"MUF", "listen_mlev", &tp_listen_mlev, WBOY, LMUF},

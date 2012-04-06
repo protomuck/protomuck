@@ -37,9 +37,6 @@ extern const char* scopedvar_getname_byinst(struct inst *pc, int varnum);
 extern int scopedvar_getnum(struct frame *fr, int level, const char* varname);
 extern void scopedvar_dupall(struct frame *fr, struct frame *oldfr);
 extern int logical_false(struct inst *p);
-  
-extern void purge_for_pool(void);
-extern void purge_try_pool(void);
 
 extern void copyinst(struct inst *from, struct inst *to);
 
@@ -53,6 +50,7 @@ extern void remove_socket_from_queue(struct muf_socket *oldSock);
       break; \
   else { \
       mutex_unlock(fr->mutx); \
+	  if (err) *err = 1; \
       return 0; \
   } \
 }
@@ -64,6 +62,7 @@ extern void remove_socket_from_queue(struct muf_socket *oldSock);
 	do_abort_loop(player, program, (S), fr, pc, atop, stop, (C1), (C2)); \
 	if (fr) fr->trys.top = tmp; \
 	if (fr) mutex_unlock(fr->mutx); \
+	if (err) *err = 1; \
 	return 0; \
 }
 

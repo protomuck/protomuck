@@ -369,7 +369,7 @@ can_move2(int descr, dbref player, const char *direction, int lev)
  */
 
 void
-trigger(int descr, dbref player, dbref exit, int pflag)
+trigger(int descr, dbref player, dbref exit, int pflag, const char *match_args, const char *match_cmdname)
 {
     int i;
     dbref dest;
@@ -519,7 +519,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                     break;
                 case TYPE_EXIT: /* It's a meta-link(tm)! */
                     ts_useobject(player, dest);
-                    trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0);
+                    trigger(descr, player, (DBFETCH(exit)->sp.exit.dest)[i], 0, match_args, match_cmdname);
                     break;
                 case TYPE_PLAYER:
                     if (pflag && DBFETCH(dest)->location != NOTHING) {
@@ -582,7 +582,7 @@ trigger(int descr, dbref player, dbref exit, int pflag)
                     }
                     tmpfr =
                         interp(descr, player, DBFETCH(player)->location, dest,
-                               exit, FOREGROUND, STD_REGUID, 0);
+                               exit, FOREGROUND, STD_REGUID, 0, match_args, match_cmdname, 1);
                     return;
             }
         }
@@ -635,7 +635,7 @@ do_move(int descr, dbref player, const char *direction, int lev)
                 ts_useobject(player, exit);
                 loc = DBFETCH(player)->location;
                 if (can_doit(descr, player, exit, "You can't go that way.")) {
-                    trigger(descr, player, exit, 1);
+                    trigger(descr, player, exit, 1, md.match_args, md.match_cmdname);
                 }
                 break;
         }
@@ -1038,7 +1038,7 @@ recycle(int descr, dbref player, dbref thing)
             DBDIRTY(OWNER(thing));
             break;
         case TYPE_PROGRAM:
-            dequeue_prog(thing, 0);
+            dequeue_prog(thing, 0, NULL);
             sprintf(buf, "muf/%d.m", (int) thing);
             unlink(buf);
             break;

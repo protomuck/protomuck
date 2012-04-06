@@ -17,6 +17,8 @@ struct match_data {
     size_t longest_match;	/* longest matched string */
     int match_level;		/* the highest priority level so far */
     int block_equals;		/* block matching of same name exits */
+	char match_args[BUFFER_LEN];
+	char match_cmdname[BUFFER_LEN];
 };
 
 /* match functions */

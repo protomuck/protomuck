@@ -97,12 +97,9 @@ using namespace std;
 # define NQ_PI -0.7853981634
 #endif
 
-
-
-
 extern time_t current_systime;
-extern char match_args[BUFFER_LEN];
-extern char match_cmdname[BUFFER_LEN];
+//extern char match_args[BUFFER_LEN];
+//extern char match_cmdname[BUFFER_LEN];
 
 typedef int dbref;		/* offset into db */
 #ifndef __cplusplus
@@ -897,30 +894,30 @@ struct mufwatchpidlist {
 #define STD_HARDUID 2
 
 /* stuff for MUF "interrupts" */
-struct muf_interrupt {                  /* linked list of addresses and event ID names from ONEVENT */
-    struct inst  *addr;                 /* the 'funcname address */
-    char         *event;                /* event ID string to wait for */
-    char         *id;                   /* this interrupt's ID name */
-    bool          keep;                 /* leave event in queue or not */
-    struct muf_interrupt *next;         /* next element */
-    struct muf_interrupt *prev;         /* previous element */
-};
+//struct muf_interrupt {                  /* linked list of addresses and event ID names from ONEVENT */
+//    struct inst  *addr;                 /* the 'funcname address */
+//    char         *event;                /* event ID string to wait for */
+//    char         *id;                   /* this interrupt's ID name */
+//    bool          keep;                 /* leave event in queue or not */
+//    struct muf_interrupt *next;         /* next element */
+//    struct muf_interrupt *prev;         /* previous element */
+//};
 
-struct muf_ainterrupt {                 /* active interrupts */
-    struct muf_interrupt *interrupt;    /* the interrupt */
-    struct inst *ret;                   /* where to return */
-    struct inst *data;                  /* data from the event */
-    char        *eventid;               /* event id */
-    struct muf_ainterrupt *next;
-};
+//struct muf_ainterrupt {                 /* active interrupts */
+//    struct muf_interrupt *interrupt;    /* the interrupt */
+//    struct inst *ret;                   /* where to return */
+//    struct inst *data;                  /* data from the event */
+//    char        *eventid;               /* event id */
+//    struct muf_ainterrupt *next;
+//};
 
-struct muf_qitem { /* queue item to put back later */
-    char type; /* queue type. 1 = eq, 2 = tq */
-    union {
-        struct mufevent_process *eq;    /* any mufeventqueue item that was in place when this interrupt was thrown */
-        struct timenode         *tq;    /* any timequeue item that was in place */
-    } t;
-};
+//struct muf_qitem { /* queue item to put back later */
+//    char type; /* queue type. 1 = eq, 2 = tq */
+//    union {
+//        struct mufevent_process *eq;    /* any mufeventqueue item that was in place when this interrupt was thrown */
+//        struct timenode         *tq;    /* any timequeue item that was in place */
+//    } t;
+//};
 
 struct funcprof {
 	const char *funcname;
@@ -936,9 +933,9 @@ struct funcprof {
 /* frame data structure necessary for executing programs */
 struct frame {
     struct frame *next;
-    struct muf_interrupt *interrupts;   /* linked list of MUF interrupts */ 
-    struct muf_ainterrupt *ainttop;     /* active interrupts, top of list */
-    struct muf_ainterrupt *aintbot;     /* active interrupts, bottom of list */
+    //struct muf_interrupt *interrupts;   /* linked list of MUF interrupts */ 
+    //struct muf_ainterrupt *ainttop;     /* active interrupts, top of list */
+    //struct muf_ainterrupt *aintbot;     /* active interrupts, bottom of list */
     struct muf_qitem      *qitem;       /* queue item, if any, to return later. */
     struct sysstack system;             /* system stack */
     struct stack argument;              /* argument stack */
@@ -978,6 +975,8 @@ struct frame {
     int     descr;                      /* Descriptor of running player */
     int     shutdown_seen;              /* Queues SHUTDOWN events during delayed shutdown */
     void *rndbuf;                       /* buffer for seedable random */
+	char match_args[BUFFER_LEN];
+	char match_cmdname[BUFFER_LEN];
     struct scopedvar_t *svars;          /* Variables with function scoping. */
     struct mufevent *events;            /* MUF event list. */
     struct debuggerdata brkpt;          /* info the debugger needs */

@@ -562,6 +562,7 @@ write_program(struct line *first, dbref i)
 	DBLOCK(i);
 
     sprintf(fname, "muf/%d.m", (int) i);
+	unlink(fname);
     f = fopen(fname, "wb");
     if (!f) {
         log_status("Couldn't open file %s!\n", fname);
@@ -1804,7 +1805,7 @@ autostart_progs(void)
                 o = DBFETCH(i);
                 tmp = o->sp.program.first;
                 o->sp.program.first = (struct line *) read_program(i);
-                do_compile(-1, OWNER(i), i, 0);
+                do_compile(-1, OWNER(i), i, 0, NULL);
                 free_prog_text(o->sp.program.first);
                 o->sp.program.first = tmp;
             }

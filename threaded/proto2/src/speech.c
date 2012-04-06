@@ -34,7 +34,7 @@ do_say(int descr, dbref player, const char *message)
 }
 
 void
-do_whisper(int descr, dbref player, const char *arg1, const char *arg2)
+do_whisper(int descr, dbref player, const char *arg1, const char *arg2, const char *match_args, const char *match_cmdname)
 {
     dbref who;
     char buf[BUFFER_LEN], buf2[BUFFER_LEN];
@@ -62,7 +62,7 @@ do_whisper(int descr, dbref player, const char *arg1, const char *arg2)
         default:
             if (Meeper(OWNER(player))) {
                 do_parse_mesg(descr, player, player, arg2, "(whisper)", buf,
-                              MPI_ISPRIVATE);
+                              MPI_ISPRIVATE, match_args, match_cmdname);
                 tct(buf, buf2);
             } else {
                 tct(arg2, buf2);
@@ -175,7 +175,7 @@ do_gripe(dbref player, const char *message)
 
 /* doesn't really belong here, but I couldn't figure out where else */
 void
-do_page(int descr, dbref player, const char *arg1, const char *arg2)
+do_page(int descr, dbref player, const char *arg1, const char *arg2, const char *match_args, const char *match_cmdname)
 {
     char buf[BUFFER_LEN], buf2[BUFFER_LEN];
     dbref target;
@@ -207,7 +207,7 @@ do_page(int descr, dbref player, const char *arg1, const char *arg2)
     }
     if (Meeper(OWNER(player))) {
         do_parse_mesg(descr, player, player, arg2, "(page)", buf,
-                      MPI_ISPRIVATE);
+                      MPI_ISPRIVATE, match_args, match_cmdname);
         tct(buf, buf2);
     } else {
         tct(arg2, buf2);
@@ -316,7 +316,7 @@ notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                 prefix = GETOECHO(obj);
                 if (prefix && *prefix) {
                     prefix = do_parse_mesg(-1, who, obj, prefix,
-                                           "(@Oecho)", pbuf, MPI_ISPRIVATE);
+                                           "(@Oecho)", pbuf, MPI_ISPRIVATE, noamsg, "Olisten");
                 }
                 if (!prefix || !*prefix)
                     prefix = "Outside>";
@@ -433,7 +433,7 @@ ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                 prefix = GETOECHO(obj);
                 if (prefix && *prefix) {
                     prefix = do_parse_mesg(-1, who, obj, prefix,
-                                           "(@Oecho)", pbuf, MPI_ISPRIVATE);
+                                           "(@Oecho)", pbuf, MPI_ISPRIVATE, noabuf, "Olisten");
                 }
                 if (!prefix || !*prefix)
                     prefix = "Outside>";
@@ -549,7 +549,7 @@ notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
                 prefix = GETOECHO(obj);
                 if (prefix && *prefix) {
                     prefix = do_parse_mesg(-1, who, obj, prefix,
-                                           "(@Oecho)", pbuf, MPI_ISPRIVATE);
+                                           "(@Oecho)", pbuf, MPI_ISPRIVATE, noabuf, "Olisten");
                 }                if (!prefix || !*prefix)
                     prefix = "Outside>";
                 sprintf(buf, "%s %.*s", prefix,
@@ -661,7 +661,7 @@ parse_omessage(int descr, dbref player, dbref dest, dbref exit, const char *msg,
     char buf[BUFFER_LEN * 2];
     char *ptr;
 
-    do_parse_mesg(descr, player, exit, msg, whatcalled, buf, MPI_ISPUBLIC);
+    do_parse_mesg(descr, player, exit, msg, whatcalled, buf, MPI_ISPUBLIC, "", "");
     ptr = pronoun_substitute(descr, player, buf);
     if (!*ptr)
         return;

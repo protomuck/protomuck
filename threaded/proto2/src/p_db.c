@@ -852,18 +852,12 @@ prim_match(PRIM_PROTOTYPE)
     if (oper[0].type != PROG_STRING)
         abort_interp("Non-string argument");
     if (!oper[0].data.string) {
-        
         ref = NOTHING;
         PushObject(ref);
         return;
-    }
-    {
-        char tmppp[BUFFER_LEN];
+    } else {
         struct match_data md;
-		char buf[BUFFER_LEN];
 
-        (void) strcpy(buf, match_args);
-        (void) strcpy(tmppp, match_cmdname);
         init_match(fr->descr, PSafe, oper[0].data.string->data, NOTYPE, &md);
         if (oper[0].data.string->data[0] == REGISTERED_TOKEN) {
             match_registered(&md);
@@ -881,8 +875,6 @@ prim_match(PRIM_PROTOTYPE)
             match_player(&md);
         }
         ref = match_result(&md);
-        (void) strcpy(match_args, buf);
-        (void) strcpy(match_cmdname, tmppp);
     }
     
     PushObject(ref);
@@ -904,18 +896,12 @@ prim_rmatch(PRIM_PROTOTYPE)
         abort_interp("Invalid argument (1)");
     CHECKREMOTE(oper[1].data.objref);
     {
-        char tmppp[BUFFER_LEN];
-		char buf[BUFFER_LEN];
         struct match_data md;
 
-        (void) strcpy(buf, match_args);
-        (void) strcpy(tmppp, match_cmdname);
         init_match(fr->descr, PSafe, DoNullInd(oper[0].data.string), TYPE_THING,
                    &md);
         match_rmatch(oper[1].data.objref, &md);
         ref = match_result(&md);
-        (void) strcpy(match_args, buf);
-        (void) strcpy(match_cmdname, tmppp);
     }
     
     
@@ -2065,7 +2051,7 @@ prim_toadplayer(PRIM_PROTOTYPE)
         if (OWNER(stuff) == victim) {
             switch (Typeof(stuff)) {
                 case TYPE_PROGRAM:
-                    dequeue_prog(stuff, 0); /* dequeue player's progs */
+                    dequeue_prog(stuff, 0, NULL); /* dequeue player's progs */
                     FLAGS(stuff) &= ~(ABODE | W1 | W2 | W3 | W4);
                     SetMLevel(stuff, 0);
                 case TYPE_ROOM:
@@ -2085,7 +2071,7 @@ prim_toadplayer(PRIM_PROTOTYPE)
         free((void *) DBFETCH(victim)->sp.player.password);
         DBFETCH(victim)->sp.player.password = 0;
     }
-    dequeue_prog(victim, 0);    /* dequeue progs that player's running */
+    dequeue_prog(victim, 0, fr);    /* dequeue progs that player's running */
 
     log_status("FROB[MUF]: %s(%d) by %s(%d)\n", NAME(victim),
                victim, OkObj(player) ? NAME(player) : "(Login)", player);
@@ -2401,7 +2387,7 @@ prim_compile(PRIM_PROTOTYPE)
 
     tmpline = DBFETCH(ref)->sp.program.first;
     DBFETCH(ref)->sp.program.first = (struct line *) read_program(ref);
-    do_compile(fr->descr, PSafe, ref, oper[0].data.number);
+    do_compile(fr->descr, PSafe, ref, oper[0].data.number, fr);
     free_prog_text(DBFETCH(ref)->sp.program.first);
     DBFETCH(ref)->sp.program.first = tmpline;
 

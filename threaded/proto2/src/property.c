@@ -395,7 +395,7 @@ has_property_strict(int descr, dbref player, dbref what, const char *type,
         if (PropType(p) == PROP_STRTYP) {
             str = DoNull(PropDataUNCStr(p));
             ptr = do_parse_mesg(descr, player, what, str, "(Lock)",
-                                buf, (MPI_ISPRIVATE | MPI_ISLOCK));
+                                buf, (MPI_ISPRIVATE | MPI_ISLOCK), "", "");
             return (equalstr((char *) pclass, ptr));
         } else if (PropType(p) == PROP_INTTYP) {
             return (value == PropDataVal(p));

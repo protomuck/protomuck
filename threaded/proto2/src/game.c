@@ -1055,12 +1055,10 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
         switch (can_move2(descr, player, command, 0)) {
             case 1:
                 do_move(descr, player, command, 0); /* command is exact match for exit */
-                *match_args = 0;
-                *match_cmdname = 0;
                 return;
             case 2:
-                *match_args = 0;
-                *match_cmdname = 0;
+                //*match_args = 0;
+                //*match_cmdname = 0;
                 return;
         }
     }
@@ -1083,7 +1081,7 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
         *arg1++ = '\0';
 
     /* remember command for programs */
-    strcpy(match_cmdname, command);
+    //strcpy(match_cmdname, command);
 
     /* move over spaces */
     while (*arg1 && isspace(*arg1))
@@ -1104,8 +1102,8 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
     while (*arg2 && isspace(*arg2))
         arg2++;
 
-    strcpy(match_cmdname, command);
-    strcpy(match_args, full_command);
+    //strcpy(match_cmdname, command);
+    //strcpy(match_args, full_command);
     if (!(isOverride && TMage(player)) && tp_enable_commandprops) {
         if (prop_command(descr, player, command, full_command, "@command", 1))
             return;
@@ -1961,7 +1959,7 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
                 case 'A':
                 case '\0':
                     Matched("page");
-                    do_page(descr, player, arg1, arg2);
+                    do_page(descr, player, arg1, arg2, full_command, command);
                     break;
                 case 'o':
                 case 'O':
@@ -2047,7 +2045,7 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
                 case 'H':
                 case '\0':
                     Matched("whisper");
-                    do_whisper(descr, player, arg1, arg2);
+                    do_whisper(descr, player, arg1, arg2, full_command, command);
                     break;
                 default:
                     goto bad;
@@ -2096,21 +2094,15 @@ prop_command(int descr, dbref player, const char *command, const char *arg,
              const char *type, int mt)
 {
     PropPtr ptr;
-
     dbref progRef = AMBIGUOUS;
-
     dbref where = player;
-
     char propName[BUFFER_LEN];
-
     const char *workBuf = NULL;
 
     if (player == NOTHING)      /* For handling logincommand props. */
         where = (dbref) 0;
 
     sprintf(propName, "%s%c%s", type, PROPDIR_DELIMITER, command);
-    strcpy(match_cmdname, command);
-    strcpy(match_args, arg);
     ptr = envprop_cmds(&where, propName, Prop_Hidden(propName));
     if (!ptr)
         return 0;
@@ -2161,10 +2153,10 @@ prop_command(int descr, dbref player, const char *command, const char *arg,
         ival = (mt == 0) ? MPI_ISPUBLIC : MPI_ISPRIVATE;
         if (player < 1)
             do_parse_mesg(descr, (dbref) -1, (dbref) 0, workBuf + 1,
-                          match_cmdname, cbuf, ival);
+                          command, cbuf, ival, arg, command);
         else
-            do_parse_mesg(descr, player, where, workBuf + 1, match_cmdname,
-                          cbuf, ival);
+            do_parse_mesg(descr, player, where, workBuf + 1, command,
+                          cbuf, ival, arg, command);
 
         if (*cbuf) {
             if (player < 1) {
@@ -2302,7 +2294,7 @@ prop_command(int descr, dbref player, const char *command, const char *arg,
             tmpfr =
                 interp(descr, player,
                        (OkObj(player)) ? DBFETCH(player)->location : -1,
-                       progRef, where, FOREGROUND, STD_HARDUID, 0);
+                       progRef, where, FOREGROUND, STD_HARDUID, 0, arg, command, 1);
             return 1;
         }
     }

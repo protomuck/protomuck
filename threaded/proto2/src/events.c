@@ -67,8 +67,7 @@ check_dump_time(void)
 
         if (tp_periodic_program_purge)
             free_unused_programs();
-        purge_for_pool();
-        purge_try_pool();
+
 #ifdef DELTADUMPS
         dump_deltas();
 #else
@@ -144,7 +143,7 @@ check_clean_time(void)
         if (tp_allow_old_trigs) {
             add_property((dbref) 0, "_sys/lastcleantime", NULL, (int) currtime);
         }
-        purge_for_pool();
+
         if (tp_periodic_program_purge)
             free_unused_programs();
 #ifdef DISKBASE
@@ -191,10 +190,8 @@ check_cron_time(void)
         }
         if (valid_obj(tp_cron_prog)
             && Typeof(tp_cron_prog) == TYPE_PROGRAM) {
-            strcpy(match_args, "Cron");
-            strcpy(match_cmdname, "Cron Event");
             tempfr = interp(-1, (dbref) -1, (dbref) -1, tp_cron_prog,
-                            (dbref) -4, BACKGROUND, STD_REGUID, 0);
+                            (dbref) -4, BACKGROUND, STD_REGUID, 0, "Cron", "Cron Event", 1);
         }
     }
 }

@@ -726,7 +726,7 @@ prim_parsempi(PRIM_PROTOTYPE)
     if(temp && *temp && ptr) {
 	result = oper[0].data.number & (~MPI_ISLISTENER);
         ptr = do_parse_mesg(fr->descr, player, oper[3].data.objref, temp,
-			      ptr, buf, result);
+			ptr, buf, result, fr->match_args, fr->match_cmdname);
 
         PushString(buf); /* Was buf to remove unwanted \r's */
     } else {
@@ -789,10 +789,10 @@ prim_parseprop(PRIM_PROTOTYPE)
 	result = oper[0].data.number & (~MPI_ISLISTENER);
       if(tp_old_parseprop) {
         ptr = do_parse_mesg_2(fr->descr, player, oper[3].data.objref, (dbref)program, temp,
-			    ptr, buf, result);
+			ptr, buf, result, fr->match_args, fr->match_cmdname);
       } else {
         ptr = do_parse_mesg(fr->descr, player, oper[3].data.objref, temp,
-			    ptr, buf, result);
+			    ptr, buf, result, fr->match_args, fr->match_cmdname);
       }
         PushString(ptr);
     } else {
@@ -1448,7 +1448,7 @@ prim_parsepropex(PRIM_PROTOTYPE)
             result |= MPI_NOHOW;
 
         str = do_parse_mesg(fr->descr, player, oper[3].data.objref, mpi,
-                            "(parsepropex)", buf, result);
+                            "(parsepropex)", buf, result, fr->match_args, fr->match_cmdname);
        
         if (novars > 0) {
             if (array_first(vars, &idx)) {

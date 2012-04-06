@@ -21,10 +21,10 @@ void do_list(dbref player, dbref program, int arg[], int argc, int commentit);
 void insert(dbref player, const char *line);
 struct line *get_new_line(void);
 struct line *read_program(dbref i);
-void do_compile(int descr, dbref player, dbref program, int force_err_disp);
+//void do_compile(int descr, dbref player, dbref program, int force_err_disp);
 void free_line(struct line *l);
 void free_prog_text(struct line *l);
-void prog_clean(struct frame *fr);
+//void prog_clean(struct frame *fr);
 void val_and_head(dbref player, int arg[], int argc);
 void do_list_header(dbref player, dbref program);
 void list_publics(int descr, dbref player, int arg[], int argc);
@@ -364,7 +364,7 @@ editor(int descr, dbref player, const char *command)
             case COMPILE_COMMAND:
                 /* compile code belongs in compile.c, not in the editor */
                 notify(player, "Compiling...");
-                do_compile(descr, player, program, 1);
+                do_compile(descr, player, program, 1, NULL);
                 anotify_nolisten(player, CSUCC "Compiler done.", 1);
                 break;
             case LIST_COMMAND:
@@ -737,14 +737,14 @@ list_publics(int descr, dbref player, int arg[], int argc)
     }
     if (!(DBFETCH(program)->sp.program.code)) {
         if (program == DBFETCH(player)->sp.player.curr_prog) {
-            do_compile(descr, OWNER(program), program, 0);
+            do_compile(descr, OWNER(program), program, 0, NULL);
         } else {
             struct line *tmpline;
 
             tmpline = DBFETCH(program)->sp.program.first;
             DBFETCH(program)->sp.program.first =
                 (struct line *) read_program(program);
-            do_compile(descr, OWNER(program), program, 0);
+            do_compile(descr, OWNER(program), program, 0, NULL);
             free_prog_text(DBFETCH(program)->sp.program.first);
             DBSTORE(program, sp.program.first, tmpline);
         }
