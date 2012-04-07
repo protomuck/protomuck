@@ -621,8 +621,9 @@ extern void __mutex_unlock(mutex *mutx, const char *file, int line);
 #define mutex_lock(x)   __mutex_lock(&(x), INFINITE, __FILE__, __LINE__);
 #define mutex_unlock(x) __mutex_unlock(&(x), __FILE__, __LINE__);
 
-#define DBLOCK(x)   { mutex_lock(db_mutex); if (x >= 0 && x < db_top) { mutex_unlock(db_mutex); mutex_lock((DBFETCH(x)->mutx)); } }
-#define DBUNLOCK(x) { if (x < 0 || x >= db_top) { mutex_unlock(db_mutex); } else { mutex_unlock((DBFETCH(x)->mutx)); } }
+#define DBLOCK(x)    { if (x < 0 || x >= db_top) { mutex_lock(db_mutex); } else { mutex_lock((DBFETCH(x)->mutx)); } }
+#define DBUNLOCK(x)  { if (x < 0 || x >= db_top) { mutex_unlock(db_mutex); } else { mutex_unlock((DBFETCH(x)->mutx)); } }
+#define DBTRYLOCK(x) __mutex_lock(&DBFETCH(x)->mutx, 300, __FILE__, __LINE__) //TODO: The timeout should be @tuneable.
 
 struct thread_data {
 # ifdef WIN_VC
@@ -965,6 +966,7 @@ struct frame {
     short   already_created;            /* this prog already created an object */
     short   been_background;            /* this prog has run in the background */
     short   skip_declare;               /* tells interp to skip next scoped var decl */
+	int     lockfail;
     short   wantsblanks;                /* tells interps to accept blank reads */
     dbref   trig;                       /* triggering object */
     dbref   prog;                       /* program dbref */

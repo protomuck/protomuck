@@ -981,7 +981,7 @@ host_save(void)
 void
 host_check_cache(void)
 {
-    struct hostinfo *h;
+    struct hostinfo *h, *tmp;
 
     if (hostdb_count > 512) {
         hostdb_flushed = 0;
@@ -998,8 +998,11 @@ host_check_cache(void)
             /* If the host entry is not in use, and the total entry  */
             /*  count is above tp_max_cached_hosts, and the entry is */
             /*  older than (tp_clean_interval * h->uses), free it.   */
+			tmp = h->next;
             host_free(h);
             hostdb_flushed++;
+			if (!(h = tmp))
+				break;
         }
     }
 }

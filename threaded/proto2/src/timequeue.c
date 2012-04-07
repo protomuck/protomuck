@@ -584,7 +584,7 @@ next_timequeue_event(struct thread_data *thread)
 
 	if (event) {
 		char buf[BUFFER_LEN];
-		printf("Thread %2d running %5d - %s\r\n", (thread ? thread->id : 0), event->eventnum, unparse_object(MAN, event->called_prog, buf));
+		//printf("Thread %2d running %5d - %s\r\n", (thread ? thread->id : 0), event->eventnum, unparse_object(MAN, event->called_prog, buf));
 		event->running = 1;
 		event->thread = thread;
 		//remove_timenode(event);
@@ -706,7 +706,7 @@ next_timequeue_event(struct thread_data *thread)
 					//event->running = 0;
                 }
             }
-			printf("Done running.\r\n");
+			//printf("Done running.\r\n");
         }
     }
 
@@ -1135,11 +1135,13 @@ dequeue_prog(dbref program, int sleeponly, struct frame *exclude)
 			count++;
 			//We have to start over since another thread could have altered
 			// the queue while we were waiting for the program to die.
-			event = tqhead; 
+			if (!(event = tqhead))
+				break; 
 		}
 	}
 
-    /* We used to treat MUF events as only background processes. 
+
+    /* We used to treat MUF events as only background processes.
      * Now we pass the actual sleeponly parameter so that we can treat
      * them as foreground processes when needed when handling READ events.
      * -Akari

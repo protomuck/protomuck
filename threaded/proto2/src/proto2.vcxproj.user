@@ -20,6 +20,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerWorkingDirectory>$(ProjectDir)\..\..\game\</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>data/proto.db data/proto.new</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-decompress data/glow.db data/glow.db</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>

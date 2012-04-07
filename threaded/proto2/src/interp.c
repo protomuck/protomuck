@@ -673,6 +673,7 @@ interp(int descr, dbref player, dbref location, dbref program,
     fr->proftime.tv_usec = 0;
     fr->totaltime.tv_sec = 0;
     fr->totaltime.tv_usec = 0;
+	fr->lockfail = 0;
 
 	fr->nargs = 0;
 	mutex_init(fr->mutx);

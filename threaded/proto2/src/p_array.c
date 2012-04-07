@@ -1045,6 +1045,9 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
         abort_interp("String required. (2)");
 
     ref = oper[1].data.objref;
+	while (DBTRYLOCK(ref))
+		if (fr->err)
+			return;
     strcpy(dir, DoNullInd(oper[0].data.string));
     if (!*dir)
         strcpy(dir, "/");
@@ -1077,6 +1080,7 @@ prim_array_get_propdirs(PRIM_PROTOTYPE)
         propadr = next_prop(pptr, propadr, propname);
     }
 
+	DBUNLOCK(ref);
     PushArrayRaw(nw);
 }
 
@@ -1103,6 +1107,9 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
         abort_interp("String required. (2)");
 
     ref = oper[1].data.objref;
+	while (DBTRYLOCK(ref))
+		if (fr->err)
+			return;
     strcpy(dir, DoNullInd(oper[0].data.string));
 
     if (!*dir)
@@ -1163,6 +1170,8 @@ prim_array_get_propvals(PRIM_PROTOTYPE)
         propadr = next_prop(pptr, propadr, propname);
     }
 
+	DBUNLOCK(ref);
+
     PushArrayRaw(nw);
 }
 
@@ -1189,6 +1198,10 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
         abort_interp("String required. (2)");
 
     ref = oper[1].data.objref;
+	while (DBTRYLOCK(ref))
+		if (fr->err)
+			return;
+
     strcpy(dir, DoNullInd(oper[0].data.string));
     if (!*dir)
         strcpy(dir, "/");
@@ -1272,7 +1285,7 @@ prim_array_get_proplist(PRIM_PROTOTYPE)
             }
         }
     }
-
+	DBUNLOCK(ref);
     PushArrayRaw(nw);
 }
 
@@ -1299,6 +1312,10 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
     ref = oper[2].data.objref;
     arr = oper[0].data.array;
 
+	while (DBTRYLOCK(ref))
+		if (fr->err)
+			return;
+
     if (array_first(arr, &temp1)) {
         struct inst *oper4;
 
@@ -1322,9 +1339,10 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
                     *propname = '\0';
             }
 
-            if (!prop_write_perms(ProgUID, ref, propname, mlev))
-                abort_interp
-                    ("Permission denied while trying to set protected property.");
+            if (!prop_write_perms(ProgUID, ref, propname, mlev)) {
+				DBUNLOCK(ref);
+                abort_interp("Permission denied while trying to set protected property.");
+			}
 
             switch (oper4->type) {
                 case PROG_STRING:
@@ -1352,6 +1370,7 @@ prim_array_put_propvals(PRIM_PROTOTYPE)
             set_property(ref, propname, &pdat);
         } while (array_next(arr, &temp1));
     }
+	DBUNLOCK(ref);
 }
 
 
@@ -1383,6 +1402,11 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
     if (oper[0].data.array && oper[0].data.array->type != ARRAY_PACKED)
         abort_interp("Argument must be a list type array. (3)");
     ref = oper[2].data.objref;
+
+	while (DBTRYLOCK(ref))
+		if (fr->err)
+			return;
+	
     strcpy(dir, DoNullInd(oper[1].data.string));
     arr = oper[0].data.array;
     dirlen = strlen(dir);
@@ -1401,9 +1425,10 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
     }
     *fmtout++ = '\0';
 
-    if (!prop_write_perms(ProgUID, ref, propname, mlev))
-        abort_interp
-            ("Permission denied while trying to set protected property.");
+    if (!prop_write_perms(ProgUID, ref, propname, mlev)) {
+		DBUNLOCK(ref);
+        abort_interp("Permission denied while trying to set protected property.");
+	}
 
     if (tp_proplist_int_counter) {
         /* Alynna - Fix a bug where it wont set the proper value if you try to write an int directly.. */
@@ -1442,9 +1467,10 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
             }
             *fmtout++ = '\0';
 
-            if (!prop_write_perms(ProgUID, ref, propname, mlev))
-                abort_interp
-                    ("Permission denied while trying to set protected property.");
+            if (!prop_write_perms(ProgUID, ref, propname, mlev)) {
+				DBUNLOCK(ref);
+                abort_interp("Permission denied while trying to set protected property.");
+			}
 
             switch (oper4->type) {
                 case PROG_STRING:
@@ -1501,6 +1527,8 @@ prim_array_put_proplist(PRIM_PROTOTYPE)
             break;
         }
     }
+
+	DBUNLOCK(ref);
 }
 
 void
@@ -1530,6 +1558,10 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
 
     if (!prop_read_perms(ProgUID, ref, dir, mlev))
         abort_interp(tp_noperm_mesg);
+
+	while (DBTRYLOCK(ref))
+		if (fr->err)
+			return;
 
     nw = new_array_packed(0);
     rawstr = get_property_class(ref, dir);
@@ -1562,6 +1594,7 @@ prim_array_get_reflist(PRIM_PROTOTYPE)
         }
     }
 
+	DBUNLOCK(ref);
     PushArrayRaw(nw);
 }
 
@@ -1597,6 +1630,11 @@ prim_array_put_reflist(PRIM_PROTOTYPE)
         abort_interp("Argument must be a list array of dbrefs. (3)");
 
     ref = oper[2].data.objref;
+
+	while (DBTRYLOCK(ref))
+		if (fr->err)
+			return;
+
     strcpy(dir, DoNullInd(oper[1].data.string));
 
     remove_property(ref, dir);
@@ -1628,6 +1666,7 @@ prim_array_put_reflist(PRIM_PROTOTYPE)
     pdat.flags = PROP_STRTYP;
     pdat.data.str = buf;
     set_property(ref, dir, &pdat);
+	DBUNLOCK(ref);
 }
 
 void
