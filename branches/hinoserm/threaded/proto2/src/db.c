@@ -1118,7 +1118,12 @@ db_free_object(dbref i)
     struct object *o;
 
 	DBLOCK(i);
-    o = DBFETCH(i);
+#ifndef SANITY
+    if (Typeof(i) == TYPE_PROGRAM) {
+        uncompile_program(i);
+    }
+#endif
+	o = DBFETCH(i);
     if (NAME(i) && Typeof(i) != TYPE_GARBAGE)
         free((void *) NAME(i));
 
@@ -1142,11 +1147,6 @@ db_free_object(dbref i)
             o->sp.player.descr_count = 0;
         }
     }
-#ifndef SANITY
-    if (Typeof(i) == TYPE_PROGRAM) {
-        uncompile_program(i);
-    }
-#endif
 	DBUNLOCK(i);
 	mutex_free(o->mutx);
     /* DBDIRTY(i); */

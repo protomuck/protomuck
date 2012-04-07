@@ -1764,3 +1764,13 @@ array_appendref(stk_array **arr, dbref theref)
 
     return (i);
 }
+
+void
+array_shrink(stk_array *arr, int newsize)
+{
+	if (arr->items <= newsize)
+		return;
+
+	arr->items = newsize;
+	arr->data.packed = (array_data *)realloc(arr->data.packed, sizeof(array_data) * newsize);
+}

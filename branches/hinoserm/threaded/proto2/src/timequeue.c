@@ -607,6 +607,7 @@ next_timequeue_event(struct thread_data *thread)
         } else if (event->typ == TQ_MUF_TYP) {
             if (Typeof(event->called_prog) == TYPE_PROGRAM) {
                 if (event->subtyp == TQ_MUF_DELAY) {
+					//int freed = 0;
                     short tmpbl = 0;
 					int err = 0;
 
@@ -627,15 +628,19 @@ next_timequeue_event(struct thread_data *thread)
 						for (event2 = tqhead; event2; event2 = event2->next) {
 							//Since it's possible the program got dequeue_prog'd, we need to double-check here.
 							if (event == event2) {
+								//freed = 1;
 								event->fr = NULL;
 								remove_timenode(event);
 								free_timenode(event);
 								break;
 							}
+							event->running = 0;
 						}
+						//if (!freed)
+						//	mutex_unlock(event->fr->mutx);
 					} else {
-						mutex_unlock(event->fr->mutx);
 						event->running = 0;
+						mutex_unlock(event->fr->mutx);
 					}
                     //if (!tmpfg) {
                     //    if (OkObj(event->uid)) {
@@ -763,15 +768,16 @@ list_events(dbref player)
     time_t rtime = current_systime;
     time_t etime = 0;
     double pcnt = 0.0;
+	char buft[128];
 
 	mutex_lock(tq_mutex);
 
     anotify_nolisten(player,
-                     CINFO "     PID Next  Run KInst %CPU Prog#   Player", 1);
+                     CINFO "Thrd     PID Next  Run KInst %CPU Prog#   Player", 1);
 
     while (ptr) {
         strcpy(buf2, ((ptr->when - rtime) > 0) ?
-               time_format_2((time_t) (ptr->when - rtime)) : "Due");
+               time_format_2((time_t) (ptr->when - rtime), buft) : "Due");
         if (ptr->fr) {
             etime = rtime - ptr->fr->started;
             if (etime > 0) {
@@ -786,46 +792,47 @@ list_events(dbref player)
             }
         }
         if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_DELAY) {
-            (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
-                           ptr->eventnum, buf2,
-                           time_format_2((long) etime),
+            (void) sprintf(buf, "%4d %8d %4s %4s %5lld %4.1f #%-6d %-16s %.512s",
+                           (ptr->fr->thread ? ptr->fr->thread->id : 0), ptr->eventnum, buf2,
+                           time_format_2((long) etime, buft),
                            (ptr->fr->instcnt / 1000), pcnt,
                            ptr->called_prog,
                            (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
         } else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_READ) {
-            (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
-                           ptr->eventnum, "--",
-                           time_format_2((long) etime),
+            (void) sprintf(buf, "%4d %8d %4s %4s %5lld %4.1f #%-6d %-16s %.512s",
+                           (ptr->fr->thread ? ptr->fr->thread->id : 0), ptr->eventnum, "--",
+                           time_format_2((long) etime, buft),
                            (ptr->fr->instcnt / 1000), pcnt,
                            ptr->called_prog,
                            (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
         } else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TIMER) {
-            (void) sprintf(buf, "(%6d) %4s %4s %5d %4.1f #%-6d %-16s %.512s",
-                           ptr->eventnum, buf2,
-                           time_format_2((long) etime),
+            (void) sprintf(buf, "%4d (%6d) %4s %4s %5lld %4.1f #%-6d %-16s %.512s",
+                           (ptr->fr->thread ? ptr->fr->thread->id : 0), ptr->eventnum, buf2,
+                           time_format_2((long) etime, buft),
                            (ptr->fr->instcnt / 1000), pcnt,
                            ptr->called_prog,
                            (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
 
         } else if (ptr->typ == TQ_MUF_TYP && ptr->subtyp == TQ_MUF_TREAD) {
-            (void) sprintf(buf, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s",
+            (void) sprintf(buf, "%4d %8d %4s %4s %5lld %4.1f #%-6d %-16s %.512s",
+						   (ptr->fr->thread ? ptr->fr->thread->id : 0),
                            ptr->eventnum, buf2,
-                           time_format_2((long) etime),
+                           time_format_2((long) etime, buft),
                            (ptr->fr->instcnt / 1000), pcnt,
                            ptr->called_prog,
                            (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
         } else if (ptr->typ == TQ_MPI_TYP) {
             (void) sprintf(buf,
-                           "%8d %4s   --   MPI   -- #%-6d %-16s \"%.512s\"",
+                           "    %8d %4s   --   MPI   -- #%-6d %-16s \"%.512s\"",
                            ptr->eventnum, buf2, ptr->trig, NAME(ptr->uid),
                            ptr->called_data);
         } else {
             (void) sprintf(buf,
-                           "%8d %4s   0s     0   -- #%-6d %-16s \"%.512s\"",
+                           "    %8d %4s   0s     0   -- #%-6d %-16s \"%.512s\"",
                            ptr->eventnum, buf2, ptr->called_prog,
                            (OkObj(ptr->uid)) ? NAME(ptr->uid) : "(Login)",
                            ptr->called_data);
@@ -843,8 +850,8 @@ list_events(dbref player)
         ptr = ptr->next;
         count++;
     }
-    count += muf_event_list(player, "%8d %4s %4s %5d %4.1f #%-6d %-16s %.512s");
-    sprintf(buf, CINFO "%d events.", count);
+    count += muf_event_list(player, "%4d %8d %4s %4s %5lld %4.1f #%-6d %-16s %.512s");
+    sprintf(buf, CINFO "%d events.  %d threads.", count, thread_count);
     anotify_nolisten(player, buf, 1);
 
 	mutex_unlock(tq_mutex);
@@ -1037,6 +1044,8 @@ dequeue_frame(struct frame *fr)
 
     for (event = tqhead; event; event = event->next) {
         if (event->fr == fr) {
+			fr->err = -1;
+			while (event->running) Sleep(10);
 			event->fr = NULL;
 			timequeue tmp = event;
 			event = event->next;
@@ -1068,23 +1077,23 @@ dequeue_prog(dbref program, int sleeponly, struct frame *exclude)
     for (event = tqhead; event; event = event->next) {
 		if (exclude && event->fr == exclude)
 			continue;
-		if (sleeponly && event->typ == TQ_MUF_TYP && (event->subtyp == TQ_MUF_LISTEN || event->subtyp == TQ_MUF_QUEUE))
+		if (sleeponly == 1 && event->typ == TQ_MUF_TYP && (event->subtyp == TQ_MUF_LISTEN || event->subtyp == TQ_MUF_QUEUE))
+			continue;
+		if (sleeponly == 2 && event->fr->multitask != FOREGROUND)
 			continue;
         if (event && ((!sleeponly && has_refs(program, event)) || event->called_prog == program || event->uid == program)) {
 			timequeue tmp = event;
 			remove_timenode(event);
 			
-
 			if (event->fr) {
 				event->fr->err = -1;
+				mutex_unlock(tq_mutex);
 				if (event->running) { //no point waiting on an event that cannot run.
-					mutex_unlock(tq_mutex);
-					mutex_lock(event->fr->mutx);
-					mutex_unlock(event->fr->mutx);
-					mutex_lock(tq_mutex);
+					while (event->running) Sleep(10);
 				} else if (event->typ == TQ_MUF_TYP && event->subtyp == TQ_MUF_DELAY) {
 					prog_clean(event->fr);
 				}
+				mutex_lock(tq_mutex);
 			}
 			event->fr = NULL;
 

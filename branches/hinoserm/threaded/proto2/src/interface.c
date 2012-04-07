@@ -133,7 +133,7 @@ void descr_sendfileblock(struct descriptor_data *d);
 void descr_fsenddisc(struct descriptor_data *d);
 #endif /* DESCRFILE_SUPPORT */
 
-char *time_format_1(time_t);
+char *time_format_1(time_t, char *buf);
 
 struct descriptor_data *new_connection(int port, int sock);
 struct descriptor_data *new_connection6(int port, int sock);
@@ -4798,6 +4798,7 @@ do_dinfo(dbref player, const char *arg)
     char *ctype = NULL;
     time_t now;
 	char bufu[BUFFER_LEN];
+	char buft[128];
 
     if (!Wiz(player)) {
         anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
@@ -4865,8 +4866,8 @@ do_dinfo(dbref player, const char *arg)
 
     anotify_fmt(player, SYSVIOLET "Online: " SYSPURPLE "%s  " SYSBROWN "Idle: "
                 SYSYELLOW "%s  " SYSCRIMSON "Commands: " SYSRED "%d",
-                time_format_1(now - d->connected_at),
-                time_format_2(now - d->last_time), d->commands);
+                time_format_1(now - d->connected_at, buft),
+                time_format_2(now - d->last_time, buft), d->commands);
 
     if (d->connected)
         anotify_fmt(player, SYSAQUA "Location: %s",
@@ -5050,6 +5051,7 @@ dump_users(struct descriptor_data *d, char *user)
     char buf[BUFFER_LEN], dobuf[BUFFER_LEN];
     char plyrbuf[BUFFER_LEN], typbuf[BUFFER_LEN];
     char tbuf[BUFFER_LEN], tbuf2[BUFFER_LEN];
+	char buft[128];
 
     if (!d)
         return;
@@ -5214,12 +5216,12 @@ dump_users(struct descriptor_data *d, char *user)
                         sprintf(buf, "%s%s %s%10s%s%s%4s%s %s%-.45s\r\n",
                                 SYSGREEN, plyrbuf, SYSPURPLE,
                                 time_format_1(current_systime -
-                                              dlist->connected_at),
+                                              dlist->connected_at, buft),
                                 (1
                                  ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? " " : " ")
                                  : " "), SYSYELLOW,
                                 time_format_2(current_systime -
-                                              dlist->last_time),
+                                              dlist->last_time, buft),
                                 ((dlist->connected
                                   && OkObj(dlist->
                                            player)) ? ((FLAGS(dlist->
@@ -5234,12 +5236,12 @@ dump_users(struct descriptor_data *d, char *user)
                         sprintf(buf, "%s%s %s%10s%s%s%4s%s\r\n",
                                 SYSGREEN, plyrbuf, SYSPURPLE,
                                 time_format_1(current_systime -
-                                              dlist->connected_at),
+                                              dlist->connected_at, buft),
                                 (1
                                  ? ((DR_RAW_FLAGS(dlist, DF_IDLE)) ? "I" : " ")
                                  : " "), SYSYELLOW,
                                 time_format_2(current_systime -
-                                              dlist->last_time),
+                                              dlist->last_time, buft),
                                 ((dlist->connected
                                   && OkObj(dlist->
                                            player)) ? ((FLAGS(dlist->
@@ -5254,11 +5256,11 @@ dump_users(struct descriptor_data *d, char *user)
                             SYSRED, dlist->descriptor, SYSGREEN, plyrbuf,
                             SYSCYAN, dlist->cport, SYSPURPLE,
                             time_format_1(current_systime -
-                                          dlist->connected_at),
+                                          dlist->connected_at, buft),
                             (1
                              ? ((DR_RAW_FLAGS(dlist, DF_TRUEIDLE)) ? "I" : " ")
                              : " "), SYSYELLOW,
-                            time_format_2(current_systime - dlist->last_time),
+                            time_format_2(current_systime - dlist->last_time, buft),
                             ((dlist->connected
                               && OkObj(dlist->
                                        player)) ? ((FLAGS(dlist->
@@ -5312,10 +5314,9 @@ pdump_who_users(int c, char *user)
 }
 
 char *
-time_format_1(time_t dt)
+time_format_1(time_t dt, char *buf)
 {
     struct tm *delta;
-    static char buf[64];
 
     delta = gmtime(&dt);
 
@@ -5328,13 +5329,9 @@ time_format_1(time_t dt)
 }
 
 char *
-time_format_2(time_t dt)
+time_format_2(time_t dt, char *buf)
 {
     struct tm *delta;
-    static char buf[64];
-
-	strcpy(buf, "x");
-	return buf;
 
     delta = gmtime(&dt);
 
