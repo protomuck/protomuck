@@ -381,7 +381,7 @@ prim_fork(PRIM_PROTOTYPE)
     push(tmpfr->argument.st, &(tmpfr->argument.top), PROG_INTEGER,
          MIPSCAST & result);
 	result = add_muf_delay_event(0, fr->descr, player, NOTHING, NOTHING,
-                                 program, tmpfr, string_dup("BACKGROUND"));
+                                 program, tmpfr, "BACKGROUND");
     /* parent process gets the child's pid returned on the stack */
     if (!result)
         result = -1;
@@ -837,7 +837,7 @@ prim_nameokp(PRIM_PROTOTYPE)
 void
 prim_watchpid(PRIM_PROTOTYPE)
 {
-    struct frame *frame;
+    struct frame *frame = NULL;
     
     if (mlev < 3) {
         abort_interp("Mucker level 3 required.");
@@ -849,7 +849,7 @@ prim_watchpid(PRIM_PROTOTYPE)
     if (oper[0].data.number == fr->pid) {
         abort_interp("Narcissistic processes not allowed.");
     }
-    frame = timequeue_pid_frame(oper[0].data.number);
+    //frame = timequeue_pid_frame(oper[0].data.number);
     if (frame) {
         struct mufwatchpidlist **cur;
         struct mufwatchpidlist *waitee;

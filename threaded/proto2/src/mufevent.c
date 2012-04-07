@@ -356,6 +356,7 @@ muf_event_list(dbref player, char *pat)
     time_t etime;
     double pcnt = 0;
     struct mufevent_process *proc = mufevent_processes;
+	char buft[128];
 
     while (proc) {
         if (proc->fr) {
@@ -372,8 +373,9 @@ muf_event_list(dbref player, char *pat)
             }
         }
         sprintf(buf, pat,
+				(proc->fr->thread ? proc->fr->thread->id : 0),
                 proc->fr->pid, "--",
-                time_format_2((long) (rtime - proc->fr->started)),
+                time_format_2((long) (rtime - proc->fr->started), buft),
                 (proc->fr->instcnt / 1000), pcnt, proc->prog,
                 (OkObj(proc->player)) ? NAME(proc->player) : "(Login)",
                 "EVENT_WAITFOR");
@@ -706,7 +708,7 @@ muf_event_process(void)
                          PROG_STRING, MIPSCAST alloc_prog_string(ev->event));
 
                     //interp_loop(proc->player, proc->prog, proc->fr, 0, proc->fr->thread);
-					add_muf_delay_event(0, proc->descr, proc->player, NOTHING, proc->fr->trig, proc->prog, proc->fr, (proc->fr->multitask == FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
+					add_muf_delay_event(0, proc->descr, proc->player, NOTHING, proc->fr->trig, proc->prog, proc->fr, (proc->fr->multitask == FOREGROUND) ? "FOREGROUND" : "BACKGROUND");
 
                     if (!is_fg) {
                         if (OkObj(proc->player)) {

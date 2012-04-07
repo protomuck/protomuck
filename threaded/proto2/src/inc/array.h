@@ -26,11 +26,13 @@ typedef struct stk_array_t {
 		array_data *packed;     /* pointer to packed array */
 		array_tree *dict;       /* pointer to dictionary AVL tree */
 	} data;
+	size_t memsize;
 } stk_array;
 
 stk_array *new_array_dictionary(void);
 stk_array *new_array_packed(int size);
 void array_free(stk_array * arr);
+extern void array_shrink(stk_array * arr, int newsize);
 stk_array *array_promote(stk_array * arr);
 
 int array_count(stk_array * arr);

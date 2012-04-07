@@ -617,6 +617,7 @@ interp(int descr, dbref player, dbref location, dbref program,
          || (OkObj(player) && (FLAGS(player) & READMODE)));
     fr->level = 0;
     fr->error.is_flags = 0;
+	fr->thread = 0;
 
     /* set inst count limit for preempt programs. Can be used to limit
      * w-bitted preempt programs from going forever. 
@@ -697,7 +698,7 @@ interp(int descr, dbref player, dbref location, dbref program,
 	strcpy(fr->match_cmdname, match_cmdname);
 
 	if (queueit)
-       add_muf_delay_event(0, descr, player, location, source, program, fr, (fr->multitask == FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
+       add_muf_delay_event(0, descr, player, location, source, program, fr, (fr->multitask == FOREGROUND) ? "FOREGROUND" : "BACKGROUND");
 
     return fr;
 }
@@ -908,7 +909,6 @@ prog_clean(struct frame *fr)
 
     watchpid_process(fr);
 
-    fr->system.top = 0;
     for (i = 0; i < fr->argument.top; i++)
         CLEAR(&fr->argument.st[i]);
 
@@ -922,32 +922,27 @@ prog_clean(struct frame *fr)
     scopedvar_freeall(fr);
 
     if (fr->fors.st) {
-        struct forvars **loop = &(fr->fors.st);
+        struct forvars *loop = fr->fors.st;
 
-        while (*loop) {
-			struct forvars **tmpl = loop;
-			loop = &((*tmpl)->next);
-            CLEAR(&((*tmpl)->cur));
-            CLEAR(&((*tmpl)->end));
-			free((void *)*tmpl);
+        while (loop) {
+			struct forvars *tmpl = loop;
+			loop = tmpl->next;
+            CLEAR(&tmpl->cur);
+            CLEAR(&tmpl->end);
+			free((void *)tmpl);
         }
-
-        fr->fors.st = NULL;
-        fr->fors.top = 0;
     }
 
     if (fr->trys.st) {
-        struct tryvars **loop = &(fr->trys.st);
+        struct tryvars *loop = fr->trys.st;
 
-        while (*loop) {
-			struct tryvars **tmpl = loop;
-            loop = &((*tmpl)->next);
-			free((void *)*tmpl);
+        while (loop) {
+			struct tryvars *tmpl = loop;
+            loop = tmpl->next;
+			free((void *)tmpl);
         }
     }
 
-    fr->argument.top = 0;
-    fr->pc = 0;
     if (fr->brkpt.lastcmd)
         free(fr->brkpt.lastcmd);
     if (fr->brkpt.proglines) {
@@ -966,8 +961,6 @@ prog_clean(struct frame *fr)
     muf_event_purge(fr);
     //muf_interrupt_clean(fr);
     /* muf_event_dequeue_frame(fr); */
-    fr->pid = 0;                /* cleared to keep socket events from hitting it again */
-    fr->err = -8;
     muf_oper_clean(fr, __FILE__, __LINE__);
 	while (fr->fprofile) {
 		fpr = fr->fprofile->next;
@@ -1415,7 +1408,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                                 pc = sys[stop].offset;
                             }
 
-                            alter_event(TQ_MUF_TYP, TQ_MUF_READ, -1, fr->descr, player, -1, fr->trig, program, fr, "READ", NULL, NULL);
+                            alter_event(event, TQ_MUF_READ, -1, fr->descr, player, -1, fr->trig, program, fr, "READ", NULL, NULL);
                             reload(fr, atop, stop);
                             fr->pc = pc;
                             fr->brkpt.isread = 0;
@@ -2052,7 +2045,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                                 curdescr->block = 0;
                             }
                         }
-						alter_event(TQ_MUF_TYP, TQ_MUF_READ, -1, fr->descr, player, -1, fr->trig, program, fr, "READ", NULL, NULL);
+						alter_event(event, TQ_MUF_READ, -1, fr->descr, player, -1, fr->trig, program, fr, "READ", NULL, NULL);
                         fr->level--;
                         calc_profile_timing(program, fr);
 
@@ -2092,7 +2085,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                                 DR_RAW_ADD_FLAGS(curdescr, DF_INTERACTIVE);
                             }
                         }
-						alter_event(TQ_MUF_TYP, TQ_MUF_TREAD, -1, fr->descr, player, temp1->data.number, fr->trig, program, fr, "TREAD", NULL, NULL);
+						alter_event(event, TQ_MUF_TREAD, -1, fr->descr, player, temp1->data.number, fr->trig, program, fr, "TREAD", NULL, NULL);
                         fr->level--;
                         calc_profile_timing(program, fr);
 
@@ -2117,7 +2110,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                             abort_loop("Timetravel beyond scope of muf.", temp1,
                                        NULL);
 
-						alter_event(TQ_MUF_TYP, TQ_MUF_DELAY, temp1->data.number, fr->descr, player, temp1->data.number, fr->trig, program, fr, "SLEEPING", NULL, NULL);
+						alter_event(event, TQ_MUF_DELAY, temp1->data.number, fr->descr, player, temp1->data.number, fr->trig, program, fr, "SLEEPING", NULL, NULL);
 
                         //add_muf_delay_event(temp1->data.number, fr->descr,
                         //                    player, NOTHING, NOTHING, program,
@@ -2135,7 +2128,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
 
 						mutex_unlock(fr->mutx);
 						if (err) 
-							*err = 1;
+							*err = 0;
                         return NULL;
                         /* NOTREACHED */
                         break;

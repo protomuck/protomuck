@@ -2752,6 +2752,8 @@ prim_find_array(PRIM_PROTOTYPE)
     const char *name;
     stk_array *nw;
 	char buf[BUFFER_LEN];
+	int i = 0;
+	struct inst temp;
 
     if (oper[0].type != PROG_STRING)
         abort_interp("Expected string argument. (3)");
@@ -2767,15 +2769,22 @@ prim_find_array(PRIM_PROTOTYPE)
 
     strcpy(buf, name);
     init_checkflags(PSafe, DoNullInd(oper[0].data.string), &check);
-    nw = new_array_packed(0);
+    nw = new_array_packed(db_top);
 
     for (ref = (dbref) 0; ref < db_top; ref++) {
         if (((who == NOTHING) ? 1 : (OWNER(ref) == who)) &&
             checkflags(ref, check) && NAME(ref) &&
-            (!*name || equalstr(buf, (char *) NAME(ref)))) {
-            array_appendref(&nw, ref);
+            (!*name || equalstr(buf, (char *) NAME(ref))))
+		{
+			temp.type = PROG_OBJECT;
+			temp.data.objref = ref;
+
+            array_set_intkey(&nw, i++, &temp);
         }
     }
+
+	array_shrink(nw, i);
+
     PushArrayRaw(nw);
 }
 

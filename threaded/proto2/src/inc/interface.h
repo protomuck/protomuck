@@ -321,7 +321,7 @@ extern char *pipnum(int c);
 extern char *pport(int c);
 extern void make_nonblocking(int s);
 extern void make_blocking(int s);
-extern char *time_format_2(time_t dt);
+extern char *time_format_2(time_t dt, char *buf);
 extern int msec_diff(struct timeval now, struct timeval then);
 extern void pboot(int c);
 extern void pdboot(int c);
