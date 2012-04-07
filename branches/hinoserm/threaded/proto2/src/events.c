@@ -294,7 +294,8 @@ next_muckevent_time(void)
 void
 next_muckevent(void)
 {
-    //next_timequeue_event();
+	if (!tp_thread_count)
+		next_timequeue_event(NULL);
     check_dump_time();
     check_clean_time();
     check_cron_time();

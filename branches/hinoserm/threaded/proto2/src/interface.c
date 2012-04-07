@@ -6301,9 +6301,12 @@ pset_user2(int c, dbref who)
     struct descriptor_data *d;
     int result;
 
+	DBLOCK(who);
     d = descrdata_by_descr(c);
     if (!d)
         return 0;
+
+	mutex_lock(d->mutx);
 
     if (d->connected)
         result = pset_user(d, who);
@@ -6312,6 +6315,10 @@ pset_user2(int c, dbref who)
     d->booted = 0;
     if (d->type == CT_MUF)
         d->type = CT_MUCK;
+
+	mutex_unlock(d->mutx);
+	DBUNLOCK(who);
+
     return result;
 }
 

@@ -39,8 +39,9 @@ set_property_nofetch(dbref object, const char *pname, PData * dat,
     PropPtr p;
 
     /* Make sure that we are passed a valid property name */
-    if (!pname)
+    if (!pname) {
         return;
+	}
 
     while (*pname == PROPDIR_DELIMITER)
         pname++;
@@ -82,6 +83,8 @@ set_property_nofetch(dbref object, const char *pname, PData * dat,
         FLAG2(object) |= F2COMMAND;
     }
 
+	DBLOCK(object);
+
     p = propdir_new_elem(&(DBFETCH(object)->properties), buf);
 
     /* free up any old values */
@@ -90,6 +93,7 @@ set_property_nofetch(dbref object, const char *pname, PData * dat,
     SetPFlagsRaw(p, dat->flags);
     if (PropFlags(p) & PROP_ISUNLOADED) {
         SetPDataUnion(p, dat->data);
+		DBUNLOCK(object);
         return;
     }
 
@@ -151,24 +155,24 @@ set_property_nofetch(dbref object, const char *pname, PData * dat,
                 remove_property_nofetch(object, pname);
             break;
     }
+
+	DBUNLOCK(object);
 }
 
 
 void
 set_property(dbref object, const char *pname, PData * dat)
 {
+	DBLOCK(object);
 #ifdef DISKBASE
     fetchprops(object);
-	DBLOCK(object);
     set_property_nofetch(object, pname, dat, 0);
-	DBUNLOCK(object);
     dirtyprops(object);
 #else
-	DBLOCK(object);
     set_property_nofetch(object, pname, dat, 0);
-	DBUNLOCK(object);
 #endif
     DBDIRTY(object);
+	DBUNLOCK(object);
 }
 
 /* adds a new property to an object */
@@ -194,19 +198,16 @@ add_prop_nofetch(dbref player, const char *pname, const char *type, int value)
 void
 add_property(dbref player, const char *type, const char *pclass, int value)
 {
-
+	DBLOCK(player);
 #ifdef DISKBASE
     fetchprops(player);
-	DBLOCK(player);
     add_prop_nofetch(player, type, pclass, value);
-	DBUNLOCK(player);
     dirtyprops(player);
 #else
-	DBLOCK(player);
     add_prop_nofetch(player, type, pclass, value);
-	DBUNLOCK(player);
 #endif
     DBDIRTY(player);
+	DBUNLOCK(player);
 }
 
 void
@@ -218,6 +219,7 @@ remove_proplist_item(dbref player, PropPtr p, int allp)
 
     if (!p)
         return;
+
     ptr = PropName(p);
     if (!allp) {
         if (Prop_SeeOnly(ptr))
@@ -245,6 +247,8 @@ remove_property_list(dbref player, int all)
 
     /* if( tp_db_readonly ) return; *//* Why did we remove this? */
 
+	DBLOCK(player);
+
 #ifdef DISKBASE
     fetchprops(player);
 #endif
@@ -263,6 +267,7 @@ remove_property_list(dbref player, int all)
 #endif
 
     DBDIRTY(player);
+	DBUNLOCK(player);
 }
 
 
@@ -276,6 +281,8 @@ remove_property_nofetch(dbref player, const char *type)
     char *w;
 
     /* if( tp_db_readonly ) return; *//* Why did we remove this? */
+
+	DBLOCK(player);
 
     w = strcpy(buf, type);
 
@@ -307,6 +314,7 @@ remove_property_nofetch(dbref player, const char *type)
         FLAG2(player) &= ~F2COMMAND;
     }
     DBDIRTY(player);
+	DBUNLOCK(player);
 }
 
 
@@ -316,18 +324,17 @@ remove_property(dbref player, const char *type)
 
     /* if( tp_db_readonly ) return; *//* Why did we remove this? *//* That is a good question. -Hinoserm 04-04-2012 */
 
+	DBLOCK(player);
 
 #ifdef DISKBASE
     fetchprops(player);
 #endif
-
-	DBLOCK(player);
     remove_property_nofetch(player, type);
-	DBUNLOCK(player);
-
 #ifdef DISKBASE
     dirtyprops(player);
 #endif
+
+	DBUNLOCK(player);
 }
 
 
@@ -338,6 +345,8 @@ get_property(dbref player, const char *type)
     char buf[BUFFER_LEN];
     char *w;
 
+	DBLOCK(player);
+
 #ifdef DISKBASE
     fetchprops(player);
 #endif
@@ -345,6 +354,9 @@ get_property(dbref player, const char *type)
     w = strcpy(buf, type);
 
     p = propdir_get_elem(DBFETCH(player)->properties, w);
+
+	DBUNLOCK(player);
+
     return (p);
 }
 
@@ -357,21 +369,32 @@ has_property(int descr, dbref player, dbref what, const char *type,
 {
     dbref things;
 
-    if (has_property_strict(descr, player, what, type, pclass, value))
+	DBLOCK(-1);
+
+    if (has_property_strict(descr, player, what, type, pclass, value)) {
+		DBUNLOCK(-1);
         return 1;
-    for (things = DBFETCH(what)->contents; things != NOTHING;
-         things = DBFETCH(things)->next) {
-        if (has_property(descr, player, things, type, pclass, value))
+	}
+
+    for (things = DBFETCH(what)->contents; things != NOTHING; things = DBFETCH(things)->next) {
+        if (has_property(descr, player, things, type, pclass, value)) {
+			DBUNLOCK(-1);
             return 1;
+		}
     }
+
     if (tp_lock_envcheck) {
         things = getparent(what);
         while (things != NOTHING) {
-            if (has_property_strict(descr, player, things, type, pclass, value))
+            if (has_property_strict(descr, player, things, type, pclass, value)) {
+				DBUNLOCK(-1);
                 return 1;
+			}
             things = getparent(things);
         }
     }
+
+	DBUNLOCK(-1);
     return 0;
 }
 
@@ -412,16 +435,22 @@ get_property_class(dbref player, const char *type)
 {
     PropPtr p;
 
+	DBLOCK(player);
+
     p = get_property(player, type);
     if (p) {
 #ifdef DISKBASE
         propfetch(player, p);
 #endif
-        if (PropType(p) != PROP_STRTYP)
+        if (PropType(p) != PROP_STRTYP) {
+			DBUNLOCK(player);
             return (char *) NULL;
+		}
 
+		DBUNLOCK(player);
         return (PropDataUNCStr(p));
     } else {
+		DBUNLOCK(player);
         return (char *) NULL;
     }
 }
@@ -432,16 +461,23 @@ get_property_value(dbref player, const char *type)
 {
     PropPtr p;
 
+	DBLOCK(player);
+
     p = get_property(player, type);
 
     if (p) {
 #ifdef DISKBASE
         propfetch(player, p);
 #endif
-        if (PropType(p) != PROP_INTTYP)
+        if (PropType(p) != PROP_INTTYP) {
+			DBUNLOCK(player);
             return 0;
+		}
+
+		DBUNLOCK(player);
         return (PropDataVal(p));
     } else {
+		DBUNLOCK(player);
         return 0;
     }
 }
@@ -452,15 +488,22 @@ get_property_fvalue(dbref player, const char *pname)
 {
     PropPtr p;
 
+	DBLOCK(player);
+
     p = get_property(player, pname);
     if (p) {
 #ifdef DISKBASE
         propfetch(player, p);
 #endif
-        if (PropType(p) != PROP_FLTTYP)
+        if (PropType(p) != PROP_FLTTYP) {
+			DBUNLOCK(player);
             return 0.0;
+		}
+
+		DBUNLOCK(player);
         return (PropDataFVal(p));
     } else {
+		DBUNLOCK(player);
         return 0.0;
     }
 }
@@ -471,14 +514,22 @@ get_property_dbref(dbref player, const char *pclass)
 {
     PropPtr p;
 
+	DBLOCK(player);
+
     p = get_property(player, pclass);
-    if (!p)
+    if (!p) {
+		DBUNLOCK(player);
         return NOTHING;
+	}
 #ifdef DISKBASE
     propfetch(player, p);
 #endif
-    if (PropType(p) != PROP_REFTYP)
+    if (PropType(p) != PROP_REFTYP) {
+		DBUNLOCK(player);
         return NOTHING;
+	}
+
+	DBUNLOCK(player);
     return PropDataRef(p);
 }
 
@@ -489,16 +540,26 @@ get_property_lock(dbref player, const char *pclass)
 {
     PropPtr p;
 
+	DBLOCK(player);
+
     p = get_property(player, pclass);
-    if (!p)
+    if (!p) {
+		DBUNLOCK(player);
         return TRUE_BOOLEXP;
+	}
 #ifdef DISKBASE
     propfetch(player, p);
-    if (PropFlags(p) & PROP_ISUNLOADED)
+    if (PropFlags(p) & PROP_ISUNLOADED) {
+		DBUNLOCK(player);
         return TRUE_BOOLEXP;
+	}
 #endif
-    if (PropType(p) != PROP_LOKTYP)
+    if (PropType(p) != PROP_LOKTYP) {
+		DBUNLOCK(player);
         return TRUE_BOOLEXP;
+	}
+
+	DBUNLOCK(player);
     return PropDataLok(p);
 }
 
@@ -509,13 +570,17 @@ get_property_flags(dbref player, const char *type)
 {
     PropPtr p;
 
+	DBLOCK(player);
+
     p = get_property(player, type);
 
     if (p) {
+		DBUNLOCK(player);
         return (PropFlags(p));
-    } else {
-        return 0;
     }
+	
+	DBUNLOCK(player);
+	return 0;
 }
 
 
@@ -525,11 +590,15 @@ get_property_type(dbref player, const char *type)
 {
     PropPtr p;
 
+	DBLOCK(player);
+
     p = get_property(player, type);
 
     if (p) {
+		DBUNLOCK(player);
         return (PropType(p));
     } else {
+		DBUNLOCK(player);
         return 0;
     }
 }
@@ -539,12 +608,15 @@ copy_prop(dbref old)
 {
     PropPtr p, n = NULL;
 
+	DBLOCK(old);
 #ifdef DISKBASE
     fetchprops(old);
 #endif
 
     p = DBFETCH(old)->properties;
     copy_proplist(old, &n, p);
+
+	DBUNLOCK(old);
     return (n);
 }
 
@@ -576,6 +648,8 @@ first_prop_nofetch(dbref player, const char *dir, PropPtr *list, char *name)
     char buf[BUFFER_LEN];
     PropPtr p;
 
+	DBLOCK(player);
+
     if (dir) {
         while (*dir && *dir == PROPDIR_DELIMITER) {
             dir++;
@@ -589,6 +663,8 @@ first_prop_nofetch(dbref player, const char *dir, PropPtr *list, char *name)
         } else {
             *name = '\0';
         }
+
+		DBUNLOCK(player);
         return (p);
     }
 
@@ -596,6 +672,7 @@ first_prop_nofetch(dbref player, const char *dir, PropPtr *list, char *name)
     *list = p = propdir_get_elem(DBFETCH(player)->properties, buf);
     if (!p) {
         *name = '\0';
+		DBUNLOCK(player);
         return NULL;
     }
     *list = PropDir(p);
@@ -606,6 +683,7 @@ first_prop_nofetch(dbref player, const char *dir, PropPtr *list, char *name)
         *name = '\0';
     }
 
+	DBUNLOCK(player);
     return (p);
 }
 
@@ -666,6 +744,8 @@ next_prop_name(dbref player, char *outbuf, char *name)
     char buf[BUFFER_LEN];
     PropPtr p, l;
 
+	DBLOCK(player);
+
 #ifdef DISKBASE
     fetchprops(player);
 #endif
@@ -676,6 +756,7 @@ next_prop_name(dbref player, char *outbuf, char *name)
         p = propdir_first_elem(l, buf);
         if (!p) {
             *outbuf = '\0';
+			DBUNLOCK(player);
             return NULL;
         }
         strcat(strcpy(outbuf, name), PropName(p));
@@ -689,6 +770,7 @@ next_prop_name(dbref player, char *outbuf, char *name)
         p = propdir_next_elem(l, buf);
         if (!p) {
             *outbuf = '\0';
+			DBUNLOCK(player);
             return NULL;
         }
         strcpy(outbuf, name);
@@ -698,6 +780,8 @@ next_prop_name(dbref player, char *outbuf, char *name)
         *(ptr++) = PROPDIR_DELIMITER;
         strcpy(ptr, PropName(p));
     }
+
+	DBUNLOCK(player);
     return outbuf;
 }
 
@@ -747,13 +831,17 @@ regenvprop(dbref *where, const char *propname, int typ)
 {
     PropPtr temp;
 
+	DBLOCK(-1);
+
     temp = get_property(0, propname);
 #ifdef DISKBASE
     if (temp)
         propfetch(0, temp);
 #endif
-    if (temp && (!typ || PropType(temp) == typ))
+    if (temp && (!typ || PropType(temp) == typ)) {
+		DBUNLOCK(-1);
         return temp;
+	}
 
     while (*where != NOTHING && *where != 0) {
         temp = get_property(*where, propname);
@@ -761,10 +849,14 @@ regenvprop(dbref *where, const char *propname, int typ)
         if (temp)
             propfetch(*where, temp);
 #endif
-        if (temp && (!typ || PropType(temp) == typ))
+        if (temp && (!typ || PropType(temp) == typ)) {
+			DBUNLOCK(-1);
             return temp;
+		}
         *where = getparent(*where);
     }
+
+	DBUNLOCK(-1);
     return NULL;
 }
 
@@ -774,16 +866,22 @@ envprop(dbref *where, const char *propname, int typ)
 {
     PropPtr temp;
 
+	DBLOCK(-1);
+
     while (*where != NOTHING) {
         temp = get_property(*where, propname);
 #ifdef DISKBASE
         if (temp)
             propfetch(*where, temp);
 #endif
-        if (temp && (!typ || PropType(temp) == typ))
+        if (temp && (!typ || PropType(temp) == typ)) {
+			DBUNLOCK(-1);
             return temp;
+		}
         *where = getparent(*where);
     }
+
+	DBUNLOCK(-1);
     return NULL;
 }
 
@@ -792,6 +890,8 @@ PropPtr
 envprop_cmds(dbref *where, const char *propname, int typ)
 {
     PropPtr temp;
+
+	DBLOCK(-1);
 
     while (*where != NOTHING) {
         if (typ ? 1
@@ -803,11 +903,15 @@ envprop_cmds(dbref *where, const char *propname, int typ)
             if (temp)
                 propfetch(*where, temp);
 #endif
-            if (temp)
+            if (temp) {
+				DBUNLOCK(-1);
                 return temp;
+			}
         }
         *where = getparent(*where);
     }
+
+	DBUNLOCK(-1);
     return NULL;
 }
 
@@ -1212,6 +1316,8 @@ reflist_add(dbref obj, const char *propname, dbref toadd)
     char buf[BUFFER_LEN];
     char outbuf[BUFFER_LEN];
 
+	DBLOCK(obj);
+
     ptr = get_property(obj, propname);
     if (ptr) {
         const char *pat = NULL;
@@ -1274,6 +1380,8 @@ reflist_add(dbref obj, const char *propname, dbref toadd)
         sprintf(outbuf, "#%d", toadd);
         add_property(obj, propname, outbuf, 0);
     }
+
+	DBUNLOCK(obj);
 }
 
 
@@ -1287,6 +1395,8 @@ reflist_del(dbref obj, const char *propname, dbref todel)
     int charcount = 0;
     char buf[BUFFER_LEN];
     char outbuf[BUFFER_LEN];
+
+	DBLOCK(obj);
 
     ptr = get_property(obj, propname);
     if (ptr) {
@@ -1338,6 +1448,7 @@ reflist_del(dbref obj, const char *propname, dbref todel)
                 break;
         }
     }
+	DBUNLOCK(obj);
 }
 
 
@@ -1349,6 +1460,8 @@ reflist_find(dbref obj, const char *propname, dbref tofind)
     int pos = 0;
     int count = 0;
     char buf[BUFFER_LEN];
+
+	DBLOCK(obj);
 
     ptr = get_property(obj, propname);
     if (ptr) {
@@ -1391,5 +1504,7 @@ reflist_find(dbref obj, const char *propname, dbref tofind)
                 break;
         }
     }
+
+	DBUNLOCK(obj);
     return pos;
 }

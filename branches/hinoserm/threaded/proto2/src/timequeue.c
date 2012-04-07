@@ -86,7 +86,6 @@ alloc_timenode(int typ, int subtyp, time_t mytime, int descr, dbref player,
 	mutex_unlock(tq_mutex);
     return (ptr);
 }
-
 void
 remove_timenode(timequeue ptr)
 {
@@ -105,6 +104,30 @@ remove_timenode(timequeue ptr)
 
 	mutex_unlock(tq_mutex);
 }
+
+void
+rotate_timenode_to_end(timequeue ptr)
+{
+	mutex_lock(tq_mutex);
+
+	if (tqtail != ptr) {
+		remove_timenode(ptr);
+
+		if (tqtail) {
+			tqtail->next = ptr;
+			ptr->prev = tqtail;
+		}
+		tqtail = ptr;
+
+		if (!tqhead)
+			tqhead = ptr;
+
+		ptr->next = NULL;
+	}
+
+	mutex_unlock(tq_mutex);
+}	
+
 
 void
 free_timenode(timequeue ptr)
@@ -560,6 +583,8 @@ next_timequeue_event(struct thread_data *thread)
 	}
 
 	if (event) {
+		char buf[BUFFER_LEN];
+		printf("Thread %2d running %5d - %s\r\n", (thread ? thread->id : 0), event->eventnum, unparse_object(MAN, event->called_prog, buf));
 		event->running = 1;
 		event->thread = thread;
 		//remove_timenode(event);
@@ -607,12 +632,12 @@ next_timequeue_event(struct thread_data *thread)
         } else if (event->typ == TQ_MUF_TYP) {
             if (Typeof(event->called_prog) == TYPE_PROGRAM) {
                 if (event->subtyp == TQ_MUF_DELAY) {
-					//int freed = 0;
+					int freed = 0;
                     short tmpbl = 0;
 					int err = 0;
 
-					mutex_unlock(tq_mutex);
 					mutex_lock(event->fr->mutx);
+					mutex_unlock(tq_mutex);
 
                     if (OkObj(event->uid)) {
                         /* tmpcp = DBFETCH(event->uid)->sp.player.curr_prog; */
@@ -624,22 +649,26 @@ next_timequeue_event(struct thread_data *thread)
                     tmpfg = (event->fr->multitask != BACKGROUND);
                     interp_loop(event->uid, event->called_prog, event->fr, 0, thread, &err, event);
 					mutex_lock(tq_mutex);
+					if (err == -1)
+						mutex_unlock(event->fr->mutx);
 					if (err) {                   //If err == 1, prog_free() has been called and the frame can no longer be accessed.
 						for (event2 = tqhead; event2; event2 = event2->next) {
 							//Since it's possible the program got dequeue_prog'd, we need to double-check here.
 							if (event == event2) {
-								//freed = 1;
+								freed = 1;
 								event->fr = NULL;
 								remove_timenode(event);
 								free_timenode(event);
 								break;
 							}
-							event->running = 0;
 						}
-						//if (!freed)
-						//	mutex_unlock(event->fr->mutx);
+						if (!freed)
+							event->running = 0;
 					} else {
+						event->called_prog = event->fr->prog;
+						event->uid = event->fr->player;
 						event->running = 0;
+						rotate_timenode_to_end(event);
 						mutex_unlock(event->fr->mutx);
 					}
                     //if (!tmpfg) {
@@ -677,6 +706,7 @@ next_timequeue_event(struct thread_data *thread)
 					//event->running = 0;
                 }
             }
+			printf("Done running.\r\n");
         }
     }
 
@@ -776,8 +806,11 @@ list_events(dbref player)
                      CINFO "Thrd     PID Next  Run KInst %CPU Prog#   Player", 1);
 
     while (ptr) {
-        strcpy(buf2, ((ptr->when - rtime) > 0) ?
-               time_format_2((time_t) (ptr->when - rtime), buft) : "Due");
+		if (ptr->running)
+			strcpy(buf2, "Run");
+		else
+			strcpy(buf2, ((ptr->when - rtime) > 0) ? time_format_2((time_t) (ptr->when - rtime), buft) : "Due");
+		
         if (ptr->fr) {
             etime = rtime - ptr->fr->started;
             if (etime > 0) {
@@ -1073,6 +1106,7 @@ dequeue_prog(dbref program, int sleeponly, struct frame *exclude)
     timequeue event;
 
 	mutex_lock(tq_mutex);
+	DBLOCK(program);
 
     for (event = tqhead; event; event = event->next) {
 		if (exclude && event->fr == exclude)
@@ -1105,8 +1139,6 @@ dequeue_prog(dbref program, int sleeponly, struct frame *exclude)
 		}
 	}
 
-	mutex_unlock(tq_mutex);
-
     /* We used to treat MUF events as only background processes. 
      * Now we pass the actual sleeponly parameter so that we can treat
      * them as foreground processes when needed when handling READ events.
@@ -1122,6 +1154,7 @@ dequeue_prog(dbref program, int sleeponly, struct frame *exclude)
         }
     }
 
+	DBUNLOCK(program)
 	mutex_unlock(tq_mutex);
 
     return (count);

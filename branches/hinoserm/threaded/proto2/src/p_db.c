@@ -2771,6 +2771,8 @@ prim_find_array(PRIM_PROTOTYPE)
     init_checkflags(PSafe, DoNullInd(oper[0].data.string), &check);
     nw = new_array_packed(db_top);
 
+	DBLOCK(-1); //Globally lock the database;
+
     for (ref = (dbref) 0; ref < db_top; ref++) {
         if (((who == NOTHING) ? 1 : (OWNER(ref) == who)) &&
             checkflags(ref, check) && NAME(ref) &&
@@ -2782,6 +2784,7 @@ prim_find_array(PRIM_PROTOTYPE)
             array_set_intkey(&nw, i++, &temp);
         }
     }
+	DBUNLOCK(-1);
 
 	array_shrink(nw, i);
 
