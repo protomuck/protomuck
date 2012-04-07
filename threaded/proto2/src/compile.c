@@ -1738,8 +1738,10 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, 
         }
         cstat.nextinst = NULL;
     }
-    if (cstat.compile_err)
+    if (cstat.compile_err) {
+		DBUNLOCK(-1);
         return;
+	}
 
     set_start(&cstat);
     cleanup(&cstat);
@@ -4641,8 +4643,13 @@ free_prog(dbref prog)
 {
     int i;
 	struct funcprof *fpr;
-    struct inst *c = DBFETCH(prog)->sp.program.code;
-    int siz = DBFETCH(prog)->sp.program.siz;
+    struct inst *c;
+    int siz;
+
+	DBLOCK(prog);
+
+	c = DBFETCH(prog)->sp.program.code;
+	siz = DBFETCH(prog)->sp.program.siz;
 
     if (c) {
         if (DBFETCH(prog)->sp.program.instances) {
@@ -4708,7 +4715,9 @@ free_prog(dbref prog)
 		free((void *)DBFETCH(prog)->sp.program.fprofile->funcname);
 		free((void *)DBFETCH(prog)->sp.program.fprofile);
 		DBFETCH(prog)->sp.program.fprofile = fpr;
-	}	
+	}
+
+	DBUNLOCK(prog);
 }
 
 long

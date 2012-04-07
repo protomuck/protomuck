@@ -960,7 +960,7 @@ prog_clean(struct frame *fr)
     dequeue_timers(fr->pid, NULL);
     muf_event_purge(fr);
     //muf_interrupt_clean(fr);
-    /* muf_event_dequeue_frame(fr); */
+    muf_event_dequeue_frame(fr);
     muf_oper_clean(fr, __FILE__, __LINE__);
 	while (fr->fprofile) {
 		fpr = fr->fprofile->next;
@@ -1333,6 +1333,8 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                 //                    program, fr,
                 //                    (fr->multitask ==
                 //                     FOREGROUND) ? string_dup("FOREGROUND") : string_dup("BACKGROUND"));
+				fr->prog = program;
+				fr->player = player;
                 fr->level--;
                 calc_profile_timing(program, fr);
 				mutex_unlock(fr->mutx);
@@ -2021,7 +2023,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
 
 						mutex_unlock(fr->mutx);
 						if (err) 
-							*err = 1;
+							*err = -1;
                         return NULL;
                         /* NOTREACHED */
                         break;

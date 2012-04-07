@@ -165,8 +165,12 @@ muf_event_read_notify(int descr, dbref player, const char *cmd)
 int
 muf_event_dequeue_frame(struct frame *fr)
 {
-    struct mufevent_process *proc = mufevent_processes, *tmp;
+    struct mufevent_process *proc, *tmp;
     int count = 0;
+
+	mutex_lock(tq_mutex);
+
+	proc = mufevent_processes;
 
     while (proc) {
         tmp = proc->next;
@@ -179,6 +183,8 @@ muf_event_dequeue_frame(struct frame *fr)
         }
         proc = tmp;
     }
+
+	mutex_unlock(tq_mutex);
 
     return count;
 }
@@ -654,6 +660,8 @@ muf_event_process(void)
     struct mufevent *ev;
     struct descriptor_data *curdescr = NULL;
 
+	mutex_lock(tq_mutex);
+
     proc = mufevent_processes;
     while (proc && limit > 0) {
         tmp = proc->next;
@@ -730,6 +738,8 @@ muf_event_process(void)
         }
         proc = tmp;
     }
+
+	mutex_unlock(tq_mutex);
 }
 
 /* called from get_pids() in timequeue.c for use in 

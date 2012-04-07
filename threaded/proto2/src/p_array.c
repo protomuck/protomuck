@@ -2122,6 +2122,8 @@ prim_array_filter_flags(PRIM_PROTOTYPE)
     arr = oper[1].data.array;
     nw = new_array_packed(0);
 
+	//DBLOCK(-1);
+
     init_checkflags(PSafe, DoNullInd(oper[0].data.string), &check);
 
     if (array_first(arr, &temp1)) {
@@ -2131,6 +2133,8 @@ prim_array_filter_flags(PRIM_PROTOTYPE)
                 array_appenditem(&nw, in);
         } while (array_next(arr, &temp1));
     }
+
+	//DBUNLOCK(-1);
 
     PushArrayRaw(nw);
 }

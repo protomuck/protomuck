@@ -1165,7 +1165,6 @@ db_free(void)
         db_top = 0;
     }
 
-	mutex_free(db_mutex);
     clear_players();
     clear_primitives();
     recyclable = NOTHING;
@@ -1493,6 +1492,8 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
         db_free_object(objno);
     }
     db_clear_object(-1, objno);
+
+	
 
     FLAGS(objno) = 0;
     FLAG2(objno) = 0;
@@ -1826,6 +1827,8 @@ db_read(FILE * f)
     char c;
 
     db_load_format = 0;
+
+	mutex_init(db_mutex);
 
     if ((c = getc(f)) == '*') {
         special = getstring(f);

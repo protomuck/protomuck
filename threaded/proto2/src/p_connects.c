@@ -512,6 +512,9 @@ prim_descr_setuser(PRIM_PROTOTYPE)
     if (!pdescrp(oper[2].data.number))
         abort_interp("That is not a valid descriptor.");
     ptr = oper[0].data.string ? oper[0].data.string->data : pad_char;
+
+	DBLOCK(-1);
+
     if (ref != NOTHING) {
         const char *passwd = DBFETCH(ref)->sp.player.password;
 
@@ -519,6 +522,8 @@ prim_descr_setuser(PRIM_PROTOTYPE)
             if (!check_password(ref, ptr)) {
                 result = 0;
                 PushInt(result);
+				DBUNLOCK(-1);
+				return;
             }
         }
     }
@@ -529,8 +534,11 @@ prim_descr_setuser(PRIM_PROTOTYPE)
     }
 
     tmp = oper[2].data.number;
+	if (fr->multitask == FOREGROUND)
+		fr->multitask = BACKGROUND; //This is REALLY important.
     result = pset_user2(tmp, ref);
 
+	DBUNLOCK(-1);
     PushInt(result);
 }
 
@@ -560,7 +568,12 @@ prim_descr_setuser_nopass(PRIM_PROTOTYPE)
                    player, NAME(ref), ref);
     }
     tmp = oper[1].data.number;
+
+	DBLOCK(-1);
+	if (fr->multitask == FOREGROUND)
+		fr->multitask = BACKGROUND; //This is REALLY important.
     result = pset_user2(tmp, ref);
+	DBUNLOCK(-1);
 
     PushInt(result);
 }

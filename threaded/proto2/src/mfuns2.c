@@ -1468,9 +1468,9 @@ mfn_muf(MFUNARGS)
     tmpfr =
         interp(descr, player, DBFETCH(player)->location, obj, perms, PREEMPT,
                STD_HARDUID, 0, argv[1], buf, 0);
-    if (tmpfr) {
-        rv = interp_loop(player, obj, tmpfr, 1, NULL, NULL, NULL);
-    }
+    //if (tmpfr) {
+    //    rv = interp_loop(player, obj, tmpfr, 1, NULL, NULL, NULL);
+    //}
 
     mpi_muf_call_levels--;
 

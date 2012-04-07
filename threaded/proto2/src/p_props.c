@@ -1151,6 +1151,8 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 
             in = array_getitem(arr, &temp1);
             if (valid_object(in)) {
+				DBLOCK(in->data.objref);
+
                 ref = in->data.objref;
                 CHECKREMOTE(ref);
                 if (prop_read_perms(ProgUID, ref, prop, mlev)) {
@@ -1250,7 +1252,8 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 						if (isyes)
 							array_appenditem(&nu, in);
 					}
-                }
+					DBUNLOCK(in->data.objref);
+				}
             }
         } while (array_next(arr, &temp1));
     }

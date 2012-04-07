@@ -597,8 +597,7 @@ struct line {
 #ifdef EXPERIMENTAL_THREADING
 
 struct mutex_log {
-	char file[256];
-	int   line;
+	char *entry;
 	struct mutex_log *next;
 };
 
@@ -606,37 +605,23 @@ struct muf_mutex {
 # ifdef WIN_VC
 	HANDLE WinMutex;
 # endif
-	struct mutex_log log[10];
-	int logcnt;
+	struct mutex_log *log;
 };
 typedef struct muf_mutex mutex;
 
 extern mutex db_mutex;
 
-#ifdef WIN_VC
-# define mutex_init(x)   {                                                   \
-                            (x).logcnt = 0;                                  \
-							(x).WinMutex = CreateMutex(NULL, FALSE, NULL);   \
-                         }
+extern void __mutex_init(mutex *mutx, const char *file, int line);
+extern void __mutex_free(mutex *mutx, const char *file, int line);
+extern  int __mutex_lock(mutex *mutx, int timeout, const char *file, int line);
+extern void __mutex_unlock(mutex *mutx, const char *file, int line);
 
-# define mutex_free(x)   {                                     \
-                            (x).logcnt = -1;                   \
-							CloseHandle((x).WinMutex);         \
-                         }
+#define mutex_init(x)   __mutex_init(&(x), __FILE__, __LINE__);
+#define mutex_free(x)   __mutex_free(&(x), __FILE__, __LINE__);
+#define mutex_lock(x)   __mutex_lock(&(x), INFINITE, __FILE__, __LINE__);
+#define mutex_unlock(x) __mutex_unlock(&(x), __FILE__, __LINE__);
 
-# define mutex_lock(x)   {                                                    \
-                             if ((x).logcnt >= 0 && (x).logcnt < 10) {        \
-								strcpy((x).log[(x).logcnt].file, __FILE__);   \
-								(x).log[(x).logcnt].line = __LINE__;          \
-								(x).logcnt++;                                 \
-							 }                                                \
-							 WaitForSingleObject((x).WinMutex, INFINITE);     \
-                         }
-
-# define mutex_unlock(x) { (x).logcnt--; ReleaseMutex((x).WinMutex); }
-#endif
-
-#define DBLOCK(x)   { if (x < 0 || x >= db_top) { mutex_lock(db_mutex);   } else { mutex_lock((DBFETCH(x)->mutx)); }   }
+#define DBLOCK(x)   { mutex_lock(db_mutex); if (x >= 0 && x < db_top) { mutex_unlock(db_mutex); mutex_lock((DBFETCH(x)->mutx)); } }
 #define DBUNLOCK(x) { if (x < 0 || x >= db_top) { mutex_unlock(db_mutex); } else { mutex_unlock((DBFETCH(x)->mutx)); } }
 
 struct thread_data {
