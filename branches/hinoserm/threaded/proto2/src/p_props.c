@@ -1048,6 +1048,14 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
             in = array_getitem(arr, &temp1);
             if (valid_object(in)) {
                 ref = in->data.objref;
+				while (DBTRYLOCK(ref)) {
+					fr->lockfail++;
+					if (fr->err) {
+						array_free(nu);
+						return;
+					}
+				}
+
                 CHECKREMOTE(ref);
                 if (prop_read_perms(ProgUID, ref, prop, mlev)) {
                     ptr = get_property_class(ref, prop);
@@ -1061,6 +1069,7 @@ prim_array_filter_prop(PRIM_PROTOTYPE)
                     }
                 }
             }
+			DBUNLOCK(ref);
         } while (array_next(arr, &temp1));
     }
     PushArrayRaw(nu);
@@ -1151,8 +1160,13 @@ void prim_array_filter_smart(PRIM_PROTOTYPE)
 
             in = array_getitem(arr, &temp1);
             if (valid_object(in)) {
-				DBLOCK(in->data.objref);
-
+				while (DBTRYLOCK(in->data.objref)) {
+					fr->lockfail++;
+					if (fr->err) {
+						array_free(nu);
+						return;
+					}
+				}
                 ref = in->data.objref;
                 CHECKREMOTE(ref);
                 if (prop_read_perms(ProgUID, ref, prop, mlev)) {
@@ -1534,8 +1548,8 @@ copy_props(dbref source, dbref destination, const char *sourcedir, const char *d
         propadr = next_prop(pptr, propadr, propname);
     }
 
-	DBLOCK(destination);
-	DBLOCK(source);
+	DBUNLOCK(destination);
+	DBUNLOCK(source);
 
     return propcount; 
 } 

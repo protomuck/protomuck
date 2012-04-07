@@ -120,7 +120,6 @@ db_grow(dbref newtop)
                 fprintf(stderr, "PANIC: Unable to allocate new object.\n");
                 abort();
             }
-			mutex_init(db_mutex);
         }
         /* maybe grow it */
         if (db_top > db_size) {
@@ -172,8 +171,11 @@ void
 db_clear_object(dbref player, dbref i)
 {
     struct object *o = DBFETCH(i);
-
+	mutex mutx;
+	
+	mutx = o->mutx;
     bzero(o, sizeof(struct object));
+	o->mutx = mutx;
     NAME(i) = 0;
     ts_newobject(player, o);
     o->location = NOTHING;
@@ -181,7 +183,7 @@ db_clear_object(dbref player, dbref i)
     o->exits = NOTHING;
     o->next = NOTHING;
     o->properties = 0;
-	mutex_init(o->mutx);
+	//mutex_init(o->mutx);
 
 #ifdef DISKBASE
     o->propsfpos = 0;
@@ -1148,7 +1150,7 @@ db_free_object(dbref i)
         }
     }
 	DBUNLOCK(i);
-	mutex_free(o->mutx);
+	//mutex_free(o->mutx);
     /* DBDIRTY(i); */
 }
 
@@ -1493,7 +1495,10 @@ db_read_object_foxen(FILE * f, struct object *o, dbref objno,
     }
     db_clear_object(-1, objno);
 
-	
+	if (!(objno % 1000))
+		printf("  %6d of %d\r\n", objno, db_top);
+
+	mutex_init(o->mutx);
 
     FLAGS(objno) = 0;
     FLAG2(objno) = 0;

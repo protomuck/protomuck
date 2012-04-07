@@ -671,6 +671,7 @@ do_prog(int descr, dbref player, const char *name)
 
     if ((i = match_result(&md)) == NOTHING) {
         i = new_program(OWNER(player), name);
+
         FLAGS(i) |= INTERNAL;
         DBFETCH(player)->sp.player.curr_prog = i;
 
@@ -690,7 +691,8 @@ do_prog(int descr, dbref player, const char *name)
             anotify_nolisten2(player, CFAIL NOEDIT_MESG);
             return;
         }
-
+		DBLOCK(i);
+		dequeue_prog(i, 0, NULL);
         DBFETCH(i)->sp.program.first = read_program(i);
         FLAGS(i) |= INTERNAL;
         DBFETCH(player)->sp.player.curr_prog = i;
@@ -699,6 +701,7 @@ do_prog(int descr, dbref player, const char *name)
         /* list current line */
         do_list(player, i, 0, 0, 0);
         DBDIRTY(i);
+		DBUNLOCK(i);
     }
 
     FLAGS(player) |= INTERACTIVE;
