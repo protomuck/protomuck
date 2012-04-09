@@ -69,8 +69,8 @@ unparse_flags(dbref thing, char *buf)
             *p++ = 'N';
         if (FLAG2(thing) & F2HIDDEN)
             *p++ = '#';
-        if (FLAG2(thing) & F2PUEBLO)
-            *p++ = '$';
+        if (FLAG2(thing) & F2HTML)
+            *p++ = '&';
         if (FLAG2(thing) & F2MOBILE)
             *p++ = '?';
         if (FLAG2(thing) & F2IMMOBILE)
@@ -234,8 +234,6 @@ flag_2char(char *flag)
         return 'N';
     if (string_prefix("hidden", flag))
         return '#';
-    if (string_prefix("pueblo", flag))
-        return '$';
     if (string_prefix("nhtml", flag) || string_prefix("html", flag))
         return '&';
     if (string_prefix("meeper", flag) || string_prefix("mpi", flag))

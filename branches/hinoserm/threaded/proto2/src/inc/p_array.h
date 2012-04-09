@@ -32,7 +32,6 @@ extern void prim_array_n_difference(PRIM_PROTOTYPE);
 
 extern void prim_array_notify(PRIM_PROTOTYPE);
 extern void prim_array_ansi_notify(PRIM_PROTOTYPE);
-extern void prim_array_notify_html(PRIM_PROTOTYPE);
 extern void prim_array_reverse(PRIM_PROTOTYPE);
 
 extern void prim_array_get_propdirs(PRIM_PROTOTYPE);
@@ -92,7 +91,6 @@ extern void prim_array_string_fragment(PRIM_PROTOTYPE);
                         { "EXPLODE_ARRAY",      LM1, 2, prim_explode_array },         \
                         { "ARRAY_SORT",         LM1, 2, prim_array_sort },            \
                         { "ARRAY_ANSI_NOTIFY",  LM1, 2, prim_array_ansi_notify },     \
-                        { "ARRAY_NOTIFY_HTML",  LM1, 2, prim_array_notify_html },     \
                         { "ARRAY_JOIN",         LM1, 2, prim_array_join },            \
                         { "ARRAY_MATCHKEY",     LM1, 2, prim_array_matchkey },        \
                         { "ARRAY_MATCHVAL",     LM1, 2, prim_array_matchval },        \

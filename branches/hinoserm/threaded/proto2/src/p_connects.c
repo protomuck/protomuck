@@ -20,10 +20,6 @@ check_descr_flag(char *dflag)
 /* New function in 1.7. Like the check_flag functions of 
  * p_db.c, identifies flags for descriptor flag support.
  */
-    if (string_prefix("df_html", dflag))
-        return DF_HTML;
-    if (string_prefix("df_pueblo", dflag))
-        return DF_PUEBLO;
     if (string_prefix("df_muf", dflag))
         return DF_MUF;
     if (string_prefix("df_idle", dflag))
@@ -66,7 +62,7 @@ descr_flag_set_perms(int dflag, int mlev, dbref prog)
         return 0;
 
     /* Standard non-settables */
-    if (dflag == DF_HTML || dflag == DF_PUEBLO || dflag == DF_MUF
+    if (dflag == DF_MUF
         || dflag == DF_TRUEIDLE || dflag == DF_INTERACTIVE || dflag == DF_SUID
 #ifdef USE_SSL
         || dflag == DF_SSL
@@ -133,15 +129,14 @@ prim_awakep(PRIM_PROTOTYPE)
 	int result;
     
     if (!valid_object(&oper[0]))
-        abort_interp("invalid argument");
+        abort_interp("Invalid argument.");
     ref = oper[0].data.objref;
     if (Typeof(ref) == TYPE_THING && (FLAGS(ref) & ZOMBIE))
         ref = OWNER(ref);
     if (Typeof(ref) != TYPE_PLAYER)
-        abort_interp("invalid argument");
+        abort_interp("Invalid argument.");
     result = online(ref);
 
-    
     PushInt(result);
 }
 
@@ -191,8 +186,6 @@ void
 prim_concount(PRIM_PROTOTYPE)
 {
     int result;
-
-    /* -- int */
     
     result = pcount();
     CHECKOFLOW(1);
@@ -202,144 +195,118 @@ prim_concount(PRIM_PROTOTYPE)
 void
 prim_condbref(PRIM_PROTOTYPE)
 {
-	int result; 
-
-    /* int -- dbref */
+	struct descriptor_data *d;
     
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
-    result = pdbref(result);
+
     CHECKOFLOW(1);
-    
-    PushObject(result);
+    PushObject(d->player);
 }
 
 
 void
 prim_conidle(PRIM_PROTOTYPE)
 {
-	int result;
+	struct descriptor_data *d;
 
-    /* int -- int */
-    
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
-    result = (int)pidle(result);
+
     CHECKOFLOW(1);
-    
-    PushInt(result);
+    PushInt(current_systime - d->last_time);
 }
 
 
 void
 prim_contime(PRIM_PROTOTYPE)
 {
-	int result;
-
-    /* int -- int */
+	struct descriptor_data *d;
     
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
-    result = (int)pontime(result);
+
     CHECKOFLOW(1);
-    
-    PushInt(result);
+    PushInt(current_systime - d->connected_at);
 }
 
 void
 prim_conhost(PRIM_PROTOTYPE)
 {
-	int result;
-    /* int -- char * */
-    char *pname;
+	struct descriptor_data *d;
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
-    pname = phost(result);
+
     CHECKOFLOW(1);
-    
-    PushString(pname);
+    PushString(d->hu->h->name);
 }
 
 void
 prim_conuser(PRIM_PROTOTYPE)
 {
-    /* int -- char * */
-	int result;
-    char *pname;
+	struct descriptor_data *d;
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
-    pname = puser(result);
+
     CHECKOFLOW(1);
-    
-    PushString(pname);
+    PushString(d->hu->u->user);
 }
 
 void
 prim_conipnum(PRIM_PROTOTYPE)
 {
-    /* int -- char * */
-    char *pname;
-	int result;
+	struct descriptor_data *d;
+	char buf[40];
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
-    pname = pipnum(result);
-    CHECKOFLOW(1);
-    
-    PushString(pname);
+	CHECKOFLOW(1);
+
+    PushString(host_as_hex(d->hu->h->a, buf));
 }
 
 void
 prim_conport(PRIM_PROTOTYPE)
 {
-    /* int -- char * */
-    char *pname;
-	int result;
+	struct descriptor_data *d;
+	char buf[40];
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
-    pname = pport(result);
+
     CHECKOFLOW(1);
-    
-    PushString(pname);
+	sprintf(buf, "%d", d->hu->u->uport);
+	PushString(buf);
 }
 
 void
 prim_conboot(PRIM_PROTOTYPE)
 {
-    /* int --  */
-	int result;
+	struct descriptor_data *d;
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    result = oper[0].data.number;
-    if ((result < 1) || (result > pcount()))
+    if (!(d = descrdata_by_count(oper[0].data.number)))
         abort_interp("Invalid connection number (1)");
     
-    pboot(result);
+	process_output(d);
+    d->booted = 1;
 }
 
 void
@@ -688,38 +655,6 @@ prim_descrflush(PRIM_PROTOTYPE)
 }
 
 void
-prim_descr_htmlp(PRIM_PROTOTYPE)
-{
-	int result;
-
-    if (oper[0].type != PROG_INTEGER)
-        abort_interp("Integer descriptor number expected.");
-
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-
-    result = (pdescrtype(oper[0].data.number) == CT_PUEBLO);
-    CHECKOFLOW(1);
-    PushInt(result);
-}
-
-void
-prim_descr_pueblop(PRIM_PROTOTYPE)
-{
-	int result;
-
-    if (oper[0].type != PROG_INTEGER)
-        abort_interp("Integer descriptor number expected.");
-
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-
-    result = (pdescrtype(oper[0].data.number) == CT_PUEBLO);
-    CHECKOFLOW(1);
-    PushInt(result);
-}
-
-void
 prim_descr_sslp(PRIM_PROTOTYPE)
 {
 	int result;
@@ -794,8 +729,7 @@ prim_descrdbref(PRIM_PROTOTYPE)
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (pdescrp(oper[0].data.number)) {
-        dr = descrdata_by_descr(oper[0].data.number);
+    if ((dr = descrdata_by_descr(oper[0].data.number))) {
         ref = dr->player;
     } else
         ref = NOTHING;
@@ -812,9 +746,9 @@ prim_descridle(PRIM_PROTOTYPE)
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
+	if (!(dr = descrdata_by_descr(oper[0].data.number))) {
+		abort_interp("That is not a valid descriptor.");
+	}
     result = (int)time(NULL);
     result = (result - (int)dr->last_time);
     CHECKOFLOW(1);
@@ -829,9 +763,9 @@ prim_descrtime(PRIM_PROTOTYPE)
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
+	if (!(dr = descrdata_by_descr(oper[0].data.number))) {
+		abort_interp("That is not a valid descriptor.");
+	}
     result = (int)time(NULL);
     result = (result - (int)dr->connected_at);
 
@@ -846,9 +780,9 @@ prim_descrhost(PRIM_PROTOTYPE)
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
+	if (!(dr = descrdata_by_descr(oper[0].data.number))) {
+		abort_interp("That is not a valid descriptor.");
+	}
     CHECKOFLOW(1);
     PushString(dr->hu->h->name);
 }
@@ -860,9 +794,9 @@ prim_descruser(PRIM_PROTOTYPE)
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
+	if (!(dr = descrdata_by_descr(oper[0].data.number))) {
+		abort_interp("That is not a valid descriptor.");
+	}
 
     CHECKOFLOW(1);
     PushString(dr->hu->u->user);
@@ -872,36 +806,33 @@ void
 prim_descripnum(PRIM_PROTOTYPE)
 {
     struct descriptor_data *dr;
-    static char ipnum[40];
-    const char *p;
+    char hbuf[32];
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
-    p = hostToIPex(dr->hu->h);
-    strcpy(ipnum, p);
-
-    CHECKOFLOW(1);
-    PushString((char *) ipnum);
+	if (!(dr = descrdata_by_descr(oper[0].data.number))) {
+		abort_interp("That is not a valid descriptor.");
+	}
+	
+	CHECKOFLOW(1);
+	PushString(host_as_hex(dr->hu->h->a, hbuf));
 }
 
 void
 prim_descrport(PRIM_PROTOTYPE)
 {
     struct descriptor_data *dr;
-    static char port[40];
+    char port[40];
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
-    sprintf(port, "%d", dr->hu->u->uport);
+	if (!(dr = descrdata_by_descr(oper[0].data.number))) {
+		abort_interp("That is not a valid descriptor.");
+	}
 
-    CHECKOFLOW(1);
-    PushString((char *) port);
+	CHECKOFLOW(1);
+	sprintf(port, "%d", dr->hu->u->uport);
+	PushString(port);
 }
 
 void
@@ -911,9 +842,9 @@ prim_descrconport(PRIM_PROTOTYPE)
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
-        abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
+	if (!(dr = descrdata_by_descr(oper[0].data.number))) {
+		abort_interp("That is not a valid descriptor.");
+	}
 
     CHECKOFLOW(1);
     PushInt(dr->cport);
@@ -922,24 +853,24 @@ prim_descrconport(PRIM_PROTOTYPE)
 void
 prim_descrleastidle(PRIM_PROTOTYPE)
 {
-	int result;
+	struct descriptor_data *d;
 
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Player dbref expected (2)");
 
     if (!valid_player(&oper[0]))
         abort_interp("Player dbref expected (2)");
-
-	result = pdescr(least_idle_player_descr(oper[0].data.objref));
-
-    CHECKOFLOW(1);
-    PushInt(result);
+	CHECKOFLOW(1);
+	if(d = least_idle_player_descr(oper[0].data.objref))
+		PushInt(d->descriptor);
+	else
+		PushInt(-1);
 }
 
 void
 prim_descrmostidle(PRIM_PROTOTYPE)
 {
-	int result;
+	struct descriptor_data *d;
 
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Player dbref expected (2)");
@@ -947,21 +878,31 @@ prim_descrmostidle(PRIM_PROTOTYPE)
     if (!valid_player(&oper[0]))
         abort_interp("Player dbref expected (2)");
 
-	result = pdescr(most_idle_player_descr(oper[0].data.objref));
-
-    CHECKOFLOW(1);
-    PushInt(result);
+	CHECKOFLOW(1);
+	if(d = most_idle_player_descr(oper[0].data.objref))
+		PushInt(d->descriptor);
+	else
+		PushInt(-1);
 }
 
 void
 prim_descrboot(PRIM_PROTOTYPE)
 {
+	struct descriptor_data *d;
+
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
+    if (!(d = descrdata_by_descr(oper[0].data.number)))
         abort_interp("That is not a valid descriptor.");
 
-    pdboot(oper[0].data.number);
+	while(__mutex_lock(&(d->mutx), 100, __FILE__, __LINE__))
+		if (fr->err)
+			return;
+
+    process_output(d);
+    d->booted = 1;
+
+	mutex_unlock(d->mutx);
 }
 
 void
@@ -1172,22 +1113,21 @@ void
 prim_descrtype(PRIM_PROTOTYPE)
 {
     struct descriptor_data *dr;
-    static char dtype[16];
+    char dtype[16];
     const char *p;
     int x;
 
     if (oper[0].type != PROG_INTEGER)
         abort_interp("Argument not an integer (1)");
-    if (!pdescrp(oper[0].data.number))
+    if (!(dr = descrdata_by_descr(oper[0].data.number)))
         abort_interp("That is not a valid descriptor.");
-    dr = descrdata_by_descr(oper[0].data.number);
+
     x = dr->type;
     if (x == CT_MUCK) p = "MUCK";
     if (x == CT_MUF) p = "MUF";
     if (x == CT_LISTEN) p = "LISTEN";
     if (x == CT_INBOUND) p = "INBOUND";
     if (x == CT_OUTBOUND) p = "OUTBOUND";
-    if (x == CT_PUEBLO) p = "PUEBLO";
 #ifdef NEWHTTPD
     if (x == CT_HTTP) p = "HTTP";
 #endif

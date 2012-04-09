@@ -1395,26 +1395,12 @@ process_command(int descr, dbref player, char *command, int len, int wclen)
                     break;
                 case 'h':
                 case 'H':
-                    switch (command[2]) {
-                        case 'o':
-                        case 'O':
-                            Matched("@hostcache");
-                            do_hostcache(player, arg1);
-                            break;
-                        default:
-                            Matched("@htmldescribe");
-                            do_htmldescribe(descr, player, arg1, arg2);
-                            break;
-                    }
+                    Matched("@hostcache");
+                    do_hostcache(player, arg1);
                     break;
                 case 'i':
                 case 'I':
                     switch (command[2]) {
-                        case 'h':
-                        case 'H':
-                            Matched("@ihtmldescribe");
-                            do_ihtmldescribe(descr, player, arg1, arg2);
-                            break;
                         case 'a':
                         case 'A':
                             Matched("@iansidescribe");

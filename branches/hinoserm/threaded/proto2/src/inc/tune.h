@@ -58,7 +58,6 @@ extern time_t tp_shutdown_delay;
 /* integers */
 
 extern int tp_textport;
-extern int tp_puebloport;
 #ifdef USE_SSL
 extern int tp_sslport;
 #endif

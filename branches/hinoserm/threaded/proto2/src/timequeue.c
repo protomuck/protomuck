@@ -42,7 +42,7 @@ mutex     tq_mutex;
 void prog_clean(struct frame *fr);
 int has_refs(dbref program, timequeue ptr);
 
-static int
+int
 valid_objref(dbref obj)
 {
     return (!((obj >= db_top)
@@ -54,7 +54,7 @@ valid_objref(dbref obj)
 extern int top_pid;
 int process_count = 0;
 
-static timequeue
+timequeue
 alloc_timenode(int typ, int subtyp, time_t mytime, int descr, dbref player,
                dbref loc, dbref trig, dbref program, struct frame *fr,
                const char *strdata, const char *strcmd, const char *str3)
@@ -659,7 +659,7 @@ next_timequeue_event(struct thread_data *thread)
 								event->fr = NULL;
 								remove_timenode(event);
 								free_timenode(event);
-								break;
+								break;%
 							}
 						}
 						if (!freed)
@@ -1400,7 +1400,6 @@ do_dequeue(int descr, dbref player, const char *arg1)
     return;
 }
 
-
 /* Checks the MUF timequeue for address references on the stack or */
 /* dbref references on the callstack */
 int
@@ -1461,6 +1460,7 @@ scan_instances(dbref program)
 
 
 static int propq_level = 0;
+
 void
 propqueue(int descr, dbref player, dbref where, dbref trigger, dbref what,
           dbref xclude, const char *propname, const char *toparg, int mlev,

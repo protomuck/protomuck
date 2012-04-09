@@ -72,7 +72,6 @@ extern char *host_get_ipv6attr(int a, unsigned short lport, unsigned short prt);
 #endif
 
 extern const char *ip_address_prototype(void* x, int xsize);
-extern const char *hostToIPex(struct hostinfo * h);
 #define ip_address(x) ip_address_prototype(&x, sizeof(x))
 
 extern struct huinfo *host_getinfo(int a, unsigned short lport, unsigned short prt);

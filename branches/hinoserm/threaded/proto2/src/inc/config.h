@@ -297,9 +297,6 @@
  * The HTTPD port (Defaults to 1 below main port. Can be changed in
  *                 parmfile.cfg) 
  *
- * The Pueblo port (Defaults to 2 below main port. Can be changed in 
- *                  parmfile.cfg) 
- *
  */
 
 #define TINYPORT      4567    /* Port that tinymuck uses for playing */
@@ -432,7 +429,6 @@
    Where the system looks for its datafiles.
  ************************************************************************/
 #define WELC_FILE "data/welcome.txt"     /* For the opening screen	*/
-#define WELC_HTML "data/welcome.html"    /* For Pueblo users            */
 #define BARD_FILE "data/welcome/fbi.txt" /* For naughty sites		*/
 #define MOTD_FILE "data/motd.txt"        /* For the message of the day	*/
 

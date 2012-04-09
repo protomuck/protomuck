@@ -272,7 +272,6 @@
     <ClCompile Include="mcppkgs.c" />
     <ClCompile Include="mfuns.c" />
     <ClCompile Include="mfuns2.c" />
-    <ClCompile Include="mfuns3.c" />
     <ClCompile Include="move.c" />
     <ClCompile Include="msgparse.c" />
     <ClCompile Include="mufevent.c" />

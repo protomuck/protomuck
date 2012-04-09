@@ -121,24 +121,30 @@ prim_force(PRIM_PROTOTYPE)
     wclen = oper[0].data.string->wclength;
 #endif
 
-    force_level++;
+    //force_level++;
     /* Okay, we need to store a pointer to the fr in the global stack of
      * frame pointers we need to enable ispid? and getpidinfo to be able
      * to search. */
-    for ( ; nCurFr < 9; ++nCurFr )
-    {
-        if ( !aForceFrameStack[nCurFr] )
-        {
-            aForceFrameStack[nCurFr] = fr;
-            nFrameIndex = nCurFr;
-            break;
-        }
-    }
+    //for ( ; nCurFr < 9; ++nCurFr )
+    //{
+    //    if ( !aForceFrameStack[nCurFr] )
+    //    {
+    //        aForceFrameStack[nCurFr] = fr;
+    //        nFrameIndex = nCurFr;
+    //        break;
+    //    }
+    //}
     
-    if ( nFrameIndex == -1 )
-    {
-        abort_interp( "Internal error trying to cache frame pointer." );
-    }
+    //if ( nFrameIndex == -1 )
+    //{
+    //    abort_interp( "Internal error trying to cache frame pointer." );
+    //}
+
+	while (DBTRYLOCK(ref)) {
+		fr->lockfail++;
+		if (fr->err)
+			return;
+	}
 
     fr->level++;
     interp_set_depth(fr);
@@ -147,8 +153,10 @@ prim_force(PRIM_PROTOTYPE)
     interp_set_depth(fr);
     force_level--;
 
+	DBUNLOCK(ref);
+
     /* Now remove our pointer from the end of the array */
-    aForceFrameStack[nFrameIndex] = NULL; 
+    //aForceFrameStack[nFrameIndex] = NULL; 
 }
 
 void

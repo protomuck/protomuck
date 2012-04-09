@@ -373,9 +373,9 @@ static array_tree *
 array_tree_insert(array_tree **avl, array_iter *key)
 {
     array_tree *ret;
-    register array_tree *p = *avl;
-    register int cmp;
-    static int balancep;
+    array_tree *p = *avl;
+    int cmp;
+    static int balancep; //What is this? -Hinoserm
 
     if (p) {
         cmp = AVL_COMPARE(key, AVL_KEY(p));

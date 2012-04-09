@@ -581,10 +581,11 @@ http_makearray(struct descriptor_data *d)
 {
     stk_array *nw = new_array_dictionary();
     char *p = d->http->body.data;
+	char hbuf[32];
 
     array_set_strkey_intval(&nw, "DESCR", d->descriptor);
     array_set_strkey_intval(&nw, "CONNECTED", d->connected);
-    array_set_strkey_strval(&nw, "HOST", host_as_hex(d->hu->h->a));
+    array_set_strkey_strval(&nw, "HOST", host_as_hex(d->hu->h->a, hbuf));
     array_set_strkey_intval(&nw, "CONNECTED_AT", (int) d->connected_at);
     array_set_strkey_intval(&nw, "LAST_TIME", (int) d->last_time);
     array_set_strkey_intval(&nw, "COMMANDS", d->commands);

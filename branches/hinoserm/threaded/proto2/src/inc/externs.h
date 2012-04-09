@@ -116,6 +116,7 @@ typedef struct timenode {
 extern timequeue tqhead;
 extern mutex tq_mutex;
 
+extern int process_output(struct descriptor_data *d);
 extern stk_array *get_pids(dbref ref);
 extern stk_array *get_pidinfo(int pid);
 extern int scan_instances(dbref program);
@@ -355,13 +356,9 @@ extern void do_describe(int descr, dbref player, const char *name,
                         const char *description);
 extern void do_ansidescribe(int descr, dbref player, const char *name,
                             const char *description);
-extern void do_htmldescribe(int descr, dbref player, const char *name,
-                            const char *description);
 extern void do_idescribe(int descr, dbref player, const char *name,
                          const char *description);
 extern void do_iansidescribe(int descr, dbref player, const char *name,
-                             const char *description);
-extern void do_ihtmldescribe(int descr, dbref player, const char *name,
                              const char *description);
 extern void do_fail(int descr, dbref player, const char *name,
                     const char *message);
@@ -423,8 +420,6 @@ extern int notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                             dbref room, const char *msg, int isprivate);
 extern int ansi_notify_listeners(int descr, dbref who, dbref xprog, dbref obj,
                                  dbref room, const char *msg, int isprivate);
-extern int notify_html_listeners(int descr, dbref who, dbref xprog, dbref obj,
-                                 dbref room, const char *msg, int isprivate);
 extern void notify_except(dbref first, dbref exception, const char *msg,
                           dbref who);
 extern void notify_html_except(dbref first, dbref exception, const char *msg,
@@ -446,7 +441,6 @@ extern const char *string_match(const char *src, const char *sub);
 extern char *mushformat_substitute(const char *str);
 extern char *pronoun_substitute(int descr, dbref player, const char *str);
 extern char *intostr(char *buf, int i);
-extern char *html_escape(const char *str);
 extern char *parse_ansi(dbref player, char *buf, const char *from,
                         const char *defcolor);
 extern char *unparse_ansi(char *buf, const char *from);

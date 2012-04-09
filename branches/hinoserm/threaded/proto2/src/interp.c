@@ -96,6 +96,8 @@ localvars_get(struct frame *fr, dbref prog)
 {
     struct localvars *tmp = fr->lvars;
 
+	//printf("localvars_get(%d, #%d)\r\n", fr->pid, prog);
+
     while (tmp && tmp->prog != prog)
         tmp = tmp->next;
     if (tmp) {
@@ -1237,6 +1239,7 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
     if (!pc) {
         struct line *tmpline;
 
+		DBLOCK(program);
         tmpline = DBFETCH(program)->sp.program.first;
         DBFETCH(program)->sp.program.first = read_program(program);
         do_compile(-1, OWNER(program), program, 0, fr);
@@ -1246,12 +1249,13 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
         if (!pc) {
             char smallBuf[50];
 
-            sprintf(smallBuf, "Program %d not compilable. Cannot run.",
-                    program);
+            sprintf(smallBuf, "Program %d not compilable. Cannot run.", program);
+			DBUNLOCK(program);
             abort_loop_hard(smallBuf, NULL, NULL);
         }
         DBFETCH(program)->sp.program.profuses++;
         DBFETCH(program)->sp.program.instances++;
+		DBUNLOCK(program);
     }
     ts_useobject(player, program);
     fr->err = 0;
@@ -1363,15 +1367,18 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                     debug_inst(fr, 0, pc, fr->pid, arg, dbuf, sizeof(dbuf),
                                atop, program);
 
-                notify_nolisten(player, m, 1);
+                //notify_nolisten(player, m, 1);
             }
         }
+
+                notify_nolisten(5641, debug_inst(fr, 0, pc, fr->pid, arg, dbuf, sizeof(dbuf),
+                               atop, program), 1);
         if (FLAGS(program) & DARK && FLAG2(program) & F2PARENT
             && (OWNER(program) != player || !OkObj(player))) {
             char *m = debug_inst(fr, 0, pc, fr->pid, arg, dbuf, sizeof(dbuf),
                                  atop, program);
 
-            notify_nolisten(OWNER(program), m, 1);
+            //notify_nolisten(OWNER(program), m, 1);
         }
         if (fr->brkpt.debugging) {
             if (fr->brkpt.count) {
@@ -1758,16 +1765,15 @@ interp_loop(dbref player, dbref program, struct frame *fr, int rettyp, struct th
                         if (!(DBFETCH(temp1->data.objref)->sp.program.code)) {
                             struct line *tmpline;
 
-                            tmpline =
-                                DBFETCH(temp1->data.objref)->sp.program.first;
-                            DBFETCH(temp1->data.objref)->sp.program.first =
-                                read_program(temp1->data.objref);
-                            do_compile(-1, OWNER(temp1->data.objref),
-                                       temp1->data.objref, 0, NULL);
-                            free_prog_text(DBFETCH(temp1->data.objref)->sp.
-                                           program.first);
-                            DBSTORE(temp1->data.objref, sp.program.first,
-                                    tmpline);
+							while (DBTRYLOCK(temp1->data.objref))
+								if (fr->err)
+									break;
+                            tmpline = DBFETCH(temp1->data.objref)->sp.program.first;
+                            DBFETCH(temp1->data.objref)->sp.program.first = read_program(temp1->data.objref);
+                            do_compile(-1, OWNER(temp1->data.objref), temp1->data.objref, 0, NULL);
+                            free_prog_text(DBFETCH(temp1->data.objref)->sp.program.first);
+                            DBSTORE(temp1->data.objref, sp.program.first, tmpline);
+							DBUNLOCK(temp1->data.objref);
                             if (!(DBFETCH(temp1->data.objref)->sp.program.code))
                                 abort_loop("Program not compilable.", temp1,
                                            temp2);
@@ -2340,6 +2346,15 @@ interp_err(struct frame *fr, dbref player, dbref program, struct inst *pc,
         add_property(program, ".debug/lastplayer", NULL, (int) player);
         add_property(program, ".debug/origprog", NULL, (int) origprog);
     }
+}
+
+void
+pushint(struct inst *stack, int *top, int result)
+{
+    stack[*top].type = PROG_INTEGER;
+    stack[*top].data.number = result;
+
+    (*top)++;
 }
 
 void

@@ -13,7 +13,7 @@
 #endif
 
 /** Convert a two-char hex string into the char it represents **/
-char
+static char
 x2c(char *what)
 {
     char digit;
@@ -43,70 +43,6 @@ unescape_url(char *url)
         }
     }
     url[i] = '\0';
-}
-
-char *
-getparam(char *string)
-{
-    char *buf = strdup(string);
-    char *cgi = buf;
-
-    while ((*cgi != '=') && (*cgi != '\0'))
-        cgi++;
-    *cgi = '\0';
-    return (buf);
-}
-
-char *
-getvalue(char *string)
-{
-    char *buf = strdup(string);
-    char *cgi = buf;
-    char *result = NULL;
-
-    while ((*cgi != '=') && (*cgi != '\0'))
-        cgi++;
-    cgi++;
-
-    result = strdup(cgi);
-    free((void *) buf);
-    return (result);
-}
-
-char *
-getcgivar(char *cgistring, char *param)
-{
-    register int i;
-
-    char *result = NULL;
-    char cgiinput[BUFFER_LEN];
-    static char result2[BUFFER_LEN];
-    char *nvpair;
-
-    strcpy(cgiinput, cgistring);
-
-    /** Change all plusses back to spaces **/
-    for (i = 0; cgiinput[i]; i++)
-        if (cgiinput[i] == '+')
-            cgiinput[i] = ' ';
-
-    nvpair = strtok(cgiinput, "&");
-    while (nvpair) {
-        char *test = getparam(nvpair);
-
-        if (!vcSTRCASECMP(test, param)) {
-            result = getvalue(nvpair);
-            free((void *) test);
-            break;
-        }
-        free((void *) test);
-        nvpair = strtok(NULL, "&");
-    }
-
-    unescape_url(result);
-    strcpy(result2, result);
-    free((void *) result);
-    return (result2);
 }
 
 void

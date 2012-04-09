@@ -18,9 +18,6 @@
  *     NeonMUCK
  *     Copyright (c) 1996 by Jeremy Blackman, Andrew Nelson, and Joseph L. Traub
  *
- *  This code supports the Pueblo multimedia protocol
- *  Copyright (c) 1995, 1996 by Chaco Communications
- *
  *  This code contains the MCP programming language
  *  Copyright (c) 1996 by Joseph L. Traub and Jeremy Blackman
  *

@@ -229,7 +229,7 @@ void free_intermediate_node(struct INTERMEDIATE *wd);
 void
 do_abort_compile(COMPSTATE *cstat, const char *c)
 {
-    static char _buf[BUFFER_LEN];
+    char _buf[BUFFER_LEN];
 
     sprintf(_buf, "Error in line %d: %s", cstat->lineno, c);
     if (cstat->line_copy) {
@@ -1588,7 +1588,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, 
     int instrCount = 0;
     COMPSTATE cstat;
 
-	DBLOCK(-1);
+	DBLOCK(program_in);
 
     /* set all compile state variables */
     cstat.force_err_display = force_err_display;
@@ -1652,8 +1652,10 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, 
     DBFETCH(cstat.program)->sp.program.profstart = current_systime;
     DBFETCH(cstat.program)->sp.program.profuses = 0;
 
-    if (!cstat.curr_line)
+    if (!cstat.curr_line) {
+		DBUNLOCK(program_in);
         v_abort_compile(&cstat, "Missing program text.");
+	}
 
     /* do compilation */
     while ((token = next_token(&cstat))) {
@@ -1662,7 +1664,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, 
         /* test for errors */
         if (cstat.compile_err) {
             free((void *) token);
-			DBUNLOCK(-1);
+			DBUNLOCK(program_in);
             return;
         }
 
@@ -1681,15 +1683,20 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, 
     }
 
     if (cstat.compile_err) {
-		DBUNLOCK(-1);
+		DBUNLOCK(program_in);
         return;                 /* Added to abort cleanly from directive errors. */
 	}
 
-    if (cstat.curr_proc)
+    if (cstat.curr_proc) {
+		DBUNLOCK(program_in);
         v_abort_compile(&cstat, "Unexpected end of file.");
+	}
 
-    if (!cstat.procs)
+    if (!cstat.procs) {
+		DBUNLOCK(program_in);
         v_abort_compile(&cstat, "Missing procedure definition.");
+	}
+
     if (tp_optimize_muf && !(FLAG2(program_in) & F2NO_COMMAND)) {
         int maxpasses = 5;
         int passcount = 0;
@@ -1739,7 +1746,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, 
         cstat.nextinst = NULL;
     }
     if (cstat.compile_err) {
-		DBUNLOCK(-1);
+		DBUNLOCK(program_in);
         return;
 	}
 
@@ -1781,7 +1788,7 @@ do_compile(int descr, dbref player_in, dbref program_in, int force_err_display, 
         add_muf_queue_event(-1, OWNER(cstat.program), NOTHING, NOTHING,
                             cstat.program, "Startup", "Queued Event.", 0);
 
-	DBUNLOCK(-1);
+	DBUNLOCK(program_in);
 }
 
 struct LABEL_LIST *
@@ -1804,7 +1811,7 @@ struct INTERMEDIATE *
 next_word(COMPSTATE *cstat, const char *token)
 {
     struct INTERMEDIATE *new_word;
-    static char buf[BUFFER_LEN];
+    char buf[BUFFER_LEN];
 
     if (!token)
         return 0;
@@ -1874,14 +1881,14 @@ advance_line(COMPSTATE *cstat)
 const char *
 next_token_raw(COMPSTATE *cstat)
 {
-    static char buf[BUFFER_LEN];
+    char buf[BUFFER_LEN];
     int i;
 
     if (!cstat->curr_line)
-        return (char *) 0;
+        return NULL;
 
     if (!cstat->next_char)
-        return (char *) 0;
+        return NULL;
 
     /* skip white space */
     while (*cstat->next_char && isspace(*cstat->next_char))
@@ -2838,7 +2845,7 @@ do_directive(COMPSTATE *cstat, char *direct)
 const char *
 do_string(COMPSTATE *cstat)
 {
-    static char buf[BUFFER_LEN];
+    char buf[BUFFER_LEN];
     int i = 0, quoted = 0;
 
     buf[i] = *cstat->next_char;
@@ -2883,7 +2890,7 @@ do_string(COMPSTATE *cstat)
 struct INTERMEDIATE *
 process_special(COMPSTATE *cstat, const char *token)
 {
-    static char buf[BUFFER_LEN];
+    char buf[BUFFER_LEN];
     const char *tok;
     struct INTERMEDIATE *nw;
 
@@ -4753,7 +4760,7 @@ size_prog(dbref prog)
     return byts;
 }
 
-static void
+void
 add_primitive(int val)
 {
     hash_data hd;
