@@ -131,13 +131,10 @@ check_flag2(char *flag, int *nbol)
         return F2NO_COMMAND;
     if (string_prefix("examine_ok", flag))
         return F2EXAMINE_OK;
-    if (string_prefix("pueblo", flag))
-        return F2PUEBLO;
     if (string_prefix("nhtml", flag))
         return F2HTML;
     if (string_prefix("html", flag)) {
-        *nbol = F2HTML;
-        return F2PUEBLO;
+        return F2HTML;
     }
     if (string_prefix("trueidle", flag)) {
         return F2TRUEIDLE;
@@ -269,8 +266,6 @@ flag_set_perms2(dbref ref, int flag, int mlev, dbref prog)
     if (flag == F2GUEST && mlev < LMAGE)
         return 0;
     if (flag == F2LOGWALL && mlev < LARCH)
-        return 0;
-    if (flag == F2PUEBLO && mlev < LMAGE)
         return 0;
     if (flag == F2HTML && mlev < LMAGE)
         return 0;
@@ -762,6 +757,14 @@ prim_name(PRIM_PROTOTYPE)
         abort_interp("Invalid argument type");
     ref = oper[0].data.objref;
     CHECKREMOTE(ref);
+
+	while (DBTRYLOCK(ref)) {
+		fr->lockfail++;
+		if (fr->err) {
+			return;
+		}
+	}
+
     if ((Typeof(ref) != TYPE_PLAYER) && (Typeof(ref) != TYPE_PROGRAM))
         ts_lastuseobject(program, ref);
     if (NAME(ref)) {
@@ -769,6 +772,8 @@ prim_name(PRIM_PROTOTYPE)
     } else {
         buf[0] = '\0';
     }
+
+	DBUNLOCK(ref);
     
     PushString(buf);
 }
@@ -1691,7 +1696,7 @@ prim_newexit(PRIM_PROTOTYPE)
 void
 prim_recycle(PRIM_PROTOTYPE)
 {
-	int result;
+	dbref result;
 
     if (oper[0].type != PROG_OBJECT)
         abort_interp("Non-object argument (1)");
@@ -1708,18 +1713,11 @@ prim_recycle(PRIM_PROTOTYPE)
         abort_interp("Cannot recycle a player");
     if (result == program)
         abort_interp("Cannot recycle currently running program.");
-    {
-        int ii;
-
-        for (ii = 0; ii < fr->caller.top; ii++)
-            if (OkObj(fr->caller.st[ii])
-                && (Typeof(fr->caller.st[ii]) == TYPE_PROGRAM)
-                && (fr->caller.st[ii] == result))
-                abort_interp("Cannot recycle active program");
-    }
     if (Typeof(result) == TYPE_EXIT)
         if (!unset_source(PSafe, DBFETCH(PSafe)->location, result))
             abort_interp("Cannot recycle old style exits");
+
+
     
     recycle(fr->descr, PSafe, result);
 }

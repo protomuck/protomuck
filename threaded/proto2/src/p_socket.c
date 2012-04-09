@@ -1449,6 +1449,7 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
 {
     stk_array *nw;
     struct muf_socket *theSock;
+	char hbuf[32];
 
     if (oper[0].type != PROG_SOCKET)
         abort_interp("MUF Socket expected. (1)");
@@ -1467,7 +1468,7 @@ prim_get_sockinfo(PRIM_PROTOTYPE)
     else
 		array_set_strkey_strval(&nw, "HOST", ip_address_prototype(&theSock->host,4));
 #else
-	array_set_strkey_strval(&nw, "HOST", host_as_hex(theSock->host));
+	array_set_strkey_strval(&nw, "HOST", host_as_hex(theSock->host, hbuf));
 #endif
         
     array_set_strkey_intval(&nw, "CONNECTED_AT", (int)theSock->connected_at);
@@ -1557,12 +1558,13 @@ prim_socket_setuser(PRIM_PROTOTYPE)
     result = plogin_user(d, ref);
     if (tp_log_connects && result) {
 		char bufu[BUFFER_LEN];
+		char hbuf[32];
 
         log2filetime(CONNECT_LOG,
                      "SOCKET_SETUSER: %2d %s %s(%s) %s P#%d\n",
                      theSock->socknum, unparse_object(ref, ref, bufu),
                      theSock->hostname, theSock->username,
-                     host_as_hex(theSock->host), theSock->port);
+                     host_as_hex(theSock->host, hbuf), theSock->port);
 	}
     if (result)
         theSock->is_player = 1;

@@ -217,8 +217,7 @@ mcp_negotiation_start(McpFrame *mfr, connection_t con)
 {
     McpMesg reply;
 
-    if (((((struct descriptor_data *) con)->type == CT_MUCK) ||
-         (((struct descriptor_data *) con)->type == CT_PUEBLO) 
+    if (((((struct descriptor_data *) con)->type == CT_MUCK) 
 #ifdef USE_SSL
          || (((struct descriptor_data *) con)->type == CT_SSL)
 #endif

@@ -715,7 +715,7 @@ const char *
 mfn_ontime(MFUNARGS)
 {
     dbref obj = mesg_dbref_raw(descr, player, what, perms, argv[0]);
-    int conn;
+    struct descriptor_data *d;
 
     if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
         return "-1";
@@ -723,10 +723,10 @@ mfn_ontime(MFUNARGS)
         ABORT_MPI("ONTIME", tp_noperm_mesg);
     if (Typeof(obj) != TYPE_PLAYER)
         obj = OWNER(obj);
-    conn = least_idle_player_descr(obj);
-    if (!conn)
+    d = least_idle_player_descr(obj);
+    if (!d)
         return "-1";
-    sprintf(buf, "%d", (int)pontime(conn));
+    sprintf(buf, "%d", current_systime - d->connected_at);
     return buf;
 }
 
@@ -735,7 +735,7 @@ const char *
 mfn_idle(MFUNARGS)
 {
     dbref obj = mesg_dbref_raw(descr, player, what, perms, argv[0]);
-    int conn;
+    struct descriptor_data *d;
 
     if (obj == PERMDENIED)
         ABORT_MPI("IDLE", tp_noperm_mesg);
@@ -743,10 +743,10 @@ mfn_idle(MFUNARGS)
         return "-1";
     if (Typeof(obj) != TYPE_PLAYER)
         obj = OWNER(obj);
-    conn = least_idle_player_descr(obj);
-    if (!conn)
+    d = least_idle_player_descr(obj);
+    if (!d)
         return "-1";
-    sprintf(buf, "%d", (int)pidle(conn));
+    sprintf(buf, "%d", current_systime - d->last_time);
     return buf;
 }
 
@@ -1718,50 +1718,6 @@ mfn_ansi(MFUNARGS)
     return buf;
 }
 
-
-const char *
-mfn_html(MFUNARGS)
-{
-    char buf2[BUFFER_LEN];
-    char *ptr, *ptr2;
-    dbref obj = player;
-
-    if (argc > 1)
-        obj = mesg_dbref_local(descr, player, what, perms, argv[1]);
-    if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
-        ABORT_MPI("HTML", "Match failed.");
-    if (obj == PERMDENIED)
-        ABORT_MPI("HTML", tp_noperm_mesg);
-    if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("HTML", tp_noperm_mesg);
-    *buf = '\0';
-    strcpy(buf2, argv[0]);
-    for (ptr = buf2; *ptr; ptr = ptr2) {
-        ptr2 = index(ptr, '\r');
-        if (ptr2) {
-            *ptr2++ = '\0';
-        } else {
-            ptr2 = ptr + strlen(ptr);
-        }
-        if (Typeof(what) == TYPE_ROOM || OWNER(what) == obj || player == obj ||
-            Mageperms(what) ||
-            (Typeof(what) == TYPE_EXIT && Typeof(getloc(what)) == TYPE_ROOM) ||
-            string_prefix(argv[0], NAME(player))) {
-            sprintf(buf, "%.4093s", ptr);
-        } else {
-            sprintf(buf, "%s%.16s%s%.4078s",
-                    ((obj == OWNER(perms) || obj == player) ? "" : "> "),
-                    NAME(player),
-                    ((*argv[0] == '\'' || isspace(*argv[0])) ? "" : " "), ptr);
-        }
-        notify_html_from_echo(player, obj, buf, 1);
-/*      notify_html_nolisten(player, buf, 1); */
-        if (NHtml(OWNER(obj)))
-            notify_html_from_echo(player, obj, "<BR>", 1); /* notify_html_nolisten(player, buf, 1); */
-    }
-    return argv[0];
-}
-
 const char *
 mfn_tell(MFUNARGS)
 {
@@ -1937,56 +1893,6 @@ mfn_oansi(MFUNARGS)
     }
     return argv[0];
 }
-
-
-const char *
-mfn_ohtml(MFUNARGS)
-{
-    char buf2[BUFFER_LEN];
-    char *ptr, *ptr2;
-    dbref obj = getloc(player);
-    dbref eobj = player;
-    dbref thing;
-
-    if (argc > 1)
-        obj = mesg_dbref_local(descr, player, what, perms, argv[1]);
-    if (obj == UNKNOWN || obj == AMBIGUOUS || obj == NOTHING || obj == HOME)
-        ABORT_MPI("OHTML", "Match failed.");
-    if (obj == PERMDENIED)
-        ABORT_MPI("OHTML", tp_noperm_mesg);
-    if ((mesgtyp & MPI_ISLISTENER) && (Typeof(what) != TYPE_ROOM))
-        ABORT_MPI("OHTML", tp_noperm_mesg);
-    if (argc > 2)
-        eobj = mesg_dbref_raw(descr, player, what, perms, argv[2]);
-    strcpy(buf2, argv[0]);
-    for (ptr = buf2; *ptr; ptr = ptr2) {
-        ptr2 = index(ptr, '\r');
-        if (ptr2) {
-            *ptr2++ = '\0';
-        } else {
-            ptr2 = ptr + strlen(ptr);
-        }
-        if (Typeof(what) == TYPE_ROOM || Mageperms(what) ||
-            (Typeof(what) == TYPE_EXIT && Typeof(getloc(what)) == TYPE_ROOM) ||
-            string_prefix(argv[0], NAME(player))) {
-            strcpy(buf, ptr);
-        } else {
-            sprintf(buf, "%.16s%s%.4078s", NAME(player),
-                    ((*argv[0] == '\'' || isspace(*argv[0])) ? "" : " "), ptr);
-        }
-        thing = DBFETCH(obj)->contents;
-        while (thing != NOTHING) {
-            if (thing != eobj) {
-                notify_html_from_echo(player, thing, buf, 0);
-                if (NHtml(OWNER(thing)))
-                    notify_html_from_echo(player, thing, "<BR>", 0);
-            }
-            thing = DBFETCH(thing)->next;
-        }
-    }
-    return argv[0];
-}
-
 
 const char *
 mfn_right(MFUNARGS)

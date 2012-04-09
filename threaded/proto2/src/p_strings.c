@@ -985,9 +985,6 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
 {
     char buf[BUFFER_LEN * 2];
 
-    
-    
-    
     if (mlev < LMAGE)
         abort_interp("Mage primitive.");
     if (oper[0].type != PROG_STRING)
@@ -995,8 +992,6 @@ prim_notify_descriptor(PRIM_PROTOTYPE)
     if (oper[1].type != PROG_INTEGER)
         abort_interp("Descriptor integer expected. (1)");
     if (!pdescrp(oper[1].data.number)) {
-        
-        
         return;
     }
     if (oper[0].data.string) {
@@ -1055,16 +1050,11 @@ prim_notify_descriptor_char(PRIM_PROTOTYPE)
 
     char theChar;
 
-    
-    
-    
     if (mlev < LMAGE)
         abort_interp("Mage primitive.");
     if (oper[0].type != PROG_INTEGER || oper[1].type != PROG_INTEGER)
         abort_interp("Requires integer arguements.");
     if (!pdescrp(oper[1].data.number)) {
-        
-        
         return;
     }
     theChar = (char) oper[0].data.number;
@@ -1106,89 +1096,6 @@ prim_notify(PRIM_PROTOTYPE)
         }
         notify_listeners(fr->descr, PSafe, program, oper[1].data.objref,
                          getloc(PSafe), buf, 1);
-    }
-    
-    
-}
-
-void
-prim_notify_html(PRIM_PROTOTYPE)
-{
-    char buf[BUFFER_LEN * 2];
-
-    
-    
-    
-    if (oper[0].type != PROG_STRING) {
-        
-        
-        abort_interp("Non-string argument (2)");
-    }
-    if (!valid_object(&oper[1])) {
-        
-        
-        abort_interp("Invalid object argument (1)");
-    }
-    CHECKREMOTE(oper[1].data.objref);
-
-    if (oper[0].data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper[1].data.objref) {
-            if ( !tp_mush_format_escapes )
-                prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
-                               BUFFER_LEN - 1, 1);
-            else
-                prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
-                               BUFFER_LEN - 1, 1);
-        } else {
-            if ( !tp_mush_format_escapes )
-                strcpy(buf, oper[0].data.string->data);
-            else
-                strcpy_mush(buf, oper[0].data.string->data);
-        }
-        strcat(buf, "\r");
-        notify_html_listeners(fr->descr, PSafe, program, oper[1].data.objref,
-                              getloc(PSafe), buf, 1);
-    }
-    
-    
-}
-
-void
-prim_notify_html_nocr(PRIM_PROTOTYPE)
-{
-	char buf[BUFFER_LEN];
-
-    
-    
-    
-    if (oper[0].type != PROG_STRING) {
-        
-        
-        abort_interp("Non-string argument (2)");
-    }
-    if (!valid_object(&oper[1])) {
-        
-        
-        abort_interp("Invalid object argument (1)");
-    }
-    CHECKREMOTE(oper[1].data.objref);
-
-    if (oper[0].data.string) {
-        if (tp_m1_name_notify && mlev < LM2 && PSafe != oper[1].data.objref) {
-            if ( !tp_mush_format_escapes )
-                prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
-                               BUFFER_LEN, 1);
-            else
-                prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
-                               BUFFER_LEN, 1);
-        } else {
-            if ( !tp_mush_format_escapes )
-                strcpy(buf, oper[0].data.string->data);
-            else
-                strcpy_mush(buf, oper[0].data.string->data);
-        }
-        notify_html_listeners(fr->descr, PSafe, program, oper[1].data.objref,
-                              getloc(PSafe), buf, 1);
     }
     
     
@@ -1389,187 +1296,6 @@ prim_ansi_notify_exclude(PRIM_PROTOTYPE)
 
         if (tp_listeners) {
             ansi_notify_listeners(fr->descr, PSafe, program, where, where, buf,
-                                  0);
-//            if (tp_listeners_env) {
-//                what = DBFETCH(where)->location;
-//                for (; what != NOTHING; what = DBFETCH(what)->location)
-//                    ansi_notify_listeners(fr->descr, PSafe, program, what,
-//                                          where, buf, 0);
-//            }
-        }
-    }
-}
-
-
-void
-prim_notify_html_exclude(PRIM_PROTOTYPE)
-{
-    /* roomD excludeDn ... excludeD1 nI messageS  -- */
-    char buf[BUFFER_LEN * 2];
-        int result, tmp;
-
-    if (oper[1].type != PROG_INTEGER)
-        abort_interp("non-integer count argument (top-1)");
-    if (oper[0].type != PROG_STRING)
-        abort_interp("Non-string message argument (top)");
-
-    if (tp_m1_name_notify && oper[0].data.string &&
-        mlev < LM2 && PSafe != oper[1].data.objref) {
-        if ( !tp_mush_format_escapes )
-            prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
-                           BUFFER_LEN, 1);
-        else
-            prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
-                                BUFFER_LEN, 1);
-    } else {               
-        if ( !tp_mush_format_escapes )
-            strcpy(buf, DoNullInd(oper[0].data.string));
-        else     
-            strcpy_mush(buf, DoNullInd(oper[0].data.string));     
-    }
-    result = oper[1].data.number;
-    {
-        dbref what, where, excluded[STACK_SIZE];
-        int count, i;
-		struct inst *oper1;    
-    
-        count = i = result;
-        if (i >= STACK_SIZE || i < 0)
-            abort_interp("Count argument is out of range.");
-        while (i > 0) {      
-            CHECKOP(1);
-            oper1 = POP();
-            if (oper1->type != PROG_OBJECT) {
-				CLEAR(oper1);
-                abort_interp("Invalid object argument.");
-			}
-            excluded[--i] = oper1->data.objref;
-            CLEAR(oper1);
-        }
-        CHECKOP(1);
-        oper1 = POP();              
-        if (!valid_object(oper1)) {
-            abort_interp("Non-object argument (1)");
-			CLEAR(oper1);
-		}
-        where = oper1->data.objref;
-        if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
-            Typeof(where) != TYPE_PLAYER) {
-				CLEAR(oper1);
-            abort_interp("Invalid location argument (1)");
-		}
-        CHECKREMOTE(where);   
-        what = DBFETCH(where)->contents;
-        CLEAR(oper1);
-        if (*buf) {
-            while (what != NOTHING) {     
-                if (Typeof(what) != TYPE_ROOM) {      
-                    for (tmp = 0, i = count; i-- > 0;) {
-                        if (excluded[i] == what)           
-                            tmp = 1;
-                    }
-                } else {
-                    tmp = 1;
-                }
-                if (!tmp)
-                    notify_html_listeners(fr->descr, PSafe, program, what,
-                                          where, buf, 0);
-                what = DBFETCH(what)->next;
-            }
-        }
-
-        if (tp_listeners) {
-            notify_html_listeners(fr->descr, PSafe, program, where, where, buf,
-                                  0);
-//            if (tp_listeners_env) {
-//                what = DBFETCH(where)->location;
-//                for (; what != NOTHING; what = DBFETCH(what)->location)
-//                    ansi_notify_listeners(fr->descr, PSafe, program, what,
-//                                          where, buf, 0);
-//            }
-        }
-    }
-}
-
-void
-prim_notify_html_exclude_nocr(PRIM_PROTOTYPE)
-{
-    /* roomD excludeDn ... excludeD1 nI messageS  -- */
-    char buf[BUFFER_LEN * 2];
-        int result, tmp;
-
-    if (oper[1].type != PROG_INTEGER)
-        abort_interp("non-integer count argument (top-1)");
-    if (oper[0].type != PROG_STRING)
-        abort_interp("Non-string message argument (top)");
-
-    if (tp_m1_name_notify && oper[0].data.string &&
-        mlev < LM2 && PSafe != oper[1].data.objref) {
-        if ( !tp_mush_format_escapes )
-            prefix_message(buf, oper[0].data.string->data, PNAME(PSafe),
-                           BUFFER_LEN, 1);
-        else
-            prefix_message_mush(buf, oper[0].data.string->data, PNAME(PSafe),
-                                BUFFER_LEN, 1);
-    } else {               
-        if ( !tp_mush_format_escapes )
-            strcpy(buf, DoNullInd(oper[0].data.string));
-        else     
-            strcpy_mush(buf, DoNullInd(oper[0].data.string));     
-    }
-    result = oper[1].data.number;
-    {
-        dbref what, where, excluded[STACK_SIZE];
-        int count, i;
-		struct inst *oper1;    
-    
-        count = i = result;
-        if (i >= STACK_SIZE || i < 0)
-            abort_interp("Count argument is out of range.");
-        while (i > 0) {      
-            CHECKOP(1);
-            oper1 = POP();
-            if (oper1->type != PROG_OBJECT) {
-				CLEAR(oper1);
-                abort_interp("Invalid object argument.");
-			}
-            excluded[--i] = oper1->data.objref;
-            CLEAR(oper1);
-        }
-        CHECKOP(1);
-        oper1 = POP();              
-        if (!valid_object(oper1)) {
-			CLEAR(oper1);
-            abort_interp("Non-object argument (1)");
-		}
-        where = oper1->data.objref;
-        if (Typeof(where) != TYPE_ROOM && Typeof(where) != TYPE_THING &&
-            Typeof(where) != TYPE_PLAYER) {
-				CLEAR(oper1);
-            abort_interp("Invalid location argument (1)");
-		}
-        CHECKREMOTE(where);   
-        what = DBFETCH(where)->contents;
-        CLEAR(oper1);
-        if (*buf) {
-            while (what != NOTHING) {     
-                if (Typeof(what) != TYPE_ROOM) {      
-                    for (tmp = 0, i = count; i-- > 0;) {
-                        if (excluded[i] == what)           
-                            tmp = 1;
-                    }
-                } else {
-                    tmp = 1;
-                }
-                if (!tmp)
-                    notify_html_listeners(fr->descr, PSafe, program, what,
-                                          where, buf, 0);
-                what = DBFETCH(what)->next;
-            }
-        }
-
-        if (tp_listeners) {
-            notify_html_listeners(fr->descr, PSafe, program, where, where, buf,
                                   0);
 //            if (tp_listeners_env) {
 //                what = DBFETCH(where)->location;

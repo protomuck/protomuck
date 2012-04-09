@@ -22,7 +22,6 @@
 #define QUIT_COMMAND      "QUIT"
 #define WHO_COMMAND       "WHO"
 #define LOGIN_WHO_COMMAND "LWHO" /* This only effects the action, not the command itself */
-#define PUEBLO_COMMAND    "PUEBLOCLIENT"
 #define PREFIX_COMMAND    "OUTPUTPREFIX"
 #define SUFFIX_COMMAND    "OUTPUTSUFFIX"
 

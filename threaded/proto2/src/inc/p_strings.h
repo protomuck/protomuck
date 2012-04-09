@@ -16,13 +16,9 @@ extern void prim_atoi(PRIM_PROTOTYPE);
 extern void prim_ansi_notify(PRIM_PROTOTYPE);
 extern void prim_ansi_notify_exclude(PRIM_PROTOTYPE);
 extern void prim_notify(PRIM_PROTOTYPE);
-extern void prim_notify_html(PRIM_PROTOTYPE);
-extern void prim_notify_html_nocr(PRIM_PROTOTYPE);
 extern void prim_notify_descriptor(PRIM_PROTOTYPE);
 extern void prim_ansi_notify_descriptor(PRIM_PROTOTYPE);
 extern void prim_notify_exclude(PRIM_PROTOTYPE);
-extern void prim_notify_html_exclude(PRIM_PROTOTYPE);
-extern void prim_notify_html_exclude_nocr(PRIM_PROTOTYPE);
 extern void prim_intostr(PRIM_PROTOTYPE);
 extern void prim_explode(PRIM_PROTOTYPE);
 extern void prim_subst(PRIM_PROTOTYPE);
@@ -90,10 +86,6 @@ extern void prim_wcharlen_slice(PRIM_PROTOTYPE);
 								{ "STRINGPFX",				LM1, 2, prim_stringpfx },					\
 								{ "STRENCRYPT",				LM1, 2, prim_strencrypt },					\
 								{ "STRDECRYPT",				LM1, 2, prim_strdecrypt },					\
-								{ "NOTIFY_HTML",			LM1, 2, prim_notify_html },					\
-								{ "NOTIFY_HTML_EXCLUDE",	LM1, 2, prim_notify_html_exclude },			\
-								{ "HTML_NOCR",				LM1, 1, prim_notify_html_nocr },			\
-								{ "HTML_EXCLUDE_NOCR",		LM1, 1, prim_notify_html_exclude_nocr },	\
 								{ "MIDSTR",					LM1, 3, prim_midstr },						\
 								{ "CTOI",					LM1, 1, prim_ctoi },						\
 								{ "ITOC",					LM1, 1, prim_itoc },						\

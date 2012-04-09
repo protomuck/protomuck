@@ -20,8 +20,6 @@ extern void prim_descr_setuser(PRIM_PROTOTYPE);
 extern void prim_descr_setuser_nopass(PRIM_PROTOTYPE);
 extern void prim_descrflush(PRIM_PROTOTYPE);
 extern void prim_descr(PRIM_PROTOTYPE);
-extern void prim_descr_htmlp(PRIM_PROTOTYPE);
-extern void prim_descr_pueblop(PRIM_PROTOTYPE);
 extern void prim_welcome_user(PRIM_PROTOTYPE);
 extern void prim_descrp(PRIM_PROTOTYPE);
 extern void prim_motd_notify(PRIM_PROTOTYPE);
@@ -73,8 +71,6 @@ extern void prim_mccp_end(PRIM_PROTOTYPE);
                            { "DESCR_ARRAY",           LM3,     1, prim_descr_array },           \
                            { "DESCRFLUSH",            LM3,     1, prim_descrflush },            \
                            { "DESCR",                 LM1,     0, prim_descr },                 \
-                           { "DESCR_HTML?",           LM3,     1, prim_descr_htmlp },           \
-                           { "DESCR_PUEBLO?",         LM3,     1, prim_descr_pueblop },         \
                            { "DESCR_WELCOME_USER",    LM3,     1, prim_welcome_user },          \
                            { "DESCR?",                LM3,     1, prim_descrp },                \
                            { "MOTD_NOTIFY",           LM3,     1, prim_motd_notify },           \

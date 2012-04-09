@@ -44,7 +44,6 @@ const char *mfn_func(MFUNARGS);
 const char *mfn_ge(MFUNARGS);
 const char *mfn_gt(MFUNARGS);
 const char *mfn_holds(MFUNARGS);
-const char *mfn_html(MFUNARGS);
 const char *mfn_idle(MFUNARGS);
 const char *mfn_if(MFUNARGS);
 const char *mfn_inc(MFUNARGS);
@@ -95,7 +94,6 @@ const char *mfn_oansi(MFUNARGS);
 const char *mfn_online(MFUNARGS);
 const char *mfn_ontime(MFUNARGS);
 const char *mfn_or(MFUNARGS);
-const char *mfn_ohtml(MFUNARGS);
 const char *mfn_otell(MFUNARGS);
 const char *mfn_owner(MFUNARGS);
 const char *mfn_parse(MFUNARGS);
@@ -142,11 +140,6 @@ const char *mfn_created(MFUNARGS);
 const char *mfn_modified(MFUNARGS);
 const char *mfn_lastused(MFUNARGS);
 const char *mfn_usecount(MFUNARGS);
-
-const char *mfn_command(MFUNARGS);
-const char *mfn_playmidi(MFUNARGS);
-const char *mfn_stopmidi(MFUNARGS);
-
 
 
 

@@ -284,9 +284,6 @@
     <ClCompile Include="mfuns2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mfuns3.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="move.c">
       <Filter>Source Files</Filter>
     </ClCompile>

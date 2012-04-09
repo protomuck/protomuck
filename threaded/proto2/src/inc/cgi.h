@@ -5,9 +5,7 @@
 #ifndef CGI_H
 #define CGI_H
 
-extern char x2c(char *what);
 extern void unescape_url(char *url);
-extern char * getcgivar(char *cgiinput, char *param);
 extern void escape_url(char *out, char *in);
 
 #define SPACE       ' '

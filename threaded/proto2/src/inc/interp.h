@@ -26,6 +26,7 @@ extern void RCLEAR(struct inst *oper, const char *file, int line);
 #define PSafe (OkObj(player) ? player : OWNER(program))
 
 #define CLEAR(oper) RCLEAR(oper, __FILE__, __LINE__)
+extern void pushint(struct inst *stack, int *top, int result);
 extern void push (struct inst *stack, int *top, int type, voidptr res);
 extern int valid_object(struct inst *oper);
   
@@ -144,7 +145,7 @@ extern dbref find_uid(dbref player, struct frame *fr, int st, dbref program);
                  abort_interp("Mucker Level 2 required to get remote info.");
 
 #define PushObject(x)   push(arg, top, PROG_OBJECT, MIPSCAST &x)
-#define PushInt(x)      push(arg, top, PROG_INTEGER, MIPSCAST &x)
+#define PushInt(x)      pushint(arg, top, x)
 #define PushFloat(x)    push(arg, top, PROG_FLOAT, MIPSCAST &x)
 #define PushLock(x)     push(arg, top, PROG_LOCK, MIPSCAST copy_bool(x))
 #define PushTrueLock(x) push(arg, top, PROG_LOCK, MIPSCAST TRUE_BOOLEXP)

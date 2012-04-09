@@ -61,8 +61,6 @@ const char *infotext[] =
     SYSCYAN "Feel free to check ProtoMUCK's webpage at the following address:",
     SYSAQUA "http://www.protomuck.org/",
     " ",
-    SYSBLUE "The Pueblo multimedia protocol is (C)Chaco Communications.",
-    SYSBLUE "http://pueblo.sourceforge.net/ for more information.",
     SYSBLUE "The recommended client by us for any mu* server is BeipMU*.",
     SYSBLUE "http://www.beipmu.com/ for more information.",
     CINFO "Done.",

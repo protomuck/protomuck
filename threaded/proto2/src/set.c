@@ -316,63 +316,6 @@ do_iansidescribe(int descr, dbref player, const char *name,
     }
 }
 
-
-void
-do_htmldescribe(int descr, dbref player, const char *name,
-                const char *description)
-{
-    dbref thing;
-
-    if (tp_db_readonly)
-        return;
-
-    if (Guest(player)) {
-        anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
-        return;
-    }
-
-    if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        if (Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing)))) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-            return;
-        }
-        ts_modifyobject(player, thing);
-        SETHTMLDESC(thing, description);
-        if (*description)
-            anotify_nolisten2(player, CSUCC "HTMLDescription set.");
-        else
-            anotify_nolisten2(player, CSUCC "HTMLDescription cleared.");
-    }
-}
-
-void
-do_ihtmldescribe(int descr, dbref player, const char *name,
-                 const char *description)
-{
-    dbref thing;
-
-    if (tp_db_readonly)
-        return;
-
-    if (Guest(player)) {
-        anotify_fmt(player, CFAIL "%s", tp_noguest_mesg);
-        return;
-    }
-
-    if ((thing = match_controlled(descr, player, name)) != NOTHING) {
-        if (Protect(thing) && !(MLevel(player) > MLevel(OWNER(thing)))) {
-            anotify_fmt(player, CFAIL "%s", tp_noperm_mesg);
-            return;
-        }
-        ts_modifyobject(player, thing);
-        SETIHTMLDESC(thing, description);
-        if (*description)
-            anotify_nolisten2(player, CSUCC "IHTMLDescription set.");
-        else
-            anotify_nolisten2(player, CSUCC "IHTMLDescription cleared.");
-    }
-}
-
 void
 do_doing(int descr, dbref player, const char *name, const char *mesg)
 {

@@ -157,10 +157,8 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define GETMESG(x,y)   (get_property_class(x, y))
 #define GETDESC(x)  GETMESG(x, "_/de")
 #define GETANSIDESC(x)  GETMESG(x, "_/anside")
-#define GETHTMLDESC(x)  GETMESG(x, "_/htmlde")
 #define GETIDESC(x) GETMESG(x, "_/ide")
 #define GETIANSIDESC(x) GETMESG(x, "_/ianside")
-#define GETIHTMLDESC(x) GETMESG(x, "_/ihtmlde")
 #define GETSUCC(x)  GETMESG(x, "_/sc")
 #define GETOSUCC(x) GETMESG(x, "_/osc")
 #define GETFAIL(x)  GETMESG(x, "_/fl")
@@ -177,7 +175,6 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define SETHTMLDESC(x,y)   SETMESG(x,"_/htmlde",y)
 #define SETIDESC(x,y)   SETMESG(x,"_/ide",y)
 #define SETIANSIDESC(x,y)  SETMESG(x,"_/ianside",y)
-#define SETIHTMLDESC(x,y)  SETMESG(x,"_/ihtmlde",y)
 #define SETSUCC(x,y)   SETMESG(x,"_/sc",y)
 #define SETFAIL(x,y)   SETMESG(x,"_/fl",y)
 #define SETDROP(x,y)   SETMESG(x,"_/dr",y)
@@ -194,7 +191,6 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define LOADHTMLDESC(x,y)   LOADMESG(x,"_/htmlde",y)
 #define LOADIDESC(x,y)  LOADMESG(x,"_/ide",y)
 #define LOADIANSIDESC(x,y)  LOADMESG(x,"_/ianside",y)
-#define LOADIHTMLDESC(x,y)  LOADMESG(x,"_/ihtmlde",y)
 #define LOADSUCC(x,y)   LOADMESG(x,"_/sc",y)
 #define LOADFAIL(x,y)   LOADMESG(x,"_/fl",y)
 #define LOADDROP(x,y)   LOADMESG(x,"_/dr",y)
@@ -315,7 +311,7 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define F2MUFCOUNT	    0x4     /* Program notes instruction counts */ 
 #define F2HIDDEN            0x8     /* The new HIDDEN flag */
 #define F2MOBILE	   0x10     /* Mobile object */ 
-#define F2PUEBLO           0x20     /* Player has Pueblo multimedia support */
+#define F2UNUSED           0x20     /* Previously for pueblo support */
 #define F2HTML             0x40     /* Player has at least BASIC HTML, maybe Pueblo */
 #define F2MCP              0x80     /* Legacy. Was for Loki's MCP programs */ 
 #define F2PROTECT         0x100     /* The new PROTECT flag */
@@ -474,12 +470,6 @@ extern int RawMWLevel(dbref thing, const char *file, int line);
 #define Builder(x) ( !tp_restricted_building || (FLAGS(x) & BUILDER) || TMage(x))
 
 #define Guest(x) ( (FLAG2(x) & F2GUEST) && !TMage(x) )
-
-#define Html(x) ((( FLAG2(x) & F2PUEBLO ) || (FLAG2(x) & F2HTML)) != 0)
-
-#define Pueblo(x) (( FLAG2(x) & F2PUEBLO ) != 0)
-
-#define NHtml(x) (( FLAG2(x) & F2HTML ) != 0)
 
 #define MCP(x) (( FLAG2(x) & F2MCP ) != 0)
 

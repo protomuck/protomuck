@@ -154,14 +154,21 @@ prim_getprop(PRIM_PROTOTYPE)
 	char   type[BUFFER_LEN];
 	char  *tmpptr;
 
+	while (DBTRYLOCK(oper[1].data.objref))
+		if (fr->err)
+			return;
+
 	tmpptr = oper[0].data.string->data;
 	while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
-	    if (!(*(++tmpptr)))
-		abort_interp("Cannot access a propdir directly");
+	    if (!(*(++tmpptr))) {
+			DBUNLOCK(oper[1].data.objref);
+			abort_interp("Cannot access a propdir directly");
+		}
 
-	if (!prop_read_perms(ProgUID, oper[1].data.objref,
-			     oper[0].data.string->data, mlev))
+	if (!prop_read_perms(ProgUID, oper[1].data.objref, oper[0].data.string->data, mlev)) {
+		DBUNLOCK(oper[1].data.objref);
 	    abort_interp(tp_noperm_mesg);
+	}
 
 	strcpy(type, oper[0].data.string->data);
 	obj2 = oper[1].data.objref;
@@ -208,6 +215,7 @@ prim_getprop(PRIM_PROTOTYPE)
 
 	/* if (Typeof(oper[1].data.objref) != TYPE_PLAYER)
 	    ts_lastuseobject(oper[1].data.objref); */
+	DBUNLOCK(oper[1].data.objref);
     }
 }
 
@@ -232,14 +240,24 @@ prim_getpropstr(PRIM_PROTOTYPE)
 	char  *tmpptr;
 	PropPtr ptr;
 
+	while (DBTRYLOCK(oper[1].data.objref))
+		if (fr->err)
+			return;
+
 	tmpptr = oper[0].data.string->data;
 	while ((tmpptr = index(tmpptr, PROPDIR_DELIMITER)))
 	    if (!(*(++tmpptr)))
-		abort_interp("Cannot access a propdir directly");
+		{
+			DBUNLOCK(oper[1].data.objref);
+			abort_interp("Cannot access a propdir directly");
+		}
 
 	if (!prop_read_perms(ProgUID, oper[1].data.objref,
 			     oper[0].data.string->data, mlev))
+	{
+		DBUNLOCK(oper[1].data.objref);
 	    abort_interp(tp_noperm_mesg);
+	}
 
 	strcpy(type, oper[0].data.string->data);
 	ptr = get_property(oper[1].data.objref, type);
@@ -285,6 +303,9 @@ prim_getpropstr(PRIM_PROTOTYPE)
 
 	/* if (Typeof(oper[1].data.objref) != TYPE_PLAYER)
 	 *     ts_lastuseobject(oper[1].data.objref); */
+
+	DBUNLOCK(oper[1].data.objref);
+
     }
 
     PushString(temp);
@@ -304,6 +325,7 @@ prim_remove_prop(PRIM_PROTOTYPE)
         abort_interp(DBRO_MESG);
 
     CHECKREMOTE(oper[1].data.objref);
+
     strncpy(buf, DoNullInd(oper[0].data.string), BUFFER_LEN);
     buf[BUFFER_LEN - 1] = '\0';
     {
@@ -316,8 +338,14 @@ prim_remove_prop(PRIM_PROTOTYPE)
     if (!*buf)
         abort_interp("Can't remove root propdir. (2)");
 
-    if (!prop_write_perms(ProgUID, oper[1].data.objref, buf, mlev))
-	abort_interp(tp_noperm_mesg);
+	while (DBTRYLOCK(oper[1].data.objref))
+		if (fr->err)
+			return;
+
+    if (!prop_write_perms(ProgUID, oper[1].data.objref, buf, mlev)) {
+		DBUNLOCK(oper[1].data.objref);
+		abort_interp(tp_noperm_mesg);
+	}
 
     remove_property(oper[1].data.objref, buf);
 
@@ -327,6 +355,7 @@ prim_remove_prop(PRIM_PROTOTYPE)
 #endif
 
 	ts_modifyobject(program, oper[1].data.objref);
+	DBUNLOCK(oper[1].data.objref);
 }
 
 
@@ -357,10 +386,17 @@ prim_envprop(PRIM_PROTOTYPE)
 		abort_interp("Cannot access a propdir directly");
 	strcpy(tname, oper[0].data.string->data);
 	what = oper[1].data.objref;
+
+	while (DBTRYLOCK(oper[1].data.objref))
+		if (fr->err)
+			return;
+
 	ptr = envprop(&what, tname, 0);
 	if (what != NOTHING) {
-	    if (!prop_read_perms(ProgUID,what,oper[0].data.string->data,mlev))
-		abort_interp(tp_noperm_mesg);
+	    if (!prop_read_perms(ProgUID,what,oper[0].data.string->data,mlev)) {
+			DBUNLOCK(oper[1].data.objref);
+			abort_interp(tp_noperm_mesg);
+		}
 	}
 	PushObject(what);
 
@@ -391,7 +427,7 @@ prim_envprop(PRIM_PROTOTYPE)
 		    if (PropFlags(ptr) & PROP_ISUNLOADED) {
 		        PushLock(TRUE_BOOLEXP);
 		    } else {
-			PushLock(PropDataLok(ptr));
+				PushLock(PropDataLok(ptr));
 		    }
 		    break;
 		default:
@@ -400,6 +436,8 @@ prim_envprop(PRIM_PROTOTYPE)
 		    break;
 	    }
 	}
+
+	DBUNLOCK(oper[1].data.objref);
     }
 }
 
@@ -427,9 +465,14 @@ prim_envpropstr(PRIM_PROTOTYPE)
 	type = oper[0].data.string->data;
 	while ((type = index(type, PROPDIR_DELIMITER)))
 	    if (!(*(++type)))
-		abort_interp("Cannot access a propdir directly");
+			abort_interp("Cannot access a propdir directly");
 	strcpy(tname, oper[0].data.string->data);
 	what = oper[1].data.objref;
+
+	while (DBTRYLOCK(oper[1].data.objref))
+		if (fr->err)
+			return;
+
 	ptr = envprop(&what, tname, 0);
 	if (!ptr) {
 	    temp = "";
@@ -470,11 +513,15 @@ prim_envpropstr(PRIM_PROTOTYPE)
 #endif
 
 	if (what != NOTHING) {
-	    if (!prop_read_perms(ProgUID, what, oper[0].data.string->data,mlev))
-		abort_interp(tp_noperm_mesg);
+	    if (!prop_read_perms(ProgUID, what, oper[0].data.string->data,mlev)) {
+			DBUNLOCK(oper[1].data.objref);
+			abort_interp(tp_noperm_mesg);
+		}
 	    /* if (Typeof(what) != TYPE_PLAYER)
 	     *     ts_lastuseobject(what); */
 	}
+
+	DBUNLOCK(oper[1].data.objref);
 	PushObject(what);
 	PushString(temp);
     }
@@ -503,12 +550,19 @@ prim_setprop(PRIM_PROTOTYPE)
         abort_interp(DBRO_MESG);
     CHECKREMOTE(oper[2].data.objref);
 
-    if ((mlev < LM2) && (!permissions(mlev, ProgUID, oper[2].data.objref)))
-	abort_interp(tp_noperm_mesg);
+	while (DBTRYLOCK(oper[2].data.objref))
+		if (fr->err)
+			return;
 
-    if (!prop_write_perms(ProgUID, oper[2].data.objref,
-			 oper[1].data.string->data, mlev))
-	abort_interp(tp_noperm_mesg);
+    if ((mlev < LM2) && (!permissions(mlev, ProgUID, oper[2].data.objref))) {
+		DBUNLOCK(oper[2].data.objref);
+		abort_interp(tp_noperm_mesg);
+	}
+
+    if (!prop_write_perms(ProgUID, oper[2].data.objref, oper[1].data.string->data, mlev)) {
+		DBUNLOCK(oper[2].data.objref);
+		abort_interp(tp_noperm_mesg);
+	}
 
     {
 	char   *tmpe;
@@ -521,8 +575,10 @@ prim_setprop(PRIM_PROTOTYPE)
 
 	tmpe = oper[1].data.string->data;
 	while ((tmpe = index(tmpe, PROPDIR_DELIMITER)))
-	    if (!(*(++tmpe)))
-		abort_interp("Cannot access a propdir directly");
+	    if (!(*(++tmpe))) {
+			DBUNLOCK(oper[2].data.objref);
+			abort_interp("Cannot access a propdir directly");
+		}
 
 	strcpy(tname, oper[1].data.string->data);
 
@@ -556,6 +612,7 @@ prim_setprop(PRIM_PROTOTYPE)
 #endif
 
 	ts_modifyobject(program, oper[2].data.objref);
+	DBUNLOCK(oper[2].data.objref);
     }
 }
 

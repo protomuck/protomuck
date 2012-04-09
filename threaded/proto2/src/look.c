@@ -107,10 +107,7 @@ exec_or_notify_2(int descr, dbref player, dbref thing,
     } else {
         p = do_parse_mesg(descr, player, thing, p, whatcalled, buf,
                           MPI_ISPRIVATE, p, whatcalled);
-        if (typ)
-            notify(player, p);
-        else
-            notify_html(player, p);
+        notify(player, p);
     }
 }
 
@@ -206,9 +203,7 @@ look_contents(dbref player, dbref loc, const char *contents_name)
 static void
 look_simple(int descr, dbref player, dbref thing, const char *name)
 {
-    if (Html(player) && GETHTMLDESC(thing))
-        exec_or_html_notify(descr, player, thing, GETHTMLDESC(thing), name);
-    else if (GETDESC(thing))
+    if (GETDESC(thing))
         exec_or_notify(descr, player, thing, GETDESC(thing), name);
     else
         notify(player, "You see nothing special.");
@@ -225,10 +220,7 @@ look_room(int descr, dbref player, dbref loc)
 
     /* tell him the description */
     if (Typeof(loc) == TYPE_ROOM) {
-        if (Html(player) && GETHTMLDESC(loc))
-            exec_or_html_notify(descr, player, loc, GETHTMLDESC(loc),
-                                "(@Desc)");
-        else if (GETDESC(loc))
+        if (GETDESC(loc))
             exec_or_notify(descr, player, loc, GETDESC(loc), "(@Desc)");
 
         /* tell him the appropriate messages if he has the key */
@@ -247,10 +239,7 @@ look_room(int descr, dbref player, dbref loc)
                                NAME(player), "(@Osucc)");
         }
     } else {
-        if (Html(player) && GETIHTMLDESC(loc))
-            exec_or_html_notify(descr, player, loc, GETIHTMLDESC(loc),
-                                "(@Idesc)");
-        else if (GETIDESC(loc))
+        if (GETIDESC(loc))
             exec_or_notify(descr, player, loc, GETIDESC(loc), "(@Idesc)");
     }
     ts_useobject(player, loc);
@@ -576,10 +565,6 @@ flag_description(dbref thing)
                     TYPE_PROGRAM) ? " NO_OPTIMIZE" : " NO_COMMAND");
         if (FLAG2(thing) & F2EXAMINE_OK)
             strcat(buf, " EXAMINE_OK");
-        if (FLAG2(thing) & F2PUEBLO)
-            strcat(buf, " PUEBLO");
-        if (FLAG2(thing) & F2HTML)
-            strcat(buf, " HTML");
         if (FLAG2(thing) & F2SUSPECT)
             strcat(buf, " SUSPECT");
         if (FLAG2(thing) & F2MOBILE) {
@@ -845,17 +830,6 @@ do_examine(int descr, dbref player, const char *name, const char *dir)
     if (GETIANSIDESC(thing)) {
         sprintf(buf, SYSCYAN "IANSIDESC:" SYSAQUA " %s",
                 tct(GETIANSIDESC(thing), buf2));
-        anotify_nolisten(player, buf, 1);
-    }
-
-    if (GETHTMLDESC(thing)) {
-        sprintf(buf, SYSCYAN "HTMLDESC:" SYSAQUA " %s",
-                tct(GETHTMLDESC(thing), buf2));
-        anotify_nolisten(player, buf, 1);
-    }
-    if (GETIHTMLDESC(thing)) {
-        sprintf(buf, SYSCYAN "IHTMLDESC:" SYSAQUA " %s",
-                tct(GETIHTMLDESC(thing), buf2));
         anotify_nolisten(player, buf, 1);
     }
 

@@ -47,14 +47,6 @@ const char *hostToIPex(struct hostinfo * h)
     else
 	return ip_address_prototype(&h->a, 4);
 }
-
-#else
-
-const char *hostToIPex(struct hostinfo * h)
-{
-	return host_as_hex(h->a);
-}
-
 #endif
 
 #if defined(HAVE_PTHREAD_H) || defined(WIN_VC)
@@ -69,18 +61,17 @@ struct tres_data {
 };
 
 const char *
-get_username(int a, int prt, int myprt)
+get_username(char *buf, int a, int prt, int myprt)
 {
     int fd, len, result;
     struct sockaddr_in addr;
     char *ptr, *ptr2;
-    static char buf[1024];
     int lasterr;
     int timeout = 30;
 
     if ((fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("resolver ident socket");
-        return (0);
+        return NULL;
     }
 
     make_nonblocking(fd);
@@ -154,7 +145,7 @@ get_username(int a, int prt, int myprt)
 
   bad:
     closesocket(fd);
-    return (0);
+    return NULL;
 }
 
 #ifdef WIN_VC
@@ -177,7 +168,6 @@ void *threaded_resolver_go(void *ptr)
     if (he) {
         char buf[MAX_COMMAND_LEN];
         char *j;
-        const char *c;
         struct husrinfo *u;
 
 
@@ -195,8 +185,7 @@ void *threaded_resolver_go(void *ptr)
         free((void *) old_ptr);
         tr->h->wupd = current_systime;
 
-        if ((c = get_username(htonl(tr->h->a), tr->prt, tr->lport))) {
-            strcpy(buf, c);
+        if (get_username(buf, htonl(tr->h->a), tr->prt, tr->lport)) {
             for (j = buf; isspace(*j); ++j) ; /* strip occasional leading spaces */
             for (u = userdb; u; u = u->next) {
                 if (u->uport == tr->prt && u->a == tr->h->a) {
@@ -724,6 +713,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
     struct hostinfo *h;
     struct husrinfo *u;
     struct huinfo *hu = (struct huinfo *) malloc(sizeof(struct huinfo));
+	char hbuf[32];
 
     prt = ntohs(prt);
     a = ntohl(a);
@@ -782,7 +772,7 @@ host_getinfo(int a, unsigned short lport, unsigned short prt)
     h->a6 = in6addr_any;
 #endif
     h->wupd = 0;
-    h->name = alloc_string(host_as_hex(a));
+    h->name = alloc_string(host_as_hex(a, hbuf));
     h->prev = NULL;
     h->next = hostdb;
     if (hostdb)
@@ -962,6 +952,7 @@ host_save(void)
 {
     FILE *f;
     struct hostinfo *h;
+	char hbuf[32];
 
     if (!(f = fopen("nethost.cache", "w")))
         return;
@@ -971,7 +962,7 @@ host_save(void)
         /*  the same as the IP address if a hostname wasn't found, we use  */
         /*  strcmp to make sure it never stores anything except hostnames  */
         /*  into the file.  -Hinoserm                                      */
-        if (h->wupd && strcmp(h->name, host_as_hex(h->a)))
+        if (h->wupd && strcmp(h->name, host_as_hex(h->a, hbuf)))
             fprintf(f, "%X %s\n", h->a, h->name);
     }
 
@@ -1060,10 +1051,9 @@ host_userdb_size(void)
 /*--  for the @hostcache command.        --*/
 
 char *
-time_format_3(time_t dt)
+time_format_3(time_t dt, char *buf)
 {
     struct tm *delta;
-    static char buf[64];
 
     if (!dt)
         return strcpy(buf, "---");
@@ -1162,6 +1152,8 @@ do_hostcache(dbref player, const char *args)
         struct hostinfo **harr;
         unsigned long i = 0;
         unsigned long count = 0;
+		char hbuf[32];
+		char tbuf[1024];
 
         if (strcasecmp(arg2, "all")) {
             count = atoi(arg2);
@@ -1185,18 +1177,19 @@ do_hostcache(dbref player, const char *args)
 
         for (i = 0; i < count; i++)
             anotify_fmt(player, " %-15s  %0.3d  %-14s %s",
-                        host_as_hex(harr[i]->a), harr[i]->uses,
-                        time_format_3(harr[i]->wupd), harr[i]->name);
+                        host_as_hex(harr[i]->a, hbuf), harr[i]->uses,
+                        time_format_3(harr[i]->wupd, tbuf), harr[i]->name);
         anotify_fmt(player, CINFO "Top %d host%s displayed (%d total).", count,
                     count == 1 ? "" : "s", hostdb_count);
     } else {
+		char tbuf[1024];
         anotify_fmt(player, "Bytes used by cache:  %ld", host_hostdb_size());
         anotify_fmt(player, "Hostnames in cache:   %ld", hostdb_count);
         anotify_fmt(player, "Username entries:     %ld", userdb_count);
         anotify_fmt(player, "Username bytes used:  %ld", host_userdb_size());
         if (hostdb_flushtime)
             anotify_fmt(player, "Last flush was:       %s",
-                        time_format_3(hostdb_flushtime));
+                        time_format_3(hostdb_flushtime, tbuf));
         if (hostdb_flushplyr != NOTHING) {
 			char bufu[BUFFER_LEN];
 

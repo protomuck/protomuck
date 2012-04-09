@@ -176,7 +176,7 @@ struct descriptor_data {
     int                      commands;      /* Number of commands done */
     int                      linelen;
     int                      type;          /* Connection type */
-    int                      cport;         /* Connected on this port if inbound, text, pueblo, web, etc. */
+    int                      cport;         /* Connected on this port if inbound, text, web, etc. */
     int                      idletime_set;  /* Time [in minutes] until the IDLE flag must be set */
     int                      encoding;      /* filter type: 0 = raw, 1 = ASCII, 2 = UTF-8 */
     int                      filter_tab;    /* '\t' -> ' ' conversion. */
@@ -203,8 +203,8 @@ struct descriptor_data {
     struct telopt            telopt;
 };
 
-#define DF_HTML          0x1 /* Connected to the internal WEB server. -- UNIMPLEMENTED */
-#define DF_PUEBLO        0x2 /* Allows for HTML/Pueblo extentions on a connected port. -- UNIMPLEMENTED */
+#define DF_UNUSED1       0x1 /* Previously for pueblo/old HTTP server */
+#define DF_UNUSED2       0x2 /* Previously for pueblo port */
 #define DF_MUF           0x4 /* Connected onto a MUF or MUF-Listening port. -- UNIMPLEMENTED */
 #define DF_IDLE          0x8 /* This is set if the descriptor is idle. */
 #define DF_TRUEIDLE     0x10 /* Set if the descriptor goes past the @tune idletime. Also triggers the propqueues if connected. */
@@ -239,7 +239,7 @@ struct descriptor_data {
 #ifdef NEWHTTPD
 #define CT_HTTP         1 /* hinoserm */
 #endif
-#define CT_PUEBLO	2
+#define CT_UNUSED       2 //Previously for pueblo connections
 #define CT_MUF          3
 #define CT_OUTBOUND     4
 #define CT_LISTEN       5
@@ -276,7 +276,6 @@ extern void notify_descriptor_raw(int descr, const char *msg, int lenght);
 extern void notify_descriptor_char(int d, char c);
 extern void anotify_descriptor(int descr, const char *msg);
 extern int anotify(dbref player, const char *msg);
-extern int notify_html(dbref player, const char *msg);
 extern void add_to_queue(struct text_queue *q, const char *b, int len, int wclen); /* hinoserm */
 extern int queue_write(struct descriptor_data *d, const char *b, int n);  /* hinoserm */
 extern int queue_string(struct descriptor_data *d, const char *s);
@@ -285,10 +284,8 @@ extern int anotify_nolisten2(dbref player, const char *msg);
 extern int notify_html_nolisten(dbref player, const char *msg, int isprivate);
 extern int anotify_nolisten(dbref player, const char *msg, int isprivate);
 extern int notify_from_echo(dbref from, dbref player, const char *msg, int isprivate);
-extern int notify_html_from_echo(dbref from, dbref player, const char *msg, int isprivate);
 extern int anotify_from_echo(dbref from, dbref player, const char *msg, int isprivate);
 extern int notify_from(dbref from, dbref player, const char *msg);
-extern int notify_html_from(dbref from, dbref player, const char *msg);
 extern int anotify_from(dbref from, dbref player, const char *msg);
 extern void wall_and_flush(const char *msg);
 extern void flush_user_output(dbref player);
@@ -308,23 +305,16 @@ extern int boot_off(dbref player);
 extern void boot_player_off(dbref player);
 extern int online(dbref player);
 extern int *get_player_descrs(dbref player, int *count);
-extern struct descriptor_data* get_descr(int, int);
-extern int least_idle_player_descr(dbref who);
-extern int most_idle_player_descr(dbref who);
+extern struct descriptor_data *get_descr(int, int);
+extern struct descriptor_data *least_idle_player_descr(dbref who);
+extern struct descriptor_data *most_idle_player_descr(dbref who);
 extern int pcount(void);
-extern time_t pidle(int c);
 extern int pdbref(int c);
-extern time_t pontime(int c);
-extern char *phost(int c);
-extern char *puser(int c);
-extern char *pipnum(int c);
-extern char *pport(int c);
+struct descriptor_data *descrdata_by_count(int count);
 extern void make_nonblocking(int s);
 extern void make_blocking(int s);
 extern char *time_format_2(time_t dt, char *buf);
 extern int msec_diff(struct timeval now, struct timeval then);
-extern void pboot(int c);
-extern void pdboot(int c);
 extern void pnotify(int c, char *outstr);
 extern int pset_idletime(dbref player, int idle_time);
 extern int pdescr(int c);
@@ -358,7 +348,7 @@ extern int pdescrtype(int c);
 extern void pdescr_welcome_user(int c);
 extern void pdescr_logout(int c);
 extern void pdump_who_users(int c, char *user);
-extern const char* host_as_hex(unsigned addr);
+extern const char *host_as_hex(unsigned int addr, char *buf);
 #ifdef IPV6
 extern struct in6_addr str2ip6(const char *ipstr);
 #endif

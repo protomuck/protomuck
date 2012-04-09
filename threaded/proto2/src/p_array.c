@@ -770,61 +770,6 @@ prim_array_ansi_notify(PRIM_PROTOTYPE)
     }
 }
 
-
-
-void
-prim_array_notify_html(PRIM_PROTOTYPE)
-{
-    stk_array *strarr;
-    stk_array *refarr;
-    struct inst temp1, temp2;
-    char buf2[BUFFER_LEN * 2];
-	char buf[BUFFER_LEN];
-
-    if (oper[1].type != PROG_ARRAY)
-        abort_interp("Argument not an array of strings. (1)");
-    if (!array_is_homogenous(oper[1].data.array, PROG_STRING))
-        abort_interp("Argument not an array of strings. (1)");
-    if (oper[0].type != PROG_ARRAY)
-        abort_interp("Argument not an array of dbrefs. (2)");
-    if (!array_is_homogenous(oper[0].data.array, PROG_OBJECT))
-        abort_interp("Argument not an array of dbrefs. (2)");
-    strarr = oper[1].data.array;
-    refarr = oper[0].data.array;
-
-    if (array_first(strarr, &temp2)) {
-        struct inst *oper3, *oper4;
-
-        do {
-            oper4 = array_getitem(strarr, &temp2);
-            if ( !tp_mush_format_escapes )
-                strcpy(buf, DoNullInd(oper4->data.string));
-            else
-                strcpy_mush(buf, DoNullInd(oper4->data.string));
-            if (tp_m1_name_notify && mlev < 2) {
-                strcpy(buf2, NAME(PSafe));
-                strcat(buf2, " ");
-                if (!string_prefix(buf, buf2)) {
-                    strcat(buf2, buf);
-                    buf2[BUFFER_LEN - 1] = '\0';
-                    strcpy(buf, buf2);
-                }
-            }
-            if (array_first(refarr, &temp1)) {
-                do {
-                    oper3 = array_getitem(refarr, &temp1);
-
-                    notify_html_listeners(fr->descr, PSafe, program,
-                                          oper3->data.objref,
-                                          getloc(oper3->data.objref), buf, 1);
-                } while (array_next(refarr, &temp1));
-            }
-        } while (array_next(strarr, &temp2));
-    }
-}
-
-
-
 void
 prim_array_reverse(PRIM_PROTOTYPE)
 {
@@ -2168,8 +2113,20 @@ prim_array_filter_flags(PRIM_PROTOTYPE)
     if (array_first(arr, &temp1)) {
         do {
             in = array_getitem(arr, &temp1);
-            if (valid_object(in) && checkflags(in->data.objref, check))
-                array_appenditem(&nw, in);
+            if (valid_object(in)) {
+				while (DBTRYLOCK(in->data.objref)) {
+					fr->lockfail++;
+					if (fr->err) {
+						array_free(nw);
+						return;
+					}
+				}
+					
+				if (checkflags(in->data.objref, check))
+					array_appenditem(&nw, in);
+
+				DBUNLOCK(in->data.objref);
+			}
         } while (array_next(arr, &temp1));
     }
 
@@ -2419,7 +2376,7 @@ prim_array_string_fragment(PRIM_PROTOTYPE)
     int nCount = 0; 
     int nStrLen = 0;   
 	struct inst temp1, temp2, temp3;
-	static char buf[BUFFER_LEN];
+	char buf[BUFFER_LEN];
 
     temp1 = oper[0];
     temp2 = oper[1];
