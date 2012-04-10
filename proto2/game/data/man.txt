@@ -9257,6 +9257,7 @@ dict = dictionary array containing info about that descriptor.
 
 Given a valid descriptor, returns the following information about it:
 BOOTED        (i) - Always 0, unless that descriptor will be booted shortly.
+COLORS        (i) - 16 or 256 if automatically negotiated, otherwise 0.
 COMMANDS      (i) - Number of commands entered by that descriptor.
 CON_NUMBER    (i) - Current connection number (place in WHO list)
 CONNECTED     (i) - Always 1, unless the descriptor has just been dropped.
@@ -9265,23 +9266,29 @@ CONPORT       (i) - The port that descriptor is connected via.
 DESCRIPTOR    (i) - The descriptor number.
 FAILS         (i) - Number of failed tries at the connection screen for 
                     descriptors not yet connected to a character.
-HOSTADDR      (i) -
+HEIGHT        (i) - Height of the user terminal in pixels.
+HOSTADDR      (i) - IP address in integer (non-octet) format.
 HOSTNAME      (s) - Hostname for the IP address.
 HTTP_LOGIN    (i) - Is 1 if connected via the web login support.
-HTTPDATA      (s) -
 INPUT_LEN     (i) - Number of bytes sent in by that descriptor.
+IPV6          (i) - 1 if the connection is IPv6
 LAST_TIME     (i) - The last time any input was sent from the player. 
+MTTS          (i) - If the client negotiated MTTS, this will be a bitfield
+                    containing client capabilities.
 OUTPUT_LEN    (i) - Number of bytes sent out to that descriptor.
 OUTPUTQUEUE   (i) - Number of lines of text waiting in the outputqueue.
 OUTPUT_PREFIX (s) - See 'help outputprefix'.
 OUTPUT_SUFFIX (s) - See 'help outputsufix'.
 PLAYER        (d) - The character's dbref that descr belongs to.
 PORT          (i) - The IP port that player connects from.
-TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port.
-USERNAME      (s) - The user name for that descr's IP address.
-IPV6          (i) - 1 if the connection is IPv6
 SSL           (i) - 1 if the connection is secured with SSL
-TERMTYPE      (s) - The TELNET terminal type, or "<unknown>" if unset.
+TERMTYPE      (s) - The primary TELNET terminal type, or "<unknown>" if unset.
+TERMTYPES     (a) - An array containing all TERMTYPE responses that the remote
+                    client iterated through. The first is identical to TERMTYPE.
+TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port,
+                    4 - "inbound" connection (see 'help socktodescr')
+USERNAME      (s) - The user name for that descr's IP address.
+WIDTH         (i) - Width of the user terminal in pixels.
 ~~~~
 FIND_ARRAY
 
