@@ -29,7 +29,7 @@
  ************************************************************************/
 
 /* UTF8_SUPPORT support will be moved to ./configure, it lives here for now. */
-#define UTF8_SUPPORT
+#undef UTF8_SUPPORT
 
 /* Alynna - Lets make something so that later on it will see the CYGWIN 
  * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN
@@ -510,8 +510,8 @@
 
 /* This gives some debug Bmalloc profiling, but also eats some overhead,
    so only define if your using it. */
-#undef MALLOC_PROFILING
-#undef CRT_DEBUG_ALSO
+#define MALLOC_PROFILING
+#define CRT_DEBUG_ALSO
 
 /************************************************************************/
 /************************************************************************/
