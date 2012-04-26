@@ -28,8 +28,19 @@
  are compiled in.
  ************************************************************************/
 
-/* UTF8_SUPPORT support will be moved to ./configure, it lives here for now. */
+/* UTF8_SUPPORT support will be moved to ./configure, it lives here for now.
+ * It is undefined by default. */
 #undef UTF8_SUPPORT
+
+/* This define has no effect unless UTF8_SUPPORT is enabled. When both are
+ * defined, the C library's string sorting order ("collation") will continue to
+ * use the old "ANSI C" standard. Undefining LEGACY_COLLATION will switch
+ * character sorting to using the Unicode collation order, which won't be what
+ * most people expect. (i.e. "foobar" sorts before ".foobar", but ".foobar"
+ * sorts before "foobaz")
+ *
+ * When in doubt, leave this defined. */
+#define LEGACY_COLLATION
 
 /* Alynna - Lets make something so that later on it will see the CYGWIN 
  * edits.  If this is defined, it will use CYGWIN edits.  Usually CYGWIN

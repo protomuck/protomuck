@@ -547,11 +547,23 @@ main(int argc, char **argv)
 
 #ifndef WIN_VC
 #ifdef UTF8_SUPPORT
-    if (!setlocale(LC_CTYPE, "en_US.UTF-8") || !setlocale(LC_COLLATE, "en_US.UTF-8")) {
+    if (!setlocale(LC_CTYPE, "en_US.UTF-8")) {
         fprintf(stdout, "Unable to change locale to UTF-8, aborting.\n");
         fprintf(stdout, "Make sure your OS supports it!\n");
         exit(1);
     }
+#ifndef LEGACY_COLLATION
+    /* Setting LC_COLLATE to UTF-8 mode will confuse some people, i.e. "foobar"
+     * will sort before ".foobar" and ".foobar" will sort before "foobaz". This
+     * only effects the sorting of the standard library, it doesn't change any
+     * of the manual sorting that we do. (i.e. prop ordering in examine) */
+    if (!setlocale(LC_COLLATE, "en_US.UTF-8")) {
+        fprintf(stdout, "Unable to change collation order to en_US.UTF-8!.\n");
+        fprintf(stdout, "Changing LC_CTYPE to en_US.UTF-8 succeeded though, weird.\n");
+        fprintf(stdout, "E-mail this error to davin@protomuck.org.\n");
+        exit(1);
+    }
+#endif /* LEGACY_COLLATION */
 #endif /* UTF8_SUPPORT */
 
 
