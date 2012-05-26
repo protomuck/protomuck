@@ -516,7 +516,7 @@ handle_read_event(int descr, dbref player, const char *command,
              */
             fr->argument.st[fr->argument.top].type = PROG_STRING;
             fr->argument.st[fr->argument.top++].data.string =
-                alloc_prog_string_exact(command ? command : "", len, wclen);
+                alloc_prog_string_exact(command ? command : "", len - 1, wclen);
                 //alloc_prog_string(command ? command : "");
             if (typ == TQ_MUF_TREAD) {
                 if (nothing_flag) {
