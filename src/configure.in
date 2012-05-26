@@ -29,6 +29,21 @@ AC_MINIX
 dnl AC_PROG_LEX
 dnl AC_PROG_YACC
 
+# 'readlink -f' isn't reliably cross platform. :/
+cd $srcdir
+srcdir_full=`pwd -P`
+branchdir=${srcdir_full##*/branches/}
+cd $OLDPWD # yes, they can be different.
+
+if test "$srcdir_full" != "$branchdir"
+then
+    # before: davin/foo/bar/src
+    branchdir=`echo ${branchdir%*/src} | sed 's/\//:/'`
+    #  after: davin:foo/bar
+    AC_DEFINE_UNQUOTED(PROTO_BRANCH, [$branchdir], [Branch of source code in the repo, used by version.h.])
+else
+    AC_DEFINE(PROTO_BRANCH, [trunk], [Branch of source code in the repo, used by version.h.])
+fi
 
 checkpcredir() { :
     if test -f "$1/include/pcre/pcre.h"; then
