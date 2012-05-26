@@ -38,6 +38,7 @@
  */
 void set_signals(void);
 RETSIGTYPE sig_shutdown(int);
+RETSIGTYPE sig_powerfail(int);
 RETSIGTYPE bailout(int);
 RETSIGTYPE sig_reap_resolver(int);
 
@@ -86,11 +87,12 @@ our_signal(int signo, void (*sighandler) (int))
  *
  * Called from main() and bailout()
  */
-#define SET_BAIL (bail ? SIG_DFL : bailout)
-#define SET_SHUT (bail ? SIG_DFL : sig_shutdown)
+#define SET_BAIL    (bail ? SIG_DFL : bailout)
+#define SET_SHUT    (bail ? SIG_DFL : sig_shutdown)
 /* #define SET_REST (bail ? SIG_DFL : sig_restart)
-#define SET_DUMP (bail ? SIG_DFL : sig_dump) */
-#define SET_IGN  (bail ? SIG_DFL : SIG_IGN)
+#define SET_DUMP    (bail ? SIG_DFL : sig_dump) */
+#define SET_IGN     (bail ? SIG_DFL : SIG_IGN)
+#define SET_PWRFAIL (bail ? SIG_DFL : sig_powerfail)
 
 static void
 set_sigs_intern(int bail)
@@ -154,6 +156,9 @@ set_sigs_intern(int bail)
 #ifdef SIGQUIT
     our_signal(SIGQUIT, SET_SHUT);
 #endif
+#ifdef SIGPWR
+    our_signal(SIGPWR, SET_PWRFAIL);
+#endif
 }
 
 void
@@ -176,6 +181,14 @@ sig_shutdown(int i)
 {
     shutdown_flag = 1;
     restart_flag = 0;
+}
+
+RETSIGTYPE
+sig_powerfail(int i)
+{
+    shutdown_flag = 1;
+    restart_flag = 0;
+    strcpy(shutdown_message, "\r\nServer battery at critical levels, shutting down. May be down for awhile!\r\n");
 }
 
 /*
