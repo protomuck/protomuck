@@ -29,8 +29,12 @@
  ************************************************************************/
 
 /* UTF8_SUPPORT support will be moved to ./configure, it lives here for now.
- * It is undefined by default. */
-#undef UTF8_SUPPORT
+ *
+ * Alynna -- in my branch it is defined by default.  Additionally, ok_password
+ * won't allow a UTF8 password, to prevent the bug that undefining this was
+ * hiding.
+ */
+#define UTF8_SUPPORT
 
 /* This define has no effect unless UTF8_SUPPORT is enabled. When both are
  * defined, the C library's string sorting order ("collation") will continue to
@@ -253,8 +257,30 @@
  * @find =EC
  *
  * -brevantes
+ *
+ *
+ * I am now defining this by default.  If you have any doubts as to whether
+ * or not you have moved your props to the hidden chlock, copy and paste this
+ * to your MUCK as a W3 or greater wizard:                     --Alynna
+
+@program chlock-convert.muf
+1 1000 d
+i
+: main
+#-1 "*" "C" find_array foreach var! target pop
+ target @ "_/chlk" over over getprop target @ "@/chlk" rot setprop 0 setprop
+repeat
+;
+.
+c
+q
+!@act @chlock-convert=me,chlock-convert.muf
+@chlock-convert
+!@rec @chlock-convert
+!@rec chlock-convert.muf
+
  */
-#undef HIDDEN_CHLK
+#define HIDDEN_CHLK
 
 
 /* Don't define CONTROLS_SUPPORT without defining HIDDEN_CHLK as well. It does
