@@ -295,6 +295,35 @@ Everyone else must rename themselves by typing
 
 By setting @tune wiz_name=yes, players will be unable to change their
 own names, and must request name changes from a mage or higher.
+
+See: @ALIAS
+~
+@alias
+@alias <alias>
+@alias <player>=<alias>
+-----------------------
+Permissions: !GUEST  - To use on self.
+             W1 Mage - To use on other players.
+
+Sets the inserver alias of <player> to <alias>; if "<player>=" is left out,
+"me=" is implied. The alias must be a legal name for a player to have, cannot
+match the name of an existing player or alias, and cannot contain the symbols
+"/" or ":". To clear the alias, specify a blank one.
+
+Internally, an alias functions similarly to a normal player name; any commands
+or code that target an alias will function as if they targetted the owner of the
+alias. The main difference is that they aren't considered as candidates for
+partial name matching.
+
+An alias is automatically cleared if a @pcreate or @name of a player would
+result in a name conflict. The in-server @alias command does not support
+PennMUCH style multi-aliasing.
+
+(The inserver @alias command is a frontend to the @alias propdir on #0. It is
+ possible to write a softcode replacement for @alias that implements custom
+ functionality: refer to MAN @ALIAS.)
+
+See: @NAME
 ~
 @OWNED|@OWN
 @owned <name> [= <flags/types> = [<output type>]]

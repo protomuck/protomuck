@@ -293,6 +293,7 @@ WEBSERVER/HTMUF/CGI- Notes on how to take advantage of cgi MUF support.
 EXCEPTION HANDLING - Notes on exception handling in MUF.
 INTERRUPTS         - Explanation and examples of MUF interrupt support.
 MUF OPTIMIZING     - What the new byte code optimizer actually does. 
+@ALIAS             - Inserver player aliasing.
 CREDITS            - Who to blame this mess on!
 ~~~~
 MATH PRIMS|MATHPRIMS
@@ -9293,6 +9294,7 @@ dict = dictionary array containing info about that descriptor.
 
 Given a valid descriptor, returns the following information about it:
 BOOTED        (i) - Always 0, unless that descriptor will be booted shortly.
+COLORS        (i) - 16 or 256 if automatically negotiated, otherwise 0.
 COMMANDS      (i) - Number of commands entered by that descriptor.
 CON_NUMBER    (i) - Current connection number (place in WHO list)
 CONNECTED     (i) - Always 1, unless the descriptor has just been dropped.
@@ -9301,23 +9303,29 @@ CONPORT       (i) - The port that descriptor is connected via.
 DESCRIPTOR    (i) - The descriptor number.
 FAILS         (i) - Number of failed tries at the connection screen for 
                     descriptors not yet connected to a character.
-HOSTADDR      (i) -
+HEIGHT        (i) - Height of the user terminal in pixels.
+HOSTADDR      (i) - IP address in integer (non-octet) format.
 HOSTNAME      (s) - Hostname for the IP address.
 HTTP_LOGIN    (i) - Is 1 if connected via the web login support.
-HTTPDATA      (s) -
 INPUT_LEN     (i) - Number of bytes sent in by that descriptor.
+IPV6          (i) - 1 if the connection is IPv6
 LAST_TIME     (i) - The last time any input was sent from the player. 
+MTTS          (i) - If the client negotiated MTTS, this will be a bitfield
+                    containing client capabilities.
 OUTPUT_LEN    (i) - Number of bytes sent out to that descriptor.
 OUTPUTQUEUE   (i) - Number of lines of text waiting in the outputqueue.
 OUTPUT_PREFIX (s) - See 'help outputprefix'.
 OUTPUT_SUFFIX (s) - See 'help outputsufix'.
 PLAYER        (d) - The character's dbref that descr belongs to.
 PORT          (i) - The IP port that player connects from.
-TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port.
-USERNAME      (s) - The user name for that descr's IP address.
-IPV6          (i) - 1 if the connection is IPv6
 SSL           (i) - 1 if the connection is secured with SSL
-TERMTYPE      (s) - The TELNET terminal type, or "<unknown>" if unset.
+TERMTYPE      (s) - The primary TELNET terminal type, or "<unknown>" if unset.
+TERMTYPES     (a) - An array containing all TERMTYPE responses that the remote
+                    client iterated through. The first is identical to TERMTYPE.
+TYPE          (i) - 0 - telnet, 1 - HTTP, 2 - Pueblo, 3 - MUF port,
+                    4 - "inbound" connection (see 'help socktodescr')
+USERNAME      (s) - The user name for that descr's IP address.
+WIDTH         (i) - Width of the user terminal in pixels.
 ~~~~
 FIND_ARRAY
 
@@ -10426,6 +10434,36 @@ and
 "" stringcmp not if into simply 'not' 
 There's a bunch of others too.
 floating point number optimizing. 
+~~~
+ALIAS SUPPORT|@ALIASES|@ALIAS|ALIASES|ALIAS
+
+Alias Support
+-------------
+
+Alias support is managed by the @alias propdir on #0. There are two subdirs:
+
+@alias/names/ - The actual aliases. Stores aliasname:dbref pairs. Non-dbref
+                props are removed as they're detected.
+@alias/last/  - The last alias managed for a given dbref via the @alias
+                command. This is where the single alias managed by the @alias
+                command is tracked. Stores refnum:aliasname pairs. Non-string
+                props are removed as they're detected.
+
+Players interact with aliases via the @alias command. They are allowed to
+manage a single entry in the @alias/names/ propdir. Whenever they change
+their alias via the command, the @alias/last/(dbref) prop is looked up to
+obtain their previous alias. The corresponding key is then removed from the
+@alias/names/ propdir, and the new entry is added to both.
+
+Entries are automatically killed in @alias/names/ based on @pcreates, @frobs,
+and @names. Entries in @alias/last/ are killed based on @frobs. Any entries
+manually applied to @alias/names/ via @propset have to be manually removed.
+They will be unavailable for players to set/clear and only the automated
+cleanups will remove them.
+
+In addition to the usual restrictions on player names, aliases cannot contain
+the characters '/' or ':' as these would let alias names escape the boundary
+of the @alias/names/ propdir.
 ~~~
 ITOH
  
