@@ -634,6 +634,9 @@ ok_password(const char *password)
     for (scan = password; *scan; scan++) {
         if (*scan == '=' || !(isprint(*scan) && !isspace(*scan)))
             return 0;
+        // If we allow UTF8 passwords, player using an ASCII client won't be able to log in!
+        if (*scan >= 0x80)
+            return 0;
     }
 
     return 1;
