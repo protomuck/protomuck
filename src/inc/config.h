@@ -33,8 +33,12 @@
  * Alynna -- in my branch it is defined by default.  Additionally, ok_password
  * won't allow a UTF8 password, to prevent the bug that undefining this was
  * hiding.
+ * 
+ * NOTE: As of right now this bug isn't really fixed!  If you have salted
+ * passwords, undefine this plz.   However the fix to ok_password will stick
+ * until I can decide what really to do with it.
  */
-#define UTF8_SUPPORT
+#undef UTF8_SUPPORT
 
 /* This define has no effect unless UTF8_SUPPORT is enabled. When both are
  * defined, the C library's string sorting order ("collation") will continue to
