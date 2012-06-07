@@ -19,6 +19,7 @@
 #
 # -g used to be set here, and it's still the default. Use --with-debug=#
 # to set a higher debugging level, or --without-debug to not use -g at all.
+# Note that --enable-debug=all overrides your -O setting, as it forces -O0.
 #   -Davin
 
 OPTIM=-Wall -O2 -U_FORTIFY_SOURCE
@@ -50,7 +51,7 @@ LIBR=@LIBS@
 #
 # Include path, Cflags...
 #
-CFLAGS=@DEBUG_FLAGS@ ${OPTIM} ${DEFS} -I${INCLUDE} @INC@ @INCL@
+CFLAGS=${OPTIM} @DEBUG_FLAGS@ ${DEFS} -I${INCLUDE} @INC@ @INCL@
 CXXFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INC@ @INCL@
 
 #

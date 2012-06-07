@@ -288,12 +288,13 @@ fi
 AC_ARG_ENABLE(debug,
 [  --enable-debug[=number]   Compile with extended debugging enabled. This is the
                           same as setting -g(number) in CFLAGS. The keyword "all"
-                          is the same as "--enable-debug=3 --enable-gprof". ],
+                          is the same as "--enable-debug=3 --enable-gprof" and
+                          disables compiler optimizations. (CFLAGS=-O0) ],
 [
     if test "$enableval" = "no"; then
         DEBUG_FLAGS+=""
     elif test "$enableval" = "all"; then
-        DEBUG_FLAGS="-g3 -pg"
+        DEBUG_FLAGS="-g3 -pg -O0"
     elif test "$enableval" != "yes"; then
         # TODO: Make sure it's a number.
         DEBUG_FLAGS+=" -g${enableval}"
