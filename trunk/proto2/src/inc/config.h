@@ -521,8 +521,8 @@
 
 /* This gives some debug Bmalloc profiling, but also eats some overhead,
    so only define if your using it. */
-#define MALLOC_PROFILING
-#define CRT_DEBUG_ALSO
+#undef MALLOC_PROFILING
+#undef CRT_DEBUG_ALSO
 
 /************************************************************************/
 /************************************************************************/
