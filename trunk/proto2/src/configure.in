@@ -244,6 +244,7 @@ AC_DEFINE(MODULAR_SUPPORT, [], [Defined to enable modular support])
 LIBS="-rdynamic $LIBS"
 ])
 
+
 AC_ARG_ENABLE(asroot,
 [  --enable-asroot         allow file primitives under root user],
 [
@@ -275,6 +276,40 @@ if test "$enableval" != "no"; then
     AC_DEFINE(IPV6, [], [Defined to compile for ipv6])
 fi
 ])
+
+AC_ARG_ENABLE(gprof,
+[  --enable-gprof          compile with gprof profiling enabled],
+[
+if test "$enableval" = "yes"; then
+    DEBUG_FLAGS+="-pg"
+fi
+])
+
+AC_ARG_ENABLE(debug,
+[  --enable-debug[=number]   Compile with extended debugging enabled. This is the
+                          same as setting -g(number) in CFLAGS. The keyword "all"
+                          is the same as "--enable-debug=3 --enable-gprof". ],
+[
+    if test "$enableval" = "no"; then
+        DEBUG_FLAGS+=""
+    elif test "$enableval" = "all"; then
+        DEBUG_FLAGS="-g3 -pg"
+    elif test "$enableval" != "yes"; then
+        # TODO: Make sure it's a number.
+        DEBUG_FLAGS+=" -g${enableval}"
+    else
+        DEBUG_FLAGS+=" -g"
+    fi
+
+],
+[
+    # Assume they want debugging symbols.
+    DEBUG_FLAGS+=" -g"
+])
+
+AC_SUBST([DEBUG_FLAGS])
+
+
 
 dnl
 dnl Header files
@@ -381,6 +416,7 @@ fi
 
 CHECK_ZLIB
 
+
 dnl
 dnl Check if socklen_t is defined in sys/socket.h.
 dnl
@@ -442,6 +478,11 @@ dnl Uname -a, just becuse.
 dnl
 echo "checking value of uname -a"
 AC_DEFINE_UNQUOTED(UNAME_VALUE, "`uname -a`", [The value of the uname -a command.])
+
+dnl
+dnl Set the additional CFLAGS
+dnl
+#AC_SUBST(AM_CFLAGS)
 
 dnl
 dnl And in the end, there was no more.
