@@ -17,7 +17,9 @@
 # ProtoMUCK will now compile 99.8% warning free with -Wall turned on.
 #   -Hinoserm, 7-31-2003. 
 #
-# -g used to be enabled here, use --with-debug=# or --without-debug.
+# -g used to be set here, and it's still the default. Use --with-debug=#
+# to set a higher debugging level, or --without-debug to not use -g at all.
+#   -Davin
 
 OPTIM=-Wall -O2 -U_FORTIFY_SOURCE
 
