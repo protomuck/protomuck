@@ -13,22 +13,13 @@
 # Optimizations
 # -O			General optimizations, recomended.
 # -O2			Heavier optimizations, use at own risk.
-# -g			Generate debugging information, suggested, you can
-#			alwase "strip protomuck" if you want the space.
 #
 # ProtoMUCK will now compile 99.8% warning free with -Wall turned on.
 #   -Hinoserm, 7-31-2003. 
+#
+# -g used to be enabled here, use --with-debug=# or --without-debug.
 
-# Newer compilers don't like what we do to time_t and warns about it, so we
-# use no-strict-aliasing because the fix is uglier.
-#   -Alynna 12-25-2006.
-# 
-# Those time_t warnings are actually pretty important in catching some bugs
-# related to 32<->64bit platform issues.  I've corrected most of the
-# warnings so we should be safe to remove this now.
-#   -Hinoserm 08-12-2010
-
-OPTIM=-Wall -O2 -g -U_FORTIFY_SOURCE
+OPTIM=-Wall -O2 -U_FORTIFY_SOURCE
 
 #
 # Paths
@@ -57,7 +48,7 @@ LIBR=@LIBS@
 #
 # Include path, Cflags...
 #
-CFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INC@ @INCL@
+CFLAGS=@DEBUG_FLAGS@ ${OPTIM} ${DEFS} -I${INCLUDE} @INC@ @INCL@
 CXXFLAGS=${OPTIM} ${DEFS} -I${INCLUDE} @INC@ @INCL@
 
 #
