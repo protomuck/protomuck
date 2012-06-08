@@ -3376,9 +3376,11 @@ int
 queue_string(struct descriptor_data *d, const char *s)
 {
     int result, len = strlen(s);
-    const char *send = s + len - 1;
     const char *sp;
     char *filtered, *fp, *fend;
+#ifdef UTF8_SUPPORT
+    const char *send = s + len - 1;
+#endif
 
     if (d->encoding == 1) { /* ASCII */
         filtered = (char *) malloc(len + 1);
