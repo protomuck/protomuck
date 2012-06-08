@@ -5,7 +5,7 @@ dnl TinyMUCK fb5.x auto-config script writen by: Peter "WhiteFire" Torkelson
 dnl
 AC_REVISION($Revision: 1.25 $)dnl
 AC_INIT(game.c)
-AC_CONFIG_HEADER(inc/autoconf.h)
+AC_CONFIG_HEADERS(inc/autoconf.h)
 echo " "
 echo "ProtoMUCK auto-configure script."
 echo " "
@@ -489,6 +489,15 @@ dnl
 dnl And in the end, there was no more.
 dnl
 AC_OUTPUT(Makefile)
+
+if test \! -r inc/config.h
+then
+    AC_OUTPUT(inc/config.h)
+else
+    echo -e "\nPreserving your existing inc/config.h."
+    echo "You may be missing new features."
+fi
+
 echo " "
 echo "You should review the options in inc/config.h, and"
 echo "then type the following to build your system:"
