@@ -264,7 +264,7 @@
  * You may define this without HIDDEN_CHLK if your site was already using it,
  * but you do so at your own risk. -brevantes
  */
-#define CONTROLS_SUPPORT	/* Alynna 20030907 */
+#undef CONTROLS_SUPPORT	/* Alynna 20030907 */
 
 /* If you have problems compiling with DETACH defined, uncomment one
  * of these:
