@@ -29,7 +29,11 @@
  ************************************************************************/
 
 /* UTF8_SUPPORT support will be moved to ./configure, it lives here for now.
- * It is undefined by default. */
+ * It is undefined by default. There is currently a bug in the password
+ * hashing routines when this is defined (players can't connect), so only use
+ * this with unencrypted databases for the time being.
+ *
+ * This code is currently unmaintained. */
 #undef UTF8_SUPPORT
 
 /* This define has no effect unless UTF8_SUPPORT is enabled. When both are
