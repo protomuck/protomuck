@@ -678,7 +678,7 @@ char *
 host_get_ipv6addr(struct hostinfo * h)
 {
     struct in6_addr addr;
-    char buf[INET_ADDRSTRLEN];
+    char buf[INET6_ADDRSTRLEN];
 
     addr = h->a6;
     inet_ntop(AF_INET6, ((char *) &addr.s6_addr), buf, INET6_ADDRSTRLEN);
