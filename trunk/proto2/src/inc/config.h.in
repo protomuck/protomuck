@@ -100,6 +100,7 @@
  * run from.
  */
 #undef SPAWN_HOST_RESOLVER
+#define SPAWN_HOST_RESOLVER
 
 /* If this is defined, the resolver will try to restart itself if killed. */
 #define RESTART_RESOLVER

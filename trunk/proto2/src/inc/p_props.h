@@ -40,3 +40,4 @@ extern void prim_array_filter_smart(PRIM_PROTOTYPE);
     "COPYPROPS", "TESTLOCK", "LOCKED?", "CHECKLOCK", "ARRAY_FILTER_SMART"
 
 #define PRIMS_PROPS_CNT 26
+
