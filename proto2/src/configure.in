@@ -318,7 +318,7 @@ dnl
 AC_CHECK_HEADERS(malloc.h memory.h string.h unistd.h sys/resource.h sys/signal.h)
 AC_CHECK_HEADERS(sys/malloc.h errno.h sys/errno.h)
 AC_CHECK_HEADERS(sys/time.h timebits.h)
-AC_CHECK_HEADERS(varargs.h stdarg.h pthread.h)
+AC_CHECK_HEADERS(varargs.h stdarg.h)
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AC_HEADER_TIME
@@ -455,7 +455,19 @@ AC_HAVE_LIBRARY(nsl, [LIBS="$LIBS -lnsl"])
 AC_FUNC_VPRINTF
 AC_CHECK_LIB(util, setproctitle)
 AC_CHECK_FUNCS(mallinfo getrlimit getrusage random setproctitle)
-AC_CHECK_LIB(pthread, pthread_create)
+
+dnl
+dnl Experimental threading
+dnl
+AC_ARG_WITH(experimental-threading,
+[  --with-experimental-threading  Enable experimental threading support],
+[
+if test "$withval" != no; then
+    AC_CHECK_HEADERS(pthread.h)
+    AC_CHECK_LIB(pthread, pthread_create)
+    AC_DEFINE(EXPERIMENTAL_THREADING, [], [Defined to enable experimental threading support])
+fi
+])
 
 dnl
 dnl Types and structures

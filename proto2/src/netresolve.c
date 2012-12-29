@@ -943,7 +943,9 @@ host_load(void)
         h->links = 0;
         h->uses = 0;
         h->wupd = 0;
+#if defined(HAVE_PTHREAD_H) || defined(WIN_VC)
         h->thread_start = 0;
+#endif
         h->a = (int) ip;
         h->name = alloc_string(name);
         h->prev = NULL;
