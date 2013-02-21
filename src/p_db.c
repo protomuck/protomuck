@@ -2961,6 +2961,50 @@ prim_find_array(PRIM_PROTOTYPE)
 }
 
 void
+prim_find_ok_array(PRIM_PROTOTYPE)
+{
+    struct flgchkdat check;
+    dbref ref, who;
+    const char *name;
+    stk_array *nw;
+
+    CHECKOP(3);
+    oper3 = POP();              /* str:flags */
+    oper2 = POP();              /* str:namepattern */
+    oper1 = POP();              /* ref:owner */
+
+    if (mlev < LMAGE)
+        abort_interp("MAGE prim.");
+    if (oper3->type != PROG_STRING)
+        abort_interp("Expected string argument. (3)");
+    if (oper2->type != PROG_STRING)
+        abort_interp("Expected string argument. (2)");
+    if (oper1->type != PROG_OBJECT)
+        abort_interp("Expected dbref argument. (1)");
+    if (oper1->data.objref < NOTHING || oper1->data.objref >= db_top)
+        abort_interp("Bad object. (1)");
+
+    who = oper1->data.objref;
+    name = DoNullInd(oper2->data.string);
+
+    strcpy(buf, name);
+    init_checkflags(PSafe, DoNullInd(oper3->data.string), &check);
+    nw = new_array_packed(0);
+
+    for (ref = (dbref) 0; ref < db_top; ref++) {
+        if (((who == NOTHING) ? 1 : (OWNER(ref) == who)) &&
+            checkflags(ref, check) && NAME(ref) && (TYPEOF(ref) != TYPE_GARBAGE) &&
+            (!*name || equalstr(buf, (char *) NAME(ref)))) {
+            result = array_appendref(&nw, ref);
+        }
+    }
+    CLEAR(oper1);
+    CLEAR(oper2);
+    CLEAR(oper3);
+    PushArrayRaw(nw);
+}
+
+void
 prim_entrances_array(PRIM_PROTOTYPE)
 {
     stk_array *nw;
