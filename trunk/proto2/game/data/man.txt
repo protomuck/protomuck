@@ -10516,7 +10516,7 @@ instead of md5hash when performing a validation that can in any way be
 influenced by a malicious user. It is extremely unlikely to encounter
 one of these collisions when processing casual workloads.
 
-See: SHA1SUM
+See: SHA1HASH
 ~~~~
 SHA1HASH
  
@@ -10536,7 +10536,7 @@ some well-documented collision attacks. sha1hash should always be used
 instead of md5hash if it is performing a validation that can in any way
 be influenced by a malicious user. 
 
-See: MD5SUM
+See: MD5HASH
 ~~~~
 SOCKSHUTDOWN
 
