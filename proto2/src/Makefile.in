@@ -223,6 +223,8 @@ install: all
 setup:
 	./setup
 
+.PHONY: test clean cleaner clobber distclean nuke install setup
+
 # #######################################################################
 # #######################################################################
 
