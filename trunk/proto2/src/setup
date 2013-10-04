@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 BASEDBURL="http://tails.animaltracks.net/protomuck/protodb_v1.tar.gz"
 GLOWUTILSURL="http://tails.animaltracks.net/protomuck/glow-utils.mufpkg"
@@ -67,8 +67,8 @@ if [ -e ../game/muck.config ]; then
  # read file for defaults
  echo -n "You've already configured your MUCK before, do you want to do it again? [Y/n]: "
  read INPUT
- if [ "$INPUT" == "N" ]; then exit 0; fi
- if [ "$INPUT" == "n" ]; then exit 0; fi
+ if [ "$INPUT" = "N" ]; then exit 0; fi
+ if [ "$INPUT" = "n" ]; then exit 0; fi
  . ../game/muck.config
 else
  # define these defaults
@@ -221,7 +221,7 @@ case "$STARTDB" in
       ;;
  '3') # Configure for Fuzzball...
       echo    "Enter the location of the database you want to use, relative to your game directory."
-      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      echo    "It will be copied to $MUCKDB and $MUCKOUT []: "
       unset INPUT ; read INPUT
       cd ../game
       echo "Copying database to game directory.."
@@ -250,7 +250,7 @@ case "$STARTDB" in
       ;;
  '4') # Configure for GlowMUCK...
       echo    "Enter the location of the database you want to use, relative to your game directory."
-      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      echo    "It will be copied to $MUCKDB and $MUCKOUT []: "
       unset INPUT ; read INPUT
       cd ../game
       echo "Copying database to game directory.."
@@ -282,7 +282,7 @@ case "$STARTDB" in
       ;;      
  '5') # Configure for NeonMUCK...
       echo    "Enter the location of the database you want to use, relative to your game directory."
-      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      echo    "It will be copied to $MUCKDB and $MUCKOUT []: "
       unset INPUT ; read INPUT
       cd ../game
       echo "Copying database to game directory.."
@@ -300,7 +300,7 @@ case "$STARTDB" in
       ;;
  '6') # Configure for ProtoMUCK...
       echo    "Enter the location of the database you want to use, relative to your game directory."
-      echo -e "It will be copied to $MUCKDB and $MUCKOUT []: "
+      echo    "It will be copied to $MUCKDB and $MUCKOUT []: "
       unset INPUT ; read INPUT
       cd ../game
       echo "Copying database to game directory.."
