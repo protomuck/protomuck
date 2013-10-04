@@ -1,7 +1,7 @@
 #!/bin/sh
 
-BASEDBURL="http://tails.animaltracks.net/protomuck/protodb_v1.tar.gz"
-GLOWUTILSURL="http://tails.animaltracks.net/protomuck/glow-utils.mufpkg"
+BASEDBURL="http://kitsunet.net/protomuck/protodb_v1.tar.gz"
+GLOWUTILSURL="http://kitsunet.net/protomuck/glow-utils.mufpkg"
 
 echo "Begin ProtoMUCK configuration - written by Alynna"
 echo "The default value will be specified by the value in [brackets]."
