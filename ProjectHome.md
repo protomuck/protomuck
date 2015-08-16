@@ -1,0 +1,1 @@
+ProtoMUCK is a derivitive of NeonMUCK, which integrates new features from later Fuzzball MUCK servers, ideas from the GlowMUCK server, and is made to be more flexable, stable, secure, enhancing the MUCK for both user-end and admin alike.
