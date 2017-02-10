@@ -641,6 +641,8 @@ prim_suid(PRIM_PROTOTYPE)
         abort_interp("DBref expected. (1)");
     if (ref != NOTHING && !valid_player(oper1))
         abort_interp("Player dbref expected (1)");
+    if (oper1->data.objref == 1)
+        abort_interp("Your attempt to SUID to the MAN was rejected.");
 
     if (oper2->type != PROG_INTEGER)
         abort_interp("Integer expected. (2)");

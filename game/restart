@@ -71,6 +71,7 @@ GAMEDIR=${GAMEDIR:-${0%/*}}
 ulimit -c 50000
 #limit memoryuse 16000
 ulimit -m 128000
+ulimit -s 16384
 
 # If the user didn't override the GAMEDIR manually, assume that the restart
 # script itself is in the game directory and use that for our path. This has

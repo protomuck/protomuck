@@ -1560,7 +1560,7 @@ do_set(int descr, dbref player, const char *name, const char *flag)
     } else if (string_prefix("NO_COMMAND", p) ||
                !string_compare("NO_OPTIMIZE", p)) {
         f2 = F2NO_COMMAND;
-    } else if (string_prefix("HIDDEN", p) || !string_compare("#", p)) {
+    } else if (string_prefix("EXTPERMS", p) || string_prefix("HIDDEN", p) || !string_compare("#", p)) {
         f2 = F2HIDDEN;
     } else if (string_prefix("IDLE", p) || !string_compare("I", p)) {
         f2 = F2IDLE;

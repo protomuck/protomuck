@@ -761,8 +761,13 @@ int force_level = 0;
 struct frame *aForceFrameStack[9];
 
 const char version_line1[] =
-    SYSCRIMSON "ProtoMUCK " PROTOBASE SYSPURPLE " (" SYSRED VERSION SYSPURPLE
-    ")" SYSNORMAL " on " SYSCYAN 
+    SYSCRIMSON "ProtoMUCK " PROTOBASE 
+#ifdef BRANCH
+    "-" BRANCH
+#endif
+    SYSPURPLE " (" SYSRED VERSION SYSPURPLE
+    ")" SYSNORMAL 
+    " on " SYSCYAN 
 #if defined(WIN32) || defined(WIN_VC)
     "Windows (native)" 
 #else  /* 

@@ -515,9 +515,24 @@ handle_read_event(int descr, dbref player, const char *command,
              * -brevantes
              */
             fr->argument.st[fr->argument.top].type = PROG_STRING;
+/* Was part of master
             fr->argument.st[fr->argument.top++].data.string =
                 alloc_prog_string_exact(command ? command : "", len - 1,
                                         wclen < 1 ? wclen : wclen - 1);
+*/
+
+	    /* Alynna -- As it turns out, the one-off fix only works for unforced strings 
+			 Has anyone done any real research as to why the one-off fix is needed?
+	    */
+            if (force_level == 0) {
+                fr->argument.st[fr->argument.top++].data.string =
+	            alloc_prog_string_exact(command ? command : "", len - 1,
+    	                                    wclen < 1 ? wclen : wclen - 1);
+	    } else {
+                fr->argument.st[fr->argument.top++].data.string =
+	            alloc_prog_string_exact(command ? command : "", len, wclen);
+	    }
+
                 //alloc_prog_string(command ? command : "");
             if (typ == TQ_MUF_TREAD) {
                 if (nothing_flag) {
