@@ -189,11 +189,12 @@ void *threaded_resolver_go(void *ptr)
         /*    log_status("*RES: %s to %s\n", tr->h->name, he->h_name); */
         /*-------------------------------------------------------------*/
 
-        
-        old_ptr = tr->h->name;
-        tr->h->name = alloc_string(he->h_name);
-        free((void *) old_ptr);
-        tr->h->wupd = current_systime;
+        if (strlen(he->h_name) > 0)
+          old_ptr = tr->h->name;
+          tr->h->name = alloc_string(he->h_name);
+          free((void *) old_ptr);
+          tr->h->wupd = current_systime;
+        }
 
         if ((c = get_username(htonl(tr->h->a), tr->prt, tr->lport))) {
             strcpy(buf, c);
@@ -409,14 +410,18 @@ reslvd_input(void)
                     log_status("RLVD: GOT: %X (%s):%s\n", a, host_as_hex(a),
                                buf2);
 #endif /* HOSTCACHE_DEBUG */
-                    for (h = hostdb; h; h = h->next) {
-                        if (h->a == a) {
-                            if (h->wupd && strcmp(h->name, buf2))
-                                log_status("*RES: %s to %s\n", h->name, buf2);
-                            free((void *) h->name);
-                            h->name = alloc_string(buf2);
-                            h->wupd = current_systime;
+                    if (strlen(buf2) > 0) {
+                        for (h = hostdb; h; h = h->next) {
+                            if (h->a == a) {
+                                if (h->wupd && strcmp(h->name, buf2))
+                                    log_status("*RES: %s to %s\n", h->name, buf2);
+                                free((void *) h->name);
+                                h->name = alloc_string(buf2);
+                                h->wupd = current_systime;
+                            }
                         }
+                    } else {
+                        log_status("*BUG: empty ptr record for %s\n", host_as_hex(a));
                     }
                 }
             }
@@ -568,15 +573,19 @@ resolve_hostnames(void)
                                host_as_hex(ipnum), hostname);
 #endif /* HOSTCACHE_DEBUG */
 
-                    for (h = hostdb; h; h = h->next) {
-                        if (h->a == ipnum) {
-                            if (h->wupd && strcmp(h->name, hostname))
-                                log_status("*RES: %s to %s\n", h->name,
-                                           hostname);
-                            free((void *) h->name);
-                            h->name = alloc_string(hostname);
-                            h->wupd = current_systime;
+                    if (strlen(hostname) > 0) {
+                        for (h = hostdb; h; h = h->next) {
+                            if (h->a == ipnum) {
+                                if (h->wupd && strcmp(h->name, hostname))
+                                    log_status("*RES: %s to %s\n", h->name,
+                                               hostname);
+                                free((void *) h->name);
+                                h->name = alloc_string(hostname);
+                                h->wupd = current_systime;
+                            }
                         }
+                    } else {
+                        log_status("*BUG: empty ptr record for %s\n", host_as_hex(ipnum));
                     }
 
                     if ((iport = atoi(port))) {
@@ -661,12 +670,16 @@ host_get_oldstyle(struct hostinfo * h)
 #endif
         }
         if (he) {
-            if (h->wupd && strcmp(h->name, he->h_name))
-                log_status("*RES: %s to %s\n", h->name, he->h_name);
-            free((void *) h->name);
-            h->name = alloc_string(he->h_name);
-            h->wupd = current_systime;
-            return 1;
+            if (strlen(he->h_name) > 0) {
+                if (h->wupd && strcmp(h->name, he->h_name))
+                    log_status("*RES: %s to %s\n", h->name, he->h_name);
+                free((void *) h->name);
+                h->name = alloc_string(he->h_name);
+                h->wupd = current_systime;
+                return 1;
+            } else {
+                log_status("*BUG: empty ptr record for %s\n", host_as_hex(h->a));
+            }
         }
     }
 
