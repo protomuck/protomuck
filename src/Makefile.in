@@ -130,8 +130,18 @@ protomuck:        ${P} ${COBJ} interface.o
 	 ${PRE} ${CC} ${CFLAGS} -o protomuck ${COBJ} interface.o ${LIBR}; \
 	fi
 
+protomuck.debug:    protomuck
+	objcopy --only-keep-debug protomuck protomuck.debug
+	strip --strip-debug protomuck
+	objcopy --add-gnu-debuglink protomuck.debug protomuck
+
 resolver:	resolver.o
 	${PRE} ${CC} ${CFLAGS} -o resolver resolver.o ${LIBR}
+
+resolver.debug:     resolver
+	objcopy --only-keep-debug resolver resolver.debug
+	strip --strip-debug resolver
+	objcopy --add-gnu-debuglink resolver.debug resolver
 
 reslvd:	reslvd.o
 	${PRE} ${CC} ${CFLAGS} -o reslvd reslvd.o ${LIBR}
