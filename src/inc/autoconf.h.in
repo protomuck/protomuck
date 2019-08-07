@@ -225,6 +225,9 @@
 /* The value of the uname -a command. */
 #undef UNAME_VALUE
 
+/* Defined to enable PROXYv2 support. */
+#undef USE_PROXY
+
 /* Defined to enable SSL support. */
 #undef USE_SSL
 

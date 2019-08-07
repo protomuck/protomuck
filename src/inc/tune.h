@@ -62,6 +62,9 @@ extern int tp_puebloport;
 #ifdef USE_SSL
 extern int tp_sslport;
 #endif
+#ifdef USE_PROXY
+extern int tp_proxyport;
+#endif /* USE_PROXY */
 
 extern int tp_max_object_endowment;
 extern int tp_object_cost;

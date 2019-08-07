@@ -246,6 +246,9 @@ struct descriptor_data {
 #ifdef USE_SSL
 #define CT_SSL          7 /* alynna */
 #endif
+#ifdef USE_PROXY
+#define CT_PROXY        8 /* cyberleo */
+#endif
 
 /* these symbols must be defined by the interface */
 
