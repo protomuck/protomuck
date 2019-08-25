@@ -26,6 +26,9 @@
 #ifdef UTF8_SUPPORT
 # include <locale.h>
 #endif
+#ifdef USE_PROXY
+# include "proxy_v2.h"
+#endif
 
 /* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
@@ -2876,6 +2879,137 @@ get_ctype_s(int ctype)
     return res;
 }
 
+#ifdef USE_PROXY
+int
+read_with_timeout(int fp, void *buf, size_t count, struct timeval *timeout)
+{
+    fd_set set;
+    int rv;
+
+    FD_ZERO(&set);
+    FD_SET(fp, &set);
+
+    rv = select(fp + 1, &set, NULL, NULL, &timeout);
+
+    if (0 > rv)
+        perror("select");
+    else if (0 == rv)
+        errno = ETIMEDOUT;
+        rv = -1;
+    else
+        rv = read(fp, &buf, count);
+
+    return rv;
+}
+
+int
+proxyv2_init(int sock, struct huinfo *hu)
+{
+    /* Return error whenever any sort of read or validation fails */
+    struct proxyv2_header proxy_head;
+    struct proxyv2_addr proxy_addr;
+    int tlv_block_len;
+    int rv;
+    struct timeval timeout;
+    struct huinfo *newhu;
+
+    /* Timeout to complete proxy init; don't reset */
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+
+    /* Grab header */
+    rv = read_with_timeout(sock, proxy_head, sizeof(proxy_head), &timeout);
+    if ( 0 > rv ) {
+      perror("read_with_timeout");
+      return -1;
+    }
+
+    /* Validate header */
+    if ( ! PROXYv2_VALID_SIG(head) ) {
+        show_status("PRXY: FAULT: Bad PROXYv2 sig from %s\n", hu->h->name);
+        errno = EINVAL;
+        return -1;
+    }
+    if ( ! PROXYv2_VALID_VERSION(head) ) {
+        show_status("PRXY: FAULT: Bad PROXYv2 version from %s\n", hu->h->name);
+        errno = EINVAL;
+        return -1;
+    }
+    if ( ! PROXYv2_VALID_COMMAND(head) ) {
+        show_status("PRXY: FAULT: Bad PROXYv2 command from %s\n", hu->h->name);
+        errno = EINVAL;
+        return -1;
+    }
+    if ( ! PROXYv2_VALID_FAMILY(head) ) {
+        show_status("PRXY: FAULT: Bad PROXYv2 family from %s\n", hu->h->name);
+        errno = EINVAL;
+        return -1;
+    }
+    if ( ! PROXYv2_VALID_PROTO(head) ) {
+        show_status("PRXY: FAULT: Bad PROXYv2 proto from %s\n", hu->h->name);
+        errno = EINVAL;
+        return -1;
+    }
+    /* Or use PROXYv2_VALIDATE(head) if you don't want detailed errors */
+
+    /* Grab proxy addr block */
+    tlv_block_len = ntohs(head->len);
+    rv = read_with_timeout(sock, &proxy_addr, UMIN(tlv_block_len, sizeof(proxy_addr)), &timeout);
+    if ( 0 > rv ) {
+        perror("read_with_timeout");
+        return -1;
+    }
+
+    /* Consume remaining TLV block if any */
+    if (tlv_block_len > sizeof(proxy_addr)) {
+        if ( 0 > lseek(sock, ( tlv_block_len - sizeof(proxy_addr) ), SEEK_CUR) ) {
+            perror("lseek");
+            return -1;
+        }
+    }
+
+    /* Only change hu if it makes sense */
+    if ( PROXYv2_COMMAND(head) == PROXYv2_CMD_PROXY && PROXYv2_PROTO(head) == PROXYv2_SOCK_STREAM ) {
+        switch(PROXYv2_FAMILY(head) {
+            case PROXYv2_AF_INET:
+                /* Construct new v4 hu->hostinfo struct */
+                newhu = host_getinfo(proxy_addr->ipv4->src_addr, 0, 0);
+                hu->h = newhu->h;
+                host_delete(&newhu);
+                break;
+            case PROXYv2_AF_INET6:
+#ifdef IPV6
+                newhu = host_getinfo6(proxy_addr->ipv6->src_addr, 0, 0);
+                hu->h = newhu->h;
+                host_delete(&newhu);
+#else
+                /* We will never be able to resolve v6; just create a synthetic hostinfo */
+                char buf[44];
+                PROXYv2_EXPAND_IPV6(buf, proxy_addr->ipv6->src_addr);
+                struct hostinfo newh = (struct hostinfo *) malloc(sizeof(struct hostinfo));
+                newh->links = 1;
+                newh->uses = 1;
+                newh->a = hu->h->a;
+                newh->wupd = 0;
+                newh->name = alloc_string(buf);
+                newh->prev = NULL;
+                newh->next = hostdb;
+                if (hostdb)
+                    hostdb->prev = newh;
+                hostdb = newh;
+                hu->h = newh
+#endif /* IPV6 */
+                break;
+            case PROXYv2_AF_UNIX:
+                /* I dunno, do we even care? Put it in hu->hostinfo->name maybe? */
+                break;
+        }
+    }
+
+    return 0;
+}
+#endif /* USE_PROXY */
+
 #ifdef IPV6
 struct descriptor_data *
 new_connection6(int port, int sock)
@@ -2898,8 +3032,13 @@ new_connection6(int port, int sock)
         hu = host_getinfo6(addr.sin6_addr, port, addr.sin6_port);
 #ifdef USE_PROXY
         if (ctype == CT_PROXY) { /* cyberleo */
-            /* Read proxy header and use that to build hostinfo */
-            show_status("PRXY: \n");
+            if (0 > proxyv2_init(newsock, &hu))
+              show_status("PRXY: %2d FAULT: %s\n", newsock, strerror(errno));
+              shutdown(newsock, 2);
+              closesocket(newsock);
+              return 0;
+            }
+            show_status("PRXY: %2d %s\n", newsock, hu->h->name);
         }
 #endif /* USE_PROXY */
 
@@ -2963,8 +3102,13 @@ new_connection(int port, int sock)
         hu = host_getinfo(addr.sin_addr.s_addr, port, addr.sin_port);
 #ifdef USE_PROXY
         if (ctype == CT_PROXY) { /* cyberleo */
-            /* Read proxy header and use that to build hostinfo */
-            show_status("PRXY: \n");
+            if (0 > proxyv2_init(newsock, &hu))
+              show_status("PRXY: %2d FAULT: %s\n", newsock, strerror(errno));
+              shutdown(newsock, 2);
+              closesocket(newsock);
+              return 0;
+            }
+            show_status("PRXY: %2d %s\n", newsock, hu->h->name);
         }
 #endif /* USE_PROXY */
 
