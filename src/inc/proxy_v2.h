@@ -5,7 +5,7 @@
  */
 
 
-struct proxyv2_header {
+struct proxyv2_head {
     uint8_t sig[12];  /* hex 0D 0A 0D 0A 00 0D 0A 51 55 49 54 0A */
     uint8_t ver_cmd;  /* protocol version and command */
     uint8_t fam;      /* protocol family and address */
@@ -36,6 +36,11 @@ struct proxyv2_tlv {
     uint8_t length_hi;
     uint8_t length_lo;
     uint8_t value[0];
+};
+
+struct proxyv2_info {
+    proxyv2_head head;
+    proxyv2_addr addr;
 };
 
 #define PP2_TYPE_ALPN           0x01
@@ -107,3 +112,16 @@ struct proxyv2_tlv {
         (int)a[8], (int)a[9], (int)a[10], (int)a[11], (int)a[12], (int)a[13], (int)a[14], (int)a[15] \
     ) \
 )
+
+
+#define PROXYv2_ETIMEDOUT -1
+#define PROXYv2_EBADSIG -2
+#define PROXYv2_EBADVERSION -3
+#define PROXYv2_EBADCOMMAND -4
+#define PROXYv2_EBADFAMILY -5
+#define PROXYv2_EBADPROTO -6
+#define PROXYv2_EREAD -7
+
+int proxyv2_read_with_timeout(int fp, void *buf, size_t count, struct timeval *timeout);
+const char * proxyv2_strerror(int errno);
+int proxyv2_read(int sock, struct proxyv2_info *result);
