@@ -1,5 +1,8 @@
 /* inc/autoconf.h.in.  Generated from configure.in by autoheader.  */
 
+/* Defined to enable experimental threading support */
+#undef EXPERIMENTAL_THREADING
+
 /* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
    */
 #undef HAVE_DECL_TZNAME
