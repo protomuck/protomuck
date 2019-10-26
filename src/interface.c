@@ -2898,19 +2898,21 @@ proxyv2_init(int sock, struct huinfo *hu)
         switch(PROXYv2_FAMILY(proxy->head) {
             case PROXYv2_AF_INET:
                 /* Construct new v4 hu->hostinfo struct */
-                newhu = host_getinfo(proxy->addr->ipv4->src_addr, 0, 0);
+                newhu = host_getinfo(proxy->addr->af_inet->src_addr, 0, 0);
                 hu->h = newhu->h;
+                hu->h->links++;
                 host_delete(&newhu);
                 break;
             case PROXYv2_AF_INET6:
 #ifdef IPV6
-                newhu = host_getinfo6(proxy->addr->ipv6->src_addr, 0, 0);
+                newhu = host_getinfo6(proxy->addr->af_inet6->src_addr, 0, 0);
                 hu->h = newhu->h;
+                hu->h->links++;
                 host_delete(&newhu);
 #else
                 /* We will never be able to resolve v6; just create a synthetic hostinfo */
                 char buf[44];
-                PROXYv2_EXPAND_IPV6(buf, proxy->addr->ipv6->src_addr);
+                PROXYv2_EXPAND_IPV6(buf, proxy->addr->af_inet6->src_addr);
                 struct hostinfo newh = (struct hostinfo *) malloc(sizeof(struct hostinfo));
                 newh->links = 1;
                 newh->uses = 1;
