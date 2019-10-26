@@ -84,7 +84,7 @@ CSRC= array.c boolexp.c cgi.c compile.c compress.c create.c db.c  \
       property.c propdirs.c props.c random.c rob.c set.c          \
       signal.c smatch.c speech.c strftime.c stringutil.c timequeue.c     \
       timestamp.c tune.c unparse.c utils.c wiz.c reg.c netresolve.c      \
-      sanity.c newhttp.c version.c sha1.c
+      sanity.c newhttp.c version.c sha1.c proxy_v2.c
 
 MSRC= olddecomp.c reconst.c interface.c
 SRC= ${MISCSRC} ${CSRC} ${MSRC}
@@ -100,7 +100,7 @@ COBJ=  array.o boolexp.o cgi.o compile.o compress.o create.o db.o  \
       property.o propdirs.o props.o random.o rob.o signal.o set.o \
       smatch.o speech.o strftime.o stringutil.o timequeue.o              \
       timestamp.o tune.o unparse.o utils.o wiz.o reg.o netresolve.o sanity.o newhttp.o version.o \
-      sha1.o
+      sha1.o proxy_v2.o
 
 LOBJ= copyright.o
 MOBJ= olddecomp.o reconst.o interface.o resolver.o topwords.o 
