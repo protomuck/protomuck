@@ -4,6 +4,12 @@
  *
  */
 
+#ifndef PROXY_V2_H
+#define PROXY_V2_H
+
+#include "defaults.h"
+
+extern const uint8_t proxyv2_sig[12];
 
 struct proxyv2_head {
     uint8_t sig[12];  /* hex 0D 0A 0D 0A 00 0D 0A 51 55 49 54 0A */
@@ -39,8 +45,8 @@ struct proxyv2_tlv {
 };
 
 struct proxyv2_info {
-    proxyv2_head head;
-    proxyv2_addr addr;
+    struct proxyv2_head head;
+    union proxyv2_addr addr;
 };
 
 #define PP2_TYPE_ALPN           0x01
@@ -61,14 +67,13 @@ struct proxyv2_info {
  *
  */
 
-#define PROXYv2_SIG [ 0x0d, 0x0a, 0x0d, 0x0a, 0x00, 0x0d, 0x0a, 0x51, 0x55, 0x49, 0x54, 0x0a ]
-#define PROXYv2_VALID_SIG(head) ( 0 == memcmp(&head->sig, PROXYv2_SIG, 12) )
+#define PROXYv2_VALID_SIG(head) ( 0 == memcmp(&head.sig, &proxyv2_sig, 12) )
 
-#define PROXYv2_VERSION(head) ( ( head->ver_cmd & 0xf0 ) >> 4 )
+#define PROXYv2_VERSION(head) ( ( head.ver_cmd & 0xf0 ) >> 4 )
 #define PROXYv2_VER 0x02
 #define PROXYv2_VALID_VERSION(head) ( PROXYv2_VERSION(head) == PROXYv2_VER )
 
-#define PROXYv2_COMMAND(head) ( head->ver_cmd & 0x0f )
+#define PROXYv2_COMMAND(head) ( head.ver_cmd & 0x0f )
 #define PROXYv2_CMD_LOCAL 0x00
 #define PROXYv2_CMD_PROXY 0x01
 #define PROXYv2_VALID_COMMAND(head) ( 0 \
@@ -76,7 +81,7 @@ struct proxyv2_info {
     || PROXYv2_COMMAND(head) == PROXYv2_CMD_PROXY \
 )
 
-#define PROXYv2_FAMILY(head) ( ( head->fam & 0xf0 ) >> 4 )
+#define PROXYv2_FAMILY(head) ( ( head.fam & 0xf0 ) >> 4 )
 #define PROXYv2_AF_UNSPEC 0x00
 #define PROXYv2_AF_INET 0x01
 #define PROXYv2_AF_INET6 0x02
@@ -88,7 +93,7 @@ struct proxyv2_info {
     || PROXYv2_FAMILY(head) == PROXYv2_AF_UNIX \
 )
 
-#define PROXYv2_PROTO(head) ( head->fam & 0x0f )
+#define PROXYv2_PROTO(head) ( head.fam & 0x0f )
 #define PROXYv2_SOCK_UNSPEC 0x00
 #define PROXYv2_SOCK_STREAM 0x01
 #define PROXYv2_SOCK_DGRAM 0x02
@@ -113,6 +118,7 @@ struct proxyv2_info {
     ) \
 )
 
+#define PROXYv2_MIN(a,b) ((a)<(b)?(a):(b))
 
 #define PROXYv2_ETIMEDOUT -1
 #define PROXYv2_EBADSIG -2
@@ -123,5 +129,7 @@ struct proxyv2_info {
 #define PROXYv2_EREAD -7
 
 int proxyv2_read_with_timeout(int fp, void *buf, size_t count, struct timeval *timeout);
-const char * proxyv2_strerror(int errno);
+const char * proxyv2_strerror(int err_num);
 int proxyv2_read(int sock, struct proxyv2_info *result);
+
+#endif /* PROXY_V2_H */

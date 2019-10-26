@@ -2894,26 +2894,31 @@ proxyv2_init(int sock, struct huinfo *hu)
     }
 
     /* Only change hu if it makes sense */
-    if ( PROXYv2_COMMAND(proxy->head) == PROXYv2_CMD_PROXY && PROXYv2_PROTO(proxy->head) == PROXYv2_SOCK_STREAM ) {
-        switch(PROXYv2_FAMILY(proxy->head) {
+    if ( PROXYv2_COMMAND(proxy.head) == PROXYv2_CMD_PROXY && PROXYv2_PROTO(proxy.head) == PROXYv2_SOCK_STREAM ) {
+        switch(PROXYv2_FAMILY(proxy.head)) {
             case PROXYv2_AF_INET:
                 /* Construct new v4 hu->hostinfo struct */
-                newhu = host_getinfo(proxy->addr->af_inet->src_addr, 0, 0);
+                newhu = host_getinfo(proxy.addr.af_inet.src_addr, 0, 0);
                 hu->h = newhu->h;
                 hu->h->links++;
-                host_delete(&newhu);
+                host_delete(newhu);
                 break;
             case PROXYv2_AF_INET6:
 #ifdef IPV6
-                newhu = host_getinfo6(proxy->addr->af_inet6->src_addr, 0, 0);
+                ;
+                struct in6_addr a6;
+                memcpy(&a6, &proxy.addr.af_inet6.src_addr, sizeof(a6));
+                newhu = host_getinfo6(a6, 0, 0);
                 hu->h = newhu->h;
                 hu->h->links++;
-                host_delete(&newhu);
+                host_delete(newhu);
 #else
+                ;
                 /* We will never be able to resolve v6; just create a synthetic hostinfo */
                 char buf[44];
-                PROXYv2_EXPAND_IPV6(buf, proxy->addr->af_inet6->src_addr);
-                struct hostinfo newh = (struct hostinfo *) malloc(sizeof(struct hostinfo));
+                PROXYv2_EXPAND_IPV6(buf, proxy.addr.af_inet6.src_addr);
+                struct hostinfo *newh;
+                newh = (struct hostinfo *) malloc(sizeof(struct hostinfo));
                 newh->links = 1;
                 newh->uses = 1;
                 newh->a = hu->h->a;
@@ -2924,7 +2929,7 @@ proxyv2_init(int sock, struct huinfo *hu)
                 if (hostdb)
                     hostdb->prev = newh;
                 hostdb = newh;
-                hu->h = newh
+                hu->h = newh;
 #endif /* IPV6 */
                 break;
             case PROXYv2_AF_UNIX:
@@ -2959,7 +2964,7 @@ new_connection6(int port, int sock)
         hu = host_getinfo6(addr.sin6_addr, port, addr.sin6_port);
 #ifdef USE_PROXY
         if (ctype == CT_PROXY) { /* cyberleo */
-            if (0 > proxyv2_init(newsock, &hu))
+            if (0 > proxyv2_init(newsock, hu)) {
               shutdown(newsock, 2);
               closesocket(newsock);
               return 0;
@@ -3028,7 +3033,7 @@ new_connection(int port, int sock)
         hu = host_getinfo(addr.sin_addr.s_addr, port, addr.sin_port);
 #ifdef USE_PROXY
         if (ctype == CT_PROXY) { /* cyberleo */
-            if (0 > proxyv2_init(newsock, &hu))
+            if (0 > proxyv2_init(newsock, hu)) {
               shutdown(newsock, 2);
               closesocket(newsock);
               return 0;
