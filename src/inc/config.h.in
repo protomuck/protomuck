@@ -29,11 +29,15 @@
  ************************************************************************/
 
 /* UTF8_SUPPORT support will be moved to ./configure, it lives here for now.
- * It is undefined by default. There is currently a bug in the password
- * hashing routines when this is defined (players can't connect), so only use
- * this with unencrypted databases for the time being.
  *
- * This code is currently unmaintained. */
+ * Alynna -- in my branch it is defined by default.  Additionally, ok_password
+ * won't allow a UTF8 password, to prevent the bug that undefining this was
+ * hiding.
+ * 
+ * NOTE: As of right now this bug isn't really fixed!  If you have salted
+ * passwords, undefine this plz.   However the fix to ok_password will stick
+ * until I can decide what really to do with it.
+ */
 #undef UTF8_SUPPORT
 
 /* This define has no effect unless UTF8_SUPPORT is enabled. When both are
@@ -99,7 +103,6 @@
  * (make resolver) and put it in the directory that the protomuck program is
  * run from.
  */
-#undef SPAWN_HOST_RESOLVER
 #define SPAWN_HOST_RESOLVER
 
 /* If this is defined, the resolver will try to restart itself if killed. */
@@ -258,8 +261,30 @@
  * @find =EC
  *
  * -brevantes
+ *
+ *
+ * I am now defining this by default.  If you have any doubts as to whether
+ * or not you have moved your props to the hidden chlock, copy and paste this
+ * to your MUCK as a W3 or greater wizard:                     --Alynna
+
+@program chlock-convert.muf
+1 1000 d
+i
+: main
+#-1 "*" "C" find_array foreach var! target pop
+ target @ "_/chlk" over over getprop target @ "@/chlk" rot setprop 0 setprop
+repeat
+;
+.
+c
+q
+!@act @chlock-convert=me,chlock-convert.muf
+@chlock-convert
+!@rec @chlock-convert
+!@rec chlock-convert.muf
+
  */
-#undef HIDDEN_CHLK
+#define HIDDEN_CHLK
 
 
 /* Don't define CONTROLS_SUPPORT without defining HIDDEN_CHLK as well. It does
@@ -269,7 +294,7 @@
  * You may define this without HIDDEN_CHLK if your site was already using it,
  * but you do so at your own risk. -brevantes
  */
-#undef CONTROLS_SUPPORT	/* Alynna 20030907 */
+#define CONTROLS_SUPPORT	/* Alynna 20030907 */
 
 /* If you have problems compiling with DETACH defined, uncomment one
  * of these:
@@ -526,8 +551,8 @@
 
 /* This gives some debug Bmalloc profiling, but also eats some overhead,
    so only define if your using it. */
-#undef MALLOC_PROFILING
-#undef CRT_DEBUG_ALSO
+#define MALLOC_PROFILING
+#define CRT_DEBUG_ALSO
 
 /************************************************************************/
 /************************************************************************/
