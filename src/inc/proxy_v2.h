@@ -18,17 +18,17 @@ union proxyv2_addr {
         uint32_t dst_addr;
         uint16_t src_port;
         uint16_t dst_port;
-    } ipv4;
+    } af_inet;
     struct {        /* for TCP/UDP over IPv6, len = 36 */
          uint8_t  src_addr[16];
          uint8_t  dst_addr[16];
          uint16_t src_port;
          uint16_t dst_port;
-    } ipv6;
+    } af_inet6;
     struct {        /* for AF_UNIX sockets, len = 216 */
          uint8_t src_addr[108];
          uint8_t dst_addr[108];
-    } unix;
+    } af_unix;
 };
 
 struct proxyv2_tlv {
