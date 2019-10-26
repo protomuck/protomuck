@@ -5003,9 +5003,9 @@ do_dinfo(dbref player, const char *arg)
         /* need to print out the flags */
         anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
 
-	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s    Encoding: %s", 
-	    (d->telopt.termtype ? d->telopt.termtype : "<unknown>"),
-	    (d->encoding ? (d->encoding==1 ? "ASCII-7" : "UTF-8") : "RAW" ));
+    anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s    Encoding: %s",
+        (d->telopt.termtype ? d->telopt.termtype : "<unknown>"),
+        (d->encoding ? (d->encoding==1 ? "ASCII-7" : "UTF-8") : "RAW" ));
 
     if (Arch(player))
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
@@ -5013,8 +5013,8 @@ do_dinfo(dbref player, const char *arg)
     else
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s", d->hu->h->name);
 
-        anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY
-	            "%X", hostToIPex(d->hu->h), d->hu->u->uport, d->hu->h->a);
+    anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY
+                "%X", hostToIPex(d->hu->h), d->hu->u->uport, d->hu->h->a);
 
     anotify_fmt(player, SYSVIOLET "Online: " SYSPURPLE "%s  " SYSBROWN "Idle: "
                 SYSYELLOW "%s  " SYSCRIMSON "Commands: " SYSRED "%d",
