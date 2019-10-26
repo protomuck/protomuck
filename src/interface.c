@@ -7089,13 +7089,17 @@ mccp_start(struct descriptor_data *d, int version)
     if (opt)
         setsockopt(d->descriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
 
-        if (d->type != CT_HTTP) {
-	    if (version == 1)
-                sockwrite(d, "\377\372\125\373\360", 5); /* IAC SB COMPRESS WILL SE (MCCP v1) */
-	    else if (version == 2) 
-                sockwrite(d, "\377\372\126\377\360", 5); /* IAC SB COMPRESS2 IAC SE (MCCP v2) */ //ff fa 56 ff f0
+#ifdef NEWHTTPD
+    if (d->type != CT_HTTP) {
+#endif /* NEWHTTPD */
+        if (version == 1)
+            sockwrite(d, "\377\372\125\373\360", 5); /* IAC SB COMPRESS WILL SE (MCCP v1) */
+        else if (version == 2)
+            sockwrite(d, "\377\372\126\377\360", 5); /* IAC SB COMPRESS2 IAC SE (MCCP v2) */ //ff fa 56 ff f0
+#ifdef NEWHTTPD
+    }
+#endif /* NEWHTTPD */
 
-        }
     if (opt)  {
         //This is a temporary fix for a bug related to SimpleMU.
 #ifdef WIN32
@@ -7120,9 +7124,11 @@ mccp_start(struct descriptor_data *d, int version)
     s->zfree  = NULL;
     s->opaque = NULL;
 
+#ifdef NEWHTTPD
     if (d->type == CT_HTTP) {
         deflateInit2(s, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15+16, 8, Z_DEFAULT_STRATEGY);
     } else {
+#endif /* NEWHTTPD */
         if (deflateInit(s, 9) != Z_OK) {
             free((void *)m->buf);
             free((void *)m);
@@ -7131,7 +7137,9 @@ mccp_start(struct descriptor_data *d, int version)
 
             return;
         }
+#ifdef NEWHTTPD
     }
+#endif /* NEWHTTPD */
 
     m->version = version;
     m->z = s;
