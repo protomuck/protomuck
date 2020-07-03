@@ -1346,6 +1346,9 @@ prim_descrtype(PRIM_PROTOTYPE)
 #ifdef USE_SSL
     if (x == CT_SSL) p = "SSL";
 #endif
+#ifdef USE_PROXY
+    if (x == CT_PROXY) p = "PROXY";
+#endif /* USE_PROXY */
     strcpy(dtype, p);
     CLEAR(oper1);
     CHECKOFLOW(1);

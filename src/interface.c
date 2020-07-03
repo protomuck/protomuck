@@ -26,6 +26,9 @@
 #ifdef UTF8_SUPPORT
 # include <locale.h>
 #endif
+#ifdef USE_PROXY
+# include "proxy_v2.h"
+#endif
 
 /* Cynbe stuff added to help decode corefiles:
 #define CRT_LAST_COMMAND_MAX 65535
@@ -144,6 +147,7 @@ int remember_descriptor(struct descriptor_data *);
 int process_output(struct descriptor_data *d);
 int process_input(struct descriptor_data *d);
 int get_ctype(int port);
+char * get_ctype_s(int ctype);
 int make_socket(int);
 int make_socket6(int);
 
@@ -717,6 +721,17 @@ main(int argc, char **argv)
 #endif
     }
 #endif
+#ifdef USE_PROXY
+    if ((tp_proxyport > 1) && (tp_proxyport < 65536)) { /* cyberleo */
+        listener_port[numsocks++] = tp_proxyport;
+#ifdef IPV6
+        is_ipv6[numsocks-1] = 0;
+        listener_port[numsocks++] = tp_proxyport;
+        is_ipv6[numsocks-1] = 1;
+#endif /* IPV6 */
+    }
+#endif /* USE_PROXY */
+
     if (!numsocks) {
         listener_port[numsocks++] = TINYPORT;
 #ifdef IPV6
@@ -2800,6 +2815,11 @@ get_ctype(int port)
                 ctype = CT_SSL;
                 break;
 #endif
+#ifdef USE_PROXY
+            case 5:
+                ctype = CT_PROXY;
+                break;
+#endif
             default:
                 ctype = CT_MUCK;
                 break;
@@ -2815,12 +2835,112 @@ get_ctype(int port)
         } else if (port == tp_sslport) { /* alynna */
             ctype = CT_SSL;
 #endif /* USE_SSL */
+#ifdef USE_PROXY
+        } else if (port == tp_proxyport) { /* cyberleo */
+            ctype = CT_PROXY;
+#endif /* USE_PROXY */
         } else
             ctype = CT_MUCK;
     }
 
     return ctype;
 }
+
+char *
+get_ctype_s(int ctype)
+{
+    char *res;
+
+    switch(ctype) {
+        case CT_MUCK:
+            res = "TEXT";
+            break;
+        case CT_PUEBLO:
+            res = "PUEBLO";
+            break;
+        case CT_MUF:
+            res = "MUF";
+            break;
+#ifdef USE_SSL
+        case CT_SSL:
+            res = "SSL";
+            break;
+#endif /* USE_SSL */
+#ifdef USE_PROXY
+        case CT_PROXY:
+            res = "PROXY";
+            break;
+#endif /* USE_PROXY */
+        default:
+            res = "UNKNOWN";
+            break;
+    }
+
+    return res;
+}
+
+#ifdef USE_PROXY
+int
+proxyv2_init(int sock, struct huinfo *hu)
+{
+    /* Return error whenever any sort of read or validation fails */
+    struct proxyv2_info proxy;
+    int rv;
+    struct huinfo *newhu;
+
+    if ( 0 > ( rv = proxyv2_read(sock, &proxy) ) ) {
+        show_status("PRXY: %2d FAULT: %s from %s\n", sock, proxyv2_strerror(rv), hu->h->name);
+        return -1;
+    }
+
+    /* Only change hu if it makes sense */
+    if ( PROXYv2_COMMAND(proxy.head) == PROXYv2_CMD_PROXY && PROXYv2_PROTO(proxy.head) == PROXYv2_SOCK_STREAM ) {
+        switch(PROXYv2_FAMILY(proxy.head)) {
+            case PROXYv2_AF_INET:
+                /* Construct new v4 hu->hostinfo struct */
+                newhu = host_getinfo(proxy.addr.af_inet.src_addr, 0, 0);
+                hu->h = newhu->h;
+                hu->h->links++;
+                host_delete(newhu);
+                break;
+            case PROXYv2_AF_INET6:
+#ifdef IPV6
+                ;
+                struct in6_addr a6;
+                memcpy(&a6, &proxy.addr.af_inet6.src_addr, sizeof(a6));
+                newhu = host_getinfo6(a6, 0, 0);
+                hu->h = newhu->h;
+                hu->h->links++;
+                host_delete(newhu);
+#else
+                ;
+                /* We will never be able to resolve v6; just create a synthetic hostinfo */
+                char buf[44];
+                PROXYv2_EXPAND_IPV6(buf, proxy.addr.af_inet6.src_addr);
+                struct hostinfo *newh;
+                newh = (struct hostinfo *) malloc(sizeof(struct hostinfo));
+                newh->links = 1;
+                newh->uses = 1;
+                newh->a = hu->h->a;
+                newh->wupd = 0;
+                newh->name = alloc_string(buf);
+                newh->prev = NULL;
+                newh->next = hostdb;
+                if (hostdb)
+                    hostdb->prev = newh;
+                hostdb = newh;
+                hu->h = newh;
+#endif /* IPV6 */
+                break;
+            case PROXYv2_AF_UNIX:
+                /* I dunno, do we even care? Put it in hu->hostinfo->name maybe? */
+                break;
+        }
+    }
+
+    return 0;
+}
+#endif /* USE_PROXY */
 
 #ifdef IPV6
 struct descriptor_data *
@@ -2830,16 +2950,29 @@ new_connection6(int port, int sock)
     struct sockaddr_in6 addr;
     int addr_len;
     int ctype;
+    char * ctype_s;
     int result;
     struct huinfo *hu;
     
     addr_len = sizeof(addr);
     newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
     ctype = get_ctype(port);
+    ctype_s = get_ctype_s(ctype);
     if (newsock < 0) {
         return 0;
     } else {
         hu = host_getinfo6(addr.sin6_addr, port, addr.sin6_port);
+#ifdef USE_PROXY
+        if (ctype == CT_PROXY) { /* cyberleo */
+            if (0 > proxyv2_init(newsock, hu)) {
+              shutdown(newsock, 2);
+              closesocket(newsock);
+              return 0;
+            }
+            show_status("PRXY: %2d %s\n", newsock, hu->h->name);
+        }
+#endif /* USE_PROXY */
+
 	/* log_status("Resolved to: %s\n",hu->h->name); */
 	/* Alynna: Fix this soon!
         if (reg_site_is_blocked(ntohl(addr.sin6_addr.s6_addr)) == TRUE) {
@@ -2857,33 +2990,13 @@ new_connection6(int port, int sock)
             show_status("ACT6: %2d %s %d C#%d P#%d %s\n", newsock,
                         hu->h->name, addr.sin6_port,
                         ++crt_connect_count, port,
-                        ctype == CT_MUCK ? "TEXT" :
-                        (ctype == CT_PUEBLO ? "PUEBLO" :
-                         (ctype == CT_MUF ? "MUF" :
-#ifdef USE_SSL
-                          (ctype == CT_SSL ? "SSL" :
-#endif /* USE_SSL */
-                           ("UNKNOWN")
-#ifdef USE_SSL
-                          )
-#endif /* USE_SSL */
-                         ))
+                        ctype_s
                 );
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "ACT6: %2d %s %d C#%d P#%d %s\n",
                              newsock, hu->h->name, addr.sin6_port,
                              ++crt_connect_count, port,
-                             ctype == CT_MUCK ? "TEXT" :
-                             (ctype == CT_PUEBLO ? "PUEBLO" :
-                              (ctype == CT_MUF ? "MUF" :
-#ifdef USE_SSL
-                               (ctype == CT_SSL ? "SSL" :
-#endif /* USE_SSL */
-                                ("UNKNOWN")
-#ifdef USE_SSL
-                               )
-#endif /* USE_SSL */
-                              ))
+                             ctype_s
                     );
 #ifdef NEWHTTPD
         }
@@ -2906,16 +3019,28 @@ new_connection(int port, int sock)
     struct sockaddr_in addr;
     int addr_len;
     int ctype;
+    char * ctype_s;
     int result;
     struct huinfo *hu;
     
     addr_len = sizeof(addr);
     newsock = accept(sock, (struct sockaddr *) &addr, (socklen_t *) &addr_len);
     ctype = get_ctype(port);
+    ctype_s = get_ctype_s(ctype);
     if (newsock < 0) {
         return 0;
     } else {
         hu = host_getinfo(addr.sin_addr.s_addr, port, addr.sin_port);
+#ifdef USE_PROXY
+        if (ctype == CT_PROXY) { /* cyberleo */
+            if (0 > proxyv2_init(newsock, hu)) {
+              shutdown(newsock, 2);
+              closesocket(newsock);
+              return 0;
+            }
+            show_status("PRXY: %2d %s\n", newsock, hu->h->name);
+        }
+#endif /* USE_PROXY */
 
         if (reg_site_is_blocked(ntohl(addr.sin_addr.s_addr)) == TRUE) {
             log_status("*BLK: %2d %s(%d) %s C#%d P#%d\n", newsock,
@@ -2933,34 +3058,14 @@ new_connection(int port, int sock)
                         hu->h->name, ntohs(addr.sin_port),
                         host_as_hex(ntohl(addr.sin_addr.s_addr)),
                         ++crt_connect_count, port,
-                        ctype == CT_MUCK ? "TEXT" :
-                        (ctype == CT_PUEBLO ? "PUEBLO" :
-                         (ctype == CT_MUF ? "MUF" :
-#ifdef USE_SSL
-                          (ctype == CT_SSL ? "SSL" :
-#endif /* USE_SSL */
-                           ("UNKNOWN")
-#ifdef USE_SSL
-                          )
-#endif /* USE_SSL */
-                         ))
+                        ctype_s
                 );
             if (tp_log_connects)
                 log2filetime(CONNECT_LOG, "ACPT: %2d %s(%d) %s C#%d P#%d %s\n",
                              newsock, hu->h->name, ntohs(addr.sin_port),
                              host_as_hex(ntohl(addr.sin_addr.s_addr)),
                              ++crt_connect_count, port,
-                             ctype == CT_MUCK ? "TEXT" :
-                             (ctype == CT_PUEBLO ? "PUEBLO" :
-                              (ctype == CT_MUF ? "MUF" :
-#ifdef USE_SSL
-                               (ctype == CT_SSL ? "SSL" :
-#endif /* USE_SSL */
-                                ("UNKNOWN")
-#ifdef USE_SSL
-                               )
-#endif /* USE_SSL */
-                              ))
+                             ctype_s
                     );
 #ifdef NEWHTTPD
         }
@@ -3180,6 +3285,9 @@ initializesock(int s, struct huinfo *hu, int ctype, int cport, int welcome)
 #ifdef USE_SSL
          ctype == CT_SSL ||
 #endif
+#ifdef USE_PROXY
+         ctype == CT_PROXY ||
+#endif /* USE_PROXY */
          ctype == CT_PUEBLO)
             && tp_ascii_descrs) {
         d->encoding = 1; /* ASCII I/O */
@@ -3973,6 +4081,9 @@ process_input(struct descriptor_data *d)
 #ifdef USE_SSL
                                               || d->type == CT_SSL
 #endif
+#ifdef USE_PROXY
+                                              || d->type == CT_PROXY
+#endif /* USE_PROXY */
             )) {
                 /* if BS or DEL, delete last character */
                 if (p > d->raw_input) {
@@ -4880,6 +4991,11 @@ do_dinfo(dbref player, const char *arg)
             ctype = "ssl";
             break;
 #endif /* USE_SSL */
+#ifdef USE_PROXY
+        case CT_PROXY:
+            ctype = "proxy";
+            break;
+#endif /* USE_PROXY */
         default:
             ctype = "unknown";
     }
@@ -4892,9 +5008,9 @@ do_dinfo(dbref player, const char *arg)
         /* need to print out the flags */
         anotify_nolisten(player, descr_flag_description(d->descriptor), 1);
 
-	anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s    Encoding: %s", 
-	    (d->telopt.termtype ? d->telopt.termtype : "<unknown>"),
-	    (d->encoding ? (d->encoding==1 ? "ASCII-7" : "UTF-8") : "RAW" ));
+    anotify_fmt(player, SYSAQUA "Termtype: " SYSCYAN "%s    Encoding: %s",
+        (d->telopt.termtype ? d->telopt.termtype : "<unknown>"),
+        (d->encoding ? (d->encoding==1 ? "ASCII-7" : "UTF-8") : "RAW" ));
 
     if (Arch(player))
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s" SYSBLUE "@"
@@ -4902,8 +5018,8 @@ do_dinfo(dbref player, const char *arg)
     else
         anotify_fmt(player, SYSAQUA "Host: " SYSCYAN "%s", d->hu->h->name);
 
-        anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY
-	            "%X", hostToIPex(d->hu->h), d->hu->u->uport, d->hu->h->a);
+    anotify_fmt(player, SYSAQUA "IP: " SYSCYAN "%s" SYSYELLOW "(%d) " SYSNAVY
+                "%X", hostToIPex(d->hu->h), d->hu->u->uport, d->hu->h->a);
 
     anotify_fmt(player, SYSVIOLET "Online: " SYSPURPLE "%s  " SYSBROWN "Idle: "
                 SYSYELLOW "%s  " SYSCRIMSON "Commands: " SYSRED "%d",
@@ -5171,6 +5287,17 @@ dump_users(struct descriptor_data *d, char *user)
                 break;
             }
 #endif
+#ifdef USE_PROXY
+            case CT_PROXY:{
+                if (dlist->connected && OkObj(dlist->player)) {
+                    strcpy(plyrbuf, NAME(dlist->player));
+                } else {
+                    strcpy(plyrbuf, "[Connecting]");
+                }
+                strcpy(typbuf, "Proxy Port");
+                break;
+            }
+#endif /* USE_PROXY */
             case CT_PUEBLO:{
                 if (dlist->connected && OkObj(dlist->player)) {
                     strcpy(plyrbuf, NAME(dlist->player));
@@ -6707,6 +6834,9 @@ welcome_user(struct descriptor_data *d)
 #ifdef USE_SSL
         || d->type == CT_SSL
 #endif /* USE_SSL */
+#ifdef USE_PROXY
+        || d->type == CT_PROXY
+#endif /* USE_PROXY */
         ) {
         fname = reg_site_welcome(d->hu->h->a);
         if (fname && (*fname == '.')) {
@@ -6964,13 +7094,17 @@ mccp_start(struct descriptor_data *d, int version)
     if (opt)
         setsockopt(d->descriptor, IPPROTO_TCP, TCP_NODELAY, (char *) &opt, sizeof(opt));
 
-        if (d->type != CT_HTTP) {
-	    if (version == 1)
-                sockwrite(d, "\377\372\125\373\360", 5); /* IAC SB COMPRESS WILL SE (MCCP v1) */
-	    else if (version == 2) 
-                sockwrite(d, "\377\372\126\377\360", 5); /* IAC SB COMPRESS2 IAC SE (MCCP v2) */ //ff fa 56 ff f0
+#ifdef NEWHTTPD
+    if (d->type != CT_HTTP) {
+#endif /* NEWHTTPD */
+        if (version == 1)
+            sockwrite(d, "\377\372\125\373\360", 5); /* IAC SB COMPRESS WILL SE (MCCP v1) */
+        else if (version == 2)
+            sockwrite(d, "\377\372\126\377\360", 5); /* IAC SB COMPRESS2 IAC SE (MCCP v2) */ //ff fa 56 ff f0
+#ifdef NEWHTTPD
+    }
+#endif /* NEWHTTPD */
 
-        }
     if (opt)  {
         //This is a temporary fix for a bug related to SimpleMU.
 #ifdef WIN32
@@ -6995,9 +7129,11 @@ mccp_start(struct descriptor_data *d, int version)
     s->zfree  = NULL;
     s->opaque = NULL;
 
+#ifdef NEWHTTPD
     if (d->type == CT_HTTP) {
         deflateInit2(s, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15+16, 8, Z_DEFAULT_STRATEGY);
     } else {
+#endif /* NEWHTTPD */
         if (deflateInit(s, 9) != Z_OK) {
             free((void *)m->buf);
             free((void *)m);
@@ -7006,7 +7142,9 @@ mccp_start(struct descriptor_data *d, int version)
 
             return;
         }
+#ifdef NEWHTTPD
     }
+#endif /* NEWHTTPD */
 
     m->version = version;
     m->z = s;

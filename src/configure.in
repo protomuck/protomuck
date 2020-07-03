@@ -281,7 +281,7 @@ AC_ARG_ENABLE(gprof,
 [  --enable-gprof          compile with gprof profiling enabled],
 [
 if test "$enableval" = "yes"; then
-    DEBUG_FLAGS+="-pg"
+    DEBUG_FLAGS="${DEBUG_FLAGS} -pg"
 fi
 ])
 
@@ -292,24 +292,31 @@ AC_ARG_ENABLE(debug,
                           disables compiler optimizations. (CFLAGS=-O0) ],
 [
     if test "$enableval" = "no"; then
-        DEBUG_FLAGS+=""
+        DEBUG_FLAGS="${DEBUG_FLAGS}"
     elif test "$enableval" = "all"; then
         DEBUG_FLAGS="-g3 -pg -O0"
     elif test "$enableval" != "yes"; then
         # TODO: Make sure it's a number.
-        DEBUG_FLAGS+=" -g${enableval}"
+        DEBUG_FLAGS="${DEBUG_FLAGS} -g${enableval}"
     else
-        DEBUG_FLAGS+=" -g"
+        DEBUG_FLAGS="${DEBUG_FLAGS} -g"
     fi
 
 ],
 [
     # Assume they want debugging symbols.
-    DEBUG_FLAGS+=" -g"
+    DEBUG_FLAGS="${DEBUG_FLAGS} -g"
 ])
 
 AC_SUBST([DEBUG_FLAGS])
 
+AC_ARG_ENABLE(proxy,
+[  --enable-proxy          Enable PROXYv2 support],
+[
+if test "$enableval" != "no"; then
+    AC_DEFINE(USE_PROXY, [], [Defined to enable PROXYv2 support.])
+fi
+])
 
 
 dnl

@@ -133,6 +133,7 @@ struct tune_time_entry tune_time_list[] = {
 int tp_textport = TINYPORT;
 int tp_puebloport = TINYPORT - 2;
 int tp_sslport = TINYPORT + 1;
+int tp_proxyport = TINYPORT + 2;
 int tp_max_object_endowment = MAX_OBJECT_ENDOWMENT;
 int tp_object_cost = OBJECT_COST;
 int tp_exit_cost = EXIT_COST;
@@ -197,6 +198,7 @@ struct tune_val_entry tune_val_list[] = {
     {"System", "sslport", &tp_sslport, WBOY, LMUF},
     {"System", "wwwport", &tp_wwwport, WBOY, LMUF},
     {"System", "puebloport", &tp_puebloport, WBOY, LMUF},
+    {"System", "proxyport", &tp_proxyport, WBOY, LMUF},
     {"Currency", "max_object_endowment", &tp_max_object_endowment, LARCH, LMUF},
     {"Currency", "object_cost", &tp_object_cost, LARCH, LMUF},
     {"Currency", "exit_cost", &tp_exit_cost, LARCH, LMUF},
