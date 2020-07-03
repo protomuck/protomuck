@@ -551,6 +551,10 @@ genderof(int descr, dbref player)
         return GENDER_MALE;
     if (string_compare(sexstr, "female") == 0)
         return GENDER_FEMALE;
+    if (string_compare(sexstr, "hermaphrodite") == 0)
+        return GENDER_HERM;
+    if (string_compare(sexstr, "herm") == 0)
+        return GENDER_HERM;
     if (string_compare(sexstr, "neuter") == 0)
         return GENDER_NEUTER;
     return GENDER_UNASSIGNED;
