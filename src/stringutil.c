@@ -724,11 +724,11 @@ pronoun_substitute(int descr, dbref player, const char *str)
     dbref mywhere = player;
     int sex;
 
-    static const char *subjective[4] = { "", "it", "she", "he" };
-    static const char *possessive[4] = { "", "its", "her", "his" };
-    static const char *objective[4] = { "", "it", "her", "him" };
-    static const char *reflexive[4] = { "", "itself", "herself", "himself" };
-    static const char *absolute[4] = { "", "its", "hers", "his" };
+    static const char *subjective[5] = { "", "it", "she", "he", "sie" };
+    static const char *possessive[5] = { "", "its", "her", "his", "hir" };
+    static const char *objective[5] = { "", "it", "her", "him", "hir" };
+    static const char *reflexive[5] = { "", "itself", "herself", "himself", "hirself" };
+    static const char *absolute[5] = { "", "its", "hers", "his", "hirs" };
 
     prn[0] = '%';
     prn[2] = '\0';

@@ -284,6 +284,7 @@ extern short dbcheck(const char *file, int line, dbref item);
 #define GENDER_NEUTER	    0x1	/* neuter */
 #define GENDER_FEMALE	    0x2	/* for women */
 #define GENDER_MALE 	    0x3 /* for men */
+#define GENDER_HERM	    0x4	/* for herms */
 
 #define F256COLOR 	 0x4000	/* Indicates player wants 256 Color. */
 #define W4               0x8000 /* W4 flag */
