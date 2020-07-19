@@ -18,7 +18,6 @@
 
 #ifdef SQL_SUPPORT
 #include <mysql/mysql.h>
-#include <mysql/mysql_version.h>
 #endif
 
 #ifdef USE_SSL

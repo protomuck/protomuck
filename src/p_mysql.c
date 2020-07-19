@@ -7,7 +7,6 @@
 #include "params.h"
 #ifdef SQL_SUPPORT
 #include <mysql/mysql.h>
-#include <mysql/mysql_version.h>
 #include "db.h"
 #include "tune.h"
 #include "props.h"
