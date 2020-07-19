@@ -84,9 +84,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$HELP/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -98,9 +96,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$MUF/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -112,9 +108,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$LOGS/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -126,9 +120,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$INFO/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -140,9 +132,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$MAN/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -154,9 +144,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$MPIHELP/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -168,9 +156,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$WELCOME/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -182,9 +168,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$PUBLIC_HTML/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -196,9 +180,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     if ((temp = strstr(filename, "$WWW/")) != NULL) {
         char tempBuf[BUFFER_LEN] = "";
@@ -210,9 +192,7 @@ parse_token(char *filename)
             tempBuf[i] = *temp;
         i++;
         tempBuf[i] = '\0';
-        strcat(tempBuf2, tempBuf);
-        filename = tempBuf2;
-        return filename;
+        return strcat(tempBuf2, tempBuf);
     }
     return NULL;
 }
